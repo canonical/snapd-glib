@@ -21,7 +21,7 @@ ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
 dnl === Dependencies ==========================================================
 
-PKG_CHECK_MODULES(SNAPD, [gobject-2.0 libsoup-2.4 json-glib-1.0])
+PKG_CHECK_MODULES(SNAPD, [gobject-2.0 gio-2.0 gio-unix-2.0 libsoup-2.4 json-glib-1.0])
 
 dnl === Introspection =========================================================
 
