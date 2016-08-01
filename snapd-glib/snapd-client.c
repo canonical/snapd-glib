@@ -6,7 +6,7 @@
 
 typedef struct
 {
-  GSocket *snapd_socket;
+    GSocket *snapd_socket;
 } SnapdClientPrivate;
  
 G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)

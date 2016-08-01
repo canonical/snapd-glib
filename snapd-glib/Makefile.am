@@ -1,9 +1,13 @@
 # main library
 source_h = \
-	snapd-client.h
+	snapd-auth-data.h \
+	snapd-client.h \
+	snapd-system-information.h
 
 source_c = \
-	snapd-client.c
+	snapd-auth-data.c \
+	snapd-client.c \
+	snapd-system-information.c
 
 lib_LTLIBRARIES = libsnapd-glib-1.0.la
 
