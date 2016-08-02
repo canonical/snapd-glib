@@ -31,6 +31,8 @@ struct _SnapdClientClass
 
 typedef enum {  
     SNAPD_CLIENT_ERROR_CONNECTION_FAILED,
+    SNAPD_CLIENT_ERROR_READ_ERROR,
+    SNAPD_CLIENT_ERROR_WRITE_ERROR,
     SNAPD_CLIENT_ERROR_LAST
 } SnapdClientError;
 
