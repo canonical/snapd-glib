@@ -205,6 +205,7 @@ read_from_snapd (SnapdClient *client, GCancellable *cancellable, gboolean blocki
             break;
 
         case SOUP_ENCODING_CHUNKED:
+            // FIXME: Find a way to abort on error
             while (!have_chunked_body (body, priv->n_read - header_length)) {
                 if (!blocking)
                     return G_SOURCE_CONTINUE;
