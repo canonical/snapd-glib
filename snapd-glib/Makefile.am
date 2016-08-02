@@ -12,9 +12,6 @@ source_c = \
 lib_LTLIBRARIES = libsnapd-glib-1.0.la
 
 libsnapd_glib_1_0_la_CPPFLAGS = \
-	-DPREFIX=\""$(prefix)"\" \
-	-DLIBDIR=\""$(libdir)"\" \
-	-DSNAPD_LOCALEDIR=\""$(localedir)"\" \
 	-DSNAPD_COMPILATION=1 \
 	-DG_LOG_DOMAIN=\"Snapd\" \
 	-I$(top_srcdir) \
