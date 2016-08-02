@@ -25,6 +25,16 @@ struct _SnapdSystemInformationClass
     void (* _snapd_reserved4) (void);
 };
 
+gboolean     snapd_system_information_get_on_classic (SnapdSystemInformation *system_information);
+
+const gchar *snapd_system_information_get_os_id      (SnapdSystemInformation *system_information);
+
+const gchar *snapd_system_information_get_os_version (SnapdSystemInformation *system_information);
+
+const gchar *snapd_system_information_get_series     (SnapdSystemInformation *system_information);
+
+const gchar *snapd_system_information_get_version    (SnapdSystemInformation *system_information);
+
 G_END_DECLS
 
 #endif /* __SNAPD_SYSTEM_INFORMATION_H__ */
