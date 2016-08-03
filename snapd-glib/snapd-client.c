@@ -61,7 +61,7 @@ send_request (GTask *task, SnapdAuthData *auth_data, const gchar *method, const 
         g_string_append_printf (request, "Authorization: Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (auth_data));
         for (i = 0; i < snapd_auth_data_get_discharge_count (auth_data); i++)
             g_string_append_printf (request, ",discharge=\"%s\"", snapd_auth_data_get_discharge (auth_data, i));
-        g_string_append (request, "\r\n");       
+        g_string_append (request, "\r\n");
     }
     if (content_type)
         g_string_append_printf (request, "Content-Type: %s\r\n", content_type);
@@ -184,7 +184,7 @@ parse_get_system_information_response (GTask *task, SoupMessageHeaders *headers,
                                        "series", get_string (info, "series", NULL),
                                        "version", get_string (info, "version", NULL),
                                        NULL);
-    g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref); 
+    g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref);
 }
 
 static SnapdSnap *
@@ -195,7 +195,7 @@ parse_snap (JsonObject *object)
     const gchar *snap_type_string;
     SnapdConfinement snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
     const gchar *snap_status_string;
-    SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;      
+    SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;
 
     confinement_string = get_string (object, "confinement", "");
     if (strcmp (confinement_string, "strict") == 0)
@@ -252,7 +252,7 @@ parse_snap_list (JsonArray *array)
     guint i;
 
     snap_list = g_object_new (SNAPD_TYPE_SNAP_LIST, NULL);
-    for (i = 0; i < json_array_get_length (array); i++) {      
+    for (i = 0; i < json_array_get_length (array); i++) {
         JsonObject *object = json_array_get_object_element (array, i);
         _snapd_snap_list_add (snap_list, parse_snap (object));
     }
@@ -313,7 +313,7 @@ parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
     discharges = json_object_get_array_member (auth, "discharges");
     for (i = 0; i < json_array_get_length (discharges); i++)
         snapd_auth_data_add_discharge (auth_data, json_array_get_string_element (discharges, i));
-    g_task_return_pointer (task, g_steal_pointer (&auth_data), g_object_unref); 
+    g_task_return_pointer (task, g_steal_pointer (&auth_data), g_object_unref);
 }
 
 static void
@@ -340,7 +340,7 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
     g_autoptr(GError) error = NULL;
     JsonObject *list_object;
     JsonArray *methods;
-    guint i;  
+    guint i;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
         g_task_return_error (task, error);
@@ -366,6 +366,24 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
         _snapd_payment_method_list_add (payment_method_list, payment_method);
     }
     g_task_return_pointer (task, g_steal_pointer (&payment_method_list), g_object_unref);
+}
+
+static void
+parse_buy_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonNode) result = NULL;
+    g_autoptr(SnapdPaymentMethodList) payment_method_list = NULL;
+    g_autoptr(GError) error = NULL;
+    JsonObject *list_object;
+    JsonArray *methods;
+    guint i;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+        g_task_return_error (task, error);
+        return;
+    }
+
+    g_task_return_boolean (task, TRUE);
 }
 
 static void
@@ -395,16 +413,19 @@ parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *c
         parse_get_snap_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_INSTALLED:
-        parse_get_installed_response (task, headers, content, content_length);      
-        break;     
+        parse_get_installed_response (task, headers, content, content_length);
+        break;
     case SNAPD_REQUEST_LOGIN:
         parse_login_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_FIND:
-        parse_find_response (task, headers, content, content_length);      
+        parse_find_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_PAYMENT_METHODS:
-        parse_get_payment_methods_response (task, headers, content, content_length);      
+        parse_get_payment_methods_response (task, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_BUY:
+        parse_buy_response (task, headers, content, content_length);
         break;
     }
 }
@@ -584,6 +605,13 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
     return read_from_snapd (client, NULL, FALSE); // FIXME: Use Cancellable from first task?
 }
 
+static void
+wait_for_task (GTask *task)
+{
+    while (!g_task_get_completed (task))
+        g_main_context_iteration (g_task_get_context (task), TRUE);
+}
+
 gboolean
 snapd_client_connect_sync (SnapdClient *client, GCancellable *cancellable, GError **error)
 {
@@ -645,8 +673,7 @@ snapd_client_get_system_information_sync (SnapdClient *client, GCancellable *can
     g_autoptr(GTask) task = NULL;
 
     task = g_object_ref (make_get_system_information_task (client, cancellable, NULL, NULL));
-    while (!g_task_get_completed (task))
-        g_main_context_iteration (g_task_get_context (task), TRUE);
+    wait_for_task (task);
     return snapd_client_get_system_information_finish (client, G_ASYNC_RESULT (task), error);
 }
 
@@ -689,8 +716,7 @@ snapd_client_get_snap_sync (SnapdClient *client, const gchar *name, GCancellable
     g_autoptr(GTask) task = NULL;
 
     task = g_object_ref (make_get_snap_task (client, name, cancellable, NULL, NULL));
-    while (!g_task_get_completed (task))
-        g_main_context_iteration (g_task_get_context (task), TRUE);
+    wait_for_task (task);
     return snapd_client_get_snap_finish (client, G_ASYNC_RESULT (task), error);
 }
 
@@ -730,8 +756,7 @@ snapd_client_get_installed_sync (SnapdClient *client, GCancellable *cancellable,
     g_autoptr(GTask) task = NULL;
 
     task = g_object_ref (make_get_installed_task (client, cancellable, NULL, NULL));
-    while (!g_task_get_completed (task))
-        g_main_context_iteration (g_task_get_context (task), TRUE);
+    wait_for_task (task);
     return snapd_client_get_installed_finish (client, G_ASYNC_RESULT (task), error);
 }
 
@@ -795,9 +820,8 @@ snapd_client_login_sync (SnapdClient *client,
     g_autoptr(GTask) task = NULL;
 
     task = g_object_ref (make_login_task (client, username, password, otp, cancellable, NULL, NULL));
-    while (!g_task_get_completed (task))
-        g_main_context_iteration (g_task_get_context (task), TRUE);
-    return snapd_client_login_finish (client, G_ASYNC_RESULT (task), error);  
+    wait_for_task (task);
+    return snapd_client_login_finish (client, G_ASYNC_RESULT (task), error);
 }
 
 void
@@ -812,7 +836,7 @@ SnapdAuthData *
 snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
-    return g_task_propagate_pointer (G_TASK (result), error);  
+    return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 static GTask *
@@ -840,8 +864,7 @@ snapd_client_find_sync (SnapdClient *client, const gchar *query, GCancellable *c
     g_autoptr(GTask) task = NULL;
 
     task = g_object_ref (make_find_task (client, query, cancellable, NULL, NULL));
-    while (!g_task_get_completed (task))
-        g_main_context_iteration (g_task_get_context (task), TRUE);
+    wait_for_task (task);
     return snapd_client_find_finish (client, G_ASYNC_RESULT (task), error);
 }
 
@@ -884,8 +907,7 @@ snapd_client_get_payment_methods_sync (SnapdClient *client,
     g_autoptr(GTask) task = NULL;
 
     task = g_object_ref (make_get_payment_methods_task (client, auth_data, cancellable, NULL, NULL));
-    while (!g_task_get_completed (task))
-        g_main_context_iteration (g_task_get_context (task), TRUE);
+    wait_for_task (task);
     return snapd_client_get_payment_methods_finish (client, G_ASYNC_RESULT (task), error);
 }
 
@@ -903,6 +925,96 @@ snapd_client_get_payment_methods_finish (SnapdClient *client, GAsyncResult *resu
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
     return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static GTask *
+make_buy_task (SnapdClient *client,
+               SnapdAuthData *auth_data,
+               SnapdSnap *snap,
+               SnapdPrice *price,
+               SnapdPaymentMethod *payment_method,
+               GCancellable *cancellable,
+               GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GTask *task;
+    g_autoptr(JsonBuilder) builder = NULL;
+    g_autoptr(JsonNode) json_root = NULL;
+    g_autoptr(JsonGenerator) json_generator = NULL;
+    g_autofree gchar *data = NULL;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_BUY), NULL);
+    priv->tasks = g_list_append (priv->tasks, task);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "snap-id");
+    json_builder_add_string_value (builder, snapd_snap_get_id (snap));
+    json_builder_set_member_name (builder, "snap-name");
+    json_builder_add_string_value (builder, snapd_snap_get_name (snap));
+    json_builder_set_member_name (builder, "price");
+    json_builder_add_string_value (builder, snapd_price_get_amount (price));
+    json_builder_set_member_name (builder, "currency");
+    json_builder_add_string_value (builder, snapd_price_get_currency (price));
+    if (payment_method != NULL) {
+        json_builder_set_member_name (builder, "backend-id");
+        json_builder_add_string_value (builder, snapd_payment_method_get_backend_id (payment_method));
+        json_builder_set_member_name (builder, "method-id");
+        json_builder_add_int_value (builder, snapd_payment_method_get_id (payment_method));
+    }
+    json_builder_end_object (builder);
+    json_root = json_builder_get_root (builder);
+    json_generator = json_generator_new ();
+    json_generator_set_pretty (json_generator, TRUE);
+    json_generator_set_root (json_generator, json_root);
+    data = json_generator_to_data (json_generator, NULL);
+
+    send_request (task, auth_data, "GET", "/v2/buy/methods", "application/json", data);
+
+    return task;
+}
+
+gboolean
+snapd_client_buy_sync (SnapdClient *client,
+                       SnapdAuthData *auth_data,
+                       SnapdSnap *snap,
+                       SnapdPrice *price,
+                       SnapdPaymentMethod *payment_method,
+                       GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GTask) task = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
+    g_return_val_if_fail (SNAPD_IS_PRICE (price), FALSE);
+
+    task = g_object_ref (make_buy_task (client, auth_data, snap, price, payment_method, cancellable, NULL, NULL));
+    wait_for_task (task);
+    return snapd_client_buy_finish (client, G_ASYNC_RESULT (task), error);
+}
+
+void
+snapd_client_buy_async (SnapdClient *client,
+                        SnapdAuthData *auth_data,
+                        SnapdSnap *snap,
+                        SnapdPrice *price,
+                        SnapdPaymentMethod *payment_method,
+                        GCancellable *cancellable,
+                        GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (SNAPD_IS_SNAP (snap));
+    g_return_if_fail (SNAPD_IS_PRICE (price));
+
+    make_buy_task (client, auth_data, snap, price, payment_method, cancellable, callback, user_data);
+}
+
+gboolean
+snapd_client_buy_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), FALSE);
+    return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 SnapdClient *

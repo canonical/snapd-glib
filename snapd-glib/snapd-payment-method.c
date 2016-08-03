@@ -9,7 +9,7 @@ struct _SnapdPaymentMethod
     gchar *backend_id;
     gchar **currencies;
     gchar *description;
-    gchar *id;
+    gint64 id;
     gboolean preferred;
     gboolean requires_interaction;
 };
@@ -47,7 +47,7 @@ snapd_payment_method_get_description (SnapdPaymentMethod *payment_method)
     return payment_method->description;
 }
 
-gchar *
+gint64
 snapd_payment_method_get_id (SnapdPaymentMethod *payment_method)
 {
     g_return_val_if_fail (SNAPD_IS_PAYMENT_METHOD (payment_method), FALSE);
@@ -83,8 +83,7 @@ snapd_payment_method_set_property (GObject *object, guint prop_id, const GValue 
         payment_method->description = g_strdup (g_value_get_string (value));
         break;
     case PROP_ID:
-        g_free (payment_method->id);
-        payment_method->id = g_strdup (g_value_get_string (value));
+        payment_method->id = g_value_get_int (value);
         break;
     case PROP_PREFERRED:
         payment_method->preferred = g_value_get_boolean (value);
@@ -111,7 +110,7 @@ snapd_payment_method_get_property (GObject *object, guint prop_id, GValue *value
         g_value_set_string (value, payment_method->description);
         break;
     case PROP_ID:
-        g_value_set_string (value, payment_method->id);
+        g_value_set_int (value, payment_method->id);
         break;
     case PROP_PREFERRED:
         g_value_set_boolean (value, payment_method->preferred);
@@ -134,7 +133,6 @@ snapd_payment_method_finalize (GObject *object)
     g_strfreev (payment_method->currencies);
     payment_method->currencies = NULL;
     g_clear_pointer (&payment_method->description, g_free);
-    g_clear_pointer (&payment_method->id, g_free);
 }
 
 static void

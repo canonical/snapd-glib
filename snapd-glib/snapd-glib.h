@@ -7,6 +7,7 @@
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-payment-method.h>
 #include <snapd-glib/snapd-payment-method-list.h>
+#include <snapd-glib/snapd-price.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-snap-list.h>
 #include <snapd-glib/snapd-system-information.h>

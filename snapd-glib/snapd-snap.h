@@ -6,6 +6,7 @@
 #endif
 
 #include <glib-object.h>
+#include <snapd-glib/snapd-price.h>
 
 G_BEGIN_DECLS
 

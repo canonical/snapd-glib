@@ -8,7 +8,8 @@ source_h = \
 	snapd-auth-data.h \
 	snapd-client.h \
 	snapd-payment-method.h \
-	snapd-payment-method-list.h \        
+	snapd-payment-method-list.h \
+	snapd-price.h \
 	snapd-snap.h \
 	snapd-snap-list.h \
 	snapd-system-information.h
@@ -17,7 +18,8 @@ source_c = \
 	snapd-auth-data.c \
 	snapd-client.c \
 	snapd-payment-method.c \
-	snapd-payment-method-list.c \        
+	snapd-payment-method-list.c \
+	snapd-price.c \
 	snapd-snap.c \
 	snapd-snap-list.c \
 	snapd-system-information.c

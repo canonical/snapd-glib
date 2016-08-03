@@ -25,7 +25,7 @@ gchar    **snapd_payment_method_get_currencies           (SnapdPaymentMethod *pa
 
 gchar     *snapd_payment_method_get_description          (SnapdPaymentMethod *payment_method);
 
-gchar     *snapd_payment_method_get_id                   (SnapdPaymentMethod *payment_method);
+gint64     snapd_payment_method_get_id                   (SnapdPaymentMethod *payment_method);
 
 gboolean   snapd_payment_method_get_preferred            (SnapdPaymentMethod *payment_method);
 
