@@ -17,12 +17,6 @@ struct _SnapdSystemInformationClass
 {
     /*< private >*/
     GObjectClass parent_class;
-
-    /* padding, for future expansion */
-    void (* _snapd_reserved1) (void);
-    void (* _snapd_reserved2) (void);
-    void (* _snapd_reserved3) (void);
-    void (* _snapd_reserved4) (void);
 };
 
 gboolean     snapd_system_information_get_on_classic (SnapdSystemInformation *system_information);

@@ -17,12 +17,6 @@ struct _SnapdAuthDataClass
 {
     /*< private >*/
     GObjectClass parent_class;
-
-    /* padding, for future expansion */
-    void (* _snapd_reserved1) (void);
-    void (* _snapd_reserved2) (void);
-    void (* _snapd_reserved3) (void);
-    void (* _snapd_reserved4) (void);
 };
 
 SnapdAuthData *snapd_auth_data_new                (void);
