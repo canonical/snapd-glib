@@ -4,6 +4,7 @@
 #include <string.h>
 #include <gio/gunixsocketaddress.h>
 #include <libsoup/soup.h>
+#include <json-glib/json-glib.h>
 
 #include "snapd-client.h"
 
@@ -50,16 +51,100 @@ send_request (GTask *task, const gchar *method, const gchar *path, const gchar *
     /* send HTTP request */
     n_written = g_socket_send (priv->snapd_socket, request->str, request->len, g_task_get_cancellable (task), &error);
     if (n_written < 0)
-        g_task_return_error (task, g_error_new (SNAPD_CLIENT_ERROR,
-                                                SNAPD_CLIENT_ERROR_WRITE_ERROR,
-                                                "Failed to write to snapd: %s",
-                                                error->message));
+        g_task_return_new_error (task,
+                                 SNAPD_CLIENT_ERROR,
+                                 SNAPD_CLIENT_ERROR_WRITE_ERROR,
+                                 "Failed to write to snapd: %s",
+                                 error->message);
+}
+
+static void
+parse_system_information (SnapdClient *client, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+}
+
+static gboolean
+parse_result (const gchar *response_type, const gchar *response, gsize response_length, JsonObject **result, GError **error)
+{
+    g_autoptr(JsonParser) parser = NULL;
+    g_autoptr(GError) error_local = NULL;
+    JsonObject *root;
+
+    if (response_type == NULL) {
+        g_set_error_literal (error,
+                             SNAPD_CLIENT_ERROR,
+                             SNAPD_CLIENT_ERROR_PARSE_ERROR,
+                             "snapd returned no content type");
+        return FALSE;
+    }
+    if (g_strcmp0 (response_type, "application/json") != 0) {
+        g_set_error (error,
+                     SNAPD_CLIENT_ERROR,
+                     SNAPD_CLIENT_ERROR_PARSE_ERROR,
+                     "snapd returned unexpected content type %s", response_type);
+        return FALSE;
+    }
+
+    parser = json_parser_new ();
+    if (!json_parser_load_from_data (parser, response, response_length, &error_local)) {
+        g_set_error (error,
+                     SNAPD_CLIENT_ERROR,
+                     SNAPD_CLIENT_ERROR_PARSE_ERROR,
+                     "Unable to parse snapd response: %s",
+                     error_local->message);
+        return FALSE;
+    }
+
+    if (!JSON_NODE_HOLDS_OBJECT (json_parser_get_root (parser))) {
+        g_set_error_literal (error,
+                             SNAPD_CLIENT_ERROR,
+                             SNAPD_CLIENT_ERROR_PARSE_ERROR,
+                             "snapd response does is not a valid JSON object");
+        return FALSE;
+    }
+    root = json_node_get_object (json_parser_get_root (parser));
+    if (!json_object_has_member (root, "result")) {
+        g_set_error_literal (error,
+                             SNAPD_CLIENT_ERROR,
+                             SNAPD_CLIENT_ERROR_PARSE_ERROR,
+                             "snapd response does not contain a \"result\" field");
+        return FALSE;
+    }
+    if (result != NULL)
+        *result = json_object_ref (json_object_get_object_member (root, "result"));
+
+    return TRUE;
 }
 
 static void
 parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);  
+    g_autoptr(GTask) task = NULL;
+    g_autoptr(JsonObject) result = NULL;
+    g_autoptr(SnapdSystemInformation) system_information = NULL;
+    JsonObject *os_release;
+
+    if (priv->tasks == NULL) {
+        g_warning ("Ignoring unexpected response");
+        return;
+    }
+    task = g_list_nth_data (priv->tasks, 0);
+    priv->tasks = g_list_remove (priv->tasks, g_list_first (priv->tasks));
+
     g_printerr ("PARSE %.*s\n", content_length, content);
+
+    // FIXME: Assuming system information
+    parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, NULL); // FIXME: error
+    os_release = json_object_get_object_member (result, "os-release");
+    system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
+                                       "on-classic", json_object_get_boolean_member (result, "on-classic"),
+                                       "os-id", os_release != NULL ? json_object_get_string_member (os_release, "id") : NULL,
+                                       "os-version", os_release != NULL ? json_object_get_string_member (os_release, "version-id") : NULL,
+                                       "series", json_object_get_string_member (result, "series"),
+                                       "version", json_object_get_string_member (result, "version"),
+                                       NULL);
+    g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref);
 }
 
 static gssize
@@ -72,8 +157,8 @@ read_data (SnapdClient *client, GCancellable *cancellable)
     if (priv->n_read >= sizeof (priv->buffer)) {
         // FIXME: Cancel all tasks
         //g_set_error (error,
-        //             GS_PLUGIN_ERROR,
-        //             GS_PLUGIN_ERROR_FAILED,
+        //             SNAPD_CLIENT_ERROR,
+        //             SNAPD_CLIENT_ERROR_FAILED,
         //             "Not enough space for snapd response, "
         //             "require %zi octets, have %zi",
         //             n_required, max_data_length);
@@ -280,7 +365,8 @@ snapd_client_connect_sync (SnapdClient *client, GCancellable *cancellable, GErro
 
     priv->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
     g_source_set_callback (priv->read_source, (GSourceFunc) read_cb, client, NULL);
-  
+    g_source_attach (priv->read_source, NULL);
+
     return TRUE;
 }
 
@@ -301,13 +387,12 @@ make_system_information_task (SnapdClient *client, GCancellable *cancellable,
 SnapdSystemInformation *
 snapd_client_get_system_information_sync (SnapdClient *client, GCancellable *cancellable, GError **error)
 {
-    GTask *task;
+    g_autoptr(GTask) task = NULL;
 
-    task = make_system_information_task (client, cancellable, NULL, NULL);
+    task = g_object_ref (make_system_information_task (client, cancellable, NULL, NULL));
     while (!g_task_get_completed (task))
-        read_from_snapd (client, cancellable, TRUE);
-
-    return g_task_propagate_pointer (task, error);
+        g_main_context_iteration (g_task_get_context (task), TRUE);
+    return snapd_client_get_system_information_finish (client, G_ASYNC_RESULT (task), error);
 }
 
 void
