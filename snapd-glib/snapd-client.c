@@ -127,7 +127,16 @@ parse_result (const gchar *response_type, const gchar *response, gsize response_
     return TRUE;
 }
 
-static const gint64
+static gboolean
+get_bool (JsonObject *object, const gchar *name, gboolean default_value)
+{
+    if (json_object_has_member (object, name))
+        return json_object_get_boolean_member (object, name);
+    else
+        return default_value;
+}
+
+static gint64
 get_int (JsonObject *object, const gchar *name, gint64 default_value)
 {
     if (json_object_has_member (object, name))
@@ -162,7 +171,7 @@ parse_get_system_information_response (GTask *task, SoupMessageHeaders *headers,
     info = json_node_get_object (result);
     os_release = json_object_get_object_member (info, "os-release");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
-                                       "on-classic", json_object_get_boolean_member (info, "on-classic"),
+                                       "on-classic", get_bool (info, "on-classic", FALSE),
                                        "os-id", os_release != NULL ? get_string (os_release, "id", NULL) : NULL,
                                        "os-version", os_release != NULL ? get_string (os_release, "version-id", NULL) : NULL,
                                        "series", get_string (info, "series", NULL),
@@ -219,19 +228,19 @@ parse_snap_list (JsonArray *snap_array)
                              "confinement", confinement,
                              "description", get_string (info, "description", NULL),
                              "developer", get_string (info, "developer", NULL),
-                             "devmode", json_object_get_boolean_member (info, "devmode"),
+                             "devmode", get_bool (info, "devmode", FALSE),
                              "download-size", get_int (info, "download-size", 0),
                              "icon", get_string (info, "icon", NULL),
                              "id", get_string (info, "id", NULL),
                              "install-date", get_string (info, "install-date", NULL),
                              "installed-size", get_int (info, "installed-size", 0),
                              "name", get_string (info, "name", NULL),
-                             "private", json_object_get_boolean_member (info, "private"),
+                             "private", get_bool (info, "private", FALSE),
                              "revision", get_string (info, "revision", NULL),
                              "snap-type", snap_type,
                              "status", snap_status,
                              "summary", get_string (info, "summary", NULL),
-                             "trymode", json_object_get_boolean_member (info, "trymode"),
+                             "trymode", get_bool (info, "trymode", FALSE),
                              "version", get_string (info, "version", NULL),
                              NULL);
         _snapd_snap_list_add (snap_list, snap);
