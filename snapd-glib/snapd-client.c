@@ -140,15 +140,17 @@ static void
 parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) result = NULL;
-    g_autoptr(SnapdSystemInformation) system_information = NULL;
-    JsonObject *os_release;
+    g_autoptr(SnapdAuthData) auth_data = NULL;
+    JsonArray *discharges;
+    guint i;
 
     parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, NULL); // FIXME: error
-    system_information = g_object_new (SNAPD_TYPE_AUTH_DATA,
-                                       "macaroon", json_object_get_string_member (result, "macaroon"),
-                                       // FIXME: discharges
-                                       NULL);
-    g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref); 
+    auth_data = snapd_auth_data_new ();
+    snapd_auth_data_set_macaroon (auth_data, json_object_get_string_member (result, "macaroon"));
+    discharges = json_object_get_array_member (result, "discharges");
+    for (i = 0; i < json_array_get_length (discharges); i++)
+        snapd_auth_data_add_discharge (auth_data, json_array_get_string_element (discharges, i));
+    g_task_return_pointer (task, g_steal_pointer (&auth_data), g_object_unref); 
 }
 
 static void

@@ -7,7 +7,7 @@ struct _SnapdAuthData
     GObject parent_instance;
 
     gchar *macaroon;
-    // FIXME: discharges
+    GPtrArray *discharges;
 };
 
 enum 
@@ -18,6 +18,20 @@ enum
  
 G_DEFINE_TYPE (SnapdAuthData, snapd_auth_data, G_TYPE_OBJECT)
 
+SnapdAuthData *
+snapd_auth_data_new (void)
+{
+    return g_object_new (SNAPD_TYPE_AUTH_DATA, NULL);
+}
+
+void
+snapd_auth_data_set_macaroon (SnapdAuthData *auth_data, const gchar *macaroon)
+{
+    g_return_if_fail (SNAPD_IS_AUTH_DATA (auth_data));
+    g_free (auth_data->macaroon);
+    auth_data->macaroon = g_strdup (macaroon);
+}
+
 const gchar *
 snapd_auth_data_get_macaroon (SnapdAuthData *auth_data)
 {
@@ -25,18 +39,25 @@ snapd_auth_data_get_macaroon (SnapdAuthData *auth_data)
     return auth_data->macaroon;
 }
 
+void
+snapd_auth_data_add_discharge (SnapdAuthData *auth_data, const gchar *discharge)
+{
+    g_return_if_fail (SNAPD_IS_AUTH_DATA (auth_data));
+    g_ptr_array_add (auth_data->discharges, g_strdup (discharge));
+}
+
 gsize
 snapd_auth_data_get_discharge_count (SnapdAuthData *auth_data)
 {
     g_return_val_if_fail (SNAPD_IS_AUTH_DATA (auth_data), 0);
-    return 0; // FIXME
+    return auth_data->discharges->len;
 }
 
 const gchar *
 snapd_auth_data_get_discharge (SnapdAuthData *auth_data, int index)
 {
     g_return_val_if_fail (SNAPD_IS_AUTH_DATA (auth_data), 0);  
-    return NULL; // FIXME
+    return g_ptr_array_index (auth_data->discharges, index);
 }
 
 static void
@@ -46,8 +67,7 @@ snapd_auth_data_set_property (GObject *object, guint prop_id, const GValue *valu
 
     switch (prop_id) {
     case PROP_MACAROON:
-        g_free (auth_data->macaroon);
-        auth_data->macaroon = g_strdup (g_value_get_string (value));
+        snapd_auth_data_set_macaroon (auth_data, g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -76,6 +96,9 @@ snapd_auth_data_finalize (GObject *object)
     SnapdAuthData *auth_data = SNAPD_AUTH_DATA (object);
 
     g_clear_pointer (&auth_data->macaroon, g_free);
+    g_ptr_array_foreach (auth_data->discharges, (GFunc) g_free, NULL);
+    g_ptr_array_free (auth_data->discharges, TRUE);
+    auth_data->discharges = NULL;
 }
 
 static void
@@ -93,10 +116,11 @@ snapd_auth_data_class_init (SnapdAuthDataClass *klass)
                                                           "macaroon",
                                                           "Serialized macaroon",
                                                           NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                                          G_PARAM_READWRITE));
 }
 
 static void
 snapd_auth_data_init (SnapdAuthData *auth_data)
 {
+    auth_data->discharges = g_ptr_array_new ();
 }

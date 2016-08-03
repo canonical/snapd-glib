@@ -25,12 +25,20 @@ struct _SnapdAuthDataClass
     void (* _snapd_reserved4) (void);
 };
 
-const gchar *snapd_auth_data_get_macaroon        (SnapdAuthData *auth_data);
+SnapdAuthData *snapd_auth_data_new                (void);
 
-gsize        snapd_auth_data_get_discharge_count (SnapdAuthData *auth_data);
+void          snapd_auth_data_set_macaroon        (SnapdAuthData *auth_data,
+                                                   const gchar   *macaroon);
 
-const gchar *snapd_auth_data_get_discharge       (SnapdAuthData *auth_data,
-                                                  int            index);
+const gchar  *snapd_auth_data_get_macaroon        (SnapdAuthData *auth_data);
+
+void          snapd_auth_data_add_discharge       (SnapdAuthData *auth_data,
+                                                   const gchar   *discharge);
+
+gsize         snapd_auth_data_get_discharge_count (SnapdAuthData *auth_data);
+
+const gchar  *snapd_auth_data_get_discharge       (SnapdAuthData *auth_data,
+                                                   int            index);
 
 G_END_DECLS
 
