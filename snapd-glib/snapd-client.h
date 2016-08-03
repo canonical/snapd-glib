@@ -61,10 +61,16 @@ SnapdSystemInformation *snapd_client_get_system_information_finish (SnapdClient 
                                                                     GError              **error);
 
 SnapdAuthData          *snapd_client_login_sync                    (SnapdClient          *client,
+                                                                    const gchar          *username,
+                                                                    const gchar          *password,
+                                                                    const gchar          *otp,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 
 void                    snapd_client_login_async                   (SnapdClient          *client,
+                                                                    const gchar          *username,
+                                                                    const gchar          *password,
+                                                                    const gchar          *otp,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);

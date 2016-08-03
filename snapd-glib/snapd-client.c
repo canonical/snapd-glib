@@ -13,7 +13,7 @@ typedef struct
     GSocket *snapd_socket;
     GList *tasks;
     GSource *read_source;
-    gchar buffer[1024];
+    gchar buffer[1024]; // FIXME: Make expandable
     gsize n_read;
 } SnapdClientPrivate;
 
@@ -24,6 +24,12 @@ G_DEFINE_QUARK (snapd-client-error-quark, snapd_client_error)
 // snapd API documentation is at https://github.com/snapcore/snapd/blob/master/docs/rest.md
 
 #define SNAPD_SOCKET "/run/snapd.socket"
+
+typedef enum
+{
+    SNAPD_REQUEST_SYSTEM_INFORMATION,
+    SNAPD_REQUEST_LOGIN
+} SnapdRequestType;
 
 static void
 send_request (GTask *task, const gchar *method, const gchar *path, const gchar *content_type, const gchar *content)
@@ -56,11 +62,6 @@ send_request (GTask *task, const gchar *method, const gchar *path, const gchar *
                                  SNAPD_CLIENT_ERROR_WRITE_ERROR,
                                  "Failed to write to snapd: %s",
                                  error->message);
-}
-
-static void
-parse_system_information (SnapdClient *client, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
 }
 
 static gboolean
@@ -117,24 +118,12 @@ parse_result (const gchar *response_type, const gchar *response, gsize response_
 }
 
 static void
-parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_system_information_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
-    g_autoptr(GTask) task = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdSystemInformation) system_information = NULL;
     JsonObject *os_release;
 
-    if (priv->tasks == NULL) {
-        g_warning ("Ignoring unexpected response");
-        return;
-    }
-    task = g_list_nth_data (priv->tasks, 0);
-    priv->tasks = g_list_remove (priv->tasks, g_list_first (priv->tasks));
-
-    g_printerr ("PARSE %.*s\n", content_length, content);
-
-    // FIXME: Assuming system information
     parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, NULL); // FIXME: error
     os_release = json_object_get_object_member (result, "os-release");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
@@ -144,7 +133,51 @@ parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *c
                                        "series", json_object_get_string_member (result, "series"),
                                        "version", json_object_get_string_member (result, "version"),
                                        NULL);
-    g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref);
+    g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref); 
+}
+
+static void
+parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonObject) result = NULL;
+    g_autoptr(SnapdSystemInformation) system_information = NULL;
+    JsonObject *os_release;
+
+    parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, NULL); // FIXME: error
+    system_information = g_object_new (SNAPD_TYPE_AUTH_DATA,
+                                       "macaroon", json_object_get_string_member (result, "macaroon"),
+                                       // FIXME: discharges
+                                       NULL);
+    g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref); 
+}
+
+static void
+parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    g_autoptr(GTask) task = NULL;
+    SnapdRequestType request_type;
+
+    /* Get which request this response is for */
+    if (priv->tasks == NULL) {
+        g_warning ("Ignoring unexpected response");
+        return;
+    }
+    task = g_list_nth_data (priv->tasks, 0);
+    priv->tasks = g_list_remove (priv->tasks, g_list_first (priv->tasks));
+
+    g_printerr ("PARSE %.*s\n", content_length, content);
+
+    request_type = GPOINTER_TO_INT (g_task_get_task_data (task));
+    switch (request_type)
+    {
+    case SNAPD_REQUEST_SYSTEM_INFORMATION:
+        parse_system_information_response (task, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_LOGIN:
+        parse_login_response (task, headers, content, content_length);      
+        break;
+    }
 }
 
 static gssize
@@ -378,6 +411,7 @@ make_system_information_task (SnapdClient *client, GCancellable *cancellable,
     GTask *task;
 
     task = g_task_new (client, cancellable, callback, user_data);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_SYSTEM_INFORMATION), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
     send_request (task, "GET", "/v2/system-info", NULL, NULL);
 
@@ -407,6 +441,72 @@ snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *r
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
     return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static GTask *
+make_login_task (SnapdClient *client,
+                 const gchar *username, const gchar *password, const gchar *otp,
+                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GTask *task;
+    g_autoptr(JsonBuilder) builder = NULL;
+    g_autoptr(JsonNode) json_root = NULL;
+    g_autoptr(JsonGenerator) json_generator = NULL;
+    g_autofree gchar *data = NULL;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_LOGIN), NULL);
+    priv->tasks = g_list_append (priv->tasks, task);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "username");
+    json_builder_add_string_value (builder, username);
+    json_builder_set_member_name (builder, "password");
+    json_builder_add_string_value (builder, password);
+    if (otp != NULL) {
+        json_builder_set_member_name (builder, "otp");
+        json_builder_add_string_value (builder, otp);
+    }
+    json_builder_end_object (builder);
+    json_root = json_builder_get_root (builder);
+    json_generator = json_generator_new ();
+    json_generator_set_pretty (json_generator, TRUE);
+    json_generator_set_root (json_generator, json_root);
+    data = json_generator_to_data (json_generator, NULL);
+
+    send_request (task, "POST", "/v2/login", "application/json", data);
+
+    return task;
+}
+
+SnapdAuthData *
+snapd_client_login_sync (SnapdClient *client,
+                         const gchar *username, const gchar *password, const gchar *otp,
+                         GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GTask) task = NULL;
+
+    task = g_object_ref (make_login_task (client, username, password, otp, cancellable, NULL, NULL));
+    while (!g_task_get_completed (task))
+        g_main_context_iteration (g_task_get_context (task), TRUE);
+    return snapd_client_login_finish (client, G_ASYNC_RESULT (task), error);  
+}
+
+void
+snapd_client_login_async (SnapdClient *client,
+                          const gchar *username, const gchar *password, const gchar *otp,
+                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    make_login_task (client, username, password, otp, cancellable, callback, user_data);
+}
+
+SnapdAuthData *
+snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
+    return g_task_propagate_pointer (G_TASK (result), error);  
 }
 
 SnapdClient *
