@@ -41,7 +41,7 @@ typedef enum
 } SnapdRequestType;
 
 static void
-send_request (GTask *task, const gchar *method, const gchar *path, const gchar *content_type, const gchar *content)
+send_request (GTask *task, SnapdAuthData *auth_data, const gchar *method, const gchar *path, const gchar *content_type, const gchar *content)
 {
     SnapdClient *client = g_task_get_source_object (task);
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
@@ -55,7 +55,14 @@ send_request (GTask *task, const gchar *method, const gchar *path, const gchar *
     request = g_string_new ("");
     g_string_append_printf (request, "%s %s HTTP/1.1\r\n", method, path);
     g_string_append (request, "Host:\r\n");
-    g_string_append (request, "Connection: keep-alive\r\n");  
+    g_string_append (request, "Connection: keep-alive\r\n");
+    if (auth_data) {
+        gsize i;
+        g_string_append_printf (request, "Authorization: Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (auth_data));
+        for (i = 0; i < snapd_auth_data_get_discharge_count (auth_data); i++)
+            g_string_append_printf (request, ",discharge=\"%s\"", snapd_auth_data_get_discharge (auth_data, i));
+        g_string_append (request, "\r\n");       
+    }
     if (content_type)
         g_string_append_printf (request, "Content-Type: %s\r\n", content_type);
     if (content)
@@ -376,7 +383,7 @@ parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *c
     task = g_list_nth_data (priv->tasks, 0);
     priv->tasks = g_list_remove (priv->tasks, g_list_first (priv->tasks));
 
-    //g_printerr ("PARSE %.*s\n", content_length, content);
+    g_printerr ("PARSE %.*s\n", content_length, content);
 
     request_type = GPOINTER_TO_INT (g_task_get_task_data (task));
     switch (request_type)
@@ -627,7 +634,7 @@ make_get_system_information_task (SnapdClient *client, GCancellable *cancellable
     task = g_task_new (client, cancellable, callback, user_data);
     g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_SYSTEM_INFORMATION), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
-    send_request (task, "GET", "/v2/system-info", NULL, NULL);
+    send_request (task, NULL, "GET", "/v2/system-info", NULL, NULL);
 
     return task;
 }
@@ -671,7 +678,7 @@ make_get_snap_task (SnapdClient *client,
     priv->tasks = g_list_append (priv->tasks, task);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    send_request (task, "GET", path, NULL, NULL);
+    send_request (task, NULL, "GET", path, NULL, NULL);
 
     return task;
 }
@@ -712,7 +719,7 @@ make_get_installed_task (SnapdClient *client, GCancellable *cancellable,
     task = g_task_new (client, cancellable, callback, user_data);
     g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_INSTALLED), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
-    send_request (task, "GET", "/v2/snaps", NULL, NULL);
+    send_request (task, NULL, "GET", "/v2/snaps", NULL, NULL);
 
     return task;
 }
@@ -775,7 +782,7 @@ make_login_task (SnapdClient *client,
     json_generator_set_root (json_generator, json_root);
     data = json_generator_to_data (json_generator, NULL);
 
-    send_request (task, "POST", "/v2/login", "application/json", data);
+    send_request (task, NULL, "POST", "/v2/login", "application/json", data);
 
     return task;
 }
@@ -821,7 +828,7 @@ make_find_task (SnapdClient *client, const gchar *query,
     priv->tasks = g_list_append (priv->tasks, task);
     escaped = soup_uri_encode (query, NULL);
     path = g_strdup_printf ("/v2/find?q=%s", escaped);
-    send_request (task, "GET", path, NULL, NULL);
+    send_request (task, NULL, "GET", path, NULL, NULL);
     // FIXME: name, select (use flags)
 
     return task;
@@ -853,7 +860,9 @@ snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, GError **er
 }
 
 static GTask *
-make_get_payment_methods_task (SnapdClient *client, GCancellable *cancellable,
+make_get_payment_methods_task (SnapdClient *client,
+                               SnapdAuthData *auth_data,
+                               GCancellable *cancellable,
                                GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
@@ -862,27 +871,31 @@ make_get_payment_methods_task (SnapdClient *client, GCancellable *cancellable,
     task = g_task_new (client, cancellable, callback, user_data);
     g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_PAYMENT_METHODS), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
-    send_request (task, "GET", "/v2/buy/methods", NULL, NULL);
+    send_request (task, auth_data, "GET", "/v2/buy/methods", NULL, NULL);
 
     return task;
 }
 
 SnapdPaymentMethodList *
-snapd_client_get_payment_methods_sync (SnapdClient *client, GCancellable *cancellable, GError **error)
+snapd_client_get_payment_methods_sync (SnapdClient *client,
+                                       SnapdAuthData *auth_data,
+                                       GCancellable *cancellable, GError **error)
 {
     g_autoptr(GTask) task = NULL;
 
-    task = g_object_ref (make_get_payment_methods_task (client, cancellable, NULL, NULL));
+    task = g_object_ref (make_get_payment_methods_task (client, auth_data, cancellable, NULL, NULL));
     while (!g_task_get_completed (task))
         g_main_context_iteration (g_task_get_context (task), TRUE);
     return snapd_client_get_payment_methods_finish (client, G_ASYNC_RESULT (task), error);
 }
 
 void
-snapd_client_get_payment_methods_async (SnapdClient *client, GCancellable *cancellable,
+snapd_client_get_payment_methods_async (SnapdClient *client,
+                                        SnapdAuthData *auth_data,
+                                        GCancellable *cancellable,
                                         GAsyncReadyCallback callback, gpointer user_data)
 {
-    make_get_payment_methods_task (client, cancellable, callback, user_data);
+    make_get_payment_methods_task (client, auth_data, cancellable, callback, user_data);
 }
 
 SnapdPaymentMethodList *

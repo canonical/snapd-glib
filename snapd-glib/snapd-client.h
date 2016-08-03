@@ -115,9 +115,11 @@ SnapdSnapList          *snapd_client_find_finish                   (SnapdClient 
                                                                     GError              **error);
 
 SnapdPaymentMethodList *snapd_client_get_payment_methods_sync      (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_get_payment_methods_async     (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
