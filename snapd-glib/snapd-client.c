@@ -13,7 +13,7 @@ typedef struct
     GSocket *snapd_socket;
     GList *tasks;
     GSource *read_source;
-    gchar buffer[1024]; // FIXME: Make expandable
+    GByteArray *buffer;
     gsize n_read;
 } SnapdClientPrivate;
 
@@ -27,8 +27,17 @@ G_DEFINE_QUARK (snapd-client-error-quark, snapd_client_error)
 
 typedef enum
 {
-    SNAPD_REQUEST_SYSTEM_INFORMATION,
-    SNAPD_REQUEST_LOGIN
+    SNAPD_REQUEST_GET_SYSTEM_INFORMATION,
+    SNAPD_REQUEST_LOGIN,
+    SNAPD_REQUEST_FIND,
+    SNAPD_REQUEST_GET_INSTALLED,
+    SNAPD_REQUEST_SIDELOAD_SNAP,
+    SNAPD_REQUEST_GET_SNAP,
+    SNAPD_REQUEST_GET_ICON,
+    SNAPD_REQUEST_ADD_ASSERTION,
+    SNAPD_REQUEST_GET_ASSERTION,
+    SNAPD_REQUEST_GET_PAYMENT_METHODS,
+    SNAPD_REQUEST_BUY
 } SnapdRequestType;
 
 static void
@@ -46,6 +55,7 @@ send_request (GTask *task, const gchar *method, const gchar *path, const gchar *
     request = g_string_new ("");
     g_string_append_printf (request, "%s %s HTTP/1.1\r\n", method, path);
     g_string_append (request, "Host:\r\n");
+    g_string_append (request, "Connection: keep-alive\r\n");  
     if (content_type)
         g_string_append_printf (request, "Content-Type: %s\r\n", content_type);
     if (content)
@@ -65,7 +75,7 @@ send_request (GTask *task, const gchar *method, const gchar *path, const gchar *
 }
 
 static gboolean
-parse_result (const gchar *response_type, const gchar *response, gsize response_length, JsonObject **result, GError **error)
+parse_result (const gchar *response_type, const gchar *response, gsize response_length, JsonNode **result, GError **error)
 {
     g_autoptr(JsonParser) parser = NULL;
     g_autoptr(GError) error_local = NULL;
@@ -112,26 +122,51 @@ parse_result (const gchar *response_type, const gchar *response, gsize response_
         return FALSE;
     }
     if (result != NULL)
-        *result = json_object_ref (json_object_get_object_member (root, "result"));
+        *result = json_node_ref (json_object_get_member (root, "result"));
 
     return TRUE;
 }
 
-static void
-parse_system_information_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+static const gint64
+get_int (JsonObject *object, const gchar *name, gint64 default_value)
 {
-    g_autoptr(JsonObject) result = NULL;
+    if (json_object_has_member (object, name))
+        return json_object_get_int_member (object, name);
+    else
+        return default_value;
+}
+
+static const gchar *
+get_string (JsonObject *object, const gchar *name, const gchar *default_value)
+{
+    if (json_object_has_member (object, name))
+        return json_object_get_string_member (object, name);
+    else
+        return default_value;
+}
+
+static void
+parse_get_system_information_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonNode) result = NULL;
+    JsonObject *info;
     g_autoptr(SnapdSystemInformation) system_information = NULL;
     JsonObject *os_release;
+    g_autoptr(GError) error = NULL;
 
-    parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, NULL); // FIXME: error
-    os_release = json_object_get_object_member (result, "os-release");
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+        g_task_return_error (task, error);
+        return;
+    }
+
+    info = json_node_get_object (result);
+    os_release = json_object_get_object_member (info, "os-release");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
-                                       "on-classic", json_object_get_boolean_member (result, "on-classic"),
-                                       "os-id", os_release != NULL ? json_object_get_string_member (os_release, "id") : NULL,
-                                       "os-version", os_release != NULL ? json_object_get_string_member (os_release, "version-id") : NULL,
-                                       "series", json_object_get_string_member (result, "series"),
-                                       "version", json_object_get_string_member (result, "version"),
+                                       "on-classic", json_object_get_boolean_member (info, "on-classic"),
+                                       "os-id", os_release != NULL ? get_string (os_release, "id", NULL) : NULL,
+                                       "os-version", os_release != NULL ? get_string (os_release, "version-id", NULL) : NULL,
+                                       "series", get_string (info, "series", NULL),
+                                       "version", get_string (info, "version", NULL),
                                        NULL);
     g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref); 
 }
@@ -139,18 +174,103 @@ parse_system_information_response (GTask *task, SoupMessageHeaders *headers, con
 static void
 parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    g_autoptr(JsonObject) result = NULL;
+    g_autoptr(JsonNode) result = NULL;
+    JsonObject *auth;
     g_autoptr(SnapdAuthData) auth_data = NULL;
     JsonArray *discharges;
     guint i;
+    g_autoptr(GError) error = NULL;
 
-    parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, NULL); // FIXME: error
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+        g_task_return_error (task, error);
+        return;
+    }
+
+    auth = json_node_get_object (result);
     auth_data = snapd_auth_data_new ();
-    snapd_auth_data_set_macaroon (auth_data, json_object_get_string_member (result, "macaroon"));
-    discharges = json_object_get_array_member (result, "discharges");
+    snapd_auth_data_set_macaroon (auth_data, get_string (auth, "macaroon", NULL));
+    discharges = json_object_get_array_member (auth, "discharges");
     for (i = 0; i < json_array_get_length (discharges); i++)
         snapd_auth_data_add_discharge (auth_data, json_array_get_string_element (discharges, i));
     g_task_return_pointer (task, g_steal_pointer (&auth_data), g_object_unref); 
+}
+
+static void
+parse_get_installed_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonNode) result = NULL;
+    JsonArray *snap_array;
+    g_autoptr(SnapdSnapList) snap_list = NULL;
+    JsonArray *discharges;
+    guint i;
+    g_autoptr(GError) error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+        g_task_return_error (task, error);
+        return;
+    }
+
+    snap_array = json_node_get_array (result);
+    snap_list = g_object_new (SNAPD_TYPE_SNAP_LIST, NULL);
+    for (i = 0; i < json_array_get_length (snap_array); i++) {
+        JsonObject *info = json_array_get_object_element (snap_array, i);
+        const gchar *confinement_string;
+        SnapdConfinement confinement = SNAPD_CONFINEMENT_UNKNOWN;
+        const gchar *snap_type_string;
+        SnapdConfinement snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
+        const gchar *snap_status_string;
+        SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;      
+        g_autoptr(SnapdSnap) snap = NULL;
+
+        confinement_string = get_string (info, "confinement", "");
+        if (strcmp (confinement_string, "strict") == 0)
+            confinement = SNAPD_CONFINEMENT_STRICT;
+        else if (strcmp (confinement_string, "devmode") == 0)
+            confinement = SNAPD_CONFINEMENT_DEVMODE;
+
+        snap_type_string = get_string (info, "type", "");
+        if (strcmp (snap_type_string, "app") == 0)
+            snap_type = SNAPD_SNAP_TYPE_APP;
+        else if (strcmp (snap_type_string, "kernel") == 0)
+            snap_type = SNAPD_SNAP_TYPE_KERNEL;
+        else if (strcmp (snap_type_string, "gadget") == 0)
+            snap_type = SNAPD_SNAP_TYPE_GADGET;
+        else if (strcmp (snap_type_string, "os") == 0)
+            snap_type = SNAPD_SNAP_TYPE_OS;
+
+        snap_status_string = get_string (info, "status", "");
+        if (strcmp (snap_status_string, "available") == 0)
+            snap_status = SNAPD_SNAP_STATUS_AVAILABLE;
+        else if (strcmp (snap_status_string, "priced") == 0)
+            snap_status = SNAPD_SNAP_STATUS_PRICED;
+        else if (strcmp (snap_status_string, "installed") == 0)
+            snap_status = SNAPD_SNAP_STATUS_INSTALLED;
+        else if (strcmp (snap_status_string, "active") == 0)
+            snap_status = SNAPD_SNAP_STATUS_ACTIVE;
+
+        snap = g_object_new (SNAPD_TYPE_SNAP,
+                             "channel", get_string (info, "channel", NULL),
+                             "confinement", confinement,
+                             "description", get_string (info, "description", NULL),
+                             "developer", get_string (info, "developer", NULL),
+                             "devmode", json_object_get_boolean_member (info, "devmode"),
+                             "download-size", get_int (info, "download-size", 0),
+                             "icon", get_string (info, "icon", NULL),
+                             "id", get_string (info, "id", NULL),
+                             "install-date", get_string (info, "install-date", NULL),
+                             "installed-size", get_int (info, "installed-size", 0),
+                             "name", get_string (info, "name", NULL),
+                             "private", json_object_get_boolean_member (info, "private"),
+                             "revision", get_string (info, "revision", NULL),
+                             "snap-type", snap_type,
+                             "status", snap_status,
+                             "summary", get_string (info, "summary", NULL),
+                             "trymode", json_object_get_boolean_member (info, "trymode"),
+                             "version", get_string (info, "version", NULL),
+                             NULL);
+        _snapd_snap_list_add (snap_list, snap);
+    }
+    g_task_return_pointer (task, g_steal_pointer (&snap_list), g_object_unref);
 }
 
 static void
@@ -168,45 +288,40 @@ parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *c
     task = g_list_nth_data (priv->tasks, 0);
     priv->tasks = g_list_remove (priv->tasks, g_list_first (priv->tasks));
 
-    g_printerr ("PARSE %.*s\n", content_length, content);
+    //g_printerr ("PARSE %.*s\n", content_length, content);
 
     request_type = GPOINTER_TO_INT (g_task_get_task_data (task));
     switch (request_type)
     {
-    case SNAPD_REQUEST_SYSTEM_INFORMATION:
-        parse_system_information_response (task, headers, content, content_length);
+    case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
+        parse_get_system_information_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_LOGIN:
         parse_login_response (task, headers, content, content_length);      
         break;
+    case SNAPD_REQUEST_GET_INSTALLED:
+        parse_get_installed_response (task, headers, content, content_length);      
+        break;      
     }
 }
 
 static gssize
-read_data (SnapdClient *client, GCancellable *cancellable)
+read_data (SnapdClient *client, gsize size, GCancellable *cancellable)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     gssize n_read;
     g_autoptr(GError) error_local = NULL;
 
-    if (priv->n_read >= sizeof (priv->buffer)) {
-        // FIXME: Cancel all tasks
-        //g_set_error (error,
-        //             SNAPD_CLIENT_ERROR,
-        //             SNAPD_CLIENT_ERROR_FAILED,
-        //             "Not enough space for snapd response, "
-        //             "require %zi octets, have %zi",
-        //             n_required, max_data_length);
-        return FALSE;
-    }
-
+    if (priv->n_read + size > priv->buffer->len)
+        g_byte_array_set_size (priv->buffer, priv->n_read + size);
     n_read = g_socket_receive (priv->snapd_socket,
-                               priv->buffer + priv->n_read,
-                               sizeof (priv->buffer) - priv->n_read,
+                               priv->buffer->data + priv->n_read,
+                               size,
                                cancellable,
                                &error_local);
     if (n_read < 0)
     {
+        g_printerr ("read error\n");
         // FIXME: Cancel all tasks
         //g_set_error (error,
         //             SNAPD_CLIENT_ERROR,
@@ -292,20 +407,20 @@ read_from_snapd (SnapdClient *client, GCancellable *cancellable, gboolean blocki
     gchar *combined_start;
     gsize combined_length, total_length;
 
-    if (!read_data (client, cancellable))
+    if (!read_data (client, 1024, cancellable))
         return G_SOURCE_REMOVE;
 
     while (TRUE) {
         /* Look for header divider */
-        body = g_strstr_len (priv->buffer, priv->n_read, "\r\n\r\n");
+        body = g_strstr_len (priv->buffer->data, priv->n_read, "\r\n\r\n");
         if (body == NULL)
             return G_SOURCE_CONTINUE;
         body += 4;
-        header_length = body - priv->buffer;
+        header_length = body - (gchar *) priv->buffer->data;
 
         /* Parse headers */
         headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_RESPONSE);
-        if (!soup_headers_parse_response (priv->buffer, header_length, headers,
+        if (!soup_headers_parse_response (priv->buffer->data, header_length, headers,
                                           NULL, &code, &reason_phrase)) {
             // FIXME: Cancel all tasks
             return G_SOURCE_REMOVE;
@@ -317,7 +432,7 @@ read_from_snapd (SnapdClient *client, GCancellable *cancellable, gboolean blocki
             while (!g_socket_is_closed (priv->snapd_socket)) {
                 if (!blocking)
                     return G_SOURCE_CONTINUE;
-                if (!read_data (client, cancellable))
+                if (!read_data (client, 1024, cancellable))
                     return G_SOURCE_REMOVE;
             }
 
@@ -329,7 +444,7 @@ read_from_snapd (SnapdClient *client, GCancellable *cancellable, gboolean blocki
             while (!have_chunked_body (body, priv->n_read - header_length)) {
                 if (!blocking)
                     return G_SOURCE_CONTINUE;
-                if (!read_data (client, cancellable))
+                if (!read_data (client, 1024, cancellable))
                     return G_SOURCE_REMOVE;
             }
 
@@ -342,7 +457,7 @@ read_from_snapd (SnapdClient *client, GCancellable *cancellable, gboolean blocki
             while (priv->n_read < header_length + content_length) {
                 if (!blocking)
                     return G_SOURCE_CONTINUE;
-                if (!read_data (client, cancellable))
+                if (!read_data (client, 1024, cancellable))
                     return G_SOURCE_REMOVE;
             }
 
@@ -406,14 +521,14 @@ snapd_client_connect_sync (SnapdClient *client, GCancellable *cancellable, GErro
 }
 
 static GTask *
-make_system_information_task (SnapdClient *client, GCancellable *cancellable,
-                              GAsyncReadyCallback callback, gpointer user_data)
+make_get_system_information_task (SnapdClient *client, GCancellable *cancellable,
+                                  GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
 
     task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_SYSTEM_INFORMATION), NULL);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_SYSTEM_INFORMATION), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
     send_request (task, "GET", "/v2/system-info", NULL, NULL);
 
@@ -425,7 +540,7 @@ snapd_client_get_system_information_sync (SnapdClient *client, GCancellable *can
 {
     g_autoptr(GTask) task = NULL;
 
-    task = g_object_ref (make_system_information_task (client, cancellable, NULL, NULL));
+    task = g_object_ref (make_get_system_information_task (client, cancellable, NULL, NULL));
     while (!g_task_get_completed (task))
         g_main_context_iteration (g_task_get_context (task), TRUE);
     return snapd_client_get_system_information_finish (client, G_ASYNC_RESULT (task), error);
@@ -435,7 +550,7 @@ void
 snapd_client_get_system_information_async (SnapdClient *client, GCancellable *cancellable,
                                            GAsyncReadyCallback callback, gpointer user_data)
 {
-    make_system_information_task (client, cancellable, callback, user_data);
+    make_get_system_information_task (client, cancellable, callback, user_data);
 }
 
 SnapdSystemInformation *
@@ -511,6 +626,46 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
     return g_task_propagate_pointer (G_TASK (result), error);  
 }
 
+static GTask *
+make_get_installed_task (SnapdClient *client, GCancellable *cancellable,
+                         GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GTask *task;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_INSTALLED), NULL);
+    priv->tasks = g_list_append (priv->tasks, task);
+    send_request (task, "GET", "/v2/snaps", NULL, NULL);
+
+    return task;
+}
+
+SnapdSnapList *
+snapd_client_get_installed_sync (SnapdClient *client, GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GTask) task = NULL;
+
+    task = g_object_ref (make_get_installed_task (client, cancellable, NULL, NULL));
+    while (!g_task_get_completed (task))
+        g_main_context_iteration (g_task_get_context (task), TRUE);
+    return snapd_client_get_installed_finish (client, G_ASYNC_RESULT (task), error);
+}
+
+void
+snapd_client_get_installed_async (SnapdClient *client, GCancellable *cancellable,
+                                  GAsyncReadyCallback callback, gpointer user_data)
+{
+    make_get_installed_task (client, cancellable, callback, user_data);
+}
+
+SnapdSnapList *
+snapd_client_get_installed_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
+    return g_task_propagate_pointer (G_TASK (result), error);
+}
+
 SnapdClient *
 snapd_client_new (void)
 {
@@ -526,6 +681,8 @@ snapd_client_finalize (GObject *object)
     g_list_free_full (priv->tasks, g_object_unref);
     priv->tasks = NULL;
     g_clear_pointer (&priv->read_source, g_source_unref);
+    g_byte_array_unref (priv->buffer);
+    priv->buffer = NULL;
 }
 
 static void
@@ -539,4 +696,7 @@ snapd_client_class_init (SnapdClientClass *klass)
 static void
 snapd_client_init (SnapdClient *client)
 {
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+
+    priv->buffer = g_byte_array_new ();
 }

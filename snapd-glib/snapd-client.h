@@ -10,6 +10,7 @@
 
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-auth-data.h>
+#include <snapd-glib/snapd-snap-list.h>
 
 G_BEGIN_DECLS
 
@@ -76,6 +77,19 @@ void                    snapd_client_login_async                   (SnapdClient 
                                                                     gpointer              user_data);
 
 SnapdAuthData          *snapd_client_login_finish                  (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+SnapdSnapList          *snapd_client_get_installed_sync            (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+
+void                    snapd_client_get_installed_async           (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+
+SnapdSnapList          *snapd_client_get_installed_finish          (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
