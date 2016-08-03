@@ -29,10 +29,10 @@ typedef enum
 {
     SNAPD_REQUEST_GET_SYSTEM_INFORMATION,
     SNAPD_REQUEST_LOGIN,
+    SNAPD_REQUEST_GET_SNAP,
     SNAPD_REQUEST_GET_INSTALLED,
     SNAPD_REQUEST_FIND,
     SNAPD_REQUEST_SIDELOAD_SNAP,
-    SNAPD_REQUEST_GET_SNAP,
     SNAPD_REQUEST_GET_ICON,
     SNAPD_REQUEST_ADD_ASSERTION,
     SNAPD_REQUEST_GET_ASSERTION,
@@ -180,73 +180,93 @@ parse_get_system_information_response (GTask *task, SoupMessageHeaders *headers,
     g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref); 
 }
 
+static SnapdSnap *
+parse_snap (JsonObject *object)
+{
+    const gchar *confinement_string;
+    SnapdConfinement confinement = SNAPD_CONFINEMENT_UNKNOWN;
+    const gchar *snap_type_string;
+    SnapdConfinement snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
+    const gchar *snap_status_string;
+    SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;      
+
+    confinement_string = get_string (object, "confinement", "");
+    if (strcmp (confinement_string, "strict") == 0)
+        confinement = SNAPD_CONFINEMENT_STRICT;
+    else if (strcmp (confinement_string, "devmode") == 0)
+        confinement = SNAPD_CONFINEMENT_DEVMODE;
+
+    snap_type_string = get_string (object, "type", "");
+    if (strcmp (snap_type_string, "app") == 0)
+        snap_type = SNAPD_SNAP_TYPE_APP;
+    else if (strcmp (snap_type_string, "kernel") == 0)
+        snap_type = SNAPD_SNAP_TYPE_KERNEL;
+    else if (strcmp (snap_type_string, "gadget") == 0)
+        snap_type = SNAPD_SNAP_TYPE_GADGET;
+    else if (strcmp (snap_type_string, "os") == 0)
+        snap_type = SNAPD_SNAP_TYPE_OS;
+
+    snap_status_string = get_string (object, "status", "");
+    if (strcmp (snap_status_string, "available") == 0)
+        snap_status = SNAPD_SNAP_STATUS_AVAILABLE;
+    else if (strcmp (snap_status_string, "priced") == 0)
+        snap_status = SNAPD_SNAP_STATUS_PRICED;
+    else if (strcmp (snap_status_string, "installed") == 0)
+        snap_status = SNAPD_SNAP_STATUS_INSTALLED;
+    else if (strcmp (snap_status_string, "active") == 0)
+        snap_status = SNAPD_SNAP_STATUS_ACTIVE;
+
+    return g_object_new (SNAPD_TYPE_SNAP,
+                         "channel", get_string (object, "channel", NULL),
+                         "confinement", confinement,
+                         "description", get_string (object, "description", NULL),
+                         "developer", get_string (object, "developer", NULL),
+                         "devmode", get_bool (object, "devmode", FALSE),
+                         "download-size", get_int (object, "download-size", 0),
+                         "icon", get_string (object, "icon", NULL),
+                         "id", get_string (object, "id", NULL),
+                         "install-date", get_string (object, "install-date", NULL),
+                         "installed-size", get_int (object, "installed-size", 0),
+                         "name", get_string (object, "name", NULL),
+                         "private", get_bool (object, "private", FALSE),
+                         "revision", get_string (object, "revision", NULL),
+                         "snap-type", snap_type,
+                         "status", snap_status,
+                         "summary", get_string (object, "summary", NULL),
+                         "trymode", get_bool (object, "trymode", FALSE),
+                         "version", get_string (object, "version", NULL),
+                         NULL);
+}
+
 static SnapdSnapList *
-parse_snap_list (JsonArray *snap_array)
+parse_snap_list (JsonArray *array)
 {
     g_autoptr(SnapdSnapList) snap_list = NULL;
     guint i;
 
     snap_list = g_object_new (SNAPD_TYPE_SNAP_LIST, NULL);
-    for (i = 0; i < json_array_get_length (snap_array); i++) {
-        JsonObject *info = json_array_get_object_element (snap_array, i);
-        const gchar *confinement_string;
-        SnapdConfinement confinement = SNAPD_CONFINEMENT_UNKNOWN;
-        const gchar *snap_type_string;
-        SnapdConfinement snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
-        const gchar *snap_status_string;
-        SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;      
-        g_autoptr(SnapdSnap) snap = NULL;
-
-        confinement_string = get_string (info, "confinement", "");
-        if (strcmp (confinement_string, "strict") == 0)
-            confinement = SNAPD_CONFINEMENT_STRICT;
-        else if (strcmp (confinement_string, "devmode") == 0)
-            confinement = SNAPD_CONFINEMENT_DEVMODE;
-
-        snap_type_string = get_string (info, "type", "");
-        if (strcmp (snap_type_string, "app") == 0)
-            snap_type = SNAPD_SNAP_TYPE_APP;
-        else if (strcmp (snap_type_string, "kernel") == 0)
-            snap_type = SNAPD_SNAP_TYPE_KERNEL;
-        else if (strcmp (snap_type_string, "gadget") == 0)
-            snap_type = SNAPD_SNAP_TYPE_GADGET;
-        else if (strcmp (snap_type_string, "os") == 0)
-            snap_type = SNAPD_SNAP_TYPE_OS;
-
-        snap_status_string = get_string (info, "status", "");
-        if (strcmp (snap_status_string, "available") == 0)
-            snap_status = SNAPD_SNAP_STATUS_AVAILABLE;
-        else if (strcmp (snap_status_string, "priced") == 0)
-            snap_status = SNAPD_SNAP_STATUS_PRICED;
-        else if (strcmp (snap_status_string, "installed") == 0)
-            snap_status = SNAPD_SNAP_STATUS_INSTALLED;
-        else if (strcmp (snap_status_string, "active") == 0)
-            snap_status = SNAPD_SNAP_STATUS_ACTIVE;
-
-        snap = g_object_new (SNAPD_TYPE_SNAP,
-                             "channel", get_string (info, "channel", NULL),
-                             "confinement", confinement,
-                             "description", get_string (info, "description", NULL),
-                             "developer", get_string (info, "developer", NULL),
-                             "devmode", get_bool (info, "devmode", FALSE),
-                             "download-size", get_int (info, "download-size", 0),
-                             "icon", get_string (info, "icon", NULL),
-                             "id", get_string (info, "id", NULL),
-                             "install-date", get_string (info, "install-date", NULL),
-                             "installed-size", get_int (info, "installed-size", 0),
-                             "name", get_string (info, "name", NULL),
-                             "private", get_bool (info, "private", FALSE),
-                             "revision", get_string (info, "revision", NULL),
-                             "snap-type", snap_type,
-                             "status", snap_status,
-                             "summary", get_string (info, "summary", NULL),
-                             "trymode", get_bool (info, "trymode", FALSE),
-                             "version", get_string (info, "version", NULL),
-                             NULL);
-        _snapd_snap_list_add (snap_list, snap);
+    for (i = 0; i < json_array_get_length (array); i++) {
+        JsonObject *object = json_array_get_object_element (array, i);
+        _snapd_snap_list_add (snap_list, parse_snap (object));
     }
 
     return g_steal_pointer (&snap_list);
+}
+
+static void
+parse_get_snap_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonNode) result = NULL;
+    g_autoptr(SnapdSnap) snap = NULL;
+    g_autoptr(GError) error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+        g_task_return_error (task, error);
+        return;
+    }
+
+    snap = parse_snap (json_node_get_object (result));
+    g_task_return_pointer (task, g_steal_pointer (&snap), g_object_unref);
 }
 
 static void
@@ -254,7 +274,6 @@ parse_get_installed_response (GTask *task, SoupMessageHeaders *headers, const gc
 {
     g_autoptr(JsonNode) result = NULL;
     g_autoptr(SnapdSnapList) snap_list = NULL;
-    JsonArray *discharges;
     g_autoptr(GError) error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
@@ -294,9 +313,7 @@ static void
 parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonNode) result = NULL;
-    JsonArray *snap_array;
     g_autoptr(SnapdSnapList) snap_list = NULL;
-    JsonArray *discharges;
     g_autoptr(GError) error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
@@ -331,9 +348,12 @@ parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *c
     case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
         parse_get_system_information_response (task, headers, content, content_length);
         break;
+    case SNAPD_REQUEST_GET_SNAP:
+        parse_get_snap_response (task, headers, content, content_length);
+        break;
     case SNAPD_REQUEST_GET_INSTALLED:
         parse_get_installed_response (task, headers, content, content_length);      
-        break;
+        break;     
     case SNAPD_REQUEST_LOGIN:
         parse_login_response (task, headers, content, content_length);
         break;
@@ -599,6 +619,51 @@ snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *r
 }
 
 static GTask *
+make_get_snap_task (SnapdClient *client,
+                    const gchar *name,
+                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GTask *task;
+    g_autofree gchar *escaped = NULL, *path = NULL;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_SNAP), NULL);
+    priv->tasks = g_list_append (priv->tasks, task);
+    escaped = soup_uri_encode (name, NULL);
+    path = g_strdup_printf ("/v2/snaps/%s", escaped);
+    send_request (task, "GET", path, NULL, NULL);
+
+    return task;
+}
+
+SnapdSnap *
+snapd_client_get_snap_sync (SnapdClient *client, const gchar *name, GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GTask) task = NULL;
+
+    task = g_object_ref (make_get_snap_task (client, name, cancellable, NULL, NULL));
+    while (!g_task_get_completed (task))
+        g_main_context_iteration (g_task_get_context (task), TRUE);
+    return snapd_client_get_snap_finish (client, G_ASYNC_RESULT (task), error);
+}
+
+void
+snapd_client_get_snap_async (SnapdClient *client,
+                             const gchar *name,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    make_get_snap_task (client, name, cancellable, callback, user_data);
+}
+
+SnapdSnap *
+snapd_client_get_snap_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
+    return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static GTask *
 make_get_installed_task (SnapdClient *client, GCancellable *cancellable,
                          GAsyncReadyCallback callback, gpointer user_data)
 {
@@ -710,7 +775,7 @@ make_find_task (SnapdClient *client, const gchar *query,
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
-    g_autofree gchar *path = NULL, *escaped = NULL;
+    g_autofree gchar *escaped = NULL, *path = NULL;
 
     task = g_task_new (client, cancellable, callback, user_data);
     g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_FIND), NULL);
