@@ -32,7 +32,7 @@ send_request (GTask *task, const gchar *method, const gchar *path, const gchar *
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_autoptr (GString) request = NULL;
     gssize n_written;
-    g_autoptr(GError) error = NULL;  
+    g_autoptr(GError) error = NULL;
 
     // NOTE: Would love to use libsoup but it doesn't support unix sockets
     // https://bugzilla.gnome.org/show_bug.cgi?id=727563
@@ -119,7 +119,7 @@ parse_result (const gchar *response_type, const gchar *response, gsize response_
 static void
 parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);  
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_autoptr(GTask) task = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdSystemInformation) system_information = NULL;
@@ -170,7 +170,7 @@ read_data (SnapdClient *client, GCancellable *cancellable)
                                sizeof (priv->buffer) - priv->n_read,
                                cancellable,
                                &error_local);
-    if (n_read < 0) 
+    if (n_read < 0)
     {
         // FIXME: Cancel all tasks
         //g_set_error (error,
@@ -181,7 +181,7 @@ read_data (SnapdClient *client, GCancellable *cancellable)
         return FALSE;
     }
 
-    priv->n_read += n_read;  
+    priv->n_read += n_read;
 
     return TRUE;
 }
@@ -337,7 +337,7 @@ snapd_client_connect_sync (SnapdClient *client, GCancellable *cancellable, GErro
     g_autoptr(GSocketAddress) address = NULL;
     g_autoptr(GError) error_local = NULL;
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);  
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (priv->snapd_socket == NULL, FALSE);
 
     priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
