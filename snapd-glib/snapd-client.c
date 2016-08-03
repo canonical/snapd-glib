@@ -29,8 +29,8 @@ typedef enum
 {
     SNAPD_REQUEST_GET_SYSTEM_INFORMATION,
     SNAPD_REQUEST_LOGIN,
-    SNAPD_REQUEST_FIND,
     SNAPD_REQUEST_GET_INSTALLED,
+    SNAPD_REQUEST_FIND,
     SNAPD_REQUEST_SIDELOAD_SNAP,
     SNAPD_REQUEST_GET_SNAP,
     SNAPD_REQUEST_GET_ICON,
@@ -171,46 +171,12 @@ parse_get_system_information_response (GTask *task, SoupMessageHeaders *headers,
     g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref); 
 }
 
-static void
-parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+static SnapdSnapList *
+parse_snap_list (JsonArray *snap_array)
 {
-    g_autoptr(JsonNode) result = NULL;
-    JsonObject *auth;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
-    JsonArray *discharges;
-    guint i;
-    g_autoptr(GError) error = NULL;
-
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
-        g_task_return_error (task, error);
-        return;
-    }
-
-    auth = json_node_get_object (result);
-    auth_data = snapd_auth_data_new ();
-    snapd_auth_data_set_macaroon (auth_data, get_string (auth, "macaroon", NULL));
-    discharges = json_object_get_array_member (auth, "discharges");
-    for (i = 0; i < json_array_get_length (discharges); i++)
-        snapd_auth_data_add_discharge (auth_data, json_array_get_string_element (discharges, i));
-    g_task_return_pointer (task, g_steal_pointer (&auth_data), g_object_unref); 
-}
-
-static void
-parse_get_installed_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    g_autoptr(JsonNode) result = NULL;
-    JsonArray *snap_array;
     g_autoptr(SnapdSnapList) snap_list = NULL;
-    JsonArray *discharges;
     guint i;
-    g_autoptr(GError) error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
-        g_task_return_error (task, error);
-        return;
-    }
-
-    snap_array = json_node_get_array (result);
     snap_list = g_object_new (SNAPD_TYPE_SNAP_LIST, NULL);
     for (i = 0; i < json_array_get_length (snap_array); i++) {
         JsonObject *info = json_array_get_object_element (snap_array, i);
@@ -270,6 +236,66 @@ parse_get_installed_response (GTask *task, SoupMessageHeaders *headers, const gc
                              NULL);
         _snapd_snap_list_add (snap_list, snap);
     }
+
+    return g_steal_pointer (&snap_list);
+}
+
+static void
+parse_get_installed_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonNode) result = NULL;
+    g_autoptr(SnapdSnapList) snap_list = NULL;
+    JsonArray *discharges;
+    g_autoptr(GError) error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+        g_task_return_error (task, error);
+        return;
+    }
+
+    snap_list = parse_snap_list (json_node_get_array (result));
+    g_task_return_pointer (task, g_steal_pointer (&snap_list), g_object_unref);
+}
+
+static void
+parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonNode) result = NULL;
+    JsonObject *auth;
+    g_autoptr(SnapdAuthData) auth_data = NULL;
+    JsonArray *discharges;
+    guint i;
+    g_autoptr(GError) error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+        g_task_return_error (task, error);
+        return;
+    }
+
+    auth = json_node_get_object (result);
+    auth_data = snapd_auth_data_new ();
+    snapd_auth_data_set_macaroon (auth_data, get_string (auth, "macaroon", NULL));
+    discharges = json_object_get_array_member (auth, "discharges");
+    for (i = 0; i < json_array_get_length (discharges); i++)
+        snapd_auth_data_add_discharge (auth_data, json_array_get_string_element (discharges, i));
+    g_task_return_pointer (task, g_steal_pointer (&auth_data), g_object_unref); 
+}
+
+static void
+parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonNode) result = NULL;
+    JsonArray *snap_array;
+    g_autoptr(SnapdSnapList) snap_list = NULL;
+    JsonArray *discharges;
+    g_autoptr(GError) error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+        g_task_return_error (task, error);
+        return;
+    }
+
+    snap_list = parse_snap_list (json_node_get_array (result));
     g_task_return_pointer (task, g_steal_pointer (&snap_list), g_object_unref);
 }
 
@@ -296,11 +322,14 @@ parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *c
     case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
         parse_get_system_information_response (task, headers, content, content_length);
         break;
-    case SNAPD_REQUEST_LOGIN:
-        parse_login_response (task, headers, content, content_length);      
-        break;
     case SNAPD_REQUEST_GET_INSTALLED:
         parse_get_installed_response (task, headers, content, content_length);      
+        break;
+    case SNAPD_REQUEST_LOGIN:
+        parse_login_response (task, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_FIND:
+        parse_find_response (task, headers, content, content_length);      
         break;      
     }
 }
@@ -561,6 +590,46 @@ snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *r
 }
 
 static GTask *
+make_get_installed_task (SnapdClient *client, GCancellable *cancellable,
+                         GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GTask *task;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_INSTALLED), NULL);
+    priv->tasks = g_list_append (priv->tasks, task);
+    send_request (task, "GET", "/v2/snaps", NULL, NULL);
+
+    return task;
+}
+
+SnapdSnapList *
+snapd_client_get_installed_sync (SnapdClient *client, GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GTask) task = NULL;
+
+    task = g_object_ref (make_get_installed_task (client, cancellable, NULL, NULL));
+    while (!g_task_get_completed (task))
+        g_main_context_iteration (g_task_get_context (task), TRUE);
+    return snapd_client_get_installed_finish (client, G_ASYNC_RESULT (task), error);
+}
+
+void
+snapd_client_get_installed_async (SnapdClient *client, GCancellable *cancellable,
+                                  GAsyncReadyCallback callback, gpointer user_data)
+{
+    make_get_installed_task (client, cancellable, callback, user_data);
+}
+
+SnapdSnapList *
+snapd_client_get_installed_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
+    return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static GTask *
 make_login_task (SnapdClient *client,
                  const gchar *username, const gchar *password, const gchar *otp,
                  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
@@ -627,40 +696,44 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
 }
 
 static GTask *
-make_get_installed_task (SnapdClient *client, GCancellable *cancellable,
-                         GAsyncReadyCallback callback, gpointer user_data)
+make_find_task (SnapdClient *client, const gchar *query,
+                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
+    g_autofree gchar *path = NULL, *escaped = NULL;
 
     task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_INSTALLED), NULL);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_FIND), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
-    send_request (task, "GET", "/v2/snaps", NULL, NULL);
+    escaped = soup_uri_encode (query, NULL);
+    path = g_strdup_printf ("/v2/find?q=%s", escaped);
+    send_request (task, "GET", path, NULL, NULL);
+    // FIXME: name, select (use flags)
 
     return task;
 }
 
 SnapdSnapList *
-snapd_client_get_installed_sync (SnapdClient *client, GCancellable *cancellable, GError **error)
+snapd_client_find_sync (SnapdClient *client, const gchar *query, GCancellable *cancellable, GError **error)
 {
     g_autoptr(GTask) task = NULL;
 
-    task = g_object_ref (make_get_installed_task (client, cancellable, NULL, NULL));
+    task = g_object_ref (make_find_task (client, query, cancellable, NULL, NULL));
     while (!g_task_get_completed (task))
         g_main_context_iteration (g_task_get_context (task), TRUE);
-    return snapd_client_get_installed_finish (client, G_ASYNC_RESULT (task), error);
+    return snapd_client_find_finish (client, G_ASYNC_RESULT (task), error);
 }
 
 void
-snapd_client_get_installed_async (SnapdClient *client, GCancellable *cancellable,
-                                  GAsyncReadyCallback callback, gpointer user_data)
+snapd_client_find_async (SnapdClient *client, const gchar *query,
+                         GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    make_get_installed_task (client, cancellable, callback, user_data);
+    make_find_task (client, query, cancellable, callback, user_data);
 }
 
 SnapdSnapList *
-snapd_client_get_installed_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
     return g_task_propagate_pointer (G_TASK (result), error);

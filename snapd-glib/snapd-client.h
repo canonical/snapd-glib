@@ -61,6 +61,19 @@ SnapdSystemInformation *snapd_client_get_system_information_finish (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+SnapdSnapList          *snapd_client_get_installed_sync            (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+
+void                    snapd_client_get_installed_async           (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+
+SnapdSnapList          *snapd_client_get_installed_finish          (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 SnapdAuthData          *snapd_client_login_sync                    (SnapdClient          *client,
                                                                     const gchar          *username,
                                                                     const gchar          *password,
@@ -80,16 +93,18 @@ SnapdAuthData          *snapd_client_login_finish                  (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-SnapdSnapList          *snapd_client_get_installed_sync            (SnapdClient          *client,
+SnapdSnapList          *snapd_client_find_sync                     (SnapdClient          *client,
+                                                                    const gchar          *query,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 
-void                    snapd_client_get_installed_async           (SnapdClient          *client,
+void                    snapd_client_find_async                    (SnapdClient          *client,
+                                                                    const gchar          *query,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 
-SnapdSnapList          *snapd_client_get_installed_finish          (SnapdClient          *client,
+SnapdSnapList          *snapd_client_find_finish                   (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
