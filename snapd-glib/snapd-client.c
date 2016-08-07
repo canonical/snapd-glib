@@ -82,11 +82,39 @@ send_request (GTask *task, SnapdAuthData *auth_data, const gchar *method, const 
 }
 
 static gboolean
+get_bool (JsonObject *object, const gchar *name, gboolean default_value)
+{
+    if (json_object_has_member (object, name))
+        return json_object_get_boolean_member (object, name);
+    else
+        return default_value;
+}
+
+static gint64
+get_int (JsonObject *object, const gchar *name, gint64 default_value)
+{
+    if (json_object_has_member (object, name))
+        return json_object_get_int_member (object, name);
+    else
+        return default_value;
+}
+
+static const gchar *
+get_string (JsonObject *object, const gchar *name, const gchar *default_value)
+{
+    if (json_object_has_member (object, name))
+        return json_object_get_string_member (object, name);
+    else
+        return default_value;
+}
+
+static gboolean
 parse_result (const gchar *response_type, const gchar *response, gsize response_length, JsonNode **result, GError **error)
 {
     g_autoptr(JsonParser) parser = NULL;
     g_autoptr(GError) error_local = NULL;
     JsonObject *root;
+    const gchar *type;
 
     if (response_type == NULL) {
         g_set_error_literal (error,
@@ -128,37 +156,57 @@ parse_result (const gchar *response_type, const gchar *response, gsize response_
                              "snapd response does not contain a \"result\" field");
         return FALSE;
     }
+
+    type = get_string (root, "type", NULL);
+    if (g_strcmp0 (type, "error") == 0) {
+        const gchar *kind, *message;
+        JsonObject *result_object;
+
+        result_object = json_object_get_object_member (root, "result");
+        kind = get_string (result_object, "kind", NULL);
+        message = get_string (result_object, "message", NULL);
+
+        if (g_strcmp0 (kind, "login-required") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_CLIENT_ERROR,
+                                 SNAPD_CLIENT_ERROR_LOGIN_REQUIRED,
+                                 message);
+            return FALSE;
+        }
+        else if (g_strcmp0 (kind, "invalid-auth-data") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_CLIENT_ERROR,
+                                 SNAPD_CLIENT_ERROR_INVALID_AUTH_DATA,
+                                 message);
+            return FALSE;
+        }
+        else if (g_strcmp0 (kind, "two-factor-required") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_CLIENT_ERROR,
+                                 SNAPD_CLIENT_ERROR_TWO_FACTOR_REQUIRED,
+                                 message);
+            return FALSE;
+        }
+        else if (g_strcmp0 (kind, "two-factor-failed") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_CLIENT_ERROR,
+                                 SNAPD_CLIENT_ERROR_TWO_FACTOR_FAILED,
+                                 message);
+            return FALSE;
+        }
+        else {
+            g_set_error_literal (error,
+                                 SNAPD_CLIENT_ERROR,
+                                 SNAPD_CLIENT_ERROR_GENERAL_ERROR,
+                                 message);
+            return FALSE;
+        }
+    }
+
     if (result != NULL)
         *result = json_node_ref (json_object_get_member (root, "result"));
 
     return TRUE;
-}
-
-static gboolean
-get_bool (JsonObject *object, const gchar *name, gboolean default_value)
-{
-    if (json_object_has_member (object, name))
-        return json_object_get_boolean_member (object, name);
-    else
-        return default_value;
-}
-
-static gint64
-get_int (JsonObject *object, const gchar *name, gint64 default_value)
-{
-    if (json_object_has_member (object, name))
-        return json_object_get_int_member (object, name);
-    else
-        return default_value;
-}
-
-static const gchar *
-get_string (JsonObject *object, const gchar *name, const gchar *default_value)
-{
-    if (json_object_has_member (object, name))
-        return json_object_get_string_member (object, name);
-    else
-        return default_value;
 }
 
 static void
@@ -168,7 +216,7 @@ parse_get_system_information_response (GTask *task, SoupMessageHeaders *headers,
     JsonObject *info;
     g_autoptr(SnapdSystemInformation) system_information = NULL;
     JsonObject *os_release;
-    g_autoptr(GError) error = NULL;
+    GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
         g_task_return_error (task, error);
@@ -265,7 +313,7 @@ parse_get_snap_response (GTask *task, SoupMessageHeaders *headers, const gchar *
 {
     g_autoptr(JsonNode) result = NULL;
     g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
+    GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
         g_task_return_error (task, error);
@@ -281,7 +329,7 @@ parse_get_installed_response (GTask *task, SoupMessageHeaders *headers, const gc
 {
     g_autoptr(JsonNode) result = NULL;
     g_autoptr(SnapdSnapList) snap_list = NULL;
-    g_autoptr(GError) error = NULL;
+    GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
         g_task_return_error (task, error);
@@ -300,7 +348,7 @@ parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
     g_autoptr(SnapdAuthData) auth_data = NULL;
     JsonArray *discharges;
     guint i;
-    g_autoptr(GError) error = NULL;
+    GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
         g_task_return_error (task, error);
@@ -321,7 +369,7 @@ parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
 {
     g_autoptr(JsonNode) result = NULL;
     g_autoptr(SnapdSnapList) snap_list = NULL;
-    g_autoptr(GError) error = NULL;
+    GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
         g_task_return_error (task, error);
@@ -337,7 +385,7 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
 {
     g_autoptr(JsonNode) result = NULL;
     g_autoptr(SnapdPaymentMethodList) payment_method_list = NULL;
-    g_autoptr(GError) error = NULL;
+    GError *error = NULL;
     JsonObject *list_object;
     JsonArray *methods;
     guint i;
@@ -373,7 +421,7 @@ parse_buy_response (GTask *task, SoupMessageHeaders *headers, const gchar *conte
 {
     g_autoptr(JsonNode) result = NULL;
     g_autoptr(SnapdPaymentMethodList) payment_method_list = NULL;
-    g_autoptr(GError) error = NULL;
+    GError *error = NULL;
     JsonObject *list_object;
     JsonArray *methods;
     guint i;
