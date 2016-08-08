@@ -21,12 +21,6 @@ enum
  
 G_DEFINE_TYPE (SnapdIcon, snapd_icon, G_TYPE_OBJECT)
 
-SnapdIcon *
-snapd_icon_new (void)
-{
-    return g_object_new (SNAPD_TYPE_ICON, NULL);
-}
-
 const gchar *
 snapd_icon_get_mime_type (SnapdIcon *icon)
 {
@@ -113,7 +107,7 @@ snapd_icon_class_init (SnapdIconClass *klass)
                                                           "mime-type",
                                                           "Icon mime type",
                                                           NULL,
-                                                          G_PARAM_READWRITE));
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void
