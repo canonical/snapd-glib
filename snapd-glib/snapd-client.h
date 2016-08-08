@@ -46,6 +46,9 @@ typedef enum {
 
 #define SNAPD_CLIENT_ERROR snapd_client_error_quark ()
 
+typedef void (*SnapdProgressCallback) (gpointer user_data); // FIXME
+
+
 GQuark                  snapd_client_error_quark                   (void) G_GNUC_CONST;
 
 SnapdClient            *snapd_client_new                           (void);
@@ -123,12 +126,16 @@ gboolean                snapd_client_install_sync                  (SnapdClient 
                                                                     SnapdAuthData        *auth_data,
                                                                     const gchar          *name,
                                                                     const gchar          *channel,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_install_async                 (SnapdClient          *client,
                                                                     SnapdAuthData        *auth_data,
                                                                     const gchar          *name,
                                                                     const gchar          *channel,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
@@ -139,11 +146,15 @@ gboolean                snapd_client_install_finish                (SnapdClient 
 gboolean                snapd_client_remove_sync                   (SnapdClient          *client,
                                                                     SnapdAuthData        *auth_data,
                                                                     const gchar          *name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_remove_async                  (SnapdClient          *client,
                                                                     SnapdAuthData        *auth_data,
                                                                     const gchar          *name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);

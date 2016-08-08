@@ -39,7 +39,7 @@ typedef enum
     SNAPD_REQUEST_GET_PAYMENT_METHODS,
     SNAPD_REQUEST_BUY,
     SNAPD_REQUEST_INSTALL,
-    SNAPD_REQUEST_REMOVE  
+    SNAPD_REQUEST_REMOVE
 } SnapdRequestType;
 
 static gchar *
@@ -124,30 +124,30 @@ get_string (JsonObject *object, const gchar *name, const gchar *default_value)
 }
 
 static gboolean
-parse_result (const gchar *response_type, const gchar *response, gsize response_length, JsonNode **result, GError **error)
+parse_result (const gchar *content_type, const gchar *content, gsize content_length, JsonObject **response, gchar **change_id, GError **error)
 {
     g_autoptr(JsonParser) parser = NULL;
     g_autoptr(GError) error_local = NULL;
     JsonObject *root;
     const gchar *type;
 
-    if (response_type == NULL) {
+    if (content_type == NULL) {
         g_set_error_literal (error,
                              SNAPD_CLIENT_ERROR,
                              SNAPD_CLIENT_ERROR_PARSE_ERROR,
                              "snapd returned no content type");
         return FALSE;
     }
-    if (g_strcmp0 (response_type, "application/json") != 0) {
+    if (g_strcmp0 (content_type, "application/json") != 0) {
         g_set_error (error,
                      SNAPD_CLIENT_ERROR,
                      SNAPD_CLIENT_ERROR_PARSE_ERROR,
-                     "snapd returned unexpected content type %s", response_type);
+                     "snapd returned unexpected content type %s", content_type);
         return FALSE;
     }
 
     parser = json_parser_new ();
-    if (!json_parser_load_from_data (parser, response, response_length, &error_local)) {
+    if (!json_parser_load_from_data (parser, content, content_length, &error_local)) {
         g_set_error (error,
                      SNAPD_CLIENT_ERROR,
                      SNAPD_CLIENT_ERROR_PARSE_ERROR,
@@ -164,20 +164,13 @@ parse_result (const gchar *response_type, const gchar *response, gsize response_
         return FALSE;
     }
     root = json_node_get_object (json_parser_get_root (parser));
-    if (!json_object_has_member (root, "result")) {
-        g_set_error_literal (error,
-                             SNAPD_CLIENT_ERROR,
-                             SNAPD_CLIENT_ERROR_PARSE_ERROR,
-                             "snapd response does not contain a \"result\" field");
-        return FALSE;
-    }
 
     type = get_string (root, "type", NULL);
     if (g_strcmp0 (type, "error") == 0) {
         const gchar *kind, *message;
         JsonObject *result_object;
 
-        result_object = json_object_get_object_member (root, "result");
+        result_object = json_object_get_object_member (root, "result"); // FIXME: Check is an object
         kind = get_string (result_object, "kind", NULL);
         message = get_string (result_object, "message", NULL);
 
@@ -217,29 +210,35 @@ parse_result (const gchar *response_type, const gchar *response, gsize response_
             return FALSE;
         }
     }
+    else if (g_strcmp0 (type, "async") == 0) {
+        if (change_id)
+            *change_id = g_strdup (get_string (root, "change", NULL));
+    }
+    else if (g_strcmp0 (type, "sync") == 0) {
+    }
 
-    if (result != NULL)
-        *result = json_node_ref (json_object_get_member (root, "result"));
+    if (response != NULL)
+        *response = json_object_ref (root);
 
     return TRUE;
 }
 
-static void
+static gboolean
 parse_get_system_information_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    g_autoptr(JsonNode) result = NULL;
+    g_autoptr(JsonObject) response = NULL;
     JsonObject *info;
     g_autoptr(SnapdSystemInformation) system_information = NULL;
     JsonObject *os_release;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
         g_task_return_error (task, error);
-        return;
+        return TRUE;
     }
 
-    info = json_node_get_object (result);
-    os_release = json_object_get_object_member (info, "os-release");
+    info = json_object_get_object_member (response, "result"); // FIXME: Check is an object
+    os_release = json_object_get_object_member (info, "os-release"); // FIXME: Check is an object
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
                                        "on-classic", get_bool (info, "on-classic", FALSE),
                                        "os-id", os_release != NULL ? get_string (os_release, "id", NULL) : NULL,
@@ -248,6 +247,8 @@ parse_get_system_information_response (GTask *task, SoupMessageHeaders *headers,
                                        "version", get_string (info, "version", NULL),
                                        NULL);
     g_task_return_pointer (task, g_steal_pointer (&system_information), g_object_unref);
+
+    return TRUE;
 }
 
 static SnapdSnap *
@@ -323,97 +324,105 @@ parse_snap_list (JsonArray *array)
     return g_steal_pointer (&snap_list);
 }
 
-static void
+static gboolean
 parse_get_snap_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    g_autoptr(JsonNode) result = NULL;
+    g_autoptr(JsonObject) response = NULL;
     g_autoptr(SnapdSnap) snap = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
         g_task_return_error (task, error);
-        return;
+        return TRUE;
     }
 
-    snap = parse_snap (json_node_get_object (result));
+    snap = parse_snap (json_object_get_object_member (response, "result")); // FIXME: Check is an object
     g_task_return_pointer (task, g_steal_pointer (&snap), g_object_unref);
+
+    return TRUE;
 }
 
-static void
+static gboolean
 parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    g_autoptr(JsonNode) result = NULL;
+    g_autoptr(JsonObject) response = NULL;
     g_autoptr(SnapdSnapList) snap_list = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
         g_task_return_error (task, error);
-        return;
+        return TRUE;
     }
 
-    snap_list = parse_snap_list (json_node_get_array (result));
+    snap_list = parse_snap_list (json_object_get_array_member (response, "result")); // FIXME: Check is an array
     g_task_return_pointer (task, g_steal_pointer (&snap_list), g_object_unref);
+
+    return TRUE;
 }
 
-static void
+static gboolean
 parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    g_autoptr(JsonNode) result = NULL;
+    g_autoptr(JsonObject) response = NULL;
     JsonObject *auth;
     g_autoptr(SnapdAuthData) auth_data = NULL;
     JsonArray *discharges;
     guint i;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
         g_task_return_error (task, error);
-        return;
+        return TRUE;
     }
 
-    auth = json_node_get_object (result);
+    auth = json_object_get_object_member (response, "result"); // FIXME: Check is an object
     auth_data = snapd_auth_data_new ();
     snapd_auth_data_set_macaroon (auth_data, get_string (auth, "macaroon", NULL));
-    discharges = json_object_get_array_member (auth, "discharges");
+    discharges = json_object_get_array_member (auth, "discharges"); // FIXME: Check is an array
     for (i = 0; i < json_array_get_length (discharges); i++)
         snapd_auth_data_add_discharge (auth_data, json_array_get_string_element (discharges, i));
     g_task_return_pointer (task, g_steal_pointer (&auth_data), g_object_unref);
+
+    return TRUE;
 }
 
-static void
+static gboolean
 parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    g_autoptr(JsonNode) result = NULL;
+    g_autoptr(JsonObject) response = NULL;
     g_autoptr(SnapdSnapList) snap_list = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
         g_task_return_error (task, error);
-        return;
+        return TRUE;
     }
 
-    snap_list = parse_snap_list (json_node_get_array (result));
+    snap_list = parse_snap_list (json_object_get_array_member (response, "result")); // FIXME: Check is an array
     g_task_return_pointer (task, g_steal_pointer (&snap_list), g_object_unref);
+
+    return TRUE;
 }
 
-static void
+static gboolean
 parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    g_autoptr(JsonNode) result = NULL;
+    g_autoptr(JsonObject) response = NULL;
     g_autoptr(SnapdPaymentMethodList) payment_method_list = NULL;
     GError *error = NULL;
     JsonObject *list_object;
     JsonArray *methods;
     guint i;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
         g_task_return_error (task, error);
-        return;
+        return TRUE;
     }
 
-    list_object = json_node_get_object (result);
+    list_object = json_object_get_object_member (response, "result"); // FIXME: Check is an object
     //FIXME: get_bool (list_object, "allows-automatic-payment", FALSE);
     payment_method_list = g_object_new (SNAPD_TYPE_PAYMENT_METHOD_LIST, NULL);
-    methods = json_object_get_array_member (list_object, "methods");
+    methods = json_object_get_array_member (list_object, "methods"); // FIXME: Check is an array
     for (i = 0; i < json_array_get_length (methods); i++) {
         JsonObject *object = json_array_get_object_element (methods, i);
         SnapdPaymentMethod *payment_method;
@@ -429,45 +438,86 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
         _snapd_payment_method_list_add (payment_method_list, payment_method);
     }
     g_task_return_pointer (task, g_steal_pointer (&payment_method_list), g_object_unref);
+
+    return TRUE;
 }
 
-static void
-parse_simple_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+static gboolean
+parse_buy_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, NULL, &error)) {
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, NULL, NULL, &error)) {
         g_task_return_error (task, error);
-        return;
+        return TRUE;
     }
 
     g_task_return_boolean (task, TRUE);
+
+    return TRUE;
 }
 
-static void
-parse_buy_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+static gboolean
+parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    parse_simple_response (task, headers, content, content_length);
+    g_autoptr(JsonObject) response = NULL;
+    g_autofree gchar *change_id = NULL;
+    GError *error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, &change_id, &error)) {
+        g_task_return_error (task, error);
+        return TRUE;
+    }
+
+    if (change_id == NULL) {      
+        gboolean ready;
+        JsonObject *status;
+
+        status = json_object_get_object_member (response, "result"); // FIXME: Check is an object
+
+        ready = get_bool (status, "ready", FALSE);
+        g_printerr ("%d\n", ready);
+        if (ready) {
+            g_task_return_boolean (task, TRUE);
+            return TRUE;
+        }
+
+        change_id = g_strdup (get_string (status, "id", NULL));
+    }
+
+    /* Poll for changes */
+    // FIXME: Should wait for 100ms or so
+    if (change_id != NULL) {
+        g_autofree gchar *path = NULL;
+
+        path = g_strdup_printf ("/v2/changes/%s", change_id);
+        send_request (task, NULL, "GET", path, NULL, NULL);
+        return FALSE;
+    }
+
+    // FIXME: Throw some sort of error
+    return TRUE;
 }
 
-static void
+static gboolean
 parse_install_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    parse_simple_response (task, headers, content, content_length);
+    return parse_async_response (task, headers, content, content_length);
 }
 
-static void
+static gboolean
 parse_remove_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    parse_simple_response (task, headers, content, content_length);
+    return parse_async_response (task, headers, content, content_length);
 }
 
 static void
 parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
-    g_autoptr(GTask) task = NULL;
+    GTask *task;
     SnapdRequestType request_type;
+    gboolean completed;
 
     /* Get which request this response is for */
     if (priv->tasks == NULL) {
@@ -475,40 +525,52 @@ parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *c
         return;
     }
     task = g_list_nth_data (priv->tasks, 0);
-    priv->tasks = g_list_remove (priv->tasks, g_list_first (priv->tasks));
 
-    g_printerr ("PARSE %.*s\n", content_length, content);
+    g_printerr ("PARSE %.*s\n", (int) content_length, content);
 
     request_type = GPOINTER_TO_INT (g_task_get_task_data (task));
     switch (request_type)
     {
     case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
-        parse_get_system_information_response (task, headers, content, content_length);
+        completed = parse_get_system_information_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_SNAP:
-        parse_get_snap_response (task, headers, content, content_length);
+        completed = parse_get_snap_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_LIST:
-        parse_list_response (task, headers, content, content_length);
+        completed = parse_list_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_LOGIN:
-        parse_login_response (task, headers, content, content_length);
+        completed = parse_login_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_FIND:
-        parse_find_response (task, headers, content, content_length);
+        completed = parse_find_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_PAYMENT_METHODS:
-        parse_get_payment_methods_response (task, headers, content, content_length);
+        completed = parse_get_payment_methods_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_BUY:
-        parse_buy_response (task, headers, content, content_length);
+        completed = parse_buy_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_INSTALL:
-        parse_install_response (task, headers, content, content_length);
+        completed = parse_install_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_REMOVE:
-        parse_remove_response (task, headers, content, content_length);
+        completed = parse_remove_response (task, headers, content, content_length);
         break;
+    default:
+        g_task_return_new_error (task,
+                                 SNAPD_CLIENT_ERROR,
+                                 SNAPD_CLIENT_ERROR_GENERAL_ERROR,
+                                 "Unknown task");
+        completed = TRUE;
+        break;
+    }
+
+    if (completed)
+    {
+        priv->tasks = g_list_remove (priv->tasks, g_list_first (priv->tasks));
+        g_object_unref (task);
     }
 }
 
@@ -1003,6 +1065,7 @@ make_action_builder (const gchar *action)
 static GTask *
 make_install_task (SnapdClient *client,
                    SnapdAuthData *auth_data, const gchar *name, const gchar *channel,
+                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
@@ -1033,6 +1096,7 @@ make_install_task (SnapdClient *client,
 gboolean
 snapd_client_install_sync (SnapdClient *client,
                            SnapdAuthData *auth_data, const gchar *name, const gchar *channel,
+                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                            GCancellable *cancellable, GError **error)
 {
     g_autoptr(GTask) task = NULL;
@@ -1040,7 +1104,7 @@ snapd_client_install_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
-    task = g_object_ref (make_install_task (client, auth_data, name, channel, cancellable, NULL, NULL));
+    task = g_object_ref (make_install_task (client, auth_data, name, channel, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     wait_for_task (task);
     return snapd_client_install_finish (client, G_ASYNC_RESULT (task), error);
 }
@@ -1048,12 +1112,13 @@ snapd_client_install_sync (SnapdClient *client,
 void
 snapd_client_install_async (SnapdClient *client,
                             SnapdAuthData *auth_data, const gchar *name, const gchar *channel,
+                            SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (name != NULL);
 
-    make_install_task (client, auth_data, name, channel, cancellable, callback, user_data);
+    make_install_task (client, auth_data, name, channel, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
 gboolean
@@ -1066,6 +1131,7 @@ snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError *
 static GTask *
 make_remove_task (SnapdClient *client,
                   SnapdAuthData *auth_data, const gchar *name,
+                  SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
@@ -1092,6 +1158,7 @@ make_remove_task (SnapdClient *client,
 gboolean
 snapd_client_remove_sync (SnapdClient *client,
                           SnapdAuthData *auth_data, const gchar *name,
+                          SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                           GCancellable *cancellable, GError **error)
 {
     g_autoptr(GTask) task = NULL;
@@ -1099,7 +1166,7 @@ snapd_client_remove_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
-    task = g_object_ref (make_remove_task (client, auth_data, name, cancellable, NULL, NULL));
+    task = g_object_ref (make_remove_task (client, auth_data, name, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     wait_for_task (task);
     return snapd_client_remove_finish (client, G_ASYNC_RESULT (task), error);
 }
@@ -1107,12 +1174,13 @@ snapd_client_remove_sync (SnapdClient *client,
 void
 snapd_client_remove_async (SnapdClient *client,
                            SnapdAuthData *auth_data, const gchar *name,
+                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                            GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (name != NULL);
 
-    make_remove_task (client, auth_data, name, cancellable, callback, user_data);
+    make_remove_task (client, auth_data, name, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
 gboolean
@@ -1224,7 +1292,7 @@ snapd_client_buy_sync (SnapdClient *client,
 
 void
 snapd_client_buy_async (SnapdClient *client,
-                        SnapdAuthData *auth_data, SnapdSnap *snap, SnapdPrice *price, SnapdPaymentMethod *payment_method,                        
+                        SnapdAuthData *auth_data, SnapdSnap *snap, SnapdPrice *price, SnapdPaymentMethod *payment_method,
                         GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
