@@ -407,7 +407,7 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
                                        "backend-id", get_string (object, "backend-id", NULL),
                                        // FIXME: currencies
                                        "description", get_string (object, "description", NULL),
-                                       "id", get_string (object, "id", NULL),
+                                       "id", get_int (object, "id", 0),
                                        "preferred", get_bool (object, "preferred", FALSE),
                                        "requires-interaction", get_bool (object, "requires-interaction", FALSE),
                                        NULL);
@@ -420,11 +420,7 @@ static void
 parse_buy_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonNode) result = NULL;
-    g_autoptr(SnapdPaymentMethodList) payment_method_list = NULL;
     GError *error = NULL;
-    JsonObject *list_object;
-    JsonArray *methods;
-    guint i;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &result, &error)) {
         g_task_return_error (task, error);

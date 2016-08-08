@@ -26,7 +26,7 @@ enum
  
 G_DEFINE_TYPE (SnapdPaymentMethod, snapd_payment_method, G_TYPE_OBJECT)
 
-gchar *
+const gchar *
 snapd_payment_method_get_backend_id (SnapdPaymentMethod *payment_method)
 {
     g_return_val_if_fail (SNAPD_IS_PAYMENT_METHOD (payment_method), FALSE);
@@ -40,7 +40,7 @@ snapd_payment_method_get_currencies (SnapdPaymentMethod *payment_method)
     return payment_method->currencies;
 }
 
-gchar *
+const gchar *
 snapd_payment_method_get_description (SnapdPaymentMethod *payment_method)
 {
     g_return_val_if_fail (SNAPD_IS_PAYMENT_METHOD (payment_method), FALSE);
@@ -83,7 +83,7 @@ snapd_payment_method_set_property (GObject *object, guint prop_id, const GValue 
         payment_method->description = g_strdup (g_value_get_string (value));
         break;
     case PROP_ID:
-        payment_method->id = g_value_get_int (value);
+        payment_method->id = g_value_get_int64 (value);
         break;
     case PROP_PREFERRED:
         payment_method->preferred = g_value_get_boolean (value);
@@ -110,7 +110,7 @@ snapd_payment_method_get_property (GObject *object, guint prop_id, GValue *value
         g_value_set_string (value, payment_method->description);
         break;
     case PROP_ID:
-        g_value_set_int (value, payment_method->id);
+        g_value_set_int64 (value, payment_method->id);
         break;
     case PROP_PREFERRED:
         g_value_set_boolean (value, payment_method->preferred);
@@ -160,11 +160,11 @@ snapd_payment_method_class_init (SnapdPaymentMethodClass *klass)
                                                           G_PARAM_READWRITE));
     g_object_class_install_property (gobject_class,
                                      PROP_ID,
-                                     g_param_spec_string ("id",
-                                                          "id",
-                                                          "Payment ID",
-                                                          NULL,
-                                                          G_PARAM_READWRITE));
+                                     g_param_spec_int64 ("id",
+                                                         "id",
+                                                         "Payment ID",
+                                                         G_MININT64, G_MAXINT64, 0,
+                                                         G_PARAM_READWRITE));
     g_object_class_install_property (gobject_class,
                                      PROP_PREFERRED,
                                      g_param_spec_boolean ("preferred",
