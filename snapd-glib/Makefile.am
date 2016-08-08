@@ -38,7 +38,7 @@ libsnapd_glib_1_0_la_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_builddir) \
 	$(SNAPD_DEBUG_CFLAGS)
-libsnapd_glib_1_0_la_CFLAGS = $(SNAPD_CFLAGS)
+libsnapd_glib_1_0_la_CFLAGS = $(SNAPD_CFLAGS) $(WARN_CFLAGS)
 libsnapd_glib_1_0_la_LIBADD = $(SNAPD_LIBS)
 libsnapd_glib_1_0_la_SOURCES = $(source_c) $(source_h) $(BUILT_SOURCES)
 

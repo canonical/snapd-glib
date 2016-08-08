@@ -13,6 +13,9 @@ AM_SILENT_RULES([yes])
 AM_PATH_GLIB_2_0
 AM_PROG_CC_C_O
 
+WARN_CFLAGS="-Wall"
+AC_SUBST(WARN_CFLAGS)
+
 LT_PREREQ([2.2.6])
 LT_INIT([disable-static])
 
