@@ -65,14 +65,14 @@ SnapdSystemInformation *snapd_client_get_system_information_finish (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-SnapdSnapList          *snapd_client_get_installed_sync            (SnapdClient          *client,
+SnapdSnapList          *snapd_client_list_sync                     (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
-void                    snapd_client_get_installed_async           (SnapdClient          *client,
+void                    snapd_client_list_async                    (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-SnapdSnapList          *snapd_client_get_installed_finish          (SnapdClient          *client,
+SnapdSnapList          *snapd_client_list_finish                   (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

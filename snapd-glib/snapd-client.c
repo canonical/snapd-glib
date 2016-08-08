@@ -30,7 +30,7 @@ typedef enum
     SNAPD_REQUEST_GET_SYSTEM_INFORMATION,
     SNAPD_REQUEST_LOGIN,
     SNAPD_REQUEST_GET_SNAP,
-    SNAPD_REQUEST_GET_INSTALLED,
+    SNAPD_REQUEST_LIST,
     SNAPD_REQUEST_FIND,
     SNAPD_REQUEST_SIDELOAD_SNAP,
     SNAPD_REQUEST_GET_ICON,
@@ -325,7 +325,7 @@ parse_get_snap_response (GTask *task, SoupMessageHeaders *headers, const gchar *
 }
 
 static void
-parse_get_installed_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonNode) result = NULL;
     g_autoptr(SnapdSnapList) snap_list = NULL;
@@ -456,8 +456,8 @@ parse_response (SnapdClient *client, SoupMessageHeaders *headers, const gchar *c
     case SNAPD_REQUEST_GET_SNAP:
         parse_get_snap_response (task, headers, content, content_length);
         break;
-    case SNAPD_REQUEST_GET_INSTALLED:
-        parse_get_installed_response (task, headers, content, content_length);
+    case SNAPD_REQUEST_LIST:
+        parse_list_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_LOGIN:
         parse_login_response (task, headers, content, content_length);
@@ -779,14 +779,14 @@ snapd_client_get_snap_finish (SnapdClient *client, GAsyncResult *result, GError 
 }
 
 static GTask *
-make_get_installed_task (SnapdClient *client, GCancellable *cancellable,
-                         GAsyncReadyCallback callback, gpointer user_data)
+make_list_task (SnapdClient *client, GCancellable *cancellable,
+                GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
 
     task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_INSTALLED), NULL);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_LIST), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
     send_request (task, NULL, "GET", "/v2/snaps", NULL, NULL);
 
@@ -794,24 +794,24 @@ make_get_installed_task (SnapdClient *client, GCancellable *cancellable,
 }
 
 SnapdSnapList *
-snapd_client_get_installed_sync (SnapdClient *client, GCancellable *cancellable, GError **error)
+snapd_client_list_sync (SnapdClient *client, GCancellable *cancellable, GError **error)
 {
     g_autoptr(GTask) task = NULL;
 
-    task = g_object_ref (make_get_installed_task (client, cancellable, NULL, NULL));
+    task = g_object_ref (make_list_task (client, cancellable, NULL, NULL));
     wait_for_task (task);
-    return snapd_client_get_installed_finish (client, G_ASYNC_RESULT (task), error);
+    return snapd_client_list_finish (client, G_ASYNC_RESULT (task), error);
 }
 
 void
-snapd_client_get_installed_async (SnapdClient *client, GCancellable *cancellable,
-                                  GAsyncReadyCallback callback, gpointer user_data)
+snapd_client_list_async (SnapdClient *client, GCancellable *cancellable,
+                         GAsyncReadyCallback callback, gpointer user_data)
 {
-    make_get_installed_task (client, cancellable, callback, user_data);
+    make_list_task (client, cancellable, callback, user_data);
 }
 
 SnapdSnapList *
-snapd_client_get_installed_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
     return g_task_propagate_pointer (G_TASK (result), error);
