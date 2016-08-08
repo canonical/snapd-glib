@@ -11,7 +11,7 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_PAYMENT_METHOD_LIST  (snapd_snap_list_get_type ())
+#define SNAPD_TYPE_PAYMENT_METHOD_LIST  (snapd_payment_method_list_get_type ())
 
 G_DECLARE_FINAL_TYPE (SnapdPaymentMethodList, snapd_payment_method_list, SNAPD, PAYMENT_METHOD_LIST, GObject)
 
