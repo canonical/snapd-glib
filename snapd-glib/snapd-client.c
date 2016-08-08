@@ -484,7 +484,7 @@ read_data (SnapdClient *client, gsize size, GCancellable *cancellable)
     if (priv->n_read + size > priv->buffer->len)
         g_byte_array_set_size (priv->buffer, priv->n_read + size);
     n_read = g_socket_receive (priv->snapd_socket,
-                               priv->buffer->data + priv->n_read,
+                               (gchar *) (priv->buffer->data + priv->n_read),
                                size,
                                cancellable,
                                &error_local);
@@ -536,7 +536,6 @@ have_chunked_body (const gchar *body, gsize body_length)
 static void
 compress_chunks (gchar *body, gsize body_length, gchar **combined_start, gsize *combined_length, gsize *total_length)
 {
-    gsize chunk_length;
     gchar *chunk_start;
 
     /* Use first chunk as output */
@@ -572,16 +571,15 @@ read_from_snapd (SnapdClient *client, GCancellable *cancellable, gboolean blocki
     g_autoptr (SoupMessageHeaders) headers = NULL;
     guint code;
     g_autofree gchar *reason_phrase = NULL;
-    goffset content_length;
     gchar *combined_start;
-    gsize combined_length, total_length;
+    gsize content_length, combined_length;
 
     if (!read_data (client, 1024, cancellable))
         return G_SOURCE_REMOVE;
 
     while (TRUE) {
         /* Look for header divider */
-        body = g_strstr_len (priv->buffer->data, priv->n_read, "\r\n\r\n");
+        body = g_strstr_len ((gchar *) priv->buffer->data, priv->n_read, "\r\n\r\n");
         if (body == NULL)
             return G_SOURCE_CONTINUE;
         body += 4;
@@ -589,7 +587,7 @@ read_from_snapd (SnapdClient *client, GCancellable *cancellable, gboolean blocki
 
         /* Parse headers */
         headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_RESPONSE);
-        if (!soup_headers_parse_response (priv->buffer->data, header_length, headers,
+        if (!soup_headers_parse_response ((gchar *) priv->buffer->data, header_length, headers,
                                           NULL, &code, &reason_phrase)) {
             // FIXME: Cancel all tasks
             return G_SOURCE_REMOVE;
@@ -605,7 +603,8 @@ read_from_snapd (SnapdClient *client, GCancellable *cancellable, gboolean blocki
                     return G_SOURCE_REMOVE;
             }
 
-            parse_response (client, headers, body, priv->n_read - header_length);
+            content_length = priv->n_read - header_length;
+            parse_response (client, headers, body, content_length);
             break;
 
         case SOUP_ENCODING_CHUNKED:
@@ -638,7 +637,7 @@ read_from_snapd (SnapdClient *client, GCancellable *cancellable, gboolean blocki
         }
 
         /* Move remaining data to the start of the buffer */
-        memmove (priv->buffer, priv->buffer + header_length + total_length, priv->n_read - (header_length + content_length));
+        memmove (priv->buffer, priv->buffer + header_length + content_length, priv->n_read - (header_length + content_length));
         priv->n_read -= header_length + content_length;
     }
 }
