@@ -7,6 +7,7 @@ EXTRA_DIST =
 source_h = \
 	snapd-auth-data.h \
 	snapd-client.h \
+	snapd-icon.h \
 	snapd-payment-method.h \
 	snapd-payment-method-list.h \
 	snapd-price.h \
@@ -17,6 +18,7 @@ source_h = \
 source_c = \
 	snapd-auth-data.c \
 	snapd-client.c \
+	snapd-icon.c \
 	snapd-payment-method.c \
 	snapd-payment-method-list.c \
 	snapd-price.c \

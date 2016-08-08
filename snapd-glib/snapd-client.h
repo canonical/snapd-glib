@@ -8,10 +8,11 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 
-#include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-auth-data.h>
-#include <snapd-glib/snapd-snap-list.h>
 #include <snapd-glib/snapd-payment-method-list.h>
+#include <snapd-glib/snapd-icon.h>
+#include <snapd-glib/snapd-snap-list.h>
+#include <snapd-glib/snapd-system-information.h>
 
 G_BEGIN_DECLS
 
@@ -89,6 +90,19 @@ void                    snapd_client_get_snap_async                (SnapdClient 
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 SnapdSnap              *snapd_client_get_snap_finish               (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+SnapdIcon              *snapd_client_get_icon_sync                 (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_icon_async                (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+SnapdIcon              *snapd_client_get_icon_finish               (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
