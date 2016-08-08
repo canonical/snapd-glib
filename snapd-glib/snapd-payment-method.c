@@ -150,35 +150,35 @@ snapd_payment_method_class_init (SnapdPaymentMethodClass *klass)
                                                           "backend-id",
                                                           "Backend ID",
                                                           NULL,
-                                                          G_PARAM_READWRITE));
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_DESCRIPTION,
                                      g_param_spec_string ("description",
                                                           "description",
                                                           "Description of payment method",
                                                           NULL,
-                                                          G_PARAM_READWRITE));
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_ID,
                                      g_param_spec_int64 ("id",
                                                          "id",
                                                          "Payment ID",
                                                          G_MININT64, G_MAXINT64, 0,
-                                                         G_PARAM_READWRITE));
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_PREFERRED,
                                      g_param_spec_boolean ("preferred",
                                                            "preferred",
                                                            "TRUE if a preferred method",
                                                            FALSE,
-                                                           G_PARAM_READWRITE));
+                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_REQUIRES_INTERACTION,
                                      g_param_spec_boolean ("requires-interaction",
                                                            "requires-interaction",
                                                            "TRUE if requires interaction",
                                                            FALSE,
-                                                           G_PARAM_READWRITE));
+                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void
