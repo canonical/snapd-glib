@@ -52,7 +52,13 @@ typedef struct
 {
     GPtrArray *plugs;
     GPtrArray *slots;  
-} InterfacesResult;
+} GetInterfacesResult;
+
+typedef struct 
+{
+    gboolean allows_automatic_payment;
+    GPtrArray *methods;
+} GetPaymentMethodsResult;
 
 static gchar *
 builder_to_string (JsonBuilder *builder)
@@ -404,11 +410,11 @@ parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
 }
 
 static void
-free_interfaces_result (InterfacesResult *result)
+free_get_interfaces_result (GetInterfacesResult *result)
 {
     g_ptr_array_unref (result->plugs);
     g_ptr_array_unref (result->slots);  
-    g_slice_free (InterfacesResult, result);
+    g_slice_free (GetInterfacesResult, result);
 }
 
 static gboolean
@@ -420,7 +426,7 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
     JsonObject *result;
     JsonArray *plugs, *slots;
     guint i, j;
-    InterfacesResult *r;
+    GetInterfacesResult *r;
     GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
@@ -490,10 +496,10 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
         g_ptr_array_add (slot_array, g_steal_pointer (&slot));
     }
 
-    r = g_slice_new (InterfacesResult);
+    r = g_slice_new (GetInterfacesResult);
     r->plugs = g_steal_pointer (&plug_array);
     r->slots = g_steal_pointer (&slot_array);
-    g_task_return_pointer (task, r, (GDestroyNotify) free_interfaces_result);
+    g_task_return_pointer (task, r, (GDestroyNotify) free_get_interfaces_result);
 
     return TRUE;
 }
@@ -596,15 +602,24 @@ parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
     return TRUE;
 }
 
+static void
+free_get_payment_methods_result (GetPaymentMethodsResult *result)
+{
+    g_ptr_array_unref (result->methods);
+    g_slice_free (GetPaymentMethodsResult, result);
+}
+
 static gboolean
 parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
+    gboolean allows_automatic_payment;
     GPtrArray *payment_methods;
     GError *error = NULL;
     JsonObject *list_object;
     JsonArray *methods;
     guint i;
+    GetPaymentMethodsResult *r;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
         g_task_return_error (task, error);
@@ -612,7 +627,7 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
     }
 
     list_object = json_object_get_object_member (response, "result"); // FIXME: Check is an object
-    //FIXME: get_bool (list_object, "allows-automatic-payment", FALSE);
+    allows_automatic_payment = get_bool (list_object, "allows-automatic-payment", FALSE);
     payment_methods = g_ptr_array_new_with_free_func (g_object_unref);
     methods = json_object_get_array_member (list_object, "methods"); // FIXME: Check is an array
     for (i = 0; i < json_array_get_length (methods); i++) {
@@ -629,7 +644,11 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
                                        NULL);
         g_ptr_array_add (payment_methods, payment_method);
     }
-    g_task_return_pointer (task, payment_methods, (GDestroyNotify) g_ptr_array_unref);
+
+    r = g_slice_new (GetPaymentMethodsResult);
+    r->allows_automatic_payment = allows_automatic_payment;
+    r->methods = g_steal_pointer (&payment_methods);
+    g_task_return_pointer (task, r, (GDestroyNotify) free_get_payment_methods_result);
 
     return TRUE;
 }
@@ -1214,7 +1233,7 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
                                     GPtrArray **plugs, GPtrArray **slots,
                                     GError **error)
 {
-    InterfacesResult *r;
+    GetInterfacesResult *r;
 
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), FALSE);
 
@@ -1226,7 +1245,7 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
        *plugs = g_ptr_array_ref (r->plugs);
     if (slots)
        *slots = g_ptr_array_ref (r->slots);
-    free_interfaces_result (r);
+    free_get_interfaces_result (r);
 
     return TRUE;
 }
@@ -1820,6 +1839,7 @@ make_get_payment_methods_task (SnapdClient *client,
 GPtrArray *
 snapd_client_get_payment_methods_sync (SnapdClient *client,
                                        SnapdAuthData *auth_data,
+                                       gboolean *allows_automatic_payments,
                                        GCancellable *cancellable, GError **error)
 {
     g_autoptr(GTask) task = NULL;
@@ -1828,7 +1848,7 @@ snapd_client_get_payment_methods_sync (SnapdClient *client,
 
     task = g_object_ref (make_get_payment_methods_task (client, auth_data, cancellable, NULL, NULL));
     wait_for_task (task);
-    return snapd_client_get_payment_methods_finish (client, G_ASYNC_RESULT (task), error);
+    return snapd_client_get_payment_methods_finish (client, G_ASYNC_RESULT (task), allows_automatic_payments, error);
 }
 
 void
@@ -1841,10 +1861,23 @@ snapd_client_get_payment_methods_async (SnapdClient *client,
 }
 
 GPtrArray *
-snapd_client_get_payment_methods_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+snapd_client_get_payment_methods_finish (SnapdClient *client, GAsyncResult *result, gboolean *allows_automatic_payment, GError **error)
 {
+    GetPaymentMethodsResult *r;
+    GPtrArray *methods;
+
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
-    return g_task_propagate_pointer (G_TASK (result), error);
+
+    r = g_task_propagate_pointer (G_TASK (result), error);
+    if (r == NULL)
+        return NULL;
+
+    if (allows_automatic_payment)
+        *allows_automatic_payment = r->allows_automatic_payment;
+    methods = g_ptr_array_ref (r->methods);
+    free_get_payment_methods_result (r);
+
+    return methods;
 }
 
 static GTask *

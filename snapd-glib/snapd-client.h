@@ -302,6 +302,7 @@ gboolean                snapd_client_disable_finish                (SnapdClient 
 
 GPtrArray              *snapd_client_get_payment_methods_sync      (SnapdClient          *client,
                                                                     SnapdAuthData        *auth_data,
+                                                                    gboolean             *allows_automatic_payment,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_get_payment_methods_async     (SnapdClient          *client,
@@ -311,6 +312,7 @@ void                    snapd_client_get_payment_methods_async     (SnapdClient 
                                                                     gpointer              user_data);
 GPtrArray              *snapd_client_get_payment_methods_finish    (SnapdClient          *client,
                                                                     GAsyncResult         *result,
+                                                                    gboolean             *allows_automatic_payment,
                                                                     GError              **error);
 
 gboolean                snapd_client_buy_sync                      (SnapdClient          *client,
