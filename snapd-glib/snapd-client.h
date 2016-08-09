@@ -219,6 +219,27 @@ gboolean                snapd_client_install_finish                (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+gboolean                snapd_client_refresh_sync                  (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *name,
+                                                                    const gchar          *channel,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_refresh_async                 (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *name,
+                                                                    const gchar          *channel,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_refresh_finish                (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 gboolean                snapd_client_remove_sync                   (SnapdClient          *client,
                                                                     SnapdAuthData        *auth_data,
                                                                     const gchar          *name,
