@@ -118,6 +118,56 @@ SnapdInterfaces        *snapd_client_get_interfaces_finish         (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+gboolean                snapd_client_connect_interface_sync        (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *plug_snap,
+                                                                    const gchar          *plug_name,
+                                                                    const gchar          *slot_snap,
+                                                                    const gchar          *slot_name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_connect_interface_async       (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *plug_snap,
+                                                                    const gchar          *plug_name,
+                                                                    const gchar          *slot_snap,
+                                                                    const gchar          *slot_name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean               snapd_client_connect_interface_finish       (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_disconnect_interface_sync     (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *plug_snap,
+                                                                    const gchar          *plug_name,
+                                                                    const gchar          *slot_snap,
+                                                                    const gchar          *slot_name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_disconnect_interface_async    (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *plug_snap,
+                                                                    const gchar          *plug_name,
+                                                                    const gchar          *slot_snap,
+                                                                    const gchar          *slot_name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean               snapd_client_disconnect_interface_finish    (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 SnapdAuthData          *snapd_client_login_sync                    (SnapdClient          *client,
                                                                     const gchar          *username,
                                                                     const gchar          *password,

@@ -33,6 +33,8 @@ typedef enum
     SNAPD_REQUEST_GET_ICON,
     SNAPD_REQUEST_LIST,
     SNAPD_REQUEST_GET_INTERFACES,
+    SNAPD_REQUEST_CONNECT_INTERFACE,
+    SNAPD_REQUEST_DISCONNECT_INTERFACE,
     SNAPD_REQUEST_FIND,
     SNAPD_REQUEST_SIDELOAD_SNAP,
     SNAPD_REQUEST_ADD_ASSERTION,
@@ -476,6 +478,60 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
 }
 
 static gboolean
+parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonObject) response = NULL;
+    g_autofree gchar *change_id = NULL;
+    GError *error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, &change_id, &error)) {
+        g_task_return_error (task, error);
+        return TRUE;
+    }
+
+    if (change_id == NULL) {      
+        gboolean ready;
+        JsonObject *result;
+
+        result = json_object_get_object_member (response, "result"); // FIXME: Check is an object
+
+        ready = get_bool (result, "ready", FALSE);
+        g_printerr ("%d\n", ready);
+        if (ready) {
+            g_task_return_boolean (task, TRUE);
+            return TRUE;
+        }
+
+        change_id = g_strdup (get_string (result, "id", NULL));
+    }
+
+    /* Poll for changes */
+    // FIXME: Should wait for 100ms or so
+    if (change_id != NULL) {
+        g_autofree gchar *path = NULL;
+
+        path = g_strdup_printf ("/v2/changes/%s", change_id);
+        send_request (task, NULL, "GET", path, NULL, NULL);
+        return FALSE;
+    }
+
+    // FIXME: Throw some sort of error
+    return TRUE;
+}
+
+static gboolean
+parse_connect_interface_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    return parse_async_response (task, headers, content, content_length);
+}
+
+static gboolean
+parse_disconnect_interface_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    return parse_async_response (task, headers, content, content_length);
+}
+
+static gboolean
 parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
@@ -573,48 +629,6 @@ parse_buy_response (GTask *task, SoupMessageHeaders *headers, const gchar *conte
 }
 
 static gboolean
-parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    g_autoptr(JsonObject) response = NULL;
-    g_autofree gchar *change_id = NULL;
-    GError *error = NULL;
-
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, &change_id, &error)) {
-        g_task_return_error (task, error);
-        return TRUE;
-    }
-
-    if (change_id == NULL) {      
-        gboolean ready;
-        JsonObject *result;
-
-        result = json_object_get_object_member (response, "result"); // FIXME: Check is an object
-
-        ready = get_bool (result, "ready", FALSE);
-        g_printerr ("%d\n", ready);
-        if (ready) {
-            g_task_return_boolean (task, TRUE);
-            return TRUE;
-        }
-
-        change_id = g_strdup (get_string (result, "id", NULL));
-    }
-
-    /* Poll for changes */
-    // FIXME: Should wait for 100ms or so
-    if (change_id != NULL) {
-        g_autofree gchar *path = NULL;
-
-        path = g_strdup_printf ("/v2/changes/%s", change_id);
-        send_request (task, NULL, "GET", path, NULL, NULL);
-        return FALSE;
-    }
-
-    // FIXME: Throw some sort of error
-    return TRUE;
-}
-
-static gboolean
 parse_install_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     return parse_async_response (task, headers, content, content_length);
@@ -660,6 +674,12 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         break;
     case SNAPD_REQUEST_GET_INTERFACES:
         completed = parse_get_interfaces_response (task, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_CONNECT_INTERFACE:
+        completed = parse_connect_interface_response (task, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_DISCONNECT_INTERFACE:
+        completed = parse_disconnect_interface_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_LOGIN:
         completed = parse_login_response (task, headers, content, content_length);
@@ -1145,6 +1165,147 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result, G
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
     return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static GTask *
+make_interface_task (SnapdClient *client,
+                     SnapdAuthData *auth_data,
+                     const gchar *action,
+                     const gchar *plug_snap, const gchar *plug_name,
+                     const gchar *slot_snap, const gchar *slot_name,
+                     GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GTask *task;
+    g_autoptr(JsonBuilder) builder = NULL;
+    g_autofree gchar *data = NULL;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_CONNECT_INTERFACE), NULL);
+    priv->tasks = g_list_append (priv->tasks, task);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "action");
+    json_builder_add_string_value (builder, action);
+    json_builder_set_member_name (builder, "plugs");
+    json_builder_begin_array (builder);
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "snap");
+    json_builder_add_string_value (builder, plug_snap);
+    json_builder_set_member_name (builder, "plug");
+    json_builder_add_string_value (builder, plug_name);  
+    json_builder_end_object (builder);
+    json_builder_end_array (builder);
+    json_builder_set_member_name (builder, "slots");
+    json_builder_begin_array (builder);
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "snap");
+    json_builder_add_string_value (builder, slot_snap);
+    json_builder_set_member_name (builder, "slot");
+    json_builder_add_string_value (builder, slot_name);  
+    json_builder_end_object (builder);
+    json_builder_end_array (builder);
+    json_builder_end_object (builder);
+    data = builder_to_string (builder);
+
+    send_request (task, auth_data, "POST", "/v2/interfaces", "application/json", data);
+
+    return task;
+}
+
+static GTask *
+make_connect_interface_task (SnapdClient *client,
+                             SnapdAuthData *auth_data,
+                             const gchar *plug_snap, const gchar *plug_name,
+                             const gchar *slot_snap, const gchar *slot_name,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    return make_interface_task (client, auth_data, "connect", plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);
+}
+
+gboolean
+snapd_client_connect_interface_sync (SnapdClient *client,
+                                     SnapdAuthData *auth_data,
+                                     const gchar *plug_snap, const gchar *plug_name,
+                                     const gchar *slot_snap, const gchar *slot_name,
+                                     SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                     GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GTask) task = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+
+    task = g_object_ref (make_connect_interface_task (client, auth_data, plug_snap, plug_name, slot_snap, slot_name, cancellable, NULL, NULL));
+    wait_for_task (task);
+    return snapd_client_connect_interface_finish (client, G_ASYNC_RESULT (task), error);
+}
+
+void
+snapd_client_connect_interface_async (SnapdClient *client,
+                                      SnapdAuthData *auth_data,
+                                      const gchar *plug_snap, const gchar *plug_name,
+                                      const gchar *slot_snap, const gchar *slot_name,
+                                      SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    make_connect_interface_task (client, auth_data, plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);  
+}
+
+gboolean
+snapd_client_connect_interface_finish (SnapdClient *client,
+                                       GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), FALSE);
+    return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+static GTask *
+make_disconnect_interface_task (SnapdClient *client,
+                                SnapdAuthData *auth_data,
+                                const gchar *plug_snap, const gchar *plug_name,
+                                const gchar *slot_snap, const gchar *slot_name,
+                                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    return make_interface_task (client, auth_data, "disconnect", plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);
+}
+
+gboolean
+snapd_client_disconnect_interface_sync (SnapdClient *client,
+                                        SnapdAuthData *auth_data,
+                                        const gchar *plug_snap, const gchar *plug_name,
+                                        const gchar *slot_snap, const gchar *slot_name,
+                                        SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                        GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GTask) task = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+
+    task = g_object_ref (make_disconnect_interface_task (client, auth_data, plug_snap, plug_name, slot_snap, slot_name, cancellable, NULL, NULL));
+    wait_for_task (task);
+    return snapd_client_disconnect_interface_finish (client, G_ASYNC_RESULT (task), error);
+}
+
+void
+snapd_client_disconnect_interface_async (SnapdClient *client,
+                                         SnapdAuthData *auth_data,
+                                         const gchar *plug_snap, const gchar *plug_name,
+                                         const gchar *slot_snap, const gchar *slot_name,
+                                         SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                         GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    make_disconnect_interface_task (client, auth_data, plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);  
+}
+
+gboolean
+snapd_client_disconnect_interface_finish (SnapdClient *client,
+                                          GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), FALSE);
+    return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 static GTask *
