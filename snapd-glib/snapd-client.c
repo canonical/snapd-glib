@@ -1170,6 +1170,7 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result, G
 static GTask *
 make_interface_task (SnapdClient *client,
                      SnapdAuthData *auth_data,
+                     SnapdRequestType request,
                      const gchar *action,
                      const gchar *plug_snap, const gchar *plug_name,
                      const gchar *slot_snap, const gchar *slot_name,
@@ -1181,7 +1182,7 @@ make_interface_task (SnapdClient *client,
     g_autofree gchar *data = NULL;
 
     task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_CONNECT_INTERFACE), NULL);
+    g_task_set_task_data (task, GINT_TO_POINTER (request), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
 
     builder = json_builder_new ();
@@ -1221,7 +1222,7 @@ make_connect_interface_task (SnapdClient *client,
                              const gchar *slot_snap, const gchar *slot_name,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    return make_interface_task (client, auth_data, "connect", plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);
+    return make_interface_task (client, auth_data, SNAPD_REQUEST_CONNECT_INTERFACE, "connect", plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);
 }
 
 gboolean
@@ -1268,7 +1269,7 @@ make_disconnect_interface_task (SnapdClient *client,
                                 const gchar *slot_snap, const gchar *slot_name,
                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    return make_interface_task (client, auth_data, "disconnect", plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);
+    return make_interface_task (client, auth_data, SNAPD_REQUEST_DISCONNECT_INTERFACE, "disconnect", plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);
 }
 
 gboolean
