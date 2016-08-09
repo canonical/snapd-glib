@@ -9,7 +9,6 @@ source_h = \
 	snapd-client.h \
 	snapd-connection.h \
 	snapd-icon.h \
-	snapd-interfaces.h \
 	snapd-payment-method.h \
 	snapd-plug.h \
 	snapd-price.h \
@@ -22,7 +21,6 @@ source_c = \
 	snapd-client.c \
 	snapd-connection.c \
 	snapd-icon.c \
-	snapd-interfaces.c \        
 	snapd-payment-method.c \
 	snapd-plug.c \
 	snapd-price.c \

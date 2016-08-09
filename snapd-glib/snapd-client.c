@@ -7,6 +7,8 @@
 #include <json-glib/json-glib.h>
 
 #include "snapd-client.h"
+#include "snapd-plug.h"
+#include "snapd-slot.h"
 
 typedef struct
 {
@@ -45,6 +47,12 @@ typedef enum
     SNAPD_REQUEST_ENABLE,
     SNAPD_REQUEST_DISABLE
 } SnapdRequestType;
+
+typedef struct 
+{
+    GPtrArray *plugs;
+    GPtrArray *slots;  
+} InterfacesResult;
 
 static gchar *
 builder_to_string (JsonBuilder *builder)
@@ -395,14 +403,24 @@ parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
     return TRUE;
 }
 
+static void
+free_interfaces_result (InterfacesResult *result)
+{
+    g_ptr_array_unref (result->plugs);
+    g_ptr_array_unref (result->slots);  
+    g_slice_free (InterfacesResult, result);
+}
+
 static gboolean
 parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(SnapdInterfaces) interfaces = NULL;
+    g_autoptr(GPtrArray) plug_array = NULL;
+    g_autoptr(GPtrArray) slot_array = NULL;
     JsonObject *result;
     JsonArray *plugs, *slots;
     guint i, j;
+    InterfacesResult *r;
     GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
@@ -410,11 +428,9 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
         return TRUE;
     }
 
-    interfaces = g_object_new (SNAPD_TYPE_INTERFACES, NULL);
-    // FIXME: ...
-
     result = json_object_get_object_member (response, "result"); // FIXME: Check is an object
     plugs = json_object_get_array_member (result, "plugs"); // FIXME: Check is an array
+    plug_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (plugs); i++) {
         JsonObject *object = json_array_get_object_element (plugs, i); // FIXME: Check is an object
         g_autoptr(SnapdPlug) plug = NULL;
@@ -441,9 +457,10 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
             g_ptr_array_add (snapd_plug_get_connections (plug), connection);
         }
 
-        _snapd_interfaces_add_plug (interfaces, plug);
+        g_ptr_array_add (plug_array, g_steal_pointer (&plug));
     }
     slots = json_object_get_array_member (result, "slots"); // FIXME: Check is an array
+    slot_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (slots); i++) {
         JsonObject *object = json_array_get_object_element (slots, i); // FIXME: Check is an object
         g_autoptr(SnapdSlot) slot = NULL;
@@ -470,10 +487,13 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
             g_ptr_array_add (snapd_slot_get_connections (slot), connection);
         }
 
-        _snapd_interfaces_add_slot (interfaces, slot);
+        g_ptr_array_add (slot_array, g_steal_pointer (&slot));
     }
 
-    g_task_return_pointer (task, g_steal_pointer (&interfaces), g_object_unref);
+    r = g_slice_new (InterfacesResult);
+    r->plugs = g_steal_pointer (&plug_array);
+    r->slots = g_steal_pointer (&slot_array);
+    g_task_return_pointer (task, r, (GDestroyNotify) free_interfaces_result);
 
     return TRUE;
 }
@@ -1167,17 +1187,18 @@ make_get_interfaces_task (SnapdClient *client,
     return task;
 }
 
-SnapdInterfaces *
+gboolean
 snapd_client_get_interfaces_sync (SnapdClient *client,
+                                  GPtrArray **plugs, GPtrArray **slots,
                                   GCancellable *cancellable, GError **error)
 {
     g_autoptr(GTask) task = NULL;
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
     task = g_object_ref (make_get_interfaces_task (client, cancellable, NULL, NULL));
     wait_for_task (task);
-    return snapd_client_get_interfaces_finish (client, G_ASYNC_RESULT (task), error);
+    return snapd_client_get_interfaces_finish (client, G_ASYNC_RESULT (task), plugs, slots, error);
 }
 
 void
@@ -1188,11 +1209,26 @@ snapd_client_get_interfaces_async (SnapdClient *client,
     make_get_interfaces_task (client, cancellable, callback, user_data);
 }
 
-SnapdInterfaces *
-snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+gboolean
+snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
+                                    GPtrArray **plugs, GPtrArray **slots,
+                                    GError **error)
 {
-    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
-    return g_task_propagate_pointer (G_TASK (result), error);
+    InterfacesResult *r;
+
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), FALSE);
+
+    r = g_task_propagate_pointer (G_TASK (result), error);
+    if (r == NULL)
+        return FALSE;
+
+    if (plugs)
+       *plugs = g_ptr_array_ref (r->plugs);
+    if (slots)
+       *slots = g_ptr_array_ref (r->slots);
+    free_interfaces_result (r);
+
+    return TRUE;
 }
 
 static GTask *

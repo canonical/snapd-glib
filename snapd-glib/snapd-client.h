@@ -10,7 +10,6 @@
 
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-icon.h>
-#include <snapd-glib/snapd-interfaces.h>
 #include <snapd-glib/snapd-payment-method.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
@@ -107,15 +106,19 @@ SnapdIcon              *snapd_client_get_icon_finish               (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-SnapdInterfaces        *snapd_client_get_interfaces_sync           (SnapdClient          *client,
+gboolean                snapd_client_get_interfaces_sync           (SnapdClient          *client,
+                                                                    GPtrArray           **plugs,
+                                                                    GPtrArray           **slots,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_get_interfaces_async          (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-SnapdInterfaces        *snapd_client_get_interfaces_finish         (SnapdClient          *client,
+gboolean                snapd_client_get_interfaces_finish         (SnapdClient          *client,
                                                                     GAsyncResult         *result,
+                                                                    GPtrArray           **plugs,
+                                                                    GPtrArray           **slots,
                                                                     GError              **error);
 
 gboolean                snapd_client_connect_interface_sync        (SnapdClient          *client,
