@@ -31,9 +31,9 @@ typedef enum
 {
     SNAPD_REQUEST_GET_SYSTEM_INFORMATION,
     SNAPD_REQUEST_LOGIN,
-    SNAPD_REQUEST_GET_SNAP,
     SNAPD_REQUEST_GET_ICON,
     SNAPD_REQUEST_LIST,
+    SNAPD_REQUEST_LIST_ONE,
     SNAPD_REQUEST_GET_INTERFACES,
     SNAPD_REQUEST_CONNECT_INTERFACE,
     SNAPD_REQUEST_DISCONNECT_INTERFACE,
@@ -352,24 +352,6 @@ parse_snap_array (JsonArray *array)
 }
 
 static gboolean
-parse_get_snap_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    GError *error = NULL;
-
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
-        g_task_return_error (task, error);
-        return TRUE;
-    }
-
-    snap = parse_snap (json_object_get_object_member (response, "result")); // FIXME: Check is an object
-    g_task_return_pointer (task, g_steal_pointer (&snap), g_object_unref);
-
-    return TRUE;
-}
-
-static gboolean
 parse_get_icon_response (GTask *task, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(SnapdIcon) icon = NULL;
@@ -405,6 +387,24 @@ parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
 
     snaps = parse_snap_array (json_object_get_array_member (response, "result")); // FIXME: Check is an array
     g_task_return_pointer (task, snaps, (GDestroyNotify) g_ptr_array_unref);
+
+    return TRUE;
+}
+
+static gboolean
+parse_list_one_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonObject) response = NULL;
+    g_autoptr(SnapdSnap) snap = NULL;
+    GError *error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+        g_task_return_error (task, error);
+        return TRUE;
+    }
+
+    snap = parse_snap (json_object_get_object_member (response, "result")); // FIXME: Check is an object
+    g_task_return_pointer (task, g_steal_pointer (&snap), g_object_unref);
 
     return TRUE;
 }
@@ -721,14 +721,14 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
         completed = parse_get_system_information_response (task, headers, content, content_length);
         break;
-    case SNAPD_REQUEST_GET_SNAP:
-        completed = parse_get_snap_response (task, headers, content, content_length);
-        break;
     case SNAPD_REQUEST_GET_ICON:
         completed = parse_get_icon_response (task, code, headers, content, content_length);
-        break;      
+        break;
     case SNAPD_REQUEST_LIST:
         completed = parse_list_response (task, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_LIST_ONE:
+        completed = parse_list_one_response (task, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_INTERFACES:
         completed = parse_get_interfaces_response (task, headers, content, content_length);
@@ -1051,7 +1051,7 @@ snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *r
 }
 
 static GTask *
-make_get_snap_task (SnapdClient *client,
+make_list_one_task (SnapdClient *client,
                     const gchar *name,
                     GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
@@ -1060,7 +1060,7 @@ make_get_snap_task (SnapdClient *client,
     g_autofree gchar *escaped = NULL, *path = NULL;
 
     task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_SNAP), NULL);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_LIST_ONE), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
@@ -1070,7 +1070,7 @@ make_get_snap_task (SnapdClient *client,
 }
 
 SnapdSnap *
-snapd_client_get_snap_sync (SnapdClient *client,
+snapd_client_list_one_sync (SnapdClient *client,
                             const gchar *name,
                             GCancellable *cancellable, GError **error)
 {
@@ -1078,22 +1078,22 @@ snapd_client_get_snap_sync (SnapdClient *client,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
-    task = g_object_ref (make_get_snap_task (client, name, cancellable, NULL, NULL));
+    task = g_object_ref (make_list_one_task (client, name, cancellable, NULL, NULL));
     wait_for_task (task);
-    return snapd_client_get_snap_finish (client, G_ASYNC_RESULT (task), error);
+    return snapd_client_list_one_finish (client, G_ASYNC_RESULT (task), error);
 }
 
 void
-snapd_client_get_snap_async (SnapdClient *client,
+snapd_client_list_one_async (SnapdClient *client,
                              const gchar *name,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
-    make_get_snap_task (client, name, cancellable, callback, user_data);
+    make_list_one_task (client, name, cancellable, callback, user_data);
 }
 
 SnapdSnap *
-snapd_client_get_snap_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
     return g_task_propagate_pointer (G_TASK (result), error);
