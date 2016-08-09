@@ -12,7 +12,7 @@ struct _SnapdSlot
     gchar *snap;
     gchar *interface;
     gchar *label;
-    // FIXME: connections
+    GPtrArray *connections;
 };
 
 enum 
@@ -27,55 +27,61 @@ enum
 G_DEFINE_TYPE (SnapdSlot, snapd_slot, G_TYPE_OBJECT)
 
 const gchar *
-snapd_slot_get_name (SnapdSlot *icon)
+snapd_slot_get_name (SnapdSlot *slot)
 {
-    g_return_val_if_fail (SNAPD_IS_SLOT (icon), NULL);
-    return icon->name;
-}
-
-
-const gchar *
-snapd_slot_get_snap (SnapdSlot *icon)
-{
-    g_return_val_if_fail (SNAPD_IS_SLOT (icon), NULL);
-    return icon->snap;
+    g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
+    return slot->name;
 }
 
 const gchar *
-snapd_slot_get_interface (SnapdSlot *icon)
+snapd_slot_get_snap (SnapdSlot *slot)
 {
-    g_return_val_if_fail (SNAPD_IS_SLOT (icon), NULL);
-    return icon->interface;
+    g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
+    return slot->snap;
 }
 
 const gchar *
-snapd_slot_get_label (SnapdSlot *icon)
+snapd_slot_get_interface (SnapdSlot *slot)
 {
-    g_return_val_if_fail (SNAPD_IS_SLOT (icon), NULL);
-    return icon->label;
+    g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
+    return slot->interface;
+}
+
+const gchar *
+snapd_slot_get_label (SnapdSlot *slot)
+{
+    g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
+    return slot->label;
+}
+
+GPtrArray *
+snapd_slot_get_connections (SnapdSlot *slot)
+{
+    g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
+    return slot->connections;
 }
 
 static void
 snapd_slot_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdSlot *icon = SNAPD_SLOT (object);
+    SnapdSlot *slot = SNAPD_SLOT (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_free (icon->name);
-        icon->name = g_strdup (g_value_get_string (value));
+        g_free (slot->name);
+        slot->name = g_strdup (g_value_get_string (value));
         break;
     case PROP_SNAP:
-        g_free (icon->snap);
-        icon->snap = g_strdup (g_value_get_string (value));
+        g_free (slot->snap);
+        slot->snap = g_strdup (g_value_get_string (value));
         break;
     case PROP_INTERFACE:
-        g_free (icon->interface);
-        icon->interface = g_strdup (g_value_get_string (value));
+        g_free (slot->interface);
+        slot->interface = g_strdup (g_value_get_string (value));
         break;
     case PROP_LABEL:
-        g_free (icon->label);
-        icon->label = g_strdup (g_value_get_string (value));
+        g_free (slot->label);
+        slot->label = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -86,20 +92,20 @@ snapd_slot_set_property (GObject *object, guint prop_id, const GValue *value, GP
 static void
 snapd_slot_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdSlot *icon = SNAPD_SLOT (object);
+    SnapdSlot *slot = SNAPD_SLOT (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_value_set_string (value, icon->name);
+        g_value_set_string (value, slot->name);
         break;
     case PROP_SNAP:
-        g_value_set_string (value, icon->snap);
+        g_value_set_string (value, slot->snap);
         break;
     case PROP_INTERFACE:
-        g_value_set_string (value, icon->interface);
+        g_value_set_string (value, slot->interface);
         break;
     case PROP_LABEL:
-        g_value_set_string (value, icon->label);
+        g_value_set_string (value, slot->label);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -110,12 +116,13 @@ snapd_slot_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
 static void
 snapd_slot_finalize (GObject *object)
 {
-    SnapdSlot *icon = SNAPD_SLOT (object);
+    SnapdSlot *slot = SNAPD_SLOT (object);
 
-    g_clear_pointer (&icon->name, g_free);
-    g_clear_pointer (&icon->snap, g_free);
-    g_clear_pointer (&icon->interface, g_free);
-    g_clear_pointer (&icon->label, g_free);
+    g_clear_pointer (&slot->name, g_free);
+    g_clear_pointer (&slot->snap, g_free);
+    g_clear_pointer (&slot->interface, g_free);
+    g_clear_pointer (&slot->label, g_free);
+    g_clear_pointer (&slot->connections, g_ptr_array_unref);
 }
 
 static void
@@ -158,6 +165,7 @@ snapd_slot_class_init (SnapdSlotClass *klass)
 }
 
 static void
-snapd_slot_init (SnapdSlot *icon)
+snapd_slot_init (SnapdSlot *slot)
 {
+    slot->connections = g_ptr_array_new_with_free_func (g_object_unref);
 }

@@ -101,7 +101,7 @@ static gboolean
 get_bool (JsonObject *object, const gchar *name, gboolean default_value)
 {
     if (json_object_has_member (object, name))
-        return json_object_get_boolean_member (object, name);
+        return json_object_get_boolean_member (object, name); // FIXME: Check is a bool
     else
         return default_value;
 }
@@ -110,7 +110,7 @@ static gint64
 get_int (JsonObject *object, const gchar *name, gint64 default_value)
 {
     if (json_object_has_member (object, name))
-        return json_object_get_int_member (object, name);
+        return json_object_get_int_member (object, name); // FIXME: Check is an int
     else
         return default_value;
 }
@@ -119,9 +119,18 @@ static const gchar *
 get_string (JsonObject *object, const gchar *name, const gchar *default_value)
 {
     if (json_object_has_member (object, name))
-        return json_object_get_string_member (object, name);
+        return json_object_get_string_member (object, name); // FIXME: Check is a string
     else
         return default_value;
+}
+
+static JsonArray *
+get_array (JsonObject *object, const gchar *name)
+{
+    if (json_object_has_member (object, name))
+        return json_object_get_array_member (object, name); // FIXME: Check is an array
+    else
+        return json_array_new ();
 }
 
 static gboolean
@@ -390,7 +399,7 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
     g_autoptr(SnapdInterfaces) interfaces = NULL;
     JsonObject *result;
     JsonArray *plugs, *slots;
-    guint i;
+    guint i, j;
     GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
@@ -406,6 +415,8 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
     for (i = 0; i < json_array_get_length (plugs); i++) {
         JsonObject *object = json_array_get_object_element (plugs, i); // FIXME: Check is an object
         g_autoptr(SnapdPlug) plug = NULL;
+        JsonArray *connections;
+
         plug = g_object_new (SNAPD_TYPE_PLUG,
                              "name", get_string (object, "plug", NULL),
                              "snap", get_string (object, "snap", NULL),
@@ -413,14 +424,28 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
                              "label", get_string (object, "label", NULL),
                              // FIXME: apps
                              // FIXME: attrs
-                             // FIXME: connections
                              NULL);
+
+        connections = get_array (object, "connections");
+        for (j = 0; j < json_array_get_length (connections); j++) {
+            JsonObject *c = json_array_get_object_element (connections, j); // FIXME: Check is an object
+            SnapdConnection *connection;
+
+            connection = g_object_new (SNAPD_TYPE_CONNECTION,
+                                       "name", get_string (c, "slot", NULL),
+                                       "snap", get_string (c, "snap", NULL),
+                                       NULL);
+            g_ptr_array_add (snapd_plug_get_connections (plug), connection);
+        }
+
         _snapd_interfaces_add_plug (interfaces, plug);
     }
     slots = json_object_get_array_member (result, "slots"); // FIXME: Check is an array
     for (i = 0; i < json_array_get_length (slots); i++) {
         JsonObject *object = json_array_get_object_element (slots, i); // FIXME: Check is an object
         g_autoptr(SnapdSlot) slot = NULL;
+        JsonArray *connections;
+
         slot = g_object_new (SNAPD_TYPE_SLOT,
                              "name", get_string (object, "slot", NULL),
                              "snap", get_string (object, "snap", NULL),
@@ -428,8 +453,20 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
                              "label", get_string (object, "label", NULL),
                              // FIXME: apps
                              // FIXME: attrs
-                             // FIXME: connections
                              NULL);
+
+        connections = get_array (object, "connections");      
+        for (j = 0; j < json_array_get_length (connections); j++) {
+            JsonObject *c = json_array_get_object_element (connections, j); // FIXME: Check is an object
+            SnapdConnection *connection;
+
+            connection = g_object_new (SNAPD_TYPE_CONNECTION,
+                                       "name", get_string (c, "plug", NULL),
+                                       "snap", get_string (c, "snap", NULL),
+                                       NULL);
+            g_ptr_array_add (snapd_slot_get_connections (slot), connection);
+        }
+
         _snapd_interfaces_add_slot (interfaces, slot);
     }
 
