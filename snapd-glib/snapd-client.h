@@ -238,6 +238,44 @@ gboolean                snapd_client_remove_finish                 (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+gboolean                snapd_client_enable_sync                   (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_enable_async                  (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_enable_finish                 (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_disable_sync                  (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_disable_async                 (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    const gchar          *name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_disable_finish                (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 GPtrArray              *snapd_client_get_payment_methods_sync      (SnapdClient          *client,
                                                                     SnapdAuthData        *auth_data,
                                                                     GCancellable         *cancellable,

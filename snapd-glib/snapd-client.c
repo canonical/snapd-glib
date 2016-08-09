@@ -42,7 +42,9 @@ typedef enum
     SNAPD_REQUEST_GET_PAYMENT_METHODS,
     SNAPD_REQUEST_BUY,
     SNAPD_REQUEST_INSTALL,
-    SNAPD_REQUEST_REMOVE
+    SNAPD_REQUEST_REMOVE,
+    SNAPD_REQUEST_ENABLE,
+    SNAPD_REQUEST_DISABLE
 } SnapdRequestType;
 
 static gchar *
@@ -640,6 +642,18 @@ parse_remove_response (GTask *task, SoupMessageHeaders *headers, const gchar *co
     return parse_async_response (task, headers, content, content_length);
 }
 
+static gboolean
+parse_enable_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    return parse_async_response (task, headers, content, content_length);
+}
+
+static gboolean
+parse_disable_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    return parse_async_response (task, headers, content, content_length);
+}
+
 static void
 parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
@@ -698,6 +712,12 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         break;
     case SNAPD_REQUEST_REMOVE:
         completed = parse_remove_response (task, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_ENABLE:
+        completed = parse_enable_response (task, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_DISABLE:
+        completed = parse_disable_response (task, headers, content, content_length);
         break;
     default:
         g_task_return_new_error (task,
@@ -1560,6 +1580,130 @@ snapd_client_remove_async (SnapdClient *client,
 
 gboolean
 snapd_client_remove_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), FALSE);
+    return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+static GTask *
+make_enable_task (SnapdClient *client,
+                  SnapdAuthData *auth_data, const gchar *name,
+                  SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GTask *task;
+    g_autoptr(JsonBuilder) builder = NULL;
+    g_autofree gchar *data = NULL;
+    g_autofree gchar *escaped = NULL, *path = NULL;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_ENABLE), NULL);
+    priv->tasks = g_list_append (priv->tasks, task);
+
+    builder = make_action_builder ("enable");
+    json_builder_end_object (builder);
+    data = builder_to_string (builder);
+
+    escaped = soup_uri_encode (name, NULL);
+    path = g_strdup_printf ("/v2/snaps/%s", escaped);
+    send_request (task, auth_data, "POST", path, "application/json", data);
+
+    return task;
+}
+
+gboolean
+snapd_client_enable_sync (SnapdClient *client,
+                          SnapdAuthData *auth_data, const gchar *name,
+                          SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                          GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GTask) task = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (name != NULL, FALSE);
+
+    task = g_object_ref (make_enable_task (client, auth_data, name, progress_callback, progress_callback_data, cancellable, NULL, NULL));
+    wait_for_task (task);
+    return snapd_client_enable_finish (client, G_ASYNC_RESULT (task), error);
+}
+
+void
+snapd_client_enable_async (SnapdClient *client,
+                           SnapdAuthData *auth_data, const gchar *name,
+                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (name != NULL);
+
+    make_enable_task (client, auth_data, name, progress_callback, progress_callback_data, cancellable, callback, user_data);
+}
+
+gboolean
+snapd_client_enable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), FALSE);
+    return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+static GTask *
+make_disable_task (SnapdClient *client,
+                   SnapdAuthData *auth_data, const gchar *name,
+                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GTask *task;
+    g_autoptr(JsonBuilder) builder = NULL;
+    g_autofree gchar *data = NULL;
+    g_autofree gchar *escaped = NULL, *path = NULL;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_DISABLE), NULL);
+    priv->tasks = g_list_append (priv->tasks, task);
+
+    builder = make_action_builder ("disable");
+    json_builder_end_object (builder);
+    data = builder_to_string (builder);
+
+    escaped = soup_uri_encode (name, NULL);
+    path = g_strdup_printf ("/v2/snaps/%s", escaped);
+    send_request (task, auth_data, "POST", path, "application/json", data);
+
+    return task;
+}
+
+gboolean
+snapd_client_disable_sync (SnapdClient *client,
+                           SnapdAuthData *auth_data, const gchar *name,
+                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                           GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GTask) task = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (name != NULL, FALSE);
+
+    task = g_object_ref (make_disable_task (client, auth_data, name, progress_callback, progress_callback_data, cancellable, NULL, NULL));
+    wait_for_task (task);
+    return snapd_client_disable_finish (client, G_ASYNC_RESULT (task), error);
+}
+
+void
+snapd_client_disable_async (SnapdClient *client,
+                            SnapdAuthData *auth_data, const gchar *name,
+                            SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                            GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (name != NULL);
+
+    make_disable_task (client, auth_data, name, progress_callback, progress_callback_data, cancellable, callback, user_data);
+}
+
+gboolean
+snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), FALSE);
     return g_task_propagate_boolean (G_TASK (result), error);
