@@ -16,7 +16,7 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_CLIENT             (snapd_client_get_type ())
+#define SNAPD_TYPE_CLIENT (snapd_client_get_type ())
 
 G_DECLARE_DERIVABLE_TYPE (SnapdClient, snapd_client, SNAPD, CLIENT, GObject)
 
@@ -32,7 +32,8 @@ struct _SnapdClientClass
     void (* _snapd_reserved4) (void);
 };
 
-typedef enum {  
+typedef enum
+{  
     SNAPD_CLIENT_ERROR_CONNECTION_FAILED,
     SNAPD_CLIENT_ERROR_WRITE_ERROR,
     SNAPD_CLIENT_ERROR_READ_ERROR,
@@ -46,6 +47,14 @@ typedef enum {
 } SnapdClientError;
 
 #define SNAPD_CLIENT_ERROR snapd_client_error_quark ()
+
+typedef enum
+{
+    SNAPD_FIND_FLAGS_NONE,
+    SNAPD_FIND_FLAGS_MATCH_NAME,
+    SNAPD_FIND_FLAGS_SELECT_PRIVATE,
+    SNAPD_FIND_FLAGS_SELECT_REFRESH
+} SnapdFindFlags;
 
 typedef void (*SnapdProgressCallback) (gpointer user_data); // FIXME
 
@@ -189,10 +198,14 @@ SnapdAuthData          *snapd_client_login_finish                  (SnapdClient 
                                                                     GError              **error);
 
 GPtrArray              *snapd_client_find_sync                     (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    SnapdFindFlags        flags,
                                                                     const gchar          *query,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_find_async                    (SnapdClient          *client,
+                                                                    SnapdAuthData        *auth_data,
+                                                                    SnapdFindFlags        flags,
                                                                     const gchar          *query,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,

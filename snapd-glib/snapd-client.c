@@ -1458,27 +1458,40 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
 
 static GTask *
 make_find_task (SnapdClient *client,
-                const gchar *query,
+                SnapdAuthData *auth_data,
+                SnapdFindFlags flags, const gchar *query,
                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
-    g_autofree gchar *escaped = NULL, *path = NULL;
+    g_autoptr (GString) path = NULL;
+    g_autofree gchar *escaped = NULL;  
 
     task = g_task_new (client, cancellable, callback, user_data);
     g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_FIND), NULL);
     priv->tasks = g_list_append (priv->tasks, task);
+    path = g_string_new ("/v2/find");
     escaped = soup_uri_encode (query, NULL);
-    path = g_strdup_printf ("/v2/find?q=%s", escaped);
-    send_request (task, NULL, "GET", path, NULL, NULL);
-    // FIXME: name, select (use flags)
+
+    if ((flags & SNAPD_FIND_FLAGS_MATCH_NAME) != 0)
+        g_string_append_printf (path, "?name=%s", escaped);
+    else
+        g_string_append_printf (path, "?q=%s", escaped);
+
+    if ((flags & SNAPD_FIND_FLAGS_SELECT_PRIVATE) != 0)
+        g_string_append_printf (path, "&select=private");
+    else if ((flags & SNAPD_FIND_FLAGS_SELECT_REFRESH) != 0)
+        g_string_append_printf (path, "&select=refresh");
+
+    send_request (task, auth_data, "GET", path->str, NULL, NULL);
 
     return task;
 }
 
 GPtrArray *
 snapd_client_find_sync (SnapdClient *client,
-                        const gchar *query,
+                        SnapdAuthData *auth_data,
+                        SnapdFindFlags flags, const gchar *query,
                         GCancellable *cancellable, GError **error)
 {
     g_autoptr(GTask) task = NULL;
@@ -1486,18 +1499,20 @@ snapd_client_find_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (query != NULL, NULL);
 
-    task = g_object_ref (make_find_task (client, query, cancellable, NULL, NULL));
+    task = g_object_ref (make_find_task (client, auth_data, flags, query, cancellable, NULL, NULL));
     wait_for_task (task);
     return snapd_client_find_finish (client, G_ASYNC_RESULT (task), error);
 }
 
 void
-snapd_client_find_async (SnapdClient *client, const gchar *query,
+snapd_client_find_async (SnapdClient *client,
+                         SnapdAuthData *auth_data,                         
+                         SnapdFindFlags flags, const gchar *query,
                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (query != NULL);
-    make_find_task (client, query, cancellable, callback, user_data);
+    make_find_task (client, auth_data, flags, query, cancellable, callback, user_data);
 }
 
 GPtrArray *
