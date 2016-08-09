@@ -9,9 +9,9 @@
 #include <gio/gio.h>
 
 #include <snapd-glib/snapd-auth-data.h>
-#include <snapd-glib/snapd-payment-method-list.h>
 #include <snapd-glib/snapd-icon.h>
 #include <snapd-glib/snapd-interfaces.h>
+#include <snapd-glib/snapd-payment-method.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
 
@@ -188,7 +188,7 @@ gboolean                snapd_client_remove_finish                 (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-SnapdPaymentMethodList *snapd_client_get_payment_methods_sync      (SnapdClient          *client,
+GPtrArray              *snapd_client_get_payment_methods_sync      (SnapdClient          *client,
                                                                     SnapdAuthData        *auth_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
@@ -197,7 +197,7 @@ void                    snapd_client_get_payment_methods_async     (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-SnapdPaymentMethodList *snapd_client_get_payment_methods_finish    (SnapdClient          *client,
+GPtrArray              *snapd_client_get_payment_methods_finish    (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

@@ -486,7 +486,7 @@ static gboolean
 parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(SnapdPaymentMethodList) payment_method_list = NULL;
+    GPtrArray *payment_methods;
     GError *error = NULL;
     JsonObject *list_object;
     JsonArray *methods;
@@ -499,7 +499,7 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
 
     list_object = json_object_get_object_member (response, "result"); // FIXME: Check is an object
     //FIXME: get_bool (list_object, "allows-automatic-payment", FALSE);
-    payment_method_list = g_object_new (SNAPD_TYPE_PAYMENT_METHOD_LIST, NULL);
+    payment_methods = g_ptr_array_new_with_free_func (g_object_unref);
     methods = json_object_get_array_member (list_object, "methods"); // FIXME: Check is an array
     for (i = 0; i < json_array_get_length (methods); i++) {
         JsonObject *object = json_array_get_object_element (methods, i); // FIXME: Check is an object
@@ -513,9 +513,9 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
                                        "preferred", get_bool (object, "preferred", FALSE),
                                        "requires-interaction", get_bool (object, "requires-interaction", FALSE),
                                        NULL);
-        _snapd_payment_method_list_add (payment_method_list, payment_method);
+        g_ptr_array_add (payment_methods, payment_method);
     }
-    g_task_return_pointer (task, g_steal_pointer (&payment_method_list), g_object_unref);
+    g_task_return_pointer (task, payment_methods, (GDestroyNotify) g_ptr_array_unref);
 
     return TRUE;
 }
@@ -1382,7 +1382,7 @@ make_get_payment_methods_task (SnapdClient *client,
     return task;
 }
 
-SnapdPaymentMethodList *
+GPtrArray *
 snapd_client_get_payment_methods_sync (SnapdClient *client,
                                        SnapdAuthData *auth_data,
                                        GCancellable *cancellable, GError **error)
@@ -1405,7 +1405,7 @@ snapd_client_get_payment_methods_async (SnapdClient *client,
     make_get_payment_methods_task (client, auth_data, cancellable, callback, user_data);
 }
 
-SnapdPaymentMethodList *
+GPtrArray *
 snapd_client_get_payment_methods_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
