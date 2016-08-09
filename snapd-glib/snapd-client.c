@@ -310,19 +310,19 @@ parse_snap (JsonObject *object)
                          NULL);
 }
 
-static SnapdSnapList *
-parse_snap_list (JsonArray *array)
+static GPtrArray *
+parse_snap_array (JsonArray *array)
 {
-    g_autoptr(SnapdSnapList) snap_list = NULL;
+    GPtrArray *snaps;
     guint i;
 
-    snap_list = g_object_new (SNAPD_TYPE_SNAP_LIST, NULL);
+    snaps = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (array); i++) {
         JsonObject *object = json_array_get_object_element (array, i); // FIXME: Check is an object
-        _snapd_snap_list_add (snap_list, parse_snap (object));
+        g_ptr_array_add (snaps, parse_snap (object));
     }
 
-    return g_steal_pointer (&snap_list);
+    return snaps;
 }
 
 static gboolean
@@ -369,7 +369,7 @@ static gboolean
 parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(SnapdSnapList) snap_list = NULL;
+    GPtrArray *snaps;
     GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
@@ -377,8 +377,8 @@ parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
         return TRUE;
     }
 
-    snap_list = parse_snap_list (json_object_get_array_member (response, "result")); // FIXME: Check is an array
-    g_task_return_pointer (task, g_steal_pointer (&snap_list), g_object_unref);
+    snaps = parse_snap_array (json_object_get_array_member (response, "result")); // FIXME: Check is an array
+    g_task_return_pointer (task, snaps, (GDestroyNotify) g_ptr_array_unref);
 
     return TRUE;
 }
@@ -468,7 +468,7 @@ static gboolean
 parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(SnapdSnapList) snap_list = NULL;
+    GPtrArray *snaps;
     GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
@@ -476,8 +476,8 @@ parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
         return TRUE;
     }
 
-    snap_list = parse_snap_list (json_object_get_array_member (response, "result")); // FIXME: Check is an array
-    g_task_return_pointer (task, g_steal_pointer (&snap_list), g_object_unref);
+    snaps = parse_snap_array (json_object_get_array_member (response, "result")); // FIXME: Check is an array
+    g_task_return_pointer (task, snaps, (GDestroyNotify) g_ptr_array_unref);
 
     return TRUE;
 }
@@ -1039,7 +1039,7 @@ make_list_task (SnapdClient *client,
     return task;
 }
 
-SnapdSnapList *
+GPtrArray *
 snapd_client_list_sync (SnapdClient *client,
                         GCancellable *cancellable, GError **error)
 {
@@ -1060,7 +1060,7 @@ snapd_client_list_async (SnapdClient *client,
     make_list_task (client, cancellable, callback, user_data);
 }
 
-SnapdSnapList *
+GPtrArray *
 snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);
@@ -1194,7 +1194,7 @@ make_find_task (SnapdClient *client,
     return task;
 }
 
-SnapdSnapList *
+GPtrArray *
 snapd_client_find_sync (SnapdClient *client,
                         const gchar *query,
                         GCancellable *cancellable, GError **error)
@@ -1218,7 +1218,7 @@ snapd_client_find_async (SnapdClient *client, const gchar *query,
     make_find_task (client, query, cancellable, callback, user_data);
 }
 
-SnapdSnapList *
+GPtrArray *
 snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (g_task_is_valid (G_TASK (result), client), NULL);

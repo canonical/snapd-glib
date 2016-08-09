@@ -15,7 +15,6 @@ source_h = \
 	snapd-price.h \
 	snapd-slot.h \
 	snapd-snap.h \
-	snapd-snap-list.h \
 	snapd-system-information.h
 
 source_c = \
@@ -29,7 +28,6 @@ source_c = \
 	snapd-price.c \
 	snapd-slot.c \
 	snapd-snap.c \
-	snapd-snap-list.c \
 	snapd-system-information.c
 
 # glib-mkenums rules

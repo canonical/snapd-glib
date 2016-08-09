@@ -12,7 +12,7 @@
 #include <snapd-glib/snapd-payment-method-list.h>
 #include <snapd-glib/snapd-icon.h>
 #include <snapd-glib/snapd-interfaces.h>
-#include <snapd-glib/snapd-snap-list.h>
+#include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
 
 G_BEGIN_DECLS
@@ -70,14 +70,14 @@ SnapdSystemInformation *snapd_client_get_system_information_finish (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-SnapdSnapList          *snapd_client_list_sync                     (SnapdClient          *client,
+GPtrArray              *snapd_client_list_sync                     (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_list_async                    (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-SnapdSnapList          *snapd_client_list_finish                   (SnapdClient          *client,
+GPtrArray              *snapd_client_list_finish                   (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
@@ -135,7 +135,7 @@ SnapdAuthData          *snapd_client_login_finish                  (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-SnapdSnapList          *snapd_client_find_sync                     (SnapdClient          *client,
+GPtrArray              *snapd_client_find_sync                     (SnapdClient          *client,
                                                                     const gchar          *query,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
@@ -144,7 +144,7 @@ void                    snapd_client_find_async                    (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-SnapdSnapList          *snapd_client_find_finish                   (SnapdClient          *client,
+GPtrArray              *snapd_client_find_finish                   (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
