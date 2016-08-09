@@ -11,6 +11,7 @@
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-payment-method-list.h>
 #include <snapd-glib/snapd-icon.h>
+#include <snapd-glib/snapd-interfaces.h>
 #include <snapd-glib/snapd-snap-list.h>
 #include <snapd-glib/snapd-system-information.h>
 
@@ -103,6 +104,17 @@ void                    snapd_client_get_icon_async                (SnapdClient 
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 SnapdIcon              *snapd_client_get_icon_finish               (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+SnapdInterfaces        *snapd_client_get_interfaces_sync           (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_interfaces_async          (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+SnapdInterfaces        *snapd_client_get_interfaces_finish         (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
