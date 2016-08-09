@@ -942,6 +942,7 @@ read_from_snapd (SnapdClient *client,
 
             parse_response (client, code, headers, body, content_length);
             break;
+
         default:
             // FIXME
             return G_SOURCE_REMOVE;
