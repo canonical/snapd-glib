@@ -47,12 +47,8 @@ snapd_interfaces_finalize (GObject *object)
 {
     SnapdInterfaces *interfaces = SNAPD_INTERFACES (object);
 
-    g_ptr_array_foreach (interfaces->plugs, (GFunc) g_object_unref, NULL);
-    g_ptr_array_free (interfaces->plugs, TRUE);
-    interfaces->plugs = NULL;
-    g_ptr_array_foreach (interfaces->slots, (GFunc) g_object_unref, NULL);
-    g_ptr_array_free (interfaces->slots, TRUE);
-    interfaces->slots = NULL;
+    g_clear_pointer (&interfaces->plugs, g_ptr_array_unref);
+    g_clear_pointer (&interfaces->slots, g_ptr_array_unref);  
 }
 
 static void
@@ -66,6 +62,6 @@ snapd_interfaces_class_init (SnapdInterfacesClass *klass)
 static void
 snapd_interfaces_init (SnapdInterfaces *interfaces)
 {
-    interfaces->plugs = g_ptr_array_new ();
-    interfaces->slots = g_ptr_array_new ();  
+    interfaces->plugs = g_ptr_array_new_with_free_func (g_object_unref);
+    interfaces->slots = g_ptr_array_new_with_free_func (g_object_unref);
 }

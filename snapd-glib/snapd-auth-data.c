@@ -96,9 +96,7 @@ snapd_auth_data_finalize (GObject *object)
     SnapdAuthData *auth_data = SNAPD_AUTH_DATA (object);
 
     g_clear_pointer (&auth_data->macaroon, g_free);
-    g_ptr_array_foreach (auth_data->discharges, (GFunc) g_free, NULL);
-    g_ptr_array_free (auth_data->discharges, TRUE);
-    auth_data->discharges = NULL;
+    g_clear_pointer (&auth_data->discharges, g_ptr_array_unref);
 }
 
 static void
@@ -122,5 +120,5 @@ snapd_auth_data_class_init (SnapdAuthDataClass *klass)
 static void
 snapd_auth_data_init (SnapdAuthData *auth_data)
 {
-    auth_data->discharges = g_ptr_array_new ();
+    auth_data->discharges = g_ptr_array_new_with_free_func (g_free);
 }
