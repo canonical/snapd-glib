@@ -20,12 +20,19 @@ enum
     PROP_NAME = 1,
     PROP_SNAP,
     PROP_INTERFACE,
-    PROP_LABEL,  
+    PROP_LABEL,
+    PROP_CONNECTIONS,
     PROP_LAST
 };
  
 G_DEFINE_TYPE (SnapdPlug, snapd_plug, G_TYPE_OBJECT)
 
+/**
+ * snapd_plug_get_name:
+ * @plug: a #SnapdPlug.
+ *
+ * Returns: the name of this plug.
+ */
 const gchar *
 snapd_plug_get_name (SnapdPlug *plug)
 {
@@ -33,6 +40,12 @@ snapd_plug_get_name (SnapdPlug *plug)
     return plug->name;
 }
 
+/**
+ * snapd_plug_get_snap:
+ * @plug: a #SnapdPlug.
+ *
+ * Returns: the snap this plug is on.
+ */
 const gchar *
 snapd_plug_get_snap (SnapdPlug *plug)
 {
@@ -40,6 +53,12 @@ snapd_plug_get_snap (SnapdPlug *plug)
     return plug->snap;
 }
 
+/**
+ * snapd_plug_get_interface:
+ * @plug: a #SnapdPlug.
+ *
+ * Returns: the name of the interface this plug provides.
+ */
 const gchar *
 snapd_plug_get_interface (SnapdPlug *plug)
 {
@@ -47,6 +66,12 @@ snapd_plug_get_interface (SnapdPlug *plug)
     return plug->interface;
 }
 
+/**
+ * snapd_plug_get_label:
+ * @plug: a #SnapdPlug.
+ *
+ * Returns: a human readable label for this plug.
+ */
 const gchar *
 snapd_plug_get_label (SnapdPlug *plug)
 {
@@ -54,6 +79,12 @@ snapd_plug_get_label (SnapdPlug *plug)
     return plug->label;
 }
 
+/**
+ * snapd_plug_get_connections:
+ * @plug: a #SnapdPlug.
+ *
+ * Returns: (transfer none) (element-type SnapdConnection): connections being made with this plug.
+ */
 GPtrArray *
 snapd_plug_get_connections (SnapdPlug *plug)
 {
@@ -83,6 +114,11 @@ snapd_plug_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (plug->label);
         plug->label = g_strdup (g_value_get_string (value));
         break;
+    case PROP_CONNECTIONS:
+        if (plug->connections)
+            g_ptr_array_unref (plug->connections);
+        plug->connections = g_ptr_array_ref (g_value_get_boxed (value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -107,6 +143,9 @@ snapd_plug_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_LABEL:
         g_value_set_string (value, plug->label);
         break;
+    case PROP_CONNECTIONS:
+        g_value_set_boxed (value, plug->connections);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -122,7 +161,8 @@ snapd_plug_finalize (GObject *object)
     g_clear_pointer (&plug->snap, g_free);
     g_clear_pointer (&plug->interface, g_free);
     g_clear_pointer (&plug->label, g_free);
-    g_clear_pointer (&plug->connections, g_ptr_array_unref);
+    if (plug->connections != NULL)
+        g_clear_pointer (&plug->connections, g_ptr_array_unref);
 }
 
 static void
@@ -162,6 +202,13 @@ snapd_plug_class_init (SnapdPlugClass *klass)
                                                           "Short description of this plug",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_CONNECTIONS,
+                                     g_param_spec_boxed ("connections",
+                                                         "connections",
+                                                         "Connections with this plug",
+                                                         G_TYPE_PTR_ARRAY,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void

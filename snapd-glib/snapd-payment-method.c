@@ -17,6 +17,7 @@ struct _SnapdPaymentMethod
 enum 
 {
     PROP_BACKEND_ID = 1,
+    PROP_CURRENCIES,
     PROP_DESCRIPTION,
     PROP_ID,
     PROP_PREFERRED,
@@ -26,6 +27,12 @@ enum
  
 G_DEFINE_TYPE (SnapdPaymentMethod, snapd_payment_method, G_TYPE_OBJECT)
 
+/**
+ * snapd_payment_method_get_backend_id:
+ * @payment_method: a #SnapdPaymentMethod.
+ *
+ * Returns: the backend ID for this payment method.
+ */
 const gchar *
 snapd_payment_method_get_backend_id (SnapdPaymentMethod *payment_method)
 {
@@ -33,6 +40,12 @@ snapd_payment_method_get_backend_id (SnapdPaymentMethod *payment_method)
     return payment_method->backend_id;
 }
 
+/**
+ * snapd_payment_method_get_currencies:
+ * @payment_method: a #SnapdPaymentMethod.
+ *
+ * Returns: (transfer none) (array zero-terminated=1): the currencies this payment method can process.
+ */
 gchar **
 snapd_payment_method_get_currencies (SnapdPaymentMethod *payment_method)
 {
@@ -40,6 +53,12 @@ snapd_payment_method_get_currencies (SnapdPaymentMethod *payment_method)
     return payment_method->currencies;
 }
 
+/**
+ * snapd_payment_method_get_description:
+ * @payment_method: a #SnapdPaymentMethod.
+ *
+ * Returns: the description for this payment method.
+ */
 const gchar *
 snapd_payment_method_get_description (SnapdPaymentMethod *payment_method)
 {
@@ -47,6 +66,12 @@ snapd_payment_method_get_description (SnapdPaymentMethod *payment_method)
     return payment_method->description;
 }
 
+/**
+ * snapd_payment_method_get_id:
+ * @payment_method: a #SnapdPaymentMethod.
+ *
+ * Returns: the ID for this payment method.
+ */
 gint64
 snapd_payment_method_get_id (SnapdPaymentMethod *payment_method)
 {
@@ -54,6 +79,12 @@ snapd_payment_method_get_id (SnapdPaymentMethod *payment_method)
     return payment_method->id;
 }
 
+/**
+ * snapd_payment_method_get_preferred:
+ * @payment_method: a #SnapdPaymentMethod.
+ *
+ * Returns: %TRUE if this is the preferred payment method.
+ */
 gboolean
 snapd_payment_method_get_preferred (SnapdPaymentMethod *payment_method)
 {
@@ -61,6 +92,12 @@ snapd_payment_method_get_preferred (SnapdPaymentMethod *payment_method)
     return payment_method->preferred;
 }
 
+/**
+ * snapd_payment_method_get_requires_interaction:
+ * @payment_method: a #SnapdPaymentMethod.
+ *
+ * Returns: %TRUE if this payment method requires interaction to use.
+ */
 gboolean
 snapd_payment_method_get_requires_interaction (SnapdPaymentMethod *payment_method)
 {
@@ -77,6 +114,10 @@ snapd_payment_method_set_property (GObject *object, guint prop_id, const GValue 
     case PROP_BACKEND_ID:
         g_free (payment_method->backend_id);
         payment_method->backend_id = g_strdup (g_value_get_string (value));
+        break;
+    case PROP_CURRENCIES:
+        g_strfreev (payment_method->currencies);
+        payment_method->currencies = g_strdupv (g_value_get_boxed (value));
         break;
     case PROP_DESCRIPTION:
         g_free (payment_method->description);
@@ -105,6 +146,9 @@ snapd_payment_method_get_property (GObject *object, guint prop_id, GValue *value
     switch (prop_id) {
     case PROP_BACKEND_ID:
         g_value_set_string (value, payment_method->backend_id);
+        break;
+    case PROP_CURRENCIES:
+        g_value_set_boxed (value, payment_method->currencies);
         break;
     case PROP_DESCRIPTION:
         g_value_set_string (value, payment_method->description);
@@ -151,6 +195,13 @@ snapd_payment_method_class_init (SnapdPaymentMethodClass *klass)
                                                           "Backend ID",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_CURRENCIES,
+                                     g_param_spec_boxed ("currencies",
+                                                         "currencies",
+                                                         "Currencies this payment method supports",
+                                                         G_TYPE_STRV,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_DESCRIPTION,
                                      g_param_spec_string ("description",

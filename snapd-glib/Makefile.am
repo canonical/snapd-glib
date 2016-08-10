@@ -5,6 +5,7 @@ EXTRA_DIST =
 
 # main library
 source_h = \
+	snapd-app.h \
 	snapd-auth-data.h \
 	snapd-client.h \
 	snapd-connection.h \
@@ -17,6 +18,7 @@ source_h = \
 	snapd-system-information.h
 
 source_c = \
+	snapd-app.c \
 	snapd-auth-data.c \
 	snapd-client.c \
 	snapd-connection.c \

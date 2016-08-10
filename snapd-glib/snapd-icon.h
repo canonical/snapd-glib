@@ -9,7 +9,7 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_ICON  (snapd_icon_get_type ())
+#define SNAPD_TYPE_ICON (snapd_icon_get_type ())
 
 G_DECLARE_FINAL_TYPE (SnapdIcon, snapd_icon, SNAPD, ICON, GObject)
 
@@ -23,11 +23,7 @@ SnapdIcon    *snapd_icon_new             (void);
 
 const gchar  *snapd_icon_get_mime_type   (SnapdIcon *icon);
 
-const guint8 *snapd_icon_get_data        (SnapdIcon *icon);
-
-gsize         snapd_icon_get_data_length (SnapdIcon *icon);
-
-void         _snapd_icon_set_data        (SnapdIcon *icon, const guint8 *data, gsize data_length);
+GBytes       *snapd_icon_get_data        (SnapdIcon *icon);
 
 G_END_DECLS
 

@@ -20,12 +20,19 @@ enum
     PROP_NAME = 1,
     PROP_SNAP,
     PROP_INTERFACE,
-    PROP_LABEL,  
+    PROP_LABEL,
+    PROP_CONNECTIONS,
     PROP_LAST
 };
  
 G_DEFINE_TYPE (SnapdSlot, snapd_slot, G_TYPE_OBJECT)
 
+/**
+ * snapd_slot_get_name:
+ * @slot: a #SnapdSlot.
+ *
+ * Returns: the name of this slot.
+ */
 const gchar *
 snapd_slot_get_name (SnapdSlot *slot)
 {
@@ -33,6 +40,12 @@ snapd_slot_get_name (SnapdSlot *slot)
     return slot->name;
 }
 
+/**
+ * snapd_slot_get_snap:
+ * @slot: a #SnapdSlot.
+ *
+ * Returns: the snap this slot is on.
+ */
 const gchar *
 snapd_slot_get_snap (SnapdSlot *slot)
 {
@@ -40,6 +53,12 @@ snapd_slot_get_snap (SnapdSlot *slot)
     return slot->snap;
 }
 
+/**
+ * snapd_slot_get_interface:
+ * @slot: a #SnapdSlot.
+ *
+ * Returns: the name of the interface this slot accepts.
+ */
 const gchar *
 snapd_slot_get_interface (SnapdSlot *slot)
 {
@@ -47,6 +66,12 @@ snapd_slot_get_interface (SnapdSlot *slot)
     return slot->interface;
 }
 
+/**
+ * snapd_slot_get_label:
+ * @slot: a #SnapdSlot.
+ *
+ * Returns: a human readable label for this slot.
+ */
 const gchar *
 snapd_slot_get_label (SnapdSlot *slot)
 {
@@ -54,6 +79,12 @@ snapd_slot_get_label (SnapdSlot *slot)
     return slot->label;
 }
 
+/**
+ * snapd_slot_get_connections:
+ * @slot: a #SnapdSlot.
+ *
+ * Returns: (transfer none) (element-type SnapdConnection): connections being made with this slot.
+ */
 GPtrArray *
 snapd_slot_get_connections (SnapdSlot *slot)
 {
@@ -83,6 +114,11 @@ snapd_slot_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (slot->label);
         slot->label = g_strdup (g_value_get_string (value));
         break;
+    case PROP_CONNECTIONS:
+        if (slot->connections)
+            g_ptr_array_unref (slot->connections);
+        slot->connections = g_ptr_array_ref (g_value_get_boxed (value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -107,6 +143,9 @@ snapd_slot_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_LABEL:
         g_value_set_string (value, slot->label);
         break;
+    case PROP_CONNECTIONS:
+        g_value_set_boxed (value, slot->connections);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -122,7 +161,8 @@ snapd_slot_finalize (GObject *object)
     g_clear_pointer (&slot->snap, g_free);
     g_clear_pointer (&slot->interface, g_free);
     g_clear_pointer (&slot->label, g_free);
-    g_clear_pointer (&slot->connections, g_ptr_array_unref);
+    if (slot->connections != NULL)
+        g_clear_pointer (&slot->connections, g_ptr_array_unref);
 }
 
 static void
@@ -162,6 +202,13 @@ snapd_slot_class_init (SnapdSlotClass *klass)
                                                           "Short description of this slot",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_CONNECTIONS,
+                                     g_param_spec_boxed ("connections",
+                                                         "connections",
+                                                         "Connections with this slot",
+                                                         G_TYPE_PTR_ARRAY,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void

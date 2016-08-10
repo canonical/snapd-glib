@@ -21,33 +21,45 @@ enum
  
 G_DEFINE_TYPE (SnapdConnection, snapd_connection, G_TYPE_OBJECT)
 
+/**
+ * snapd_connection_get_name:
+ * @connection: a #SnapdConnection.
+ *
+ * Returns: the name of this connection (i.e. a slot or plug name).
+ */
 const gchar *
-snapd_connection_get_name (SnapdConnection *icon)
+snapd_connection_get_name (SnapdConnection *connection)
 {
-    g_return_val_if_fail (SNAPD_IS_CONNECTION (icon), NULL);
-    return icon->name;
+    g_return_val_if_fail (SNAPD_IS_CONNECTION (connection), NULL);
+    return connection->name;
 }
 
+/**
+ * snapd_connection_get_snap:
+ * @connection: a #SnapdConnection.
+ *
+ * Returns: the snap this connection is on.
+ */
 const gchar *
-snapd_connection_get_snap (SnapdConnection *icon)
+snapd_connection_get_snap (SnapdConnection *connection)
 {
-    g_return_val_if_fail (SNAPD_IS_CONNECTION (icon), NULL);
-    return icon->snap;
+    g_return_val_if_fail (SNAPD_IS_CONNECTION (connection), NULL);
+    return connection->snap;
 }
 
 static void
 snapd_connection_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdConnection *icon = SNAPD_CONNECTION (object);
+    SnapdConnection *connection = SNAPD_CONNECTION (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_free (icon->name);
-        icon->name = g_strdup (g_value_get_string (value));
+        g_free (connection->name);
+        connection->name = g_strdup (g_value_get_string (value));
         break;
     case PROP_SNAP:
-        g_free (icon->snap);
-        icon->snap = g_strdup (g_value_get_string (value));
+        g_free (connection->snap);
+        connection->snap = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -58,14 +70,14 @@ snapd_connection_set_property (GObject *object, guint prop_id, const GValue *val
 static void
 snapd_connection_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdConnection *icon = SNAPD_CONNECTION (object);
+    SnapdConnection *connection = SNAPD_CONNECTION (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_value_set_string (value, icon->name);
+        g_value_set_string (value, connection->name);
         break;
     case PROP_SNAP:
-        g_value_set_string (value, icon->snap);
+        g_value_set_string (value, connection->snap);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -76,10 +88,10 @@ snapd_connection_get_property (GObject *object, guint prop_id, GValue *value, GP
 static void
 snapd_connection_finalize (GObject *object)
 {
-    SnapdConnection *icon = SNAPD_CONNECTION (object);
+    SnapdConnection *connection = SNAPD_CONNECTION (object);
 
-    g_clear_pointer (&icon->name, g_free);
-    g_clear_pointer (&icon->snap, g_free);
+    g_clear_pointer (&connection->name, g_free);
+    g_clear_pointer (&connection->snap, g_free);
 }
 
 static void
@@ -108,6 +120,6 @@ snapd_connection_class_init (SnapdConnectionClass *klass)
 }
 
 static void
-snapd_connection_init (SnapdConnection *icon)
+snapd_connection_init (SnapdConnection *connection)
 {
 }

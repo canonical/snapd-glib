@@ -45,6 +45,8 @@ typedef enum
     SNAPD_SNAP_STATUS_ACTIVE
 } SnapdSnapStatus;
 
+GPtrArray        *snapd_snap_get_apps           (SnapdSnap *snap);
+
 const gchar      *snapd_snap_get_channel        (SnapdSnap *snap);
 
 SnapdConfinement  snapd_snap_get_confinement    (SnapdSnap *snap);
@@ -66,6 +68,8 @@ const gchar      *snapd_snap_get_install_date   (SnapdSnap *snap); // FIXME: GDa
 gint64            snapd_snap_get_installed_size (SnapdSnap *snap);
 
 const gchar      *snapd_snap_get_name           (SnapdSnap *snap);
+
+GPtrArray        *snapd_snap_get_prices         (SnapdSnap *snap);
 
 gboolean          snapd_snap_get_private        (SnapdSnap *snap);
 

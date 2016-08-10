@@ -19,9 +19,9 @@ struct _SnapdConnectionClass
     GObjectClass parent_class;
 };
 
-const gchar *snapd_connection_get_name        (SnapdConnection *connection);
+const gchar *snapd_connection_get_name (SnapdConnection *connection);
 
-const gchar *snapd_connection_get_snap        (SnapdConnection *connection);
+const gchar *snapd_connection_get_snap (SnapdConnection *connection);
 
 G_END_DECLS
 

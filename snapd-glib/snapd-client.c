@@ -7,6 +7,7 @@
 #include <json-glib/json-glib.h>
 
 #include "snapd-client.h"
+#include "snapd-app.h"
 #include "snapd-plug.h"
 #include "snapd-slot.h"
 
@@ -91,9 +92,12 @@ send_request (GTask *task, SnapdAuthData *auth_data, const gchar *method, const 
     g_string_append (request, "Connection: keep-alive\r\n");
     if (auth_data) {
         gsize i;
+        gchar **discharges;
+
         g_string_append_printf (request, "Authorization: Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (auth_data));
-        for (i = 0; i < snapd_auth_data_get_discharge_count (auth_data); i++)
-            g_string_append_printf (request, ",discharge=\"%s\"", snapd_auth_data_get_discharge (auth_data, i));
+        discharges = snapd_auth_data_get_discharges (auth_data);
+        for (i = 0; discharges[i] != NULL; i++)
+            g_string_append_printf (request, ",discharge=\"%s\"", discharges[i]);
         g_string_append (request, "\r\n");
     }
     if (content_type)
@@ -287,6 +291,10 @@ parse_snap (JsonObject *object)
     SnapdConfinement snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
     const gchar *snap_status_string;
     SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;
+    JsonArray *apps, *prices;
+    g_autoptr (GPtrArray) apps_array = NULL;
+    g_autoptr (GPtrArray) prices_array = NULL;  
+    guint i;
 
     confinement_string = get_string (object, "confinement", "");
     if (strcmp (confinement_string, "strict") == 0)
@@ -314,7 +322,33 @@ parse_snap (JsonObject *object)
     else if (strcmp (snap_status_string, "active") == 0)
         snap_status = SNAPD_SNAP_STATUS_ACTIVE;
 
+    apps = get_array (object, "apps");
+    apps_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (apps); i++) {
+        JsonObject *a = json_array_get_object_element (apps, i); // FIXME: Check is an object
+        g_autoptr (SnapdApp) app = NULL;
+
+        app = g_object_new (SNAPD_TYPE_APP,
+                            "name", get_string (a, "name", NULL),
+                            NULL);
+        g_ptr_array_add (apps_array, g_steal_pointer (&app));
+    }
+
+    prices = get_array (object, "prices");
+    prices_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (prices); i++) {
+        JsonObject *p = json_array_get_object_element (prices, i); // FIXME: Check is an object
+        g_autoptr (SnapdPrice) price = NULL;
+
+        price = g_object_new (SNAPD_TYPE_PRICE,
+                              "amount", get_string (p, "price", NULL),
+                              "currency", get_string (p, "currency", NULL),                              
+                              NULL);
+        g_ptr_array_add (prices_array, g_steal_pointer (&price));
+    }
+
     return g_object_new (SNAPD_TYPE_SNAP,
+                         "apps", apps_array,
                          "channel", get_string (object, "channel", NULL),
                          "confinement", confinement,
                          "description", get_string (object, "description", NULL),
@@ -326,6 +360,7 @@ parse_snap (JsonObject *object)
                          "install-date", get_string (object, "install-date", NULL),
                          "installed-size", get_int (object, "installed-size", 0),
                          "name", get_string (object, "name", NULL),
+                         "prices", prices_array,
                          "private", get_bool (object, "private", FALSE),
                          "revision", get_string (object, "revision", NULL),
                          "snap-type", snap_type,
@@ -355,6 +390,7 @@ static gboolean
 parse_get_icon_response (GTask *task, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(SnapdIcon) icon = NULL;
+    g_autoptr(GBytes) data = NULL;
 
     if (code != SOUP_STATUS_OK) {
         g_task_return_new_error (task,
@@ -363,10 +399,11 @@ parse_get_icon_response (GTask *task, guint code, SoupMessageHeaders *headers, c
                                  "Got response %u retrieving icon", code);
     }
 
+    data = g_bytes_new (content, content_length);
     icon = g_object_new (SNAPD_TYPE_ICON,
                          "mime-type", soup_message_headers_get_content_type (headers, NULL),
+                         "data", data,
                          NULL);
-    _snapd_icon_set_data (icon, (const guint8 *) content, content_length);
 
     g_task_return_pointer (task, g_steal_pointer (&icon), g_object_unref);
 
@@ -565,6 +602,7 @@ parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
     JsonObject *result;
     g_autoptr(SnapdAuthData) auth_data = NULL;
     JsonArray *discharges;
+    g_autoptr(GPtrArray) discharge_array = NULL;
     guint i;
     GError *error = NULL;
 
@@ -574,11 +612,12 @@ parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
     }
 
     result = json_object_get_object_member (response, "result"); // FIXME: Check is an object
-    auth_data = snapd_auth_data_new ();
-    snapd_auth_data_set_macaroon (auth_data, get_string (result, "macaroon", NULL));
     discharges = json_object_get_array_member (result, "discharges"); // FIXME: Check is an array
+    discharge_array = g_ptr_array_new ();
     for (i = 0; i < json_array_get_length (discharges); i++)
-        snapd_auth_data_add_discharge (auth_data, json_array_get_string_element (discharges, i));
+        g_ptr_array_add (discharge_array, (gchar *) json_array_get_string_element (discharges, i)); // FIXME: Check is a string
+    g_ptr_array_add (discharge_array, NULL);
+    auth_data = snapd_auth_data_new (get_string (result, "macaroon", NULL), (gchar **) discharge_array->pdata);
     g_task_return_pointer (task, g_steal_pointer (&auth_data), g_object_unref);
 
     return TRUE;
@@ -618,7 +657,7 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
     GError *error = NULL;
     JsonObject *list_object;
     JsonArray *methods;
-    guint i;
+    guint i, j;
     GetPaymentMethodsResult *r;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
@@ -632,11 +671,18 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
     methods = json_object_get_array_member (list_object, "methods"); // FIXME: Check is an array
     for (i = 0; i < json_array_get_length (methods); i++) {
         JsonObject *object = json_array_get_object_element (methods, i); // FIXME: Check is an object
+        JsonArray *currencies;
+        g_autoptr(GPtrArray) currencies_array = NULL;
         SnapdPaymentMethod *payment_method;
 
+        currencies = get_array (object, "currencies");
+        currencies_array = g_ptr_array_new ();
+        for (j = 0; j < json_array_get_length (currencies); j++)
+                g_ptr_array_add (currencies_array, (gchar *) json_array_get_string_element (currencies, j)); // FIXME: Check is a string
+        g_ptr_array_add (currencies_array, NULL);
         payment_method = g_object_new (SNAPD_TYPE_PAYMENT_METHOD,
                                        "backend-id", get_string (object, "backend-id", NULL),
-                                       // FIXME: currencies
+                                       "currencies", (gchar **) currencies_array->pdata,
                                        "description", get_string (object, "description", NULL),
                                        "id", get_int (object, "id", 0),
                                        "preferred", get_bool (object, "preferred", FALSE),
@@ -1061,7 +1107,7 @@ snapd_client_get_system_information_sync (SnapdClient *client,
  * snapd_client_get_system_information_async:
  * @client: a #SnapdClient.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
- * @callback: (scope-async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
  *
  * Request system information asynchronously from snapd.
@@ -1108,6 +1154,14 @@ make_list_one_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_list_one_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full): a #SnapdSnap or %NULL on error.
+ */
 SnapdSnap *
 snapd_client_list_one_sync (SnapdClient *client,
                             const gchar *name,
@@ -1122,6 +1176,14 @@ snapd_client_list_one_sync (SnapdClient *client,
     return snapd_client_list_one_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+/**
+ * snapd_client_list_one_async:
+ * @client: a #SnapdClient.
+ * @name: name of snap to get.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_list_one_async (SnapdClient *client,
                              const gchar *name,
@@ -1131,6 +1193,14 @@ snapd_client_list_one_async (SnapdClient *client,
     make_list_one_task (client, name, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_list_one_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full): a #SnapdSnap or %NULL on error.
+ */
 SnapdSnap *
 snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1157,6 +1227,15 @@ make_get_icon_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_get_icon_sync:
+ * @client: a #SnapdClient.
+ * @name: name of snap to get icon for.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full): a #SnapdIcon or %NULL on error.
+ */
 SnapdIcon *
 snapd_client_get_icon_sync (SnapdClient *client,
                             const gchar *name,
@@ -1171,6 +1250,14 @@ snapd_client_get_icon_sync (SnapdClient *client,
     return snapd_client_get_icon_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+/**
+ * snapd_client_get_icon_async:
+ * @client: a #SnapdClient.
+ * @name: name of snap to get icon for.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_get_icon_async (SnapdClient *client,
                              const gchar *name,
@@ -1180,6 +1267,14 @@ snapd_client_get_icon_async (SnapdClient *client,
     make_get_icon_task (client, name, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_get_icon_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full): a #SnapdIcon or %NULL on error.
+ */
 SnapdIcon *
 snapd_client_get_icon_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1202,6 +1297,14 @@ make_list_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_list_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ */
 GPtrArray *
 snapd_client_list_sync (SnapdClient *client,
                         GCancellable *cancellable, GError **error)
@@ -1223,6 +1326,14 @@ snapd_client_list_async (SnapdClient *client,
     make_list_task (client, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_list_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ */
 GPtrArray *
 snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1245,6 +1356,16 @@ make_get_interfaces_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_get_interfaces_sync:
+ * @client: a #SnapdClient.
+ * @plugs: (out) (allow-none) (transfer full) (element-type SnapdPlug): the location to store the plug array or %NULL.
+ * @slots: (out) (allow-none) (transfer full) (element-type SnapdSlot): the location to store the slot array or %NULL.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_get_interfaces_sync (SnapdClient *client,
                                   GPtrArray **plugs, GPtrArray **slots,
@@ -1259,6 +1380,13 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
     return snapd_client_get_interfaces_finish (client, G_ASYNC_RESULT (task), plugs, slots, error);
 }
 
+/**
+ * snapd_client_get_interfaces_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_get_interfaces_async (SnapdClient *client,
                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
@@ -1267,6 +1395,16 @@ snapd_client_get_interfaces_async (SnapdClient *client,
     make_get_interfaces_task (client, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_get_interfaces_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @plugs: (out) (allow-none) (transfer full) (element-type SnapdPlug): the location to store the plug array or %NULL.
+ * @slots: (out) (allow-none) (transfer full) (element-type SnapdSlot): the location to store the slot array or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
                                     GPtrArray **plugs, GPtrArray **slots,
@@ -1347,6 +1485,19 @@ make_connect_interface_task (SnapdClient *client,
     return make_interface_task (client, auth_data, SNAPD_REQUEST_CONNECT_INTERFACE, "connect", plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_connect_interface_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @plug_snap: name of snap containing plug.
+ * @plug_name: name of plug to connect.
+ * @slot_snap: name of snap containing socket.
+ * @slot_name: name of slot to connect.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ */
 gboolean
 snapd_client_connect_interface_sync (SnapdClient *client,
                                      SnapdAuthData *auth_data,
@@ -1364,6 +1515,20 @@ snapd_client_connect_interface_sync (SnapdClient *client,
     return snapd_client_connect_interface_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+/**
+ * snapd_client_connect_interface_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @plug_snap: name of snap containing plug.
+ * @plug_name: name of plug to connect.
+ * @slot_snap: name of snap containing socket.
+ * @slot_name: name of slot to connect.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_connect_interface_async (SnapdClient *client,
                                       SnapdAuthData *auth_data,
@@ -1376,6 +1541,14 @@ snapd_client_connect_interface_async (SnapdClient *client,
     make_connect_interface_task (client, auth_data, plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);  
 }
 
+/**
+ * snapd_client_connect_interface_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_connect_interface_finish (SnapdClient *client,
                                        GAsyncResult *result, GError **error)
@@ -1394,6 +1567,21 @@ make_disconnect_interface_task (SnapdClient *client,
     return make_interface_task (client, auth_data, SNAPD_REQUEST_DISCONNECT_INTERFACE, "disconnect", plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_disconnect_interface_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @plug_snap: name of snap containing plug.
+ * @plug_name: name of plug to disconnect.
+ * @slot_snap: name of snap containing socket.
+ * @slot_name: name of slot to disconnect.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_disconnect_interface_sync (SnapdClient *client,
                                         SnapdAuthData *auth_data,
@@ -1411,6 +1599,20 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
     return snapd_client_disconnect_interface_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+/**
+ * snapd_client_disconnect_interface_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @plug_snap: name of snap containing plug.
+ * @plug_name: name of plug to disconnect.
+ * @slot_snap: name of snap containing socket.
+ * @slot_name: name of slot to disconnect.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_disconnect_interface_async (SnapdClient *client,
                                          SnapdAuthData *auth_data,
@@ -1423,6 +1625,14 @@ snapd_client_disconnect_interface_async (SnapdClient *client,
     make_disconnect_interface_task (client, auth_data, plug_snap, plug_name, slot_snap, slot_name, cancellable, callback, user_data);  
 }
 
+/**
+ * snapd_client_disconnect_interface_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_disconnect_interface_finish (SnapdClient *client,
                                           GAsyncResult *result, GError **error)
@@ -1463,6 +1673,17 @@ make_login_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_login_sync:
+ * @client: a #SnapdClient.
+ * @username: usename to log in with.
+ * @password: password to log in with.
+ * @otp: (allow-none): response to one-time password challenge.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
+ */
 SnapdAuthData *
 snapd_client_login_sync (SnapdClient *client,
                          const gchar *username, const gchar *password, const gchar *otp,
@@ -1479,6 +1700,16 @@ snapd_client_login_sync (SnapdClient *client,
     return snapd_client_login_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+/**
+ * snapd_client_login_async:
+ * @client: a #SnapdClient.
+ * @username: usename to log in with.
+ * @password: password to log in with.
+ * @otp: (allow-none): response to one-time password challenge.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_login_async (SnapdClient *client,
                           const gchar *username, const gchar *password, const gchar *otp,
@@ -1488,6 +1719,14 @@ snapd_client_login_async (SnapdClient *client,
     make_login_task (client, username, password, otp, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_login_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
+ */
 SnapdAuthData *
 snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1527,6 +1766,16 @@ make_find_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_find_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @flags: a set of #SnapdFindFlags to control how the find is performed.
+ * @query: query string to send.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ */
 GPtrArray *
 snapd_client_find_sync (SnapdClient *client,
                         SnapdAuthData *auth_data,
@@ -1543,6 +1792,16 @@ snapd_client_find_sync (SnapdClient *client,
     return snapd_client_find_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+/**
+ * snapd_client_find_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @flags: a set of #SnapdFindFlags to control how the find is performed.
+ * @query: query string to send.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_find_async (SnapdClient *client,
                          SnapdAuthData *auth_data,                         
@@ -1554,6 +1813,14 @@ snapd_client_find_async (SnapdClient *client,
     make_find_task (client, auth_data, flags, query, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_find_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ */
 GPtrArray *
 snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1603,6 +1870,19 @@ make_install_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_install_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to install.
+ * @channel: (allow-none): channel to install from or %NULL for default.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_install_sync (SnapdClient *client,
                            SnapdAuthData *auth_data, const gchar *name, const gchar *channel,
@@ -1619,6 +1899,18 @@ snapd_client_install_sync (SnapdClient *client,
     return snapd_client_install_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+/**
+ * snapd_client_install_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to install.
+ * @channel: (allow-none): channel to install from or %NULL for default.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_install_async (SnapdClient *client,
                             SnapdAuthData *auth_data, const gchar *name, const gchar *channel,
@@ -1631,6 +1923,14 @@ snapd_client_install_async (SnapdClient *client,
     make_install_task (client, auth_data, name, channel, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_install_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1662,6 +1962,19 @@ make_refresh_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_refresh_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to refresh.
+ * @channel: (allow-none): channel to refresh from or %NULL for default.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_refresh_sync (SnapdClient *client,
                            SnapdAuthData *auth_data, const gchar *name, const gchar *channel,
@@ -1678,6 +1991,19 @@ snapd_client_refresh_sync (SnapdClient *client,
     return snapd_client_refresh_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+
+/**
+ * snapd_client_refresh_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to refresh.
+ * @channel: (allow-none): channel to refresh from or %NULL for default.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_refresh_async (SnapdClient *client,
                             SnapdAuthData *auth_data, const gchar *name, const gchar *channel,
@@ -1690,6 +2016,14 @@ snapd_client_refresh_async (SnapdClient *client,
     make_refresh_task (client, auth_data, name, channel, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_refresh_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_refresh_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1721,6 +2055,18 @@ make_remove_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_remove_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to remove.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_remove_sync (SnapdClient *client,
                           SnapdAuthData *auth_data, const gchar *name,
@@ -1737,6 +2083,18 @@ snapd_client_remove_sync (SnapdClient *client,
     return snapd_client_remove_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+
+/**
+ * snapd_client_remove_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to remove.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_remove_async (SnapdClient *client,
                            SnapdAuthData *auth_data, const gchar *name,
@@ -1749,6 +2107,14 @@ snapd_client_remove_async (SnapdClient *client,
     make_remove_task (client, auth_data, name, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_remove_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_remove_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1780,6 +2146,18 @@ make_enable_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_enable_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to enable.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_enable_sync (SnapdClient *client,
                           SnapdAuthData *auth_data, const gchar *name,
@@ -1796,6 +2174,18 @@ snapd_client_enable_sync (SnapdClient *client,
     return snapd_client_enable_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+
+/**
+ * snapd_client_enable_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to enable.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_enable_async (SnapdClient *client,
                            SnapdAuthData *auth_data, const gchar *name,
@@ -1808,6 +2198,14 @@ snapd_client_enable_async (SnapdClient *client,
     make_enable_task (client, auth_data, name, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_enable_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_enable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1839,6 +2237,18 @@ make_disable_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_disable_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to disable.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_disable_sync (SnapdClient *client,
                            SnapdAuthData *auth_data, const gchar *name,
@@ -1855,6 +2265,18 @@ snapd_client_disable_sync (SnapdClient *client,
     return snapd_client_disable_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+
+/**
+ * snapd_client_disable_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @name: name of snap to disable.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_disable_async (SnapdClient *client,
                             SnapdAuthData *auth_data, const gchar *name,
@@ -1867,6 +2289,14 @@ snapd_client_disable_async (SnapdClient *client,
     make_disable_task (client, auth_data, name, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_disable_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1890,10 +2320,20 @@ make_get_payment_methods_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_get_payment_methods_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @allows_automatic_payment: (allow-none): the location to store if automatic payments are allowed or %NULL.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full) (element-type SnapdPaymentMethod): an array of #SnapdPaymentMethod or %NULL on error.
+ */
 GPtrArray *
 snapd_client_get_payment_methods_sync (SnapdClient *client,
                                        SnapdAuthData *auth_data,
-                                       gboolean *allows_automatic_payments,
+                                       gboolean *allows_automatic_payment,
                                        GCancellable *cancellable, GError **error)
 {
     g_autoptr(GTask) task = NULL;
@@ -1902,9 +2342,18 @@ snapd_client_get_payment_methods_sync (SnapdClient *client,
 
     task = g_object_ref (make_get_payment_methods_task (client, auth_data, cancellable, NULL, NULL));
     wait_for_task (task);
-    return snapd_client_get_payment_methods_finish (client, G_ASYNC_RESULT (task), allows_automatic_payments, error);
+    return snapd_client_get_payment_methods_finish (client, G_ASYNC_RESULT (task), allows_automatic_payment, error);
 }
 
+
+/**
+ * snapd_client_get_payment_methods_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_get_payment_methods_async (SnapdClient *client,
                                         SnapdAuthData *auth_data,
@@ -1914,6 +2363,15 @@ snapd_client_get_payment_methods_async (SnapdClient *client,
     make_get_payment_methods_task (client, auth_data, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_get_payment_methods_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @allows_automatic_payment: (allow-none):
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full) (element-type SnapdPaymentMethod): an array of #SnapdPaymentMethod or %NULL on error.
+ */
 GPtrArray *
 snapd_client_get_payment_methods_finish (SnapdClient *client, GAsyncResult *result, gboolean *allows_automatic_payment, GError **error)
 {
@@ -1972,6 +2430,18 @@ make_buy_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_buy_sync:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @snap: snap to buy.
+ * @price: price to pay.
+ * @payment_method: payment method to use.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_buy_sync (SnapdClient *client,
                        SnapdAuthData *auth_data, SnapdSnap *snap, SnapdPrice *price, SnapdPaymentMethod *payment_method,
@@ -1988,6 +2458,18 @@ snapd_client_buy_sync (SnapdClient *client,
     return snapd_client_buy_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+
+/**
+ * snapd_client_buy_async:
+ * @client: a #SnapdClient.
+ * @auth_data: authentication data to use.
+ * @snap: snap to buy.
+ * @price: price to pay.
+ * @payment_method: payment method to use.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_buy_async (SnapdClient *client,
                         SnapdAuthData *auth_data, SnapdSnap *snap, SnapdPrice *price, SnapdPaymentMethod *payment_method,
@@ -2000,6 +2482,14 @@ snapd_client_buy_async (SnapdClient *client,
     make_buy_task (client, auth_data, snap, price, payment_method, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_buy_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
 gboolean
 snapd_client_buy_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {

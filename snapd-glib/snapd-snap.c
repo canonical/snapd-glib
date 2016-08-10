@@ -7,7 +7,7 @@ struct _SnapdSnap
 {
     GObject parent_instance;
 
-    // FIXME: apps
+    GPtrArray *apps;
     gchar *channel;
     SnapdConfinement confinement;
     gchar *description;
@@ -19,7 +19,7 @@ struct _SnapdSnap
     gchar *install_date;
     gint64 installed_size;
     gchar *name;
-    // FIXME: prices
+    GPtrArray *prices;
     gboolean private;
     gchar *revision;
     SnapdSnapStatus status;
@@ -31,7 +31,8 @@ struct _SnapdSnap
 
 enum 
 {
-    PROP_CHANEL = 1,
+    PROP_APPS = 1,
+    PROP_CHANEL,
     PROP_CONFINEMENT,
     PROP_DESCRIPTION,
     PROP_DEVELOPER,
@@ -42,6 +43,7 @@ enum
     PROP_INSTALL_DATE,
     PROP_INSTALLED_SIZE,
     PROP_NAME,
+    PROP_PRICES,
     PROP_PRIVATE,
     PROP_REVISION,
     PROP_STATUS,
@@ -54,6 +56,25 @@ enum
 
 G_DEFINE_TYPE (SnapdSnap, snapd_snap, G_TYPE_OBJECT)
 
+/**
+ * snapd_snap_get_apps:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: (transfer none) (element-type SnapdApp): an array of #SnapdApp.
+ */
+GPtrArray *
+snapd_snap_get_apps (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
+    return snap->apps;
+}
+
+/**
+ * snapd_snap_get_channel:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the channel this snap is from, e.g. "stable".
+ */
 const gchar *
 snapd_snap_get_channel (SnapdSnap *snap)
 {
@@ -61,6 +82,12 @@ snapd_snap_get_channel (SnapdSnap *snap)
     return snap->channel;
 }
 
+/**
+ * snapd_snap_get_confinement:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the confinement this snap is using, e.g. %SNAPD_CONFINEMENT_STRICT.
+ */
 SnapdConfinement
 snapd_snap_get_confinement (SnapdSnap *snap)
 {
@@ -68,6 +95,12 @@ snapd_snap_get_confinement (SnapdSnap *snap)
     return snap->confinement;
 }
 
+/**
+ * snapd_snap_get_description:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: a multi-line description of this snap.
+ */
 const gchar *
 snapd_snap_get_description (SnapdSnap *snap)
 {
@@ -75,6 +108,12 @@ snapd_snap_get_description (SnapdSnap *snap)
     return snap->description;
 }
 
+/**
+ * snapd_snap_get_developer:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the developer who created this snap.
+ */
 const gchar *
 snapd_snap_get_developer (SnapdSnap *snap)
 {
@@ -82,6 +121,12 @@ snapd_snap_get_developer (SnapdSnap *snap)
     return snap->developer;
 }
 
+/**
+ * snapd_snap_get_devmode:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: %TRUE if this snap is running in devmode.
+ */
 gboolean
 snapd_snap_get_devmode (SnapdSnap *snap)
 {
@@ -89,6 +134,12 @@ snapd_snap_get_devmode (SnapdSnap *snap)
     return snap->devmode;
 }
 
+/**
+ * snapd_snap_get_download_size:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the download size of this snap in bytes or 0 if unknown.
+ */
 gint64
 snapd_snap_get_download_size (SnapdSnap *snap)
 {
@@ -96,6 +147,12 @@ snapd_snap_get_download_size (SnapdSnap *snap)
     return snap->download_size;
 }
 
+/**
+ * snapd_snap_get_icon:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: a URL for this icon or an absolte path to retrieve it from snapd.
+ */
 const gchar *
 snapd_snap_get_icon (SnapdSnap *snap)
 {
@@ -103,6 +160,12 @@ snapd_snap_get_icon (SnapdSnap *snap)
     return snap->icon;
 }
 
+/**
+ * snapd_snap_get_id:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: a unique ID for this snap.
+ */
 const gchar *
 snapd_snap_get_id (SnapdSnap *snap)
 {
@@ -110,6 +173,12 @@ snapd_snap_get_id (SnapdSnap *snap)
     return snap->id;
 }
 
+/**
+ * snapd_snap_get_install_date:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the date this snap was installed or %NULL if unknown.
+ */
 const gchar *
 snapd_snap_get_install_date (SnapdSnap *snap)
 {
@@ -117,6 +186,12 @@ snapd_snap_get_install_date (SnapdSnap *snap)
     return snap->install_date;
 }
 
+/**
+ * snapd_snap_get_installed_size:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the installed size of this snap in bytes or 0 if unknown / not installed.
+ */
 gint64
 snapd_snap_get_installed_size (SnapdSnap *snap)
 {
@@ -124,6 +199,12 @@ snapd_snap_get_installed_size (SnapdSnap *snap)
     return snap->installed_size;
 }
 
+/**
+ * snapd_snap_get_name:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the name of this snap.
+ */
 const gchar *
 snapd_snap_get_name (SnapdSnap *snap)
 {
@@ -131,6 +212,25 @@ snapd_snap_get_name (SnapdSnap *snap)
     return snap->name;
 }
 
+/**
+ * snapd_snap_get_prices:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: (transfer none) (element-type SnapdPrice): prices that this snap can be purchased at.
+ */
+GPtrArray *
+snapd_snap_get_prices (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
+    return snap->prices;
+}
+
+/**
+ * snapd_snap_get_private:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: %TRUE if this is a private snap (only available to the developer).
+ */
 gboolean
 snapd_snap_get_private (SnapdSnap *snap)
 {
@@ -138,6 +238,12 @@ snapd_snap_get_private (SnapdSnap *snap)
     return snap->private;
 }
 
+/**
+ * snapd_snap_get_revision:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the revision of this snap.
+ */
 const gchar *
 snapd_snap_get_revision (SnapdSnap *snap)
 {
@@ -145,6 +251,12 @@ snapd_snap_get_revision (SnapdSnap *snap)
     return snap->revision;
 }
 
+/**
+ * snapd_snap_get_snap_type:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the type of snap, e.g. %SNAPD_SNAP_TYPE_APP
+ */
 SnapdSnapType
 snapd_snap_get_snap_type (SnapdSnap *snap)
 {
@@ -152,6 +264,12 @@ snapd_snap_get_snap_type (SnapdSnap *snap)
     return snap->snap_type;
 }
 
+/**
+ * snapd_snap_get_status:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the current status of this snap, e.g. SNAPD_SNAP_STATUS_INSTALLED
+ */
 SnapdSnapStatus
 snapd_snap_get_status (SnapdSnap *snap)
 {
@@ -159,6 +277,12 @@ snapd_snap_get_status (SnapdSnap *snap)
     return snap->status;
 }
 
+/**
+ * snapd_snap_get_summary:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: a single line summary for this snap, e.g. "Best app ever!"
+ */
 const gchar *
 snapd_snap_get_summary (SnapdSnap *snap)
 {
@@ -166,6 +290,12 @@ snapd_snap_get_summary (SnapdSnap *snap)
     return snap->summary;
 }
 
+/**
+ * snapd_snap_get_trymode:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: %TRUE if this snap is running in trymode.
+ */
 gboolean
 snapd_snap_get_trymode (SnapdSnap *snap)
 {
@@ -173,6 +303,12 @@ snapd_snap_get_trymode (SnapdSnap *snap)
     return snap->trymode;
 }
 
+/**
+ * snapd_snap_get_version:
+ * @snap: a #SnapdSnap.
+ *
+ * Returns: the version of this snap.
+ */
 const gchar *
 snapd_snap_get_version (SnapdSnap *snap)
 {
@@ -186,6 +322,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     SnapdSnap *snap = SNAPD_SNAP (object);
 
     switch (prop_id) {
+    case PROP_APPS:
+        if (snap->apps)
+            g_ptr_array_unref (snap->apps);
+        snap->apps = g_ptr_array_ref (g_value_get_boxed (value));
+        break;
     case PROP_CHANEL:
         g_free (snap->channel);
         snap->channel = g_strdup (g_value_get_string (value));
@@ -226,6 +367,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->name);
         snap->name = g_strdup (g_value_get_string (value));
         break;
+    case PROP_PRICES:
+        if (snap->prices)
+            g_ptr_array_unref (snap->prices);
+        snap->prices = g_ptr_array_ref (g_value_get_boxed (value));
+        break;
     case PROP_PRIVATE:
         snap->private = g_value_get_boolean (value);
         break;
@@ -262,6 +408,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     SnapdSnap *snap = SNAPD_SNAP (object);
 
     switch (prop_id) {
+    case PROP_APPS:
+        g_value_set_boxed (value, snap->apps);
+        break;
     case PROP_CHANEL:
         g_value_set_string (value, snap->channel);
         break;
@@ -295,9 +444,12 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_NAME:
         g_value_set_string (value, snap->name);
         break;
+    case PROP_PRICES:
+        g_value_set_boxed (value, snap->prices);
+        break;
     case PROP_PRIVATE:
         g_value_set_boolean (value, snap->private);
-        break;
+        break;      
     case PROP_REVISION:
         g_value_set_string (value, snap->revision);
         break;
@@ -327,6 +479,8 @@ snapd_snap_finalize (GObject *object)
 {
     SnapdSnap *snap = SNAPD_SNAP (object);
 
+    if (snap->apps != NULL)  
+        g_clear_pointer (&snap->apps, g_ptr_array_unref);
     g_clear_pointer (&snap->channel, g_free);
     g_clear_pointer (&snap->description, g_free);
     g_clear_pointer (&snap->developer, g_free);
@@ -334,6 +488,8 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->id, g_free);
     g_clear_pointer (&snap->install_date, g_free);
     g_clear_pointer (&snap->name, g_free);
+    if (snap->prices != NULL)
+        g_clear_pointer (&snap->prices, g_ptr_array_unref);
     g_clear_pointer (&snap->summary, g_free);
     g_clear_pointer (&snap->version, g_free);
 }
@@ -347,6 +503,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
     gobject_class->get_property = snapd_snap_get_property; 
     gobject_class->finalize = snapd_snap_finalize;
 
+    g_object_class_install_property (gobject_class,
+                                     PROP_APPS,
+                                     g_param_spec_boxed ("apps",
+                                                         "apps",
+                                                         "Apps this snap contains",
+                                                         G_TYPE_PTR_ARRAY,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_CHANEL,
                                      g_param_spec_string ("channel",
@@ -424,6 +587,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           "The snap name",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_PRICES,
+                                     g_param_spec_boxed ("prices",
+                                                         "prices",
+                                                         "Prices this snap can be purchased for",
+                                                         G_TYPE_PTR_ARRAY,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_PRIVATE,
                                      g_param_spec_boolean ("private",
