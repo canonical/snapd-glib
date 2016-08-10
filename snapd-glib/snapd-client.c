@@ -560,7 +560,6 @@ parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
         result = json_object_get_object_member (response, "result"); // FIXME: Check is an object
 
         ready = get_bool (result, "ready", FALSE);
-        g_printerr ("%d\n", ready);
         if (ready) {
             g_task_return_boolean (task, TRUE);
             return TRUE;
@@ -758,8 +757,6 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         return;
     }
     task = g_list_nth_data (priv->tasks, 0);
-
-    g_printerr ("PARSE %.*s\n", (int) content_length, content);
 
     request_type = GPOINTER_TO_INT (g_task_get_task_data (task));
     switch (request_type)
