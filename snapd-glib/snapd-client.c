@@ -967,6 +967,16 @@ wait_for_task (GTask *task)
         g_main_context_iteration (g_task_get_context (task), TRUE);
 }
 
+/**
+ * snapd_client_connect_sync:
+ * @client: a #SnapdClient
+ * @cancellable: (allow-none): a #GCancellable or %NULL
+ * @error: a #GError or %NULL
+ *
+ * Connect to snapd.
+ *
+ * Returns: %TRUE if successfully connected to snapd.
+ */
 gboolean
 snapd_client_connect_sync (SnapdClient *client,
                            GCancellable *cancellable, GError **error)
@@ -1023,6 +1033,17 @@ make_get_system_information_task (SnapdClient *client,
     return task;
 }
 
+/**
+ * snapd_client_get_system_information_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Request system information from snapd.
+ * While this blocks, snapd is expected to return the information quickly.
+ *
+ * Returns: (transfer full): a #SnapdSystemInformation or %NULL on error.
+ */
 SnapdSystemInformation *
 snapd_client_get_system_information_sync (SnapdClient *client,
                                           GCancellable *cancellable, GError **error)
@@ -1036,6 +1057,15 @@ snapd_client_get_system_information_sync (SnapdClient *client,
     return snapd_client_get_system_information_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+/**
+ * snapd_client_get_system_information_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope-async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Request system information asynchronously from snapd.
+ */
 void
 snapd_client_get_system_information_async (SnapdClient *client,
                                            GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
@@ -1044,6 +1074,14 @@ snapd_client_get_system_information_async (SnapdClient *client,
     make_get_system_information_task (client, cancellable, callback, user_data);
 }
 
+/**
+ * snapd_client_get_system_information_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full): a #SnapdSystemInformation or %NULL on error.
+ */
 SnapdSystemInformation *
 snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
@@ -1969,6 +2007,13 @@ snapd_client_buy_finish (SnapdClient *client, GAsyncResult *result, GError **err
     return g_task_propagate_boolean (G_TASK (result), error);
 }
 
+/**
+ * snapd_client_new:
+ *
+ * Create a new client to talk to snapd.
+ *
+ * Returns: a new #SnapdClient
+ **/
 SnapdClient *
 snapd_client_new (void)
 {
