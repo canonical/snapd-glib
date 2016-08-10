@@ -79,31 +79,41 @@ send_request (GTask *task, SnapdAuthData *auth_data, const gchar *method, const 
 {
     SnapdClient *client = g_task_get_source_object (task);
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    g_autoptr (SoupMessageHeaders) headers = NULL;
     g_autoptr (GString) request = NULL;
+    SoupMessageHeadersIter iter;
+    const char *name, *value;
     gssize n_written;
     g_autoptr(GError) error = NULL;
 
     // NOTE: Would love to use libsoup but it doesn't support unix sockets
     // https://bugzilla.gnome.org/show_bug.cgi?id=727563
 
-    request = g_string_new ("");
-    g_string_append_printf (request, "%s %s HTTP/1.1\r\n", method, path);
-    g_string_append (request, "Host:\r\n");
-    g_string_append (request, "Connection: keep-alive\r\n");
+    headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
+    soup_message_headers_append (headers, "Host", "");
+    soup_message_headers_append (headers, "Connection", "keep-alive");
+    if (content_type)
+        soup_message_headers_set_content_type (headers, content_type, NULL);
+    if (content)
+        soup_message_headers_set_content_length (headers, strlen (content));
     if (auth_data) {
-        gsize i;
+        g_autoptr (GString) authorization;
         gchar **discharges;
+        gsize i;
 
-        g_string_append_printf (request, "Authorization: Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (auth_data));
+        authorization = g_string_new ("");
+        g_string_append_printf (authorization, "Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (auth_data));
         discharges = snapd_auth_data_get_discharges (auth_data);
         for (i = 0; discharges[i] != NULL; i++)
-            g_string_append_printf (request, ",discharge=\"%s\"", discharges[i]);
-        g_string_append (request, "\r\n");
+            g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
+        soup_message_headers_append (headers, "Authorization", authorization->str);
     }
-    if (content_type)
-        g_string_append_printf (request, "Content-Type: %s\r\n", content_type);
-    if (content)
-        g_string_append_printf (request, "Content-Length: %zi\r\n", strlen (content));
+
+    request = g_string_new ("");
+    g_string_append_printf (request, "%s %s HTTP/1.1\r\n", method, path);
+    soup_message_headers_iter_init (&iter, headers);
+    while (soup_message_headers_iter_next (&iter, &name, &value))
+        g_string_append_printf (request, "%s: %s\r\n", name, value);
     g_string_append (request, "\r\n");
     if (content)
         g_string_append (request, content);
