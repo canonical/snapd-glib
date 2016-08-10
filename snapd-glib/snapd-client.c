@@ -995,7 +995,7 @@ read_from_snapd (SnapdClient *client,
         }
 
         /* Move remaining data to the start of the buffer */
-        memmove (priv->buffer, priv->buffer + header_length + content_length, priv->n_read - (header_length + content_length));
+        g_byte_array_remove_range (priv->buffer, 0, header_length + content_length);
         priv->n_read -= header_length + content_length;
     }
 }
