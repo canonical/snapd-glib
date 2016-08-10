@@ -50,10 +50,10 @@ typedef enum
 
 typedef enum
 {
-    SNAPD_FIND_FLAGS_NONE,
-    SNAPD_FIND_FLAGS_MATCH_NAME,
-    SNAPD_FIND_FLAGS_SELECT_PRIVATE,
-    SNAPD_FIND_FLAGS_SELECT_REFRESH
+    SNAPD_FIND_FLAGS_NONE            = 0,
+    SNAPD_FIND_FLAGS_MATCH_NAME      = 1 << 0,
+    SNAPD_FIND_FLAGS_SELECT_PRIVATE  = 1 << 1,
+    SNAPD_FIND_FLAGS_SELECT_REFRESH  = 1 << 2
 } SnapdFindFlags;
 
 typedef void (*SnapdProgressCallback) (gpointer user_data); // FIXME
