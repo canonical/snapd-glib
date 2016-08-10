@@ -30,6 +30,8 @@ dnl === Introspection =========================================================
 
 GOBJECT_INTROSPECTION_CHECK([0.9.5])
 
+VAPIGEN_CHECK([0.16])
+
 dnl === Output ================================================================
 
 AC_SUBST(SNAPD_CFLAGS)
@@ -43,3 +45,19 @@ AC_CONFIG_FILES([
 ])
 
 AC_OUTPUT
+
+dnl === Summary ===============================================================
+
+echo ""
+echo " Snapd-GLib - $VERSION"
+echo ""
+echo " • Prefix: ${prefix}"
+echo ""
+echo " • Debug level: ${enable_debug}"
+echo " • Compiler flags: ${CFLAGS} ${MAINTAINER_CFLAGS}"
+echo ""
+#echo " • API reference: ${enable_gtk_doc}"
+#echo ""
+echo " • Build introspection data: ${enable_introspection}"
+echo " • Build Vala bindings: ${enable_vala}"
+echo ""

@@ -81,3 +81,20 @@ typelibs_DATA = Snapd-1.0.typelib
 
 CLEANFILES += $(dist_gir_DATA) $(typelibs_DATA)
 endif # HAVE_INTROSPECTION
+
+if ENABLE_VAPIGEN
+
+include $(VAPIGEN_MAKEFILE)
+
+snapd-glib-1.0.vapi: $(gir_DATA)
+
+VAPIGEN_VAPIS = snapd-glib-1.0.vapi
+
+snapd_glib_1_0_vapi_DEPS = gio-2.0
+snapd_glib_1_0_vapi_METADATADIRS = $(srcdir)
+snapd_glib_1_0_vapi_FILES = $(dist_gir_DATA)
+
+vapidir = $(datadir)/vala/vapi
+vapi_DATA = $(VAPIGEN_VAPIS) $(srcdir)/snapd-glib-1.0.deps
+
+endif #ENABLE_VAPIGEN
