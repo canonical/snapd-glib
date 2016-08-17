@@ -36,48 +36,49 @@ glib_enum_c = snapd-enum-types.c
 glib_enum_headers = $(source_h)
 include Makefile.am.enums
 
-lib_LTLIBRARIES = libsnapd-glib-1.0.la
+snapd_la = libsnapd-glib-0.la
+lib_LTLIBRARIES = $(snapd_la)
 
-libsnapd_glib_1_0_la_CPPFLAGS = \
+libsnapd_glib_0_la_CPPFLAGS = \
 	-DSNAPD_COMPILATION=1 \
 	-DG_LOG_DOMAIN=\"Snapd\" \
 	-I$(top_srcdir) \
 	-I$(top_builddir) \
 	$(SNAPD_DEBUG_CFLAGS)
-libsnapd_glib_1_0_la_CFLAGS = $(SNAPD_CFLAGS) $(WARN_CFLAGS)
-libsnapd_glib_1_0_la_LIBADD = $(SNAPD_LIBS)
-libsnapd_glib_1_0_la_SOURCES = $(source_c) $(source_h) $(BUILT_SOURCES)
+libsnapd_glib_0_la_CFLAGS = $(SNAPD_CFLAGS) $(WARN_CFLAGS)
+libsnapd_glib_0_la_LIBADD = $(SNAPD_LIBS)
+libsnapd_glib_0_la_SOURCES = $(source_c) $(source_h) $(BUILT_SOURCES)
 
-snapdincludedir = $(includedir)/snapd-glib-1.0/snapd-glib
+snapdincludedir = $(includedir)/snapd-glib-0/snapd-glib
 snapdinclude_DATA = \
 	$(source_h) \
 	snapd-enum-types.h \
 	snapd-glib.h
 
-pkgconfig_DATA = snapd-glib-1.0.pc
+pkgconfig_DATA = snapd-glib-0.pc
 pkgconfigdir = $(libdir)/pkgconfig
 
 # intospection
 -include $(INTROSPECTION_MAKEFILE)
 
 if HAVE_INTROSPECTION
-INTROSPECTION_GIRS = Snapd-1.0.gir
+INTROSPECTION_GIRS = Snapd-0.gir
 
-Snapd-1.0.gir: libsnapd-glib-1.0.la Makefile
+Snapd-0.gir: $(snapd_la) Makefile
 
-Snapd_1_0_gir_NAMESPACE = Snapd
-Snapd_1_0_gir_VERSION = 1.0
-Snapd_1_0_gir_LIBS = libsnapd-glib-1.0.la
-Snapd_1_0_gir_FILES = $(source_c) $(source_h) snapd-enum-types.h snapd-enum-types.c
-Snapd_1_0_gir_CFLAGS = -DSNAPD_COMPILATION=1 -I$(top_srcdir) -I$(top_builddir) $(SNAPD_CFLAGS)
-Snapd_1_0_gir_INCLUDES = GObject-2.0 Gio-2.0
-Snapd_1_0_gir_SCANNERFLAGS = --warn-all --pkg-export snapd-glib-1.0 --c-include "snapd-glib/snapd-glib.h"
+Snapd_0_gir_NAMESPACE = Snapd
+Snapd_0_gir_VERSION = 0
+Snapd_0_gir_LIBS = $(snapd_la)
+Snapd_0_gir_FILES = $(source_c) $(source_h) snapd-enum-types.h snapd-enum-types.c
+Snapd_0_gir_CFLAGS = -DSNAPD_COMPILATION=1 -I$(top_srcdir) -I$(top_builddir) $(SNAPD_CFLAGS)
+Snapd_0_gir_INCLUDES = GObject-2.0 Gio-2.0
+Snapd_0_gir_SCANNERFLAGS = --warn-all --pkg-export snapd-glib-0 --c-include "snapd-glib/snapd-glib.h"
 
 girdir = $(datadir)/gir-1.0
-dist_gir_DATA = Snapd-1.0.gir
+dist_gir_DATA = Snapd-0.gir
 
 typelibsdir = $(libdir)/girepository-1.0/
-typelibs_DATA = Snapd-1.0.typelib
+typelibs_DATA = Snapd-0.typelib
 
 CLEANFILES += $(dist_gir_DATA) $(typelibs_DATA)
 endif # HAVE_INTROSPECTION
@@ -86,15 +87,15 @@ if ENABLE_VAPIGEN
 
 include $(VAPIGEN_MAKEFILE)
 
-snapd-glib-1.0.vapi: $(gir_DATA)
+snapd-glib-0.vapi: $(gir_DATA)
 
-VAPIGEN_VAPIS = snapd-glib-1.0.vapi
+VAPIGEN_VAPIS = snapd-glib-0.vapi
 
-snapd_glib_1_0_vapi_DEPS = gio-2.0
-snapd_glib_1_0_vapi_METADATADIRS = $(srcdir)
-snapd_glib_1_0_vapi_FILES = $(dist_gir_DATA)
+snapd_glib_0_vapi_DEPS = gio-2.0
+snapd_glib_0_vapi_METADATADIRS = $(srcdir)
+snapd_glib_0_vapi_FILES = $(dist_gir_DATA)
 
 vapidir = $(datadir)/vala/vapi
-vapi_DATA = $(VAPIGEN_VAPIS) $(srcdir)/snapd-glib-1.0.deps
+vapi_DATA = $(VAPIGEN_VAPIS) $(srcdir)/snapd-glib-0.deps
 
 endif #ENABLE_VAPIGEN

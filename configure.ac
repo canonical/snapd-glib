@@ -41,7 +41,7 @@ AC_CONFIG_FILES([
         Makefile
 
         snapd-glib/Makefile
-        snapd-glib/snapd-glib-1.0.pc
+        snapd-glib/snapd-glib-0.pc
 ])
 
 AC_OUTPUT
