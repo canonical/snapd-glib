@@ -55,6 +55,8 @@ snapdinclude_DATA = \
 	snapd-enum-types.h \
 	snapd-glib.h
 
+EXTRA_DIST += snapd-glib.h
+
 pkgconfig_DATA = snapd-glib-0.pc
 pkgconfigdir = $(libdir)/pkgconfig
 
@@ -84,7 +86,6 @@ CLEANFILES += $(dist_gir_DATA) $(typelibs_DATA)
 endif # HAVE_INTROSPECTION
 
 if ENABLE_VAPIGEN
-
 include $(VAPIGEN_MAKEFILE)
 
 snapd-glib-0.vapi: $(gir_DATA)
@@ -98,4 +99,6 @@ snapd_glib_0_vapi_FILES = $(dist_gir_DATA)
 vapidir = $(datadir)/vala/vapi
 vapi_DATA = $(VAPIGEN_VAPIS) $(srcdir)/snapd-glib-0.deps
 
+EXTRA_DIST += snapd-glib-0.deps
+CLEANFILES += snapd-glib-0.vapi
 endif #ENABLE_VAPIGEN
