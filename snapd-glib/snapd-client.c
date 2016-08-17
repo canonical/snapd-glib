@@ -1310,7 +1310,7 @@ make_list_task (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Returns: (transfer full) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  */
 GPtrArray *
 snapd_client_list_sync (SnapdClient *client,
@@ -1339,7 +1339,7 @@ snapd_client_list_async (SnapdClient *client,
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Returns: (transfer full) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  */
 GPtrArray *
 snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -1366,8 +1366,8 @@ make_get_interfaces_task (SnapdClient *client,
 /**
  * snapd_client_get_interfaces_sync:
  * @client: a #SnapdClient.
- * @plugs: (out) (allow-none) (transfer full) (element-type SnapdPlug): the location to store the plug array or %NULL.
- * @slots: (out) (allow-none) (transfer full) (element-type SnapdSlot): the location to store the slot array or %NULL.
+ * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the location to store the plug array or %NULL.
+ * @slots: (out) (allow-none) (transfer container) (element-type SnapdSlot): the location to store the slot array or %NULL.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
@@ -1406,8 +1406,8 @@ snapd_client_get_interfaces_async (SnapdClient *client,
  * snapd_client_get_interfaces_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
- * @plugs: (out) (allow-none) (transfer full) (element-type SnapdPlug): the location to store the plug array or %NULL.
- * @slots: (out) (allow-none) (transfer full) (element-type SnapdSlot): the location to store the slot array or %NULL.
+ * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the location to store the plug array or %NULL.
+ * @slots: (out) (allow-none) (transfer container) (element-type SnapdSlot): the location to store the slot array or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Returns: %TRUE on success or %FALSE on error.
@@ -1781,7 +1781,7 @@ make_find_task (SnapdClient *client,
  * @query: query string to send.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Returns: (transfer full) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  */
 GPtrArray *
 snapd_client_find_sync (SnapdClient *client,
@@ -1826,7 +1826,7 @@ snapd_client_find_async (SnapdClient *client,
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Returns: (transfer full) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  */
 GPtrArray *
 snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -2335,7 +2335,7 @@ make_get_payment_methods_task (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Returns: (transfer full) (element-type SnapdPaymentMethod): an array of #SnapdPaymentMethod or %NULL on error.
+ * Returns: (transfer container) (element-type SnapdPaymentMethod): an array of #SnapdPaymentMethod or %NULL on error.
  */
 GPtrArray *
 snapd_client_get_payment_methods_sync (SnapdClient *client,
@@ -2377,7 +2377,7 @@ snapd_client_get_payment_methods_async (SnapdClient *client,
  * @allows_automatic_payment: (allow-none):
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Returns: (transfer full) (element-type SnapdPaymentMethod): an array of #SnapdPaymentMethod or %NULL on error.
+ * Returns: (transfer container) (element-type SnapdPaymentMethod): an array of #SnapdPaymentMethod or %NULL on error.
  */
 GPtrArray *
 snapd_client_get_payment_methods_finish (SnapdClient *client, GAsyncResult *result, gboolean *allows_automatic_payment, GError **error)
