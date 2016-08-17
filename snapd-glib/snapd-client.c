@@ -830,7 +830,7 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
 
     if (completed)
     {
-        priv->tasks = g_list_remove (priv->tasks, g_list_first (priv->tasks));
+        priv->tasks = g_list_remove_link (priv->tasks, g_list_first (priv->tasks));
         g_object_unref (task);
     }
 }
