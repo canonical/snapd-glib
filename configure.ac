@@ -7,7 +7,7 @@ AC_INIT([snapd-glib], [0.1])
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([snapd-glib/snapd-glib.h])
 
-AM_INIT_AUTOMAKE([1.11 no-define foreign -Wno-portability dist-xz no-dist-gzip tar-ustar subdir-objects])
+AM_INIT_AUTOMAKE([1.11 foreign dist-xz no-dist-gzip])
 
 AM_SILENT_RULES([yes])
 AM_PATH_GLIB_2_0
