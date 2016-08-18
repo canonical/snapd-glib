@@ -24,9 +24,13 @@ G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 
 G_DEFINE_QUARK (snapd-client-error-quark, snapd_client_error)
 
-// snapd API documentation is at https://github.com/snapcore/snapd/blob/master/docs/rest.md
+/* snapd API documentation is at https://github.com/snapcore/snapd/blob/master/docs/rest.md */
 
+/* Default socket to connect to */
 #define SNAPD_SOCKET "/run/snapd.socket"
+
+/* Number of milliseconds to poll for status in asynchronous operations */
+#define ASYNC_POLL_TIME 100
 
 typedef enum
 {
@@ -47,7 +51,13 @@ typedef enum
     SNAPD_REQUEST_REMOVE,
     SNAPD_REQUEST_ENABLE,
     SNAPD_REQUEST_DISABLE
-} SnapdRequestType;
+} RequestType;
+
+typedef struct 
+{
+    RequestType request_type;
+    gchar *change_id;
+} RequestData;
 
 typedef struct 
 {
@@ -676,10 +686,25 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
 }
 
 static gboolean
+async_poll_timeout (gpointer data)
+{
+    GTask *task = data;
+    RequestData *request_data;
+    g_autofree gchar *path = NULL;
+
+    request_data = g_task_get_task_data (task);
+    path = g_strdup_printf ("/v2/changes/%s", request_data->change_id);
+    send_request (task, NULL, "GET", path, NULL, NULL);
+
+    return G_SOURCE_REMOVE;
+}
+
+static gboolean
 parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
     g_autofree gchar *change_id = NULL;
+    RequestData *request_data;
     GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, &change_id, &error)) {
@@ -687,16 +712,45 @@ parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
         return TRUE;
     }
 
-    if (change_id == NULL) {      
+    /* First run we expect the change ID, following runs are updates */
+    request_data = g_task_get_task_data (task);
+    if (request_data->change_id == NULL) {
+         if (change_id == NULL) {
+             g_task_return_new_error (task,
+                                      SNAPD_CLIENT_ERROR,
+                                      SNAPD_CLIENT_ERROR_READ_ERROR,
+                                      "No async response received");
+             return TRUE;
+         }
+
+         request_data->change_id = g_strdup (change_id);
+    }
+    else {
         gboolean ready;
         JsonObject *result;
 
+        if (change_id != NULL) {
+             g_task_return_new_error (task,
+                                      SNAPD_CLIENT_ERROR,
+                                      SNAPD_CLIENT_ERROR_READ_ERROR,
+                                      "Duplicate async response received");
+             return TRUE;
+        }
+      
         result = get_object (response, "result");
         if (result == NULL) {
             g_task_return_new_error (task,
                                      SNAPD_CLIENT_ERROR,
                                      SNAPD_CLIENT_ERROR_READ_ERROR,
-                                     "No result returned");
+                                     "No async result returned");
+            return TRUE;
+        }
+
+        if (g_strcmp0 (request_data->change_id, get_string (result, "id", NULL)) != 0) {
+            g_task_return_new_error (task,
+                                     SNAPD_CLIENT_ERROR,
+                                     SNAPD_CLIENT_ERROR_READ_ERROR,
+                                     "Unexpected change ID returned");
             return TRUE;
         }
 
@@ -705,22 +759,11 @@ parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
             g_task_return_boolean (task, TRUE);
             return TRUE;
         }
-
-        change_id = g_strdup (get_string (result, "id", NULL));
     }
 
-    /* Poll for changes */
-    // FIXME: Should wait for 100ms or so
-    if (change_id != NULL) {
-        g_autofree gchar *path = NULL;
-
-        path = g_strdup_printf ("/v2/changes/%s", change_id);
-        send_request (task, NULL, "GET", path, NULL, NULL);
-        return FALSE;
-    }
-
-    // FIXME: Throw some sort of error
-    return TRUE;
+    /* Poll for updates */  
+    g_timeout_add (ASYNC_POLL_TIME, async_poll_timeout, task);
+    return FALSE;
 }
 
 static gboolean
@@ -943,7 +986,7 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
-    SnapdRequestType request_type;
+    RequestData *request_data;
     gboolean completed;
 
     /* Get which request this response is for */
@@ -953,8 +996,8 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     }
     task = g_list_nth_data (priv->tasks, 0);
 
-    request_type = GPOINTER_TO_INT (g_task_get_task_data (task));
-    switch (request_type)
+    request_data = g_task_get_task_data (task);
+    switch (request_data->request_type)
     {
     case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
         completed = parse_get_system_information_response (task, headers, content, content_length);
@@ -1256,16 +1299,38 @@ snapd_client_connect_sync (SnapdClient *client,
     return TRUE;
 }
 
+static void
+free_request_data (gpointer data)
+{
+    RequestData *d = data;
+    g_free (d->change_id);
+    g_slice_free (RequestData, d);
+}
+
+static GTask *
+make_task (SnapdClient *client, RequestType request_type,
+           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GTask *task;
+    RequestData *data;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    data = g_slice_new0 (RequestData);
+    data->request_type = request_type;
+    g_task_set_task_data (task, data, free_request_data);
+    priv->tasks = g_list_append (priv->tasks, task);
+
+    return task;
+}
+
 static GTask *
 make_get_system_information_task (SnapdClient *client,
                                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_SYSTEM_INFORMATION), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, SNAPD_REQUEST_GET_SYSTEM_INFORMATION, cancellable, callback, user_data);
     send_request (task, NULL, "GET", "/v2/system-info", NULL, NULL);
 
     return task;
@@ -1332,13 +1397,10 @@ make_list_one_task (SnapdClient *client,
                     const gchar *name,
                     GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_LIST_ONE), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, SNAPD_REQUEST_LIST_ONE, cancellable, callback, user_data);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
     send_request (task, NULL, "GET", path, NULL, NULL);
@@ -1405,13 +1467,10 @@ make_get_icon_task (SnapdClient *client,
                     const gchar *name,
                     GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_ICON), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, SNAPD_REQUEST_GET_ICON, cancellable, callback, user_data);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/icons/%s/icon", escaped);
     send_request (task, NULL, "GET", path, NULL, NULL);
@@ -1478,12 +1537,9 @@ static GTask *
 make_list_task (SnapdClient *client,
                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_LIST), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, SNAPD_REQUEST_LIST, cancellable, callback, user_data);
     send_request (task, NULL, "GET", "/v2/snaps", NULL, NULL);
 
     return task;
@@ -1537,12 +1593,9 @@ static GTask *
 make_get_interfaces_task (SnapdClient *client,
                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_INTERFACES), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, SNAPD_REQUEST_GET_INTERFACES, cancellable, callback, user_data);
     send_request (task, NULL, "GET", "/v2/interfaces", NULL, NULL);
 
     return task;
@@ -1622,20 +1675,17 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
 static GTask *
 make_interface_task (SnapdClient *client,
                      SnapdAuthData *auth_data,
-                     SnapdRequestType request,
+                     RequestType request,
                      const gchar *action,
                      const gchar *plug_snap, const gchar *plug_name,
                      const gchar *slot_snap, const gchar *slot_name,
                      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autoptr(JsonBuilder) builder = NULL;
     g_autofree gchar *data = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (request), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, request, cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -1838,14 +1888,11 @@ make_login_task (SnapdClient *client,
                  const gchar *username, const gchar *password, const gchar *otp,
                  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autoptr(JsonBuilder) builder = NULL;
     g_autofree gchar *data = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_LOGIN), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, SNAPD_REQUEST_LOGIN, cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -1932,14 +1979,11 @@ make_find_task (SnapdClient *client,
                 SnapdFindFlags flags, const gchar *query,
                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autoptr (GString) path = NULL;
     g_autofree gchar *escaped = NULL;  
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_FIND), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, SNAPD_REQUEST_FIND, cancellable, callback, user_data);
     path = g_string_new ("/v2/find");
     escaped = soup_uri_encode (query, NULL);
 
@@ -2044,17 +2088,12 @@ make_install_task (SnapdClient *client,
                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autofree gchar *data = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_INSTALL), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
-
+    task = make_task (client, SNAPD_REQUEST_INSTALL, cancellable, callback, user_data);
     data = make_action_data ("install", channel);
-
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
     send_request (task, auth_data, "POST", path, "application/json", data);
@@ -2136,17 +2175,12 @@ make_refresh_task (SnapdClient *client,
                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autofree gchar *data = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_REFRESH), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
-
+    task = make_task (client, SNAPD_REQUEST_REFRESH, cancellable, callback, user_data);
     data = make_action_data ("refresh", channel);
-
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
     send_request (task, auth_data, "POST", path, "application/json", data);
@@ -2229,17 +2263,12 @@ make_remove_task (SnapdClient *client,
                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autofree gchar *data = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_REMOVE), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
-
+    task = make_task (client, SNAPD_REQUEST_REMOVE, cancellable, callback, user_data);
     data = make_action_data ("remove", NULL);
-
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
     send_request (task, auth_data, "POST", path, "application/json", data);
@@ -2320,17 +2349,12 @@ make_enable_task (SnapdClient *client,
                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autofree gchar *data = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_ENABLE), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
-
+    task = make_task (client, SNAPD_REQUEST_ENABLE, cancellable, callback, user_data);
     data = make_action_data ("enable", NULL);
-
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
     send_request (task, auth_data, "POST", path, "application/json", data);
@@ -2411,17 +2435,12 @@ make_disable_task (SnapdClient *client,
                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autofree gchar *data = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_DISABLE), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
-
+    task = make_task (client, SNAPD_REQUEST_DISABLE, cancellable, callback, user_data);
     data = make_action_data ("disable", NULL);
-
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
     send_request (task, auth_data, "POST", path, "application/json", data);
@@ -2501,12 +2520,9 @@ make_get_payment_methods_task (SnapdClient *client,
                                SnapdAuthData *auth_data,
                                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_GET_PAYMENT_METHODS), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, SNAPD_REQUEST_GET_PAYMENT_METHODS, cancellable, callback, user_data);
     send_request (task, auth_data, "GET", "/v2/buy/methods", NULL, NULL);
 
     return task;
@@ -2589,14 +2605,11 @@ make_buy_task (SnapdClient *client,
                SnapdAuthData *auth_data, SnapdSnap *snap, SnapdPrice *price, SnapdPaymentMethod *payment_method,
                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     GTask *task;
     g_autoptr(JsonBuilder) builder = NULL;
     g_autofree gchar *data = NULL;
 
-    task = g_task_new (client, cancellable, callback, user_data);
-    g_task_set_task_data (task, GINT_TO_POINTER (SNAPD_REQUEST_BUY), NULL);
-    priv->tasks = g_list_append (priv->tasks, task);
+    task = make_task (client, SNAPD_REQUEST_BUY, cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
