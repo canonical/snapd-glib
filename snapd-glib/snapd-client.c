@@ -32,6 +32,8 @@ G_DEFINE_QUARK (snapd-client-error-quark, snapd_client_error)
 /* Number of milliseconds to poll for status in asynchronous operations */
 #define ASYNC_POLL_TIME 100
 
+// FIXME: Make multiple async requests work at the same time
+
 typedef enum
 {
     SNAPD_REQUEST_GET_SYSTEM_INFORMATION,
