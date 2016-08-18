@@ -214,5 +214,4 @@ snapd_plug_class_init (SnapdPlugClass *klass)
 static void
 snapd_plug_init (SnapdPlug *plug)
 {
-    plug->connections = g_ptr_array_new_with_free_func (g_object_unref);
 }

@@ -214,5 +214,4 @@ snapd_slot_class_init (SnapdSlotClass *klass)
 static void
 snapd_slot_init (SnapdSlot *slot)
 {
-    slot->connections = g_ptr_array_new_with_free_func (g_object_unref);
 }
