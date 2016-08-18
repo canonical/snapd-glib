@@ -432,7 +432,7 @@ parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
         return TRUE;
     }
 
-    snaps = parse_snap_array (json_object_get_array_member (response, "result")); // FIXME: Check is an array
+    snaps = parse_snap_array (get_array (response, "result"));
     g_task_return_pointer (task, snaps, (GDestroyNotify) g_ptr_array_unref);
 
     return TRUE;
@@ -482,7 +482,7 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
     }
 
     result = json_object_get_object_member (response, "result"); // FIXME: Check is an object
-    plugs = json_object_get_array_member (result, "plugs"); // FIXME: Check is an array
+    plugs = get_array (result, "plugs");
     plug_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (plugs); i++) {
         JsonObject *object = json_array_get_object_element (plugs, i); // FIXME: Check is an object
@@ -512,7 +512,7 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
 
         g_ptr_array_add (plug_array, g_steal_pointer (&plug));
     }
-    slots = json_object_get_array_member (result, "slots"); // FIXME: Check is an array
+    slots = get_array (result, "slots");
     slot_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (slots); i++) {
         JsonObject *object = json_array_get_object_element (slots, i); // FIXME: Check is an object
@@ -621,7 +621,7 @@ parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
     }
 
     result = json_object_get_object_member (response, "result"); // FIXME: Check is an object
-    discharges = json_object_get_array_member (result, "discharges"); // FIXME: Check is an array
+    discharges = get_array (result, "discharges");
     discharge_array = g_ptr_array_new ();
     for (i = 0; i < json_array_get_length (discharges); i++)
         g_ptr_array_add (discharge_array, (gchar *) json_array_get_string_element (discharges, i)); // FIXME: Check is a string
@@ -644,7 +644,7 @@ parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
         return TRUE;
     }
 
-    snaps = parse_snap_array (json_object_get_array_member (response, "result")); // FIXME: Check is an array
+    snaps = parse_snap_array (get_array (response, "result"));
     g_task_return_pointer (task, snaps, (GDestroyNotify) g_ptr_array_unref);
 
     return TRUE;
@@ -677,7 +677,7 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
     list_object = json_object_get_object_member (response, "result"); // FIXME: Check is an object
     allows_automatic_payment = get_bool (list_object, "allows-automatic-payment", FALSE);
     payment_methods = g_ptr_array_new_with_free_func (g_object_unref);
-    methods = json_object_get_array_member (list_object, "methods"); // FIXME: Check is an array
+    methods = get_array (list_object, "methods");
     for (i = 0; i < json_array_get_length (methods); i++) {
         JsonObject *object = json_array_get_object_element (methods, i); // FIXME: Check is an object
         JsonArray *currencies;
