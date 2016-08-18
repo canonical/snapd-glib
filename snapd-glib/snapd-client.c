@@ -31,6 +31,7 @@ G_DEFINE_QUARK (snapd-client-error-quark, snapd_client_error)
 
 /* Number of milliseconds to poll for status in asynchronous operations */
 #define ASYNC_POLL_TIME 100
+#define ASYNC_POLL_TIMEOUT 1000
 
 // FIXME: Make multiple async requests work at the same time
 
@@ -59,6 +60,8 @@ typedef struct
 {
     RequestType request_type;
     gchar *change_id;
+    guint poll_timer;
+    guint timeout_timer;  
 } RequestData;
 
 typedef struct 
@@ -688,7 +691,7 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
 }
 
 static gboolean
-async_poll_timeout (gpointer data)
+async_poll_cb (gpointer data)
 {
     GTask *task = data;
     RequestData *request_data;
@@ -697,6 +700,24 @@ async_poll_timeout (gpointer data)
     request_data = g_task_get_task_data (task);
     path = g_strdup_printf ("/v2/changes/%s", request_data->change_id);
     send_request (task, NULL, "GET", path, NULL, NULL);
+
+    request_data->poll_timer = 0;
+    return G_SOURCE_REMOVE;
+}
+
+static gboolean
+async_timeout_cb (gpointer data)
+{
+    GTask *task = data;
+    RequestData *request_data;
+
+    request_data = g_task_get_task_data (task);  
+    request_data->timeout_timer = 0;
+
+    g_task_return_new_error (task,
+                             SNAPD_CLIENT_ERROR,
+                             SNAPD_CLIENT_ERROR_READ_ERROR,
+                             "Timeout waiting for snapd");
 
     return G_SOURCE_REMOVE;
 }
@@ -714,8 +735,14 @@ parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
         return TRUE;
     }
 
-    /* First run we expect the change ID, following runs are updates */
     request_data = g_task_get_task_data (task);
+
+    /* Cancel any pending timeout */
+    if (request_data->timeout_timer != 0)
+        g_source_remove (request_data->timeout_timer);
+    request_data->timeout_timer = 0;
+
+    /* First run we expect the change ID, following runs are updates */
     if (request_data->change_id == NULL) {
          if (change_id == NULL) {
              g_task_return_new_error (task,
@@ -763,8 +790,11 @@ parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
         }
     }
 
-    /* Poll for updates */  
-    g_timeout_add (ASYNC_POLL_TIME, async_poll_timeout, task);
+    /* Poll for updates */
+    if (request_data->poll_timer != 0)
+        g_source_remove (request_data->poll_timer);
+    request_data->poll_timer = g_timeout_add (ASYNC_POLL_TIME, async_poll_cb, task);
+    request_data->timeout_timer = g_timeout_add (ASYNC_POLL_TIMEOUT, async_timeout_cb, task);  
     return FALSE;
 }
 
@@ -1306,6 +1336,10 @@ free_request_data (gpointer data)
 {
     RequestData *d = data;
     g_free (d->change_id);
+    if (d->poll_timer != 0)
+        g_source_remove (d->poll_timer);
+    if (d->timeout_timer != 0)
+        g_source_remove (d->timeout_timer);
     g_slice_free (RequestData, d);
 }
 
