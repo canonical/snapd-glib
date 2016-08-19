@@ -96,8 +96,8 @@ send_request (GTask *task, SnapdAuthData *auth_data, const gchar *method, const 
 {
     SnapdClient *client = g_task_get_source_object (task);
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
-    g_autoptr (SoupMessageHeaders) headers = NULL;
-    g_autoptr (GString) request = NULL;
+    g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autoptr(GString) request = NULL;
     SoupMessageHeadersIter iter;
     const char *name, *value;
     gssize n_written;
@@ -114,7 +114,7 @@ send_request (GTask *task, SnapdAuthData *auth_data, const gchar *method, const 
     if (content)
         soup_message_headers_set_content_length (headers, strlen (content));
     if (auth_data) {
-        g_autoptr (GString) authorization;
+        g_autoptr(GString) authorization;
         gchar **discharges;
         gsize i;
 
@@ -180,9 +180,9 @@ get_array (JsonObject *object, const gchar *name)
 {
     JsonNode *node = json_object_get_member (object, name);
     if (node != NULL && json_node_get_value_type (node) == JSON_TYPE_ARRAY)
-        return json_node_get_array (node);
+        return json_array_ref (json_node_get_array (node));
     else
-        return json_array_new (); // FIXME: will leak
+        return json_array_new ();
 }
 
 static JsonObject *
@@ -340,9 +340,10 @@ parse_snap (JsonObject *object, GError **error)
     SnapdConfinement snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
     const gchar *snap_status_string;
     SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;
-    JsonArray *apps, *prices;
-    g_autoptr (GPtrArray) apps_array = NULL;
-    g_autoptr (GPtrArray) prices_array = NULL;  
+    g_autoptr(JsonArray) apps = NULL;
+    g_autoptr(JsonArray) prices = NULL;  
+    g_autoptr(GPtrArray) apps_array = NULL;
+    g_autoptr(GPtrArray) prices_array = NULL;  
     guint i;
 
     confinement_string = get_string (object, "confinement", "");
@@ -376,7 +377,7 @@ parse_snap (JsonObject *object, GError **error)
     for (i = 0; i < json_array_get_length (apps); i++) {
         JsonNode *node = json_array_get_element (apps, i);
         JsonObject *a;
-        g_autoptr (SnapdApp) app = NULL;
+        g_autoptr(SnapdApp) app = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
@@ -398,7 +399,7 @@ parse_snap (JsonObject *object, GError **error)
     for (i = 0; i < json_array_get_length (prices); i++) {
         JsonNode *node = json_array_get_element (apps, i);
         JsonObject *p;
-        g_autoptr (SnapdPrice) price = NULL;
+        g_autoptr(SnapdPrice) price = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
@@ -496,6 +497,7 @@ static gboolean
 parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
+    g_autoptr(JsonArray) array = NULL;
     GPtrArray *snaps;
     GError *error = NULL;
 
@@ -504,7 +506,8 @@ parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
         return TRUE;
     }
 
-    snaps = parse_snap_array (get_array (response, "result"), &error);
+    array = get_array (response, "result");
+    snaps = parse_snap_array (array, &error);
     if (snaps == NULL) {
         g_task_return_error (task, error);
         return TRUE;
@@ -559,7 +562,7 @@ free_get_interfaces_result (GetInterfacesResult *result)
 static GPtrArray *
 get_connections (JsonObject *object, const gchar *name, GError **error)
 {
-    JsonArray *array;
+    g_autoptr(JsonArray) array = NULL;
     GPtrArray *connections;
     guint i;
 
@@ -596,7 +599,8 @@ parse_get_interfaces_response (GTask *task, SoupMessageHeaders *headers, const g
     g_autoptr(GPtrArray) plug_array = NULL;
     g_autoptr(GPtrArray) slot_array = NULL;
     JsonObject *result;
-    JsonArray *plugs, *slots;
+    g_autoptr(JsonArray) plugs = NULL;
+    g_autoptr(JsonArray) slots = NULL;  
     guint i;
     GetInterfacesResult *r;
     GError *error = NULL;
@@ -787,7 +791,7 @@ parse_async_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
 
         /* Update caller with progress */
         if (request_data->progress_callback != NULL) {
-            JsonArray *array;
+            g_autoptr(JsonArray) array = NULL;
             guint i;
             g_autoptr(GPtrArray) tasks = NULL;
             g_autoptr(SnapdTask) main_task = NULL;
@@ -869,7 +873,7 @@ parse_login_response (GTask *task, SoupMessageHeaders *headers, const gchar *con
     g_autoptr(JsonObject) response = NULL;
     JsonObject *result;
     g_autoptr(SnapdAuthData) auth_data = NULL;
-    JsonArray *discharges;
+    g_autoptr(JsonArray) discharges = NULL;
     g_autoptr(GPtrArray) discharge_array = NULL;
     guint i;
     GError *error = NULL;
@@ -914,7 +918,7 @@ static gboolean
 parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    GPtrArray *snaps;
+    g_autoptr(GPtrArray) snaps = NULL;
     GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
@@ -948,7 +952,7 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
     GPtrArray *payment_methods;
     GError *error = NULL;
     JsonObject *result;
-    JsonArray *methods;
+    g_autoptr(JsonArray) methods = NULL;
     guint i;
     GetPaymentMethodsResult *r;
 
@@ -972,7 +976,7 @@ parse_get_payment_methods_response (GTask *task, SoupMessageHeaders *headers, co
     for (i = 0; i < json_array_get_length (methods); i++) {
         JsonNode *node = json_array_get_element (methods, i);
         JsonObject *object;
-        JsonArray *currencies;
+        g_autoptr(JsonArray) currencies = NULL;
         g_autoptr(GPtrArray) currencies_array = NULL;
         guint j;
         SnapdPaymentMethod *payment_method;
@@ -1245,7 +1249,7 @@ read_from_snapd (SnapdClient *client,
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     gchar *body;
     gsize header_length;
-    g_autoptr (SoupMessageHeaders) headers = NULL;
+    g_autoptr(SoupMessageHeaders) headers = NULL;
     guint code;
     g_autofree gchar *reason_phrase = NULL;
     gchar *combined_start;
@@ -2085,7 +2089,7 @@ make_find_task (SnapdClient *client,
                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     GTask *task;
-    g_autoptr (GString) path = NULL;
+    g_autoptr(GString) path = NULL;
     g_autofree gchar *escaped = NULL;  
 
     task = make_task (client, SNAPD_REQUEST_FIND, NULL, NULL, cancellable, callback, user_data);
