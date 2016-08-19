@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 0.4
+
+    * Limit poll rate to 100ms
+    * Implement progress callbacks
+    * Handle bad responses
+
 Overview of changes in snapd-glib 0.3
 
     * Fix some memory management
