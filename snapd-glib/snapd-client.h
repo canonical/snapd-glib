@@ -57,6 +57,13 @@ typedef enum
     SNAPD_FIND_FLAGS_SELECT_REFRESH  = 1 << 2
 } SnapdFindFlags;
 
+/**
+ * SnapdProgressCallback:
+ * @client: a #SnapdClient
+ * @main_task: a #SnapdTask describing the overall task in progress
+ * @tasks: (element-type SnapdTask): tasks to be done / being done.
+ * @user_data: user data passed to the callback
+ */
 typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdTask *main_task, GPtrArray *tasks, gpointer user_data);
 
 
