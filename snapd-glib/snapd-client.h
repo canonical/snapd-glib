@@ -13,6 +13,7 @@
 #include <snapd-glib/snapd-payment-method.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
+#include <snapd-glib/snapd-task.h>
 
 G_BEGIN_DECLS
 
@@ -56,7 +57,7 @@ typedef enum
     SNAPD_FIND_FLAGS_SELECT_REFRESH  = 1 << 2
 } SnapdFindFlags;
 
-typedef void (*SnapdProgressCallback) (gpointer user_data); // FIXME
+typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdTask *main_task, GPtrArray *tasks, gpointer user_data);
 
 
 GQuark                  snapd_client_error_quark                   (void) G_GNUC_CONST;

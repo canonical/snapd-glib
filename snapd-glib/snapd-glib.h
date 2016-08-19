@@ -14,6 +14,7 @@
 #include <snapd-glib/snapd-slot.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
+#include <snapd-glib/snapd-task.h>
 
 #undef __SNAPD_GLIB_INSIDE__
 
