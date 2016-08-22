@@ -1833,7 +1833,7 @@ make_connect_interface_task (SnapdClient *client,
 /**
  * snapd_client_connect_interface_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @plug_snap: name of snap containing plug.
  * @plug_name: name of plug to connect.
  * @slot_snap: name of snap containing socket.
@@ -1863,7 +1863,7 @@ snapd_client_connect_interface_sync (SnapdClient *client,
 /**
  * snapd_client_connect_interface_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @plug_snap: name of snap containing plug.
  * @plug_name: name of plug to connect.
  * @slot_snap: name of snap containing socket.
@@ -1921,7 +1921,7 @@ make_disconnect_interface_task (SnapdClient *client,
 /**
  * snapd_client_disconnect_interface_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @plug_snap: name of snap containing plug.
  * @plug_name: name of plug to disconnect.
  * @slot_snap: name of snap containing socket.
@@ -1953,7 +1953,7 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
 /**
  * snapd_client_disconnect_interface_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @plug_snap: name of snap containing plug.
  * @plug_name: name of plug to disconnect.
  * @slot_snap: name of snap containing socket.
@@ -2114,7 +2114,7 @@ make_find_task (SnapdClient *client,
 /**
  * snapd_client_find_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
  * @query: query string to send.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
@@ -2140,7 +2140,7 @@ snapd_client_find_sync (SnapdClient *client,
 /**
  * snapd_client_find_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
  * @query: query string to send.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
@@ -2213,7 +2213,7 @@ make_install_task (SnapdClient *client,
 /**
  * snapd_client_install_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to install.
  * @channel: (allow-none): channel to install from or %NULL for default.
  * @progress_callback: (allow-none) (scope call): function to callback with progress.
@@ -2242,7 +2242,7 @@ snapd_client_install_sync (SnapdClient *client,
 /**
  * snapd_client_install_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to install.
  * @channel: (allow-none): channel to install from or %NULL for default.
  * @progress_callback: (allow-none) (scope async): function to callback with progress.
@@ -2299,7 +2299,7 @@ make_refresh_task (SnapdClient *client,
 /**
  * snapd_client_refresh_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to refresh.
  * @channel: (allow-none): channel to refresh from or %NULL for default.
  * @progress_callback: (allow-none) (scope call): function to callback with progress.
@@ -2329,7 +2329,7 @@ snapd_client_refresh_sync (SnapdClient *client,
 /**
  * snapd_client_refresh_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to refresh.
  * @channel: (allow-none): channel to refresh from or %NULL for default.
  * @progress_callback: (allow-none) (scope async): function to callback with progress.
@@ -2386,7 +2386,7 @@ make_remove_task (SnapdClient *client,
 /**
  * snapd_client_remove_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to remove.
  * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
@@ -2415,7 +2415,7 @@ snapd_client_remove_sync (SnapdClient *client,
 /**
  * snapd_client_remove_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to remove.
  * @progress_callback: (allow-none) (scope async): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
@@ -2472,7 +2472,7 @@ make_enable_task (SnapdClient *client,
 /**
  * snapd_client_enable_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to enable.
  * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
@@ -2501,7 +2501,7 @@ snapd_client_enable_sync (SnapdClient *client,
 /**
  * snapd_client_enable_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to enable.
  * @progress_callback: (allow-none) (scope async): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
@@ -2558,7 +2558,7 @@ make_disable_task (SnapdClient *client,
 /**
  * snapd_client_disable_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to disable.
  * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
@@ -2589,7 +2589,7 @@ snapd_client_disable_sync (SnapdClient *client,
 /**
  * snapd_client_disable_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @name: name of snap to disable.
  * @progress_callback: (allow-none) (scope async): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
@@ -2642,7 +2642,7 @@ make_get_payment_methods_task (SnapdClient *client,
 /**
  * snapd_client_get_payment_methods_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @allows_automatic_payment: (allow-none): the location to store if automatic payments are allowed or %NULL.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
@@ -2668,7 +2668,7 @@ snapd_client_get_payment_methods_sync (SnapdClient *client,
 /**
  * snapd_client_get_payment_methods_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -2749,7 +2749,7 @@ make_buy_task (SnapdClient *client,
 /**
  * snapd_client_buy_sync:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @snap: snap to buy.
  * @price: price to pay.
  * @payment_method: payment method to use.
@@ -2778,7 +2778,7 @@ snapd_client_buy_sync (SnapdClient *client,
 /**
  * snapd_client_buy_async:
  * @client: a #SnapdClient.
- * @auth_data: authentication data to use.
+ * @auth_data: (allow-none): authentication data to use.
  * @snap: snap to buy.
  * @price: price to pay.
  * @payment_method: payment method to use.
