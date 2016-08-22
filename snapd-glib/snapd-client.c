@@ -113,7 +113,7 @@ send_request (GTask *task, SnapdAuthData *auth_data, const gchar *method, const 
         soup_message_headers_set_content_type (headers, content_type, NULL);
     if (content)
         soup_message_headers_set_content_length (headers, strlen (content));
-    if (auth_data) {
+    if (auth_data != NULL) {
         g_autoptr(GString) authorization;
         gchar **discharges;
         gsize i;
