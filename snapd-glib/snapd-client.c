@@ -927,6 +927,7 @@ static gboolean
 parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
+    g_autoptr(JsonArray) array = NULL;  
     g_autoptr(GPtrArray) snaps = NULL;
     GError *error = NULL;
 
@@ -935,7 +936,8 @@ parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
         return TRUE;
     }
 
-    snaps = parse_snap_array (get_array (response, "result"), &error);
+    array = get_array (response, "result");
+    snaps = parse_snap_array (array, &error);
     if (snaps == NULL) {
         g_task_return_error (task, error);
         return TRUE;
