@@ -1673,6 +1673,13 @@ snapd_client_list_sync (SnapdClient *client,
     return snapd_client_list_finish (client, G_ASYNC_RESULT (task), error);
 }
 
+/**
+ * snapd_client_list_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
 void
 snapd_client_list_async (SnapdClient *client,
                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
@@ -2128,6 +2135,7 @@ make_find_task (SnapdClient *client,
  * @auth_data: (allow-none): authentication data to use.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
  * @query: query string to send.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
