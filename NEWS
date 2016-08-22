@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 0.5
+
+    * Add copyright headers
+    * Mark authentication parameters optional
+
 Overview of changes in snapd-glib 0.4
 
     * Limit poll rate to 100ms
