@@ -249,9 +249,11 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
     type = get_string (root, "type", NULL);
     if (g_strcmp0 (type, "error") == 0) {
         const gchar *kind, *message;
+        gint64 status_code;
         JsonObject *result;
 
         result = get_object (root, "result");
+        status_code = get_int (root, "status-code", 0);
         kind = result != NULL ? get_string (result, "kind", NULL) : NULL;
         message = result != NULL ? get_string (result, "message", NULL) : NULL;
 
@@ -280,6 +282,13 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
             g_set_error_literal (error,
                                  SNAPD_CLIENT_ERROR,
                                  SNAPD_CLIENT_ERROR_TWO_FACTOR_FAILED,
+                                 message);
+            return FALSE;
+        }
+        else if (status_code == SOUP_STATUS_BAD_REQUEST) {
+            g_set_error_literal (error,
+                                 SNAPD_CLIENT_ERROR,
+                                 SNAPD_CLIENT_ERROR_BAD_REQUEST,
                                  message);
             return FALSE;
         }
