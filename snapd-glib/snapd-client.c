@@ -481,8 +481,19 @@ parse_snap_array (JsonArray *array, GError **error)
 static gboolean
 parse_get_icon_response (GTask *task, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
+    const gchar *content_type;
     g_autoptr(SnapdIcon) icon = NULL;
     g_autoptr(GBytes) data = NULL;
+
+    content_type = soup_message_headers_get_content_type (headers, NULL);
+    if (g_strcmp0 (content_type, "application/json") == 0) {
+        GError *error = NULL;
+
+        if (!parse_result (content_type, content, content_length, NULL, NULL, &error)) {
+            g_task_return_error (task, error);
+            return TRUE;
+        }
+    }
 
     if (code != SOUP_STATUS_OK) {
         g_task_return_new_error (task,
@@ -493,7 +504,7 @@ parse_get_icon_response (GTask *task, guint code, SoupMessageHeaders *headers, c
 
     data = g_bytes_new (content, content_length);
     icon = g_object_new (SNAPD_TYPE_ICON,
-                         "mime-type", soup_message_headers_get_content_type (headers, NULL),
+                         "mime-type", content_type,
                          "data", data,
                          NULL);
 
