@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 0.6
+
+    * Fix memory ownership for returned results from list/find
+    * Add missing docstrings
+    * Fix small memory leaks
+
 Overview of changes in snapd-glib 0.5
 
     * Add copyright headers
