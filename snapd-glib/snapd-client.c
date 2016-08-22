@@ -522,7 +522,7 @@ parse_list_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
         return TRUE;
     }
 
-    g_task_return_pointer (task, snaps, (GDestroyNotify) g_ptr_array_unref);
+    g_task_return_pointer (task, g_steal_pointer (&snaps), (GDestroyNotify) g_ptr_array_unref);
 
     return TRUE;
 }
@@ -943,7 +943,7 @@ parse_find_response (GTask *task, SoupMessageHeaders *headers, const gchar *cont
         return TRUE;
     }
 
-    g_task_return_pointer (task, snaps, (GDestroyNotify) g_ptr_array_unref);
+    g_task_return_pointer (task, g_steal_pointer (&snaps), (GDestroyNotify) g_ptr_array_unref);
 
     return TRUE;
 }
