@@ -499,6 +499,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->name, g_free);
     if (snap->prices != NULL)
         g_clear_pointer (&snap->prices, g_ptr_array_unref);
+    g_clear_pointer (&snap->revision, g_free);
     g_clear_pointer (&snap->summary, g_free);
     g_clear_pointer (&snap->version, g_free);
 }
