@@ -1183,7 +1183,7 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     }
 }
 
-static gssize
+static gboolean
 read_data (SnapdClient *client,
            gsize size,
            GCancellable *cancellable)
