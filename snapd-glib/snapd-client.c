@@ -135,6 +135,20 @@ snapd_request_wait (SnapdRequest *request)
        g_main_context_iteration (g_main_context_default (), TRUE);
 }
 
+static gboolean
+snapd_request_set_error (SnapdRequest *request, GError **error)
+{
+    if (g_cancellable_set_error_if_cancelled (request->cancellable, error))
+        return TRUE;
+
+    if (request->error != NULL) {
+        g_propagate_error (error, request->error);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 static GObject *
 snapd_request_get_source_object (GAsyncResult *result)
 {
@@ -1489,7 +1503,7 @@ make_request (SnapdClient *client, RequestType request_type,
     request = g_object_new (snapd_request_get_type (), NULL);
     request->client = client;
     request->request_type = request_type;
-    if (request->cancellable != NULL)
+    if (cancellable != NULL)
         request->cancellable = g_object_ref (cancellable);
     request->ready_callback = callback;
     request->ready_callback_data = user_data;
@@ -1572,8 +1586,8 @@ snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *r
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_SYSTEM_INFORMATION, NULL);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return NULL;
     return request->system_information != NULL ? g_object_ref (request->system_information) : NULL;
 }
 
@@ -1651,8 +1665,8 @@ snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_LIST_ONE, NULL);
   
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return NULL;
     return request->snap != NULL ? g_object_ref (request->snap) : NULL;
 }
 
@@ -1731,8 +1745,8 @@ snapd_client_get_icon_finish (SnapdClient *client, GAsyncResult *result, GError 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_ICON, NULL);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return NULL;
     return request->icon != NULL ? g_object_ref (request->icon) : NULL;
 }
 
@@ -1803,8 +1817,8 @@ snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **er
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_LIST, NULL);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return NULL;
     return request->snaps != NULL ? g_ptr_array_ref (request->snaps) : NULL;
 }
 
@@ -1882,8 +1896,8 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_INTERFACES, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return FALSE;
     if (plugs)
        *plugs = request->plugs != NULL ? g_ptr_array_ref (request->plugs) : NULL;
     if (slots)
@@ -2029,8 +2043,8 @@ snapd_client_connect_interface_finish (SnapdClient *client,
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CONNECT_INTERFACE, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return FALSE;
     return request->result;
 }
 
@@ -2128,8 +2142,8 @@ snapd_client_disconnect_interface_finish (SnapdClient *client,
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_DISCONNECT_INTERFACE, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return FALSE;
     return request->result;
 }
 
@@ -2227,8 +2241,8 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_LOGIN, NULL);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return NULL;
     return request->auth_data != NULL ? g_object_ref (request->auth_data) : NULL;
 }
 
@@ -2328,8 +2342,8 @@ snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, GError **er
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_FIND, NULL);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return NULL;
     return request->snaps != NULL ? g_ptr_array_ref (request->snaps) : NULL;
 }
 
@@ -2441,8 +2455,8 @@ snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError *
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_INSTALL, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return FALSE;
     return request->result;
 }
 
@@ -2536,8 +2550,8 @@ snapd_client_refresh_finish (SnapdClient *client, GAsyncResult *result, GError *
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_REFRESH, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return FALSE;
     return request->result;
 }
 
@@ -2630,8 +2644,8 @@ snapd_client_remove_finish (SnapdClient *client, GAsyncResult *result, GError **
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_REMOVE, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return FALSE;
     return request->result;
 }
 
@@ -2725,8 +2739,8 @@ snapd_client_enable_finish (SnapdClient *client, GAsyncResult *result, GError **
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_ENABLE, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return FALSE;
     return request->result;
 }
 
@@ -2824,8 +2838,8 @@ snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError *
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_DISABLE, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return FALSE;
     return request->result;
 }
 
@@ -2905,8 +2919,8 @@ snapd_client_get_payment_methods_finish (SnapdClient *client, GAsyncResult *resu
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_PAYMENT_METHODS, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return NULL;
     if (allows_automatic_payment)
         *allows_automatic_payment = request->allows_automatic_payment;
     return request->methods != NULL ? g_ptr_array_ref (request->methods) : NULL;
@@ -3017,8 +3031,8 @@ snapd_client_buy_finish (SnapdClient *client, GAsyncResult *result, GError **err
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_BUY, FALSE);
 
-    if (request->error != NULL)
-        g_propagate_error (error, request->error);
+    if (snapd_request_set_error (request, error))
+        return FALSE;
     return request->result;
 }
 
