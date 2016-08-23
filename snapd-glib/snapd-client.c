@@ -145,6 +145,7 @@ send_request (GTask *task, SnapdAuthData *auth_data, const gchar *method, const 
         g_string_append (request, content);
 
     /* send HTTP request */
+    // FIXME: Check for short writes
     n_written = g_socket_send (priv->snapd_socket, request->str, request->len, g_task_get_cancellable (task), &error);
     if (n_written < 0)
         g_task_return_new_error (task,
