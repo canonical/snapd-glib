@@ -317,6 +317,104 @@ get_object (JsonObject *object, const gchar *name)
 }
 
 static gboolean
+parse_date (const gchar *date_string, gint *year, gint *month, gint *day)
+{
+    /* Example: 2016-05-17 */
+    if (strchr (date_string, '-') != NULL) {
+        g_auto(GStrv) tokens = NULL;
+
+        tokens = g_strsplit (date_string, "-", -1);
+        if (g_strv_length (tokens) != 3)
+            return FALSE;
+
+        *year = atoi (tokens[0]);
+        *month = atoi (tokens[1]);
+        *day = atoi (tokens[2]);
+
+        return TRUE;
+    }
+    /* Example: 20160517 */  
+    else if (strlen (date_string) == 8) {
+        // FIXME: Implement
+        return FALSE;
+    }
+    else
+        return FALSE;
+}
+
+static gboolean
+parse_time (const gchar *time_string, gint *hour, gint *minute, gdouble *seconds)
+{
+    /* Example: 09:36:53.682 or 09:36:53 or 09:36 */
+    if (strchr (time_string, ':') != NULL) {
+        g_auto(GStrv) tokens = NULL;
+
+        tokens = g_strsplit (time_string, ":", 3);
+        *hour = atoi (tokens[0]);
+        if (tokens[1] == NULL)
+            return FALSE;
+        *minute = atoi (tokens[1]);
+        if (tokens[2] != NULL)
+            *seconds = g_ascii_strtod (tokens[2], NULL);
+        else
+            *seconds = 0.0;
+
+        return TRUE;
+    }
+    /* Example: 093653.682 or 093653 or 0936 */
+    else {
+        // FIXME: Implement
+        return FALSE;
+    }
+}
+
+static gboolean
+is_timezone_prefix (gchar c)
+{
+    return c == '+' || c == '-' || c == 'Z';
+}
+
+static GDateTime *
+get_date_time (JsonObject *object, const gchar *name)
+{
+    const gchar *value;
+    g_auto(GStrv) tokens = NULL;
+    g_autoptr(GTimeZone) timezone = NULL;
+    gint year = 0, month = 0, day = 0, hour = 0, minute = 0;
+    gdouble seconds = 0.0;
+
+    value = get_string (object, name, NULL);
+    if (value == NULL)
+        return NULL;
+
+    /* Example: 2016-05-17T09:36:53+12:00 */
+    tokens = g_strsplit (value, "T", 2);
+    if (!parse_date (tokens[0], &year, &month, &day))
+        return NULL;
+    if (tokens[1] != NULL) {
+        gchar *timezone_start;
+
+        /* Timezone is either Z (UTC) +hh:mm or -hh:mm */
+        timezone_start = tokens[1];
+        while (*timezone_start != '\0' && !is_timezone_prefix (*timezone_start))
+            timezone_start++;
+        if (*timezone_start != '\0')
+            timezone = g_time_zone_new (timezone_start);
+
+        /* Strip off timezone */
+        *timezone_start = '\0';
+
+        if (!parse_time (tokens[1], &hour, &minute, &seconds))
+            return NULL;
+    }
+  
+    if (timezone == NULL)
+        timezone = g_time_zone_new_local ();
+
+    return g_date_time_new (timezone, year, month, day, hour, minute, seconds);
+}
+
+static gboolean
 parse_result (const gchar *content_type, const gchar *content, gsize content_length, JsonObject **response, gchar **change_id, GError **error)
 {
     g_autoptr(JsonParser) parser = NULL;
@@ -470,6 +568,7 @@ parse_snap (JsonObject *object, GError **error)
     const gchar *snap_status_string;
     SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;
     g_autoptr(JsonArray) apps = NULL;
+    g_autoptr(GDateTime) install_date = NULL;
     g_autoptr(JsonArray) prices = NULL;
     g_autoptr(GPtrArray) apps_array = NULL;
     g_autoptr(GPtrArray) prices_array = NULL;
@@ -523,6 +622,8 @@ parse_snap (JsonObject *object, GError **error)
         g_ptr_array_add (apps_array, g_steal_pointer (&app));
     }
 
+    install_date = get_date_time (object, "install-date");
+
     prices = get_array (object, "prices");
     prices_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (prices); i++) {
@@ -556,7 +657,7 @@ parse_snap (JsonObject *object, GError **error)
                          "download-size", get_int (object, "download-size", 0),
                          "icon", get_string (object, "icon", NULL),
                          "id", get_string (object, "id", NULL),
-                         "install-date", get_string (object, "install-date", NULL),
+                         "install-date", install_date,
                          "installed-size", get_int (object, "installed-size", 0),
                          "name", get_string (object, "name", NULL),
                          "prices", prices_array,
@@ -915,12 +1016,16 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
             guint i;
             g_autoptr(GPtrArray) tasks = NULL;
             g_autoptr(SnapdTask) main_task = NULL;
+            g_autoptr(GDateTime) main_spawn_time = NULL;
+            g_autoptr(GDateTime) main_ready_time = NULL;
 
             array = get_array (result, "tasks");
             tasks = g_ptr_array_new_with_free_func (g_object_unref);
             for (i = 0; i < json_array_get_length (array); i++) {
                 JsonNode *node = json_array_get_element (array, i);
                 JsonObject *object, *progress;
+                g_autoptr(GDateTime) spawn_time = NULL;
+                g_autoptr(GDateTime) ready_time = NULL;
                 g_autoptr(SnapdTask) t = NULL;
 
                 if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
@@ -932,6 +1037,8 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
                 }
                 object = json_node_get_object (node);
                 progress = get_object (object, "progress");
+                spawn_time = get_date_time (object, "spawn-time");
+                ready_time = get_date_time (object, "ready-time");
 
                 t = g_object_new (SNAPD_TYPE_TASK,
                                   "id", get_string (object, "id", NULL),
@@ -941,20 +1048,22 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
                                   "ready", get_bool (object, "ready", FALSE),
                                   "progress-done", progress != NULL ? get_int (progress, "done", 0) : 0,
                                   "progress-total", progress != NULL ? get_int (progress, "total", 0) : 0,
-                                  "spawn-time", get_string (object, "spawn-time", NULL),
-                                  "ready-time", get_string (object, "ready-time", NULL),
+                                  "spawn-time", spawn_time,
+                                  "ready-time", ready_time,
                                   NULL);
                 g_ptr_array_add (tasks, g_steal_pointer (&t));
             }
 
+            main_spawn_time = get_date_time (result, "spawn-time");
+            main_ready_time = get_date_time (result, "ready-time");
             main_task = g_object_new (SNAPD_TYPE_TASK,
                                       "id", get_string (result, "id", NULL),
                                       "kind", get_string (result, "kind", NULL),
                                       "summary", get_string (result, "summary", NULL),
                                       "status", get_string (result, "status", NULL),
                                       "ready", get_bool (result, "ready", FALSE),
-                                      "spawn-time", get_string (result, "spawn-time", NULL),
-                                      "ready-time", get_string (result, "ready-time", NULL),
+                                      "spawn-time", main_spawn_time,
+                                      "ready-time", main_ready_time,
                                       NULL);
 
             request->progress_callback (request->client, main_task, tasks, request->progress_callback_data);

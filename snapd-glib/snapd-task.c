@@ -24,8 +24,8 @@ struct _SnapdTask
     gboolean ready;
     gint64 progress_done;
     gint64 progress_total;
-    gchar *spawn_time; // FIXME: Use GDateTime
-    gchar *ready_time; // FIXME: Use GDateTime  
+    GDateTime *spawn_time;
+    GDateTime *ready_time;
 };
 
 enum 
@@ -139,13 +139,26 @@ snapd_task_get_progress_total (SnapdTask *task)
  * snapd_task_get_spawn_time:
  * @task: a #SnapdTask.
  *
- * Returns: the time these task started.
+ * Returns: the time this task started.
  */
-const gchar *
+GDateTime *
 snapd_task_get_spawn_time (SnapdTask *task)
 {
     g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
     return task->spawn_time;
+}
+
+/**
+ * snapd_task_get_ready_time:
+ * @task: a #SnapdTask.
+ *
+ * Returns: the time this task completed.
+ */
+GDateTime *
+snapd_task_get_ready_time (SnapdTask *task)
+{
+    g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
+    return task->ready_time;
 }
 
 static void
@@ -180,12 +193,14 @@ snapd_task_set_property (GObject *object, guint prop_id, const GValue *value, GP
         task->progress_total = g_value_get_int64 (value);
         break;
     case PROP_SPAWN_TIME:
-        g_free (task->spawn_time);
-        task->spawn_time = g_strdup (g_value_get_string (value));
+        g_clear_pointer (&task->spawn_time, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL)
+            task->spawn_time = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_READY_TIME:
-        g_free (task->ready_time);
-        task->ready_time = g_strdup (g_value_get_string (value));
+        g_clear_pointer (&task->ready_time, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL)
+            task->ready_time = g_date_time_ref (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -218,10 +233,10 @@ snapd_task_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         g_value_set_int64 (value, task->progress_total);
         break;
     case PROP_SPAWN_TIME:
-        g_value_set_string (value, task->spawn_time);
+        g_value_set_boxed (value, task->spawn_time);
         break;
     case PROP_READY_TIME:
-        g_value_set_string (value, task->ready_time);
+        g_value_set_boxed (value, task->ready_time);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -238,8 +253,8 @@ snapd_task_finalize (GObject *object)
     g_clear_pointer (&task->kind, g_free);
     g_clear_pointer (&task->summary, g_free);
     g_clear_pointer (&task->status, g_free);  
-    g_clear_pointer (&task->spawn_time, g_free);
-    g_clear_pointer (&task->ready_time, g_free);  
+    g_clear_pointer (&task->spawn_time, g_date_time_unref);
+    g_clear_pointer (&task->ready_time, g_date_time_unref);  
 }
 
 static void
@@ -302,18 +317,18 @@ snapd_task_class_init (SnapdTaskClass *klass)
                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_SPAWN_TIME,
-                                     g_param_spec_string ("spawn-time",
-                                                          "spawn-time",
-                                                          "Time this task started",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                     g_param_spec_boxed ("spawn-time",
+                                                         "spawn-time",
+                                                         "Time this task started",
+                                                         G_TYPE_DATE_TIME,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_READY_TIME,
-                                     g_param_spec_string ("ready-time",
-                                                          "ready-time",
-                                                          "Time this task completed",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                     g_param_spec_boxed ("ready-time",
+                                                         "ready-time",
+                                                         "Time this task completed",
+                                                         G_TYPE_DATE_TIME,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void

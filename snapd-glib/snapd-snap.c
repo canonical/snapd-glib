@@ -25,7 +25,7 @@ struct _SnapdSnap
     gint64 download_size;
     gchar *icon;
     gchar *id;
-    gchar *install_date;
+    GDateTime *install_date;
     gint64 installed_size;
     gchar *name;
     GPtrArray *prices;
@@ -188,7 +188,7 @@ snapd_snap_get_id (SnapdSnap *snap)
  *
  * Returns: the date this snap was installed or %NULL if unknown.
  */
-const gchar *
+GDateTime *
 snapd_snap_get_install_date (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
@@ -332,9 +332,9 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
 
     switch (prop_id) {
     case PROP_APPS:
-        if (snap->apps)
-            g_ptr_array_unref (snap->apps);
-        snap->apps = g_ptr_array_ref (g_value_get_boxed (value));
+        g_clear_pointer (&snap->apps, g_ptr_array_unref);
+        if (g_value_get_boxed (value) != NULL)
+            snap->apps = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_CHANEL:
         g_free (snap->channel);
@@ -366,8 +366,9 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         snap->id = g_strdup (g_value_get_string (value));
         break;
     case PROP_INSTALL_DATE:
-        g_free (snap->install_date);
-        snap->install_date = g_strdup (g_value_get_string (value));
+        g_clear_pointer (&snap->install_date, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL)
+            snap->install_date = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_INSTALLED_SIZE:
         snap->installed_size = g_value_get_int64 (value);
@@ -377,9 +378,9 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         snap->name = g_strdup (g_value_get_string (value));
         break;
     case PROP_PRICES:
-        if (snap->prices)
-            g_ptr_array_unref (snap->prices);
-        snap->prices = g_ptr_array_ref (g_value_get_boxed (value));
+        g_clear_pointer (&snap->prices, g_ptr_array_unref);
+        if (g_value_get_boxed (value) != NULL)
+            snap->prices = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_PRIVATE:
         snap->private = g_value_get_boolean (value);
@@ -445,7 +446,7 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         g_value_set_string (value, snap->id);
         break;
     case PROP_INSTALL_DATE:
-        g_value_set_string (value, snap->install_date);
+        g_value_set_boxed (value, snap->install_date);
         break;
     case PROP_INSTALLED_SIZE:
         g_value_set_int64 (value, snap->installed_size);
@@ -495,7 +496,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->developer, g_free);
     g_clear_pointer (&snap->icon, g_free);
     g_clear_pointer (&snap->id, g_free);
-    g_clear_pointer (&snap->install_date, g_free);
+    g_clear_pointer (&snap->install_date, g_date_time_unref);
     g_clear_pointer (&snap->name, g_free);
     if (snap->prices != NULL)
         g_clear_pointer (&snap->prices, g_ptr_array_unref);
@@ -578,11 +579,11 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_INSTALL_DATE,
-                                     g_param_spec_string ("install-date",
-                                                          "install-date",
-                                                          "Date this snap was installed",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                     g_param_spec_boxed ("install-date",
+                                                         "install-date",
+                                                         "Date this snap was installed",
+                                                         G_TYPE_DATE_TIME,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_INSTALLED_SIZE,
                                      g_param_spec_int64 ("installed-size",

@@ -124,9 +124,9 @@ snapd_plug_set_property (GObject *object, guint prop_id, const GValue *value, GP
         plug->label = g_strdup (g_value_get_string (value));
         break;
     case PROP_CONNECTIONS:
-        if (plug->connections)
-            g_ptr_array_unref (plug->connections);
-        plug->connections = g_ptr_array_ref (g_value_get_boxed (value));
+        g_clear_pointer (&plug->connections, g_ptr_array_unref);
+        if (g_value_get_boxed (value) != NULL)
+            plug->connections = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);

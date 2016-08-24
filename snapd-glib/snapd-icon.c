@@ -67,8 +67,9 @@ snapd_icon_set_property (GObject *object, guint prop_id, const GValue *value, GP
         icon->mime_type = g_strdup (g_value_get_string (value));
         break;
     case PROP_DATA:
-        g_bytes_unref (icon->data);
-        icon->data = g_bytes_ref (g_value_get_boxed (value));
+        g_clear_pointer (&icon->data, g_bytes_unref);
+        if (g_value_get_boxed (value) != NULL)
+            icon->data = g_bytes_ref (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);

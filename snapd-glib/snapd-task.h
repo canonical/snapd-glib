@@ -42,9 +42,9 @@ gint64       snapd_task_get_progress_done  (SnapdTask *task);
 
 gint64       snapd_task_get_progress_total (SnapdTask *task);
 
-const gchar *snapd_task_get_spawn_time     (SnapdTask *task);
+GDateTime   *snapd_task_get_spawn_time     (SnapdTask *task);
 
-const gchar *snapd_task_get_ready_time     (SnapdTask *task);
+GDateTime   *snapd_task_get_ready_time     (SnapdTask *task);
 
 G_END_DECLS
 

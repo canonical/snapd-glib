@@ -72,7 +72,7 @@ const gchar      *snapd_snap_get_icon           (SnapdSnap *snap);
 
 const gchar      *snapd_snap_get_id             (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_install_date   (SnapdSnap *snap); // FIXME: GDateTime?
+GDateTime        *snapd_snap_get_install_date   (SnapdSnap *snap);
 
 gint64            snapd_snap_get_installed_size (SnapdSnap *snap);
 
