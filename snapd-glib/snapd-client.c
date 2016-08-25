@@ -1571,11 +1571,13 @@ gboolean
 snapd_client_connect_sync (SnapdClient *client,
                            GCancellable *cancellable, GError **error)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    SnapdClientPrivate *priv;
     g_autoptr(GSocketAddress) address = NULL;
     g_autoptr(GError) error_local = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+
+    priv = snapd_client_get_instance_private (client);
     g_return_val_if_fail (priv->snapd_socket == NULL, FALSE);
 
     priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
