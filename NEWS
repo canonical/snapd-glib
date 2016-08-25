@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 0.8
+
+    * Store auth data inside SnapdClient (API and ABI break)
+    * Return suggested currency in find request (API and ABI break)
+    * Only call progress callback if something changes
+
 Overview of changes in snapd-glib 0.7
 
     * Return error codes when icons fail to download
