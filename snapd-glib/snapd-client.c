@@ -87,6 +87,8 @@ struct _SnapdRequest
     gchar *change_id;
     guint poll_timer;
     guint timeout_timer;
+    SnapdTask *main_task;
+    GPtrArray *tasks;
 
     gboolean completed;
     GError *error;
@@ -179,6 +181,8 @@ snapd_request_finalize (GObject *object)
         g_source_remove (request->poll_timer);
     if (request->timeout_timer != 0)
         g_source_remove (request->timeout_timer);
+    g_clear_object (&request->main_task);
+    g_clear_pointer (&request->tasks, g_ptr_array_unref);
     g_clear_object (&request->system_information);
     g_clear_pointer (&request->snaps, g_ptr_array_unref);
     g_free (request->suggested_currency);
@@ -957,6 +961,59 @@ async_timeout_cb (gpointer data)
     return G_SOURCE_REMOVE;
 }
 
+static gboolean
+times_equal (GDateTime *time1, GDateTime *time2)
+{
+    if (time1 == NULL || time2 == NULL)
+        return time1 == time2;
+    return g_date_time_equal (time1, time2);
+}
+
+static gboolean
+tasks_equal (SnapdTask *task1, SnapdTask *task2)
+{
+    return g_strcmp0 (snapd_task_get_id (task1), snapd_task_get_id (task2)) == 0 &&
+           g_strcmp0 (snapd_task_get_kind (task1), snapd_task_get_kind (task2)) == 0 &&
+           g_strcmp0 (snapd_task_get_summary (task1), snapd_task_get_summary (task2)) == 0 &&
+           g_strcmp0 (snapd_task_get_status (task1), snapd_task_get_status (task2)) == 0 &&
+           !!snapd_task_get_ready (task1) == !!snapd_task_get_ready (task2) &&
+           snapd_task_get_progress_done (task1) == snapd_task_get_progress_done (task2) &&
+           snapd_task_get_progress_total (task1) == snapd_task_get_progress_total (task2) &&    
+           times_equal (snapd_task_get_spawn_time (task1), snapd_task_get_spawn_time (task2)) &&
+           times_equal (snapd_task_get_spawn_time (task1), snapd_task_get_spawn_time (task2));
+}
+
+static gboolean
+progress_equal (SnapdTask *main_task1, GPtrArray *tasks1, SnapdTask *main_task2, GPtrArray *tasks2)
+{
+    if (tasks1 == NULL || tasks2 == NULL) {
+        if (tasks1 != tasks2)
+            return FALSE;
+    }
+    else {
+        int i;
+
+        if (tasks1->len != tasks2->len)
+            return FALSE;
+        for (i = 0; i < tasks1->len; i++) {
+            SnapdTask *t1 = tasks1->pdata[i], *t2 = tasks2->pdata[i];
+            if (!tasks_equal (t1, t2))
+                return FALSE;
+        }
+    }
+
+    if (main_task1 == NULL || main_task2 == NULL) {
+        if (main_task1 != main_task2)
+            return FALSE;
+    }
+    else {
+        if (!tasks_equal (main_task1, main_task2))
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
 static void
 parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
@@ -1071,7 +1128,13 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
                                       "ready-time", main_ready_time,
                                       NULL);
 
-            request->progress_callback (request->client, main_task, tasks, request->progress_callback_data);
+            if (!progress_equal (request->main_task, request->tasks, main_task, tasks)) {
+                g_clear_object (&request->main_task);
+                request->main_task = g_steal_pointer (&main_task);
+                g_clear_pointer (&request->tasks, g_ptr_array_unref);
+                request->tasks = g_steal_pointer (&tasks);
+                request->progress_callback (request->client, request->main_task, request->tasks, request->progress_callback_data);
+            }
         }
 
         ready = get_bool (result, "ready", FALSE);
