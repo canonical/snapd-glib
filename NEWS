@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 0.7
+
+    * Return error codes when icons fail to download
+    * Fix sync methods not working inside async callbacks
+    * Use GDateTime for date/time values returned by snapd
+
 Overview of changes in snapd-glib 0.6
 
     * Fix memory ownership for returned results from list/find
