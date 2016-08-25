@@ -169,7 +169,7 @@ void                    snapd_client_connect_interface_async       (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-gboolean               snapd_client_connect_interface_finish       (SnapdClient          *client,
+gboolean                snapd_client_connect_interface_finish      (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
