@@ -93,6 +93,7 @@ struct _SnapdRequest
     gboolean result;
     SnapdSystemInformation *system_information;
     GPtrArray *snaps;
+    gchar *suggested_currency;
     SnapdSnap *snap;
     SnapdIcon *icon;
     SnapdAuthData *received_auth_data;
@@ -180,6 +181,7 @@ snapd_request_finalize (GObject *object)
         g_source_remove (request->timeout_timer);
     g_clear_object (&request->system_information);
     g_clear_pointer (&request->snaps, g_ptr_array_unref);
+    g_free (request->suggested_currency);
     g_clear_object (&request->snap);
     g_clear_object (&request->icon);
     g_clear_object (&request->received_auth_data);
@@ -1162,6 +1164,8 @@ parse_find_response (SnapdRequest *request, SoupMessageHeaders *headers, const g
         snapd_request_complete (request, error);
         return;
     }
+
+    request->suggested_currency = g_strdup (get_string (response, "suggested-currency", NULL));
 
     request->snaps = g_steal_pointer (&snaps);
     snapd_request_complete (request, NULL);
@@ -2433,6 +2437,7 @@ make_find_request (SnapdClient *client,
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
  * @query: query string to send.
+ * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
@@ -2441,6 +2446,7 @@ make_find_request (SnapdClient *client,
 GPtrArray *
 snapd_client_find_sync (SnapdClient *client,
                         SnapdFindFlags flags, const gchar *query,
+                        gchar **suggested_currency,
                         GCancellable *cancellable, GError **error)
 {
     g_autoptr(SnapdRequest) request = NULL;
@@ -2450,7 +2456,7 @@ snapd_client_find_sync (SnapdClient *client,
 
     request = g_object_ref (make_find_request (client, flags, query, cancellable, NULL, NULL));
     snapd_request_wait (request);
-    return snapd_client_find_finish (client, G_ASYNC_RESULT (request), error);
+    return snapd_client_find_finish (client, G_ASYNC_RESULT (request), suggested_currency, error);
 }
 
 /**
@@ -2476,12 +2482,13 @@ snapd_client_find_async (SnapdClient *client,
  * snapd_client_find_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
+ * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  */
 GPtrArray *
-snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, gchar **suggested_currency, GError **error)
 {
     SnapdRequest *request;
 
@@ -2493,7 +2500,10 @@ snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, GError **er
 
     if (snapd_request_set_error (request, error))
         return NULL;
-    return request->snaps != NULL ? g_ptr_array_ref (request->snaps) : NULL;
+
+    if (suggested_currency != NULL)
+        *suggested_currency = g_steal_pointer (&request->suggested_currency);
+    return g_steal_pointer (&request->snaps);
 }
 
 static gchar *

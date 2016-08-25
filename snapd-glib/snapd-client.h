@@ -218,6 +218,7 @@ gboolean               snapd_client_disconnect_interface_finish    (SnapdClient 
 GPtrArray              *snapd_client_find_sync                     (SnapdClient          *client,
                                                                     SnapdFindFlags        flags,
                                                                     const gchar          *query,
+                                                                    gchar               **suggested_currency,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_find_async                    (SnapdClient          *client,
@@ -228,6 +229,7 @@ void                    snapd_client_find_async                    (SnapdClient 
                                                                     gpointer              user_data);
 GPtrArray              *snapd_client_find_finish                   (SnapdClient          *client,
                                                                     GAsyncResult         *result,
+                                                                    gchar               **suggested_currency,
                                                                     GError              **error);
 
 gboolean                snapd_client_install_sync                  (SnapdClient          *client,
