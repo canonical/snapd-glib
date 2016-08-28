@@ -2152,7 +2152,7 @@ snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **er
 
     if (snapd_request_set_error (request, error))
         return NULL;
-    return request->snaps != NULL ? g_ptr_array_ref (request->snaps) : NULL;
+    return g_steal_pointer (&request->snaps);
 }
 
 static SnapdRequest *
