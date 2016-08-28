@@ -1620,6 +1620,13 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
     return read_from_snapd (client, NULL, FALSE); // FIXME: Use Cancellable from first request?
 }
 
+static gboolean
+is_connected (SnapdClient *client)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (SNAPD_CLIENT (client));
+    return priv->snapd_socket != NULL;
+}
+
 /**
  * snapd_client_connect_sync:
  * @client: a #SnapdClient
@@ -1639,6 +1646,7 @@ snapd_client_connect_sync (SnapdClient *client,
     g_autoptr(GError) error_local = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (!is_connected (client), FALSE);
 
     priv = snapd_client_get_instance_private (client);
     g_return_val_if_fail (priv->snapd_socket == NULL, FALSE);
@@ -1657,6 +1665,7 @@ snapd_client_connect_sync (SnapdClient *client,
     }
     address = g_unix_socket_address_new (SNAPD_SOCKET);
     if (!g_socket_connect (priv->snapd_socket, address, cancellable, &error_local)) {
+        g_clear_object (&priv->snapd_socket);
         g_set_error (error,
                      SNAPD_CLIENT_ERROR,
                      SNAPD_CLIENT_ERROR_CONNECTION_FAILED,
@@ -1750,6 +1759,7 @@ snapd_client_login_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (username != NULL, FALSE);
     g_return_val_if_fail (password != NULL, FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_login_request (client, username, password, otp, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -1772,6 +1782,8 @@ snapd_client_login_async (SnapdClient *client,
                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (is_connected (client));
+
     make_login_request (client, username, password, otp, cancellable, callback, user_data);
 }
 
@@ -1794,6 +1806,7 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     priv = snapd_client_get_instance_private (client);
 
@@ -1841,7 +1854,7 @@ snapd_client_get_auth_data (SnapdClient *client)
     SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-  
+
     priv = snapd_client_get_instance_private (client);
 
     return priv->auth_data;
@@ -1877,6 +1890,7 @@ snapd_client_get_system_information_sync (SnapdClient *client,
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_get_system_information_request (client, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -1897,6 +1911,8 @@ snapd_client_get_system_information_async (SnapdClient *client,
                                            GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (is_connected (client));
+
     make_get_system_information_request (client, cancellable, callback, user_data);
 }
 
@@ -1915,6 +1931,7 @@ snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *r
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_SYSTEM_INFORMATION, NULL);
@@ -1956,6 +1973,7 @@ snapd_client_list_one_sync (SnapdClient *client,
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = g_object_ref (make_list_one_request (client, name, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -1976,6 +1994,8 @@ snapd_client_list_one_async (SnapdClient *client,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (is_connected (client));
+
     make_list_one_request (client, name, cancellable, callback, user_data);
 }
 
@@ -1994,6 +2014,7 @@ snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError 
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_LIST_ONE, NULL);
@@ -2036,6 +2057,7 @@ snapd_client_get_icon_sync (SnapdClient *client,
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = g_object_ref (make_get_icon_request (client, name, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2056,6 +2078,8 @@ snapd_client_get_icon_async (SnapdClient *client,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (is_connected (client));
+
     make_get_icon_request (client, name, cancellable, callback, user_data);
 }
 
@@ -2074,6 +2098,7 @@ snapd_client_get_icon_finish (SnapdClient *client, GAsyncResult *result, GError 
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_ICON, NULL);
@@ -2110,6 +2135,7 @@ snapd_client_list_sync (SnapdClient *client,
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = g_object_ref (make_list_request (client, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2128,6 +2154,8 @@ snapd_client_list_async (SnapdClient *client,
                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (is_connected (client));
+
     make_list_request (client, cancellable, callback, user_data);
 }
 
@@ -2146,6 +2174,7 @@ snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **er
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_LIST, NULL);
@@ -2185,6 +2214,7 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_get_interfaces_request (client, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2203,6 +2233,8 @@ snapd_client_get_interfaces_async (SnapdClient *client,
                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (is_connected (client));
+
     make_get_interfaces_request (client, cancellable, callback, user_data);
 }
 
@@ -2225,6 +2257,7 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_INTERFACES, FALSE);
@@ -2320,6 +2353,7 @@ snapd_client_connect_interface_sync (SnapdClient *client,
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_connect_interface_request (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2347,6 +2381,8 @@ snapd_client_connect_interface_async (SnapdClient *client,
                                       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (is_connected (client));
+
     make_connect_interface_request (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
@@ -2366,6 +2402,7 @@ snapd_client_connect_interface_finish (SnapdClient *client,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CONNECT_INTERFACE, FALSE);
@@ -2414,6 +2451,7 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_disconnect_interface_request (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2441,6 +2479,8 @@ snapd_client_disconnect_interface_async (SnapdClient *client,
                                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (is_connected (client));
+
     make_disconnect_interface_request (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
@@ -2460,6 +2500,7 @@ snapd_client_disconnect_interface_finish (SnapdClient *client,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_DISCONNECT_INTERFACE, FALSE);
@@ -2518,6 +2559,7 @@ snapd_client_find_sync (SnapdClient *client,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (query != NULL, NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = g_object_ref (make_find_request (client, flags, query, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2540,6 +2582,8 @@ snapd_client_find_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (query != NULL);
+    g_return_if_fail (is_connected (client));
+
     make_find_request (client, flags, query, cancellable, callback, user_data);
 }
 
@@ -2559,6 +2603,7 @@ snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, gchar **sug
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_FIND, NULL);
@@ -2630,6 +2675,7 @@ snapd_client_install_sync (SnapdClient *client,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_install_request (client, name, channel, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2655,6 +2701,8 @@ snapd_client_install_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (name != NULL);
+    g_return_if_fail (is_connected (client));
+
     make_install_request (client, name, channel, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
@@ -2673,6 +2721,7 @@ snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError *
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_INSTALL, FALSE);
@@ -2723,6 +2772,7 @@ snapd_client_refresh_sync (SnapdClient *client,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_refresh_request (client, name, channel, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2748,6 +2798,8 @@ snapd_client_refresh_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (name != NULL);
+    g_return_if_fail (is_connected (client));
+
     make_refresh_request (client, name, channel, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
@@ -2766,6 +2818,7 @@ snapd_client_refresh_finish (SnapdClient *client, GAsyncResult *result, GError *
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_REFRESH, FALSE);
@@ -2815,6 +2868,7 @@ snapd_client_remove_sync (SnapdClient *client,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_remove_request (client, name, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2839,6 +2893,7 @@ snapd_client_remove_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (name != NULL);
+    g_return_if_fail (is_connected (client));
 
     make_remove_request (client, name, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
@@ -2858,6 +2913,7 @@ snapd_client_remove_finish (SnapdClient *client, GAsyncResult *result, GError **
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_REMOVE, FALSE);
@@ -2907,6 +2963,7 @@ snapd_client_enable_sync (SnapdClient *client,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_enable_request (client, name, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -2932,6 +2989,7 @@ snapd_client_enable_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (name != NULL);
+    g_return_if_fail (is_connected (client));
 
     make_enable_request (client, name, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
@@ -2951,6 +3009,7 @@ snapd_client_enable_finish (SnapdClient *client, GAsyncResult *result, GError **
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_ENABLE, FALSE);
@@ -3000,6 +3059,7 @@ snapd_client_disable_sync (SnapdClient *client,
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_disable_request (client, name,
                                                   progress_callback, progress_callback_data,
@@ -3027,6 +3087,7 @@ snapd_client_disable_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (name != NULL);
+    g_return_if_fail (is_connected (client));
 
     make_disable_request (client, name,
                           progress_callback, progress_callback_data,
@@ -3048,6 +3109,7 @@ snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError *
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_DISABLE, FALSE);
@@ -3086,6 +3148,7 @@ snapd_client_get_payment_methods_sync (SnapdClient *client,
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = g_object_ref (make_get_payment_methods_request (client, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -3105,6 +3168,8 @@ snapd_client_get_payment_methods_async (SnapdClient *client,
                                         GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (is_connected (client));
+
     make_get_payment_methods_request (client, cancellable, callback, user_data);
 }
 
@@ -3124,6 +3189,7 @@ snapd_client_get_payment_methods_finish (SnapdClient *client, GAsyncResult *resu
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_PAYMENT_METHODS, FALSE);
@@ -3191,6 +3257,7 @@ snapd_client_buy_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
     g_return_val_if_fail (SNAPD_IS_PRICE (price), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = g_object_ref (make_buy_request (client, snap, price, payment_method, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -3215,6 +3282,7 @@ snapd_client_buy_async (SnapdClient *client,
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (SNAPD_IS_SNAP (snap));
     g_return_if_fail (SNAPD_IS_PRICE (price));
+    g_return_if_fail (is_connected (client));
 
     make_buy_request (client, snap, price, payment_method, cancellable, callback, user_data);
 }
@@ -3234,6 +3302,7 @@ snapd_client_buy_finish (SnapdClient *client, GAsyncResult *result, GError **err
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (is_connected (client), FALSE);
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_BUY, FALSE);
