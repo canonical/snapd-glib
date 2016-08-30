@@ -32,8 +32,6 @@ typedef struct
 
 G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 
-G_DEFINE_QUARK (snapd-error-quark, snapd_error)
-
 /* snapd API documentation is at https://github.com/snapcore/snapd/blob/master/docs/rest.md */
 
 /* Default socket to connect to */
@@ -121,6 +119,35 @@ struct _SnapdRequest
     gboolean allows_automatic_payment;
     GPtrArray *methods;
 };
+
+static const GDBusErrorEntry snapd_error_entries[] =
+{
+    { SNAPD_ERROR_CONNECTION_FAILED,   "io.snapcraft.SnapdLoginService.Error.ConnectionFailed" },
+    { SNAPD_ERROR_WRITE_ERROR,         "io.snapcraft.SnapdLoginService.Error.WriteError" },
+    { SNAPD_ERROR_READ_ERROR,          "io.snapcraft.SnapdLoginService.Error.ReadError" },
+    { SNAPD_ERROR_PARSE_ERROR,         "io.snapcraft.SnapdLoginService.Error.ParseError" },
+    { SNAPD_ERROR_GENERAL_ERROR,       "io.snapcraft.SnapdLoginService.Error.GeneralError" },
+    { SNAPD_ERROR_LOGIN_REQUIRED,      "io.snapcraft.SnapdLoginService.Error.LoginRequired" },
+    { SNAPD_ERROR_INVALID_AUTH_DATA,   "io.snapcraft.SnapdLoginService.Error.InvalidAuthData" },
+    { SNAPD_ERROR_TWO_FACTOR_REQUIRED, "io.snapcraft.SnapdLoginService.Error.TwoFactorRequired" },
+    { SNAPD_ERROR_TWO_FACTOR_FAILED,   "io.snapcraft.SnapdLoginService.Error.TwoFactorFailed" },
+    { SNAPD_ERROR_BAD_REQUEST    ,     "io.snapcraft.SnapdLoginService.Error.BadRequest" },
+    { SNAPD_ERROR_PERMISSION_DENIED,   "io.snapcraft.SnapdLoginService.Error.PermissionDenied" }
+};
+
+/* Ensure that every error code has an associated D-Bus error name */
+G_STATIC_ASSERT (G_N_ELEMENTS (snapd_error_entries) == SNAPD_ERROR_LAST);
+
+GQuark
+snapd_error_quark (void)
+{
+    static volatile gsize quark_volatile = 0;
+    g_dbus_error_register_error_domain ("snapd-error-quark",
+                                        &quark_volatile,
+                                        snapd_error_entries,
+                                        G_N_ELEMENTS (snapd_error_entries));
+    return (GQuark) quark_volatile;
+}
 
 static void
 snapd_login_request_async_result_init (GAsyncResultIface *iface)

@@ -77,6 +77,8 @@ typedef enum
  */
 typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdTask *main_task, GPtrArray *tasks, gpointer user_data);
 
+GQuark                  snapd_error_quark                          (void) G_GNUC_CONST;
+
 SnapdAuthData          *snapd_login_sync                           (const gchar          *username,
                                                                     const gchar          *password,
                                                                     const gchar          *otp,
@@ -90,9 +92,6 @@ void                    snapd_login_async                          (const gchar 
                                                                     gpointer              user_data);
 SnapdAuthData          *snapd_login_finish                         (GAsyncResult         *result,
                                                                     GError              **error);
-
-
-GQuark                  snapd_error_quark                          (void) G_GNUC_CONST;
 
 SnapdClient            *snapd_client_new                           (void);
 
