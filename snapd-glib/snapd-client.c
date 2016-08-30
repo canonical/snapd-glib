@@ -200,7 +200,7 @@ snapd_login_sync (const gchar *username, const gchar *password, const gchar *otp
     g_autoptr(GDBusConnection) c = NULL;
     g_autoptr(GVariant) result = NULL;
     const gchar *macaroon;
-    gchar **discharges;
+    g_auto(GStrv) discharges = NULL;
 
     g_return_val_if_fail (username != NULL, NULL);
     g_return_val_if_fail (password != NULL, NULL);
@@ -225,7 +225,7 @@ snapd_login_sync (const gchar *username, const gchar *password, const gchar *otp
     if (result == NULL)
         return NULL;
 
-    g_variant_get (result, "(&s&as)", &macaroon, &discharges);
+    g_variant_get (result, "(&s^as)", &macaroon, &discharges);
 
     return snapd_auth_data_new (macaroon, discharges);
 }
@@ -247,7 +247,7 @@ login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(SnapdLoginRequest) request = user_data;
     g_autoptr(GVariant) r = NULL;
     const gchar *macaroon;
-    gchar **discharges;
+    g_auto(GStrv) discharges = NULL;
     g_autoptr(GError) error = NULL;
 
     r = g_dbus_connection_call_finish (G_DBUS_CONNECTION (object), result, &error);
@@ -258,7 +258,7 @@ login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
         return;
     }
 
-    g_variant_get (r, "(&s&as)", &macaroon, &discharges);
+    g_variant_get (r, "(&s^as)", &macaroon, &discharges);
     request->auth_data = snapd_auth_data_new (macaroon, discharges);
 
     g_idle_add (login_complete_cb, g_steal_pointer (&request));
