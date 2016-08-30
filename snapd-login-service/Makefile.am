@@ -15,7 +15,7 @@ dbusconf_DATA = io.snapcraft.SnapdLoginService.conf
 interfacesdir = $(datadir)/dbus-1/interfaces
 interfaces_DATA = io.snapcraft.SnapdLoginService.xml
 
-dbusservicedir = $(datadir)/dbus-1/services
+dbusservicedir = $(datadir)/dbus-1/system-services
 dbusservice_in_files = io.snapcraft.SnapdLoginService.service.in
 dbusservice_DATA = $(dbusservice_in_files:.service.in=.service)
 $(dbusservice_DATA): $(dbusservice_in_files) Makefile
