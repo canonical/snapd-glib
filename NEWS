@@ -1,3 +1,10 @@
+Overview of changes in snapd-glib 0.10
+
+    * Fix snapd-login-service D-Bus configuration
+    * Improve documentation about root requirements for snapd_client_login
+    * Distribute license files
+    * Fix compiler warning
+
 Overview of changes in snapd-glib 0.9
 
     * Rename SnapdClientError to SnapdError (API and ABI break)
