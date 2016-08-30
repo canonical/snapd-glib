@@ -3,7 +3,6 @@ DISTCLEANFILES =
 BUILT_SOURCES =
 EXTRA_DIST =
 
-# main library
 source_h = \
 	snapd-app.h \
 	snapd-auth-data.h \

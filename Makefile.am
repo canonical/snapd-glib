@@ -1,1 +1,1 @@
-SUBDIRS = snapd-glib
+SUBDIRS = snapd-glib snapd-login-service

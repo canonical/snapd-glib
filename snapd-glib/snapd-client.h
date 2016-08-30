@@ -44,20 +44,21 @@ struct _SnapdClientClass
 
 typedef enum
 {  
-    SNAPD_CLIENT_ERROR_CONNECTION_FAILED,
-    SNAPD_CLIENT_ERROR_WRITE_ERROR,
-    SNAPD_CLIENT_ERROR_READ_ERROR,
-    SNAPD_CLIENT_ERROR_PARSE_ERROR,
-    SNAPD_CLIENT_ERROR_GENERAL_ERROR,
-    SNAPD_CLIENT_ERROR_LOGIN_REQUIRED,
-    SNAPD_CLIENT_ERROR_INVALID_AUTH_DATA,  
-    SNAPD_CLIENT_ERROR_TWO_FACTOR_REQUIRED,
-    SNAPD_CLIENT_ERROR_TWO_FACTOR_FAILED,
-    SNAPD_CLIENT_ERROR_BAD_REQUEST,
-    SNAPD_CLIENT_ERROR_LAST
-} SnapdClientError;
+    SNAPD_ERROR_CONNECTION_FAILED,
+    SNAPD_ERROR_WRITE_ERROR,
+    SNAPD_ERROR_READ_ERROR,
+    SNAPD_ERROR_PARSE_ERROR,
+    SNAPD_ERROR_GENERAL_ERROR,
+    SNAPD_ERROR_LOGIN_REQUIRED,
+    SNAPD_ERROR_INVALID_AUTH_DATA,  
+    SNAPD_ERROR_TWO_FACTOR_REQUIRED,
+    SNAPD_ERROR_TWO_FACTOR_FAILED,
+    SNAPD_ERROR_BAD_REQUEST,
+    SNAPD_ERROR_PERMISSION_DENIED,
+    SNAPD_ERROR_LAST
+} SnapdError;
 
-#define SNAPD_CLIENT_ERROR snapd_client_error_quark ()
+#define SNAPD_ERROR snapd_error_quark ()
 
 typedef enum
 {
@@ -76,8 +77,22 @@ typedef enum
  */
 typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdTask *main_task, GPtrArray *tasks, gpointer user_data);
 
+SnapdAuthData          *snapd_login_sync                           (const gchar          *username,
+                                                                    const gchar          *password,
+                                                                    const gchar          *otp,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_login_async                          (const gchar          *username,
+                                                                    const gchar          *password,
+                                                                    const gchar          *otp,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+SnapdAuthData          *snapd_login_finish                         (GAsyncResult         *result,
+                                                                    GError              **error);
 
-GQuark                  snapd_client_error_quark                   (void) G_GNUC_CONST;
+
+GQuark                  snapd_error_quark                          (void) G_GNUC_CONST;
 
 SnapdClient            *snapd_client_new                           (void);
 

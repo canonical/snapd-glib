@@ -27,3 +27,6 @@ snapd-glib/snapd-glib-1.0.pc
 snapd-glib/snapd-enum-types.c
 snapd-glib/snapd-enum-types.h
 snapd-glib/stamp-enum-types
+snapd-login-service/login-service.[ch]
+snapd-login-service/snapd-login-service
+snapd-login-service/io.snapcraft.SnapdLoginService.service

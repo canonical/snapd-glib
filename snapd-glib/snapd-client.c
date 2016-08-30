@@ -32,7 +32,7 @@ typedef struct
 
 G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 
-G_DEFINE_QUARK (snapd-client-error-quark, snapd_client_error)
+G_DEFINE_QUARK (snapd-error-quark, snapd_error)
 
 /* snapd API documentation is at https://github.com/snapcore/snapd/blob/master/docs/rest.md */
 
@@ -44,6 +44,23 @@ G_DEFINE_QUARK (snapd-client-error-quark, snapd_client_error)
 #define ASYNC_POLL_TIMEOUT 1000
 
 // FIXME: Make multiple async requests work at the same time
+
+G_DECLARE_FINAL_TYPE (SnapdLoginRequest, snapd_login_request, SNAPD, LOGIN_REQUEST, GObject)
+
+struct _SnapdLoginRequest
+{
+    GObject parent_instance;
+
+    GCancellable *cancellable;
+    GAsyncReadyCallback ready_callback;
+    gpointer ready_callback_data;
+
+    gchar *username;
+    gchar *password;
+    gchar *otp;
+    SnapdAuthData *auth_data;
+    GError *error;
+};
 
 typedef enum
 {
@@ -105,17 +122,209 @@ struct _SnapdRequest
     GPtrArray *methods;
 };
 
+static void
+snapd_login_request_async_result_init (GAsyncResultIface *iface)
+{
+}
+
+G_DEFINE_TYPE_WITH_CODE (SnapdLoginRequest, snapd_login_request, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_RESULT, snapd_login_request_async_result_init))
+
+static void
+snapd_login_request_finalize (GObject *object)
+{
+    SnapdLoginRequest *request = SNAPD_LOGIN_REQUEST (object);
+
+    g_clear_object (&request->cancellable);
+    g_free (request->username);
+    g_free (request->password);
+    g_free (request->otp);
+    g_clear_object (&request->auth_data);
+    g_clear_object (&request->error);
+}
+
+static void
+snapd_login_request_class_init (SnapdLoginRequestClass *klass)
+{
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   gobject_class->finalize = snapd_login_request_finalize;
+}
+
+static void
+snapd_login_request_init (SnapdLoginRequest *request)
+{
+}
+
+/**
+ * snapd_login_sync:
+ * @username: usename to log in with.
+ * @password: password to log in with.
+ * @otp: (allow-none): response to one-time password challenge.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
+ */
+SnapdAuthData *
+snapd_login_sync (const gchar *username, const gchar *password, const gchar *otp,
+                  GCancellable *cancellable, GError **error)
+{
+    g_autoptr(GDBusConnection) c = NULL;
+    g_autoptr(GVariant) result = NULL;
+    const gchar *macaroon;
+    gchar **discharges;
+
+    g_return_val_if_fail (username != NULL, NULL);
+    g_return_val_if_fail (password != NULL, NULL);
+
+    if (otp == NULL)
+        otp = "";
+
+    c = g_bus_get_sync (G_BUS_TYPE_SYSTEM, cancellable, error);
+    if (c == NULL)
+        return NULL;
+    result = g_dbus_connection_call_sync (c,
+                                          "io.snapcraft.SnapdLoginService",
+                                          "/io/snapcraft/SnapdLoginService",
+                                          "io.snapcraft.SnapdLoginService",
+                                          "Login",
+                                          g_variant_new ("(sss)", username, password, otp),
+                                          G_VARIANT_TYPE ("(sas)"),
+                                          G_DBUS_CALL_FLAGS_NONE,
+                                          -1,
+                                          cancellable,
+                                          error);
+    if (result == NULL)
+        return NULL;
+
+    g_variant_get (result, "(&s&as)", &macaroon, &discharges);
+
+    return snapd_auth_data_new (macaroon, discharges);
+}
+
+static gboolean
+login_complete_cb (gpointer user_data)
+{
+    g_autoptr(SnapdLoginRequest) request = user_data;
+
+    if (request->ready_callback != NULL)
+        request->ready_callback (NULL, G_ASYNC_RESULT (request), request->ready_callback_data);
+
+    return G_SOURCE_REMOVE;
+}
+
+static void
+login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(SnapdLoginRequest) request = user_data;
+    g_autoptr(GVariant) r = NULL;
+    const gchar *macaroon;
+    gchar **discharges;
+    g_autoptr(GError) error = NULL;
+
+    r = g_dbus_connection_call_finish (G_DBUS_CONNECTION (object), result, &error);
+    if (r == NULL) {
+        request->error = g_error_new (SNAPD_ERROR,
+                                      SNAPD_ERROR_CONNECTION_FAILED,
+                                      "Failed to get call login: %s", error->message);
+        return;
+    }
+
+    g_variant_get (r, "(&s&as)", &macaroon, &discharges);
+    request->auth_data = snapd_auth_data_new (macaroon, discharges);
+
+    g_idle_add (login_complete_cb, g_steal_pointer (&request));
+}
+
+static void
+bus_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(SnapdLoginRequest) request = user_data;
+    g_autoptr(GDBusConnection) c = NULL;
+    g_autoptr(GError) error = NULL;
+
+    c = g_bus_get_finish (result, &error);
+    if (c == NULL) {
+        request->error = g_error_new (SNAPD_ERROR,
+                                      SNAPD_ERROR_CONNECTION_FAILED,
+                                      "Failed to get system bus: %s", error->message);
+        g_idle_add (login_complete_cb, g_steal_pointer (&request));
+        return;
+    }
+
+    g_dbus_connection_call (c,
+                            "io.snapcraft.SnapdLoginService",
+                            "/io/snapcraft/SnapdLoginService",
+                            "io.snapcraft.SnapdLoginService",
+                            "Login",
+                            g_variant_new ("(sss)", request->username, request->password, request->otp),
+                            G_VARIANT_TYPE ("(sas)"),
+                            G_DBUS_CALL_FLAGS_NONE,
+                            -1,
+                            request->cancellable,
+                            login_cb,
+                            request);
+    g_steal_pointer (&request);
+}
+
+/**
+ * snapd_login_async:
+ * @username: usename to log in with.
+ * @password: password to log in with.
+ * @otp: (allow-none): response to one-time password challenge.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ */
+void
+snapd_login_async (const gchar *username, const gchar *password, const gchar *otp,
+                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdLoginRequest *request;
+
+    g_return_if_fail (username != NULL);
+    g_return_if_fail (password != NULL);
+
+    request = g_object_new (snapd_login_request_get_type (), NULL);
+    request->ready_callback = callback;
+    request->ready_callback_data = user_data;
+    request->cancellable = g_object_ref (cancellable);
+    request->username = g_strdup (username);
+    request->password = g_strdup (password);
+    request->otp = otp != NULL ? g_strdup (otp) : "";
+
+    g_bus_get (G_BUS_TYPE_SYSTEM, cancellable, bus_cb, NULL);
+}
+
+/**
+ * snapd_login_finish:
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
+ */
+SnapdAuthData *
+snapd_login_finish (GAsyncResult *result, GError **error)
+{
+    SnapdLoginRequest *request = SNAPD_LOGIN_REQUEST (result);
+
+    if (request->error)
+        g_propagate_error (error, request->error);
+
+    return g_steal_pointer (&request->auth_data);
+}
+
 static gboolean
 complete_cb (gpointer user_data)
 {
-    SnapdRequest *request = user_data;
+    g_autoptr(SnapdRequest) request = user_data;
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
-  
-    if (request->ready_callback != NULL)
-        request->ready_callback (G_OBJECT (request->client), G_ASYNC_RESULT (request), request->ready_callback_data);
 
     priv->requests = g_list_remove (priv->requests, request);
-    g_object_unref (request);
+
+    if (request->ready_callback != NULL)
+        request->ready_callback (G_OBJECT (request->client), G_ASYNC_RESULT (request), request->ready_callback_data);
 
     return G_SOURCE_REMOVE;
 }
@@ -191,7 +400,7 @@ snapd_request_finalize (GObject *object)
     g_clear_object (&request->received_auth_data);
     g_clear_pointer (&request->plugs, g_ptr_array_unref);
     g_clear_pointer (&request->slots, g_ptr_array_unref);
-    g_clear_pointer (&request->methods, g_ptr_array_unref);  
+    g_clear_pointer (&request->methods, g_ptr_array_unref);
 }
 
 static void
@@ -267,8 +476,8 @@ send_request (SnapdRequest *request, gboolean authorize, const gchar *method, co
     // FIXME: Check for short writes
     n_written = g_socket_send (priv->snapd_socket, request_data->str, request_data->len, request->cancellable, &local_error);
     if (n_written < 0) {
-        GError *error = g_error_new (SNAPD_CLIENT_ERROR,
-                                     SNAPD_CLIENT_ERROR_WRITE_ERROR,
+        GError *error = g_error_new (SNAPD_ERROR,
+                                     SNAPD_ERROR_WRITE_ERROR,
                                      "Failed to write to snapd: %s",
                                      local_error->message);
         snapd_request_complete (request, error);
@@ -342,7 +551,7 @@ parse_date (const gchar *date_string, gint *year, gint *month, gint *day)
 
         return TRUE;
     }
-    /* Example: 20160517 */  
+    /* Example: 20160517 */
     else if (strlen (date_string) == 8) {
         // FIXME: Implement
         return FALSE;
@@ -416,7 +625,7 @@ get_date_time (JsonObject *object, const gchar *name)
         if (!parse_time (tokens[1], &hour, &minute, &seconds))
             return NULL;
     }
-  
+
     if (timezone == NULL)
         timezone = g_time_zone_new_local ();
 
@@ -433,15 +642,15 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
 
     if (content_type == NULL) {
         g_set_error_literal (error,
-                             SNAPD_CLIENT_ERROR,
-                             SNAPD_CLIENT_ERROR_PARSE_ERROR,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_PARSE_ERROR,
                              "snapd returned no content type");
         return FALSE;
     }
     if (g_strcmp0 (content_type, "application/json") != 0) {
         g_set_error (error,
-                     SNAPD_CLIENT_ERROR,
-                     SNAPD_CLIENT_ERROR_PARSE_ERROR,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_PARSE_ERROR,
                      "snapd returned unexpected content type %s", content_type);
         return FALSE;
     }
@@ -449,8 +658,8 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
     parser = json_parser_new ();
     if (!json_parser_load_from_data (parser, content, content_length, &error_local)) {
         g_set_error (error,
-                     SNAPD_CLIENT_ERROR,
-                     SNAPD_CLIENT_ERROR_PARSE_ERROR,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_PARSE_ERROR,
                      "Unable to parse snapd response: %s",
                      error_local->message);
         return FALSE;
@@ -458,8 +667,8 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
 
     if (!JSON_NODE_HOLDS_OBJECT (json_parser_get_root (parser))) {
         g_set_error_literal (error,
-                             SNAPD_CLIENT_ERROR,
-                             SNAPD_CLIENT_ERROR_PARSE_ERROR,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_PARSE_ERROR,
                              "snapd response does is not a valid JSON object");
         return FALSE;
     }
@@ -478,43 +687,43 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
 
         if (g_strcmp0 (kind, "login-required") == 0) {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_LOGIN_REQUIRED,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_LOGIN_REQUIRED,
                                  message);
             return FALSE;
         }
         else if (g_strcmp0 (kind, "invalid-auth-data") == 0) {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_INVALID_AUTH_DATA,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_INVALID_AUTH_DATA,
                                  message);
             return FALSE;
         }
         else if (g_strcmp0 (kind, "two-factor-required") == 0) {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_TWO_FACTOR_REQUIRED,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_TWO_FACTOR_REQUIRED,
                                  message);
             return FALSE;
         }
         else if (g_strcmp0 (kind, "two-factor-failed") == 0) {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_TWO_FACTOR_FAILED,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_TWO_FACTOR_FAILED,
                                  message);
             return FALSE;
         }
         else if (status_code == SOUP_STATUS_BAD_REQUEST) {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_BAD_REQUEST,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_BAD_REQUEST,
                                  message);
             return FALSE;
         }
         else {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_GENERAL_ERROR,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_GENERAL_ERROR,
                                  message);
             return FALSE;
         }
@@ -548,8 +757,8 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
 
     result = get_object (response, "result");
     if (result == NULL) {
-        error = g_error_new (SNAPD_CLIENT_ERROR,
-                             SNAPD_CLIENT_ERROR_READ_ERROR,
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_ERROR,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -618,8 +827,8 @@ parse_snap (JsonObject *object, GError **error)
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "Unexpected app type");
             return NULL;
         }
@@ -642,8 +851,8 @@ parse_snap (JsonObject *object, GError **error)
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "Unexpected price type");
             return NULL;
         }
@@ -693,8 +902,8 @@ parse_snap_array (JsonArray *array, GError **error)
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "Unexpected snap type");
             return NULL;
         }
@@ -726,8 +935,8 @@ parse_get_icon_response (SnapdRequest *request, guint code, SoupMessageHeaders *
     }
 
     if (code != SOUP_STATUS_OK) {
-        GError *error = g_error_new (SNAPD_CLIENT_ERROR,
-                                     SNAPD_CLIENT_ERROR_READ_ERROR,
+        GError *error = g_error_new (SNAPD_ERROR,
+                                     SNAPD_ERROR_READ_ERROR,
                                      "Got response %u retrieving icon", code);
         snapd_request_complete (request, error);
     }
@@ -781,8 +990,8 @@ parse_list_one_response (SnapdRequest *request, SoupMessageHeaders *headers, con
 
     result = get_object (response, "result");
     if (result == NULL) {
-        error = g_error_new (SNAPD_CLIENT_ERROR,
-                             SNAPD_CLIENT_ERROR_READ_ERROR,
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_ERROR,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -814,8 +1023,8 @@ get_connections (JsonObject *object, const gchar *name, GError **error)
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
-                                 SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "Unexpected connection type");
             return NULL;
         }
@@ -850,8 +1059,8 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
 
     result = get_object (response, "result");
     if (result == NULL) {
-        error = g_error_new (SNAPD_CLIENT_ERROR,
-                             SNAPD_CLIENT_ERROR_READ_ERROR,
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_ERROR,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -866,8 +1075,8 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
         g_autoptr(SnapdPlug) plug = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            error = g_error_new (SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "Unexpected plug type");
             snapd_request_complete (request, error);
             return;
@@ -900,8 +1109,8 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
         g_autoptr(SnapdSlot) slot = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            error = g_error_new (SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "Unexpected slot type");
             snapd_request_complete (request, error);
             return;
@@ -953,8 +1162,8 @@ async_timeout_cb (gpointer data)
 
     request->timeout_timer = 0;
 
-    error = g_error_new (SNAPD_CLIENT_ERROR,
-                         SNAPD_CLIENT_ERROR_READ_ERROR,
+    error = g_error_new (SNAPD_ERROR,
+                         SNAPD_ERROR_READ_ERROR,
                          "Timeout waiting for snapd");
     snapd_request_complete (request, error);
 
@@ -978,7 +1187,7 @@ tasks_equal (SnapdTask *task1, SnapdTask *task2)
            g_strcmp0 (snapd_task_get_status (task1), snapd_task_get_status (task2)) == 0 &&
            !!snapd_task_get_ready (task1) == !!snapd_task_get_ready (task2) &&
            snapd_task_get_progress_done (task1) == snapd_task_get_progress_done (task2) &&
-           snapd_task_get_progress_total (task1) == snapd_task_get_progress_total (task2) &&    
+           snapd_task_get_progress_total (task1) == snapd_task_get_progress_total (task2) &&
            times_equal (snapd_task_get_spawn_time (task1), snapd_task_get_spawn_time (task2)) &&
            times_equal (snapd_task_get_spawn_time (task1), snapd_task_get_spawn_time (task2));
 }
@@ -1034,8 +1243,8 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
     /* First run we expect the change ID, following runs are updates */
     if (request->change_id == NULL) {
          if (change_id == NULL) {
-             g_error_new (SNAPD_CLIENT_ERROR,
-                          SNAPD_CLIENT_ERROR_READ_ERROR,
+             g_error_new (SNAPD_ERROR,
+                          SNAPD_ERROR_READ_ERROR,
                           "No async response received");
              snapd_request_complete (request, error);
              return;
@@ -1048,8 +1257,8 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
         JsonObject *result;
 
         if (change_id != NULL) {
-             error = g_error_new (SNAPD_CLIENT_ERROR,
-                                  SNAPD_CLIENT_ERROR_READ_ERROR,
+             error = g_error_new (SNAPD_ERROR,
+                                  SNAPD_ERROR_READ_ERROR,
                                   "Duplicate async response received");
              snapd_request_complete (request, error);
              return;
@@ -1057,16 +1266,16 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 
         result = get_object (response, "result");
         if (result == NULL) {
-            error = g_error_new (SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "No async result returned");
             snapd_request_complete (request, error);
             return;
         }
 
         if (g_strcmp0 (request->change_id, get_string (result, "id", NULL)) != 0) {
-            error = g_error_new (SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "Unexpected change ID returned");
             snapd_request_complete (request, error);
             return;
@@ -1091,8 +1300,8 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
                 g_autoptr(SnapdTask) t = NULL;
 
                 if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-                    error = g_error_new (SNAPD_CLIENT_ERROR,
-                                         SNAPD_CLIENT_ERROR_READ_ERROR,
+                    error = g_error_new (SNAPD_ERROR,
+                                         SNAPD_ERROR_READ_ERROR,
                                          "Unexpected task type");
                     snapd_request_complete (request, error);
                     return;
@@ -1181,8 +1390,8 @@ parse_login_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 
     result = get_object (response, "result");
     if (result == NULL) {
-        error = g_error_new (SNAPD_CLIENT_ERROR,
-                             SNAPD_CLIENT_ERROR_READ_ERROR,
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_ERROR,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -1194,8 +1403,8 @@ parse_login_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
         JsonNode *node = json_array_get_element (discharges, i);
 
         if (json_node_get_value_type (node) != G_TYPE_STRING) {
-            error = g_error_new (SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "Unexpected discharge type");
             snapd_request_complete (request, error);
             return;
@@ -1252,8 +1461,8 @@ parse_get_payment_methods_response (SnapdRequest *request, SoupMessageHeaders *h
 
     result = get_object (response, "result");
     if (result == NULL) {
-        error = g_error_new (SNAPD_CLIENT_ERROR,
-                             SNAPD_CLIENT_ERROR_READ_ERROR,
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_ERROR,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -1271,8 +1480,8 @@ parse_get_payment_methods_response (SnapdRequest *request, SoupMessageHeaders *h
         SnapdPaymentMethod *payment_method;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            error = g_error_new (SNAPD_CLIENT_ERROR,
-                                 SNAPD_CLIENT_ERROR_READ_ERROR,
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_ERROR,
                                  "Unexpected method type");
             snapd_request_complete (request, error);
             return;
@@ -1285,8 +1494,8 @@ parse_get_payment_methods_response (SnapdRequest *request, SoupMessageHeaders *h
             JsonNode *node = json_array_get_element (currencies, j);
 
             if (json_node_get_value_type (node) != G_TYPE_STRING) {
-                error = g_error_new (SNAPD_CLIENT_ERROR,
-                                     SNAPD_CLIENT_ERROR_READ_ERROR,
+                error = g_error_new (SNAPD_ERROR,
+                                     SNAPD_ERROR_READ_ERROR,
                                      "Unexpected currency type");
                 snapd_request_complete (request, error);
                 return;
@@ -1434,8 +1643,8 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         parse_disable_response (request, headers, content, content_length);
         break;
     default:
-        error = g_error_new (SNAPD_CLIENT_ERROR,
-                             SNAPD_CLIENT_ERROR_GENERAL_ERROR,
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_GENERAL_ERROR,
                              "Unknown request");
         snapd_request_complete (request, error);
         break;
@@ -1463,8 +1672,8 @@ read_data (SnapdClient *client,
         g_printerr ("read error\n");
         // FIXME: Cancel all requests
         //g_set_error (error,
-        //             SNAPD_CLIENT_ERROR,
-        //             SNAPD_CLIENT_ERROR_READ_ERROR,
+        //             SNAPD_ERROR,
+        //             SNAPD_ERROR_READ_ERROR,
         //             "Failed to read from snapd: %s",
         //             error_local->message);
         return FALSE;
@@ -1657,8 +1866,8 @@ snapd_client_connect_sync (SnapdClient *client,
                                        &error_local);
     if (priv->snapd_socket == NULL) {
         g_set_error (error,
-                     SNAPD_CLIENT_ERROR,
-                     SNAPD_CLIENT_ERROR_CONNECTION_FAILED,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_CONNECTION_FAILED,
                      "Unable to open snapd socket: %s",
                      error_local->message);
         return FALSE;
@@ -1667,8 +1876,8 @@ snapd_client_connect_sync (SnapdClient *client,
     if (!g_socket_connect (priv->snapd_socket, address, cancellable, &error_local)) {
         g_clear_object (&priv->snapd_socket);
         g_set_error (error,
-                     SNAPD_CLIENT_ERROR,
-                     SNAPD_CLIENT_ERROR_CONNECTION_FAILED,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_CONNECTION_FAILED,
                      "Unable to connect snapd socket: %s",
                      error_local->message);
         g_clear_object (&priv->snapd_socket);
@@ -2018,7 +2227,7 @@ snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError 
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_LIST_ONE, NULL);
-  
+
     if (snapd_request_set_error (request, error))
         return NULL;
     return request->snap != NULL ? g_object_ref (request->snap) : NULL;
@@ -3331,7 +3540,7 @@ snapd_client_finalize (GObject *object)
     SnapdClientPrivate *priv = snapd_client_get_instance_private (SNAPD_CLIENT (object));
 
     g_clear_object (&priv->snapd_socket);
-    g_clear_object (&priv->auth_data);  
+    g_clear_object (&priv->auth_data);
     g_list_free_full (priv->requests, g_object_unref);
     priv->requests = NULL;
     g_clear_pointer (&priv->read_source, g_source_unref);
