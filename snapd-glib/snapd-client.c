@@ -189,7 +189,14 @@ snapd_login_request_init (SnapdLoginRequest *request)
  * @password: password to log in with.
  * @otp: (allow-none): response to one-time password challenge.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
- * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ * to ignore.
+ *
+ * Log in to snapd and get authorization to install/remove snaps.
+ * This call contacts the snapd-login-service that will authenticate the user
+ * using Polkit and contact snapd on their behalf.
+ * If you are root, you can get this authentication directly from snapd using
+ * snapd_client_login_sync().
  *
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
  */
@@ -303,6 +310,9 @@ bus_cb (GObject *object, GAsyncResult *result, gpointer user_data)
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get authorization to install/remove snaps.
+ * See snapd_login_sync() for more information.
  */
 void
 snapd_login_async (const gchar *username, const gchar *password, const gchar *otp,
@@ -328,6 +338,9 @@ snapd_login_async (const gchar *username, const gchar *password, const gchar *ot
  * snapd_login_finish:
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete login started with snapd_login_async().
+ * See snapd_login_sync() for more information.
  *
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
  */
@@ -1980,8 +1993,10 @@ make_login_request (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Log into snapd. If successful, the authorization data is updated.
- * This can be requested using snapd_client_get_auth_data().
+ * Log in to snapd and get authorization to install/remove snaps.
+ * This call requires root access; use snapd_login_sync() if you are non-root.
+ * If successful, the authorization data is updated and can be requested using
+ * snapd_client_get_auth_data().
  *
  * Returns: %TRUE if the login was successful.
  */
@@ -2011,6 +2026,9 @@ snapd_client_login_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get authorization to install/remove snaps.
+ * See snapd_client_login_sync() for more information.
  */
 void
 snapd_client_login_async (SnapdClient *client,
@@ -2029,8 +2047,8 @@ snapd_client_login_async (SnapdClient *client,
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Complete a login request. If successful, the authorization data is updated.
- * This can be requested using snapd_client_get_auth_data().
+ * Complete login started with snapd_client_login_async().
+ * See snapd_client_login_sync() for more information.
  *
  * Returns: %TRUE if the login was successful.
  */
