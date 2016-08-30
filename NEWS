@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 0.9
+
+    * Rename SnapdClientError to SnapdError (API and ABI break)
+    * Add a D-Bus service to allow login without root permissions
+    * Add asserts to check we are connected before making requests
+
 Overview of changes in snapd-glib 0.8
 
     * Store auth data inside SnapdClient (API and ABI break)
