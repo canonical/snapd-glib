@@ -1,10 +1,12 @@
 libexec_PROGRAMS = snapd-login-service
 
+login_sources = login-service.c login-service.h
+
 snapd_login_service_CFLAGS = $(SNAPD_LOGIN_SERVICE_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)
 snapd_login_service_LDADD = $(SNAPD_LOGIN_SERVICE_LIBS) $(top_builddir)/snapd-glib/libsnapd-glib.la
-snapd_login_service_SOURCES = snapd-login-service.c login-service.c
+snapd_login_service_SOURCES = snapd-login-service.c $(login_sources)
 
-login-service.c login-service.h: io.snapcraft.SnapdLoginService.xml Makefile
+$(login_sources): io.snapcraft.SnapdLoginService.xml Makefile
 	$(AM_V_GEN) gdbus-codegen --generate-c-code=login-service $<
 
 dbusconfdir = $(sysconfdir)/dbus-1/system.d
@@ -22,5 +24,6 @@ $(dbusservice_DATA): $(dbusservice_in_files) Makefile
 polkitdir = $(datadir)/polkit-1/actions
 polkit_DATA = io.snapcraft.SnapdLoginService.policy
 
-EXTRA_DIST = $(dbusconf_DATA) $(interfaces_DATA) $(dbusservice_in_files)
+EXTRA_DIST = $(dbusconf_DATA) $(interfaces_DATA) $(dbusservice_in_files) $(polkit_DATA)
+CLEANFILES = $(login_sources)
 DISTCLEANFILES = $(dbusservice_DATA)
