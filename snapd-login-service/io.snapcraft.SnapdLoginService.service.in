@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=io.snapcraft.SnapdLoginService
 Exec=@servicedir@/snapd-login-service
+User=root
