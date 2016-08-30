@@ -478,7 +478,7 @@ send_request (SnapdRequest *request, gboolean authorize, const gchar *method, co
     if (content)
         soup_message_headers_set_content_length (headers, strlen (content));
     if (authorize && request->auth_data != NULL) {
-        g_autoptr(GString) authorization;
+        g_autoptr(GString) authorization = NULL;
         gchar **discharges;
         gsize i;
 
