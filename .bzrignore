@@ -7,6 +7,7 @@ Makefile.in
 *.la
 *.lo
 *.vapi
+./ABOUT-NLS
 ./aclocal.m4
 ./autom4te.cache
 ./compile
@@ -14,6 +15,7 @@ Makefile.in
 ./config.h
 ./config.h.in
 ./config.log
+./config.rpath
 ./config.status
 ./config.sub
 ./configure
@@ -23,10 +25,20 @@ Makefile.in
 ./ltmain.sh
 ./missing
 ./stamp-h1
-snapd-glib/snapd-glib-1.0.pc
+po/.intltool-merge-cache
+po/Makefile.in.in
+po/Makevars.template
+po/POTFILES
+po/Rules-quot
+po/stamp-it
+po/*.header
+po/*.sed
+po/*.sin
+snapd-glib/snapd-glib.pc
 snapd-glib/snapd-enum-types.c
 snapd-glib/snapd-enum-types.h
 snapd-glib/stamp-enum-types
 snapd-login-service/login-service.[ch]
 snapd-login-service/snapd-login-service
+snapd-login-service/io.snapcraft.SnapdLoginService.policy
 snapd-login-service/io.snapcraft.SnapdLoginService.service

@@ -8,8 +8,8 @@
   <vendor_url>http://snapcraft.io</vendor_url>
 
   <action id="io.snapcraft.login">
-    <description gettext-domain="snapd-glib">Install / remove snaps</description>
-    <message gettext-domain="snapd-glib">Authentication is required to install / remove snaps</message>
+    <_description gettext-domain="snapd-glib">Install / remove snaps</_description>
+    <_message gettext-domain="snapd-glib">Authentication is required to install / remove snaps</_message>
     <defaults>
       <allow_any>auth_admin_keep</allow_any>
       <allow_inactive>auth_admin_keep</allow_inactive>

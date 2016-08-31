@@ -27,6 +27,11 @@ dnl === Dependencies ==========================================================
 PKG_CHECK_MODULES(SNAPD, [gobject-2.0 gio-2.0 gio-unix-2.0 libsoup-2.4 json-glib-1.0])
 PKG_CHECK_MODULES(SNAPD_LOGIN_SERVICE, [gio-2.0 gio-unix-2.0 polkit-gobject-1])
 
+dnl === Translations ==========================================================
+
+AC_PROG_INTLTOOL()
+AC_SUBST([GETTEXT_PACKAGE], [snapd-glib])
+
 dnl === Introspection =========================================================
 
 GOBJECT_INTROSPECTION_CHECK([0.9.5])
@@ -40,7 +45,7 @@ AC_SUBST(SNAPD_LIBS)
 
 AC_CONFIG_FILES([
         Makefile
-
+        po/Makefile.in
         snapd-glib/Makefile
         snapd-glib/snapd-glib.pc
         snapd-login-service/Makefile
