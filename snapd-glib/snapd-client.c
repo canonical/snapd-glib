@@ -2242,6 +2242,7 @@ make_list_one_request (SnapdClient *client,
 /**
  * snapd_client_list_one_sync:
  * @client: a #SnapdClient.
+ * @name: name of snap to get.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
