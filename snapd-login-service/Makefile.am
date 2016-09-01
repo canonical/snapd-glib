@@ -26,6 +26,6 @@ polkit_in_files = io.snapcraft.SnapdLoginService.policy.in
 polkit_DATA = $(polkit_in_files:.policy.in=.policy)
 @INTLTOOL_POLICY_RULE@
 
-EXTRA_DIST = $(dbusconf_DATA) $(interfaces_DATA) $(dbusservice_in_files) $(polkit_DATA)
-CLEANFILES = $(login_sources)
+EXTRA_DIST = $(dbusconf_DATA) $(interfaces_DATA) $(dbusservice_in_files) $(polkit_in_files)
+CLEANFILES = $(login_sources) $(polkit_DATA)
 DISTCLEANFILES = $(dbusservice_DATA)
