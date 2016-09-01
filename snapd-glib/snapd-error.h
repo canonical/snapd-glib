@@ -21,37 +21,37 @@ G_BEGIN_DECLS
 /**
  * SnapdError:
  * @SNAPD_ERROR_CONNECTION_FAILED: not able to connect to snapd.
- * @SNAPD_ERROR_WRITE_ERROR: an error occurred while writing to snapd.
- * @SNAPD_ERROR_READ_ERROR: an error occured while reading from snapd.
- * @SNAPD_ERROR_PARSE_ERROR: the data received from snapd was not understood.
- * @SNAPD_ERROR_GENERAL_ERROR: an unspecified error occurred while communicating
- *     with snapd.
- * @SNAPD_ERROR_LOGIN_REQUIRED: the requested operation requires a login to be
- *     performed.
- * @SNAPD_ERROR_INVALID_AUTH_DATA: the provided authorization data is invalid.
- * @SNAPD_ERROR_TWO_FACTOR_REQUIRED: login requires a two factor code.
- * @SNAPD_ERROR_TWO_FACTOR_FAILED: the two factor code provided at login is
- *     invalid.
+ * @SNAPD_ERROR_WRITE_FAILED: an error occurred while writing to snapd.
+ * @SNAPD_ERROR_READ_FAILED: an error occured while reading from snapd.
  * @SNAPD_ERROR_BAD_REQUEST: snapd did not understand the request that was sent.
+ * @SNAPD_ERROR_BAD_RESPONSE: the response received from snapd was not
+ *     understood.
+ * @SNAPD_ERROR_AUTH_DATA_REQUIRED: the requested operation requires
+ *     authorization data.
+ * @SNAPD_ERROR_AUTH_DATA_INVALID: the provided authorization data is invalid.
+ * @SNAPD_ERROR_TWO_FACTOR_REQUIRED: login requires a two factor code.
+ * @SNAPD_ERROR_TWO_FACTOR_INVALID: the two factor code provided at login is
+ *     invalid.
  * @SNAPD_ERROR_PERMISSION_DENIED: this user account is not permitted to perform
  *     the requested operation.
+ * @SNAPD_ERROR_FAILED: an unspecified error occurred while communicating
+ *     with snapd.
  *
  * Error codes returned by snapd operations.
  */
 typedef enum
 {  
     SNAPD_ERROR_CONNECTION_FAILED,
-    SNAPD_ERROR_WRITE_ERROR,
-    SNAPD_ERROR_READ_ERROR,
-    SNAPD_ERROR_PARSE_ERROR,
-    SNAPD_ERROR_GENERAL_ERROR,
-    SNAPD_ERROR_LOGIN_REQUIRED,
-    SNAPD_ERROR_INVALID_AUTH_DATA,  
-    SNAPD_ERROR_TWO_FACTOR_REQUIRED,
-    SNAPD_ERROR_TWO_FACTOR_FAILED,
+    SNAPD_ERROR_WRITE_FAILED,
+    SNAPD_ERROR_READ_FAILED,
     SNAPD_ERROR_BAD_REQUEST,
+    SNAPD_ERROR_BAD_RESPONSE,
+    SNAPD_ERROR_AUTH_DATA_REQUIRED,
+    SNAPD_ERROR_AUTH_DATA_INVALID,
+    SNAPD_ERROR_TWO_FACTOR_REQUIRED,
+    SNAPD_ERROR_TWO_FACTOR_INVALID,
     SNAPD_ERROR_PERMISSION_DENIED,
-    SNAPD_ERROR_LAST
+    SNAPD_ERROR_FAILED
 } SnapdError;
 
 /**

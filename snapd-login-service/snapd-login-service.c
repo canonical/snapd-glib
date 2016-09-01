@@ -63,35 +63,35 @@ return_error (LoginRequest *request, GError *error)
     case SNAPD_ERROR_CONNECTION_FAILED:
         g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.ConnectionFailed", error->message);
         break;
-    case SNAPD_ERROR_WRITE_ERROR:
-        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.WriteError", error->message);
+    case SNAPD_ERROR_WRITE_FAILED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.WriteFailed", error->message);
         break;
-    case SNAPD_ERROR_READ_ERROR:
-        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.ReadError", error->message);
-        break;
-    case SNAPD_ERROR_PARSE_ERROR:
-        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.ParseError", error->message);
-        break;
-    case SNAPD_ERROR_GENERAL_ERROR:
-        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.GeneralError", error->message);
-        break;
-    case SNAPD_ERROR_LOGIN_REQUIRED:
-        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.LoginRequired", error->message);
-        break;
-    case SNAPD_ERROR_INVALID_AUTH_DATA:
-        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.InvalidAuthData", error->message);
-        break;
-    case SNAPD_ERROR_TWO_FACTOR_REQUIRED:
-        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.TwoFactorRequired", error->message);
-        break;
-    case SNAPD_ERROR_TWO_FACTOR_FAILED:
-        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.TwoFactorFailed", error->message);
+    case SNAPD_ERROR_READ_FAILED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.ReadFailed", error->message);
         break;
     case SNAPD_ERROR_BAD_REQUEST:
         g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.BadRequest", error->message);
         break;
+    case SNAPD_ERROR_BAD_RESPONSE:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.BadResponse", error->message);
+        break;
+    case SNAPD_ERROR_AUTH_DATA_REQUIRED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.AuthDataRequired", error->message);
+        break;
+    case SNAPD_ERROR_AUTH_DATA_INVALID:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.AuthDataInvalid", error->message);
+        break;
+    case SNAPD_ERROR_TWO_FACTOR_REQUIRED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.TwoFactorRequired", error->message);
+        break;
+    case SNAPD_ERROR_TWO_FACTOR_INVALID:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.TwoFactorInvalid", error->message);
+        break;
     case SNAPD_ERROR_PERMISSION_DENIED:
         g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.PermissionDenied", error->message);
+        break;
+    case SNAPD_ERROR_FAILED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.Failed", error->message);
         break;
     default:
         g_dbus_method_invocation_return_gerror (request->invocation, error);

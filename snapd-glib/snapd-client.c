@@ -270,7 +270,7 @@ send_request (SnapdRequest *request, gboolean authorize, const gchar *method, co
     n_written = g_socket_send (priv->snapd_socket, request_data->str, request_data->len, request->cancellable, &local_error);
     if (n_written < 0) {
         GError *error = g_error_new (SNAPD_ERROR,
-                                     SNAPD_ERROR_WRITE_ERROR,
+                                     SNAPD_ERROR_WRITE_FAILED,
                                      "Failed to write to snapd: %s",
                                      local_error->message);
         snapd_request_complete (request, error);
@@ -447,14 +447,14 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
     if (content_type == NULL) {
         g_set_error_literal (error,
                              SNAPD_ERROR,
-                             SNAPD_ERROR_PARSE_ERROR,
+                             SNAPD_ERROR_BAD_RESPONSE,
                              "snapd returned no content type");
         return FALSE;
     }
     if (g_strcmp0 (content_type, "application/json") != 0) {
         g_set_error (error,
                      SNAPD_ERROR,
-                     SNAPD_ERROR_PARSE_ERROR,
+                     SNAPD_ERROR_BAD_RESPONSE,
                      "snapd returned unexpected content type %s", content_type);
         return FALSE;
     }
@@ -463,7 +463,7 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
     if (!json_parser_load_from_data (parser, content, content_length, &error_local)) {
         g_set_error (error,
                      SNAPD_ERROR,
-                     SNAPD_ERROR_PARSE_ERROR,
+                     SNAPD_ERROR_BAD_RESPONSE,
                      "Unable to parse snapd response: %s",
                      error_local->message);
         return FALSE;
@@ -472,7 +472,7 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
     if (!JSON_NODE_HOLDS_OBJECT (json_parser_get_root (parser))) {
         g_set_error_literal (error,
                              SNAPD_ERROR,
-                             SNAPD_ERROR_PARSE_ERROR,
+                             SNAPD_ERROR_BAD_RESPONSE,
                              "snapd response does is not a valid JSON object");
         return FALSE;
     }
@@ -492,14 +492,14 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
         if (g_strcmp0 (kind, "login-required") == 0) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
-                                 SNAPD_ERROR_LOGIN_REQUIRED,
+                                 SNAPD_ERROR_AUTH_DATA_REQUIRED,
                                  message);
             return FALSE;
         }
         else if (g_strcmp0 (kind, "invalid-auth-data") == 0) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
-                                 SNAPD_ERROR_INVALID_AUTH_DATA,
+                                 SNAPD_ERROR_AUTH_DATA_INVALID,
                                  message);
             return FALSE;
         }
@@ -513,7 +513,7 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
         else if (g_strcmp0 (kind, "two-factor-failed") == 0) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
-                                 SNAPD_ERROR_TWO_FACTOR_FAILED,
+                                 SNAPD_ERROR_TWO_FACTOR_INVALID,
                                  message);
             return FALSE;
         }
@@ -527,7 +527,7 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
         else {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
-                                 SNAPD_ERROR_GENERAL_ERROR,
+                                 SNAPD_ERROR_FAILED,
                                  message);
             return FALSE;
         }
@@ -562,7 +562,7 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
     result = get_object (response, "result");
     if (result == NULL) {
         error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -632,7 +632,7 @@ parse_snap (JsonObject *object, GError **error)
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "Unexpected app type");
             return NULL;
         }
@@ -656,7 +656,7 @@ parse_snap (JsonObject *object, GError **error)
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "Unexpected price type");
             return NULL;
         }
@@ -707,7 +707,7 @@ parse_snap_array (JsonArray *array, GError **error)
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "Unexpected snap type");
             return NULL;
         }
@@ -740,7 +740,7 @@ parse_get_icon_response (SnapdRequest *request, guint code, SoupMessageHeaders *
 
     if (code != SOUP_STATUS_OK) {
         GError *error = g_error_new (SNAPD_ERROR,
-                                     SNAPD_ERROR_READ_ERROR,
+                                     SNAPD_ERROR_READ_FAILED,
                                      "Got response %u retrieving icon", code);
         snapd_request_complete (request, error);
     }
@@ -795,7 +795,7 @@ parse_list_one_response (SnapdRequest *request, SoupMessageHeaders *headers, con
     result = get_object (response, "result");
     if (result == NULL) {
         error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -828,7 +828,7 @@ get_connections (JsonObject *object, const gchar *name, GError **error)
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "Unexpected connection type");
             return NULL;
         }
@@ -864,7 +864,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
     result = get_object (response, "result");
     if (result == NULL) {
         error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -880,7 +880,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "Unexpected plug type");
             snapd_request_complete (request, error);
             return;
@@ -914,7 +914,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "Unexpected slot type");
             snapd_request_complete (request, error);
             return;
@@ -967,7 +967,7 @@ async_timeout_cb (gpointer data)
     request->timeout_timer = 0;
 
     error = g_error_new (SNAPD_ERROR,
-                         SNAPD_ERROR_READ_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
                          "Timeout waiting for snapd");
     snapd_request_complete (request, error);
 
@@ -1048,7 +1048,7 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
     if (request->change_id == NULL) {
          if (change_id == NULL) {
              g_error_new (SNAPD_ERROR,
-                          SNAPD_ERROR_READ_ERROR,
+                          SNAPD_ERROR_READ_FAILED,
                           "No async response received");
              snapd_request_complete (request, error);
              return;
@@ -1062,7 +1062,7 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 
         if (change_id != NULL) {
              error = g_error_new (SNAPD_ERROR,
-                                  SNAPD_ERROR_READ_ERROR,
+                                  SNAPD_ERROR_READ_FAILED,
                                   "Duplicate async response received");
              snapd_request_complete (request, error);
              return;
@@ -1071,7 +1071,7 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
         result = get_object (response, "result");
         if (result == NULL) {
             error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "No async result returned");
             snapd_request_complete (request, error);
             return;
@@ -1079,7 +1079,7 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 
         if (g_strcmp0 (request->change_id, get_string (result, "id", NULL)) != 0) {
             error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "Unexpected change ID returned");
             snapd_request_complete (request, error);
             return;
@@ -1105,7 +1105,7 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 
                 if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
                     error = g_error_new (SNAPD_ERROR,
-                                         SNAPD_ERROR_READ_ERROR,
+                                         SNAPD_ERROR_READ_FAILED,
                                          "Unexpected task type");
                     snapd_request_complete (request, error);
                     return;
@@ -1195,7 +1195,7 @@ parse_login_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
     result = get_object (response, "result");
     if (result == NULL) {
         error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -1208,7 +1208,7 @@ parse_login_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 
         if (json_node_get_value_type (node) != G_TYPE_STRING) {
             error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "Unexpected discharge type");
             snapd_request_complete (request, error);
             return;
@@ -1266,7 +1266,7 @@ parse_get_payment_methods_response (SnapdRequest *request, SoupMessageHeaders *h
     result = get_object (response, "result");
     if (result == NULL) {
         error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
                              "No result returned");
         snapd_request_complete (request, error);
         return;
@@ -1285,7 +1285,7 @@ parse_get_payment_methods_response (SnapdRequest *request, SoupMessageHeaders *h
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
                                  "Unexpected method type");
             snapd_request_complete (request, error);
             return;
@@ -1299,7 +1299,7 @@ parse_get_payment_methods_response (SnapdRequest *request, SoupMessageHeaders *h
 
             if (json_node_get_value_type (node) != G_TYPE_STRING) {
                 error = g_error_new (SNAPD_ERROR,
-                                     SNAPD_ERROR_READ_ERROR,
+                                     SNAPD_ERROR_READ_FAILED,
                                      "Unexpected currency type");
                 snapd_request_complete (request, error);
                 return;
@@ -1448,7 +1448,7 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         break;
     default:
         error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_GENERAL_ERROR,
+                             SNAPD_ERROR_FAILED,
                              "Unknown request");
         snapd_request_complete (request, error);
         break;
@@ -1477,7 +1477,7 @@ read_data (SnapdClient *client,
         // FIXME: Cancel all requests
         //g_set_error (error,
         //             SNAPD_ERROR,
-        //             SNAPD_ERROR_READ_ERROR,
+        //             SNAPD_ERROR_READ_FAILED,
         //             "Failed to read from snapd: %s",
         //             error_local->message);
         return FALSE;

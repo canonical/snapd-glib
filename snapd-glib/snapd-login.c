@@ -77,26 +77,26 @@ convert_dbus_error (GError *dbus_error)
 
     if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.ConnectionFailed") == 0)
         error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_CONNECTION_FAILED, dbus_error->message);
-    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.WriteError") == 0)
-        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_WRITE_ERROR, dbus_error->message);
-    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.ReadError") == 0)
-        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_READ_ERROR, dbus_error->message);
-    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.ParseError") == 0)
-        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_PARSE_ERROR, dbus_error->message);
-    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.GeneralError") == 0)
-        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_GENERAL_ERROR, dbus_error->message);
-    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.LoginRequired") == 0)
-        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_LOGIN_REQUIRED, dbus_error->message);
-    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.InvalidAuthData") == 0)
-        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_INVALID_AUTH_DATA, dbus_error->message);
-    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.TwoFactorRequired") == 0)
-        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_REQUIRED, dbus_error->message);
-    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.TwoFactorFailed") == 0)
-        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_FAILED, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.WriteFailed") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_WRITE_FAILED, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.ReadFailed") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, dbus_error->message);
     else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.BadRequest") == 0)
         error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.BadResponse") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_BAD_RESPONSE, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.AuthDataRequired") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_REQUIRED, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.AuthDataInvalid") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_INVALID, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.TwoFactorRequired") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_REQUIRED, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.TwoFactorInvalid") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_INVALID, dbus_error->message);
     else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.PermissionDenied") == 0)
         error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_PERMISSION_DENIED, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.Failed") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_FAILED, dbus_error->message);
     else
         return g_error_copy (dbus_error);
 
