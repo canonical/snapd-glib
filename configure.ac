@@ -32,6 +32,10 @@ dnl === Translations ==========================================================
 AC_PROG_INTLTOOL()
 AC_SUBST([GETTEXT_PACKAGE], [snapd-glib])
 
+dnl === Documentation =========================================================
+
+GTK_DOC_CHECK([1.20], [--flavour no-tmpl])
+
 dnl === Introspection =========================================================
 
 GOBJECT_INTROSPECTION_CHECK([0.9.5])
@@ -45,6 +49,9 @@ AC_SUBST(SNAPD_LIBS)
 
 AC_CONFIG_FILES([
         Makefile
+        doc/Makefile
+        doc/reference/Makefile
+        doc/reference/version.xml
         po/Makefile.in
         snapd-glib/Makefile
         snapd-glib/snapd-glib.pc
@@ -63,8 +70,8 @@ echo ""
 echo " • Compiler: ${CC}"
 echo " • Compiler flags: ${WARN_CFLAGS} ${CFLAGS} ${MAINTAINER_CFLAGS}"
 echo ""
-#echo " • API reference: ${enable_gtk_doc}"
-#echo ""
+echo " • API reference: ${enable_gtk_doc}"
+echo ""
 echo " • Build introspection data: ${enable_introspection}"
 echo " • Build Vala bindings: ${enable_vala}"
 echo ""

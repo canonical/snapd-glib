@@ -25,6 +25,10 @@ Makefile.in
 ./ltmain.sh
 ./missing
 ./stamp-h1
+doc/reference/html/
+doc/reference/xml/
+doc/reference/*.stamp
+doc/reference/version.xml
 po/.intltool-merge-cache
 po/Makefile.in.in
 po/Makevars.template
