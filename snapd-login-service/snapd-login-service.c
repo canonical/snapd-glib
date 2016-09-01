@@ -52,6 +52,54 @@ free_login_request (LoginRequest *request)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (LoginRequest, free_login_request);
 
 static void
+return_error (LoginRequest *request, GError *error)
+{
+    if (error->domain != SNAPD_ERROR) {
+        g_dbus_method_invocation_return_gerror (request->invocation, error);
+        return;
+    }
+
+    switch (error->code) {
+    case SNAPD_ERROR_CONNECTION_FAILED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.ConnectionFailed", error->message);
+        break;
+    case SNAPD_ERROR_WRITE_ERROR:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.WriteError", error->message);
+        break;
+    case SNAPD_ERROR_READ_ERROR:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.ReadError", error->message);
+        break;
+    case SNAPD_ERROR_PARSE_ERROR:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.ParseError", error->message);
+        break;
+    case SNAPD_ERROR_GENERAL_ERROR:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.GeneralError", error->message);
+        break;
+    case SNAPD_ERROR_LOGIN_REQUIRED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.LoginRequired", error->message);
+        break;
+    case SNAPD_ERROR_INVALID_AUTH_DATA:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.InvalidAuthData", error->message);
+        break;
+    case SNAPD_ERROR_TWO_FACTOR_REQUIRED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.TwoFactorRequired", error->message);
+        break;
+    case SNAPD_ERROR_TWO_FACTOR_FAILED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.TwoFactorFailed", error->message);
+        break;
+    case SNAPD_ERROR_BAD_REQUEST:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.BadRequest", error->message);
+        break;
+    case SNAPD_ERROR_PERMISSION_DENIED:
+        g_dbus_method_invocation_return_dbus_error (request->invocation, "io.snapcraft.SnapdLoginService.Error.PermissionDenied", error->message);
+        break;
+    default:
+        g_dbus_method_invocation_return_gerror (request->invocation, error);
+        break;
+    }
+}
+
+static void
 login_result_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(LoginRequest) request = user_data;
@@ -59,7 +107,7 @@ login_result_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(GError) error = NULL;
 
     if (!snapd_client_login_finish (request->client, result, &error)) {
-        g_dbus_method_invocation_return_gerror (request->invocation, error);
+        return_error (request, error);
         return;
     }
 
@@ -97,7 +145,7 @@ auth_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
     request->client = snapd_client_new ();
     if (!snapd_client_connect_sync (request->client, NULL, &error)) {
-        g_dbus_method_invocation_return_gerror (request->invocation, error);
+        return_error (request, error);
         return;
     }
 

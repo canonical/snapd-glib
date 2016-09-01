@@ -32,6 +32,8 @@ typedef struct
 
 G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 
+G_DEFINE_QUARK (snapd-error-quark, snapd_error)
+
 /* snapd API documentation is at https://github.com/snapcore/snapd/blob/master/docs/rest.md */
 
 /* Default socket to connect to */
@@ -120,35 +122,6 @@ struct _SnapdRequest
     GPtrArray *methods;
 };
 
-static const GDBusErrorEntry snapd_error_entries[] =
-{
-    { SNAPD_ERROR_CONNECTION_FAILED,   "io.snapcraft.SnapdLoginService.Error.ConnectionFailed" },
-    { SNAPD_ERROR_WRITE_ERROR,         "io.snapcraft.SnapdLoginService.Error.WriteError" },
-    { SNAPD_ERROR_READ_ERROR,          "io.snapcraft.SnapdLoginService.Error.ReadError" },
-    { SNAPD_ERROR_PARSE_ERROR,         "io.snapcraft.SnapdLoginService.Error.ParseError" },
-    { SNAPD_ERROR_GENERAL_ERROR,       "io.snapcraft.SnapdLoginService.Error.GeneralError" },
-    { SNAPD_ERROR_LOGIN_REQUIRED,      "io.snapcraft.SnapdLoginService.Error.LoginRequired" },
-    { SNAPD_ERROR_INVALID_AUTH_DATA,   "io.snapcraft.SnapdLoginService.Error.InvalidAuthData" },
-    { SNAPD_ERROR_TWO_FACTOR_REQUIRED, "io.snapcraft.SnapdLoginService.Error.TwoFactorRequired" },
-    { SNAPD_ERROR_TWO_FACTOR_FAILED,   "io.snapcraft.SnapdLoginService.Error.TwoFactorFailed" },
-    { SNAPD_ERROR_BAD_REQUEST    ,     "io.snapcraft.SnapdLoginService.Error.BadRequest" },
-    { SNAPD_ERROR_PERMISSION_DENIED,   "io.snapcraft.SnapdLoginService.Error.PermissionDenied" }
-};
-
-/* Ensure that every error code has an associated D-Bus error name */
-G_STATIC_ASSERT (G_N_ELEMENTS (snapd_error_entries) == SNAPD_ERROR_LAST);
-
-GQuark
-snapd_error_quark (void)
-{
-    static volatile gsize quark_volatile = 0;
-    g_dbus_error_register_error_domain ("snapd-error-quark",
-                                        &quark_volatile,
-                                        snapd_error_entries,
-                                        G_N_ELEMENTS (snapd_error_entries));
-    return (GQuark) quark_volatile;
-}
-
 static void
 snapd_login_request_async_result_init (GAsyncResultIface *iface)
 {
@@ -183,6 +156,45 @@ snapd_login_request_init (SnapdLoginRequest *request)
 {
 }
 
+static GError *
+convert_dbus_error (GError *dbus_error)
+{
+    const gchar *remote_error;
+    GError *error;
+
+    remote_error = g_dbus_error_get_remote_error (dbus_error);
+    if (remote_error == NULL)
+        return g_error_copy (dbus_error);
+
+    if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.ConnectionFailed") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_CONNECTION_FAILED, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.WriteError") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_WRITE_ERROR, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.ReadError") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_READ_ERROR, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.ParseError") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_PARSE_ERROR, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.GeneralError") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_GENERAL_ERROR, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.LoginRequired") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_LOGIN_REQUIRED, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.InvalidAuthData") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_INVALID_AUTH_DATA, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.TwoFactorRequired") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_REQUIRED, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.TwoFactorFailed") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_FAILED, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.BadRequest") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST, dbus_error->message);
+    else if (strcmp (remote_error, "io.snapcraft.SnapdLoginService.Error.PermissionDenied") == 0)
+        error = g_error_new_literal (SNAPD_ERROR, SNAPD_ERROR_PERMISSION_DENIED, dbus_error->message);
+    else
+        return g_error_copy (dbus_error);
+
+    g_dbus_error_strip_remote_error (error);
+    return error;
+}
+
 /**
  * snapd_login_sync:
  * @username: usename to log in with.
@@ -208,6 +220,7 @@ snapd_login_sync (const gchar *username, const gchar *password, const gchar *otp
     g_autoptr(GVariant) result = NULL;
     const gchar *macaroon;
     g_auto(GStrv) discharges = NULL;
+    g_autoptr(GError) dbus_error = NULL;
 
     g_return_val_if_fail (username != NULL, NULL);
     g_return_val_if_fail (password != NULL, NULL);
@@ -228,9 +241,12 @@ snapd_login_sync (const gchar *username, const gchar *password, const gchar *otp
                                           G_DBUS_CALL_FLAGS_NONE,
                                           -1,
                                           cancellable,
-                                          error);
-    if (result == NULL)
+                                          &dbus_error);
+    if (result == NULL) {
+        if (error != NULL)
+            *error = convert_dbus_error (dbus_error);
         return NULL;
+    }
 
     g_variant_get (result, "(&s^as)", &macaroon, &discharges);
 
@@ -255,13 +271,11 @@ login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(GVariant) r = NULL;
     const gchar *macaroon;
     g_auto(GStrv) discharges = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GError) dbus_error = NULL;
 
-    r = g_dbus_connection_call_finish (G_DBUS_CONNECTION (object), result, &error);
+    r = g_dbus_connection_call_finish (G_DBUS_CONNECTION (object), result, &dbus_error);
     if (r == NULL) {
-        request->error = g_error_new (SNAPD_ERROR,
-                                      SNAPD_ERROR_CONNECTION_FAILED,
-                                      "Failed to get call login: %s", error->message);
+        request->error = convert_dbus_error (dbus_error);
         return;
     }
 
