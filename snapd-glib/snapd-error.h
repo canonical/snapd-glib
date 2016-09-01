@@ -20,6 +20,23 @@ G_BEGIN_DECLS
 
 /**
  * SnapdError:
+ * @SNAPD_ERROR_CONNECTION_FAILED: not able to connect to snapd.
+ * @SNAPD_ERROR_WRITE_ERROR: an error occurred while writing to snapd.
+ * @SNAPD_ERROR_READ_ERROR: an error occured while reading from snapd.
+ * @SNAPD_ERROR_PARSE_ERROR: the data received from snapd was not understood.
+ * @SNAPD_ERROR_GENERAL_ERROR: an unspecified error occurred while communicating
+ *     with snapd.
+ * @SNAPD_ERROR_LOGIN_REQUIRED: the requested operation requires a login to be
+ *     performed.
+ * @SNAPD_ERROR_INVALID_AUTH_DATA: the provided authorization data is invalid.
+ * @SNAPD_ERROR_TWO_FACTOR_REQUIRED: login requires a two factor code.
+ * @SNAPD_ERROR_TWO_FACTOR_FAILED: the two factor code provided at login is
+ *     invalid.
+ * @SNAPD_ERROR_BAD_REQUEST: snapd did not understand the request that was sent.
+ * @SNAPD_ERROR_PERMISSION_DENIED: this user account is not permitted to perform
+ *     the requested operation.
+ *
+ * Error codes returned by snapd operations.
  */
 typedef enum
 {  
@@ -37,6 +54,13 @@ typedef enum
     SNAPD_ERROR_LAST
 } SnapdError;
 
+/**
+ * SNAPD_ERROR:
+ *
+ * Error domain for errors returned by snapd. Errors in this domain will
+ * be from the #SnapdError enumeration. See #GError for information
+ * on error domains.
+ */
 #define SNAPD_ERROR snapd_error_quark ()
 
 GQuark                  snapd_error_quark                          (void) G_GNUC_CONST;

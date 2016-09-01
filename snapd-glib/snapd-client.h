@@ -42,6 +42,16 @@ struct _SnapdClientClass
     void (* _snapd_reserved4) (void);
 };
 
+/**
+ * SnapdFindFlags:
+ * @SNAPD_FIND_FLAGS_NONE: No flags, default behaviour
+ * @SNAPD_FIND_FLAGS_MATCH_NAME: Search for snaps whose name matches the given
+ *     string. The match is exact unless the string ends in *.
+ * @SNAPD_FIND_FLAGS_SELECT_PRIVATE: Search private snaps
+ * @SNAPD_FIND_FLAGS_SELECT_REFRESH: Search refreshable snaps
+ *
+ * Flag to change how a find is performed.
+ */
 typedef enum
 {
     SNAPD_FIND_FLAGS_NONE            = 0,
