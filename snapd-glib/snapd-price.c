@@ -15,7 +15,7 @@ struct _SnapdPrice
 {
     GObject parent_instance;
 
-    gchar *amount;
+    gdouble amount;
     gchar *currency;
 };
 
@@ -34,10 +34,10 @@ snapd_price_new (void)
     return g_object_new (SNAPD_TYPE_PRICE, NULL);
 }
 
-const gchar *
+gdouble
 snapd_price_get_amount (SnapdPrice *price)
 {
-    g_return_val_if_fail (SNAPD_IS_PRICE (price), NULL);
+    g_return_val_if_fail (SNAPD_IS_PRICE (price), 0.0);
     return price->amount;
 }
 
@@ -55,8 +55,7 @@ snapd_price_set_property (GObject *object, guint prop_id, const GValue *value, G
 
     switch (prop_id) {
     case PROP_AMOUNT:
-        g_free (price->amount);
-        price->amount = g_strdup (g_value_get_string (value));
+        price->amount = g_value_get_double (value);
         break;
     case PROP_CURRENCY:
         g_free (price->currency);
@@ -75,7 +74,7 @@ snapd_price_get_property (GObject *object, guint prop_id, GValue *value, GParamS
 
     switch (prop_id) {
     case PROP_AMOUNT:
-        g_value_set_string (value, price->amount);
+        g_value_set_double (value, price->amount);
         break;
     case PROP_CURRENCY:
         g_value_set_string (value, price->currency);
@@ -91,7 +90,6 @@ snapd_price_finalize (GObject *object)
 {
     SnapdPrice *price = SNAPD_PRICE (object);
 
-    g_clear_pointer (&price->amount, g_free);
     g_clear_pointer (&price->currency, g_free);
 }
 
@@ -106,10 +104,10 @@ snapd_price_class_init (SnapdPriceClass *klass)
 
     g_object_class_install_property (gobject_class,
                                      PROP_AMOUNT,
-                                     g_param_spec_string ("amount",
+                                     g_param_spec_double ("amount",
                                                           "amount",
                                                           "Amount of price",
-                                                          NULL,
+                                                          0.0, G_MAXDOUBLE, 0.0,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_CURRENCY,

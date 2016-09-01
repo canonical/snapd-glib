@@ -28,7 +28,7 @@ struct _SnapdPriceClass
     GObjectClass parent_class;
 };
 
-const gchar *snapd_price_get_amount   (SnapdPrice *price);
+gdouble      snapd_price_get_amount   (SnapdPrice *price);
 
 const gchar *snapd_price_get_currency (SnapdPrice *price);
 

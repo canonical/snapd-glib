@@ -557,6 +557,17 @@ get_string (JsonObject *object, const gchar *name, const gchar *default_value)
         return default_value;
 }
 
+static const gdouble
+get_double (JsonObject *object, const gchar *name, gdouble default_value)
+{
+    JsonNode *node = json_object_get_member (object, name);
+    if (node != NULL && json_node_get_value_type (node) == G_TYPE_DOUBLE) {
+        return json_node_get_double (node);
+    }
+    else
+        return default_value;
+}
+
 static JsonArray *
 get_array (JsonObject *object, const gchar *name)
 {
@@ -902,7 +913,7 @@ parse_snap (JsonObject *object, GError **error)
 
         p = json_node_get_object (node);
         price = g_object_new (SNAPD_TYPE_PRICE,
-                              "amount", get_string (p, "price", NULL),
+                              "amount", get_double (p, "price", 0.0),
                               "currency", get_string (p, "currency", NULL),
                               NULL);
         g_ptr_array_add (prices_array, g_steal_pointer (&price));
@@ -3476,7 +3487,7 @@ make_buy_request (SnapdClient *client,
     json_builder_set_member_name (builder, "snap-name");
     json_builder_add_string_value (builder, snapd_snap_get_name (snap));
     json_builder_set_member_name (builder, "price");
-    json_builder_add_string_value (builder, snapd_price_get_amount (price));
+    json_builder_add_double_value (builder, snapd_price_get_amount (price));
     json_builder_set_member_name (builder, "currency");
     json_builder_add_string_value (builder, snapd_price_get_currency (price));
     if (payment_method != NULL) {
