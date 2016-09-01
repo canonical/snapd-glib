@@ -29,6 +29,14 @@ struct _SnapdSnapClass
     GObjectClass parent_class;
 };
 
+/**
+ * SnapdConfinement:
+ * @SNAPD_CONFINEMENT_UNKNOWN: the confinement of the snap is unknown.
+ * @SNAPD_CONFINEMENT_STRICT: the snap is using confinement.
+ * @SNAPD_CONFINEMENT_DEVMODE: the snap is in dev mode (i.e. unconfined).
+ *
+ * Confinment used by a snap.
+ */
 typedef enum
 {
     SNAPD_CONFINEMENT_UNKNOWN,
@@ -36,6 +44,16 @@ typedef enum
     SNAPD_CONFINEMENT_DEVMODE
 } SnapdConfinement;
 
+/**
+ * SnapdSnapType:
+ * @SNAPD_SNAP_TYPE_UNKNOWN: the type of snap is unknown.
+ * @SNAPD_SNAP_TYPE_APP: the snap is an application.
+ * @SNAPD_SNAP_TYPE_KERNEL: the snap is a kernel.
+ * @SNAPD_SNAP_TYPE_GADGET: the snapd is a gadget.
+ * @SNAPD_SNAP_TYPE_OS: the snap is an operating system.
+ *
+ * Type of snap.
+ */
 typedef enum
 {
     SNAPD_SNAP_TYPE_UNKNOWN,
@@ -45,6 +63,16 @@ typedef enum
     SNAPD_SNAP_TYPE_OS
 } SnapdSnapType;
 
+/**
+ * SnapdSnapStatus:
+ * SNAPD_SNAP_STATUS_UNKNOWN: the snap state is unknown.
+ * SNAPD_SNAP_STATUS_AVAILABLE: the snap is available for installation.
+ * SNAPD_SNAP_STATUS_PRICED: the snap is available for purchase.
+ * SNAPD_SNAP_STATUS_INSTALLED: the snap is installed but not active.
+ * SNAPD_SNAP_STATUS_ACTIVE: the snap is installed and active.
+ *
+ * The current state of a snap.
+ */
 typedef enum
 {
     SNAPD_SNAP_STATUS_UNKNOWN,
