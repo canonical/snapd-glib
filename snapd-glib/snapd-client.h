@@ -43,24 +43,6 @@ struct _SnapdClientClass
 };
 
 typedef enum
-{  
-    SNAPD_ERROR_CONNECTION_FAILED,
-    SNAPD_ERROR_WRITE_ERROR,
-    SNAPD_ERROR_READ_ERROR,
-    SNAPD_ERROR_PARSE_ERROR,
-    SNAPD_ERROR_GENERAL_ERROR,
-    SNAPD_ERROR_LOGIN_REQUIRED,
-    SNAPD_ERROR_INVALID_AUTH_DATA,  
-    SNAPD_ERROR_TWO_FACTOR_REQUIRED,
-    SNAPD_ERROR_TWO_FACTOR_FAILED,
-    SNAPD_ERROR_BAD_REQUEST,
-    SNAPD_ERROR_PERMISSION_DENIED,
-    SNAPD_ERROR_LAST
-} SnapdError;
-
-#define SNAPD_ERROR snapd_error_quark ()
-
-typedef enum
 {
     SNAPD_FIND_FLAGS_NONE            = 0,
     SNAPD_FIND_FLAGS_MATCH_NAME      = 1 << 0,
@@ -76,22 +58,6 @@ typedef enum
  * @user_data: user data passed to the callback
  */
 typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdTask *main_task, GPtrArray *tasks, gpointer user_data);
-
-GQuark                  snapd_error_quark                          (void) G_GNUC_CONST;
-
-SnapdAuthData          *snapd_login_sync                           (const gchar          *username,
-                                                                    const gchar          *password,
-                                                                    const gchar          *otp,
-                                                                    GCancellable         *cancellable,
-                                                                    GError              **error);
-void                    snapd_login_async                          (const gchar          *username,
-                                                                    const gchar          *password,
-                                                                    const gchar          *otp,
-                                                                    GCancellable         *cancellable,
-                                                                    GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
-SnapdAuthData          *snapd_login_finish                         (GAsyncResult         *result,
-                                                                    GError              **error);
 
 SnapdClient            *snapd_client_new                           (void);
 
