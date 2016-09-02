@@ -34,7 +34,9 @@ G_DEFINE_TYPE (SnapdIcon, snapd_icon, G_TYPE_OBJECT)
  * snapd_icon_get_mime_type:
  * @icon: a #SnapdIcon.
  *
- * Returns: the mime-type for this icon.
+ * Get the mime-type for this icon, e.g. "image/png".
+ *
+ * Returns: a MIME type.
  */
 const gchar *
 snapd_icon_get_mime_type (SnapdIcon *icon)
@@ -46,8 +48,10 @@ snapd_icon_get_mime_type (SnapdIcon *icon)
 /**
  * snapd_icon_get_data:
  * @icon: a #SnapdIcon.
+ * 
+ * Get the binary data for this icon.
  *
- * Returns: (transfer none): the binary data for this icon.
+ * Returns: (transfer none): the binary data.
  */
 GBytes *
 snapd_icon_get_data (SnapdIcon *icon)

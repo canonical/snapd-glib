@@ -28,8 +28,6 @@ struct _SnapdIconClass
     GObjectClass parent_class;
 };
 
-SnapdIcon    *snapd_icon_new             (void);
-
 const gchar  *snapd_icon_get_mime_type   (SnapdIcon *icon);
 
 GBytes       *snapd_icon_get_data        (SnapdIcon *icon);

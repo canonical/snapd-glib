@@ -32,7 +32,9 @@ G_DEFINE_TYPE (SnapdApp, snapd_app, G_TYPE_OBJECT)
  * snapd_app_get_name:
  * @app: a #SnapdApp.
  *
- * Returns: the name of this app.
+ * Get the name of this app.
+ *
+ * Returns: a name.
  */
 const gchar *
 snapd_app_get_name (SnapdApp *app)

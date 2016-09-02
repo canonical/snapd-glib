@@ -147,7 +147,9 @@ snapd_snap_get_devmode (SnapdSnap *snap)
  * snapd_snap_get_download_size:
  * @snap: a #SnapdSnap.
  *
- * Returns: the download size of this snap in bytes or 0 if unknown.
+ * Get the download size of this snap or 0 if unknown.
+ *
+ * Returns: a byte count.
  */
 gint64
 snapd_snap_get_download_size (SnapdSnap *snap)
@@ -160,7 +162,10 @@ snapd_snap_get_download_size (SnapdSnap *snap)
  * snapd_snap_get_icon:
  * @snap: a #SnapdSnap.
  *
- * Returns: a URL for this icon or an absolte path to retrieve it from snapd.
+ * Get the icon for this Snap, either a URL or an absolute path to retrieve it
+ * from snapd directly.
+ *
+ * Returns: a URL or path.
  */
 const gchar *
 snapd_snap_get_icon (SnapdSnap *snap)
@@ -173,7 +178,9 @@ snapd_snap_get_icon (SnapdSnap *snap)
  * snapd_snap_get_id:
  * @snap: a #SnapdSnap.
  *
- * Returns: a unique ID for this snap.
+ * Gets the unique ID for this snap.
+ *
+ * Returns: an ID.
  */
 const gchar *
 snapd_snap_get_id (SnapdSnap *snap)
@@ -185,8 +192,10 @@ snapd_snap_get_id (SnapdSnap *snap)
 /**
  * snapd_snap_get_install_date:
  * @snap: a #SnapdSnap.
+ * 
+ * Get the date this snap was installed or %NULL if unknown.
  *
- * Returns: the date this snap was installed or %NULL if unknown.
+ * Returns: (allow-none): a #GDateTime or %NULL.
  */
 GDateTime *
 snapd_snap_get_install_date (SnapdSnap *snap)
@@ -199,7 +208,9 @@ snapd_snap_get_install_date (SnapdSnap *snap)
  * snapd_snap_get_installed_size:
  * @snap: a #SnapdSnap.
  *
- * Returns: the installed size of this snap in bytes or 0 if unknown / not installed.
+ * Get the installed size of this snap or 0 if unknown.
+ *
+ * Returns: a byte count.
  */
 gint64
 snapd_snap_get_installed_size (SnapdSnap *snap)
@@ -212,7 +223,10 @@ snapd_snap_get_installed_size (SnapdSnap *snap)
  * snapd_snap_get_name:
  * @snap: a #SnapdSnap.
  *
- * Returns: the name of this snap.
+ * Get the name of this snap. This is used to reference this snap, e.g. for
+ * installing / removing.
+ *
+ * Returns: a name.
  */
 const gchar *
 snapd_snap_get_name (SnapdSnap *snap)
@@ -225,7 +239,9 @@ snapd_snap_get_name (SnapdSnap *snap)
  * snapd_snap_get_prices:
  * @snap: a #SnapdSnap.
  *
- * Returns: (transfer none) (element-type SnapdPrice): prices that this snap can be purchased at.
+ * Get the prices that this snap can be purchased at.
+ *
+ * Returns: (transfer none) (element-type SnapdPrice): an array of prices.
  */
 GPtrArray *
 snapd_snap_get_prices (SnapdSnap *snap)
@@ -238,7 +254,9 @@ snapd_snap_get_prices (SnapdSnap *snap)
  * snapd_snap_get_private:
  * @snap: a #SnapdSnap.
  *
- * Returns: %TRUE if this is a private snap (only available to the developer).
+ * Get if this snap is only available to the developer.
+ *
+ * Returns: %TRUE if this is a private snap.
  */
 gboolean
 snapd_snap_get_private (SnapdSnap *snap)
@@ -251,7 +269,10 @@ snapd_snap_get_private (SnapdSnap *snap)
  * snapd_snap_get_revision:
  * @snap: a #SnapdSnap.
  *
- * Returns: the revision of this snap.
+ * Get the revision for this snap. The format of the string is undefined.
+ * See also snapd_snap_get_version().
+ *
+ * Returns: a revision string.
  */
 const gchar *
 snapd_snap_get_revision (SnapdSnap *snap)
@@ -277,7 +298,9 @@ snapd_snap_get_snap_type (SnapdSnap *snap)
  * snapd_snap_get_status:
  * @snap: a #SnapdSnap.
  *
- * Returns: the current status of this snap, e.g. SNAPD_SNAP_STATUS_INSTALLED
+ * Get the current status of this snap, e.g. SNAPD_SNAP_STATUS_INSTALLED.
+ *
+ * Returns: a #SnapdSnapStatus.
  */
 SnapdSnapStatus
 snapd_snap_get_status (SnapdSnap *snap)
@@ -289,8 +312,10 @@ snapd_snap_get_status (SnapdSnap *snap)
 /**
  * snapd_snap_get_summary:
  * @snap: a #SnapdSnap.
+ * 
+ * Get a single line summary for this snap, e.g. "Best app ever!".
  *
- * Returns: a single line summary for this snap, e.g. "Best app ever!"
+ * Returns: a summary string.
  */
 const gchar *
 snapd_snap_get_summary (SnapdSnap *snap)
@@ -303,7 +328,10 @@ snapd_snap_get_summary (SnapdSnap *snap)
  * snapd_snap_get_trymode:
  * @snap: a #SnapdSnap.
  *
- * Returns: %TRUE if this snap is running in trymode.
+ * Get if this snap is running in try mode (installed locally and able to be
+ * directly modified).
+ *
+ * Returns: %TRUE if using trymode.
  */
 gboolean
 snapd_snap_get_trymode (SnapdSnap *snap)
@@ -316,7 +344,10 @@ snapd_snap_get_trymode (SnapdSnap *snap)
  * snapd_snap_get_version:
  * @snap: a #SnapdSnap.
  *
- * Returns: the version of this snap.
+ * Get the version for this snap. The format of the string is undefined.
+ * See also snapd_snap_get_revision().
+ *
+ * Returns: a version string.
  */
 const gchar *
 snapd_snap_get_version (SnapdSnap *snap)

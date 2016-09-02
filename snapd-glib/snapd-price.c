@@ -34,6 +34,14 @@ snapd_price_new (void)
     return g_object_new (SNAPD_TYPE_PRICE, NULL);
 }
 
+/**
+ * snapd_price_get_amount:
+ * @price: a #SnapdPrice.
+ *
+ * Get the currency amount for this price, e.g. 0.99.
+ *
+ * Return: a currency amount.
+ */
 gdouble
 snapd_price_get_amount (SnapdPrice *price)
 {
@@ -41,6 +49,14 @@ snapd_price_get_amount (SnapdPrice *price)
     return price->amount;
 }
 
+/**
+ * snapd_price_get_currency:
+ * @price: a #SnapdPrice.
+ *
+ * Get the currency this price is in, e.g. "NZD".
+ *
+ * Returns: an ISO 4217 currency code.
+ */
 const gchar *
 snapd_price_get_currency (SnapdPrice *price)
 {

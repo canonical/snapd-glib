@@ -49,7 +49,9 @@ snapd_auth_data_new (const gchar *macaroon, gchar **discharges)
  * snapd_auth_data_get_macaroon:
  * @auth_data: a #SnapdAuthData.
  *
- * Returns: the serialized macaroon used to authorize access to snapd.
+ * Get the Macaroon that this authorization uses.
+ *
+ * Returns: the serialized Macaroon used to authorize access to snapd.
  */
 const gchar *
 snapd_auth_data_get_macaroon (SnapdAuthData *auth_data)
@@ -62,7 +64,9 @@ snapd_auth_data_get_macaroon (SnapdAuthData *auth_data)
  * snapd_auth_data_get_discharges:
  * @auth_data: a #SnapdAuthData.
  *
- * Returns: (transfer none) (array zero-terminated=1): the discharges.
+ * Get the discharges that this authorization uses.
+ *
+ * Returns: (transfer none) (array zero-terminated=1): the discharges as serialized strings.
  */
 gchar **
 snapd_auth_data_get_discharges (SnapdAuthData *auth_data)

@@ -97,7 +97,6 @@ snapd_error_quark
 <FILE>snapd-icon</FILE>
 <TITLE>SnapdIcon</TITLE>
 SnapdIconClass
-snapd_icon_new
 snapd_icon_get_mime_type
 snapd_icon_get_data
 SnapdIcon

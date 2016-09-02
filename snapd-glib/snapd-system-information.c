@@ -38,7 +38,9 @@ G_DEFINE_TYPE (SnapdSystemInformation, snapd_system_information, G_TYPE_OBJECT)
  * snapd_system_information_get_on_classic:
  * @system_information: a #SnapdSystemInformation.
  *
- * Returns: %TRUE if this snapd is running on a classic system.
+ * Get if this system is a classic system.
+ *
+ * Returns: %TRUE if running on a classic system.
  */
 gboolean
 snapd_system_information_get_on_classic (SnapdSystemInformation *system_information)
@@ -51,7 +53,9 @@ snapd_system_information_get_on_classic (SnapdSystemInformation *system_informat
  * snapd_system_information_get_os_id:
  * @system_information: a #SnapdSystemInformation.
  *
- * Returns: the OS ID for this system, e.g. "ubuntu"
+ * Get the operating system ID, e.g. "ubuntu".
+ *
+ * Returns: an operating system ID.
  */
 const gchar *
 snapd_system_information_get_os_id (SnapdSystemInformation *system_information)
@@ -64,7 +68,9 @@ snapd_system_information_get_os_id (SnapdSystemInformation *system_information)
  * snapd_system_information_get_os_version:
  * @system_information: a #SnapdSystemInformation.
  *
- * Returns: the OS version for this sytem, e.g. "16.04"
+ * Get the operating system version, e.g. "16.04".
+ *
+ * Returns: a version string.
  */
 const gchar *
 snapd_system_information_get_os_version (SnapdSystemInformation *system_information)
@@ -77,7 +83,9 @@ snapd_system_information_get_os_version (SnapdSystemInformation *system_informat
  * snapd_system_information_get_series:
  * @system_information: a #SnapdSystemInformation.
  *
- * Returns: the series of snapd running, e.g. "16"
+ * Get the series of snapd running, e.g. "16".
+ *
+ * Returns: a series string.
  */
 const gchar *
 snapd_system_information_get_series (SnapdSystemInformation *system_information)
@@ -90,7 +98,9 @@ snapd_system_information_get_series (SnapdSystemInformation *system_information)
  * snapd_system_information_get_version:
  * @system_information: a #SnapdSystemInformation.
  *
- * Returns: the version of snapd running, e.g. "2.11+ppa174-1"
+ * Get the version of snapd running, e.g. "2.11+ppa174-1".
+ *
+ * Returns: a version string.
  */
 const gchar *
 snapd_system_information_get_version (SnapdSystemInformation *system_information)

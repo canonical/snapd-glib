@@ -33,8 +33,10 @@ G_DEFINE_TYPE (SnapdConnection, snapd_connection, G_TYPE_OBJECT)
 /**
  * snapd_connection_get_name:
  * @connection: a #SnapdConnection.
+ * 
+ * Get the name of this connection (i.e. a slot or plug name).
  *
- * Returns: the name of this connection (i.e. a slot or plug name).
+ * Returns: a name.
  */
 const gchar *
 snapd_connection_get_name (SnapdConnection *connection)
@@ -47,7 +49,9 @@ snapd_connection_get_name (SnapdConnection *connection)
  * snapd_connection_get_snap:
  * @connection: a #SnapdConnection.
  *
- * Returns: the snap this connection is on.
+ * Get the snap this connection is on.
+ *
+ * Returns: a snap name.
  */
 const gchar *
 snapd_connection_get_snap (SnapdConnection *connection)
