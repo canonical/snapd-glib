@@ -11,4 +11,11 @@
 
 #include "snapd-error.h"
 
+/**
+ * snapd_error_quark:
+ *
+ * Gets the Snapd Error Quark.
+ *
+ * Returns: a #GQuark.
+ **/
 G_DEFINE_QUARK (snapd-error-quark, snapd_error)

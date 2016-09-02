@@ -40,7 +40,9 @@ G_DEFINE_TYPE (SnapdPlug, snapd_plug, G_TYPE_OBJECT)
  * snapd_plug_get_name:
  * @plug: a #SnapdPlug.
  *
- * Returns: the name of this plug.
+ * Get the name of this plug.
+ *
+ * Returns: a name.
  */
 const gchar *
 snapd_plug_get_name (SnapdPlug *plug)
@@ -53,7 +55,9 @@ snapd_plug_get_name (SnapdPlug *plug)
  * snapd_plug_get_snap:
  * @plug: a #SnapdPlug.
  *
- * Returns: the snap this plug is on.
+ * Get the snap this plug is on.
+ *
+ * Returns: a snap name.
  */
 const gchar *
 snapd_plug_get_snap (SnapdPlug *plug)
@@ -66,7 +70,9 @@ snapd_plug_get_snap (SnapdPlug *plug)
  * snapd_plug_get_interface:
  * @plug: a #SnapdPlug.
  *
- * Returns: the name of the interface this plug provides.
+ * Get the name of the interface this plug provides.
+ *
+ * Returns: an interface name.
  */
 const gchar *
 snapd_plug_get_interface (SnapdPlug *plug)
@@ -79,7 +85,9 @@ snapd_plug_get_interface (SnapdPlug *plug)
  * snapd_plug_get_label:
  * @plug: a #SnapdPlug.
  *
- * Returns: a human readable label for this plug.
+ * Get a human readable label for this plug.
+ *
+ * Returns: a label.
  */
 const gchar *
 snapd_plug_get_label (SnapdPlug *plug)
@@ -92,7 +100,9 @@ snapd_plug_get_label (SnapdPlug *plug)
  * snapd_plug_get_connections:
  * @plug: a #SnapdPlug.
  *
- * Returns: (transfer none) (element-type SnapdConnection): connections being made with this plug.
+ * Get the connections being made with this plug.
+ *
+ * Returns: (transfer none) (element-type SnapdConnection): an array of #SnapdConnection.
  */
 GPtrArray *
 snapd_plug_get_connections (SnapdPlug *plug)

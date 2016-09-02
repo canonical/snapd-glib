@@ -40,7 +40,9 @@ G_DEFINE_TYPE (SnapdSlot, snapd_slot, G_TYPE_OBJECT)
  * snapd_slot_get_name:
  * @slot: a #SnapdSlot.
  *
- * Returns: the name of this slot.
+ * Get the name of this slot.
+ *
+ * Returns: a name
  */
 const gchar *
 snapd_slot_get_name (SnapdSlot *slot)
@@ -53,7 +55,9 @@ snapd_slot_get_name (SnapdSlot *slot)
  * snapd_slot_get_snap:
  * @slot: a #SnapdSlot.
  *
- * Returns: the snap this slot is on.
+ * Get the snap this slot is on.
+ *
+ * Returns: a snap name.
  */
 const gchar *
 snapd_slot_get_snap (SnapdSlot *slot)
@@ -66,7 +70,9 @@ snapd_slot_get_snap (SnapdSlot *slot)
  * snapd_slot_get_interface:
  * @slot: a #SnapdSlot.
  *
- * Returns: the name of the interface this slot accepts.
+ * Get the name of the interface this slot accepts.
+ *
+ * Returns: an interface name.
  */
 const gchar *
 snapd_slot_get_interface (SnapdSlot *slot)
@@ -79,7 +85,9 @@ snapd_slot_get_interface (SnapdSlot *slot)
  * snapd_slot_get_label:
  * @slot: a #SnapdSlot.
  *
- * Returns: a human readable label for this slot.
+ * Get a human readable label for this slot.
+ *
+ * Returns: a label.
  */
 const gchar *
 snapd_slot_get_label (SnapdSlot *slot)
@@ -92,7 +100,9 @@ snapd_slot_get_label (SnapdSlot *slot)
  * snapd_slot_get_connections:
  * @slot: a #SnapdSlot.
  *
- * Returns: (transfer none) (element-type SnapdConnection): connections being made with this slot.
+ * Get the connections being made with this slot.
+ *
+ * Returns: (transfer none) (element-type SnapdConnection): an array of #SnapdConnection.
  */
 GPtrArray *
 snapd_slot_get_connections (SnapdSlot *slot)
