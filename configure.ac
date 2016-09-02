@@ -2,7 +2,7 @@ m4_define([glib_req_version], [2.37.6])
 
 AC_PREREQ([2.63])
 
-AC_INIT([snapd-glib], [0.11])
+AC_INIT([snapd-glib], [0.12])
 
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([snapd-glib/snapd-glib.h])

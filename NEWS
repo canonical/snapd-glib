@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 0.12
+
+    * Rename error codes for consistency (API and ABI break)
+    * Generate documentation using GTK-Doc
+
 Overview of changes in snapd-glib 0.11
 
     * Use doubles for price amounts (API and ABI break)
