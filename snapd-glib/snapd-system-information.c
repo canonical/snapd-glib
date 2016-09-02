@@ -11,6 +11,15 @@
 
 #include "snapd-system-information.h"
 
+/**
+ * SECTION:snapd-system-information
+ * @short_description: System information class
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdSystemInformation object contains the system information returned
+ * from snapd. It is requested using snapd_client_get_system_information_sync().
+ */
+
 struct _SnapdSystemInformation
 {
     GObject parent_instance;

@@ -12,6 +12,16 @@
 #include "snapd-snap.h"
 #include "snapd-enum-types.h"
 
+/**
+ * SECTION:snapd-snap
+ * @short_description: Snap metadata class
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdSnap contains the metadata for a given snap. Snap metadata can be
+ * retrieved using snapd_client_list_sync(), snapd_client_list_one_sync() or
+ * snapd_client_find_sync().
+ */
+
 struct _SnapdSnap
 {
     GObject parent_instance;

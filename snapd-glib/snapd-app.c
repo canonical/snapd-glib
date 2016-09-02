@@ -13,6 +13,15 @@
 
 #include "snapd-app.h"
 
+/**
+ * SECTION:snapd-app
+ * @short_description: Application metadata
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdAdd contains information about an application that snapd provides.
+ * Apps are retrieved using snapd_snap_get_apps().
+ */
+
 struct _SnapdApp
 {
     GObject parent_instance;

@@ -13,6 +13,15 @@
 
 #include "snapd-icon.h"
 
+/**
+ * SECTION:snapd-icon
+ * @short_description: Snap icon data
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdIcon contains the icon data for a given snap. Icons can be requested
+ * using snapd_client_get_icon_sync().
+ */
+
 struct _SnapdIcon
 {
     GObject parent_instance;

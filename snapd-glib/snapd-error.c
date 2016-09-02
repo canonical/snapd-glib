@@ -12,6 +12,14 @@
 #include "snapd-error.h"
 
 /**
+ * SECTION:snapd-error
+ * @short_description: Snap error codes
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * Error code definitions for various snapd operations.
+ */
+
+/**
  * snapd_error_quark:
  *
  * Gets the Snapd Error Quark.
