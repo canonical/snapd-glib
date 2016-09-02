@@ -40,7 +40,9 @@ G_DEFINE_TYPE (SnapdPaymentMethod, snapd_payment_method, G_TYPE_OBJECT)
  * snapd_payment_method_get_backend_id:
  * @payment_method: a #SnapdPaymentMethod.
  *
- * Returns: the backend ID for this payment method.
+ * Get the backend ID for this payment method.
+ *
+ * Returns: a backend ID.
  */
 const gchar *
 snapd_payment_method_get_backend_id (SnapdPaymentMethod *payment_method)
@@ -53,7 +55,10 @@ snapd_payment_method_get_backend_id (SnapdPaymentMethod *payment_method)
  * snapd_payment_method_get_currencies:
  * @payment_method: a #SnapdPaymentMethod.
  *
- * Returns: (transfer none) (array zero-terminated=1): the currencies this payment method can process.
+ * Get the currencies this payment method can process.
+ *
+ * Returns: (transfer none) (array zero-terminated=1): an array of ISO 4217
+ * currency codes.
  */
 gchar **
 snapd_payment_method_get_currencies (SnapdPaymentMethod *payment_method)
@@ -66,7 +71,9 @@ snapd_payment_method_get_currencies (SnapdPaymentMethod *payment_method)
  * snapd_payment_method_get_description:
  * @payment_method: a #SnapdPaymentMethod.
  *
- * Returns: the description for this payment method.
+ * Get the description for this payment method.
+ *
+ * Returns: description text.
  */
 const gchar *
 snapd_payment_method_get_description (SnapdPaymentMethod *payment_method)
@@ -79,7 +86,9 @@ snapd_payment_method_get_description (SnapdPaymentMethod *payment_method)
  * snapd_payment_method_get_id:
  * @payment_method: a #SnapdPaymentMethod.
  *
- * Returns: the ID for this payment method.
+ * Get the ID for this payment method.
+ *
+ * Returns: an ID.
  */
 gint64
 snapd_payment_method_get_id (SnapdPaymentMethod *payment_method)
@@ -92,7 +101,9 @@ snapd_payment_method_get_id (SnapdPaymentMethod *payment_method)
  * snapd_payment_method_get_preferred:
  * @payment_method: a #SnapdPaymentMethod.
  *
- * Returns: %TRUE if this is the preferred payment method.
+ * Get if this is the preferred payment method.
+ *
+ * Returns: %TRUE if this payment method is the preferred one.
  */
 gboolean
 snapd_payment_method_get_preferred (SnapdPaymentMethod *payment_method)
@@ -105,7 +116,9 @@ snapd_payment_method_get_preferred (SnapdPaymentMethod *payment_method)
  * snapd_payment_method_get_requires_interaction:
  * @payment_method: a #SnapdPaymentMethod.
  *
- * Returns: %TRUE if this payment method requires interaction to use.
+ * Get if this payment method requires interaction to use.
+ *
+ * Returns: %TRUE if this method requires interaction.
  */
 gboolean
 snapd_payment_method_get_requires_interaction (SnapdPaymentMethod *payment_method)

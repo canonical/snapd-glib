@@ -69,6 +69,8 @@ G_DEFINE_TYPE (SnapdSnap, snapd_snap, G_TYPE_OBJECT)
  * snapd_snap_get_apps:
  * @snap: a #SnapdSnap.
  *
+ * Get the apps this snap provides.
+ *
  * Returns: (transfer none) (element-type SnapdApp): an array of #SnapdApp.
  */
 GPtrArray *
@@ -82,7 +84,9 @@ snapd_snap_get_apps (SnapdSnap *snap)
  * snapd_snap_get_channel:
  * @snap: a #SnapdSnap.
  *
- * Returns: the channel this snap is from, e.g. "stable".
+ * Get the channel this snap is from, e.g. "stable".
+ *
+ * Returns: a channel name.
  */
 const gchar *
 snapd_snap_get_channel (SnapdSnap *snap)
@@ -95,7 +99,9 @@ snapd_snap_get_channel (SnapdSnap *snap)
  * snapd_snap_get_confinement:
  * @snap: a #SnapdSnap.
  *
- * Returns: the confinement this snap is using, e.g. %SNAPD_CONFINEMENT_STRICT.
+ * Get the confinement this snap is using, e.g. %SNAPD_CONFINEMENT_STRICT.
+ *
+ * Returns: a #SnapdConfinement.
  */
 SnapdConfinement
 snapd_snap_get_confinement (SnapdSnap *snap)
@@ -108,7 +114,9 @@ snapd_snap_get_confinement (SnapdSnap *snap)
  * snapd_snap_get_description:
  * @snap: a #SnapdSnap.
  *
- * Returns: a multi-line description of this snap.
+ * Get a multi-line description of this snap.
+ *
+ * Returns: description text.
  */
 const gchar *
 snapd_snap_get_description (SnapdSnap *snap)
@@ -121,7 +129,9 @@ snapd_snap_get_description (SnapdSnap *snap)
  * snapd_snap_get_developer:
  * @snap: a #SnapdSnap.
  *
- * Returns: the developer who created this snap.
+ * Get the developer who created this snap.
+ *
+ * Returns: a developer name.
  */
 const gchar *
 snapd_snap_get_developer (SnapdSnap *snap)
@@ -133,6 +143,8 @@ snapd_snap_get_developer (SnapdSnap *snap)
 /**
  * snapd_snap_get_devmode:
  * @snap: a #SnapdSnap.
+ *
+ * Get if this snap is running in developmer mode.
  *
  * Returns: %TRUE if this snap is running in devmode.
  */
@@ -285,7 +297,9 @@ snapd_snap_get_revision (SnapdSnap *snap)
  * snapd_snap_get_snap_type:
  * @snap: a #SnapdSnap.
  *
- * Returns: the type of snap, e.g. %SNAPD_SNAP_TYPE_APP
+ * Get the type of snap, e.g. %SNAPD_SNAP_TYPE_APP
+ *
+ * Returns: a #SnapdSnapType.
  */
 SnapdSnapType
 snapd_snap_get_snap_type (SnapdSnap *snap)
