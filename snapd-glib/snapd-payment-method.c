@@ -13,12 +13,19 @@
 
 /**
  * SECTION:snapd-payment-method
- * @short_description: Payment method class
+ * @short_description: Payment method
  * @include: snapd-glib/snapd-glib.h
  *
  * A #SnapdPaymentMethod is a description of a payment method returned from
  * snapd. Supported payment methods are requested using
  * snapd_client_get_payment_methods_sync().
+ */
+
+/**
+ * SnapdPaymentMethod:
+ *
+ * #SnapdPaymentMethod is an opaque data structure and can only be accessed
+ * using the provided functions.
  */
 
 struct _SnapdPaymentMethod

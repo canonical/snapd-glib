@@ -13,6 +13,13 @@
 
 #include "snapd-plug.h"
 
+/**
+ * SnapdPlug:
+ *
+ * #SnapdPlug is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 struct _SnapdPlug
 {
     GObject parent_instance;

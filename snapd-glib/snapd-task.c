@@ -13,6 +13,13 @@
 
 #include "snapd-task.h"
 
+/**
+ * SnapdTask:
+ *
+ * #SnapdTask is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 struct _SnapdTask
 {
     GObject parent_instance;

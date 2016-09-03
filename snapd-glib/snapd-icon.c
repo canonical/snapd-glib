@@ -22,6 +22,13 @@
  * using snapd_client_get_icon_sync().
  */
 
+/**
+ * SnapdIcon:
+ *
+ * #SnapdIcon is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 struct _SnapdIcon
 {
     GObject parent_instance;

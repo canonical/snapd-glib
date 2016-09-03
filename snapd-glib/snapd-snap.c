@@ -14,12 +14,19 @@
 
 /**
  * SECTION:snapd-snap
- * @short_description: Snap metadata class
+ * @short_description: Snap metadata
  * @include: snapd-glib/snapd-glib.h
  *
  * A #SnapdSnap contains the metadata for a given snap. Snap metadata can be
  * retrieved using snapd_client_list_sync(), snapd_client_list_one_sync() or
  * snapd_client_find_sync().
+ */
+
+/**
+ * SnapdSnap:
+ *
+ * #SnapdSnap is an opaque data structure and can only be accessed
+ * using the provided functions.
  */
 
 struct _SnapdSnap

@@ -11,6 +11,13 @@
 
 #include "snapd-price.h"
 
+/**
+ * SnapdPrice:
+ *
+ * #SnapdPrice is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 struct _SnapdPrice
 {
     GObject parent_instance;

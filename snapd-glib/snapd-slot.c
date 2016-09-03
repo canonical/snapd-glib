@@ -13,6 +13,13 @@
 
 #include "snapd-slot.h"
 
+/**
+ * SnapdSlot:
+ *
+ * #SnapdSlot is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 struct _SnapdSlot
 {
     GObject parent_instance;

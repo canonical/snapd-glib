@@ -20,6 +20,13 @@
  * from snapd. It is requested using snapd_client_get_system_information_sync().
  */
 
+/**
+ * SnapdSystemInformation:
+ *
+ * #SnapdSystemInformation is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 struct _SnapdSystemInformation
 {
     GObject parent_instance;

@@ -22,6 +22,27 @@
 #include "snapd-plug.h"
 #include "snapd-slot.h"
 
+/**
+ * SECTION:snapd-client
+ * @short_description: Client connection to snapd
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdClient is the means of talking to snapd.
+ *
+ * To communicate with snapd create a client with snapd_client_new() then
+ * connect with snapd_client_connect_sync().
+ * 
+ * Some requests require authorization which can be set with
+ * snapd_client_set_auth_data().
+ */
+
+/**
+ * SnapdClient:
+ *
+ * #SnapdClient is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 typedef struct
 {
     GSocket *snapd_socket;
@@ -1845,7 +1866,13 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
  * @client: a #SnapdClient.
  * @auth_data: (allow-none): a #SnapdAuthData or %NULL.
  *
- * Set the authorization data to use for requests.
+ * Set the authorization data to use for requests. Authorization data can be
+ * obtained by:
+ *
+ * - Logging into snapd using snapd_login_sync() or snapd_client_login_sync()
+ *   (requires root access)
+ *
+ * - Using an existing authorization with snapd_auth_data_new().
  */
 void
 snapd_client_set_auth_data (SnapdClient *client, SnapdAuthData *auth_data)

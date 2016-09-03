@@ -13,6 +13,13 @@
 
 #include "snapd-connection.h"
 
+/**
+ * SnapdConnection:
+ *
+ * #SnapdConnection is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 struct _SnapdConnection
 {
     GObject parent_instance;

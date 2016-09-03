@@ -22,6 +22,13 @@
  * Apps are retrieved using snapd_snap_get_apps().
  */
 
+/**
+ * SnapdApp:
+ *
+ * #SnapdApp is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 struct _SnapdApp
 {
     GObject parent_instance;
