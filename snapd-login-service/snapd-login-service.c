@@ -103,15 +103,15 @@ static void
 login_result_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(LoginRequest) request = user_data;
-    SnapdAuthData *auth_data;
+    g_autoptr(SnapdAuthData) auth_data = NULL;
     g_autoptr(GError) error = NULL;
 
-    if (!snapd_client_login_finish (request->client, result, &error)) {
+    auth_data = snapd_client_login_finish (request->client, result, &error);
+    if (auth_data == NULL) {
         return_error (request, error);
         return;
     }
 
-    auth_data = snapd_client_get_auth_data (request->client);
     io_snapcraft_snapd_login_service_complete_login (service, request->invocation,
                                                      snapd_auth_data_get_macaroon (auth_data),
                                                      (const gchar *const *) snapd_auth_data_get_discharges (auth_data));

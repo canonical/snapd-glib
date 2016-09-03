@@ -1780,22 +1780,20 @@ make_login_request (SnapdClient *client,
  *
  * Log in to snapd and get authorization to install/remove snaps.
  * This call requires root access; use snapd_login_sync() if you are non-root.
- * If successful, the authorization data is updated and can be requested using
- * snapd_client_get_auth_data().
  *
- * Returns: %TRUE if the login was successful.
+ * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
  */
-gboolean
+SnapdAuthData *
 snapd_client_login_sync (SnapdClient *client,
                          const gchar *username, const gchar *password, const gchar *otp,
                          GCancellable *cancellable, GError **error)
 {
     g_autoptr(SnapdRequest) request = NULL;
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (username != NULL, FALSE);
-    g_return_val_if_fail (password != NULL, FALSE);
-    g_return_val_if_fail (is_connected (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (username != NULL, NULL);
+    g_return_val_if_fail (password != NULL, NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = g_object_ref (make_login_request (client, username, password, otp, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -1835,30 +1833,24 @@ snapd_client_login_async (SnapdClient *client,
  * Complete request started with snapd_client_login_async().
  * See snapd_client_login_sync() for more information.
  *
- * Returns: %TRUE if the login was successful.
+ * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
  */
-gboolean
+SnapdAuthData *
 snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdClientPrivate *priv;
     SnapdRequest *request;
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
-    g_return_val_if_fail (is_connected (client), FALSE);
-
-    priv = snapd_client_get_instance_private (client);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+    g_return_val_if_fail (is_connected (client), NULL);
 
     request = SNAPD_REQUEST (result);
-    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_LOGIN, FALSE);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_LOGIN, NULL);
 
     if (snapd_request_set_error (request, error))
-        return FALSE;
+        return NULL;
 
-    g_clear_object (&priv->auth_data);
-    priv->auth_data = g_object_ref (request->received_auth_data);
-
-    return TRUE;
+    return g_steal_pointer (&request->received_auth_data);
 }
 
 /**
