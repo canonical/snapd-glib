@@ -66,6 +66,15 @@ typedef enum
  * @main_task: a #SnapdTask describing the overall task in progress
  * @tasks: (element-type SnapdTask): tasks to be done / being done.
  * @user_data: user data passed to the callback
+ *
+ * Signature for callback function used in
+ * snapd_client_connect_interface_sync(),
+ * snapd_client_disconnect_interface_async(),
+ * snapd_client_install_sync(),
+ * snapd_client_refresh_sync(),
+ * snapd_client_remove_sync(),
+ * snapd_client_enable_sync() and
+ * snapd_client_disable_sync().
  */
 typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdTask *main_task, GPtrArray *tasks, gpointer user_data);
 

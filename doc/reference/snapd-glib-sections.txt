@@ -2,10 +2,10 @@
 <FILE>snapd-app</FILE>
 <TITLE>SnapdApp</TITLE>
 SnapdApp
-SnapdAppClass
 snapd_app_get_name
 
 <SUBSECTION Private>
+SnapdAppClass
 SNAPD_TYPE_APP
 </SECTION>
 
@@ -76,12 +76,12 @@ SNAPD_TYPE_CLIENT
 <SECTION>
 <FILE>snapd-connection</FILE>
 <TITLE>SnapdConnection</TITLE>
-SnapdConnectionClass
 snapd_connection_get_name
 snapd_connection_get_snap
 SnapdConnection
 
 <SUBSECTION Private>
+SnapdConnectionClass
 SNAPD_TYPE_CONNECTION
 </SECTION>
 
@@ -96,12 +96,12 @@ snapd_error_quark
 <SECTION>
 <FILE>snapd-icon</FILE>
 <TITLE>SnapdIcon</TITLE>
-SnapdIconClass
 snapd_icon_get_mime_type
 snapd_icon_get_data
 SnapdIcon
 
 <SUBSECTION Private>
+SnapdIconClass
 SNAPD_TYPE_ICON
 </SECTION>
 
@@ -117,19 +117,18 @@ snapd_login_finish
 <FILE>snapd-auth-data</FILE>
 <TITLE>SnapdAuthData</TITLE>
 SnapdAuthData
-SnapdAuthDataClass
 snapd_auth_data_new
 snapd_auth_data_get_macaroon
 snapd_auth_data_get_discharges
 
 <SUBSECTION Private>
+SnapdAuthDataClass
 SNAPD_TYPE_AUTH_DATA
 </SECTION>
 
 <SECTION>
 <FILE>snapd-payment-method</FILE>
 <TITLE>SnapdPaymentMethod</TITLE>
-SnapdPaymentMethodClass
 snapd_payment_method_get_backend_id
 snapd_payment_method_get_currencies
 snapd_payment_method_get_description
@@ -139,13 +138,13 @@ snapd_payment_method_get_requires_interaction
 SnapdPaymentMethod
 
 <SUBSECTION Private>
+SnapdPaymentMethodClass
 SNAPD_TYPE_PAYMENT_METHOD
 </SECTION>
 
 <SECTION>
 <FILE>snapd-plug</FILE>
 <TITLE>SnapdPlug</TITLE>
-SnapdPlugClass
 snapd_plug_get_name
 snapd_plug_get_snap
 snapd_plug_get_interface
@@ -154,25 +153,25 @@ snapd_plug_get_connections
 SnapdPlug
 
 <SUBSECTION Private>
+SnapdPlugClass
 SNAPD_TYPE_PLUG
 </SECTION>
 
 <SECTION>
 <FILE>snapd-price</FILE>
 <TITLE>SnapdPrice</TITLE>
-SnapdPriceClass
 snapd_price_get_amount
 snapd_price_get_currency
 SnapdPrice
 
 <SUBSECTION Private>
+SnapdPriceClass
 SNAPD_TYPE_PRICE
 </SECTION>
 
 <SECTION>
 <FILE>snapd-slot</FILE>
 <TITLE>SnapdSlot</TITLE>
-SnapdSlotClass
 snapd_slot_get_name
 snapd_slot_get_snap
 snapd_slot_get_interface
@@ -181,13 +180,13 @@ snapd_slot_get_connections
 SnapdSlot
 
 <SUBSECTION Private>
+SnapdSlotClass
 SNAPD_TYPE_SLOT
 </SECTION>
 
 <SECTION>
 <FILE>snapd-snap</FILE>
 <TITLE>SnapdSnap</TITLE>
-SnapdSnapClass
 SnapdConfinement
 SnapdSnapType
 SnapdSnapStatus
@@ -214,13 +213,13 @@ snapd_snap_get_version
 SnapdSnap
 
 <SUBSECTION Private>
+SnapdSnapClass
 SNAPD_TYPE_SNAP
 </SECTION>
 
 <SECTION>
 <FILE>snapd-system-information</FILE>
 <TITLE>SnapdSystemInformation</TITLE>
-SnapdSystemInformationClass
 snapd_system_information_get_on_classic
 snapd_system_information_get_os_id
 snapd_system_information_get_os_version
@@ -229,13 +228,13 @@ snapd_system_information_get_version
 SnapdSystemInformation
 
 <SUBSECTION Private>
+SnapdSystemInformationClass
 SNAPD_TYPE_SYSTEM_INFORMATION
 </SECTION>
 
 <SECTION>
 <FILE>snapd-task</FILE>
 <TITLE>SnapdTask</TITLE>
-SnapdTaskClass
 snapd_task_get_id
 snapd_task_get_kind
 snapd_task_get_summary
@@ -248,6 +247,7 @@ snapd_task_get_ready_time
 SnapdTask
 
 <SUBSECTION Private>
+SnapdTaskClass
 SNAPD_TYPE_TASK
 </SECTION>
 

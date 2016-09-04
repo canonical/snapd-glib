@@ -43,6 +43,12 @@
  * using the provided functions.
  */
 
+/**
+ * SnapdClientClass:
+ *
+ * Class structure for #SnapdClient.
+ */
+
 typedef struct
 {
     GSocket *snapd_socket;

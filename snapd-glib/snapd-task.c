@@ -19,14 +19,7 @@
  * @include: snapd-glib/snapd-glib.h
  *
  * A #SnapdTask contains information on how a request is progressing. Progress
- * information is retuned from long running requests like
- * snapd_client_connect_interface_sync(),
- * snapd_client_disconnect_interface_async(),
- * snapd_client_install_sync(),
- * snapd_client_refresh_sync(),
- * snapd_client_remove_sync(),
- * snapd_client_enable_sync(),
- * snapd_client_disable_sync().
+ * information is returned in a #SnapdProgressCallback.
  */
 
 /**
