@@ -15,6 +15,8 @@
 #include <libsoup/soup.h>
 #include <json-glib/json-glib.h>
 
+#define SNAPD_BUY_SUPPORT
+
 #include "snapd-client.h"
 #include "snapd-app.h"
 #include "snapd-error.h"

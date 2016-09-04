@@ -19,9 +19,13 @@
 #include <snapd-glib/snapd-error.h>
 #include <snapd-glib/snapd-icon.h>
 #include <snapd-glib/snapd-login.h>
+#ifdef SNAPD_BUY_SUPPORT
 #include <snapd-glib/snapd-payment-method.h>
+#endif
 #include <snapd-glib/snapd-plug.h>
+#ifdef SNAPD_BUY_SUPPORT
 #include <snapd-glib/snapd-price.h>
+#endif
 #include <snapd-glib/snapd-slot.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
