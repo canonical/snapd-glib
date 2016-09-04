@@ -14,6 +14,16 @@
 #include "snapd-connection.h"
 
 /**
+ * SECTION: snapd-connection
+ * @short_description: Plug to slot connections
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdConnection contains information about how a #SnapdPlug is connected
+ * to a #SnapdSlot. Connections are queried using snapd_plug_get_connections()
+ * and snapd_slot_get_connections().
+ */
+
+/**
  * SnapdConnection:
  *
  * #SnapdConnection is an opaque data structure and can only be accessed

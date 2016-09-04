@@ -11,6 +11,23 @@
 
 #include "snapd-auth-data.h"
 
+/**
+ * SECTION: snapd-auth-data
+ * @short_description: Authorization data
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdAuthData contains authorization data to 
+ * Prices can be queried using snapd_snap_get_prices() and are used in
+ * snapd_client_buy_sync().
+ */
+
+/**
+ * SnapdAuthData:
+ *
+ * #SnapdAuthData is an opaque data structure and can only be accessed
+ * using the provided functions.
+ */
+
 struct _SnapdAuthData
 {
     GObject parent_instance;

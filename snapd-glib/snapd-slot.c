@@ -14,6 +14,18 @@
 #include "snapd-slot.h"
 
 /**
+ * SECTION: snapd-slot
+ * @short_description: Snap slots
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdSlot represents a part of a snap that can be connected to by one or
+ * more #SnapdPlug from other snaps. Available slots can be queried using
+ * snapd_client_get_interfaces_sync(). Plugs can be connected / disconnected
+ * using snapd_client_connect_interface_sync() and
+ * snapd_client_disconnect_interface_sync().
+ */
+
+/**
  * SnapdSlot:
  *
  * #SnapdSlot is an opaque data structure and can only be accessed

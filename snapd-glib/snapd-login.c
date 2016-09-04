@@ -14,6 +14,18 @@
 #include "snapd-login.h"
 #include "snapd-error.h"
 
+/**
+ * SECTION: snapd-login
+ * @short_description: Client authorization
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * To allow non-root users to authorize with snapd as D-Bus service called
+ * snapd-login-service is provided. This service uses Polkit to allow privileded
+ * users to install and remove snaps. snapd_login() calls this service to get a
+ * #SnapdAuthData that can be passed to a snapd client with
+ * snapd_client_set_auth_data().
+ */
+
 G_DECLARE_FINAL_TYPE (SnapdLoginRequest, snapd_login_request, SNAPD, LOGIN_REQUEST, GObject)
 
 struct _SnapdLoginRequest

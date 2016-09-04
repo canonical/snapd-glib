@@ -107,12 +107,17 @@ SNAPD_TYPE_ICON
 
 <SECTION>
 <FILE>snapd-login</FILE>
-<TITLE>Authorization</TITLE>
-SnapdAuthData
-SnapdAuthDataClass
+<TITLE>snapd_login()</TITLE>
 snapd_login_sync
 snapd_login_async
 snapd_login_finish
+</SECTION>
+
+<SECTION>
+<FILE>snapd-auth-data</FILE>
+<TITLE>SnapdAuthData</TITLE>
+SnapdAuthData
+SnapdAuthDataClass
 snapd_auth_data_new
 snapd_auth_data_get_macaroon
 snapd_auth_data_get_discharges

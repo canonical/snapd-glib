@@ -20,8 +20,9 @@
     <title>Snapd-GLib</title>
     <xi:include href="xml/snapd-error.xml"/>
     <xi:include href="xml/snapd-login.xml"/>
-    <xi:include href="xml/snapd-client.xml"/>
     <xi:include href="xml/snapd-app.xml"/>
+    <xi:include href="xml/snapd-auth-data.xml"/>
+    <xi:include href="xml/snapd-client.xml"/>
     <xi:include href="xml/snapd-connection.xml"/>
     <xi:include href="xml/snapd-icon.xml"/>
     <xi:include href="xml/snapd-payment-method.xml"/>

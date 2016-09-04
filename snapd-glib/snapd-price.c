@@ -12,6 +12,16 @@
 #include "snapd-price.h"
 
 /**
+ * SECTION: snapd-price
+ * @short_description: Pricing information
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdPrice represents an amount of money required to purchase a snap.
+ * Prices can be queried using snapd_snap_get_prices() and are used in
+ * snapd_client_buy_sync().
+ */
+
+/**
  * SnapdPrice:
  *
  * #SnapdPrice is an opaque data structure and can only be accessed

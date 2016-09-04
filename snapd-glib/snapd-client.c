@@ -1833,6 +1833,8 @@ snapd_client_login_async (SnapdClient *client,
  * Complete request started with snapd_client_login_async().
  * See snapd_client_login_sync() for more information.
  *
+ * Complete request started with snapd_client_login_async().
+ * See snapd_client_login_sync() for more information.
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
  */
 SnapdAuthData *
@@ -1883,7 +1885,9 @@ snapd_client_set_auth_data (SnapdClient *client, SnapdAuthData *auth_data)
  * snapd_client_get_auth_data:
  * @client: a #SnapdClient.
  *
- * Returns: (transfer none): the #SnapdAuthData that is used for requests or %NULL if none used.
+ * Get the authorization data that is used for requests.
+ *
+ * Returns: (transfer none) (allow-none): a #SnapdAuthData or %NULL.
  */
 SnapdAuthData *
 snapd_client_get_auth_data (SnapdClient *client)
@@ -1959,6 +1963,9 @@ snapd_client_get_system_information_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_system_information_async().
+ * See snapd_client_get_system_information_sync() for more information.
  *
  * Complete request started with snapd_client_get_system_information_async().
  * See snapd_client_get_system_information_sync() for more information.
@@ -2055,6 +2062,9 @@ snapd_client_list_one_async (SnapdClient *client,
  * Complete request started with snapd_client_list_one_async().
  * See snapd_client_list_one_sync() for more information.
  *
+ * Complete request started with snapd_client_list_one_async().
+ * See snapd_client_list_one_sync() for more information.
+ *
  * Returns: (transfer full): a #SnapdSnap or %NULL on error.
  */
 SnapdSnap *
@@ -2123,6 +2133,9 @@ snapd_client_get_icon_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get the icon for an installed snap.
+ * See snapd_client_get_icon_sync() for more information.
  */
 void
 snapd_client_get_icon_async (SnapdClient *client,
@@ -2140,6 +2153,9 @@ snapd_client_get_icon_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_icon_async().
+ * See snapd_client_get_icon_sync() for more information.
  *
  * Returns: (transfer full): a #SnapdIcon or %NULL on error.
  */
@@ -2202,6 +2218,9 @@ snapd_client_list_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get information on all installed snaps.
+ * See snapd_client_list_sync() for more information.
  */
 void
 snapd_client_list_async (SnapdClient *client,
@@ -2218,6 +2237,9 @@ snapd_client_list_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_list_async().
+ * See snapd_client_list_sync() for more information.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  */
@@ -2283,6 +2305,9 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get the installed snap interfaces.
+ * See snapd_client_get_interfaces_sync() for more information.
  */
 void
 snapd_client_get_interfaces_async (SnapdClient *client,
@@ -2301,6 +2326,9 @@ snapd_client_get_interfaces_async (SnapdClient *client,
  * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the location to store the plug array or %NULL.
  * @slots: (out) (allow-none) (transfer container) (element-type SnapdSlot): the location to store the slot array or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_interfaces_async().
+ * See snapd_client_get_interfaces_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
@@ -2399,7 +2427,8 @@ make_connect_interface_request (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Connect two iterfaces together.
+ * Connect two interfaces together.
+ * An asynchronous version of this function is snapd_client_connect_interface_async().
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
@@ -2432,6 +2461,9 @@ snapd_client_connect_interface_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously connect two interfaces together.
+ * See snapd_client_connect_interface_sync() for more information.
  */
 void
 snapd_client_connect_interface_async (SnapdClient *client,
@@ -2451,6 +2483,9 @@ snapd_client_connect_interface_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_connect_interface_async().
+ * See snapd_client_connect_interface_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
@@ -2532,6 +2567,9 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously disconnect two interfaces.
+ * See snapd_client_disconnect_interface_sync() for more information.
  */
 void
 snapd_client_disconnect_interface_async (SnapdClient *client,
@@ -2551,6 +2589,9 @@ snapd_client_disconnect_interface_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_disconnect_interface_async().
+ * See snapd_client_disconnect_interface_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
@@ -2638,6 +2679,9 @@ snapd_client_find_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously find snaps in the store.
+ * See snapd_client_find_sync() for more information.
  */
 void
 snapd_client_find_async (SnapdClient *client,
@@ -2657,6 +2701,9 @@ snapd_client_find_async (SnapdClient *client,
  * @result: a #GAsyncResult.
  * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_find_async().
+ * See snapd_client_find_sync() for more information.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  */
@@ -2758,6 +2805,9 @@ snapd_client_install_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously install a snap from the store.
+ * See snapd_client_install_sync() for more information.
  */
 void
 snapd_client_install_async (SnapdClient *client,
@@ -2777,6 +2827,9 @@ snapd_client_install_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_install_async().
+ * See snapd_client_install_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
@@ -2857,6 +2910,9 @@ snapd_client_refresh_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously ensure an installed snap is at the latest version.
+ * See snapd_client_refresh_sync() for more information.
  */
 void
 snapd_client_refresh_async (SnapdClient *client,
@@ -2876,6 +2932,9 @@ snapd_client_refresh_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_refresh_async().
+ * See snapd_client_refresh_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
@@ -2954,6 +3013,9 @@ snapd_client_remove_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously uninstall a snap.
+ * See snapd_client_remove_sync() for more information.
  */
 void
 snapd_client_remove_async (SnapdClient *client,
@@ -2973,6 +3035,9 @@ snapd_client_remove_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_remove_async().
+ * See snapd_client_remove_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
@@ -3052,6 +3117,9 @@ snapd_client_enable_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously enable an installed snap.
+ * See snapd_client_enable_sync() for more information.
  */
 void
 snapd_client_enable_async (SnapdClient *client,
@@ -3071,6 +3139,9 @@ snapd_client_enable_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_enable_async().
+ * See snapd_client_enable_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
@@ -3152,6 +3223,9 @@ snapd_client_disable_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously disable an installed snap.
+ * See snapd_client_disable_sync() for more information.
  */
 void
 snapd_client_disable_async (SnapdClient *client,
@@ -3173,6 +3247,9 @@ snapd_client_disable_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_disable_async().
+ * See snapd_client_disable_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
@@ -3240,6 +3317,9 @@ snapd_client_get_payment_methods_sync (SnapdClient *client,
  * @user_data: (closure): the data to pass to callback function.
  *
  * Asynchronously get the payment methods.
+ * See snapd_client_get_payment_methods_sync() for more information.
+ *
+ * Asynchronously get the available payment methods.
  * See snapd_client_get_payment_methods_sync() for more information.
  */
 void

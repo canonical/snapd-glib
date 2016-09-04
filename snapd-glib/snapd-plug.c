@@ -14,6 +14,18 @@
 #include "snapd-plug.h"
 
 /**
+ * SECTION: snapd-plug
+ * @short_description: Snap plugs
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdPlug represents a part of a snap that can be connected to a
+ * #SnapdSlot on another snap. Available plugs can be queried using
+ * snapd_client_get_interfaces_sync(). Plugs can be connected / disconnected
+ * using snapd_client_connect_interface_sync() and
+ * snapd_client_disconnect_interface_sync().
+ */
+
+/**
  * SnapdPlug:
  *
  * #SnapdPlug is an opaque data structure and can only be accessed
