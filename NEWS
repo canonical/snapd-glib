@@ -1,3 +1,10 @@
+Overview of changes in snapd-glib 0.13
+
+    * Make snapd_client_login() consistent with snapd_login() (API and ABI
+      break)
+    * Complete documentation on all functions / types (fixes make check)
+    * Disable buy support for now - it is being redesigned in snapd.
+
 Overview of changes in snapd-glib 0.12
 
     * Rename error codes for consistency (API and ABI break)
