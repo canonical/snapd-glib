@@ -18,7 +18,7 @@
  * @short_description: Application metadata
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdAdd contains information about an application that snapd provides.
+ * A #SnapdApp contains information about an application that snapd provides.
  * Apps are retrieved using snapd_snap_get_apps().
  */
 

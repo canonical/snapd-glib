@@ -65,11 +65,11 @@ typedef enum
 
 /**
  * SnapdSnapStatus:
- * SNAPD_SNAP_STATUS_UNKNOWN: the snap state is unknown.
- * SNAPD_SNAP_STATUS_AVAILABLE: the snap is available for installation.
- * SNAPD_SNAP_STATUS_PRICED: the snap is available for purchase.
- * SNAPD_SNAP_STATUS_INSTALLED: the snap is installed but not active.
- * SNAPD_SNAP_STATUS_ACTIVE: the snap is installed and active.
+ * @SNAPD_SNAP_STATUS_UNKNOWN: the snap state is unknown.
+ * @SNAPD_SNAP_STATUS_AVAILABLE: the snap is available for installation.
+ * @SNAPD_SNAP_STATUS_PRICED: the snap is available for purchase.
+ * @SNAPD_SNAP_STATUS_INSTALLED: the snap is installed but not active.
+ * @SNAPD_SNAP_STATUS_ACTIVE: the snap is installed and active.
  *
  * The current state of a snap.
  */

@@ -21,8 +21,8 @@
  *
  * To allow non-root users to authorize with snapd as D-Bus service called
  * snapd-login-service is provided. This service uses Polkit to allow privileded
- * users to install and remove snaps. snapd_login() calls this service to get a
- * #SnapdAuthData that can be passed to a snapd client with
+ * users to install and remove snaps. snapd_login_sync() calls this service to
+ * get a #SnapdAuthData that can be passed to a snapd client with
  * snapd_client_set_auth_data().
  */
 
