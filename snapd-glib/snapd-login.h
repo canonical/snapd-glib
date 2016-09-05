@@ -7,8 +7,8 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_CLIENT_H__
-#define __SNAPD_CLIENT_H__
+#ifndef __SNAPD_LOGIN_H__
+#define __SNAPD_LOGIN_H__
 
 #if !defined(__SNAPD_GLIB_INSIDE__) && !defined(SNAPD_COMPILATION)
 #error "Only <snapd-glib/snapd-glib.h> can be included directly."
@@ -37,4 +37,4 @@ SnapdAuthData          *snapd_login_finish                         (GAsyncResult
 
 G_END_DECLS
 
-#endif /* __SNAPD_CLIENT_H__ */
+#endif /* __SNAPD_LOGIN_H__ */
