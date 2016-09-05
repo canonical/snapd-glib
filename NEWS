@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 0.14
+
+    * Fix header guards in snapd-login.h which stopped it being included
+
 Overview of changes in snapd-glib 0.13
 
     * Make snapd_client_login() consistent with snapd_login() (API and ABI
