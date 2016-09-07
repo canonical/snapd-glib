@@ -27,7 +27,29 @@ dnl === Dependencies ==========================================================
 
 PKG_CHECK_MODULES(SNAPD, [gobject-2.0 gio-2.0 gio-unix-2.0 libsoup-2.4 json-glib-1.0])
 PKG_CHECK_MODULES(SNAPD_LOGIN_SERVICE, [gio-2.0 gio-unix-2.0 polkit-gobject-1])
-PKG_CHECK_MODULES(SNAPD_QT, [Qt5Core])
+
+dnl === snapd-qt ==============================================================
+
+AC_ARG_ENABLE(snapd-qt,
+	AS_HELP_STRING([--enable-snapd-qt],[Enable snapd-qt [[default=auto]]]),
+	[enable_snapd_qt=$enableval],
+	[enable_snapd_qt="auto"])
+compile_snapd_qt=no
+if test x"$enable_snapd_qt" != "xno"; then
+    PKG_CHECK_MODULES(SNAPD_QT, [Qt5Core],
+    [compile_snapd_qt=yes
+     AC_CHECK_TOOLS(MOC5, [moc])
+     if test x"$(readlink $(which $MOC5))" = xqtchooser; then
+         MOC5="$MOC5 --qt=qt5"
+     fi
+    ],
+    [if test "x$enable_snapd_qt" != xauto; then
+        AC_MSG_FAILURE(
+          [--enable-snapd-qt was given, but test for Qt5 failed])
+      fi
+    ])
+fi
+AM_CONDITIONAL(COMPILE_SNAPD_QT, test x"$compile_snapd_qt" != "xno")
 
 dnl === Translations ==========================================================
 
@@ -76,7 +98,7 @@ echo " • Compiler: ${CC}"
 echo " • Compiler flags: ${WARN_CFLAGS} ${CFLAGS} ${MAINTAINER_CFLAGS}"
 echo ""
 echo " • API reference:            ${enable_gtk_doc}"
-echo " • Build introspection data: ${enable_introspection}"
-echo " • Build Vala bindings:      ${enable_vala}"
-echo " • Build Qt bindings:        ${compile_qt5}"
+echo " • GObject introspection:    ${enable_introspection}"
+echo " • Vala bindings:            ${enable_vala}"
+echo " • snapd-qt:                 ${compile_snapd_qt}"
 echo ""
