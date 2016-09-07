@@ -1,0 +1,5 @@
+# SNAPD_INCLUDE_DIRS - The snapd-qt include directories
+# SNAPD_LIBRARIES - The libraries needed to use snapd-qt
+
+set(SNAPD_LIBRARIES @libdir@/libsnapd-qt.so)
+set(SNAPD_INCLUDE_DIRS @includedir@/snapd-qt/)

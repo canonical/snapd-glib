@@ -18,4 +18,12 @@ snapdincludedir = $(includedir)/snapd-qt/Snapd
 snapdinclude_DATA = \
 	$(source_h)
 
+cmakedir = $(libdir)/cmake/Snapd
+cmake_in_files = SnapdConfig.cmake.in SnapdConfigVersion.cmake.in
+cmake_DATA = $(cmake_in_files:.cmake.in=.cmake)
+SnapdConfig.cmake: SnapdConfig.cmake.in Makefile
+	@sed -e "s|\@libdir\@|$(libdir)|" -e "s|\@includedir\@|$(includedir)|" $< > $@
+
+EXTRA_DIST = $(cmake_in_files)
 CLEANFILES = $(source_moc)
+DISTCLEANFILES = SnapdConfig.cmake

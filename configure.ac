@@ -58,6 +58,7 @@ AC_CONFIG_FILES([
         snapd-glib/Makefile
         snapd-glib/snapd-glib.pc
         snapd-qt/Makefile
+        snapd-qt/SnapdConfigVersion.cmake
         snapd-qt/snapd-qt.pc
         snapd-login-service/Makefile
 ])
