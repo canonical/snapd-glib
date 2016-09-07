@@ -20,6 +20,11 @@ class Q_DECL_EXPORT SystemInformation : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QString osId READ osId)
+    Q_PROPERTY(QString osVersion READ osVersion)
+    Q_PROPERTY(QString series READ series)
+    Q_PROPERTY(QString version READ version)          
+
 public:
     explicit SystemInformation (QObject* parent, void* snapd_object);
     SystemInformation (const SystemInformation&);

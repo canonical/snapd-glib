@@ -20,6 +20,8 @@ struct AuthDataPrivate;
 class Q_DECL_EXPORT AuthData : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString macaroon READ macaroon)
+    Q_PROPERTY(QStringList discharges READ discharges)
 
 public:
     explicit AuthData (QObject* parent, void* snapd_object);

@@ -20,6 +20,26 @@ class Q_DECL_EXPORT Snap : public QObject
 {
     Q_OBJECT
 
+    // FIXME Q_PROPERTY(QList<Snapd::App> apps READ apps)
+    Q_PROPERTY(QString channel READ channel)
+    // FIXME Q_PROPERTY(Snapd::Confinement confinement READ confinement)
+    Q_PROPERTY(QString description READ description)
+    Q_PROPERTY(QString developer READ developer)
+    Q_PROPERTY(bool devmode READ devmode)
+    Q_PROPERTY(qint64 downaloadSize READ downloadSize)
+    Q_PROPERTY(QString icon READ icon)
+    Q_PROPERTY(QString id READ id)
+    // FIXME Q_PROPERTY(GDateTime installDate READ installDate)
+    Q_PROPERTY(qint64 installedSize READ installedSize)
+    Q_PROPERTY(QString name READ name)
+    Q_PROPERTY(bool isPrivate READ isPrivate)
+    Q_PROPERTY(QString revision READ revision)
+    // FIXME Q_PROPERTY(Snapd::SnapType snapType READ snapType)
+    // FIXME Q_PROPERTY(Snapd::SnapStatus status READ status)
+    Q_PROPERTY(QString summary READ summary)
+    Q_PROPERTY(bool trymode READ trymode)
+    Q_PROPERTY(QString version READ version) 
+
 public:
     explicit Snap (QObject* parent, void* snapd_object);
     Snap (const Snap&);
