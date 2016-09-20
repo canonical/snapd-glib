@@ -16,6 +16,12 @@ test $TEST_TYPE $FILE || {
 	exit 1
 }
 
+INTTOOLIZE=`which intltoolize`
+if test -z $INTTOOLIZE; then
+        echo "*** No Intltool found, please install it ***"
+        exit 1
+fi
+
 GTKDOCIZE=`which gtkdocize`
 if test -z $GTKDOCIZE; then
         echo "*** No GTK-Doc found, please install it ***"
@@ -38,6 +44,7 @@ fi
 
 rm -rf autom4te.cache
 
+intltoolize --force --copy || exit $?
 gtkdocize || exit $?
 autoreconf --force --install --verbose || exit $?
 
