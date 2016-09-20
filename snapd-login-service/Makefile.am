@@ -4,7 +4,7 @@ login_sources = login-service.c login-service.h
 
 snapd_login_service_CFLAGS = $(SNAPD_LOGIN_SERVICE_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)
 snapd_login_service_LDADD = $(SNAPD_LOGIN_SERVICE_LIBS) $(top_builddir)/snapd-glib/libsnapd-glib.la
-snapd_login_service_SOURCES = snapd-login-service.c $(login_sources)
+snapd_login_service_SOURCES = $(login_sources) snapd-login-service.c
 
 $(login_sources): io.snapcraft.SnapdLoginService.xml Makefile
 	$(AM_V_GEN) gdbus-codegen --generate-c-code=login-service $<
