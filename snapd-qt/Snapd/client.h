@@ -36,7 +36,7 @@ public:
     Snapd::Icon getIconSync (const QString &name);
     //FIXMEvoid getInterfacesSync (GPtrArray **plugs, GPtrArray **slots);
     /*void connectInterfaceSync (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
-    void disconnectInterfaceSync (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);  
+    void disconnectInterfaceSync (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
     QList<Snapd::Snap> findSync (SnapdFindFlags flags, const QString &query, gchar **suggested_currency);
     void installSync (const QString &name, const QString &channel, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
     void refreshSync (const QString &name, const QString &channel, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
