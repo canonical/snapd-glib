@@ -14,6 +14,7 @@ source_h = \
 	snapd-payment-method.h \
 	snapd-plug.h \
 	snapd-price.h \
+	snapd-screenshot.h \
 	snapd-slot.h \
 	snapd-snap.h \
 	snapd-system-information.h \
@@ -30,6 +31,7 @@ source_c = \
 	snapd-payment-method.c \
 	snapd-plug.c \
 	snapd-price.c \
+	snapd-screenshot.c \
 	snapd-slot.c \
 	snapd-snap.c \
 	snapd-system-information.c \

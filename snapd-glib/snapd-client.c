@@ -22,6 +22,7 @@
 #include "snapd-error.h"
 #include "snapd-login.h"
 #include "snapd-plug.h"
+#include "snapd-screenshot.h"
 #include "snapd-slot.h"
 
 /**
@@ -631,6 +632,8 @@ parse_snap (JsonObject *object, GError **error)
     g_autoptr(JsonArray) prices = NULL;
     g_autoptr(GPtrArray) apps_array = NULL;
     g_autoptr(GPtrArray) prices_array = NULL;
+    g_autoptr(JsonArray) screenshots = NULL;
+    g_autoptr(GPtrArray) screenshots_array = NULL;
     guint i;
 
     confinement_string = get_string (object, "confinement", "");
@@ -706,6 +709,30 @@ parse_snap (JsonObject *object, GError **error)
         g_ptr_array_add (prices_array, g_steal_pointer (&price));
     }
 
+    screenshots = get_array (object, "screenshots");
+    screenshots_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (screenshots); i++) {
+        JsonNode *node = json_array_get_element (screenshots, i);
+        JsonObject *s;
+        g_autoptr(SnapdScreenshot) screenshot = NULL;
+
+        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
+                                 "Unexpected screenshot type");
+            return NULL;
+        }
+
+        s = json_node_get_object (node);
+        screenshot = g_object_new (SNAPD_TYPE_SCREENSHOT,
+                                   "url", get_string (s, "url", NULL),
+                                   "width", get_int (s, "width", 0),
+                                   "height", get_int (s, "height", 0),                              
+                                   NULL);
+        g_ptr_array_add (screenshots_array, g_steal_pointer (&screenshot));
+    }
+
     return g_object_new (SNAPD_TYPE_SNAP,
                          "apps", apps_array,
                          "channel", get_string (object, "channel", NULL),
@@ -722,6 +749,7 @@ parse_snap (JsonObject *object, GError **error)
                          "prices", prices_array,
                          "private", get_bool (object, "private", FALSE),
                          "revision", get_string (object, "revision", NULL),
+                         "screenshots", screenshots_array,
                          "snap-type", snap_type,
                          "status", snap_status,
                          "summary", get_string (object, "summary", NULL),

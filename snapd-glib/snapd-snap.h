@@ -114,6 +114,8 @@ gboolean          snapd_snap_get_private        (SnapdSnap *snap);
 
 const gchar      *snapd_snap_get_revision       (SnapdSnap *snap);
 
+GPtrArray        *snapd_snap_get_screenshots    (SnapdSnap *snap);
+
 SnapdSnapType     snapd_snap_get_snap_type      (SnapdSnap *snap);
 
 SnapdSnapStatus   snapd_snap_get_status         (SnapdSnap *snap);

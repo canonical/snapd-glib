@@ -170,6 +170,19 @@ SNAPD_TYPE_PRICE
 </SECTION>
 
 <SECTION>
+<FILE>snapd-screenshot</FILE>
+<TITLE>SnapdScreenshot</TITLE>
+snapd_screenshot_get_url
+snapd_screenshot_get_width
+snapd_screenshot_get_height
+SnapdScreenshot
+
+<SUBSECTION Private>
+SnapdScreenshotClass
+SNAPD_TYPE_SCREENSHOT
+</SECTION>
+
+<SECTION>
 <FILE>snapd-slot</FILE>
 <TITLE>SnapdSlot</TITLE>
 snapd_slot_get_name
@@ -205,6 +218,7 @@ snapd_snap_get_name
 snapd_snap_get_prices
 snapd_snap_get_private
 snapd_snap_get_revision
+snapd_snap_get_screenshots
 snapd_snap_get_snap_type
 snapd_snap_get_status
 snapd_snap_get_summary

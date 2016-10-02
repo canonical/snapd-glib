@@ -26,6 +26,7 @@
 #ifdef SNAPD_BUY_SUPPORT
 #include <snapd-glib/snapd-price.h>
 #endif
+#include <snapd-glib/snapd-screenshot.h>
 #include <snapd-glib/snapd-slot.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
