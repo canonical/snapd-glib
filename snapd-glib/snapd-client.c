@@ -281,8 +281,9 @@ send_request (SnapdRequest *request, gboolean authorize, const gchar *method, co
         authorization = g_string_new ("");
         g_string_append_printf (authorization, "Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (request->auth_data));
         discharges = snapd_auth_data_get_discharges (request->auth_data);
-        for (i = 0; discharges[i] != NULL; i++)
-            g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
+        if (discharges != NULL)
+            for (i = 0; discharges[i] != NULL; i++)
+                g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
         soup_message_headers_append (headers, "Authorization", authorization->str);
     }
 
