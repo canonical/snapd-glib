@@ -1,3 +1,11 @@
+Overview of changes in snapd-glib 1.0
+
+    * Add support for screenshots
+    * Throw exception if not connected instead of using assert
+    * Be more paranoid about invalid SnapdAuthData
+    * Add an autogen.sh
+    * Tidy up configure summary
+
 Overview of changes in snapd-glib 0.14
 
     * Fix header guards in snapd-login.h which stopped it being included
