@@ -45,12 +45,6 @@ enum
  
 G_DEFINE_TYPE (SnapdPrice, snapd_price, G_TYPE_OBJECT)
 
-SnapdPrice *
-snapd_price_new (void)
-{
-    return g_object_new (SNAPD_TYPE_PRICE, NULL);
-}
-
 /**
  * snapd_price_get_amount:
  * @price: a #SnapdPrice.

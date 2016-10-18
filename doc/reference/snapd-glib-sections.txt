@@ -62,9 +62,9 @@ snapd_client_enable_finish
 snapd_client_disable_sync
 snapd_client_disable_async
 snapd_client_disable_finish
-snapd_client_get_payment_methods_sync
-snapd_client_get_payment_methods_async
-snapd_client_get_payment_methods_finish
+snapd_client_check_buy_sync
+snapd_client_check_buy_async
+snapd_client_check_buy_finish
 snapd_client_buy_sync
 snapd_client_buy_async
 snapd_client_buy_finish
@@ -124,22 +124,6 @@ snapd_auth_data_get_discharges
 <SUBSECTION Private>
 SnapdAuthDataClass
 SNAPD_TYPE_AUTH_DATA
-</SECTION>
-
-<SECTION>
-<FILE>snapd-payment-method</FILE>
-<TITLE>SnapdPaymentMethod</TITLE>
-snapd_payment_method_get_backend_id
-snapd_payment_method_get_currencies
-snapd_payment_method_get_description
-snapd_payment_method_get_id
-snapd_payment_method_get_preferred
-snapd_payment_method_get_requires_interaction
-SnapdPaymentMethod
-
-<SUBSECTION Private>
-SnapdPaymentMethodClass
-SNAPD_TYPE_PAYMENT_METHOD
 </SECTION>
 
 <SECTION>
