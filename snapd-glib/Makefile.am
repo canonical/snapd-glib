@@ -17,7 +17,8 @@ source_h = \
 	snapd-slot.h \
 	snapd-snap.h \
 	snapd-system-information.h \
-	snapd-task.h
+	snapd-task.h \
+	snapd-user-information.h
 
 source_c = \
 	snapd-app.c \
@@ -33,7 +34,8 @@ source_c = \
 	snapd-slot.c \
 	snapd-snap.c \
 	snapd-system-information.c \
-	snapd-task.c
+	snapd-task.c \
+	snapd-user-information.c
 
 # glib-mkenums rules
 glib_enum_h = snapd-enum-types.h
