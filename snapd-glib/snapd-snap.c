@@ -50,6 +50,7 @@ struct _SnapdSnap
     GPtrArray *prices;
     gboolean private;
     gchar *revision;
+    GPtrArray *screenshots;
     SnapdSnapStatus status;
     gchar *summary;
     gboolean trymode;
@@ -74,6 +75,7 @@ enum
     PROP_PRICES,
     PROP_PRIVATE,
     PROP_REVISION,
+    PROP_SCREENSHOTS,
     PROP_STATUS,
     PROP_SUMMARY,
     PROP_TRYMODE,
@@ -313,6 +315,21 @@ snapd_snap_get_revision (SnapdSnap *snap)
 }
 
 /**
+ * snapd_snap_get_screenshots:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the screenshots that are available for this snap.
+ *
+ * Returns: (transfer none) (element-type SnapdScreenshot): an array of screenshots.
+ */
+GPtrArray *
+snapd_snap_get_screenshots (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->screenshots;
+}
+
+/**
  * snapd_snap_get_snap_type:
  * @snap: a #SnapdSnap.
  *
@@ -453,6 +470,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->revision);
         snap->revision = g_strdup (g_value_get_string (value));
         break;
+    case PROP_SCREENSHOTS:
+        g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
+        if (g_value_get_boxed (value) != NULL)
+            snap->screenshots = g_ptr_array_ref (g_value_get_boxed (value));
+        break;
     case PROP_SNAP_TYPE:
         snap->snap_type = g_value_get_enum (value);
         break;
@@ -527,6 +549,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_REVISION:
         g_value_set_string (value, snap->revision);
         break;
+    case PROP_SCREENSHOTS:
+        g_value_set_boxed (value, snap->screenshots);
+        break;
     case PROP_SNAP_TYPE:
         g_value_set_enum (value, snap->snap_type);
         break;
@@ -565,6 +590,8 @@ snapd_snap_finalize (GObject *object)
     if (snap->prices != NULL)
         g_clear_pointer (&snap->prices, g_ptr_array_unref);
     g_clear_pointer (&snap->revision, g_free);
+    if (snap->screenshots != NULL)
+        g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
     g_clear_pointer (&snap->summary, g_free);
     g_clear_pointer (&snap->version, g_free);
 }
@@ -683,6 +710,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           "Revision of this snap",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_SCREENSHOTS,
+                                     g_param_spec_boxed ("screenshots",
+                                                         "screenshots",
+                                                         "Screenshots of this snap",
+                                                         G_TYPE_PTR_ARRAY,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_STATUS,
                                      g_param_spec_enum ("status",

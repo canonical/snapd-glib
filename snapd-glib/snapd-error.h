@@ -36,6 +36,12 @@ G_BEGIN_DECLS
  *     the requested operation.
  * @SNAPD_ERROR_FAILED: an unspecified error occurred while communicating
  *     with snapd.
+ * @SNAPD_ERROR_TERMS_NOT_ACCEPTED: this user has not accepted the store's terms
+ *     of service.
+ * @SNAPD_ERROR_PAYMENT_NOT_SETUP: this user has not configured a payment
+ *     method.
+ * @SNAPD_ERROR_PAYMENT_DECLINED: this user has had their payment method
+ *     declined by the payment provider.
  *
  * Error codes returned by snapd operations.
  */
@@ -51,7 +57,10 @@ typedef enum
     SNAPD_ERROR_TWO_FACTOR_REQUIRED,
     SNAPD_ERROR_TWO_FACTOR_INVALID,
     SNAPD_ERROR_PERMISSION_DENIED,
-    SNAPD_ERROR_FAILED
+    SNAPD_ERROR_FAILED,
+    SNAPD_ERROR_TERMS_NOT_ACCEPTED,
+    SNAPD_ERROR_PAYMENT_NOT_SETUP,
+    SNAPD_ERROR_PAYMENT_DECLINED
 } SnapdError;
 
 /**

@@ -19,7 +19,6 @@
 
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-icon.h>
-#include <snapd-glib/snapd-payment-method.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-task.h>
@@ -320,37 +319,33 @@ gboolean                snapd_client_disable_finish                (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-#ifdef SNAPD_BUY_SUPPORT
-GPtrArray              *snapd_client_get_payment_methods_sync      (SnapdClient          *client,
-                                                                    gboolean             *allows_automatic_payment,
+gboolean                snapd_client_check_buy_sync                (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
-void                    snapd_client_get_payment_methods_async     (SnapdClient          *client,
+void                    snapd_client_check_buy_async               (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-GPtrArray              *snapd_client_get_payment_methods_finish    (SnapdClient          *client,
+gboolean                snapd_client_check_buy_finish              (SnapdClient          *client,
                                                                     GAsyncResult         *result,
-                                                                    gboolean             *allows_automatic_payment,
                                                                     GError              **error);
 
 gboolean                snapd_client_buy_sync                      (SnapdClient          *client,
-                                                                    SnapdSnap            *snap,
-                                                                    SnapdPrice           *price,
-                                                                    SnapdPaymentMethod   *payment_method,
+                                                                    const gchar          *id,
+                                                                    gdouble               amount,
+                                                                    const gchar          *currency,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_buy_async                     (SnapdClient          *client,
-                                                                    SnapdSnap            *snap,
-                                                                    SnapdPrice           *price,                                                                    
-                                                                    SnapdPaymentMethod   *payment_method,
+                                                                    const gchar          *id,
+                                                                    gdouble               amount,
+                                                                    const gchar          *currency,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 gboolean                snapd_client_buy_finish                    (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
-#endif
 
 G_END_DECLS
 

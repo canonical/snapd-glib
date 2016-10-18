@@ -11,9 +11,9 @@ source_h = \
 	snapd-error.h \
 	snapd-icon.h \
 	snapd-login.h \
-	snapd-payment-method.h \
 	snapd-plug.h \
 	snapd-price.h \
+	snapd-screenshot.h \
 	snapd-slot.h \
 	snapd-snap.h \
 	snapd-system-information.h \
@@ -27,9 +27,9 @@ source_c = \
 	snapd-error.c \
 	snapd-icon.c \
 	snapd-login.c \
-	snapd-payment-method.c \
 	snapd-plug.c \
 	snapd-price.c \
+	snapd-screenshot.c \
 	snapd-slot.c \
 	snapd-snap.c \
 	snapd-system-information.c \
@@ -51,6 +51,7 @@ libsnapd_glib_la_CPPFLAGS = \
 	-I$(top_builddir) \
 	$(SNAPD_DEBUG_CFLAGS)
 libsnapd_glib_la_CFLAGS = $(SNAPD_CFLAGS) $(WARN_CFLAGS)
+libsnapd_glib_la_LDFLAGS = -version-info 1:0:0
 libsnapd_glib_la_LIBADD = $(SNAPD_LIBS)
 libsnapd_glib_la_SOURCES = $(source_c) $(source_h) $(BUILT_SOURCES)
 
@@ -69,23 +70,23 @@ pkgconfigdir = $(libdir)/pkgconfig
 -include $(INTROSPECTION_MAKEFILE)
 
 if HAVE_INTROSPECTION
-INTROSPECTION_GIRS = Snapd-0.gir
+INTROSPECTION_GIRS = Snapd-1.gir
 
-Snapd-0.gir: $(snapd_la) Makefile
+Snapd-1.gir: $(snapd_la) Makefile
 
-Snapd_0_gir_NAMESPACE = Snapd
-Snapd_0_gir_VERSION = 0
-Snapd_0_gir_LIBS = $(snapd_la)
-Snapd_0_gir_FILES = $(source_c) $(source_h) snapd-enum-types.h snapd-enum-types.c
-Snapd_0_gir_CFLAGS = -DSNAPD_COMPILATION=1 -I$(top_srcdir) -I$(top_builddir) $(SNAPD_CFLAGS)
-Snapd_0_gir_INCLUDES = GObject-2.0 Gio-2.0
-Snapd_0_gir_SCANNERFLAGS = --warn-all --pkg-export snapd-glib --c-include "snapd-glib/snapd-glib.h"
+Snapd_1_gir_NAMESPACE = Snapd
+Snapd_1_gir_VERSION = 1
+Snapd_1_gir_LIBS = $(snapd_la)
+Snapd_1_gir_FILES = $(source_c) $(source_h) snapd-enum-types.h snapd-enum-types.c
+Snapd_1_gir_CFLAGS = -DSNAPD_COMPILATION=1 -I$(top_srcdir) -I$(top_builddir) $(SNAPD_CFLAGS)
+Snapd_1_gir_INCLUDES = GObject-2.0 Gio-2.0
+Snapd_1_gir_SCANNERFLAGS = --warn-all --pkg-export snapd-glib --c-include "snapd-glib/snapd-glib.h"
 
 girdir = $(datadir)/gir-1.0
-dist_gir_DATA = Snapd-0.gir
+dist_gir_DATA = Snapd-1.gir
 
 typelibsdir = $(libdir)/girepository-1.0/
-typelibs_DATA = Snapd-0.typelib
+typelibs_DATA = Snapd-1.typelib
 
 CLEANFILES += $(dist_gir_DATA) $(typelibs_DATA)
 endif # HAVE_INTROSPECTION

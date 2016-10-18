@@ -62,9 +62,9 @@ snapd_client_enable_finish
 snapd_client_disable_sync
 snapd_client_disable_async
 snapd_client_disable_finish
-snapd_client_get_payment_methods_sync
-snapd_client_get_payment_methods_async
-snapd_client_get_payment_methods_finish
+snapd_client_check_buy_sync
+snapd_client_check_buy_async
+snapd_client_check_buy_finish
 snapd_client_buy_sync
 snapd_client_buy_async
 snapd_client_buy_finish
@@ -127,22 +127,6 @@ SNAPD_TYPE_AUTH_DATA
 </SECTION>
 
 <SECTION>
-<FILE>snapd-payment-method</FILE>
-<TITLE>SnapdPaymentMethod</TITLE>
-snapd_payment_method_get_backend_id
-snapd_payment_method_get_currencies
-snapd_payment_method_get_description
-snapd_payment_method_get_id
-snapd_payment_method_get_preferred
-snapd_payment_method_get_requires_interaction
-SnapdPaymentMethod
-
-<SUBSECTION Private>
-SnapdPaymentMethodClass
-SNAPD_TYPE_PAYMENT_METHOD
-</SECTION>
-
-<SECTION>
 <FILE>snapd-plug</FILE>
 <TITLE>SnapdPlug</TITLE>
 snapd_plug_get_name
@@ -167,6 +151,19 @@ SnapdPrice
 <SUBSECTION Private>
 SnapdPriceClass
 SNAPD_TYPE_PRICE
+</SECTION>
+
+<SECTION>
+<FILE>snapd-screenshot</FILE>
+<TITLE>SnapdScreenshot</TITLE>
+snapd_screenshot_get_url
+snapd_screenshot_get_width
+snapd_screenshot_get_height
+SnapdScreenshot
+
+<SUBSECTION Private>
+SnapdScreenshotClass
+SNAPD_TYPE_SCREENSHOT
 </SECTION>
 
 <SECTION>
@@ -205,6 +202,7 @@ snapd_snap_get_name
 snapd_snap_get_prices
 snapd_snap_get_private
 snapd_snap_get_revision
+snapd_snap_get_screenshots
 snapd_snap_get_snap_type
 snapd_snap_get_status
 snapd_snap_get_summary

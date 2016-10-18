@@ -15,13 +15,12 @@
 #include <libsoup/soup.h>
 #include <json-glib/json-glib.h>
 
-#define SNAPD_BUY_SUPPORT
-
 #include "snapd-client.h"
 #include "snapd-app.h"
 #include "snapd-error.h"
 #include "snapd-login.h"
 #include "snapd-plug.h"
+#include "snapd-screenshot.h"
 #include "snapd-slot.h"
 
 /**
@@ -86,8 +85,8 @@ typedef enum
     SNAPD_REQUEST_DISCONNECT_INTERFACE,
     SNAPD_REQUEST_FIND,
     SNAPD_REQUEST_SIDELOAD_SNAP, // FIXME
-    SNAPD_REQUEST_GET_PAYMENT_METHODS,
-    SNAPD_REQUEST_BUY,
+    SNAPD_REQUEST_CHECK_BUY,
+    SNAPD_REQUEST_BUY,  
     SNAPD_REQUEST_INSTALL,
     SNAPD_REQUEST_REFRESH,
     SNAPD_REQUEST_REMOVE,
@@ -130,8 +129,6 @@ struct _SnapdRequest
     SnapdAuthData *received_auth_data;
     GPtrArray *plugs;
     GPtrArray *slots;
-    gboolean allows_automatic_payment;
-    GPtrArray *methods;
 };
 
 static gboolean
@@ -222,7 +219,6 @@ snapd_request_finalize (GObject *object)
     g_clear_object (&request->received_auth_data);
     g_clear_pointer (&request->plugs, g_ptr_array_unref);
     g_clear_pointer (&request->slots, g_ptr_array_unref);
-    g_clear_pointer (&request->methods, g_ptr_array_unref);
 }
 
 static void
@@ -280,8 +276,9 @@ send_request (SnapdRequest *request, gboolean authorize, const gchar *method, co
         authorization = g_string_new ("");
         g_string_append_printf (authorization, "Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (request->auth_data));
         discharges = snapd_auth_data_get_discharges (request->auth_data);
-        for (i = 0; discharges[i] != NULL; i++)
-            g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
+        if (discharges != NULL)
+            for (i = 0; discharges[i] != NULL; i++)
+                g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
         soup_message_headers_append (headers, "Authorization", authorization->str);
     }
 
@@ -340,17 +337,6 @@ get_string (JsonObject *object, const gchar *name, const gchar *default_value)
     JsonNode *node = json_object_get_member (object, name);
     if (node != NULL && json_node_get_value_type (node) == G_TYPE_STRING)
         return json_node_get_string (node);
-    else
-        return default_value;
-}
-
-static const gdouble
-get_double (JsonObject *object, const gchar *name, gdouble default_value)
-{
-    JsonNode *node = json_object_get_member (object, name);
-    if (node != NULL && json_node_get_value_type (node) == G_TYPE_DOUBLE) {
-        return json_node_get_double (node);
-    }
     else
         return default_value;
 }
@@ -628,9 +614,11 @@ parse_snap (JsonObject *object, GError **error)
     SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;
     g_autoptr(JsonArray) apps = NULL;
     g_autoptr(GDateTime) install_date = NULL;
-    g_autoptr(JsonArray) prices = NULL;
+    JsonObject *prices;
     g_autoptr(GPtrArray) apps_array = NULL;
     g_autoptr(GPtrArray) prices_array = NULL;
+    g_autoptr(JsonArray) screenshots = NULL;
+    g_autoptr(GPtrArray) screenshots_array = NULL;
     guint i;
 
     confinement_string = get_string (object, "confinement", "");
@@ -683,27 +671,55 @@ parse_snap (JsonObject *object, GError **error)
 
     install_date = get_date_time (object, "install-date");
 
-    prices = get_array (object, "prices");
+    prices = get_object (object, "prices");
     prices_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (prices); i++) {
-        JsonNode *node = json_array_get_element (apps, i);
-        JsonObject *p;
-        g_autoptr(SnapdPrice) price = NULL;
+    if (prices != NULL) {
+        JsonObjectIter iter;
+        const gchar *currency;
+        JsonNode *amount_node;
+
+        json_object_iter_init (&iter, prices);
+        while (json_object_iter_next (&iter, &currency, &amount_node)) {
+            g_autoptr(SnapdPrice) price = NULL;
+
+            if (json_node_get_value_type (amount_node) != G_TYPE_DOUBLE) {
+                g_set_error_literal (error,
+                                     SNAPD_ERROR,
+                                     SNAPD_ERROR_READ_FAILED,
+                                     "Unexpected price type");
+                return NULL;
+            }
+
+            price = g_object_new (SNAPD_TYPE_PRICE,
+                                  "amount", json_node_get_double (amount_node),
+                                  "currency", currency,
+                                  NULL);
+            g_ptr_array_add (prices_array, g_steal_pointer (&price));
+        }
+    }
+
+    screenshots = get_array (object, "screenshots");
+    screenshots_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (screenshots); i++) {
+        JsonNode *node = json_array_get_element (screenshots, i);
+        JsonObject *s;
+        g_autoptr(SnapdScreenshot) screenshot = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
                                  SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected price type");
+                                 "Unexpected screenshot type");
             return NULL;
         }
 
-        p = json_node_get_object (node);
-        price = g_object_new (SNAPD_TYPE_PRICE,
-                              "amount", get_double (p, "price", 0.0),
-                              "currency", get_string (p, "currency", NULL),
-                              NULL);
-        g_ptr_array_add (prices_array, g_steal_pointer (&price));
+        s = json_node_get_object (node);
+        screenshot = g_object_new (SNAPD_TYPE_SCREENSHOT,
+                                   "url", get_string (s, "url", NULL),
+                                   "width", get_int (s, "width", 0),
+                                   "height", get_int (s, "height", 0),                              
+                                   NULL);
+        g_ptr_array_add (screenshots_array, g_steal_pointer (&screenshot));
     }
 
     return g_object_new (SNAPD_TYPE_SNAP,
@@ -722,6 +738,7 @@ parse_snap (JsonObject *object, GError **error)
                          "prices", prices_array,
                          "private", get_bool (object, "private", FALSE),
                          "revision", get_string (object, "revision", NULL),
+                         "screenshots", screenshots_array,
                          "snap-type", snap_type,
                          "status", snap_status,
                          "summary", get_string (object, "summary", NULL),
@@ -1285,79 +1302,16 @@ parse_find_response (SnapdRequest *request, SoupMessageHeaders *headers, const g
 }
 
 static void
-parse_get_payment_methods_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_check_buy_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    g_autoptr(JsonObject) response = NULL;
-    gboolean allows_automatic_payment;
-    GPtrArray *payment_methods;
     GError *error = NULL;
-    JsonObject *result;
-    g_autoptr(JsonArray) methods = NULL;
-    guint i;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, NULL, NULL, &error)) {
         snapd_request_complete (request, error);
         return;
     }
 
-    result = get_object (response, "result");
-    if (result == NULL) {
-        error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_FAILED,
-                             "No result returned");
-        snapd_request_complete (request, error);
-        return;
-    }
-
-    allows_automatic_payment = get_bool (result, "allows-automatic-payment", FALSE);
-    payment_methods = g_ptr_array_new_with_free_func (g_object_unref);
-    methods = get_array (result, "methods");
-    for (i = 0; i < json_array_get_length (methods); i++) {
-        JsonNode *node = json_array_get_element (methods, i);
-        JsonObject *object;
-        g_autoptr(JsonArray) currencies = NULL;
-        g_autoptr(GPtrArray) currencies_array = NULL;
-        guint j;
-        SnapdPaymentMethod *payment_method;
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected method type");
-            snapd_request_complete (request, error);
-            return;
-        }
-        object = json_node_get_object (node);
-
-        currencies = get_array (object, "currencies");
-        currencies_array = g_ptr_array_new ();
-        for (j = 0; j < json_array_get_length (currencies); j++) {
-            JsonNode *node = json_array_get_element (currencies, j);
-
-            if (json_node_get_value_type (node) != G_TYPE_STRING) {
-                error = g_error_new (SNAPD_ERROR,
-                                     SNAPD_ERROR_READ_FAILED,
-                                     "Unexpected currency type");
-                snapd_request_complete (request, error);
-                return;
-            }
-
-            g_ptr_array_add (currencies_array, (gchar *) json_node_get_string (node));
-        }
-        g_ptr_array_add (currencies_array, NULL);
-        payment_method = g_object_new (SNAPD_TYPE_PAYMENT_METHOD,
-                                       "backend-id", get_string (object, "backend-id", NULL),
-                                       "currencies", (gchar **) currencies_array->pdata,
-                                       "description", get_string (object, "description", NULL),
-                                       "id", get_int (object, "id", 0),
-                                       "preferred", get_bool (object, "preferred", FALSE),
-                                       "requires-interaction", get_bool (object, "requires-interaction", FALSE),
-                                       NULL);
-        g_ptr_array_add (payment_methods, payment_method);
-    }
-
-    request->allows_automatic_payment = allows_automatic_payment;
-    request->methods = g_steal_pointer (&payment_methods);
+    request->result = TRUE;
     snapd_request_complete (request, NULL);
 }
 
@@ -1462,8 +1416,8 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_FIND:
         parse_find_response (request, headers, content, content_length);
         break;
-    case SNAPD_REQUEST_GET_PAYMENT_METHODS:
-        parse_get_payment_methods_response (request, headers, content, content_length);
+    case SNAPD_REQUEST_CHECK_BUY:
+        parse_check_buy_response (request, headers, content, content_length);
         break;
     case SNAPD_REQUEST_BUY:
         parse_buy_response (request, headers, content, content_length);
@@ -3224,99 +3178,89 @@ snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError *
 }
 
 static SnapdRequest *
-make_get_payment_methods_request (SnapdClient *client,
-                                  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+make_check_buy_request (SnapdClient *client,
+                        GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
 
-    request = make_request (client, SNAPD_REQUEST_GET_PAYMENT_METHODS, NULL, NULL, cancellable, callback, user_data);
-    send_request (request, TRUE, "GET", "/v2/buy/methods", NULL, NULL);
+    request = make_request (client, SNAPD_REQUEST_CHECK_BUY, NULL, NULL, cancellable, callback, user_data);
+    send_request (request, TRUE, "GET", "/v2/buy/ready", NULL, NULL);
 
     return request;
 }
 
 /**
- * snapd_client_get_payment_methods_sync:
+ * snapd_client_check_buy_sync:
  * @client: a #SnapdClient.
- * @allows_automatic_payment: (allow-none): the location to store if automatic payments are allowed or %NULL.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
- * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
  *
- * Get the available payment methods.
+ * Check if able to buy snaps.
  *
- * Returns: (transfer container) (element-type SnapdPaymentMethod): an array of #SnapdPaymentMethod or %NULL on error.
+ * Returns: %TRUE if able to buy snaps or %FALSE on error.
  */
-GPtrArray *
-snapd_client_get_payment_methods_sync (SnapdClient *client,
-                                       gboolean *allows_automatic_payment,
-                                       GCancellable *cancellable, GError **error)
+gboolean
+snapd_client_check_buy_sync (SnapdClient *client,
+                             GCancellable *cancellable, GError **error)
 {
     g_autoptr(SnapdRequest) request = NULL;
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
-    request = g_object_ref (make_get_payment_methods_request (client, cancellable, NULL, NULL));
+    request = g_object_ref (make_check_buy_request (client, cancellable, NULL, NULL));
     snapd_request_wait (request);
-    return snapd_client_get_payment_methods_finish (client, G_ASYNC_RESULT (request), allows_automatic_payment, error);
+    return snapd_client_check_buy_finish (client, G_ASYNC_RESULT (request), error);
 }
 
-
 /**
- * snapd_client_get_payment_methods_async:
+ * snapd_client_check_buy_async:
  * @client: a #SnapdClient.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
  *
- * Asynchronously get the payment methods.
- * See snapd_client_get_payment_methods_sync() for more information.
- *
- * Asynchronously get the available payment methods.
- * See snapd_client_get_payment_methods_sync() for more information.
+ * Asynchronously check if able to buy snaps.
+ * See snapd_client_check_buy_sync() for more information.
  */
 void
-snapd_client_get_payment_methods_async (SnapdClient *client,
-                                        GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+snapd_client_check_buy_async (SnapdClient *client,
+                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
-    make_get_payment_methods_request (client, cancellable, callback, user_data);
+    make_check_buy_request (client, cancellable, callback, user_data);
 }
 
 /**
- * snapd_client_get_payment_methods_finish:
+ * snapd_client_check_buy_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
- * @allows_automatic_payment: (allow-none): location to store %TRUE if automatic
- *     payment is allowed.
- * @error: (allow-none): #GError location to store the error occurring, or %NULL
- *     to ignore.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Complete request started with snapd_client_get_payment_methods_async().
- * See snapd_client_get_payment_methods_sync() for more information.
+ * Complete request started with snapd_client_check_buy_async().
+ * See snapd_client_check_buy_sync() for more information.
  *
- * Returns: (transfer container) (element-type SnapdPaymentMethod): an array of #SnapdPaymentMethod or %NULL on error.
+ * Returns: %TRUE on success or %FALSE on error.
  */
-GPtrArray *
-snapd_client_get_payment_methods_finish (SnapdClient *client, GAsyncResult *result, gboolean *allows_automatic_payment, GError **error)
+gboolean
+snapd_client_check_buy_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdRequest *request;
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
 
     request = SNAPD_REQUEST (result);
-    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_PAYMENT_METHODS, FALSE);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CHECK_BUY, FALSE);
 
     if (snapd_request_set_error (request, error))
-        return NULL;
-    if (allows_automatic_payment)
-        *allows_automatic_payment = request->allows_automatic_payment;
-    return request->methods != NULL ? g_ptr_array_ref (request->methods) : NULL;
+        return FALSE;
+    return request->result;
 }
 
 static SnapdRequest *
 make_buy_request (SnapdClient *client,
-                  SnapdSnap *snap, SnapdPrice *price, SnapdPaymentMethod *payment_method,
+                  const gchar *id, gdouble amount, const gchar *currency,
                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
@@ -3328,23 +3272,17 @@ make_buy_request (SnapdClient *client,
     builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "snap-id");
-    json_builder_add_string_value (builder, snapd_snap_get_id (snap));
+    json_builder_add_string_value (builder, id);
     json_builder_set_member_name (builder, "snap-name");
-    json_builder_add_string_value (builder, snapd_snap_get_name (snap));
+    json_builder_add_string_value (builder, id); // This is unnecessary and will hopefully be removed https://github.com/snapcore/snapd/pull/2158
     json_builder_set_member_name (builder, "price");
-    json_builder_add_double_value (builder, snapd_price_get_amount (price));
+    json_builder_add_double_value (builder, amount);
     json_builder_set_member_name (builder, "currency");
-    json_builder_add_string_value (builder, snapd_price_get_currency (price));
-    if (payment_method != NULL) {
-        json_builder_set_member_name (builder, "backend-id");
-        json_builder_add_string_value (builder, snapd_payment_method_get_backend_id (payment_method));
-        json_builder_set_member_name (builder, "method-id");
-        json_builder_add_int_value (builder, snapd_payment_method_get_id (payment_method));
-    }
+    json_builder_add_string_value (builder, currency);
     json_builder_end_object (builder);
     data = builder_to_string (builder);
 
-    send_request (request, TRUE, "GET", "/v2/buy/methods", "application/json", data);
+    send_request (request, TRUE, "POST", "/v2/buy", "application/json", data);
 
     return request;
 }
@@ -3352,9 +3290,9 @@ make_buy_request (SnapdClient *client,
 /**
  * snapd_client_buy_sync:
  * @client: a #SnapdClient.
- * @snap: snap to buy.
- * @price: price to pay.
- * @payment_method: (allow-none): payment method to use or %NULL to use default.
+ * @id: id of snap to buy.
+ * @amount: amount of currency to spend, e.g. 0.99.
+ * @currency: the currency to buy with as an ISO 4217 currency code, e.g. "NZD".
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
  *     to ignore.
@@ -3366,16 +3304,16 @@ make_buy_request (SnapdClient *client,
  */
 gboolean
 snapd_client_buy_sync (SnapdClient *client,
-                       SnapdSnap *snap, SnapdPrice *price, SnapdPaymentMethod *payment_method,
+                       const gchar *id, gdouble amount, const gchar *currency,
                        GCancellable *cancellable, GError **error)
 {
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
-    g_return_val_if_fail (SNAPD_IS_PRICE (price), FALSE);
+    g_return_val_if_fail (id != NULL, FALSE);
+    g_return_val_if_fail (currency != NULL, FALSE);
 
-    request = g_object_ref (make_buy_request (client, snap, price, payment_method, cancellable, NULL, NULL));
+    request = g_object_ref (make_buy_request (client, id, amount, currency, cancellable, NULL, NULL));
     snapd_request_wait (request);
     return snapd_client_buy_finish (client, G_ASYNC_RESULT (request), error);
 }
@@ -3383,9 +3321,9 @@ snapd_client_buy_sync (SnapdClient *client,
 /**
  * snapd_client_buy_async:
  * @client: a #SnapdClient.
- * @snap: snap to buy.
- * @price: price to pay.
- * @payment_method: (allow-none): payment method to use or %NULL to use default.
+ * @id: id of snap to buy.
+ * @amount: amount of currency to spend, e.g. 0.99.
+ * @currency: the currency to buy with as an ISO 4217 currency code, e.g. "NZD".
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -3395,13 +3333,13 @@ snapd_client_buy_sync (SnapdClient *client,
  */
 void
 snapd_client_buy_async (SnapdClient *client,
-                        SnapdSnap *snap, SnapdPrice *price, SnapdPaymentMethod *payment_method,
+                        const gchar *id, gdouble amount, const gchar *currency,
                         GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
-    g_return_if_fail (SNAPD_IS_SNAP (snap));
-    g_return_if_fail (SNAPD_IS_PRICE (price));
-    make_buy_request (client, snap, price, payment_method, cancellable, callback, user_data);
+    g_return_if_fail (id != NULL);
+    g_return_if_fail (currency != NULL);
+    make_buy_request (client, id, amount, currency, cancellable, callback, user_data);
 }
 
 /**

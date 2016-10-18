@@ -106,13 +106,13 @@ gint64            snapd_snap_get_installed_size (SnapdSnap *snap);
 
 const gchar      *snapd_snap_get_name           (SnapdSnap *snap);
 
-#ifdef SNAPD_BUY_SUPPORT
 GPtrArray        *snapd_snap_get_prices         (SnapdSnap *snap);
-#endif
 
 gboolean          snapd_snap_get_private        (SnapdSnap *snap);
 
 const gchar      *snapd_snap_get_revision       (SnapdSnap *snap);
+
+GPtrArray        *snapd_snap_get_screenshots    (SnapdSnap *snap);
 
 SnapdSnapType     snapd_snap_get_snap_type      (SnapdSnap *snap);
 

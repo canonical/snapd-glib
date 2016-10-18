@@ -57,6 +57,7 @@ G_DEFINE_TYPE (SnapdAuthData, snapd_auth_data, G_TYPE_OBJECT)
 SnapdAuthData *
 snapd_auth_data_new (const gchar *macaroon, gchar **discharges)
 {
+    g_return_val_if_fail (macaroon != NULL, NULL);  
     return g_object_new (SNAPD_TYPE_AUTH_DATA,
                          "macaroon", macaroon,
                          "discharges", discharges,
