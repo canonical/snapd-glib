@@ -22,6 +22,7 @@
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-task.h>
+#include <snapd-glib/snapd-user-information.h>
 
 G_BEGIN_DECLS
 
@@ -58,6 +59,21 @@ typedef enum
     SNAPD_FIND_FLAGS_SELECT_PRIVATE  = 1 << 1,
     SNAPD_FIND_FLAGS_SELECT_REFRESH  = 1 << 2
 } SnapdFindFlags;
+
+/**
+ * SnapdCreateUserFlags:
+ * @SNAPD_CREATE_USER_FLAGS_NONE: No flags, default behaviour.
+ * @SNAPD_CREATE_USER_FLAGS_SUDO: Gives sudo access to created user.
+ * @SNAPD_CREATE_USER_FLAGS_KNOWN: Use the local system-user assertions to create the user.
+ *
+ * Flag to control when a user accounts is created.
+ */
+typedef enum
+{
+    SNAPD_CREATE_USER_FLAGS_NONE  = 0,
+    SNAPD_CREATE_USER_FLAGS_SUDO  = 1 << 0,
+    SNAPD_CREATE_USER_FLAGS_KNOWN = 1 << 1
+} SnapdCreateUserFlags;
 
 /**
  * SnapdProgressCallback:
@@ -344,6 +360,32 @@ void                    snapd_client_buy_async                     (SnapdClient 
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 gboolean                snapd_client_buy_finish                    (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+SnapdUserInformation   *snapd_client_create_user_sync              (SnapdClient          *client,
+                                                                    const gchar          *email,
+                                                                    SnapdCreateUserFlags  flags,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_create_user_async             (SnapdClient          *client,
+                                                                    const gchar          *email,
+                                                                    SnapdCreateUserFlags  flags,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+SnapdUserInformation   *snapd_client_create_user_finish            (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+GPtrArray              *snapd_client_create_users_sync             (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_create_users_async            (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_create_users_finish           (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

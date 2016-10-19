@@ -91,7 +91,9 @@ typedef enum
     SNAPD_REQUEST_REFRESH,
     SNAPD_REQUEST_REMOVE,
     SNAPD_REQUEST_ENABLE,
-    SNAPD_REQUEST_DISABLE
+    SNAPD_REQUEST_DISABLE,
+    SNAPD_REQUEST_CREATE_USER,
+    SNAPD_REQUEST_CREATE_USERS
 } RequestType;
 
 G_DECLARE_FINAL_TYPE (SnapdRequest, snapd_request, SNAPD, REQUEST, GObject)
@@ -129,6 +131,8 @@ struct _SnapdRequest
     SnapdAuthData *received_auth_data;
     GPtrArray *plugs;
     GPtrArray *slots;
+    SnapdUserInformation *user_information;
+    GPtrArray *users_information;
 };
 
 static gboolean
@@ -219,6 +223,8 @@ snapd_request_finalize (GObject *object)
     g_clear_object (&request->received_auth_data);
     g_clear_pointer (&request->plugs, g_ptr_array_unref);
     g_clear_pointer (&request->slots, g_ptr_array_unref);
+    g_clear_object (&request->user_information);
+    g_clear_pointer (&request->users_information, g_ptr_array_unref);  
 }
 
 static void
@@ -1359,6 +1365,101 @@ parse_disable_response (SnapdRequest *request, SoupMessageHeaders *headers, cons
     parse_async_response (request, headers, content, content_length);
 }
 
+static SnapdUserInformation *
+parse_user_information (JsonObject *object, GError **error)
+{
+    g_autoptr(JsonArray) ssh_keys = NULL;
+    g_autoptr(GPtrArray) ssh_key_array = NULL;
+    guint i;
+
+    ssh_keys = get_array (object, "ssh-keys");
+    ssh_key_array = g_ptr_array_new ();
+    for (i = 0; i < json_array_get_length (ssh_keys); i++) {
+        JsonNode *node = json_array_get_element (ssh_keys, i);
+
+        if (json_node_get_value_type (node) != G_TYPE_STRING) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
+                                 "Unexpected SSH key type");
+            return NULL;
+        }
+
+        g_ptr_array_add (ssh_key_array, (gpointer) json_node_get_string (node));
+    }
+    g_ptr_array_add (ssh_key_array, NULL);
+
+    return g_object_new (SNAPD_TYPE_USER_INFORMATION,
+                         "username", get_string (object, "username", NULL),
+                         "ssh-keys", (gchar **) ssh_key_array->pdata,
+                         NULL);
+}
+
+static void
+parse_create_user_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonObject) response = NULL;
+    g_autoptr(JsonObject) result = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
+    GError *error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    result = get_object (response, "result");
+    user_information = parse_user_information (result, &error);
+    if (user_information == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    request->user_information = g_steal_pointer (&user_information);
+    snapd_request_complete (request, NULL);
+}
+
+static void
+parse_create_users_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonObject) response = NULL;
+    g_autoptr(JsonArray) array = NULL;
+    g_autoptr(GPtrArray) users_information = NULL;
+    guint i;
+    GError *error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    array = get_array (response, "result");
+    users_information = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (array); i++) {
+        JsonNode *node = json_array_get_element (array, i);
+        SnapdUserInformation *user_information;
+
+        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
+                                 "Unexpected user information type");
+            snapd_request_complete (request, error);
+            return;
+        }
+
+        user_information = parse_user_information (json_node_get_object (node), &error);
+        if (user_information == NULL) 
+        {
+            snapd_request_complete (request, error);          
+            return;
+        }
+        g_ptr_array_add (users_information, user_information);
+    }
+
+    request->users_information = g_steal_pointer (&users_information);
+    snapd_request_complete (request, NULL);
+}
+
 static SnapdRequest *
 get_next_request (SnapdClient *client)
 {
@@ -1436,6 +1537,12 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         break;
     case SNAPD_REQUEST_DISABLE:
         parse_disable_response (request, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_CREATE_USER:
+        parse_create_user_response (request, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_CREATE_USERS:
+        parse_create_users_response (request, headers, content, content_length);
         break;
     default:
         error = g_error_new (SNAPD_ERROR,
@@ -3367,6 +3474,205 @@ snapd_client_buy_finish (SnapdClient *client, GAsyncResult *result, GError **err
     if (snapd_request_set_error (request, error))
         return FALSE;
     return request->result;
+}
+
+static SnapdRequest *
+make_create_user_request (SnapdClient *client,
+                          const gchar *email, SnapdCreateUserFlags flags,
+                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+    g_autoptr(JsonBuilder) builder = NULL;
+    g_autofree gchar *data = NULL;
+
+    request = make_request (client, SNAPD_REQUEST_CREATE_USER, NULL, NULL, cancellable, callback, user_data);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "email");
+    json_builder_add_string_value (builder, email);
+    if ((flags & SNAPD_CREATE_USER_FLAGS_SUDO) != 0) {
+        json_builder_set_member_name (builder, "sudoers");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+    if ((flags & SNAPD_CREATE_USER_FLAGS_KNOWN) != 0) {  
+        json_builder_set_member_name (builder, "known");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+    json_builder_end_object (builder);
+    data = builder_to_string (builder);
+
+    send_request (request, TRUE, "POST", "/v2/create-user", "application/json", data);
+
+    return request;
+}
+
+/**
+ * snapd_client_create_user_sync:
+ * @client: a #SnapdClient.
+ * @email: the email of the user to create.
+ * @flags: a set of #SnapdCreateUserFlags to control how the user account is created.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Create a local user account for the given user.
+ *
+ * Returns: (transfer full): a #SnapdUserInformation or %NULL on error.
+ */
+SnapdUserInformation *
+snapd_client_create_user_sync (SnapdClient *client,
+                               const gchar *email, SnapdCreateUserFlags flags,
+                               GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (email != NULL, NULL);
+
+    request = g_object_ref (make_create_user_request (client, email, flags, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_create_user_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_create_user_async:
+ * @client: a #SnapdClient.
+ * @email: the email of the user to create.
+ * @flags: a set of #SnapdCreateUserFlags to control how the user account is created.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously create a local user account.
+ * See snapd_client_create_user_sync() for more information.
+ */
+void
+snapd_client_create_user_async (SnapdClient *client,
+                                const gchar *email, SnapdCreateUserFlags flags,
+                                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (email != NULL);
+    make_create_user_request (client, email, flags, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_create_user_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_create_user_async().
+ * See snapd_client_create_user_sync() for more information.
+ *
+ * Returns: (transfer full): a #SnapdUserInformation or %NULL on error.
+ */
+SnapdUserInformation *
+snapd_client_create_user_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CREATE_USER, FALSE);
+
+    if (snapd_request_set_error (request, error))
+        return NULL;
+    return request->user_information;
+}
+
+static SnapdRequest *
+make_create_users_request (SnapdClient *client,
+                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+    g_autoptr(JsonBuilder) builder = NULL;
+    g_autofree gchar *data = NULL;
+
+    request = make_request (client, SNAPD_REQUEST_CREATE_USER, NULL, NULL, cancellable, callback, user_data);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "known");
+    json_builder_add_boolean_value (builder, TRUE);
+    json_builder_end_object (builder);
+    data = builder_to_string (builder);
+
+    send_request (request, TRUE, "POST", "/v2/create-user", "application/json", data);
+
+    return request;
+}
+
+/**
+ * snapd_client_create_users_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Create local user accounts using the system-user assertions that are valid for this device.
+ *
+ * Returns: (transfer container) (element-type SnapdUserInformation): an array of #SnapdUserInformation or %NULL on error.
+ */
+GPtrArray *
+snapd_client_create_users_sync (SnapdClient *client,
+                                GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    request = g_object_ref (make_create_users_request (client, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_create_users_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_create_users_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously create a local user account.
+ * See snapd_client_create_user_sync() for more information.
+ */
+void
+snapd_client_create_users_async (SnapdClient *client,
+                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    make_create_users_request (client, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_create_users_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_create_users_async().
+ * See snapd_client_create_users_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdUserInformation): an array of #SnapdUserInformation or %NULL on error.
+ */
+GPtrArray *
+snapd_client_create_users_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CREATE_USER, FALSE);
+
+    if (snapd_request_set_error (request, error))
+        return NULL;
+    return request->users_information;
 }
 
 /**
