@@ -13,45 +13,32 @@
 
 using namespace Snapd;
 
-struct Snapd::SystemInformationPrivate
+SystemInformation::SystemInformation (QObject *parent, void *snapd_object_) : QObject (parent)
 {
-    SystemInformationPrivate (void *snapd_object)
-    {
-        system_information = SNAPD_SYSTEM_INFORMATION (g_object_ref (snapd_object));
-    }
-  
-    ~SystemInformationPrivate ()
-    {
-        g_object_unref (system_information);
-    }
+    snapd_object = g_object_ref (snapd_object_);
+}
 
-    SnapdSystemInformation *system_information;
-};
-
-SystemInformation::SystemInformation (QObject *parent, void *snapd_object) :
-    QObject (parent),
-    d_ptr (new SystemInformationPrivate (snapd_object)) {}
+SystemInformation::~SystemInformation ()
+{
+    g_object_unref (snapd_object);  
+}
 
 QString SystemInformation::osId ()
 {
-    Q_D(SystemInformation);
-    return snapd_system_information_get_os_id (d->system_information);
+    return snapd_system_information_get_os_id (SNAPD_SYSTEM_INFORMATION (snapd_object));
 }
 
 QString SystemInformation::osVersion ()
 {
-    Q_D(SystemInformation);
-    return snapd_system_information_get_os_version (d->system_information);
+    return snapd_system_information_get_os_version (SNAPD_SYSTEM_INFORMATION (snapd_object));
 }
 
 QString SystemInformation::series ()
 {
-    Q_D(SystemInformation);
-    return snapd_system_information_get_series (d->system_information);
+    return snapd_system_information_get_series (SNAPD_SYSTEM_INFORMATION (snapd_object));
 }
 
 QString SystemInformation::version ()
 {
-    Q_D(SystemInformation);
-    return snapd_system_information_get_version (d->system_information);
+    return snapd_system_information_get_version (SNAPD_SYSTEM_INFORMATION (snapd_object));
 }

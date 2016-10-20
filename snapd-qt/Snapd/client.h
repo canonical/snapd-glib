@@ -18,6 +18,32 @@
 
 namespace Snapd
 {
+class Q_DECL_EXPORT ConnectReply : public Reply
+{
+    Q_OBJECT
+
+public:
+    explicit ConnectReply (QObject *parent = 0, void *snapd_client = 0) : Reply (parent, snapd_client) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+};
+
+class Q_DECL_EXPORT SystemInformationReply : public Reply
+{
+    Q_OBJECT
+
+public:
+    explicit SystemInformationReply (QObject *parent = 0, void *snapd_client = 0) : Reply (parent, snapd_client) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+    SystemInformation *systemInformation ();
+
+private:
+    void *result;
+};
+
 class ClientPrivate;
 
 class Q_DECL_EXPORT Client : public QObject
@@ -26,18 +52,19 @@ class Q_DECL_EXPORT Client : public QObject
 
 public:
     explicit Client (QObject* parent=0);
-    void connectSync ();
-    Snapd::AuthData loginSync (const QString &username, const QString &password, const QString &otp = "");
-    void setAuthData (const Snapd::AuthData& auth_data);
-    Snapd::AuthData authData ();
-    Snapd::SystemInformation getSystemInformationSync ();
-    QList<Snapd::Snap> listSync ();
-    Snapd::Snap listOneSync (const QString &name);
-    Snapd::Icon getIconSync (const QString &name);
+    ConnectReply *connectSync ();
+    AuthData loginSync (const QString &username, const QString &password, const QString &otp = "");
+    void setAuthData (const AuthData& auth_data);
+    AuthData authData ();
+    SystemInformationReply *getSystemInformationSync ();
+    SystemInformationReply *getSystemInformationAsync ();  
+    QList<Snap> listSync ();
+    Snap listOneSync (const QString &name);
+    Icon getIconSync (const QString &name);
     //FIXMEvoid getInterfacesSync (GPtrArray **plugs, GPtrArray **slots);
     /*void connectInterfaceSync (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
     void disconnectInterfaceSync (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
-    QList<Snapd::Snap> findSync (SnapdFindFlags flags, const QString &query, gchar **suggested_currency);
+    QList<Snap> findSync (SnapdFindFlags flags, const QString &query, gchar **suggested_currency);
     void installSync (const QString &name, const QString &channel, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
     void refreshSync (const QString &name, const QString &channel, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
     void removeSync (const QString &name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
@@ -48,7 +75,6 @@ private:
     ClientPrivate *d_ptr;
     Q_DECLARE_PRIVATE(Client)
 };
-
 }
 
 #endif

@@ -34,10 +34,14 @@ Client::Client(QObject *parent) :
 {
 }
 
-void Client::connectSync ()
+ConnectReply *Client::connectSync ()
 {
     Q_D(Client);
-    snapd_client_connect_sync (d->client, NULL, NULL);
+
+    ConnectReply *reply = new ConnectReply (this, d->client);
+    reply->runSync ();
+
+    return reply;
 }
 
 AuthData Client::loginSync (const QString &username, const QString &password, const QString &otp)
@@ -69,17 +73,20 @@ AuthData Client::authData ()
     return AuthData (this, snapd_client_get_auth_data (d->client));
 }
 
-SystemInformation Client::getSystemInformationSync ()
+SystemInformationReply *Client::getSystemInformationSync ()
 {
     Q_D(Client);
 
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    info = snapd_client_get_system_information_sync (d->client, NULL, NULL);
-    if (info == NULL) {
-        // FIXME: Throw exception
-    }
+    SystemInformationReply *reply = new SystemInformationReply (this, d->client);
+    reply->runSync ();
 
-    return SystemInformation (this, info);
+    return reply;
+}
+
+SystemInformationReply *Client::getSystemInformationAsync ()
+{
+    Q_D(Client);
+    return new SystemInformationReply (this, d->client);
 }
 
 QList<Snap> Client::listSync ()
@@ -246,3 +253,41 @@ void Client::disableSync (const QString &name, SnapdProgressCallback progress_ca
         // FIXME: Throw exception
     }
 }*/
+
+void ConnectReply::runSync ()
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_connect_sync (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void ConnectReply::runAsync ()
+{
+    // NOTE: No async method supported
+}
+
+
+void SystemInformationReply::runSync ()
+{
+    g_autoptr(GError) error = NULL;
+    result = snapd_client_get_system_information_sync (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+static void ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    Snapd::SystemInformationReply *reply = (Snapd::SystemInformationReply *) data;
+    g_autoptr(GError) error = NULL;
+    /*reply->result =*/ snapd_client_get_system_information_finish (SNAPD_CLIENT (object), result, &error);
+    /*reply->finish (error);*/
+}
+
+void SystemInformationReply::runAsync ()
+{
+    snapd_client_get_system_information_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), ready_cb, (gpointer) this);
+}
+
+SystemInformation *SystemInformationReply::systemInformation ()
+{
+    return new SystemInformation (parent (), result);
+}
