@@ -11,7 +11,6 @@
 #define SNAPD_SYSTEM_INFORMATION_H
 
 #include <QtCore/QObject>
-#include <Snapd/Reply>
 
 namespace Snapd
 {

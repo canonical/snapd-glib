@@ -7,8 +7,8 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef SNAPD_REPLY_H
-#define SNAPD_REPLY_H
+#ifndef SNAPD_REQUEST_H
+#define SNAPD_REQUEST_H
 
 #include <QtCore/QObject>
 
@@ -33,9 +33,9 @@ enum Error
     PaymentDeclined
 };
 
-struct ReplyPrivate;
+struct RequestPrivate;
   
-class Q_DECL_EXPORT Reply : public QObject
+class Q_DECL_EXPORT Request : public QObject
 {
     Q_OBJECT
 
@@ -43,7 +43,7 @@ class Q_DECL_EXPORT Reply : public QObject
     Q_PROPERTY(QString errorString READ errorString)
 
 public:
-    explicit Reply (void *snapd_client, QObject* parent = 0);
+    explicit Request (void *snapd_client, QObject* parent = 0);
     bool isFinished ();
     Error error ();
     QString errorString ();
@@ -60,8 +60,8 @@ signals:
     void complete ();
 
 private:
-    ReplyPrivate *d_ptr;
-    Q_DECLARE_PRIVATE (Reply);
+    RequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE (Request);
 };
 
 }

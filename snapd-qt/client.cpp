@@ -34,10 +34,10 @@ Client::Client(QObject *parent) :
 {
 }
 
-ConnectReply *Client::connect ()
+ConnectRequest *Client::connect ()
 {
     Q_D(Client);
-    return new ConnectReply (d->client, this);
+    return new ConnectRequest (d->client, this);
 }
 
 AuthData Client::login (const QString &username, const QString &password, const QString &otp)
@@ -69,22 +69,22 @@ AuthData Client::authData ()
     return AuthData (this, snapd_client_get_auth_data (d->client));
 }
 
-SystemInformationReply *Client::getSystemInformation ()
+SystemInformationRequest *Client::getSystemInformation ()
 {
     Q_D(Client);
-    return new SystemInformationReply (d->client, this);
+    return new SystemInformationRequest (d->client, this);
 }
 
-ListReply *Client::list ()
+ListRequest *Client::list ()
 {
     Q_D(Client);
-    return new ListReply (d->client, this);
+    return new ListRequest (d->client, this);
 }
 
-ListOneReply *Client::listOne (const QString &name)
+ListOneRequest *Client::listOne (const QString &name)
 {
     Q_D(Client);
-    return new ListOneReply (name, d->client, this);
+    return new ListOneRequest (name, d->client, this);
 }
 
 Icon Client::getIcon (const QString &name)
@@ -98,6 +98,36 @@ Icon Client::getIcon (const QString &name)
     }
 
     return Icon (this, icon);
+}
+
+InstallRequest *Client::install (const QString &name, const QString& channel)
+{
+    Q_D(Client);
+    return new InstallRequest (name, channel, d->client, this);
+}
+
+RefreshRequest *Client::refresh (const QString &name, const QString& channel)
+{
+    Q_D(Client);
+    return new RefreshRequest (name, channel, d->client, this);
+}
+
+RemoveRequest *Client::remove (const QString &name)
+{
+    Q_D(Client);
+    return new RemoveRequest (name, d->client, this);
+}
+
+EnableRequest *Client::enable (const QString &name)
+{
+    Q_D(Client);
+    return new EnableRequest (name, d->client, this);
+}
+
+DisableRequest *Client::disable (const QString &name)
+{
+    Q_D(Client);
+    return new DisableRequest (name, d->client, this);
 }
 
 /*FIXME
@@ -161,78 +191,21 @@ QList<Snap> Client::find (SnapdFindFlags flags, const QString &query, gchar **su
     }
 
     return result;
-}
-
-void Client::install (const QString &name, const QString &channel, SnapdProgressCallback progress_callback, gpointer progress_callback_data)
-{
-    Q_D(Client);
-    if (!snapd_client_install_sync (d->client,
-                                    name.toLocal8Bit ().data (),
-                                    channel.isEmpty () ? NULL : channel.toLocal8Bit ().data (),                               
-                                    progress_callback, progress_callback_data,
-                                    NULL, NULL)) {
-        // FIXME: Throw exception
-    }
-}
-
-void Client::refresh (const QString &name, const QString &channel, SnapdProgressCallback progress_callback, gpointer progress_callback_data)
-{
-    Q_D(Client);
-    if (!snapd_client_refresh_sync (d->client,
-                                    name.toLocal8Bit ().data (),
-                                    channel.isEmpty () ? NULL : channel.toLocal8Bit ().data (),                               
-                                    progress_callback, progress_callback_data,
-                                    NULL, NULL)) {
-        // FIXME: Throw exception
-    }
-}
-
-void Client::remove (const QString &name, SnapdProgressCallback progress_callback, gpointer progress_callback_data)
-{
-    Q_D(Client);
-    if (!snapd_client_remove_sync (d->client,
-                                   name.toLocal8Bit ().data (),
-                                   progress_callback, progress_callback_data,
-                                   NULL, NULL)) {
-        // FIXME: Throw exception
-    }
-}
-
-void Client::enable (const QString &name, SnapdProgressCallback progress_callback, gpointer progress_callback_data)
-{
-    Q_D(Client);
-    if (!snapd_client_enable_sync (d->client,
-                                   name.toLocal8Bit ().data (),
-                                   progress_callback, progress_callback_data,
-                                   NULL, NULL)) {
-        // FIXME: Throw exception
-    }
-}
-
-void Client::disable (const QString &name, SnapdProgressCallback progress_callback, gpointer progress_callback_data)
-{
-    Q_D(Client);
-    if (!snapd_client_disable_sync (d->client,
-                                    name.toLocal8Bit ().data (),
-                                    progress_callback, progress_callback_data,
-                                    NULL, NULL)) {
-        // FIXME: Throw exception
-    }
 }*/
 
-void ConnectReply::runSync ()
+void ConnectRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
     snapd_client_connect_sync (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
-void ConnectReply::runAsync ()
+void ConnectRequest::runAsync ()
 {
     // NOTE: No async method supported
 }
 
-void SystemInformationReply::runSync ()
+void SystemInformationRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
     result = snapd_client_get_system_information_sync (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), &error);
@@ -241,23 +214,23 @@ void SystemInformationReply::runSync ()
 
 static void system_information_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
 {
-    /*Snapd::SystemInformationReply *reply = (Snapd::SystemInformationReply *) data;
+    /*Snapd::SystemInformationRequest *request = (Snapd::SystemInformationRequest *) data;
     g_autoptr(GError) error = NULL;
-    reply->result = snapd_client_get_system_information_finish (SNAPD_CLIENT (object), result, &error);
-    reply->finish (error);*/
+    request->result = snapd_client_get_system_information_finish (SNAPD_CLIENT (object), result, &error);
+    request->finish (error);*/
 }
 
-void SystemInformationReply::runAsync ()
+void SystemInformationRequest::runAsync ()
 {
     snapd_client_get_system_information_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), system_information_ready_cb, (gpointer) this);
 }
 
-SystemInformation *SystemInformationReply::systemInformation ()
+SystemInformation *SystemInformationRequest::systemInformation ()
 {
     return new SystemInformation (parent (), result);
 }
 
-void ListReply::runSync ()
+void ListRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
     result = snapd_client_list_sync (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), &error);
@@ -266,18 +239,18 @@ void ListReply::runSync ()
 
 static void list_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
 {
-    /*Snapd::ListReply *reply = (Snapd::ListReply *) data;
+    /*Snapd::ListRequest *request = (Snapd::ListRequest *) data;
     g_autoptr(GError) error = NULL;
-    reply->result = snapd_client_list_finish (SNAPD_CLIENT (object), result, &error);
-    reply->finish (error);*/
+    request->result = snapd_client_list_finish (SNAPD_CLIENT (object), result, &error);
+    request->finish (error);*/
 }
 
-void ListReply::runAsync ()
+void ListRequest::runAsync ()
 {
     snapd_client_list_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), list_ready_cb, (gpointer) this);
 }
 
-QList<Snap*> ListReply::snaps ()
+QList<Snap*> ListRequest::snaps ()
 {
     QList<Snap*> snaps;
     GPtrArray *array = (GPtrArray *) result;
@@ -289,7 +262,7 @@ QList<Snap*> ListReply::snaps ()
     return snaps;
 }
 
-void ListOneReply::runSync ()
+void ListOneRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
     result = snapd_client_list_one_sync (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
@@ -298,18 +271,78 @@ void ListOneReply::runSync ()
 
 static void list_one_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
 {
-    /*Snapd::ListOneReply *reply = (Snapd::ListOneReply *) data;
+    /*Snapd::ListOneRequest *request = (Snapd::ListOneRequest *) data;
     g_autoptr(GError) error = NULL;
-    reply->result = snapd_client_list_one_finish (SNAPD_CLIENT (object), result, &error);
-    reply->finish (error);*/
+    request->result = snapd_client_list_one_finish (SNAPD_CLIENT (object), result, &error);
+    request->finish (error);*/
 }
 
-void ListOneReply::runAsync ()
+void ListOneRequest::runAsync ()
 {
     snapd_client_list_one_async (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), list_one_ready_cb, (gpointer) this);
 }
 
-Snap *ListOneReply::snap ()
+Snap *ListOneRequest::snap ()
 {
     return new Snap (result, parent ());
+}
+
+void InstallRequest::runSync ()
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_install_sync (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), channel.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+static void install_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    /*Snapd::InstallRequest *request = (Snapd::InstallRequest *) data;
+    g_autoptr(GError) error = NULL;
+    request->snapd_client_install_finish (SNAPD_CLIENT (object), result, NULL, NULL, &error);
+    request->finish (error);*/
+}
+
+void InstallRequest::runAsync ()
+{
+    snapd_client_install_async (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), channel.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
+}
+
+void RefreshRequest::runSync ()
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_refresh_sync (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), channel.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+static void refresh_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    /*Snapd::RefreshRequest *request = (Snapd::RefreshRequest *) data;
+    g_autoptr(GError) error = NULL;
+    request->snapd_client_refresh_finish (SNAPD_CLIENT (object), result, NULL, NULL, &error);
+    request->finish (error);*/
+}
+
+void RefreshRequest::runAsync ()
+{
+    snapd_client_refresh_async (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), channel.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), refresh_ready_cb, (gpointer) this);
+}
+
+void RemoveRequest::runSync ()
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_remove_sync (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+static void remove_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    /*Snapd::RemoveRequest *request = (Snapd::RemoveRequest *) data;
+    g_autoptr(GError) error = NULL;
+    request->snapd_client_remove_finish (SNAPD_CLIENT (object), result, NULL, NULL, &error);
+    request->finish (error);*/
+}
+
+void RemoveRequest::runAsync ()
+{
+    snapd_client_remove_async (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), remove_ready_cb, (gpointer) this);
 }
