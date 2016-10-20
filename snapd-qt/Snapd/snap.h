@@ -41,7 +41,7 @@ class Q_DECL_EXPORT Snap : public QObject
     Q_PROPERTY(QString version READ version) 
 
 public:
-    explicit Snap (QObject* parent, void* snapd_object);
+    explicit Snap (void* snapd_object, QObject* parent = 0);
     Snap (const Snap&);
 
     // FIXME QList<Snapd::App> apps ();

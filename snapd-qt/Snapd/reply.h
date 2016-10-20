@@ -43,7 +43,7 @@ class Q_DECL_EXPORT Reply : public QObject
     Q_PROPERTY(QString errorString READ errorString)
 
 public:
-    explicit Reply (QObject* parent, void *snapd_client);
+    explicit Reply (void *snapd_client, QObject* parent = 0);
     bool isFinished ();
     Error error ();
     QString errorString ();
@@ -52,8 +52,8 @@ public:
     void cancel ();
 
 protected:
-    void* getClient ();
-    void* getCancellable ();
+    void *getClient ();
+    void *getCancellable ();
     void finish (void *error);
 
 signals:

@@ -28,7 +28,7 @@ struct Snapd::SnapPrivate
     SnapdSnap *snap;
 };
 
-Snap::Snap (QObject *parent, void *snapd_object) :
+Snap::Snap (void *snapd_object, QObject *parent) :
     QObject (parent),
     d_ptr (new SnapPrivate (snapd_object)) {}
 

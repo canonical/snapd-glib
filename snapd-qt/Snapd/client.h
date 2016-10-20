@@ -23,7 +23,7 @@ class Q_DECL_EXPORT ConnectReply : public Reply
     Q_OBJECT
 
 public:
-    explicit ConnectReply (QObject *parent = 0, void *snapd_client = 0) : Reply (parent, snapd_client) {}
+    explicit ConnectReply (void *snapd_client, QObject *parent = 0) : Reply (snapd_client, parent) {}
 
     virtual void runSync ();
     virtual void runAsync ();
@@ -34,14 +34,45 @@ class Q_DECL_EXPORT SystemInformationReply : public Reply
     Q_OBJECT
 
 public:
-    explicit SystemInformationReply (QObject *parent = 0, void *snapd_client = 0) : Reply (parent, snapd_client) {}
+    explicit SystemInformationReply (void *snapd_client, QObject *parent = 0) : Reply (snapd_client, parent) {}
 
     virtual void runSync ();
     virtual void runAsync ();
     SystemInformation *systemInformation ();
 
 private:
-    void *result;
+    void *result; // FIXME: destroy
+};
+
+class Q_DECL_EXPORT ListReply : public Reply
+{
+    Q_OBJECT
+
+public:
+    explicit ListReply (void *snapd_client, QObject *parent = 0) : Reply (snapd_client, parent) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+    QList<Snap*> snaps ();
+
+private:
+    void *result; // FIXME: destroy
+};
+
+class Q_DECL_EXPORT ListOneReply : public Reply
+{
+    Q_OBJECT
+
+public:
+    explicit ListOneReply (const QString& name, void *snapd_client = 0, QObject *parent = 0) : Reply (snapd_client, parent), name (name) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+    Snap *snap ();
+
+private:
+    void *result; // FIXME: destroy
+    QString name;
 };
 
 class ClientPrivate;
@@ -52,15 +83,14 @@ class Q_DECL_EXPORT Client : public QObject
 
 public:
     explicit Client (QObject* parent=0);
-    ConnectReply *connectSync ();
-    AuthData loginSync (const QString &username, const QString &password, const QString &otp = "");
+    ConnectReply *connect ();
+    AuthData login (const QString &username, const QString &password, const QString &otp = "");
     void setAuthData (const AuthData& auth_data);
     AuthData authData ();
-    SystemInformationReply *getSystemInformationSync ();
-    SystemInformationReply *getSystemInformationAsync ();  
-    QList<Snap> listSync ();
-    Snap listOneSync (const QString &name);
-    Icon getIconSync (const QString &name);
+    SystemInformationReply *getSystemInformation ();
+    ListReply *list ();
+    ListOneReply *listOne (const QString &name);
+    Icon getIcon (const QString &name);
     //FIXMEvoid getInterfacesSync (GPtrArray **plugs, GPtrArray **slots);
     /*void connectInterfaceSync (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
     void disconnectInterfaceSync (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
