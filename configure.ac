@@ -51,6 +51,24 @@ if test x"$enable_snapd_qt" != "xno"; then
 fi
 AM_CONDITIONAL(COMPILE_SNAPD_QT, test x"$compile_snapd_qt" != "xno")
 
+AC_ARG_ENABLE(qml-module,
+	AS_HELP_STRING([--enable-qml-module],[Enable QML module [[default=auto]]]),
+	[enable_qml_module=$enableval],
+	[enable_qml_module="auto"])
+compile_qml_module=no
+if test x"$enable_qml_module" != "xno"; then
+    PKG_CHECK_MODULES(QML_MODULE, [
+        Qt5Qml
+    ],
+    [compile_qml_module=yes],
+    [if test "x$enable_qml_module" != xauto; then
+        AC_MSG_FAILURE(
+          [--enable-qml-module was given, but test for QML failed])
+      fi
+    ])
+fi
+AM_CONDITIONAL(COMPILE_QML_MODULE, test x"$compile_qml_module" != "xno")
+
 dnl === Translations ==========================================================
 
 AC_PROG_INTLTOOL()
@@ -101,4 +119,5 @@ echo " • API reference:            ${enable_gtk_doc}"
 echo " • GObject introspection:    ${enable_introspection}"
 echo " • Vala bindings:            ${enable_vala}"
 echo " • snapd-qt:                 ${compile_snapd_qt}"
+echo " • QML module:               ${compile_qml_module}"
 echo ""
