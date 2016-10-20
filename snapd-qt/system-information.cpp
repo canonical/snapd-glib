@@ -13,7 +13,7 @@
 
 using namespace Snapd;
 
-SystemInformation::SystemInformation (QObject *parent, void *snapd_object_) : QObject (parent)
+SystemInformation::SystemInformation (void *snapd_object_, QObject *parent) : QObject (parent)
 {
     snapd_object = g_object_ref (snapd_object_);
 }

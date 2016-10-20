@@ -24,7 +24,7 @@ class Q_DECL_EXPORT SystemInformation : public QObject
     Q_PROPERTY(QString version READ version)          
 
 public:
-    explicit SystemInformation (QObject* parent = 0, void *snapd_object = 0);
+    explicit SystemInformation (void *snapd_object, QObject* parent = 0);
     ~SystemInformation ();
 
     QString osId ();

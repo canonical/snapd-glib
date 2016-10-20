@@ -42,6 +42,7 @@ public:
     SystemInformation *systemInformation ();
 
 private:
+    // FIXME: Not ABI safe - use private object
     void *result; // FIXME: destroy
 };
 
@@ -54,9 +55,10 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    QList<Snap*> snaps ();
+    QList<Snap*> snaps () const;
 
 private:
+    // FIXME: Not ABI safe - use private object
     void *result; // FIXME: destroy
 };
 
@@ -69,11 +71,12 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    Snap *snap ();
+    Snap *snap () const;
 
 private:
-    void *result; // FIXME: destroy
+    // FIXME: Not ABI safe - use private object
     QString name;
+    void *result; // FIXME: destroy
 };
 
 class Q_DECL_EXPORT IconRequest : public Request
@@ -85,11 +88,12 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    Snap *snap ();
+    Icon *icon () const;
 
 private:
-    void *result; // FIXME: destroy
+    // FIXME: Not ABI safe - use private object
     QString name;
+    void *result; // FIXME: destroy
 };
   
 enum FindFlags 
@@ -105,15 +109,19 @@ class Q_DECL_EXPORT FindRequest : public Request
     Q_OBJECT
 
 public:
-    explicit FindRequest (FindFlags flags, const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name) {}
+    explicit FindRequest (FindFlags flags, const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), flags (flags), name (name) {}
 
     virtual void runSync ();
     virtual void runAsync ();
-    Snap *snap ();
+    QList<Snap*> snaps () const;
+    const QString suggestedCurrency () const;
 
 private:
-    void *result; // FIXME: destroy
+    // FIXME: Not ABI safe - use private object
+    FindFlags flags;
     QString name;
+    void *result; // FIXME: destroy
+    QString suggestedCurrency_;
 };
 
 class Q_DECL_EXPORT InstallRequest : public Request
@@ -125,9 +133,9 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    Snap *snap ();
 
 private:
+    // FIXME: Not ABI safe - use private object
     QString name;
     QString channel;
 };
@@ -141,9 +149,9 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    Snap *snap ();
 
 private:
+    // FIXME: Not ABI safe - use private object
     QString name;
     QString channel;
 };
@@ -157,9 +165,9 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    Snap *snap ();
 
 private:
+    // FIXME: Not ABI safe - use private object
     QString name;
 };
 
@@ -172,9 +180,9 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    Snap *snap ();
 
 private:
+    // FIXME: Not ABI safe - use private object
     QString name;
 };
 
@@ -187,9 +195,9 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    Snap *snap ();
 
 private:
+    // FIXME: Not ABI safe - use private object
     QString name;
 };
 

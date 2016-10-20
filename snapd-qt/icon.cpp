@@ -28,7 +28,7 @@ struct Snapd::IconPrivate
     SnapdIcon *icon;
 };
 
-Icon::Icon (QObject *parent, void *snapd_object) :
+Icon::Icon (void *snapd_object, QObject *parent) :
     QObject (parent),
     d_ptr (new IconPrivate (snapd_object))
 {

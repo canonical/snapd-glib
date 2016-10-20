@@ -24,7 +24,7 @@ class Q_DECL_EXPORT Icon : public QObject
     Q_PROPERTY(QByteArray data READ data)
 
 public:
-    explicit Icon (QObject* parent, void* snapd_object);
+    explicit Icon (void* snapd_object, QObject* parent = 0);
     Icon (const Icon&);
 
     QString mime_type ();
