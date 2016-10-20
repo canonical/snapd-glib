@@ -166,8 +166,12 @@ static void
 snapd_request_wait (SnapdRequest *request)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
-    GMainContext *context = g_source_get_context (priv->read_source);
+    GMainContext *context;
 
+    if (priv->read_source == NULL)
+        return;
+
+    context = g_source_get_context (priv->read_source);
     while (!request->completed)
         g_main_context_iteration (context, TRUE);
 }
