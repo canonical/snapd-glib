@@ -87,17 +87,16 @@ ListOneRequest *Client::listOne (const QString &name)
     return new ListOneRequest (name, d->client, this);
 }
 
-Icon Client::getIcon (const QString &name)
+IconRequest *Client::getIcon (const QString &name)
 {
     Q_D(Client);
+    return new IconRequest (name, d->client, this);
+}
 
-    g_autoptr(SnapdIcon) icon = NULL;
-    icon = snapd_client_get_icon_sync (d->client, name.toLocal8Bit ().data (), NULL, NULL);
-    if (icon == NULL) {
-        // FIXME: Throw exception
-    }
-
-    return Icon (this, icon);
+FindRequest *Client::find (FindFlags flags, const QString &name)
+{
+    Q_D(Client);
+    return new FindRequest (flags, name, d->client, this);
 }
 
 InstallRequest *Client::install (const QString &name, const QString& channel)

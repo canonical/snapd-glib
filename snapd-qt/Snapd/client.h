@@ -76,6 +76,46 @@ private:
     QString name;
 };
 
+class Q_DECL_EXPORT IconRequest : public Request
+{
+    Q_OBJECT
+
+public:
+    explicit IconRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+    Snap *snap ();
+
+private:
+    void *result; // FIXME: destroy
+    QString name;
+};
+  
+enum FindFlags 
+{
+    None          = 0,
+    MatchName     = 1 << 0,
+    SelectPrivate = 1 << 1,
+    SelectRefresh = 1 << 2     
+};
+
+class Q_DECL_EXPORT FindRequest : public Request
+{
+    Q_OBJECT
+
+public:
+    explicit FindRequest (FindFlags flags, const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+    Snap *snap ();
+
+private:
+    void *result; // FIXME: destroy
+    QString name;
+};
+
 class Q_DECL_EXPORT InstallRequest : public Request
 {
     Q_OBJECT
@@ -168,11 +208,11 @@ public:
     SystemInformationRequest *getSystemInformation ();
     ListRequest *list ();
     ListOneRequest *listOne (const QString &name);
-    Icon getIcon (const QString &name);
+    IconRequest *getIcon (const QString &name);
     //FIXMEvoid getInterfaces (GPtrArray **plugs, GPtrArray **slots);
     /*void connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
-    void disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
-    QList<Snap> find (SnapdFindFlags flags, const QString &query, gchar **suggested_currency);*/
+    void disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);*/
+    FindRequest *find (FindFlags flags, const QString &query);
     InstallRequest *install (const QString &name, const QString &channel);
     RefreshRequest *refresh (const QString &name, const QString &channel);
     RemoveRequest *remove (const QString &name);
