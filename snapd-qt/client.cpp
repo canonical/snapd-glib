@@ -40,33 +40,15 @@ ConnectRequest *Client::connect ()
     return new ConnectRequest (d->client);
 }
 
-AuthData Client::login (const QString &username, const QString &password, const QString &otp)
+LoginRequest *login (const QString& username, const QString& password, const QString& otp)
 {
-    Q_D(Client);
-
-    g_autoptr(SnapdAuthData) auth_data = NULL;
-    auth_data = snapd_client_login_sync (d->client,
-                                         username.toLocal8Bit ().data (),
-                                         password.toLocal8Bit ().data (),
-                                         otp.isEmpty () ? NULL : otp.toLocal8Bit ().data (),
-                                         NULL, NULL);
-
-    return AuthData (this, auth_data);
+    return new LoginRequest (NULL, username, password, otp);
 }
 
-void Client::setAuthData (const AuthData& auth_data)
+LoginRequest *Client::login (const QString& username, const QString& password, const QString& otp)
 {
     Q_D(Client);
-
-    // FIXME: populate data fields
-    g_autoptr(SnapdAuthData) value = snapd_auth_data_new ("", NULL);
-    snapd_client_set_auth_data (d->client, value);
-}
-
-AuthData Client::authData ()
-{
-    Q_D(Client);
-    return AuthData (this, snapd_client_get_auth_data (d->client));
+    return new LoginRequest (d->client, username, password, otp);
 }
 
 SystemInformationRequest *Client::getSystemInformation ()
@@ -202,6 +184,32 @@ void ConnectRequest::runSync ()
 void ConnectRequest::runAsync ()
 {
     // NOTE: No async method supported
+}
+
+void LoginRequest::runSync ()
+{
+    g_autoptr(GError) error = NULL;
+    if (getClient () != NULL)
+        snapd_client_login_sync (SNAPD_CLIENT (getClient ()), username.toStdString ().c_str (), password.toStdString ().c_str (), otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+    else
+        snapd_login_sync (username.toStdString ().c_str (), password.toStdString ().c_str (), otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);  
+    finish (error);
+}
+
+static void login_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    /*Snapd::LoginRequest *request = (Snapd::LoginRequest *) data;
+    g_autoptr(GError) error = NULL;
+    request->result = snapd_client_get_login_finish (SNAPD_CLIENT (object), result, &error);
+    request->finish (error);*/
+}
+
+void LoginRequest::runAsync ()
+{
+    if (getClient () != NULL)
+        snapd_client_login_async (SNAPD_CLIENT (getClient ()), username.toStdString ().c_str (), password.toStdString ().c_str (), otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), login_ready_cb, (gpointer) this);
+    else
+        snapd_login_async (username.toStdString ().c_str (), password.toStdString ().c_str (), otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), login_ready_cb, (gpointer) this);
 }
 
 void SystemInformationRequest::runSync ()

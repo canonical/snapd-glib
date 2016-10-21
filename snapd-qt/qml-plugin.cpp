@@ -14,5 +14,5 @@
 void SnapdQmlPlugin::registerTypes(const char *uri) 
 {
     Q_ASSERT(uri == QLatin1String("Snapd"));
-    qmlRegisterType<Snapd::Client>(uri, 1, 0, "Client");
+    qmlRegisterType<Snapd::Client>(uri, 1, 0, "SnapdClient");
 }

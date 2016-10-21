@@ -30,6 +30,24 @@ public:
     virtual void runAsync ();
 };
 
+class Q_DECL_EXPORT LoginRequest : public Request
+{
+    Q_OBJECT
+
+public:
+    explicit LoginRequest (void *snapd_client, const QString& username, const QString& password, const QString& otp, QObject *parent = 0) : Request (snapd_client, parent), username (username), password (password), otp (otp) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+
+private:
+    // FIXME: Not ABI safe - use private object
+    QString username;
+    QString password;
+    QString otp;
+    void *result; // FIXME: destroy
+};
+
 class Q_DECL_EXPORT SystemInformationRequest : public Request
 {
     Q_OBJECT
@@ -202,6 +220,8 @@ private:
 };
 
 class ClientPrivate;
+  
+Q_INVOKABLE LoginRequest *login (const QString& username, const QString& password, const QString& otp);  
 
 class Q_DECL_EXPORT Client : public QObject
 {
@@ -209,23 +229,21 @@ class Q_DECL_EXPORT Client : public QObject
 
 public:
     explicit Client (QObject* parent=0);
-    ConnectRequest *connect ();
-    AuthData login (const QString &username, const QString &password, const QString &otp = "");
-    void setAuthData (const AuthData& auth_data);
-    AuthData authData ();
-    SystemInformationRequest *getSystemInformation ();
-    ListRequest *list ();
-    ListOneRequest *listOne (const QString &name);
-    IconRequest *getIcon (const QString &name);
+    Q_INVOKABLE ConnectRequest *connect ();
+    Q_INVOKABLE LoginRequest *login (const QString& username, const QString& password, const QString& otp);
+    Q_INVOKABLE SystemInformationRequest *getSystemInformation ();
+    Q_INVOKABLE ListRequest *list ();
+    Q_INVOKABLE ListOneRequest *listOne (const QString &name);
+    Q_INVOKABLE IconRequest *getIcon (const QString &name);
     //FIXMEvoid getInterfaces (GPtrArray **plugs, GPtrArray **slots);
     /*void connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
     void disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);*/
-    FindRequest *find (FindFlags flags, const QString &query);
-    InstallRequest *install (const QString &name, const QString &channel);
-    RefreshRequest *refresh (const QString &name, const QString &channel);
-    RemoveRequest *remove (const QString &name);
-    EnableRequest *enable (const QString &name);
-    DisableRequest *disable (const QString &name);
+    Q_INVOKABLE FindRequest *find (FindFlags flags, const QString &query);
+    Q_INVOKABLE InstallRequest *install (const QString &name, const QString &channel);
+    Q_INVOKABLE RefreshRequest *refresh (const QString &name, const QString &channel);
+    Q_INVOKABLE RemoveRequest *remove (const QString &name);
+    Q_INVOKABLE EnableRequest *enable (const QString &name);
+    Q_INVOKABLE DisableRequest *disable (const QString &name);
 
 private:
     ClientPrivate *d_ptr;
