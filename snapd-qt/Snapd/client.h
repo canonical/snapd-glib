@@ -73,7 +73,7 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    QList<Snap*> snaps () const;
+    Q_INVOKABLE QList<Snap*> snaps () const;
 
 private:
     // FIXME: Not ABI safe - use private object
@@ -89,7 +89,7 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    Snap *snap () const;
+    Q_INVOKABLE Snap *snap () const;
 
 private:
     // FIXME: Not ABI safe - use private object
@@ -125,13 +125,14 @@ enum FindFlags
 class Q_DECL_EXPORT FindRequest : public Request
 {
     Q_OBJECT
+    Q_PROPERTY(QString suggestedCurrency READ suggestedCurrency)
 
 public:
     explicit FindRequest (FindFlags flags, const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), flags (flags), name (name) {}
 
     virtual void runSync ();
     virtual void runAsync ();
-    QList<Snap*> snaps () const;
+    Q_INVOKABLE QList<Snap*> snaps () const;
     const QString suggestedCurrency () const;
 
 private:

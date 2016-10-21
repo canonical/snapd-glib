@@ -28,10 +28,23 @@ struct Snapd::AuthDataPrivate
     SnapdAuthData *auth_data;
 };
 
-AuthData::AuthData (QObject *parent, void *snapd_object) :
+AuthData::AuthData (void *snapd_object, QObject *parent) :
     QObject (parent),
     d_ptr (new AuthDataPrivate (snapd_object))
 {
+}
+
+AuthData::AuthData (const QString& macaroon, const QStringList& discharges, QObject *parent) :
+    QObject (parent),
+    d_ptr (new AuthDataPrivate (NULL))
+{
+    Q_D(AuthData);
+    char *strv[discharges.size () + 1];
+    int i;
+    for (i = 0; i < discharges.size (); i++)
+        strv[i] = (char *) discharges.at (i).toStdString ().c_str ();
+    strv[i] = NULL;
+    d->auth_data = snapd_auth_data_new (macaroon.toStdString ().c_str (), strv);
 }
 
 QString AuthData::macaroon ()

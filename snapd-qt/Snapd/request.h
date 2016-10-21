@@ -39,6 +39,7 @@ class Q_DECL_EXPORT Request : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(bool isFinished READ isFinished)
     Q_PROPERTY(Error error READ error)
     Q_PROPERTY(QString errorString READ errorString)
 
@@ -47,9 +48,9 @@ public:
     bool isFinished ();
     Error error ();
     QString errorString ();
-    virtual void runSync () = 0;
-    virtual void runAsync () = 0;
-    void cancel ();
+    Q_INVOKABLE virtual void runSync () = 0;
+    Q_INVOKABLE virtual void runAsync () = 0;
+    Q_INVOKABLE void cancel ();
 
 protected:
     void *getClient ();

@@ -24,8 +24,9 @@ class Q_DECL_EXPORT AuthData : public QObject
     Q_PROPERTY(QStringList discharges READ discharges)
 
 public:
-    explicit AuthData (QObject* parent, void* snapd_object);
-    AuthData (const AuthData&);
+    explicit AuthData (void* snapd_object, QObject* parent = 0);
+    explicit AuthData (const QString& macaroon, const QStringList& discharges, QObject* parent = 0);  
+    explicit AuthData (QObject* parent = 0);    
 
     QString macaroon ();
     QStringList discharges ();
