@@ -13,28 +13,8 @@
 
 using namespace Snapd;
 
-struct Snapd::SnapPrivate
-{
-    SnapPrivate (void *snapd_object)
-    {
-        snap = SNAPD_SNAP (g_object_ref (snapd_object));
-    }
-
-    ~SnapPrivate ()
-    {
-        g_object_unref (snap);
-    }
-
-    SnapdSnap *snap;
-};
-
 Snap::Snap (void *snapd_object, QObject *parent) :
-    QObject (parent),
-    d_ptr (new SnapPrivate (snapd_object)) {}
-
-Snap::Snap (const Snap& copy) :
-    QObject (copy.parent ()),
-    d_ptr (new SnapPrivate (copy.d_ptr->snap)) {}
+    WrappedObject (snapd_object, g_object_unref, parent) {}
 
 /* FIXME
 QList<Snapd::App> Snap::apps ()
@@ -43,8 +23,7 @@ QList<Snapd::App> Snap::apps ()
 
 QString Snap::channel ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_channel (d->snap);
+    return snapd_snap_get_channel (SNAPD_SNAP (wrapped_object));
 }
 
 /* FIXME
@@ -54,38 +33,32 @@ Snapd::Confinement Snap::confinement ()
 
 QString Snap::description ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_description (d->snap);
+    return snapd_snap_get_description (SNAPD_SNAP (wrapped_object));
 }
 
 QString Snap::developer ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_developer (d->snap);
+    return snapd_snap_get_developer (SNAPD_SNAP (wrapped_object));
 }
 
 bool Snap::devmode ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_devmode (d->snap);
+    return snapd_snap_get_devmode (SNAPD_SNAP (wrapped_object));
 }
 
 qint64 Snap::downloadSize ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_download_size (d->snap);
+    return snapd_snap_get_download_size (SNAPD_SNAP (wrapped_object));
 }
 
 QString Snap::icon ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_icon (d->snap);
+    return snapd_snap_get_icon (SNAPD_SNAP (wrapped_object));
 }
 
 QString Snap::id ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_id (d->snap);
+    return snapd_snap_get_id (SNAPD_SNAP (wrapped_object));
 }
 
 /* FIXME
@@ -95,26 +68,22 @@ GDateTime Snap::installDate ()
 
 qint64 Snap::installedSize ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_installed_size (d->snap);
+    return snapd_snap_get_installed_size (SNAPD_SNAP (wrapped_object));
 }
 
 QString Snap::name ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_name (d->snap);
+    return snapd_snap_get_name (SNAPD_SNAP (wrapped_object));
 }
 
 bool Snap::isPrivate ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_private (d->snap);
+    return snapd_snap_get_private (SNAPD_SNAP (wrapped_object));
 }
 
 QString Snap::revision ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_revision (d->snap);
+    return snapd_snap_get_revision (SNAPD_SNAP (wrapped_object));
 }
 
 /* FIXME
@@ -129,18 +98,15 @@ Snapd::SnapStatus Snap::status ()
 
 QString Snap::summary ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_summary (d->snap);
+    return snapd_snap_get_summary (SNAPD_SNAP (wrapped_object));
 }
 
 bool Snap::trymode ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_trymode (d->snap);
+    return snapd_snap_get_trymode (SNAPD_SNAP (wrapped_object));
 }
 
 QString Snap::version ()
 {
-    Q_D(Snap);
-    return snapd_snap_get_version (d->snap);
+    return snapd_snap_get_version (SNAPD_SNAP (wrapped_object));
 }

@@ -11,10 +11,11 @@
 #define SNAPD_SYSTEM_INFORMATION_H
 
 #include <QtCore/QObject>
+#include <Snapd/WrappedObject>
 
 namespace Snapd
 {
-class Q_DECL_EXPORT SystemInformation : public QObject
+class Q_DECL_EXPORT SystemInformation : public WrappedObject
 {
     Q_OBJECT
 
@@ -25,15 +26,11 @@ class Q_DECL_EXPORT SystemInformation : public QObject
 
 public:
     explicit SystemInformation (void *snapd_object, QObject* parent = 0);
-    ~SystemInformation ();
 
     QString osId ();
     QString osVersion ();
     QString series ();
     QString version ();
-
-private:
-    void *snapd_object;
 };
 }
 

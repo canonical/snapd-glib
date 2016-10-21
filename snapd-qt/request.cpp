@@ -86,3 +86,9 @@ QString Request::errorString ()
     Q_D(Request);
     return d->errorString;
 }
+
+void Request::cancel ()
+{
+    Q_D(Request);
+    g_cancellable_cancel (d->cancellable);
+}

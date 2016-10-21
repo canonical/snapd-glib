@@ -11,12 +11,11 @@
 #define SNAPD_SNAP_H
 
 #include <QtCore/QObject>
+#include <Snapd/WrappedObject>
 
 namespace Snapd
 {
-struct SnapPrivate;
-
-class Q_DECL_EXPORT Snap : public QObject
+class Q_DECL_EXPORT Snap : public WrappedObject
 {
     Q_OBJECT
 
@@ -42,7 +41,6 @@ class Q_DECL_EXPORT Snap : public QObject
 
 public:
     explicit Snap (void* snapd_object, QObject* parent = 0);
-    Snap (const Snap&);
 
     // FIXME QList<Snapd::App> apps ();
     QString channel ();
@@ -63,10 +61,6 @@ public:
     QString summary ();
     bool trymode ();
     QString version (); 
-
-private:
-    SnapPrivate *d_ptr;
-    Q_DECLARE_PRIVATE (Snap);
 };
 
 }

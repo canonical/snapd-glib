@@ -2,13 +2,14 @@ pkgconfig_DATA = snapd-qt.pc
 pkgconfigdir = $(libdir)/pkgconfig
 
 source_cpp = auth-data.cpp client.cpp icon.cpp request.cpp snap.cpp system-information.cpp
-source_moc = $(source_cpp:.cpp=_moc.cpp)
 source_h = Snapd/AuthData Snapd/auth-data.h \
            Snapd/Client Snapd/client.h \
            Snapd/Icon Snapd/icon.h \
            Snapd/Request Snapd/request.h \
            Snapd/Snap Snapd/snap.h \
-           Snapd/SystemInformation Snapd/system-information.h
+           Snapd/SystemInformation Snapd/system-information.h \
+           Snapd/WrappedObject Snapd/wrapped-object.h
+source_moc = $(source_cpp:.cpp=_moc.cpp) wrapped-object_moc.cpp
 
 %_moc.cpp: Snapd/%.h
 	$(AM_V_GEN) moc --qt=qt5 $< -o $@

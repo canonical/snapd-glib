@@ -12,28 +12,23 @@
 
 #include <QtCore/QObject>
 #include <QStringList>
+#include <Snapd/WrappedObject>
 
 namespace Snapd
 {
-struct AuthDataPrivate;
-
-class Q_DECL_EXPORT AuthData : public QObject
+class Q_DECL_EXPORT AuthData : public WrappedObject
 {
     Q_OBJECT
     Q_PROPERTY(QString macaroon READ macaroon)
     Q_PROPERTY(QStringList discharges READ discharges)
 
 public:
-    explicit AuthData (void* snapd_object, QObject* parent = 0);
+    explicit AuthData (void *snapd_object, QObject* parent = 0);
     explicit AuthData (const QString& macaroon, const QStringList& discharges, QObject* parent = 0);  
     explicit AuthData (QObject* parent = 0);    
 
     QString macaroon ();
     QStringList discharges ();
-
-private:
-    AuthDataPrivate *d_ptr;
-    Q_DECLARE_PRIVATE (AuthData);
 };
 
 }

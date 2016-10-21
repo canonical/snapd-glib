@@ -13,37 +13,16 @@
 
 using namespace Snapd;
 
-struct Snapd::IconPrivate
-{
-    IconPrivate (void *snapd_object)
-    {
-        icon = SNAPD_ICON (g_object_ref (snapd_object));
-    }
-  
-    ~IconPrivate ()
-    {
-        g_object_unref (icon);
-    }
-
-    SnapdIcon *icon;
-};
-
-Icon::Icon (void *snapd_object, QObject *parent) :
-    QObject (parent),
-    d_ptr (new IconPrivate (snapd_object))
-{
-}
+Icon::Icon (void *snapd_object, QObject *parent) : WrappedObject (snapd_object, g_object_unref, parent) {}
 
 QString Icon::mime_type ()
 {
-    Q_D(Icon);
-    return snapd_icon_get_mime_type (d->icon);
+    return snapd_icon_get_mime_type (SNAPD_ICON (wrapped_object));
 }
 
 QByteArray Icon::data ()
 {
-    Q_D(Icon);
-    GBytes *data = snapd_icon_get_data (d->icon);
+    GBytes *data = snapd_icon_get_data (SNAPD_ICON (wrapped_object));
     gsize length;
     gchar *raw_data = (gchar *) g_bytes_get_data (data, &length);
     return QByteArray::fromRawData (raw_data, length);

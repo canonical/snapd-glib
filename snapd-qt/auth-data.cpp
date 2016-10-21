@@ -13,50 +13,28 @@
 
 using namespace Snapd;
 
-struct Snapd::AuthDataPrivate
-{
-    AuthDataPrivate (void *snapd_object)
-    {
-        auth_data = SNAPD_AUTH_DATA (g_object_ref (snapd_object));
-    }
-  
-    ~AuthDataPrivate ()
-    {
-        g_object_unref (auth_data);
-    }
-
-    SnapdAuthData *auth_data;
-};
-
 AuthData::AuthData (void *snapd_object, QObject *parent) :
-    QObject (parent),
-    d_ptr (new AuthDataPrivate (snapd_object))
-{
-}
+    WrappedObject (snapd_object, g_object_unref, parent) {}
 
 AuthData::AuthData (const QString& macaroon, const QStringList& discharges, QObject *parent) :
-    QObject (parent),
-    d_ptr (new AuthDataPrivate (NULL))
+    WrappedObject (NULL, g_object_unref, parent)
 {
-    Q_D(AuthData);
     char *strv[discharges.size () + 1];
     int i;
     for (i = 0; i < discharges.size (); i++)
         strv[i] = (char *) discharges.at (i).toStdString ().c_str ();
     strv[i] = NULL;
-    d->auth_data = snapd_auth_data_new (macaroon.toStdString ().c_str (), strv);
+    wrapped_object = snapd_auth_data_new (macaroon.toStdString ().c_str (), strv);
 }
 
 QString AuthData::macaroon ()
 {
-    Q_D(AuthData);
-    return snapd_auth_data_get_macaroon (d->auth_data);
+    return snapd_auth_data_get_macaroon (SNAPD_AUTH_DATA (wrapped_object));
 }
 
 QStringList AuthData::discharges ()
 {
-    Q_D(AuthData);
-    gchar **discharges = snapd_auth_data_get_discharges (d->auth_data);
+    gchar **discharges = snapd_auth_data_get_discharges (SNAPD_AUTH_DATA (wrapped_object));
     QStringList result;
     for (int i = 0; discharges[i] != NULL; i++)
         result.append (discharges[i]);

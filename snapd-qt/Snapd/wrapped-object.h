@@ -7,26 +7,29 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef SNAPD_ICON_H
-#define SNAPD_ICON_H
+#ifndef SNAPD_WRAPPED_OBJECT_H
+#define SNAPD_WRAPPED_OBJECT_H
 
 #include <QtCore/QObject>
-#include <Snapd/WrappedObject>
 
 namespace Snapd
 {
-class Q_DECL_EXPORT Icon : public WrappedObject
+class Q_DECL_EXPORT WrappedObject : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QString mime_type READ mime_type)
-    Q_PROPERTY(QByteArray data READ data)
-
 public:
-    explicit Icon (void* snapd_object, QObject* parent = 0);
+    explicit WrappedObject (void* object, void (*unref_func)(void *), QObject *parent = 0) : QObject (parent), wrapped_object (object), unref_func (unref_func) {}
+    ~WrappedObject () 
+    {
+        unref_func (wrapped_object);
+    }
 
-    QString mime_type ();
-    QByteArray data ();
+protected:
+    void *wrapped_object;
+
+private:
+    void (*unref_func)(void *);
 };
 
 }

@@ -13,32 +13,24 @@
 
 using namespace Snapd;
 
-SystemInformation::SystemInformation (void *snapd_object_, QObject *parent) : QObject (parent)
-{
-    snapd_object = g_object_ref (snapd_object_);
-}
-
-SystemInformation::~SystemInformation ()
-{
-    g_object_unref (snapd_object);  
-}
+SystemInformation::SystemInformation (void *snapd_object, QObject *parent) : WrappedObject (snapd_object, g_object_unref, parent) {}
 
 QString SystemInformation::osId ()
 {
-    return snapd_system_information_get_os_id (SNAPD_SYSTEM_INFORMATION (snapd_object));
+    return snapd_system_information_get_os_id (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
 QString SystemInformation::osVersion ()
 {
-    return snapd_system_information_get_os_version (SNAPD_SYSTEM_INFORMATION (snapd_object));
+    return snapd_system_information_get_os_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
 QString SystemInformation::series ()
 {
-    return snapd_system_information_get_series (SNAPD_SYSTEM_INFORMATION (snapd_object));
+    return snapd_system_information_get_series (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
 QString SystemInformation::version ()
 {
-    return snapd_system_information_get_version (SNAPD_SYSTEM_INFORMATION (snapd_object));
+    return snapd_system_information_get_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
