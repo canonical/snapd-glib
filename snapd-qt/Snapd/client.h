@@ -113,8 +113,8 @@ private:
     QString name;
     void *result; // FIXME: destroy
 };
-  
-enum FindFlags 
+
+enum FindFlags
 {
     None          = 0,
     MatchName     = 1 << 0,
@@ -230,21 +230,21 @@ class Q_DECL_EXPORT Client : public QObject
 
 public:
     explicit Client (QObject* parent=0);
-    Q_INVOKABLE ConnectRequest *connect ();
-    Q_INVOKABLE LoginRequest *login (const QString& username, const QString& password, const QString& otp);
-    Q_INVOKABLE SystemInformationRequest *getSystemInformation ();
-    Q_INVOKABLE ListRequest *list ();
-    Q_INVOKABLE ListOneRequest *listOne (const QString &name);
-    Q_INVOKABLE IconRequest *getIcon (const QString &name);
+    Q_INVOKABLE Snapd::ConnectRequest *connect ();
+    Q_INVOKABLE Snapd::LoginRequest *login (const QString& username, const QString& password, const QString& otp);
+    Q_INVOKABLE Snapd::SystemInformationRequest *getSystemInformation ();
+    Q_INVOKABLE Snapd::ListRequest *list ();
+    Q_INVOKABLE Snapd::ListOneRequest *listOne (const QString &name);
+    Q_INVOKABLE Snapd::IconRequest *getIcon (const QString &name);
     //FIXMEvoid getInterfaces (GPtrArray **plugs, GPtrArray **slots);
     /*void connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
     void disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);*/
-    Q_INVOKABLE FindRequest *find (FindFlags flags, const QString &query);
-    Q_INVOKABLE InstallRequest *install (const QString &name, const QString &channel);
-    Q_INVOKABLE RefreshRequest *refresh (const QString &name, const QString &channel);
-    Q_INVOKABLE RemoveRequest *remove (const QString &name);
-    Q_INVOKABLE EnableRequest *enable (const QString &name);
-    Q_INVOKABLE DisableRequest *disable (const QString &name);
+    Q_INVOKABLE Snapd::FindRequest *find (Snapd::FindFlags flags, const QString &query);
+    Q_INVOKABLE Snapd::InstallRequest *install (const QString &name, const QString &channel);
+    Q_INVOKABLE Snapd::RefreshRequest *refresh (const QString &name, const QString &channel);
+    Q_INVOKABLE Snapd::RemoveRequest *remove (const QString &name);
+    Q_INVOKABLE Snapd::EnableRequest *enable (const QString &name);
+    Q_INVOKABLE Snapd::DisableRequest *disable (const QString &name);
 
 private:
     ClientPrivate *d_ptr;
