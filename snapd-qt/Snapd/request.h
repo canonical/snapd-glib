@@ -12,25 +12,6 @@
 
 #include <QtCore/QObject>
 
-enum QSnapdError
-{
-    NoError = -1,
-    ConnectionFailed = 0,
-    WriteFailed,
-    ReadFailed,
-    BadRequest,
-    BadResponse,
-    AuthDataRequired,
-    AuthDataInvalid,
-    TwoFactorRequired,
-    TwoFactorInvalid,
-    PermissionDenied,
-    Failed,
-    TermsNotAccepted,
-    PaymentNotSetup,
-    PaymentDeclined
-};
-
 struct QSnapdRequestPrivate;
   
 class Q_DECL_EXPORT QSnapdRequest : public QObject
@@ -40,8 +21,28 @@ class Q_DECL_EXPORT QSnapdRequest : public QObject
     Q_PROPERTY(bool isFinished READ isFinished)
     Q_PROPERTY(QSnapdError error READ error)
     Q_PROPERTY(QString errorString READ errorString)
+    Q_ENUMS(QSnapdError)
 
 public:
+    enum QSnapdError
+    {
+        NoError = -1,
+        ConnectionFailed = 0,
+        WriteFailed,
+        ReadFailed,
+        BadRequest,
+        BadResponse,
+        AuthDataRequired,
+        AuthDataInvalid,
+        TwoFactorRequired,
+        TwoFactorInvalid,
+        PermissionDenied,
+        Failed,
+        TermsNotAccepted,
+        PaymentNotSetup,
+        PaymentDeclined
+    };
+
     explicit QSnapdRequest (void *snapd_client, QObject* parent = 0);
     bool isFinished ();
     QSnapdError error ();

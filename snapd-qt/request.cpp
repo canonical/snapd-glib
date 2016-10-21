@@ -28,7 +28,7 @@ struct QSnapdRequestPrivate
     SnapdClient *client;
     GCancellable *cancellable;
     bool finished;
-    QSnapdError error;
+    QSnapdRequest::QSnapdError error;
     QString errorString;
 };
 
@@ -54,15 +54,15 @@ void QSnapdRequest::finish (void *error)
 
     d->finished = true;
     if (error == NULL) {
-        d->error = QSnapdError::NoError;
+        d->error = NoError;
         d->errorString = "";
     }
     else {
         GError *e = (GError *) error;
         if (e->domain == SNAPD_ERROR)
-            d->error = (QSnapdError) e->code;
+            d->error = (QSnapdRequest::QSnapdError) e->code;
         else
-            d->error = QSnapdError::Failed;
+            d->error = QSnapdRequest::QSnapdError::Failed;
         d->errorString = e->message;
     }
 }
@@ -73,7 +73,7 @@ bool QSnapdRequest::isFinished ()
     return d->finished;
 }
 
-QSnapdError QSnapdRequest::error ()
+QSnapdRequest::QSnapdError QSnapdRequest::error ()
 {
     Q_D(QSnapdRequest);
     return d->error;
