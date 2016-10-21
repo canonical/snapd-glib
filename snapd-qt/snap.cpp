@@ -11,102 +11,100 @@
 
 #include "Snapd/snap.h"
 
-using namespace Snapd;
-
-Snap::Snap (void *snapd_object, QObject *parent) :
-    WrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdSnap::QSnapdSnap (void *snapd_object, QObject *parent) :
+    QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
 /* FIXME
-QList<Snapd::App> Snap::apps ()
+QList<QSnapdSnap::App> QSnapdSnap::apps ()
 {
 }*/
 
-QString Snap::channel ()
+QString QSnapdSnap::channel ()
 {
     return snapd_snap_get_channel (SNAPD_SNAP (wrapped_object));
 }
 
 /* FIXME
-Snapd::Confinement Snap::confinement ()
+QSnapdSnap::Confinement QSnapdSnap::confinement ()
 {
 }*/
 
-QString Snap::description ()
+QString QSnapdSnap::description ()
 {
     return snapd_snap_get_description (SNAPD_SNAP (wrapped_object));
 }
 
-QString Snap::developer ()
+QString QSnapdSnap::developer ()
 {
     return snapd_snap_get_developer (SNAPD_SNAP (wrapped_object));
 }
 
-bool Snap::devmode ()
+bool QSnapdSnap::devmode ()
 {
     return snapd_snap_get_devmode (SNAPD_SNAP (wrapped_object));
 }
 
-qint64 Snap::downloadSize ()
+qint64 QSnapdSnap::downloadSize ()
 {
     return snapd_snap_get_download_size (SNAPD_SNAP (wrapped_object));
 }
 
-QString Snap::icon ()
+QString QSnapdSnap::icon ()
 {
     return snapd_snap_get_icon (SNAPD_SNAP (wrapped_object));
 }
 
-QString Snap::id ()
+QString QSnapdSnap::id ()
 {
     return snapd_snap_get_id (SNAPD_SNAP (wrapped_object));
 }
 
 /* FIXME
-GDateTime Snap::installDate ()
+GDateTime QSnapdSnap::installDate ()
 {
 }*/
 
-qint64 Snap::installedSize ()
+qint64 QSnapdSnap::installedSize ()
 {
     return snapd_snap_get_installed_size (SNAPD_SNAP (wrapped_object));
 }
 
-QString Snap::name ()
+QString QSnapdSnap::name ()
 {
     return snapd_snap_get_name (SNAPD_SNAP (wrapped_object));
 }
 
-bool Snap::isPrivate ()
+bool QSnapdSnap::isPrivate ()
 {
     return snapd_snap_get_private (SNAPD_SNAP (wrapped_object));
 }
 
-QString Snap::revision ()
+QString QSnapdSnap::revision ()
 {
     return snapd_snap_get_revision (SNAPD_SNAP (wrapped_object));
 }
 
 /* FIXME
-Snapd::SnapType Snap::snapType ()
+QSnapdSnap::QSnapdSnapType QSnapdSnap::snapType ()
 {
 }*/
 
 /* FIXME
-Snapd::SnapStatus Snap::status ()
+QSnapdSnap::QSnapdSnapStatus QSnapdSnap::status ()
 {
 }*/
 
-QString Snap::summary ()
+QString QSnapdSnap::summary ()
 {
     return snapd_snap_get_summary (SNAPD_SNAP (wrapped_object));
 }
 
-bool Snap::trymode ()
+bool QSnapdSnap::trymode ()
 {
     return snapd_snap_get_trymode (SNAPD_SNAP (wrapped_object));
 }
 
-QString Snap::version ()
+QString QSnapdSnap::version ()
 {
     return snapd_snap_get_version (SNAPD_SNAP (wrapped_object));
 }

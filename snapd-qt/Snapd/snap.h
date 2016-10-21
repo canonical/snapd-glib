@@ -13,9 +13,7 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-namespace Snapd
-{
-class Q_DECL_EXPORT Snap : public WrappedObject
+class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
 {
     Q_OBJECT
 
@@ -40,7 +38,7 @@ class Q_DECL_EXPORT Snap : public WrappedObject
     Q_PROPERTY(QString version READ version) 
 
 public:
-    explicit Snap (void* snapd_object, QObject* parent = 0);
+    explicit QSnapdSnap (void* snapd_object, QObject* parent = 0);
 
     // FIXME QList<Snapd::App> apps ();
     QString channel ();
@@ -62,7 +60,5 @@ public:
     bool trymode ();
     QString version (); 
 };
-
-}
 
 #endif

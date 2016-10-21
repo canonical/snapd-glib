@@ -11,26 +11,24 @@
 
 #include "Snapd/system-information.h"
 
-using namespace Snapd;
+QSnapdSystemInformation::QSnapdSystemInformation (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
-SystemInformation::SystemInformation (void *snapd_object, QObject *parent) : WrappedObject (snapd_object, g_object_unref, parent) {}
-
-QString SystemInformation::osId ()
+QString QSnapdSystemInformation::osId ()
 {
     return snapd_system_information_get_os_id (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
-QString SystemInformation::osVersion ()
+QString QSnapdSystemInformation::osVersion ()
 {
     return snapd_system_information_get_os_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
-QString SystemInformation::series ()
+QString QSnapdSystemInformation::series ()
 {
     return snapd_system_information_get_series (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
-QString SystemInformation::version ()
+QString QSnapdSystemInformation::version ()
 {
     return snapd_system_information_get_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }

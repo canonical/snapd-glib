@@ -12,15 +12,13 @@
 
 #include <QtCore/QObject>
 
-namespace Snapd
-{
-class Q_DECL_EXPORT WrappedObject : public QObject
+class Q_DECL_EXPORT QSnapdWrappedObject : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit WrappedObject (void* object, void (*unref_func)(void *), QObject *parent = 0) : QObject (parent), wrapped_object (object), unref_func (unref_func) {}
-    ~WrappedObject () 
+    explicit QSnapdWrappedObject (void* object, void (*unref_func)(void *), QObject *parent = 0) : QObject (parent), wrapped_object (object), unref_func (unref_func) {}
+    ~QSnapdWrappedObject () 
     {
         unref_func (wrapped_object);
     }
@@ -31,7 +29,5 @@ protected:
 private:
     void (*unref_func)(void *);
 };
-
-}
 
 #endif

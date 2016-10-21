@@ -14,23 +14,19 @@
 #include <QStringList>
 #include <Snapd/WrappedObject>
 
-namespace Snapd
-{
-class Q_DECL_EXPORT AuthData : public WrappedObject
+class Q_DECL_EXPORT QSnapdAuthData : public QSnapdWrappedObject
 {
     Q_OBJECT
     Q_PROPERTY(QString macaroon READ macaroon)
     Q_PROPERTY(QStringList discharges READ discharges)
 
 public:
-    explicit AuthData (void *snapd_object, QObject* parent = 0);
-    explicit AuthData (const QString& macaroon, const QStringList& discharges, QObject* parent = 0);  
-    explicit AuthData (QObject* parent = 0);    
+    explicit QSnapdAuthData (void *snapd_object, QObject* parent = 0);
+    explicit QSnapdAuthData (const QString& macaroon, const QStringList& discharges, QObject* parent = 0);  
+    explicit QSnapdAuthData (QObject* parent = 0);    
 
     QString macaroon ();
     QStringList discharges ();
 };
-
-}
 
 #endif

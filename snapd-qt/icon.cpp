@@ -11,16 +11,14 @@
 
 #include "Snapd/icon.h"
 
-using namespace Snapd;
+QSnapdIcon::QSnapdIcon (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
-Icon::Icon (void *snapd_object, QObject *parent) : WrappedObject (snapd_object, g_object_unref, parent) {}
-
-QString Icon::mime_type ()
+QString QSnapdIcon::mime_type ()
 {
     return snapd_icon_get_mime_type (SNAPD_ICON (wrapped_object));
 }
 
-QByteArray Icon::data ()
+QByteArray QSnapdIcon::data ()
 {
     GBytes *data = snapd_icon_get_data (SNAPD_ICON (wrapped_object));
     gsize length;

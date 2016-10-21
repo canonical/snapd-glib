@@ -11,13 +11,11 @@
 
 #include "Snapd/auth-data.h"
 
-using namespace Snapd;
+QSnapdAuthData::QSnapdAuthData (void *snapd_object, QObject *parent) :
+    QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
-AuthData::AuthData (void *snapd_object, QObject *parent) :
-    WrappedObject (snapd_object, g_object_unref, parent) {}
-
-AuthData::AuthData (const QString& macaroon, const QStringList& discharges, QObject *parent) :
-    WrappedObject (NULL, g_object_unref, parent)
+QSnapdAuthData::QSnapdAuthData (const QString& macaroon, const QStringList& discharges, QObject *parent) :
+    QSnapdWrappedObject (NULL, g_object_unref, parent)
 {
     char *strv[discharges.size () + 1];
     int i;
@@ -27,12 +25,12 @@ AuthData::AuthData (const QString& macaroon, const QStringList& discharges, QObj
     wrapped_object = snapd_auth_data_new (macaroon.toStdString ().c_str (), strv);
 }
 
-QString AuthData::macaroon ()
+QString QSnapdAuthData::macaroon ()
 {
     return snapd_auth_data_get_macaroon (SNAPD_AUTH_DATA (wrapped_object));
 }
 
-QStringList AuthData::discharges ()
+QStringList QSnapdAuthData::discharges ()
 {
     gchar **discharges = snapd_auth_data_get_discharges (SNAPD_AUTH_DATA (wrapped_object));
     QStringList result;

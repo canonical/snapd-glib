@@ -13,9 +13,7 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-namespace Snapd
-{
-class Q_DECL_EXPORT Icon : public WrappedObject
+class Q_DECL_EXPORT QSnapdIcon : public QSnapdWrappedObject
 {
     Q_OBJECT
 
@@ -23,12 +21,10 @@ class Q_DECL_EXPORT Icon : public WrappedObject
     Q_PROPERTY(QByteArray data READ data)
 
 public:
-    explicit Icon (void* snapd_object, QObject* parent = 0);
+    explicit QSnapdIcon (void* snapd_object, QObject* parent = 0);
 
     QString mime_type ();
     QByteArray data ();
 };
-
-}
 
 #endif

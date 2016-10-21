@@ -13,9 +13,7 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-namespace Snapd
-{
-class Q_DECL_EXPORT SystemInformation : public WrappedObject
+class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
 {
     Q_OBJECT
 
@@ -25,13 +23,12 @@ class Q_DECL_EXPORT SystemInformation : public WrappedObject
     Q_PROPERTY(QString version READ version)          
 
 public:
-    explicit SystemInformation (void *snapd_object, QObject* parent = 0);
+    explicit QSnapdSystemInformation (void *snapd_object, QObject* parent = 0);
 
     QString osId ();
     QString osVersion ();
     QString series ();
     QString version ();
 };
-}
 
 #endif

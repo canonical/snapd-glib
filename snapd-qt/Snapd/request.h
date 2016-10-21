@@ -12,9 +12,7 @@
 
 #include <QtCore/QObject>
 
-namespace Snapd
-{
-enum Error
+enum QSnapdError
 {
     NoError = -1,
     ConnectionFailed = 0,
@@ -33,20 +31,20 @@ enum Error
     PaymentDeclined
 };
 
-struct RequestPrivate;
+struct QSnapdRequestPrivate;
   
-class Q_DECL_EXPORT Request : public QObject
+class Q_DECL_EXPORT QSnapdRequest : public QObject
 {
     Q_OBJECT
 
     Q_PROPERTY(bool isFinished READ isFinished)
-    Q_PROPERTY(Error error READ error)
+    Q_PROPERTY(QSnapdError error READ error)
     Q_PROPERTY(QString errorString READ errorString)
 
 public:
-    explicit Request (void *snapd_client, QObject* parent = 0);
+    explicit QSnapdRequest (void *snapd_client, QObject* parent = 0);
     bool isFinished ();
-    Error error ();
+    QSnapdError error ();
     QString errorString ();
     Q_INVOKABLE virtual void runSync () = 0;
     Q_INVOKABLE virtual void runAsync () = 0;
@@ -61,10 +59,8 @@ signals:
     void complete ();
 
 private:
-    RequestPrivate *d_ptr;
-    Q_DECLARE_PRIVATE (Request);
+    QSnapdRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE (QSnapdRequest);
 };
-
-}
 
 #endif

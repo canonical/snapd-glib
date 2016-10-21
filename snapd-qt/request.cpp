@@ -11,17 +11,15 @@
 
 #include "Snapd/request.h"
 
-using namespace Snapd;
-
-struct Snapd::RequestPrivate
+struct QSnapdRequestPrivate
 {
-    RequestPrivate (void *snapd_client)
+    QSnapdRequestPrivate (void *snapd_client)
     {
         client = SNAPD_CLIENT (g_object_ref (snapd_client));
         cancellable = g_cancellable_new ();
     }
   
-    ~RequestPrivate ()
+    ~QSnapdRequestPrivate ()
     {
         g_object_unref (cancellable);      
         g_object_unref (client);
@@ -30,65 +28,65 @@ struct Snapd::RequestPrivate
     SnapdClient *client;
     GCancellable *cancellable;
     bool finished;
-    Error error;
+    QSnapdError error;
     QString errorString;
 };
 
-Request::Request (void *snapd_client, QObject *parent) :
+QSnapdRequest::QSnapdRequest (void *snapd_client, QObject *parent) :
     QObject (parent),
-    d_ptr (new RequestPrivate (snapd_client)) {}
+    d_ptr (new QSnapdRequestPrivate (snapd_client)) {}
 
-void* Request::getClient ()
+void* QSnapdRequest::getClient ()
 {
-    Q_D(Request);  
+    Q_D(QSnapdRequest);  
     return d->client;
 }
 
-void* Request::getCancellable ()
+void* QSnapdRequest::getCancellable ()
 {
-    Q_D(Request);
+    Q_D(QSnapdRequest);
     return d->cancellable;
 }
 
-void Request::finish (void *error)
+void QSnapdRequest::finish (void *error)
 {
-    Q_D(Request);
+    Q_D(QSnapdRequest);
 
     d->finished = true;
     if (error == NULL) {
-        d->error = Error::NoError;
+        d->error = QSnapdError::NoError;
         d->errorString = "";
     }
     else {
         GError *e = (GError *) error;
         if (e->domain == SNAPD_ERROR)
-            d->error = (Error) e->code;
+            d->error = (QSnapdError) e->code;
         else
-            d->error = Error::Failed;
+            d->error = QSnapdError::Failed;
         d->errorString = e->message;
     }
 }
 
-bool Request::isFinished ()
+bool QSnapdRequest::isFinished ()
 {
-    Q_D(Request);
+    Q_D(QSnapdRequest);
     return d->finished;
 }
 
-Error Request::error ()
+QSnapdError QSnapdRequest::error ()
 {
-    Q_D(Request);
+    Q_D(QSnapdRequest);
     return d->error;
 }
 
-QString Request::errorString ()
+QString QSnapdRequest::errorString ()
 {
-    Q_D(Request);
+    Q_D(QSnapdRequest);
     return d->errorString;
 }
 
-void Request::cancel ()
+void QSnapdRequest::cancel ()
 {
-    Q_D(Request);
+    Q_D(QSnapdRequest);
     g_cancellable_cancel (d->cancellable);
 }

@@ -17,25 +17,23 @@
 #include <Snapd/Snap>
 #include <Snapd/SystemInformation>
 
-namespace Snapd
-{
-class Q_DECL_EXPORT ConnectRequest : public Request
+class Q_DECL_EXPORT QSnapdConnectRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit ConnectRequest (void *snapd_client, QObject *parent = 0) : Request (snapd_client, parent) {}
+    explicit QSnapdConnectRequest (void *snapd_client, QObject *parent = 0) : QSnapdRequest (snapd_client, parent) {}
 
     virtual void runSync ();
     virtual void runAsync ();
 };
 
-class Q_DECL_EXPORT LoginRequest : public Request
+class Q_DECL_EXPORT QSnapdLoginRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit LoginRequest (void *snapd_client, const QString& username, const QString& password, const QString& otp, QObject *parent = 0) : Request (snapd_client, parent), username (username), password (password), otp (otp) {}
+    explicit QSnapdLoginRequest (void *snapd_client, const QString& username, const QString& password, const QString& otp, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), username (username), password (password), otp (otp) {}
 
     virtual void runSync ();
     virtual void runAsync ();
@@ -48,65 +46,48 @@ private:
     void *result; // FIXME: destroy
 };
 
-class Q_DECL_EXPORT SystemInformationRequest : public Request
+class Q_DECL_EXPORT QSnapdSystemInformationRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit SystemInformationRequest (void *snapd_client, QObject *parent = 0) : Request (snapd_client, parent) {}
+    explicit QSnapdSystemInformationRequest (void *snapd_client, QObject *parent = 0) : QSnapdRequest (snapd_client, parent) {}
 
     virtual void runSync ();
     virtual void runAsync ();
-    SystemInformation *systemInformation ();
+    QSnapdSystemInformation *systemInformation ();
 
 private:
     // FIXME: Not ABI safe - use private object
     void *result; // FIXME: destroy
 };
 
-class Q_DECL_EXPORT ListRequest : public Request
+class Q_DECL_EXPORT QSnapdListRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit ListRequest (void *snapd_client, QObject *parent = 0) : Request (snapd_client, parent) {}
+    explicit QSnapdListRequest (void *snapd_client, QObject *parent = 0) : QSnapdRequest (snapd_client, parent) {}
 
     virtual void runSync ();
     virtual void runAsync ();
-    Q_INVOKABLE QList<Snap*> snaps () const;
+    Q_INVOKABLE QList<QSnapdSnap*> snaps () const;
 
 private:
     // FIXME: Not ABI safe - use private object
     void *result; // FIXME: destroy
 };
 
-class Q_DECL_EXPORT ListOneRequest : public Request
+class Q_DECL_EXPORT QSnapdListOneRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit ListOneRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name) {}
+    explicit QSnapdListOneRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), name (name) {}
 
     virtual void runSync ();
     virtual void runAsync ();
-    Q_INVOKABLE Snap *snap () const;
-
-private:
-    // FIXME: Not ABI safe - use private object
-    QString name;
-    void *result; // FIXME: destroy
-};
-
-class Q_DECL_EXPORT IconRequest : public Request
-{
-    Q_OBJECT
-
-public:
-    explicit IconRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name) {}
-
-    virtual void runSync ();
-    virtual void runAsync ();
-    Icon *icon () const;
+    Q_INVOKABLE QSnapdSnap *snap () const;
 
 private:
     // FIXME: Not ABI safe - use private object
@@ -114,41 +95,65 @@ private:
     void *result; // FIXME: destroy
 };
 
-enum FindFlags
+class Q_DECL_EXPORT QSnapdIconRequest : public QSnapdRequest
 {
-    None          = 0,
-    MatchName     = 1 << 0,
-    SelectPrivate = 1 << 1,
-    SelectRefresh = 1 << 2     
+    Q_OBJECT
+
+public:
+    explicit QSnapdIconRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), name (name) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+    QSnapdIcon *icon () const;
+
+private:
+    // FIXME: Not ABI safe - use private object
+    QString name;
+    void *result; // FIXME: destroy
 };
 
-class Q_DECL_EXPORT FindRequest : public Request
+class Q_DECL_EXPORT QSnapdFindOptions : public QObject
+{
+    Q_OBJECT
+    Q_ENUMS (FindFlags);
+
+public:
+    enum FindFlags
+    {
+        None          = 0,
+        MatchName     = 1 << 0,
+        SelectPrivate = 1 << 1,
+        SelectRefresh = 1 << 2
+    };
+};
+
+class Q_DECL_EXPORT QSnapdFindRequest : public QSnapdRequest
 {
     Q_OBJECT
     Q_PROPERTY(QString suggestedCurrency READ suggestedCurrency)
 
-public:
-    explicit FindRequest (FindFlags flags, const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), flags (flags), name (name) {}
+public:      
+    explicit QSnapdFindRequest (QSnapdFindOptions::FindFlags flags, const QString& name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), flags (flags), name (name) {}
 
     virtual void runSync ();
     virtual void runAsync ();
-    Q_INVOKABLE QList<Snap*> snaps () const;
+    Q_INVOKABLE QList<QSnapdSnap*> snaps () const;
     const QString suggestedCurrency () const;
 
 private:
     // FIXME: Not ABI safe - use private object
-    FindFlags flags;
+    QSnapdFindOptions::FindFlags flags;
     QString name;
     void *result; // FIXME: destroy
     QString suggestedCurrency_;
 };
 
-class Q_DECL_EXPORT InstallRequest : public Request
+class Q_DECL_EXPORT QSnapdInstallRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit InstallRequest (const QString& name, const QString& channel, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name), channel (channel) {}
+    explicit QSnapdInstallRequest (const QString& name, const QString& channel, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), name (name), channel (channel) {}
 
     virtual void runSync ();
     virtual void runAsync ();
@@ -159,12 +164,12 @@ private:
     QString channel;
 };
 
-class Q_DECL_EXPORT RefreshRequest : public Request
+class Q_DECL_EXPORT QSnapdRefreshRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit RefreshRequest (const QString& name, const QString& channel, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name), channel (channel) {}
+    explicit QSnapdRefreshRequest (const QString& name, const QString& channel, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), name (name), channel (channel) {}
 
     virtual void runSync ();
     virtual void runAsync ();
@@ -175,12 +180,12 @@ private:
     QString channel;
 };
 
-class Q_DECL_EXPORT RemoveRequest : public Request
+class Q_DECL_EXPORT QSnapdRemoveRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit RemoveRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name) {}
+    explicit QSnapdRemoveRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), name (name) {}
 
     virtual void runSync ();
     virtual void runAsync ();
@@ -190,12 +195,12 @@ private:
     QString name;
 };
 
-class Q_DECL_EXPORT EnableRequest : public Request
+class Q_DECL_EXPORT QSnapdEnableRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit EnableRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name) {}
+    explicit QSnapdEnableRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), name (name) {}
 
     virtual void runSync ();
     virtual void runAsync ();
@@ -205,12 +210,12 @@ private:
     QString name;
 };
 
-class Q_DECL_EXPORT DisableRequest : public Request
+class Q_DECL_EXPORT QSnapdDisableRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit DisableRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : Request (snapd_client, parent), name (name) {}
+    explicit QSnapdDisableRequest (const QString& name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), name (name) {}
 
     virtual void runSync ();
     virtual void runAsync ();
@@ -220,36 +225,35 @@ private:
     QString name;
 };
 
-class ClientPrivate;
+class QSnapdClientPrivate;
   
-Q_INVOKABLE LoginRequest *login (const QString& username, const QString& password, const QString& otp);  
+Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);  
 
-class Q_DECL_EXPORT Client : public QObject
+class Q_DECL_EXPORT QSnapdClient : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit Client (QObject* parent=0);
-    Q_INVOKABLE Snapd::ConnectRequest *connect ();
-    Q_INVOKABLE Snapd::LoginRequest *login (const QString& username, const QString& password, const QString& otp);
-    Q_INVOKABLE Snapd::SystemInformationRequest *getSystemInformation ();
-    Q_INVOKABLE Snapd::ListRequest *list ();
-    Q_INVOKABLE Snapd::ListOneRequest *listOne (const QString &name);
-    Q_INVOKABLE Snapd::IconRequest *getIcon (const QString &name);
-    //FIXMEvoid getInterfaces (GPtrArray **plugs, GPtrArray **slots);
-    /*void connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);
-    void disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, SnapdProgressCallback progress_callback, gpointer progress_callback_data);*/
-    Q_INVOKABLE Snapd::FindRequest *find (Snapd::FindFlags flags, const QString &query);
-    Q_INVOKABLE Snapd::InstallRequest *install (const QString &name, const QString &channel);
-    Q_INVOKABLE Snapd::RefreshRequest *refresh (const QString &name, const QString &channel);
-    Q_INVOKABLE Snapd::RemoveRequest *remove (const QString &name);
-    Q_INVOKABLE Snapd::EnableRequest *enable (const QString &name);
-    Q_INVOKABLE Snapd::DisableRequest *disable (const QString &name);
+    explicit QSnapdClient (QObject* parent=0);
+    Q_INVOKABLE QSnapdConnectRequest *connect ();
+    Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
+    Q_INVOKABLE QSnapdSystemInformationRequest *getSystemInformation ();
+    Q_INVOKABLE QSnapdListRequest *list ();
+    Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
+    Q_INVOKABLE QSnapdIconRequest *getIcon (const QString &name);
+    //Q_INVOKABLE QSnapdInterfacesRequest *getInterfaces ();
+    //Q_INVOKABLE QSnapdConnectRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
+    //Q_INVOKABLE QSnapdDisconnectRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
+    Q_INVOKABLE QSnapdFindRequest *find (QSnapdFindOptions::FindFlags flags, const QString &query);
+    Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
+    Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);
+    Q_INVOKABLE QSnapdRemoveRequest *remove (const QString &name);
+    Q_INVOKABLE QSnapdEnableRequest *enable (const QString &name);
+    Q_INVOKABLE QSnapdDisableRequest *disable (const QString &name);
 
 private:
-    ClientPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(Client)
+    QSnapdClientPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdClient)
 };
-}
 
 #endif
