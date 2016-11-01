@@ -49,6 +49,7 @@ private:
 class Q_DECL_EXPORT QSnapdSystemInformationRequest : public QSnapdRequest
 {
     Q_OBJECT
+    Q_PROPERTY(QSnapdSystemInformation* systemInformation READ systemInformation)
 
 public:
     explicit QSnapdSystemInformationRequest (void *snapd_client, QObject *parent = 0) : QSnapdRequest (snapd_client, parent) {}
