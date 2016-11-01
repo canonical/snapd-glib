@@ -16,7 +16,6 @@ void SnapdQmlPlugin::registerTypes(const char *uri)
     Q_ASSERT(uri == QLatin1String("Snapd"));
     qmlRegisterType<QSnapdClient>(uri, 1, 0, "SnapdClient");
     qmlRegisterType<QSnapdAuthData>(uri, 1, 0, "AuthData");
-    qmlRegisterType<QSnapdFindOptions>(uri, 1, 0, "FindFlags");
     qmlRegisterUncreatableType<QSnapdIcon>(uri, 1, 0, "Icon", "Can't create");
     qmlRegisterUncreatableType<QSnapdSnap>(uri, 1, 0, "Snap", "Can't create");
     qmlRegisterUncreatableType<QSnapdSystemInformation>(uri, 1, 0, "SystemInformation", "Can't create");

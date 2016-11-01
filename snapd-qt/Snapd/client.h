@@ -112,28 +112,13 @@ private:
     void *result; // FIXME: destroy
 };
 
-class Q_DECL_EXPORT QSnapdFindOptions : public QObject
-{
-    Q_OBJECT
-    Q_ENUMS (FindFlags);
-
-public:
-    enum FindFlags
-    {
-        None          = 0,
-        MatchName     = 1 << 0,
-        SelectPrivate = 1 << 1,
-        SelectRefresh = 1 << 2
-    };
-};
-
 class Q_DECL_EXPORT QSnapdFindRequest : public QSnapdRequest
 {
     Q_OBJECT
     Q_PROPERTY(QString suggestedCurrency READ suggestedCurrency)
 
 public:      
-    explicit QSnapdFindRequest (QSnapdFindOptions::FindFlags flags, const QString& name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), flags (flags), name (name) {}
+    explicit QSnapdFindRequest (int flags, const QString& name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), flags (flags), name (name) {}
 
     virtual void runSync ();
     virtual void runAsync ();
@@ -142,7 +127,7 @@ public:
 
 private:
     // FIXME: Not ABI safe - use private object
-    QSnapdFindOptions::FindFlags flags;
+    int flags;
     QString name;
     void *result; // FIXME: destroy
     QString suggestedCurrency_;
@@ -232,8 +217,16 @@ Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& p
 class Q_DECL_EXPORT QSnapdClient : public QObject
 {
     Q_OBJECT
+    Q_ENUMS (FindFlags);
 
 public:
+    enum FindFlags
+    {
+        None          = 0,
+        MatchName     = 1 << 0,
+        SelectPrivate = 1 << 1,
+        SelectRefresh = 1 << 2
+    };
     explicit QSnapdClient (QObject* parent=0);
     Q_INVOKABLE QSnapdConnectRequest *connect ();
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
@@ -244,7 +237,7 @@ public:
     //Q_INVOKABLE QSnapdInterfacesRequest *getInterfaces ();
     //Q_INVOKABLE QSnapdConnectRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     //Q_INVOKABLE QSnapdDisconnectRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
-    Q_INVOKABLE QSnapdFindRequest *find (QSnapdFindOptions::FindFlags flags, const QString &query);
+    Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags, const QString &query);
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRemoveRequest *remove (const QString &name);

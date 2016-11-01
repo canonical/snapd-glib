@@ -73,7 +73,7 @@ QSnapdIconRequest *QSnapdClient::getIcon (const QString &name)
     return new QSnapdIconRequest (name, d->client);
 }
 
-QSnapdFindRequest *QSnapdClient::find (QSnapdFindOptions::FindFlags flags, const QString &name)
+QSnapdFindRequest *QSnapdClient::find (FindFlags flags, const QString &name)
 {
     Q_D(QSnapdClient);
     return new QSnapdFindRequest (flags, name, d->client);
