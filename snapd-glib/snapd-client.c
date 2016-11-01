@@ -1792,6 +1792,47 @@ snapd_client_connect_sync (SnapdClient *client,
     return TRUE;
 }
 
+/**
+ * snapd_client_connect_async:
+ * @client: a #SnapdClient
+ * @cancellable: (allow-none): a #GCancellable or %NULL
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously connect to snapd.
+ * See snapd_client_connect_sync () for more information.
+ */
+void
+snapd_client_connect_async (SnapdClient *client,
+                            GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    GTask *task;
+    g_autoptr(GError) error = NULL;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    if (snapd_client_connect_sync (client, cancellable, &error))
+        g_task_return_boolean (task, TRUE);
+    else
+        g_task_return_error (task, error);
+}
+
+/**
+ * snapd_client_connect_finish:
+ * @client: a #SnapdClient
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_connect_async().
+ * See snapd_client_connect_sync() for more information.
+ *
+ * Returns: %TRUE if successfully connected to snapd.
+ */
+gboolean
+snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    return g_task_propagate_boolean (G_TASK (result), error);
+}
+
 static SnapdRequest *
 make_request (SnapdClient *client, RequestType request_type,
               SnapdProgressCallback progress_callback, gpointer progress_callback_data,
