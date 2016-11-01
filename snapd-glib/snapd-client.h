@@ -112,7 +112,7 @@ void                    snapd_client_login_async                   (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-SnapdAuthData         *snapd_client_login_finish                  (SnapdClient          *client,
+SnapdAuthData          *snapd_client_login_finish                  (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
