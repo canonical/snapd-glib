@@ -73,6 +73,24 @@ QSnapdIconRequest *QSnapdClient::getIcon (const QString &name)
     return new QSnapdIconRequest (name, d->client);
 }
 
+QSnapdInterfacesRequest *QSnapdClient::getInterfaces ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdInterfacesRequest (d->client);
+}
+
+QSnapdConnectInterfaceRequest *QSnapdClient::connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdConnectInterfaceRequest (plug_snap, plug_name, slot_snap, slot_name, d->client);
+}
+
+QSnapdDisconnectInterfaceRequest *QSnapdClient::disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdDisconnectInterfaceRequest (plug_snap, plug_name, slot_snap, slot_name, d->client);
+}
+
 QSnapdFindRequest *QSnapdClient::find (FindFlags flags, const QString &name)
 {
     Q_D(QSnapdClient);
@@ -256,6 +274,122 @@ QSnapdIcon *QSnapdIconRequest::icon () const
     return new QSnapdIcon (result);
 }
 
+void QSnapdInterfacesRequest::runSync ()
+{
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots_ = NULL;
+    g_autoptr(GError) error = NULL;
+    snapd_client_get_interfaces_sync (SNAPD_CLIENT (getClient ()), &plugs, &slots_, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+static void interfaces_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    /*QSnapdInterfacesRequest *request = (QSnapdInterfacesRequest *) data;
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots_ = NULL;
+    g_autoptr(GError) error = NULL;
+    snapd_client_get_interfaces_finish (SNAPD_CLIENT (object), &plugs, &slots_, result, &error);
+    request->finish (error);*/
+}
+
+void QSnapdInterfacesRequest::runAsync ()
+{
+    snapd_client_get_interfaces_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), interfaces_ready_cb, (gpointer) this);
+}
+
+int QSnapdInterfacesRequest::plugCount () const
+{
+    GPtrArray *array = (GPtrArray *) plugs;
+    return array->len;
+}
+
+QSnapdConnection *QSnapdInterfacesRequest::plug (int n) const
+{
+    GPtrArray *array = (GPtrArray *) plugs;
+    if (n < 0 || (guint) n >= array->len)
+        return NULL;
+    return new QSnapdConnection (array->pdata[n]);
+}
+
+int QSnapdInterfacesRequest::slotCount () const
+{
+    GPtrArray *array = (GPtrArray *) slots_;
+    return array->len;
+}
+
+QSnapdConnection *QSnapdInterfacesRequest::slot (int n) const
+{
+    GPtrArray *array = (GPtrArray *) slots_;
+    if (n < 0 || (guint) n >= array->len)
+        return NULL;
+    return new QSnapdConnection (array->pdata[n]);
+}
+
+void QSnapdConnectInterfaceRequest::runSync ()
+{
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots_ = NULL;
+    g_autoptr(GError) error = NULL;
+    snapd_client_connect_interface_sync (SNAPD_CLIENT (getClient ()),
+                                         plug_snap.toStdString ().c_str (), plug_name.toStdString ().c_str (),
+                                         slot_snap.toStdString ().c_str (), slot_name.toStdString ().c_str (),
+                                         NULL, NULL, // FIXME: Progress
+                                         G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+static void connect_interface_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    /*QSnapdConnectInterfaceRequest *request = (QSnapdConnectInterfaceRequest *) data;
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots_ = NULL;
+    g_autoptr(GError) error = NULL;
+    snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
+    request->finish (error);*/
+}
+
+void QSnapdConnectInterfaceRequest::runAsync ()
+{
+    snapd_client_connect_interface_async (SNAPD_CLIENT (getClient ()),
+                                          plug_snap.toStdString ().c_str (), plug_name.toStdString ().c_str (),
+                                          slot_snap.toStdString ().c_str (), slot_name.toStdString ().c_str (),
+                                          NULL, NULL, // FIXME: Progress
+                                          G_CANCELLABLE (getCancellable ()), connect_interface_ready_cb, (gpointer) this);
+}
+
+void QSnapdDisconnectInterfaceRequest::runSync ()
+{
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots_ = NULL;
+    g_autoptr(GError) error = NULL;
+    snapd_client_disconnect_interface_sync (SNAPD_CLIENT (getClient ()),
+                                            plug_snap.toStdString ().c_str (), plug_name.toStdString ().c_str (),
+                                            slot_snap.toStdString ().c_str (), slot_name.toStdString ().c_str (),
+                                            NULL, NULL, // FIXME: Progress
+                                            G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+static void disconnect_interface_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    /*QSnapdDisconnectInterfaceRequest *request = (QSnapdDisconnectInterfaceRequest *) data;
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots_ = NULL;
+    g_autoptr(GError) error = NULL;
+    snapd_client_disconnect_interface_finish (SNAPD_CLIENT (object), result, &error);
+    request->finish (error);*/
+}
+
+void QSnapdDisconnectInterfaceRequest::runAsync ()
+{
+    snapd_client_disconnect_interface_async (SNAPD_CLIENT (getClient ()),
+                                             plug_snap.toStdString ().c_str (), plug_name.toStdString ().c_str (),
+                                             slot_snap.toStdString ().c_str (), slot_name.toStdString ().c_str (),
+                                             NULL, NULL, // FIXME: Progress
+                                             G_CANCELLABLE (getCancellable ()), disconnect_interface_ready_cb, (gpointer) this);
+}
+
 static SnapdFindFlags convertFindFlags (int flags)
 {
     int result = SNAPD_FIND_FLAGS_NONE;
@@ -315,7 +449,10 @@ const QString QSnapdFindRequest::suggestedCurrency () const
 void QSnapdInstallRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
-    snapd_client_install_sync (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), channel.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), &error);
+    snapd_client_install_sync (SNAPD_CLIENT (getClient ()),
+                               name.toStdString ().c_str (), channel.toStdString ().c_str (),
+                               NULL, NULL, // FIXME: Progress
+                               G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -323,19 +460,25 @@ static void install_ready_cb (GObject *object, GAsyncResult *result, gpointer da
 {
     /*QSnapdInstallRequest *request = (QSnapdInstallRequest *) data;
     g_autoptr(GError) error = NULL;
-    request->snapd_client_install_finish (SNAPD_CLIENT (object), result, NULL, NULL, &error);
+    request->snapd_client_install_finish (SNAPD_CLIENT (object), result, &error);
     request->finish (error);*/
 }
 
 void QSnapdInstallRequest::runAsync ()
 {
-    snapd_client_install_async (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), channel.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
+    snapd_client_install_async (SNAPD_CLIENT (getClient ()),
+                                name.toStdString ().c_str (), channel.toStdString ().c_str (),
+                                NULL, NULL, // FIXME: Progress
+                                G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
 }
 
 void QSnapdRefreshRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
-    snapd_client_refresh_sync (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), channel.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), &error);
+    snapd_client_refresh_sync (SNAPD_CLIENT (getClient ()),
+                               name.toStdString ().c_str (), channel.toStdString ().c_str (),
+                               NULL, NULL, // FIXME: Progress
+                               G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -343,19 +486,25 @@ static void refresh_ready_cb (GObject *object, GAsyncResult *result, gpointer da
 {
     /*QSnapdRefreshRequest *request = (QSnapdRefreshRequest *) data;
     g_autoptr(GError) error = NULL;
-    request->snapd_client_refresh_finish (SNAPD_CLIENT (object), result, NULL, NULL, &error);
+    request->snapd_client_refresh_finish (SNAPD_CLIENT (object), result, &error);
     request->finish (error);*/
 }
 
 void QSnapdRefreshRequest::runAsync ()
 {
-    snapd_client_refresh_async (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), channel.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), refresh_ready_cb, (gpointer) this);
+    snapd_client_refresh_async (SNAPD_CLIENT (getClient ()),
+                                name.toStdString ().c_str (), channel.toStdString ().c_str (),
+                                NULL, NULL, // FIXME: Progress
+                                G_CANCELLABLE (getCancellable ()), refresh_ready_cb, (gpointer) this);
 }
 
 void QSnapdRemoveRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
-    snapd_client_remove_sync (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), &error);
+    snapd_client_remove_sync (SNAPD_CLIENT (getClient ()),
+                              name.toStdString ().c_str (),
+                              NULL, NULL, // FIXME: Progress
+                              G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -363,19 +512,25 @@ static void remove_ready_cb (GObject *object, GAsyncResult *result, gpointer dat
 {
     /*QSnapdRemoveRequest *request = (QSnapdRemoveRequest *) data;
     g_autoptr(GError) error = NULL;
-    request->snapd_client_remove_finish (SNAPD_CLIENT (object), result, NULL, NULL, &error);
+    request->snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
     request->finish (error);*/
 }
 
 void QSnapdRemoveRequest::runAsync ()
 {
-    snapd_client_remove_async (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), remove_ready_cb, (gpointer) this);
+    snapd_client_remove_async (SNAPD_CLIENT (getClient ()),
+                               name.toStdString ().c_str (),
+                               NULL, NULL, // FIXME: Progress
+                               G_CANCELLABLE (getCancellable ()), remove_ready_cb, (gpointer) this);
 }
 
 void QSnapdEnableRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
-    snapd_client_enable_sync (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), &error);
+    snapd_client_enable_sync (SNAPD_CLIENT (getClient ()),
+                              name.toStdString ().c_str (),
+                              NULL, NULL, // FIXME: Progress
+                              G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -383,19 +538,25 @@ static void enable_ready_cb (GObject *object, GAsyncResult *result, gpointer dat
 {
     /*QSnapdEnableRequest *request = (QSnapdEnableRequest *) data;
     g_autoptr(GError) error = NULL;
-    request->snapd_client_enable_finish (SNAPD_CLIENT (object), result, NULL, NULL, &error);
+    request->snapd_client_enable_finish (SNAPD_CLIENT (object), result, &error);
     request->finish (error);*/
 }
 
 void QSnapdEnableRequest::runAsync ()
 {
-    snapd_client_enable_async (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), enable_ready_cb, (gpointer) this);
+    snapd_client_enable_async (SNAPD_CLIENT (getClient ()),
+                               name.toStdString ().c_str (),
+                               NULL, NULL, // FIXME: Progress
+                               G_CANCELLABLE (getCancellable ()), enable_ready_cb, (gpointer) this);
 }
 
 void QSnapdDisableRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
-    snapd_client_disable_sync (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), &error);
+    snapd_client_disable_sync (SNAPD_CLIENT (getClient ()),
+                               name.toStdString ().c_str (),
+                               NULL, NULL, // FIXME: Progress
+                               G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -403,11 +564,14 @@ static void disable_ready_cb (GObject *object, GAsyncResult *result, gpointer da
 {
     /*QSnapdDisableRequest *request = (QSnapdDisableRequest *) data;
     g_autoptr(GError) error = NULL;
-    request->snapd_client_disable_finish (SNAPD_CLIENT (object), result, NULL, NULL, &error);
+    request->snapd_client_disable_finish (SNAPD_CLIENT (object), result, &error);
     request->finish (error);*/
 }
 
 void QSnapdDisableRequest::runAsync ()
 {
-    snapd_client_disable_async (SNAPD_CLIENT (getClient ()), name.toStdString ().c_str (), NULL, NULL, G_CANCELLABLE (getCancellable ()), disable_ready_cb, (gpointer) this);
+    snapd_client_disable_async (SNAPD_CLIENT (getClient ()),
+                                name.toStdString ().c_str (),
+                                NULL, NULL, // FIXME: Progress
+                                G_CANCELLABLE (getCancellable ()), disable_ready_cb, (gpointer) this);
 }

@@ -13,7 +13,7 @@
 
 QSnapdIcon::QSnapdIcon (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
-QString QSnapdIcon::mime_type ()
+QString QSnapdIcon::mimeType ()
 {
     return snapd_icon_get_mime_type (SNAPD_ICON (wrapped_object));
 }

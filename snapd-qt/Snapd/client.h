@@ -12,6 +12,7 @@
 
 #include <QtCore/QObject>
 #include <Snapd/AuthData>
+#include <Snapd/Connection>
 #include <Snapd/Icon>
 #include <Snapd/Request>
 #include <Snapd/Snap>
@@ -115,13 +116,71 @@ private:
     void *result; // FIXME: destroy
 };
 
+class Q_DECL_EXPORT QSnapdInterfacesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int plugCount READ plugCount)
+    Q_PROPERTY(int slotCount READ slotCount)      
+
+public:
+    explicit QSnapdInterfacesRequest (void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int plugCount () const;
+    Q_INVOKABLE QSnapdConnection *plug (int) const;
+    Q_INVOKABLE int slotCount () const;
+    Q_INVOKABLE QSnapdConnection *slot (int) const;  
+
+private:
+    // FIXME: Not ABI safe - use private object
+    void *plugs; // FIXME: destroy
+    void *slots_; // FIXME: destroy  
+};
+
+class Q_DECL_EXPORT QSnapdConnectInterfaceRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdConnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), plug_snap (plug_snap), plug_name (plug_name), slot_snap (slot_snap), slot_name (slot_name) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+
+private:
+    // FIXME: Not ABI safe - use private object
+    QString plug_snap;
+    QString plug_name;
+    QString slot_snap;
+    QString slot_name;
+};
+
+class Q_DECL_EXPORT QSnapdDisconnectInterfaceRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdDisconnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), plug_snap (plug_snap), plug_name (plug_name), slot_snap (slot_snap), slot_name (slot_name) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+
+private:
+    // FIXME: Not ABI safe - use private object
+    QString plug_snap;
+    QString plug_name;
+    QString slot_snap;
+    QString slot_name;
+};
+
 class Q_DECL_EXPORT QSnapdFindRequest : public QSnapdRequest
 {
     Q_OBJECT
     Q_PROPERTY(int snapCount READ snapCount)
     Q_PROPERTY(QString suggestedCurrency READ suggestedCurrency)
 
-public:      
+public:
     explicit QSnapdFindRequest (int flags, const QString& name, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), flags (flags), name (name) {}
 
     virtual void runSync ();
@@ -216,7 +275,7 @@ private:
 };
 
 class QSnapdClientPrivate;
-  
+
 Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
 
 class Q_DECL_EXPORT QSnapdClient : public QObject
@@ -240,9 +299,9 @@ public:
     Q_INVOKABLE QSnapdListRequest *list ();
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
     Q_INVOKABLE QSnapdIconRequest *getIcon (const QString &name);
-    //Q_INVOKABLE QSnapdInterfacesRequest *getInterfaces ();
-    //Q_INVOKABLE QSnapdConnectRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
-    //Q_INVOKABLE QSnapdDisconnectRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
+    Q_INVOKABLE QSnapdInterfacesRequest *getInterfaces ();
+    Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
+    Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags, const QString &query);
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);

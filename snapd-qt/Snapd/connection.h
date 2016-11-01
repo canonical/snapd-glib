@@ -7,24 +7,24 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef SNAPD_ICON_H
-#define SNAPD_ICON_H
+#ifndef SNAPD_CONNECTION_H
+#define SNAPD_CONNECTION_H
 
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdIcon : public QSnapdWrappedObject
+class Q_DECL_EXPORT QSnapdConnection : public QSnapdWrappedObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QString mimeType READ mimeType)
-    Q_PROPERTY(QByteArray data READ data)
+    Q_PROPERTY(QString name READ name)
+    Q_PROPERTY(QString snap READ snap)      
 
 public:
-    explicit QSnapdIcon (void* snapd_object, QObject* parent = 0);
+    explicit QSnapdConnection (void* snapd_object, QObject* parent = 0);
 
-    QString mimeType ();
-    QByteArray data ();
+    QString name ();
+    QString snap ();  
 };
 
 #endif
