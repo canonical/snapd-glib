@@ -192,16 +192,18 @@ void QSnapdListRequest::runAsync ()
     snapd_client_list_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), list_ready_cb, (gpointer) this);
 }
 
-QList<QSnapdSnap*> QSnapdListRequest::snaps () const
+int QSnapdListRequest::snapCount () const
 {
-    QList<QSnapdSnap*> snaps;
     GPtrArray *array = (GPtrArray *) result;
-    guint i;
+    return array->len;
+}
 
-    for (i = 0; i < array->len; i++)
-        snaps.append (new QSnapdSnap (array->pdata[i]));
-
-    return snaps;
+QSnapdSnap *QSnapdListRequest::snap (int n) const
+{
+    GPtrArray *array = (GPtrArray *) result;
+    if (n < 0 || (guint) n >= array->len)
+        return NULL;
+    return new QSnapdSnap (array->pdata[n]);
 }
 
 void QSnapdListOneRequest::runSync ()
@@ -277,16 +279,18 @@ void QSnapdFindRequest::runAsync ()
     snapd_client_find_async (SNAPD_CLIENT (getClient ()), (SnapdFindFlags) flags, name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, (gpointer) this);
 }
 
-QList<QSnapdSnap*> QSnapdFindRequest::snaps () const
+int QSnapdFindRequest::snapCount () const
 {
-    QList<QSnapdSnap*> snaps;
     GPtrArray *array = (GPtrArray *) result;
-    guint i;
+    return array->len;
+}
 
-    for (i = 0; i < array->len; i++)
-        snaps.append (new QSnapdSnap (array->pdata[i]));
-
-    return snaps;
+QSnapdSnap *QSnapdFindRequest::snap (int n) const
+{
+    GPtrArray *array = (GPtrArray *) result;
+    if (n < 0 || (guint) n >= array->len)
+        return NULL;
+    return new QSnapdSnap (array->pdata[n]);
 }
 
 const QString QSnapdFindRequest::suggestedCurrency () const

@@ -66,13 +66,15 @@ private:
 class Q_DECL_EXPORT QSnapdListRequest : public QSnapdRequest
 {
     Q_OBJECT
+    Q_PROPERTY(int snapCount READ snapCount)
 
 public:
     explicit QSnapdListRequest (void *snapd_client, QObject *parent = 0) : QSnapdRequest (snapd_client, parent) {}
 
     virtual void runSync ();
     virtual void runAsync ();
-    Q_INVOKABLE QList<QSnapdSnap*> snaps () const;
+    Q_INVOKABLE int snapCount () const;
+    Q_INVOKABLE QSnapdSnap *snap (int) const;
 
 private:
     // FIXME: Not ABI safe - use private object
@@ -116,6 +118,7 @@ private:
 class Q_DECL_EXPORT QSnapdFindRequest : public QSnapdRequest
 {
     Q_OBJECT
+    Q_PROPERTY(int snapCount READ snapCount)
     Q_PROPERTY(QString suggestedCurrency READ suggestedCurrency)
 
 public:      
@@ -123,7 +126,8 @@ public:
 
     virtual void runSync ();
     virtual void runAsync ();
-    Q_INVOKABLE QList<QSnapdSnap*> snaps () const;
+    Q_INVOKABLE int snapCount () const;
+    Q_INVOKABLE QSnapdSnap *snap (int) const;
     const QString suggestedCurrency () const;
 
 private:
