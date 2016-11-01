@@ -1739,7 +1739,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
  * snapd_client_connect_sync:
  * @client: a #SnapdClient
  * @cancellable: (allow-none): a #GCancellable or %NULL
- * @error: a #GError or %NULL
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Connect to snapd.
  *
@@ -1947,8 +1947,6 @@ snapd_client_login_async (SnapdClient *client,
  * Complete request started with snapd_client_login_async().
  * See snapd_client_login_sync() for more information.
  *
- * Complete request started with snapd_client_login_async().
- * See snapd_client_login_sync() for more information.
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
  */
 SnapdAuthData *
@@ -2077,9 +2075,6 @@ snapd_client_get_system_information_async (SnapdClient *client,
  * Complete request started with snapd_client_get_system_information_async().
  * See snapd_client_get_system_information_sync() for more information.
  *
- * Complete request started with snapd_client_get_system_information_async().
- * See snapd_client_get_system_information_sync() for more information.
- *
  * Returns: (transfer full): a #SnapdSystemInformation or %NULL on error.
  */
 SnapdSystemInformation *
@@ -2164,9 +2159,6 @@ snapd_client_list_one_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
- *
- * Complete request started with snapd_client_list_one_async().
- * See snapd_client_list_one_sync() for more information.
  *
  * Complete request started with snapd_client_list_one_async().
  * See snapd_client_list_one_sync() for more information.
