@@ -217,21 +217,22 @@ private:
 
 class QSnapdClientPrivate;
   
-Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);  
+Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
 
 class Q_DECL_EXPORT QSnapdClient : public QObject
 {
     Q_OBJECT
-    Q_ENUMS (FindFlags);
+    Q_FLAGS(FindFlags)
 
 public:
-    enum FindFlags
+    enum FindFlag
     {
         None          = 0,
         MatchName     = 1 << 0,
         SelectPrivate = 1 << 1,
         SelectRefresh = 1 << 2
     };
+    Q_DECLARE_FLAGS(FindFlags, FindFlag);
     explicit QSnapdClient (QObject* parent=0);
     Q_INVOKABLE QSnapdConnectRequest *connect ();
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
@@ -253,5 +254,7 @@ private:
     QSnapdClientPrivate *d_ptr;
     Q_DECLARE_PRIVATE(QSnapdClient)
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::FindFlags)
 
 #endif

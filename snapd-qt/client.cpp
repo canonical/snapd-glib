@@ -256,11 +256,25 @@ QSnapdIcon *QSnapdIconRequest::icon () const
     return new QSnapdIcon (result);
 }
 
+static SnapdFindFlags convertFindFlags (int flags)
+{
+    int result = SNAPD_FIND_FLAGS_NONE;
+
+    if ((flags & QSnapdClient::FindFlag::MatchName) != 0)
+        result |= SNAPD_FIND_FLAGS_MATCH_NAME;
+    if ((flags & QSnapdClient::FindFlag::SelectPrivate) != 0)
+        result |= SNAPD_FIND_FLAGS_SELECT_PRIVATE;
+    if ((flags & QSnapdClient::FindFlag::SelectRefresh) != 0)
+        result |= SNAPD_FIND_FLAGS_SELECT_REFRESH;
+
+    return (SnapdFindFlags) result;
+}
+
 void QSnapdFindRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
     g_autofree gchar *suggested_currency = NULL;
-    result = snapd_client_find_sync (SNAPD_CLIENT (getClient ()), (SnapdFindFlags) flags, name.toStdString ().c_str (), &suggested_currency, G_CANCELLABLE (getCancellable ()), &error);
+    result = snapd_client_find_sync (SNAPD_CLIENT (getClient ()), convertFindFlags (flags), name.toStdString ().c_str (), &suggested_currency, G_CANCELLABLE (getCancellable ()), &error);
     suggestedCurrency_ = suggested_currency;
     finish (error);
 }
@@ -276,7 +290,7 @@ static void find_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
 
 void QSnapdFindRequest::runAsync ()
 {
-    snapd_client_find_async (SNAPD_CLIENT (getClient ()), (SnapdFindFlags) flags, name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, (gpointer) this);
+    snapd_client_find_async (SNAPD_CLIENT (getClient ()), convertFindFlags (flags), name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, (gpointer) this);
 }
 
 int QSnapdFindRequest::snapCount () const
