@@ -99,6 +99,15 @@ gboolean                snapd_client_connect_sync                  (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 
+void                    snapd_client_connect_async                 (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+
+gboolean                snapd_client_connect_finish                (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 SnapdAuthData          *snapd_client_login_sync                    (SnapdClient          *client,
                                                                     const gchar          *username,
                                                                     const gchar          *password,
@@ -112,7 +121,7 @@ void                    snapd_client_login_async                   (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-SnapdAuthData         *snapd_client_login_finish                  (SnapdClient          *client,
+SnapdAuthData          *snapd_client_login_finish                  (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

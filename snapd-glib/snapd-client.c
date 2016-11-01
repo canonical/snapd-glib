@@ -1739,7 +1739,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
  * snapd_client_connect_sync:
  * @client: a #SnapdClient
  * @cancellable: (allow-none): a #GCancellable or %NULL
- * @error: a #GError or %NULL
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Connect to snapd.
  *
@@ -1756,7 +1756,10 @@ snapd_client_connect_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
     priv = snapd_client_get_instance_private (client);
-    g_return_val_if_fail (priv->snapd_socket == NULL, FALSE);
+
+    /* Already connected... */
+    if (priv->snapd_socket != NULL)
+        return TRUE;
 
     priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
                                        G_SOCKET_TYPE_STREAM,
@@ -1787,6 +1790,47 @@ snapd_client_connect_sync (SnapdClient *client,
     g_source_attach (priv->read_source, NULL);
 
     return TRUE;
+}
+
+/**
+ * snapd_client_connect_async:
+ * @client: a #SnapdClient
+ * @cancellable: (allow-none): a #GCancellable or %NULL
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously connect to snapd.
+ * See snapd_client_connect_sync () for more information.
+ */
+void
+snapd_client_connect_async (SnapdClient *client,
+                            GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    GTask *task;
+    g_autoptr(GError) error = NULL;
+
+    task = g_task_new (client, cancellable, callback, user_data);
+    if (snapd_client_connect_sync (client, cancellable, &error))
+        g_task_return_boolean (task, TRUE);
+    else
+        g_task_return_error (task, error);
+}
+
+/**
+ * snapd_client_connect_finish:
+ * @client: a #SnapdClient
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_connect_async().
+ * See snapd_client_connect_sync() for more information.
+ *
+ * Returns: %TRUE if successfully connected to snapd.
+ */
+gboolean
+snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    return g_task_propagate_boolean (G_TASK (result), error);
 }
 
 static SnapdRequest *
@@ -1903,8 +1947,6 @@ snapd_client_login_async (SnapdClient *client,
  * Complete request started with snapd_client_login_async().
  * See snapd_client_login_sync() for more information.
  *
- * Complete request started with snapd_client_login_async().
- * See snapd_client_login_sync() for more information.
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
  */
 SnapdAuthData *
@@ -2033,9 +2075,6 @@ snapd_client_get_system_information_async (SnapdClient *client,
  * Complete request started with snapd_client_get_system_information_async().
  * See snapd_client_get_system_information_sync() for more information.
  *
- * Complete request started with snapd_client_get_system_information_async().
- * See snapd_client_get_system_information_sync() for more information.
- *
  * Returns: (transfer full): a #SnapdSystemInformation or %NULL on error.
  */
 SnapdSystemInformation *
@@ -2120,9 +2159,6 @@ snapd_client_list_one_async (SnapdClient *client,
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
- *
- * Complete request started with snapd_client_list_one_async().
- * See snapd_client_list_one_sync() for more information.
  *
  * Complete request started with snapd_client_list_one_async().
  * See snapd_client_list_one_sync() for more information.

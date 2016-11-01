@@ -19,6 +19,8 @@ SnapdCreateUserFlags
 SnapdProgressCallback
 snapd_client_new
 snapd_client_connect_sync
+snapd_client_connect_async
+snapd_client_connect_finish
 snapd_client_login_sync
 snapd_client_login_async
 snapd_client_login_finish
