@@ -127,6 +127,12 @@ QSnapdDisableRequest *QSnapdClient::disable (const QString &name)
     return new QSnapdDisableRequest (name, d->client);
 }
 
+QSnapdCheckBuyRequest *QSnapdClient::checkBuy ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdCheckBuyRequest (d->client);
+}
+
 void QSnapdConnectRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
@@ -574,4 +580,50 @@ void QSnapdDisableRequest::runAsync ()
                                 name.toStdString ().c_str (),
                                 NULL, NULL, // FIXME: Progress
                                 G_CANCELLABLE (getCancellable ()), disable_ready_cb, (gpointer) this);
+}
+
+void QSnapdCheckBuyRequest::runSync ()
+{
+    g_autoptr(GError) error = NULL;
+    result = snapd_client_check_buy_sync (SNAPD_CLIENT (getClient ()),
+                                          G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+static void check_buy_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    /*QSnapdCheckBuyRequest *request = (QSnapdCheckBuyRequest *) data;
+    g_autoptr(GError) error = NULL;
+    request->result = snapd_client_check_buy_finish (SNAPD_CLIENT (object), result, &error);
+    request->finish (error);*/
+}
+
+void QSnapdCheckBuyRequest::runAsync ()
+{
+    snapd_client_check_buy_async (SNAPD_CLIENT (getClient ()),
+                                  G_CANCELLABLE (getCancellable ()), check_buy_ready_cb, (gpointer) this);
+}
+
+void QSnapdBuyRequest::runSync ()
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_buy_sync (SNAPD_CLIENT (getClient ()),
+                           id.toStdString ().c_str (), amount, currency.toStdString ().c_str (),
+                           G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+static void buy_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    /*QSnapdBuyRequest *request = (QSnapdBuyRequest *) data;
+    g_autoptr(GError) error = NULL;
+    snapd_client_buy_finish (SNAPD_CLIENT (object), result, &error);
+    request->finish (error);*/
+}
+
+void QSnapdBuyRequest::runAsync ()
+{
+    snapd_client_buy_async (SNAPD_CLIENT (getClient ()),
+                            id.toStdString ().c_str (), amount, currency.toStdString ().c_str (),                            
+                            G_CANCELLABLE (getCancellable ()), buy_ready_cb, (gpointer) this);
 }

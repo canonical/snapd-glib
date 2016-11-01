@@ -274,6 +274,40 @@ private:
     QString name;
 };
 
+class Q_DECL_EXPORT QSnapdCheckBuyRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(bool canBuy READ canBuy)
+
+public:
+    explicit QSnapdCheckBuyRequest (void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE bool canBuy () const;
+
+private:
+    // FIXME: Not ABI safe - use private object
+    bool result;
+};
+
+class Q_DECL_EXPORT QSnapdBuyRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdBuyRequest (const QString& id, double amount, const QString& currency, void *snapd_client = 0, QObject *parent = 0) : QSnapdRequest (snapd_client, parent), id (id), amount (amount), currency (currency) {}
+
+    virtual void runSync ();
+    virtual void runAsync ();
+
+private:
+    // FIXME: Not ABI safe - use private object
+    QString id;
+    double amount;
+    QString currency;
+};
+
 class QSnapdClientPrivate;
 
 Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
@@ -308,6 +342,8 @@ public:
     Q_INVOKABLE QSnapdRemoveRequest *remove (const QString &name);
     Q_INVOKABLE QSnapdEnableRequest *enable (const QString &name);
     Q_INVOKABLE QSnapdDisableRequest *disable (const QString &name);
+    Q_INVOKABLE QSnapdCheckBuyRequest *checkBuy ();
+    Q_INVOKABLE QSnapdBuyRequest *buy ();
 
 private:
     QSnapdClientPrivate *d_ptr;
