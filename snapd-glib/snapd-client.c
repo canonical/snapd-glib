@@ -1756,7 +1756,10 @@ snapd_client_connect_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
     priv = snapd_client_get_instance_private (client);
-    g_return_val_if_fail (priv->snapd_socket == NULL, FALSE);
+
+    /* Already connected... */
+    if (priv->snapd_socket != NULL)
+        return TRUE;
 
     priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
                                        G_SOCKET_TYPE_STREAM,
