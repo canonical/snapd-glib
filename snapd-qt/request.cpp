@@ -21,6 +21,7 @@ struct QSnapdRequestPrivate
   
     ~QSnapdRequestPrivate ()
     {
+        g_cancellable_cancel (cancellable);
         g_object_unref (cancellable);      
         g_object_unref (client);
     }
@@ -111,8 +112,6 @@ void QSnapdRequest::finish (void *error)
             }
             d->error = (QSnapdRequest::QSnapdError) e->code;
         }
-        else if (g_error_matches (e, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-            d->error = QSnapdRequest::QSnapdError::Cancelled;
         else
             d->error = QSnapdRequest::QSnapdError::UnknownError;
         d->errorString = e->message;

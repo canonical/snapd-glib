@@ -27,7 +27,6 @@ public:
     enum QSnapdError
     {
         NoError,
-        Cancelled,
         UnknownError,
         ConnectionFailed,
         WriteFailed,

@@ -302,6 +302,9 @@ void QSnapdConnectRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
     snapd_client_connect_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
     finish (error);
 }
 
@@ -335,9 +338,14 @@ void QSnapdLoginRequest::runSync ()
 
 void QSnapdLoginRequest::handleResult (void *object, void *result)
 {
-    Q_D(QSnapdLoginRequest);  
+    g_autoptr(SnapdAuthData) auth_data = NULL;
     g_autoptr(GError) error = NULL;
-    d->auth_data = snapd_client_login_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    auth_data = snapd_client_login_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdLoginRequest);
+    d->auth_data = (SnapdAuthData*) g_steal_pointer (&auth_data);
     finish (error);
 }
 
@@ -370,9 +378,14 @@ void QSnapdGetSystemInformationRequest::runSync ()
 
 void QSnapdGetSystemInformationRequest::handleResult (void *object, void *result)
 {
-    Q_D(QSnapdGetSystemInformationRequest);  
+    g_autoptr(SnapdSystemInformation) info = NULL;
     g_autoptr(GError) error = NULL;
-    d->info = snapd_client_get_system_information_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    info = snapd_client_get_system_information_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdGetSystemInformationRequest);
+    d->info = (SnapdSystemInformation*) g_steal_pointer (&info);
     finish (error);
 }
 
@@ -407,9 +420,14 @@ void QSnapdListRequest::runSync ()
 
 void QSnapdListRequest::handleResult (void *object, void *result)
 {
-    Q_D(QSnapdListRequest);  
+    g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(GError) error = NULL;
-    d->snaps = snapd_client_list_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    snaps = snapd_client_list_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdListRequest);
+    d->snaps = (GPtrArray*) g_steal_pointer (&snaps);
     finish (error);
 }
 
@@ -452,9 +470,14 @@ void QSnapdListOneRequest::runSync ()
 
 void QSnapdListOneRequest::handleResult (void *object, void *result)
 {
-    Q_D(QSnapdListOneRequest);  
+    g_autoptr(SnapdSnap) snap = NULL;
     g_autoptr(GError) error = NULL;
-    d->snap = snapd_client_list_one_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    snap = snapd_client_list_one_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdListOneRequest);
+    d->snap = (SnapdSnap*) g_steal_pointer (&snap);
     finish (error);
 }
 
@@ -490,9 +513,14 @@ void QSnapdGetIconRequest::runSync ()
 
 void QSnapdGetIconRequest::handleResult (void *object, void *result)
 {
-    Q_D(QSnapdGetIconRequest);  
+    g_autoptr(SnapdIcon) icon = NULL;
     g_autoptr(GError) error = NULL;
-    d->icon = snapd_client_get_icon_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    icon = snapd_client_get_icon_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdGetIconRequest);
+    d->icon = (SnapdIcon*) g_steal_pointer (&icon);
     finish (error);
 }
 
@@ -528,9 +556,16 @@ void QSnapdGetInterfacesRequest::runSync ()
 
 void QSnapdGetInterfacesRequest::handleResult (void *object, void *result)
 {
-    Q_D(QSnapdGetInterfacesRequest);  
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots_ = NULL;
     g_autoptr(GError) error = NULL;
-    snapd_client_get_interfaces_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &d->plugs, &d->slots_, &error);
+    snapd_client_get_interfaces_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &plugs, &slots_, &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdGetInterfacesRequest);
+    d->plugs = (GPtrArray*) g_steal_pointer (&plugs);
+    d->slots_ = (GPtrArray*) g_steal_pointer (&slots_);
     finish (error);
 }
 
@@ -595,6 +630,9 @@ void QSnapdConnectInterfaceRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
     snapd_client_connect_interface_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
     finish (error);
 }
 
@@ -636,6 +674,9 @@ void QSnapdDisconnectInterfaceRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
     snapd_client_disconnect_interface_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
     finish (error);
 }
 
@@ -685,10 +726,15 @@ void QSnapdFindRequest::runSync ()
 
 void QSnapdFindRequest::handleResult (void *object, void *result)
 {
-    Q_D(QSnapdFindRequest);  
+    g_autoptr(GPtrArray) snaps = NULL;
+    g_autofree gchar *suggested_currency = NULL;
     g_autoptr(GError) error = NULL;
-    g_autofree gchar *suggested_currency = NULL;  
-    d->snaps = snapd_client_find_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &suggested_currency, &error);
+    snaps = snapd_client_find_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &suggested_currency, &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdFindRequest);
+    d->snaps = (GPtrArray*) g_steal_pointer (&snaps);
     d->suggestedCurrency = suggested_currency;
     finish (error);
 }
@@ -744,6 +790,9 @@ void QSnapdInstallRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
     snapd_client_install_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
     finish (error);
 }
 
@@ -781,6 +830,9 @@ void QSnapdRefreshRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
     snapd_client_refresh_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
     finish (error);
 }
 
@@ -818,6 +870,9 @@ void QSnapdRemoveRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
     snapd_client_remove_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
     finish (error);
 }
 
@@ -855,6 +910,9 @@ void QSnapdEnableRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
     snapd_client_enable_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
     finish (error);
 }
 
@@ -892,6 +950,9 @@ void QSnapdDisableRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
     snapd_client_disable_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
     finish (error);
 }
 
@@ -925,9 +986,14 @@ void QSnapdCheckBuyRequest::runSync ()
 
 void QSnapdCheckBuyRequest::handleResult (void *object, void *result)
 {
-    Q_D(QSnapdCheckBuyRequest);  
+    gboolean can_buy;
     g_autoptr(GError) error = NULL;
-    d->canBuy = snapd_client_check_buy_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    can_buy = snapd_client_check_buy_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdCheckBuyRequest);
+    d->canBuy = can_buy;
     finish (error);
 }
 
@@ -967,6 +1033,9 @@ void QSnapdBuyRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
     snapd_client_buy_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
     finish (error);
 }
 
