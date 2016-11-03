@@ -27,6 +27,7 @@ public:
     explicit QSnapdConnectRequest (void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdConnectRequestPrivate *d_ptr;
@@ -42,6 +43,7 @@ public:
     explicit QSnapdLoginRequest (void *snapd_client, const QString& username, const QString& password, const QString& otp, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdLoginRequestPrivate *d_ptr;
@@ -59,6 +61,7 @@ public:
     virtual void runSync ();
     virtual void runAsync ();
     QSnapdSystemInformation *systemInformation ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdGetSystemInformationRequestPrivate *d_ptr;
@@ -78,6 +81,7 @@ public:
     virtual void runAsync ();
     Q_INVOKABLE int snapCount () const;
     Q_INVOKABLE QSnapdSnap *snap (int) const;
+    void handleResult (void *, void *);
 
 private:
     QSnapdListRequestPrivate *d_ptr;
@@ -95,6 +99,7 @@ public:
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE QSnapdSnap *snap () const;
+    void handleResult (void *, void *);
 
 private:
     QSnapdListOneRequestPrivate *d_ptr;
@@ -111,6 +116,7 @@ public:
     virtual void runSync ();
     virtual void runAsync ();
     QSnapdIcon *icon () const;
+    void handleResult (void *, void *);
 
 private:
     QSnapdGetIconRequestPrivate *d_ptr;
@@ -131,7 +137,8 @@ public:
     Q_INVOKABLE int plugCount () const;
     Q_INVOKABLE QSnapdConnection *plug (int) const;
     Q_INVOKABLE int slotCount () const;
-    Q_INVOKABLE QSnapdConnection *slot (int) const;  
+    Q_INVOKABLE QSnapdConnection *slot (int) const;
+    void handleResult (void *, void *);
 
 private:
     QSnapdGetInterfacesRequestPrivate *d_ptr;
@@ -147,6 +154,7 @@ public:
     explicit QSnapdConnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);  
 
 private:
     QSnapdConnectInterfaceRequestPrivate *d_ptr;
@@ -162,6 +170,7 @@ public:
     explicit QSnapdDisconnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdDisconnectInterfaceRequestPrivate *d_ptr;
@@ -182,6 +191,7 @@ public:
     Q_INVOKABLE int snapCount () const;
     Q_INVOKABLE QSnapdSnap *snap (int) const;
     const QString suggestedCurrency () const;
+    void handleResult (void *, void *);
 
 private:
     QSnapdFindRequestPrivate *d_ptr;
@@ -197,6 +207,7 @@ public:
     explicit QSnapdInstallRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdInstallRequestPrivate *d_ptr;
@@ -212,6 +223,7 @@ public:
     explicit QSnapdRefreshRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdRefreshRequestPrivate *d_ptr;
@@ -227,6 +239,7 @@ public:
     explicit QSnapdRemoveRequest (const QString& name, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdRemoveRequestPrivate *d_ptr;
@@ -242,6 +255,7 @@ public:
     explicit QSnapdEnableRequest (const QString& name, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdEnableRequestPrivate *d_ptr;
@@ -257,6 +271,7 @@ public:
     explicit QSnapdDisableRequest (const QString& name, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdDisableRequestPrivate *d_ptr;
@@ -274,6 +289,7 @@ public:
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE bool canBuy () const;
+    void handleResult (void *, void *);
 
 private:
     QSnapdCheckBuyRequestPrivate *d_ptr;
@@ -289,6 +305,7 @@ public:
     explicit QSnapdBuyRequest (const QString& id, double amount, const QString& currency, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    void handleResult (void *, void *);
 
 private:
     QSnapdBuyRequestPrivate *d_ptr;
