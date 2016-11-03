@@ -48,21 +48,21 @@ private:
     Q_DECLARE_PRIVATE(QSnapdLoginRequest)
 };
 
-class QSnapdSystemInformationRequestPrivate;
-class Q_DECL_EXPORT QSnapdSystemInformationRequest : public QSnapdRequest
+class QSnapdGetSystemInformationRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetSystemInformationRequest : public QSnapdRequest
 {
     Q_OBJECT
     Q_PROPERTY(QSnapdSystemInformation* systemInformation READ systemInformation)
 
 public:
-    explicit QSnapdSystemInformationRequest (void *snapd_client, QObject *parent = 0);
+    explicit QSnapdGetSystemInformationRequest (void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
     QSnapdSystemInformation *systemInformation ();
 
 private:
-    QSnapdSystemInformationRequestPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QSnapdSystemInformationRequest)
+    QSnapdGetSystemInformationRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetSystemInformationRequest)
 };
 
 class QSnapdListRequestPrivate;
@@ -101,31 +101,31 @@ private:
     Q_DECLARE_PRIVATE(QSnapdListOneRequest)
 };
 
-class QSnapdIconRequestPrivate;
-class Q_DECL_EXPORT QSnapdIconRequest : public QSnapdRequest
+class QSnapdGetIconRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetIconRequest : public QSnapdRequest
 {
     Q_OBJECT
 
 public:
-    explicit QSnapdIconRequest (const QString& name, void *snapd_client, QObject *parent = 0);
+    explicit QSnapdGetIconRequest (const QString& name, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
     QSnapdIcon *icon () const;
 
 private:
-    QSnapdIconRequestPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QSnapdIconRequest)
+    QSnapdGetIconRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetIconRequest)
 };
 
-class QSnapdInterfacesRequestPrivate;
-class Q_DECL_EXPORT QSnapdInterfacesRequest : public QSnapdRequest
+class QSnapdGetInterfacesRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetInterfacesRequest : public QSnapdRequest
 {
     Q_OBJECT
     Q_PROPERTY(int plugCount READ plugCount)
     Q_PROPERTY(int slotCount READ slotCount)      
 
 public:
-    explicit QSnapdInterfacesRequest (void *snapd_client, QObject *parent = 0);
+    explicit QSnapdGetInterfacesRequest (void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE int plugCount () const;
@@ -134,8 +134,8 @@ public:
     Q_INVOKABLE QSnapdConnection *slot (int) const;  
 
 private:
-    QSnapdInterfacesRequestPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QSnapdInterfacesRequest)
+    QSnapdGetInterfacesRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetInterfacesRequest)
 };
 
 class QSnapdConnectInterfaceRequestPrivate;
@@ -315,11 +315,11 @@ public:
     explicit QSnapdClient (QObject* parent=0);
     Q_INVOKABLE QSnapdConnectRequest *connect ();
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
-    Q_INVOKABLE QSnapdSystemInformationRequest *getSystemInformation ();
+    Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();
     Q_INVOKABLE QSnapdListRequest *list ();
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
-    Q_INVOKABLE QSnapdIconRequest *getIcon (const QString &name);
-    Q_INVOKABLE QSnapdInterfacesRequest *getInterfaces ();
+    Q_INVOKABLE QSnapdGetIconRequest *getIcon (const QString &name);
+    Q_INVOKABLE QSnapdGetInterfacesRequest *getInterfaces ();
     Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags, const QString &query);
