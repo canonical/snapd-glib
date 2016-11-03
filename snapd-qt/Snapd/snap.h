@@ -45,26 +45,26 @@ public:
 
     int appCount () const;
     Q_INVOKABLE QSnapdApp *app (int) const;
-    QString channel ();
-    // FIXME Snapd::Confinement confinement ();
-    QString description ();
-    QString developer ();
-    bool devmode ();
-    qint64 downloadSize ();
-    QString icon ();
-    QString id ();
-    // FIXME GDateTime installDate ();
-    qint64 installedSize ();
-    QString name ();
+    QString channel () const;
+    // FIXME Snapd::Confinement confinement () const;
+    QString description () const;
+    QString developer () const;
+    bool devmode () const;
+    qint64 downloadSize () const;
+    QString icon () const;
+    QString id () const;
+    // FIXME GDateTime installDate () const;
+    qint64 installedSize () const;
+    QString name () const;
     int priceCount () const;
     Q_INVOKABLE QSnapdPrice *price (int) const;
-    bool isPrivate ();
-    QString revision ();
-    // FIXME Snapd::SnapType snapType ();
-    // FIXME Snapd::SnapStatus status ();
-    QString summary ();
-    bool trymode ();
-    QString version (); 
+    bool isPrivate () const;
+    QString revision () const;
+    // FIXME Snapd::SnapType snapType () const;
+    // FIXME Snapd::SnapStatus status () const;
+    QString summary () const;
+    bool trymode () const;
+    QString version () const; 
 };
 
 #endif

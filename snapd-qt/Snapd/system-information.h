@@ -25,10 +25,10 @@ class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
 public:
     explicit QSnapdSystemInformation (void *snapd_object, QObject* parent = 0);
 
-    QString osId ();
-    QString osVersion ();
-    QString series ();
-    QString version ();
+    QString osId () const;
+    QString osVersion () const;
+    QString series () const;
+    QString version () const;
 };
 
 #endif

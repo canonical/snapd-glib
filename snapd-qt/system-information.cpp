@@ -13,22 +13,22 @@
 
 QSnapdSystemInformation::QSnapdSystemInformation (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
-QString QSnapdSystemInformation::osId ()
+QString QSnapdSystemInformation::osId () const
 {
     return snapd_system_information_get_os_id (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
-QString QSnapdSystemInformation::osVersion ()
+QString QSnapdSystemInformation::osVersion () const
 {
     return snapd_system_information_get_os_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
-QString QSnapdSystemInformation::series ()
+QString QSnapdSystemInformation::series () const
 {
     return snapd_system_information_get_series (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
-QString QSnapdSystemInformation::version ()
+QString QSnapdSystemInformation::version () const
 {
     return snapd_system_information_get_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }

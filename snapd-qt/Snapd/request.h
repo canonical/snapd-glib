@@ -48,9 +48,9 @@ public:
     };
 
     explicit QSnapdRequest (void *snapd_client, QObject* parent = 0);
-    bool isFinished ();
-    QSnapdError error ();
-    QString errorString ();
+    bool isFinished () const;
+    QSnapdError error () const;
+    QString errorString () const;
     Q_INVOKABLE virtual void runSync () = 0;
     Q_INVOKABLE virtual void runAsync () = 0;
     Q_INVOKABLE void cancel ();
@@ -60,8 +60,8 @@ public:
     void handleProgress (void*, void*);
 
 protected:
-    void *getClient ();
-    void *getCancellable ();
+    void *getClient () const;
+    void *getCancellable () const;
     void finish (void *error);
 
 signals:

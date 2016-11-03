@@ -23,8 +23,8 @@ class Q_DECL_EXPORT QSnapdIcon : public QSnapdWrappedObject
 public:
     explicit QSnapdIcon (void* snapd_object, QObject* parent = 0);
 
-    QString mimeType ();
-    QByteArray data ();
+    QString mimeType () const;
+    QByteArray data () const;
 };
 
 #endif

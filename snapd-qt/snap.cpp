@@ -32,57 +32,57 @@ QSnapdApp *QSnapdSnap::app (int n) const
     return new QSnapdApp (g_object_ref (apps->pdata[n]));
 }
 
-QString QSnapdSnap::channel ()
+QString QSnapdSnap::channel () const
 {
     return snapd_snap_get_channel (SNAPD_SNAP (wrapped_object));
 }
 
 /* FIXME
-QSnapdSnap::Confinement QSnapdSnap::confinement ()
+QSnapdSnap::Confinement QSnapdSnap::confinement () const
 {
 }*/
 
-QString QSnapdSnap::description ()
+QString QSnapdSnap::description () const
 {
     return snapd_snap_get_description (SNAPD_SNAP (wrapped_object));
 }
 
-QString QSnapdSnap::developer ()
+QString QSnapdSnap::developer () const
 {
     return snapd_snap_get_developer (SNAPD_SNAP (wrapped_object));
 }
 
-bool QSnapdSnap::devmode ()
+bool QSnapdSnap::devmode () const
 {
     return snapd_snap_get_devmode (SNAPD_SNAP (wrapped_object));
 }
 
-qint64 QSnapdSnap::downloadSize ()
+qint64 QSnapdSnap::downloadSize () const
 {
     return snapd_snap_get_download_size (SNAPD_SNAP (wrapped_object));
 }
 
-QString QSnapdSnap::icon ()
+QString QSnapdSnap::icon () const
 {
     return snapd_snap_get_icon (SNAPD_SNAP (wrapped_object));
 }
 
-QString QSnapdSnap::id ()
+QString QSnapdSnap::id () const
 {
     return snapd_snap_get_id (SNAPD_SNAP (wrapped_object));
 }
 
 /* FIXME
-GDateTime QSnapdSnap::installDate ()
+GDateTime QSnapdSnap::installDate () const
 {
 }*/
 
-qint64 QSnapdSnap::installedSize ()
+qint64 QSnapdSnap::installedSize () const
 {
     return snapd_snap_get_installed_size (SNAPD_SNAP (wrapped_object));
 }
 
-QString QSnapdSnap::name ()
+QString QSnapdSnap::name () const
 {
     return snapd_snap_get_name (SNAPD_SNAP (wrapped_object));
 }
@@ -105,37 +105,37 @@ QSnapdPrice *QSnapdSnap::price (int n) const
     return new QSnapdPrice (g_object_ref (prices->pdata[n]));
 }
 
-bool QSnapdSnap::isPrivate ()
+bool QSnapdSnap::isPrivate () const
 {
     return snapd_snap_get_private (SNAPD_SNAP (wrapped_object));
 }
 
-QString QSnapdSnap::revision ()
+QString QSnapdSnap::revision () const
 {
     return snapd_snap_get_revision (SNAPD_SNAP (wrapped_object));
 }
 
 /* FIXME
-QSnapdSnap::QSnapdSnapType QSnapdSnap::snapType ()
+QSnapdSnap::QSnapdSnapType QSnapdSnap::snapType () const
 {
 }*/
 
 /* FIXME
-QSnapdSnap::QSnapdSnapStatus QSnapdSnap::status ()
+QSnapdSnap::QSnapdSnapStatus QSnapdSnap::status () const
 {
 }*/
 
-QString QSnapdSnap::summary ()
+QString QSnapdSnap::summary () const
 {
     return snapd_snap_get_summary (SNAPD_SNAP (wrapped_object));
 }
 
-bool QSnapdSnap::trymode ()
+bool QSnapdSnap::trymode () const
 {
     return snapd_snap_get_trymode (SNAPD_SNAP (wrapped_object));
 }
 
-QString QSnapdSnap::version ()
+QString QSnapdSnap::version () const
 {
     return snapd_snap_get_version (SNAPD_SNAP (wrapped_object));
 }

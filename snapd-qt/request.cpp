@@ -41,15 +41,15 @@ QSnapdRequest::QSnapdRequest (void *snapd_client, QObject *parent) :
     QObject (parent),
     d_ptr (new QSnapdRequestPrivate (snapd_client)) {}
 
-void* QSnapdRequest::getClient ()
+void* QSnapdRequest::getClient () const
 {
-    Q_D(QSnapdRequest);
+    Q_D(const QSnapdRequest);
     return d->client;
 }
 
-void* QSnapdRequest::getCancellable ()
+void* QSnapdRequest::getCancellable () const
 {
-    Q_D(QSnapdRequest);
+    Q_D(const QSnapdRequest);
     return d->cancellable;
 }
 
@@ -123,21 +123,21 @@ void QSnapdRequest::finish (void *error)
     emit complete ();
 }
 
-bool QSnapdRequest::isFinished ()
+bool QSnapdRequest::isFinished () const
 {
-    Q_D(QSnapdRequest);
+    Q_D(const QSnapdRequest);
     return d->finished;
 }
 
-QSnapdRequest::QSnapdError QSnapdRequest::error ()
+QSnapdRequest::QSnapdError QSnapdRequest::error () const
 {
-    Q_D(QSnapdRequest);
+    Q_D(const QSnapdRequest);
     return d->error;
 }
 
-QString QSnapdRequest::errorString ()
+QString QSnapdRequest::errorString () const
 {
-    Q_D(QSnapdRequest);
+    Q_D(const QSnapdRequest);
     return d->errorString;
 }
 

@@ -13,12 +13,12 @@
 
 QSnapdIcon::QSnapdIcon (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
-QString QSnapdIcon::mimeType ()
+QString QSnapdIcon::mimeType () const
 {
     return snapd_icon_get_mime_type (SNAPD_ICON (wrapped_object));
 }
 
-QByteArray QSnapdIcon::data ()
+QByteArray QSnapdIcon::data () const
 {
     GBytes *data = snapd_icon_get_data (SNAPD_ICON (wrapped_object));
     gsize length;

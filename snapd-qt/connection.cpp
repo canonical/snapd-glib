@@ -13,12 +13,12 @@
 
 QSnapdConnection::QSnapdConnection (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
-QString QSnapdConnection::name ()
+QString QSnapdConnection::name () const
 {
     return snapd_connection_get_name (SNAPD_CONNECTION (wrapped_object));
 }
 
-QString QSnapdConnection::snap ()
+QString QSnapdConnection::snap () const
 {
     return snapd_connection_get_snap (SNAPD_CONNECTION (wrapped_object));
 }

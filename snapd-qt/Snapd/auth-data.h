@@ -25,8 +25,8 @@ public:
     explicit QSnapdAuthData (const QString& macaroon, const QStringList& discharges, QObject* parent = 0);  
     explicit QSnapdAuthData (QObject* parent = 0);    
 
-    QString macaroon ();
-    QStringList discharges ();
+    QString macaroon () const;
+    QStringList discharges () const;
 };
 
 #endif

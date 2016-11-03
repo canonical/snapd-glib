@@ -23,8 +23,8 @@ class Q_DECL_EXPORT QSnapdConnection : public QSnapdWrappedObject
 public:
     explicit QSnapdConnection (void* snapd_object, QObject* parent = 0);
 
-    QString name ();
-    QString snap ();  
+    QString name () const;
+    QString snap () const;  
 };
 
 #endif

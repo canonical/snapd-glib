@@ -25,12 +25,12 @@ QSnapdAuthData::QSnapdAuthData (const QString& macaroon, const QStringList& disc
     wrapped_object = snapd_auth_data_new (macaroon.toStdString ().c_str (), strv);
 }
 
-QString QSnapdAuthData::macaroon ()
+QString QSnapdAuthData::macaroon () const
 {
     return snapd_auth_data_get_macaroon (SNAPD_AUTH_DATA (wrapped_object));
 }
 
-QStringList QSnapdAuthData::discharges ()
+QStringList QSnapdAuthData::discharges () const
 {
     gchar **discharges = snapd_auth_data_get_discharges (SNAPD_AUTH_DATA (wrapped_object));
     QStringList result;
