@@ -714,7 +714,7 @@ int QSnapdFindRequest::snapCount () const
 QSnapdSnap *QSnapdFindRequest::snap (int n) const
 {
     Q_D(const QSnapdFindRequest);
-    if (d->snaps != NULL || n < 0 || (guint) n >= d->snaps->len)
+    if (d->snaps == NULL || n < 0 || (guint) n >= d->snaps->len)
         return NULL;
     return new QSnapdSnap (d->snaps->pdata[n]);
 }
