@@ -12,12 +12,14 @@
 
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
+#include <Snapd/App>
+#include <Snapd/Price>
 
 class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
 {
     Q_OBJECT
 
-    // FIXME Q_PROPERTY(QList<Snapd::App> apps READ apps)
+    Q_PROPERTY(int appCount READ appCount)
     Q_PROPERTY(QString channel READ channel)
     // FIXME Q_PROPERTY(Snapd::Confinement confinement READ confinement)
     Q_PROPERTY(QString description READ description)
@@ -29,6 +31,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     // FIXME Q_PROPERTY(GDateTime installDate READ installDate)
     Q_PROPERTY(qint64 installedSize READ installedSize)
     Q_PROPERTY(QString name READ name)
+    Q_PROPERTY(int priceCount READ priceCount)
     Q_PROPERTY(bool isPrivate READ isPrivate)
     Q_PROPERTY(QString revision READ revision)
     // FIXME Q_PROPERTY(Snapd::SnapType snapType READ snapType)
@@ -40,7 +43,8 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
 public:
     explicit QSnapdSnap (void* snapd_object, QObject* parent = 0);
 
-    // FIXME QList<Snapd::App> apps ();
+    int appCount () const;
+    Q_INVOKABLE QSnapdApp *app (int) const;
     QString channel ();
     // FIXME Snapd::Confinement confinement ();
     QString description ();
@@ -52,6 +56,8 @@ public:
     // FIXME GDateTime installDate ();
     qint64 installedSize ();
     QString name ();
+    int priceCount () const;
+    Q_INVOKABLE QSnapdPrice *price (int) const;
     bool isPrivate ();
     QString revision ();
     // FIXME Snapd::SnapType snapType ();

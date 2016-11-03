@@ -14,10 +14,23 @@
 QSnapdSnap::QSnapdSnap (void *snapd_object, QObject *parent) :
     QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
-/* FIXME
-QList<QSnapdSnap::App> QSnapdSnap::apps ()
+int QSnapdSnap::appCount () const
 {
-}*/
+    GPtrArray *apps;
+
+    apps = snapd_snap_get_apps (SNAPD_SNAP (wrapped_object));
+    return apps != NULL ? apps->len : 0;
+}
+
+QSnapdApp *QSnapdSnap::app (int n) const
+{
+    GPtrArray *apps;
+
+    apps = snapd_snap_get_apps (SNAPD_SNAP (wrapped_object));
+    if (apps == NULL || n < 0 || (guint) n >= apps->len)
+        return NULL;
+    return new QSnapdApp (g_object_ref (apps->pdata[n]));
+}
 
 QString QSnapdSnap::channel ()
 {
@@ -72,6 +85,24 @@ qint64 QSnapdSnap::installedSize ()
 QString QSnapdSnap::name ()
 {
     return snapd_snap_get_name (SNAPD_SNAP (wrapped_object));
+}
+
+int QSnapdSnap::priceCount () const
+{
+    GPtrArray *prices;
+
+    prices = snapd_snap_get_prices (SNAPD_SNAP (wrapped_object));
+    return prices != NULL ? prices->len : 0;
+}
+
+QSnapdPrice *QSnapdSnap::price (int n) const
+{
+    GPtrArray *prices;
+
+    prices = snapd_snap_get_prices (SNAPD_SNAP (wrapped_object));
+    if (prices == NULL || n < 0 || (guint) n >= prices->len)
+        return NULL;
+    return new QSnapdPrice (g_object_ref (prices->pdata[n]));
 }
 
 bool QSnapdSnap::isPrivate ()

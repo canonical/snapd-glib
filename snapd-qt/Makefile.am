@@ -1,11 +1,13 @@
 pkgconfig_DATA = snapd-qt.pc
 pkgconfigdir = $(libdir)/pkgconfig
 
-source_cpp = auth-data.cpp client.cpp connection.cpp icon.cpp request.cpp snap.cpp system-information.cpp task.cpp
-source_h = Snapd/AuthData Snapd/auth-data.h \
+source_cpp = app.cpp auth-data.cpp client.cpp connection.cpp icon.cpp price.cpp request.cpp snap.cpp system-information.cpp task.cpp
+source_h = Snapd/App Snapd/app.h \
+           Snapd/AuthData Snapd/auth-data.h \
            Snapd/Client Snapd/client.h \
            Snapd/Connection Snapd/connection.h \
            Snapd/Icon Snapd/icon.h \
+           Snapd/Price Snapd/price.h \           
            Snapd/Request Snapd/request.h \
            Snapd/Snap Snapd/snap.h \
            Snapd/SystemInformation Snapd/system-information.h \
