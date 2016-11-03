@@ -186,20 +186,10 @@ QSnapdClient::QSnapdClient(QObject *parent) :
     QObject (parent),
     d_ptr (new QSnapdClientPrivate()) {}
 
-QSnapdConnectRequest::QSnapdConnectRequest (void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdConnectRequestPrivate()) {}
-
 QSnapdConnectRequest *QSnapdClient::connect ()
 {
     Q_D(QSnapdClient);
     return new QSnapdConnectRequest (d->client);
-}
-
-QSnapdLoginRequest::QSnapdLoginRequest (void *snapd_client, const QString& username, const QString& password, const QString& otp, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdLoginRequestPrivate(username, password, otp))
-{
 }
 
 QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp)
@@ -225,19 +215,11 @@ QSnapdListRequest *QSnapdClient::list ()
     return new QSnapdListRequest (d->client);
 }
 
-QSnapdListOneRequest::QSnapdListOneRequest (const QString& name, void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdListOneRequestPrivate (name)) {}
-
 QSnapdListOneRequest *QSnapdClient::listOne (const QString& name)
 {
     Q_D(QSnapdClient);
     return new QSnapdListOneRequest (name, d->client);
 }
-
-QSnapdIconRequest::QSnapdIconRequest (const QString& name, void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdIconRequestPrivate (name)) {}
 
 QSnapdIconRequest *QSnapdClient::getIcon (const QString& name)
 {
@@ -245,19 +227,11 @@ QSnapdIconRequest *QSnapdClient::getIcon (const QString& name)
     return new QSnapdIconRequest (name, d->client);
 }
 
-QSnapdInterfacesRequest::QSnapdInterfacesRequest (void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdInterfacesRequestPrivate ()) {}
-
 QSnapdInterfacesRequest *QSnapdClient::getInterfaces ()
 {
     Q_D(QSnapdClient);
     return new QSnapdInterfacesRequest (d->client);
 }
-
-QSnapdConnectInterfaceRequest::QSnapdConnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdConnectInterfaceRequestPrivate (plug_snap, plug_name, slot_snap, slot_name)) {}
 
 QSnapdConnectInterfaceRequest *QSnapdClient::connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name)
 {
@@ -271,19 +245,11 @@ QSnapdDisconnectInterfaceRequest *QSnapdClient::disconnectInterface (const QStri
     return new QSnapdDisconnectInterfaceRequest (plug_snap, plug_name, slot_snap, slot_name, d->client);
 }
 
-QSnapdFindRequest::QSnapdFindRequest (int flags, const QString& name, void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdFindRequestPrivate (flags, name)) {}
-
 QSnapdFindRequest *QSnapdClient::find (FindFlags flags, const QString& name)
 {
     Q_D(QSnapdClient);
     return new QSnapdFindRequest (flags, name, d->client);
 }
-
-QSnapdInstallRequest::QSnapdInstallRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdInstallRequestPrivate (name, channel)) {}
 
 QSnapdInstallRequest *QSnapdClient::install (const QString& name, const QString& channel)
 {
@@ -291,19 +257,11 @@ QSnapdInstallRequest *QSnapdClient::install (const QString& name, const QString&
     return new QSnapdInstallRequest (name, channel, d->client);
 }
 
-QSnapdRefreshRequest::QSnapdRefreshRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdRefreshRequestPrivate (name, channel)) {}
-
 QSnapdRefreshRequest *QSnapdClient::refresh (const QString& name, const QString& channel)
 {
     Q_D(QSnapdClient);
     return new QSnapdRefreshRequest (name, channel, d->client);
 }
-
-QSnapdRemoveRequest::QSnapdRemoveRequest (const QString& name, void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdRemoveRequestPrivate (name)) {}
 
 QSnapdRemoveRequest *QSnapdClient::remove (const QString& name)
 {
@@ -311,19 +269,11 @@ QSnapdRemoveRequest *QSnapdClient::remove (const QString& name)
     return new QSnapdRemoveRequest (name, d->client);
 }
 
-QSnapdEnableRequest::QSnapdEnableRequest (const QString& name, void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdEnableRequestPrivate (name)) {}
-
 QSnapdEnableRequest *QSnapdClient::enable (const QString& name)
 {
     Q_D(QSnapdClient);
     return new QSnapdEnableRequest (name, d->client);
 }
-
-QSnapdDisableRequest::QSnapdDisableRequest (const QString& name, void *snapd_client, QObject *parent) :
-    QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdDisableRequestPrivate (name)) {}
 
 QSnapdDisableRequest *QSnapdClient::disable (const QString& name)
 {
@@ -337,6 +287,10 @@ QSnapdCheckBuyRequest *QSnapdClient::checkBuy ()
     return new QSnapdCheckBuyRequest (d->client);
 }
 
+QSnapdConnectRequest::QSnapdConnectRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdConnectRequestPrivate()) {}
+
 void QSnapdConnectRequest::runSync ()
 {
     g_autoptr(GError) error = NULL;
@@ -347,6 +301,12 @@ void QSnapdConnectRequest::runSync ()
 void QSnapdConnectRequest::runAsync ()
 {
     // NOTE: No async method supported
+}
+
+QSnapdLoginRequest::QSnapdLoginRequest (void *snapd_client, const QString& username, const QString& password, const QString& otp, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdLoginRequestPrivate(username, password, otp))
+{
 }
 
 void QSnapdLoginRequest::runSync ()
@@ -377,6 +337,10 @@ void QSnapdLoginRequest::runAsync ()
         snapd_login_async (d->username.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), login_ready_cb, (gpointer) this);
 }
 
+QSnapdSystemInformationRequest::QSnapdSystemInformationRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdSystemInformationRequestPrivate ()) {}
+
 void QSnapdSystemInformationRequest::runSync ()
 {
     Q_D(QSnapdSystemInformationRequest);
@@ -403,6 +367,10 @@ QSnapdSystemInformation *QSnapdSystemInformationRequest::systemInformation ()
     Q_D(QSnapdSystemInformationRequest);
     return new QSnapdSystemInformation (d->info);
 }
+
+QSnapdListRequest::QSnapdListRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdListRequestPrivate ()) {}
 
 void QSnapdListRequest::runSync ()
 {
@@ -439,6 +407,10 @@ QSnapdSnap *QSnapdListRequest::snap (int n) const
     return new QSnapdSnap (d->snaps->pdata[n]);
 }
 
+QSnapdListOneRequest::QSnapdListOneRequest (const QString& name, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdListOneRequestPrivate (name)) {}
+
 void QSnapdListOneRequest::runSync ()
 {
     Q_D(QSnapdListOneRequest);
@@ -467,6 +439,10 @@ QSnapdSnap *QSnapdListOneRequest::snap () const
     return new QSnapdSnap (d->snap);
 }
 
+QSnapdIconRequest::QSnapdIconRequest (const QString& name, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdIconRequestPrivate (name)) {}
+
 void QSnapdIconRequest::runSync ()
 {
     Q_D(QSnapdIconRequest);
@@ -494,6 +470,10 @@ QSnapdIcon *QSnapdIconRequest::icon () const
     Q_D(const QSnapdIconRequest);
     return new QSnapdIcon (d->icon);
 }
+
+QSnapdInterfacesRequest::QSnapdInterfacesRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdInterfacesRequestPrivate ()) {}
 
 void QSnapdInterfacesRequest::runSync ()
 {
@@ -544,6 +524,10 @@ QSnapdConnection *QSnapdInterfacesRequest::slot (int n) const
     return new QSnapdConnection (d->slots_->pdata[n]);
 }
 
+QSnapdConnectInterfaceRequest::QSnapdConnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdConnectInterfaceRequestPrivate (plug_snap, plug_name, slot_snap, slot_name)) {}
+
 void QSnapdConnectInterfaceRequest::runSync ()
 {
     Q_D(QSnapdConnectInterfaceRequest);
@@ -577,6 +561,10 @@ void QSnapdConnectInterfaceRequest::runAsync ()
                                           NULL, NULL, // FIXME: Progress
                                           G_CANCELLABLE (getCancellable ()), connect_interface_ready_cb, (gpointer) this);
 }
+
+QSnapdDisconnectInterfaceRequest::QSnapdDisconnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdDisconnectInterfaceRequestPrivate (plug_snap, plug_name, slot_snap, slot_name)) {}
 
 void QSnapdDisconnectInterfaceRequest::runSync ()
 {
@@ -626,6 +614,10 @@ static SnapdFindFlags convertFindFlags (int flags)
     return (SnapdFindFlags) result;
 }
 
+QSnapdFindRequest::QSnapdFindRequest (int flags, const QString& name, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdFindRequestPrivate (flags, name)) {}
+
 void QSnapdFindRequest::runSync ()
 {
     Q_D(QSnapdFindRequest);
@@ -671,6 +663,10 @@ const QString QSnapdFindRequest::suggestedCurrency () const
     return d->suggestedCurrency;
 }
 
+QSnapdInstallRequest::QSnapdInstallRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdInstallRequestPrivate (name, channel)) {}
+
 void QSnapdInstallRequest::runSync ()
 {
     Q_D(QSnapdInstallRequest);
@@ -698,6 +694,10 @@ void QSnapdInstallRequest::runAsync ()
                                 NULL, NULL, // FIXME: Progress
                                 G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
 }
+
+QSnapdRefreshRequest::QSnapdRefreshRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdRefreshRequestPrivate (name, channel)) {}
 
 void QSnapdRefreshRequest::runSync ()
 {
@@ -727,6 +727,10 @@ void QSnapdRefreshRequest::runAsync ()
                                 G_CANCELLABLE (getCancellable ()), refresh_ready_cb, (gpointer) this);
 }
 
+QSnapdRemoveRequest::QSnapdRemoveRequest (const QString& name, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdRemoveRequestPrivate (name)) {}
+
 void QSnapdRemoveRequest::runSync ()
 {
     Q_D(QSnapdRemoveRequest);
@@ -755,6 +759,10 @@ void QSnapdRemoveRequest::runAsync ()
                                G_CANCELLABLE (getCancellable ()), remove_ready_cb, (gpointer) this);
 }
 
+QSnapdEnableRequest::QSnapdEnableRequest (const QString& name, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdEnableRequestPrivate (name)) {}
+
 void QSnapdEnableRequest::runSync ()
 {
     Q_D(QSnapdEnableRequest);
@@ -782,6 +790,10 @@ void QSnapdEnableRequest::runAsync ()
                                NULL, NULL, // FIXME: Progress
                                G_CANCELLABLE (getCancellable ()), enable_ready_cb, (gpointer) this);
 }
+
+QSnapdDisableRequest::QSnapdDisableRequest (const QString& name, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdDisableRequestPrivate (name)) {}
 
 void QSnapdDisableRequest::runSync ()
 {

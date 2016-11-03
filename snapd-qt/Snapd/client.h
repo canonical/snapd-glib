@@ -55,8 +55,7 @@ class Q_DECL_EXPORT QSnapdSystemInformationRequest : public QSnapdRequest
     Q_PROPERTY(QSnapdSystemInformation* systemInformation READ systemInformation)
 
 public:
-    explicit QSnapdSystemInformationRequest (void *snapd_client, QObject *parent = 0) : QSnapdRequest (snapd_client, parent) {}
-
+    explicit QSnapdSystemInformationRequest (void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
     QSnapdSystemInformation *systemInformation ();
@@ -73,7 +72,7 @@ class Q_DECL_EXPORT QSnapdListRequest : public QSnapdRequest
     Q_PROPERTY(int snapCount READ snapCount)
 
 public:
-    explicit QSnapdListRequest (void *snapd_client, QObject *parent = 0) : QSnapdRequest (snapd_client, parent) {}
+    explicit QSnapdListRequest (void *snapd_client, QObject *parent = 0);
 
     virtual void runSync ();
     virtual void runAsync ();
