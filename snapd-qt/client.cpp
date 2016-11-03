@@ -427,13 +427,13 @@ void QSnapdListRequest::runAsync ()
 int QSnapdListRequest::snapCount () const
 {
     Q_D(const QSnapdListRequest);
-    return d->snaps->len;
+    return d->snaps != NULL ? d->snaps->len : 0;
 }
 
 QSnapdSnap *QSnapdListRequest::snap (int n) const
 {
     Q_D(const QSnapdListRequest);
-    if (n < 0 || (guint) n >= d->snaps->len)
+    if (d->snaps == NULL || n < 0 || (guint) n >= d->snaps->len)
         return NULL;
     return new QSnapdSnap (d->snaps->pdata[n]);
 }
@@ -548,13 +548,13 @@ void QSnapdGetInterfacesRequest::runAsync ()
 int QSnapdGetInterfacesRequest::plugCount () const
 {
     Q_D(const QSnapdGetInterfacesRequest);
-    return d->plugs->len;
+    return d->plugs != NULL ? d->plugs->len : 0;
 }
 
 QSnapdConnection *QSnapdGetInterfacesRequest::plug (int n) const
 {
     Q_D(const QSnapdGetInterfacesRequest);
-    if (n < 0 || (guint) n >= d->plugs->len)
+    if (d->plugs == NULL || n < 0 || (guint) n >= d->plugs->len)
         return NULL;
     return new QSnapdConnection (d->plugs->pdata[n]);
 }
@@ -562,13 +562,13 @@ QSnapdConnection *QSnapdGetInterfacesRequest::plug (int n) const
 int QSnapdGetInterfacesRequest::slotCount () const
 {
     Q_D(const QSnapdGetInterfacesRequest);
-    return d->slots_->len;
+    return d->slots_ != NULL ? d->slots_->len : 0;
 }
 
 QSnapdConnection *QSnapdGetInterfacesRequest::slot (int n) const
 {
     Q_D(const QSnapdGetInterfacesRequest);
-    if (n < 0 || (guint) n >= d->slots_->len)
+    if (d->slots_ == NULL || n < 0 || (guint) n >= d->slots_->len)
         return NULL;
     return new QSnapdConnection (d->slots_->pdata[n]);
 }
@@ -708,13 +708,13 @@ void QSnapdFindRequest::runAsync ()
 int QSnapdFindRequest::snapCount () const
 {
     Q_D(const QSnapdFindRequest);
-    return d->snaps->len;
+    return d->snaps != NULL ? d->snaps->len : 0;
 }
 
 QSnapdSnap *QSnapdFindRequest::snap (int n) const
 {
     Q_D(const QSnapdFindRequest);
-    if (n < 0 || (guint) n >= d->snaps->len)
+    if (d->snaps != NULL || n < 0 || (guint) n >= d->snaps->len)
         return NULL;
     return new QSnapdSnap (d->snaps->pdata[n]);
 }
