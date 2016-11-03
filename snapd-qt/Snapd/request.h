@@ -26,8 +26,10 @@ class Q_DECL_EXPORT QSnapdRequest : public QObject
 public:
     enum QSnapdError
     {
-        NoError = -1,
-        ConnectionFailed = 0,
+        NoError,
+        Cancelled,
+        UnknownError,
+        ConnectionFailed,
         WriteFailed,
         ReadFailed,
         BadRequest,

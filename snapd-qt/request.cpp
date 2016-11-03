@@ -59,10 +59,62 @@ void QSnapdRequest::finish (void *error)
     }
     else {
         GError *e = (GError *) error;
-        if (e->domain == SNAPD_ERROR)
+        if (e->domain == SNAPD_ERROR) {
+            switch ((SnapdError) e->code) 
+            {
+            case SNAPD_ERROR_CONNECTION_FAILED:
+                d->error = QSnapdRequest::QSnapdError::ConnectionFailed;
+                break;
+            case SNAPD_ERROR_WRITE_FAILED:
+                d->error = QSnapdRequest::QSnapdError::WriteFailed;
+                break;
+            case SNAPD_ERROR_READ_FAILED:
+                d->error = QSnapdRequest::QSnapdError::ReadFailed;
+                break;
+            case SNAPD_ERROR_BAD_REQUEST:
+                d->error = QSnapdRequest::QSnapdError::BadRequest;
+                break;
+            case SNAPD_ERROR_BAD_RESPONSE:
+                d->error = QSnapdRequest::QSnapdError::BadResponse;
+                break;
+            case SNAPD_ERROR_AUTH_DATA_REQUIRED:
+                d->error = QSnapdRequest::QSnapdError::AuthDataRequired;
+                break;
+            case SNAPD_ERROR_AUTH_DATA_INVALID:
+                d->error = QSnapdRequest::QSnapdError::AuthDataInvalid;
+                break;
+            case SNAPD_ERROR_TWO_FACTOR_REQUIRED:
+                d->error = QSnapdRequest::QSnapdError::TwoFactorRequired;
+                break;
+            case SNAPD_ERROR_TWO_FACTOR_INVALID:
+                d->error = QSnapdRequest::QSnapdError::TwoFactorInvalid;
+                break;
+            case SNAPD_ERROR_PERMISSION_DENIED:
+                d->error = QSnapdRequest::QSnapdError::PermissionDenied;
+                break;
+            case SNAPD_ERROR_FAILED:
+                d->error = QSnapdRequest::QSnapdError::Failed;
+                break;
+            case SNAPD_ERROR_TERMS_NOT_ACCEPTED:
+                d->error = QSnapdRequest::QSnapdError::TermsNotAccepted;
+                break;
+            case SNAPD_ERROR_PAYMENT_NOT_SETUP:
+                d->error = QSnapdRequest::QSnapdError::PaymentNotSetup;
+                break;
+            case SNAPD_ERROR_PAYMENT_DECLINED:
+                d->error = QSnapdRequest::QSnapdError::PaymentDeclined;
+                break;
+            default:
+                /* This indicates we should add a new entry here... */
+                d->error = QSnapdRequest::QSnapdError::UnknownError;
+                break;
+            }
             d->error = (QSnapdRequest::QSnapdError) e->code;
+        }
+        else if (g_error_matches (e, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+            d->error = QSnapdRequest::QSnapdError::Cancelled;
         else
-            d->error = QSnapdRequest::QSnapdError::Failed;
+            d->error = QSnapdRequest::QSnapdError::UnknownError;
         d->errorString = e->message;
     }
     emit complete ();
