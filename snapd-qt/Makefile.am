@@ -26,6 +26,7 @@ cmake_in_files = SnapdConfig.cmake.in SnapdConfigVersion.cmake.in
 SnapdConfig.cmake: SnapdConfig.cmake.in Makefile
 	@sed -e "s|\@libdir\@|$(libdir)|" -e "s|\@includedir\@|$(includedir)|" $< > $@
 
+if COMPILE_QML_MODULE
 qmlmodule_DATA = qmldir
 qmlmoduledir = $(libdir)/qt5/qml/Snapd
 qmlmodule_LTLIBRARIES = libSnapd.la
@@ -35,6 +36,7 @@ libSnapd_la_LIBADD = $(QML_MODULE_LIBS) -lsnapd-qt
 libSnapd_la_LDFLAGS = -rpath $(qmlmoduledir) -module -avoid-version -no-undefined
 qml-plugin_moc.cpp: qml-plugin.h
 	$(AM_V_GEN) moc --qt=qt5 $< -o $@
+endif
 
 EXTRA_DIST = $(cmake_in_files)
 CLEANFILES = $(source_moc)
