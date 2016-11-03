@@ -65,6 +65,7 @@ void QSnapdRequest::finish (void *error)
             d->error = QSnapdRequest::QSnapdError::Failed;
         d->errorString = e->message;
     }
+    emit complete ();
 }
 
 bool QSnapdRequest::isFinished ()
