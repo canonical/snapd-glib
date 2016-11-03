@@ -612,6 +612,12 @@ QSnapdConnectInterfaceRequest::QSnapdConnectInterfaceRequest (const QString &plu
     QSnapdRequest (snapd_client, parent),
     d_ptr (new QSnapdConnectInterfaceRequestPrivate (plug_snap, plug_name, slot_snap, slot_name)) {}
 
+static void progress_cb (SnapdClient *client, SnapdTask *main_task, GPtrArray *tasks, gpointer data)
+{
+    QSnapdRequest *request = static_cast<QSnapdRequest*>(data);
+    request->handleProgress (main_task, tasks);
+}
+
 void QSnapdConnectInterfaceRequest::runSync ()
 {
     Q_D(QSnapdConnectInterfaceRequest);
@@ -621,7 +627,7 @@ void QSnapdConnectInterfaceRequest::runSync ()
     snapd_client_connect_interface_sync (SNAPD_CLIENT (getClient ()),
                                          d->plug_snap.toStdString ().c_str (), d->plug_name.toStdString ().c_str (),
                                          d->slot_snap.toStdString ().c_str (), d->slot_name.toStdString ().c_str (),
-                                         NULL, NULL, // FIXME: Progress
+                                         progress_cb, this,
                                          G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
@@ -648,7 +654,7 @@ void QSnapdConnectInterfaceRequest::runAsync ()
     snapd_client_connect_interface_async (SNAPD_CLIENT (getClient ()),
                                           d->plug_snap.toStdString ().c_str (), d->plug_name.toStdString ().c_str (),
                                           d->slot_snap.toStdString ().c_str (), d->slot_name.toStdString ().c_str (),
-                                          NULL, NULL, // FIXME: Progress
+                                          progress_cb, this,
                                           G_CANCELLABLE (getCancellable ()), connect_interface_ready_cb, (gpointer) this);
 }
 
@@ -665,7 +671,7 @@ void QSnapdDisconnectInterfaceRequest::runSync ()
     snapd_client_disconnect_interface_sync (SNAPD_CLIENT (getClient ()),
                                             d->plug_snap.toStdString ().c_str (), d->plug_name.toStdString ().c_str (),
                                             d->slot_snap.toStdString ().c_str (), d->slot_name.toStdString ().c_str (),
-                                            NULL, NULL, // FIXME: Progress
+                                            progress_cb, this,
                                             G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
@@ -692,7 +698,7 @@ void QSnapdDisconnectInterfaceRequest::runAsync ()
     snapd_client_disconnect_interface_async (SNAPD_CLIENT (getClient ()),
                                              d->plug_snap.toStdString ().c_str (), d->plug_name.toStdString ().c_str (),
                                              d->slot_snap.toStdString ().c_str (), d->slot_name.toStdString ().c_str (),
-                                             NULL, NULL, // FIXME: Progress
+                                             progress_cb, this,
                                              G_CANCELLABLE (getCancellable ()), disconnect_interface_ready_cb, (gpointer) this);
 }
 
@@ -781,7 +787,7 @@ void QSnapdInstallRequest::runSync ()
     g_autoptr(GError) error = NULL;
     snapd_client_install_sync (SNAPD_CLIENT (getClient ()),
                                d->name.toStdString ().c_str (), d->channel.toStdString ().c_str (),
-                               NULL, NULL, // FIXME: Progress
+                               progress_cb, this,
                                G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
@@ -807,7 +813,7 @@ void QSnapdInstallRequest::runAsync ()
     Q_D(QSnapdInstallRequest);
     snapd_client_install_async (SNAPD_CLIENT (getClient ()),
                                 d->name.toStdString ().c_str (), d->channel.toStdString ().c_str (),
-                                NULL, NULL, // FIXME: Progress
+                                progress_cb, this,
                                 G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
 }
 
@@ -821,7 +827,7 @@ void QSnapdRefreshRequest::runSync ()
     g_autoptr(GError) error = NULL;
     snapd_client_refresh_sync (SNAPD_CLIENT (getClient ()),
                                d->name.toStdString ().c_str (), d->channel.toStdString ().c_str (),
-                               NULL, NULL, // FIXME: Progress
+                               progress_cb, this,
                                G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
@@ -847,7 +853,7 @@ void QSnapdRefreshRequest::runAsync ()
     Q_D(QSnapdRefreshRequest);
     snapd_client_refresh_async (SNAPD_CLIENT (getClient ()),
                                 d->name.toStdString ().c_str (), d->channel.toStdString ().c_str (),
-                                NULL, NULL, // FIXME: Progress
+                                progress_cb, this,
                                 G_CANCELLABLE (getCancellable ()), refresh_ready_cb, (gpointer) this);
 }
 
@@ -861,7 +867,7 @@ void QSnapdRemoveRequest::runSync ()
     g_autoptr(GError) error = NULL;
     snapd_client_remove_sync (SNAPD_CLIENT (getClient ()),
                               d->name.toStdString ().c_str (),
-                              NULL, NULL, // FIXME: Progress
+                              progress_cb, this,
                               G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
@@ -887,7 +893,7 @@ void QSnapdRemoveRequest::runAsync ()
     Q_D(QSnapdRemoveRequest);
     snapd_client_remove_async (SNAPD_CLIENT (getClient ()),
                                d->name.toStdString ().c_str (),
-                               NULL, NULL, // FIXME: Progress
+                               progress_cb, this,
                                G_CANCELLABLE (getCancellable ()), remove_ready_cb, (gpointer) this);
 }
 
@@ -901,7 +907,7 @@ void QSnapdEnableRequest::runSync ()
     g_autoptr(GError) error = NULL;
     snapd_client_enable_sync (SNAPD_CLIENT (getClient ()),
                               d->name.toStdString ().c_str (),
-                              NULL, NULL, // FIXME: Progress
+                              progress_cb, this,
                               G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
@@ -927,7 +933,7 @@ void QSnapdEnableRequest::runAsync ()
     Q_D(QSnapdEnableRequest);
     snapd_client_enable_async (SNAPD_CLIENT (getClient ()),
                                d->name.toStdString ().c_str (),
-                               NULL, NULL, // FIXME: Progress
+                               progress_cb, this,
                                G_CANCELLABLE (getCancellable ()), enable_ready_cb, (gpointer) this);
 }
 
@@ -941,7 +947,7 @@ void QSnapdDisableRequest::runSync ()
     g_autoptr(GError) error = NULL;
     snapd_client_disable_sync (SNAPD_CLIENT (getClient ()),
                                d->name.toStdString ().c_str (),
-                               NULL, NULL, // FIXME: Progress
+                               progress_cb, this,
                                G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
@@ -967,7 +973,7 @@ void QSnapdDisableRequest::runAsync ()
     Q_D(QSnapdDisableRequest);
     snapd_client_disable_async (SNAPD_CLIENT (getClient ()),
                                 d->name.toStdString ().c_str (),
-                                NULL, NULL, // FIXME: Progress
+                                progress_cb, this,
                                 G_CANCELLABLE (getCancellable ()), disable_ready_cb, (gpointer) this);
 }
 

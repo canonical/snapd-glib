@@ -18,12 +18,14 @@ struct QSnapdRequestPrivate
         client = SNAPD_CLIENT (g_object_ref (snapd_client));
         cancellable = g_cancellable_new ();
     }
-  
+
     ~QSnapdRequestPrivate ()
     {
         g_cancellable_cancel (cancellable);
-        g_object_unref (cancellable);      
+        g_object_unref (cancellable);
         g_object_unref (client);
+        g_object_unref (main_task);
+        g_ptr_array_unref (tasks);
     }
 
     SnapdClient *client;
@@ -31,6 +33,8 @@ struct QSnapdRequestPrivate
     bool finished;
     QSnapdRequest::QSnapdError error;
     QString errorString;
+    SnapdTask *main_task;
+    GPtrArray *tasks;
 };
 
 QSnapdRequest::QSnapdRequest (void *snapd_client, QObject *parent) :
@@ -39,7 +43,7 @@ QSnapdRequest::QSnapdRequest (void *snapd_client, QObject *parent) :
 
 void* QSnapdRequest::getClient ()
 {
-    Q_D(QSnapdRequest);  
+    Q_D(QSnapdRequest);
     return d->client;
 }
 
@@ -61,7 +65,7 @@ void QSnapdRequest::finish (void *error)
     else {
         GError *e = (GError *) error;
         if (e->domain == SNAPD_ERROR) {
-            switch ((SnapdError) e->code) 
+            switch ((SnapdError) e->code)
             {
             case SNAPD_ERROR_CONNECTION_FAILED:
                 d->error = QSnapdRequest::QSnapdError::ConnectionFailed;
@@ -141,4 +145,32 @@ void QSnapdRequest::cancel ()
 {
     Q_D(QSnapdRequest);
     g_cancellable_cancel (d->cancellable);
+}
+
+void QSnapdRequest::handleProgress (void *main_task_, void *tasks_)
+{
+    Q_D(QSnapdRequest);
+    d->main_task = SNAPD_TASK (g_object_ref (main_task_));
+    d->tasks = g_ptr_array_ref ((GPtrArray*) tasks_);
+    emit progress ();
+}
+
+QSnapdTask *QSnapdRequest::mainTask () const
+{
+    Q_D(const QSnapdRequest);
+    return new QSnapdTask (g_object_ref (d->main_task));
+}
+
+int QSnapdRequest::taskCount () const
+{
+    Q_D(const QSnapdRequest);
+    return d->tasks != NULL ? d->tasks->len : 0;
+}
+
+QSnapdTask *QSnapdRequest::task (int n) const
+{
+    Q_D(const QSnapdRequest);
+    if (d->tasks == NULL || n < 0 || (guint) n >= d->tasks->len)
+        return NULL;
+    return new QSnapdTask (g_object_ref (d->tasks->pdata[n]));
 }
