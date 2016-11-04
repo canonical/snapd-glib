@@ -97,7 +97,7 @@ G_DEFINE_TYPE (SnapdSnap, snapd_snap, G_TYPE_OBJECT)
 GPtrArray *
 snapd_snap_get_apps (SnapdSnap *snap)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
     return snap->apps;
 }
 
@@ -279,7 +279,7 @@ snapd_snap_get_name (SnapdSnap *snap)
 GPtrArray *
 snapd_snap_get_prices (SnapdSnap *snap)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
     return snap->prices;
 }
 

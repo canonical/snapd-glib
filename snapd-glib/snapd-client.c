@@ -3336,6 +3336,7 @@ make_check_buy_request (SnapdClient *client,
     return request;
 }
 
+// FIXME: It's valid to return FALSE and not set an error... Use an enum?
 /**
  * snapd_client_check_buy_sync:
  * @client: a #SnapdClient.
