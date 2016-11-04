@@ -81,10 +81,18 @@ QString QSnapdSnap::id () const
     return snapd_snap_get_id (SNAPD_SNAP (wrapped_object));
 }
 
-/* FIXME
-GDateTime QSnapdSnap::installDate () const
+QDateTime QSnapdSnap::installDate () const
 {
-}*/
+    GDateTime *d = snapd_snap_get_install_date (SNAPD_SNAP (wrapped_object));
+    QDate date (g_date_time_get_year (d),
+                g_date_time_get_month (d),
+                g_date_time_get_day_of_month (d));
+    QTime time (g_date_time_get_hour (d),
+                g_date_time_get_minute (d),
+                g_date_time_get_second (d),
+                g_date_time_get_microsecond (d) / 1000);
+  return QDateTime (date, time, Qt::OffsetFromUTC, g_date_time_get_utc_offset (d) / 1000000);
+}
 
 qint64 QSnapdSnap::installedSize () const
 {

@@ -11,6 +11,7 @@
 #define SNAPD_SNAP_H
 
 #include <QtCore/QObject>
+#include <QtCore/QDate>
 #include <Snapd/WrappedObject>
 #include <Snapd/App>
 #include <Snapd/Price>
@@ -28,7 +29,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(qint64 downaloadSize READ downloadSize)
     Q_PROPERTY(QString icon READ icon)
     Q_PROPERTY(QString id READ id)
-    //Q_PROPERTY(GDateTime installDate READ installDate)
+    Q_PROPERTY(QDateTime installDate READ installDate)
     Q_PROPERTY(qint64 installedSize READ installedSize)
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(int priceCount READ priceCount)
@@ -77,7 +78,7 @@ public:
     qint64 downloadSize () const;
     QString icon () const;
     QString id () const;
-    // FIXME GDateTime installDate () const;
+    QDateTime installDate () const;
     qint64 installedSize () const;
     QString name () const;
     int priceCount () const;
