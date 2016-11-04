@@ -26,7 +26,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString description READ description)
     Q_PROPERTY(QString developer READ developer)
     Q_PROPERTY(bool devmode READ devmode)
-    Q_PROPERTY(qint64 downaloadSize READ downloadSize)
+    Q_PROPERTY(qint64 downloadSize READ downloadSize)
     Q_PROPERTY(QString icon READ icon)
     Q_PROPERTY(QString id READ id)
     Q_PROPERTY(QDateTime installDate READ installDate)
