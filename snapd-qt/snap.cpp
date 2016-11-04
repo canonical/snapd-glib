@@ -81,7 +81,7 @@ QString QSnapdSnap::id () const
     return snapd_snap_get_id (SNAPD_SNAP (wrapped_object));
 }
 
-QDateTime convertDateTime (GDateTime *datetime)
+static QDateTime convertDateTime (GDateTime *datetime)
 {
     QDate date (g_date_time_get_year (datetime),
                 g_date_time_get_month (datetime),
