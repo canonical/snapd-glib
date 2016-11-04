@@ -37,10 +37,19 @@ QString QSnapdSnap::channel () const
     return snapd_snap_get_channel (SNAPD_SNAP (wrapped_object));
 }
 
-/* FIXME
-QSnapdSnap::Confinement QSnapdSnap::confinement () const
+QSnapdSnap::QSnapdConfinement QSnapdSnap::confinement () const
 {
-}*/
+    switch (snapd_snap_get_confinement (SNAPD_SNAP (wrapped_object)))
+    {
+    case SNAPD_CONFINEMENT_STRICT:
+        return QSnapdConfinement::Strict;
+    case SNAPD_CONFINEMENT_DEVMODE:
+        return QSnapdConfinement::Devmode;
+    case SNAPD_CONFINEMENT_UNKNOWN:
+    default:
+        return QSnapdConfinement::ConfinementUnknown;
+    }
+}
 
 QString QSnapdSnap::description () const
 {
@@ -115,15 +124,41 @@ QString QSnapdSnap::revision () const
     return snapd_snap_get_revision (SNAPD_SNAP (wrapped_object));
 }
 
-/* FIXME
 QSnapdSnap::QSnapdSnapType QSnapdSnap::snapType () const
 {
-}*/
+    switch (snapd_snap_get_snap_type (SNAPD_SNAP (wrapped_object)))
+    {
+    case SNAPD_SNAP_TYPE_APP:
+        return QSnapdSnapType::App;
+    case SNAPD_SNAP_TYPE_KERNEL:
+        return QSnapdSnapType::Kernel;
+    case SNAPD_SNAP_TYPE_GADGET:
+        return QSnapdSnapType::Gadget;
+    case SNAPD_SNAP_TYPE_OS:
+        return QSnapdSnapType::OperatingSystem;
+    case SNAPD_SNAP_TYPE_UNKNOWN:
+    default:
+        return QSnapdSnapType::TypeUnknown;
+    }
+}
 
-/* FIXME
 QSnapdSnap::QSnapdSnapStatus QSnapdSnap::status () const
 {
-}*/
+    switch (snapd_snap_get_status (SNAPD_SNAP (wrapped_object)))
+    {
+    case SNAPD_SNAP_STATUS_AVAILABLE:
+        return QSnapdSnapStatus::Available;
+    case SNAPD_SNAP_STATUS_PRICED:
+        return QSnapdSnapStatus::Priced;
+    case SNAPD_SNAP_STATUS_INSTALLED:
+        return QSnapdSnapStatus::Installed;
+    case SNAPD_SNAP_STATUS_ACTIVE:
+        return QSnapdSnapStatus::Active;
+    case SNAPD_SNAP_STATUS_UNKNOWN:
+    default:
+        return QSnapdSnapStatus::StatusUnknown;
+    }
+}
 
 QString QSnapdSnap::summary () const
 {

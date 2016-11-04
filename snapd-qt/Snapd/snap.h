@@ -21,32 +21,56 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
 
     Q_PROPERTY(int appCount READ appCount)
     Q_PROPERTY(QString channel READ channel)
-    // FIXME Q_PROPERTY(Snapd::Confinement confinement READ confinement)
+    Q_PROPERTY(QSnapdConfinement confinement READ confinement)
     Q_PROPERTY(QString description READ description)
     Q_PROPERTY(QString developer READ developer)
     Q_PROPERTY(bool devmode READ devmode)
     Q_PROPERTY(qint64 downaloadSize READ downloadSize)
     Q_PROPERTY(QString icon READ icon)
     Q_PROPERTY(QString id READ id)
-    // FIXME Q_PROPERTY(GDateTime installDate READ installDate)
+    //Q_PROPERTY(GDateTime installDate READ installDate)
     Q_PROPERTY(qint64 installedSize READ installedSize)
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(int priceCount READ priceCount)
     Q_PROPERTY(bool isPrivate READ isPrivate)
     Q_PROPERTY(QString revision READ revision)
-    // FIXME Q_PROPERTY(Snapd::SnapType snapType READ snapType)
-    // FIXME Q_PROPERTY(Snapd::SnapStatus status READ status)
+    Q_PROPERTY(QSnapdSnapType snapType READ snapType)
+    Q_PROPERTY(QSnapdSnapStatus status READ status)
     Q_PROPERTY(QString summary READ summary)
     Q_PROPERTY(bool trymode READ trymode)
-    Q_PROPERTY(QString version READ version) 
+    Q_PROPERTY(QString version READ version)
+    Q_ENUMS(QSnapdConfinement QSnapdSnapType QSnapdSnapStatus)
 
 public:
+    enum QSnapdConfinement
+    {
+        ConfinementUnknown,
+        Strict,
+        Devmode
+    };
+    enum QSnapdSnapType
+    {
+        TypeUnknown,
+        App,
+        Kernel,
+        Gadget,
+        OperatingSystem
+    };
+    enum QSnapdSnapStatus
+    {
+        StatusUnknown,
+        Available,
+        Priced,
+        Installed,
+        Active
+    };
+
     explicit QSnapdSnap (void* snapd_object, QObject* parent = 0);
 
     int appCount () const;
     Q_INVOKABLE QSnapdApp *app (int) const;
     QString channel () const;
-    // FIXME Snapd::Confinement confinement () const;
+    QSnapdConfinement confinement () const;
     QString description () const;
     QString developer () const;
     bool devmode () const;
@@ -60,8 +84,8 @@ public:
     Q_INVOKABLE QSnapdPrice *price (int) const;
     bool isPrivate () const;
     QString revision () const;
-    // FIXME Snapd::SnapType snapType () const;
-    // FIXME Snapd::SnapStatus status () const;
+    QSnapdSnapType snapType () const;
+    QSnapdSnapStatus status () const;
     QString summary () const;
     bool trymode () const;
     QString version () const; 
