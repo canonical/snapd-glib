@@ -96,7 +96,7 @@ endif # HAVE_INTROSPECTION
 if ENABLE_VAPIGEN
 include $(VAPIGEN_MAKEFILE)
 
-snapd-glib.vapi: $(gir_DATA)
+snapd-glib.vapi: $(dist_gir_DATA)
 
 VAPIGEN_VAPIS = snapd-glib.vapi
 
