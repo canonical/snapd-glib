@@ -171,7 +171,7 @@ snapd_task_get_progress_total (SnapdTask *task)
  *
  * Get the time this task started.
  *
- * Returns: a #GDateTime.
+ * Returns: (transfer none): a #GDateTime.
  */
 GDateTime *
 snapd_task_get_spawn_time (SnapdTask *task)
@@ -186,7 +186,7 @@ snapd_task_get_spawn_time (SnapdTask *task)
  *
  * Get the time this taksk completed or %NULL if not yet completed.
  *
- * Returns: (allow-none): a #GDateTime or %NULL.
+ * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
  */
 GDateTime *
 snapd_task_get_ready_time (SnapdTask *task)

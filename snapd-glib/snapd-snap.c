@@ -228,7 +228,7 @@ snapd_snap_get_id (SnapdSnap *snap)
  * 
  * Get the date this snap was installed or %NULL if unknown.
  *
- * Returns: (allow-none): a #GDateTime or %NULL.
+ * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
  */
 GDateTime *
 snapd_snap_get_install_date (SnapdSnap *snap)
