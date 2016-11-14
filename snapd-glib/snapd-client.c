@@ -908,6 +908,165 @@ get_connections (JsonObject *object, const gchar *name, GError **error)
     return connections;
 }
 
+static GVariant *node_to_variant (JsonNode *node);
+
+static GVariant *
+object_to_variant (JsonObject *object)
+{
+    JsonObjectIter iter;
+    GType container_type = G_TYPE_INVALID;
+    const gchar *name;
+    JsonNode *node;
+    GVariantBuilder builder;
+
+    /* If has a consistent type, make an array of that type */
+    json_object_iter_init (&iter, object);
+    while (json_object_iter_next (&iter, &name, &node)) {
+        GType type;
+        type = json_node_get_value_type (node);
+        if (container_type == G_TYPE_INVALID || type == container_type)
+            container_type = type;
+        else {
+            container_type = G_TYPE_INVALID;
+            break;
+        }
+    }
+
+    switch (container_type)
+    {
+    case G_TYPE_BOOLEAN:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sb}"));
+        json_object_iter_init (&iter, object);
+        while (json_object_iter_next (&iter, &name, &node))
+            g_variant_builder_add (&builder, "{sb}", name, json_node_get_boolean (node));
+        return g_variant_builder_end (&builder);
+    case G_TYPE_INT64:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sx}"));
+        json_object_iter_init (&iter, object);
+        while (json_object_iter_next (&iter, &name, &node))
+            g_variant_builder_add (&builder, "{sx}", name, json_node_get_int (node));
+        return g_variant_builder_end (&builder);
+    case G_TYPE_DOUBLE:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sd}"));
+        json_object_iter_init (&iter, object);
+        while (json_object_iter_next (&iter, &name, &node))
+            g_variant_builder_add (&builder, "{sd}", name, json_node_get_double (node));
+        return g_variant_builder_end (&builder);
+    case G_TYPE_STRING:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{ss}"));
+        json_object_iter_init (&iter, object);
+        while (json_object_iter_next (&iter, &name, &node))
+            g_variant_builder_add (&builder, "{ss}", name, json_node_get_string (node));
+        return g_variant_builder_end (&builder);
+    default:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
+        json_object_iter_init (&iter, object);
+        while (json_object_iter_next (&iter, &name, &node))
+            g_variant_builder_add (&builder, "{sv}", name, node_to_variant (node));
+        return g_variant_builder_end (&builder);
+    }
+}
+
+static GVariant *
+array_to_variant (JsonArray *array)
+{
+    guint i, length;
+    GType container_type = G_TYPE_INVALID;
+    GVariantBuilder builder;
+
+    /* If has a consistent type, make an array of that type */
+    length = json_array_get_length (array);
+    for (i = 0; i < length; i++) {
+        GType type;
+        type = json_node_get_value_type (json_array_get_element (array, i));
+        if (container_type == G_TYPE_INVALID || type == container_type)
+            container_type = type;
+        else {
+            container_type = G_TYPE_INVALID;
+            break;
+        }
+    }
+
+    switch (container_type)
+    {
+    case G_TYPE_BOOLEAN:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("ab"));
+        for (i = 0; i < length; i++)
+            g_variant_builder_add (&builder, "b", json_array_get_boolean_element (array, i));
+        return g_variant_builder_end (&builder);
+    case G_TYPE_INT64:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("ax"));
+        for (i = 0; i < length; i++)
+            g_variant_builder_add (&builder, "x", json_array_get_int_element (array, i));
+        return g_variant_builder_end (&builder);
+    case G_TYPE_DOUBLE:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("ad"));
+        for (i = 0; i < length; i++)
+            g_variant_builder_add (&builder, "d", json_array_get_double_element (array, i));
+        return g_variant_builder_end (&builder);
+    case G_TYPE_STRING:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("as"));
+        for (i = 0; i < length; i++)
+            g_variant_builder_add (&builder, "s", json_array_get_string_element (array, i));
+        return g_variant_builder_end (&builder);
+    default:
+        g_variant_builder_init (&builder, G_VARIANT_TYPE ("av"));
+        for (i = 0; i < length; i++)
+            g_variant_builder_add (&builder, "v", node_to_variant (json_array_get_element (array, i)));
+        return g_variant_builder_end (&builder);
+    }
+}
+
+static GVariant *
+node_to_variant (JsonNode *node)
+{
+    switch (json_node_get_node_type (node))
+    {
+    case JSON_NODE_OBJECT:
+        return object_to_variant (json_node_get_object (node));
+    case JSON_NODE_ARRAY:
+        return array_to_variant (json_node_get_array (node));
+    case JSON_NODE_VALUE:
+        switch (json_node_get_value_type (node))
+        {
+        case G_TYPE_BOOLEAN:
+            return g_variant_new_boolean (json_node_get_boolean (node));
+        case G_TYPE_INT64:
+            return g_variant_new_int64 (json_node_get_int (node));
+        case G_TYPE_DOUBLE:
+            return g_variant_new_double (json_node_get_double (node));
+        case G_TYPE_STRING:
+            return g_variant_new_string (json_node_get_string (node));
+        default:
+            /* Should never occur - as the above are all the valid types */
+            return g_variant_new ("mv", NULL);
+        }
+    default:
+        return g_variant_new ("mv", NULL);
+    }
+}
+
+static GHashTable *
+get_attributes (JsonObject *object, const gchar *name, GError **error)
+{
+    g_autoptr(JsonObject) attrs = NULL;
+    JsonObjectIter iter;
+    GHashTable *attributes;
+    const gchar *attribute_name;
+    JsonNode *node;
+
+    attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
+    attrs = get_object (object, "attrs");
+    if (attrs == NULL)
+        return attributes;
+
+    json_object_iter_init (&iter, attrs);
+    while (json_object_iter_next (&iter, &attribute_name, &node))
+        g_hash_table_insert (attributes, g_strdup (attribute_name), node_to_variant (node));
+
+    return attributes;
+}
+
 static void
 parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
@@ -940,6 +1099,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
         JsonNode *node = json_array_get_element (plugs, i);
         JsonObject *object;
         g_autoptr(GPtrArray) connections = NULL;
+        g_autoptr(GHashTable) attributes = NULL;      
         g_autoptr(SnapdPlug) plug = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
@@ -956,6 +1116,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
             snapd_request_complete (request, error);
             return;
         }
+        attributes = get_attributes (object, "slot", &error);
 
         plug = g_object_new (SNAPD_TYPE_PLUG,
                              "name", get_string (object, "plug", NULL),
@@ -963,8 +1124,8 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
                              "interface", get_string (object, "interface", NULL),
                              "label", get_string (object, "label", NULL),
                              "connections", connections,
+                             "attributes", attributes,
                              // FIXME: apps
-                             // FIXME: attrs
                              NULL);
         g_ptr_array_add (plug_array, g_steal_pointer (&plug));
     }
@@ -974,6 +1135,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
         JsonNode *node = json_array_get_element (slots, i);
         JsonObject *object;
         g_autoptr(GPtrArray) connections = NULL;
+        g_autoptr(GHashTable) attributes = NULL;      
         g_autoptr(SnapdSlot) slot = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
@@ -990,6 +1152,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
             snapd_request_complete (request, error);
             return;
         }
+        attributes = get_attributes (object, "plug", &error);
 
         slot = g_object_new (SNAPD_TYPE_SLOT,
                              "name", get_string (object, "slot", NULL),
@@ -997,8 +1160,8 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
                              "interface", get_string (object, "interface", NULL),
                              "label", get_string (object, "label", NULL),
                              "connections", connections,
+                             "attributes", attributes,
                              // FIXME: apps
-                             // FIXME: attrs
                              NULL);
         g_ptr_array_add (slot_array, g_steal_pointer (&slot));
     }

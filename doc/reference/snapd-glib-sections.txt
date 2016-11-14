@@ -141,6 +141,9 @@ SNAPD_TYPE_AUTH_DATA
 snapd_plug_get_name
 snapd_plug_get_snap
 snapd_plug_get_interface
+snapd_plug_get_attribute_names
+snapd_plug_has_attribute
+snapd_plug_get_attribute
 snapd_plug_get_label
 snapd_plug_get_connections
 SnapdPlug
@@ -181,6 +184,9 @@ SNAPD_TYPE_SCREENSHOT
 snapd_slot_get_name
 snapd_slot_get_snap
 snapd_slot_get_interface
+snapd_slot_get_attribute_names
+snapd_slot_has_attribute
+snapd_slot_get_attribute
 snapd_slot_get_label
 snapd_slot_get_connections
 SnapdSlot

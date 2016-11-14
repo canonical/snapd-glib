@@ -39,6 +39,7 @@ struct _SnapdSlot
     gchar *name;
     gchar *snap;
     gchar *interface;
+    GHashTable *attributes;
     gchar *label;
     GPtrArray *connections;
 };
@@ -50,6 +51,7 @@ enum
     PROP_INTERFACE,
     PROP_LABEL,
     PROP_CONNECTIONS,
+    PROP_ATTRIBUTES,  
     PROP_LAST
 };
  
@@ -98,6 +100,69 @@ snapd_slot_get_interface (SnapdSlot *slot)
 {
     g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
     return slot->interface;
+}
+
+/**
+ * snapd_slot_get_attribute_names:
+ * @slot: a #SnapdSlot.
+ * @length: (out) (allow-none): location to write number of attributes or %NULL if not required.
+ *
+ * Get the names of the attributes this slot has.
+ *
+ * Returns: (transfer full) (array zero-terminated=1): a string array of attribute names. Free with g_strfreev().
+ */
+gchar **
+snapd_slot_get_attribute_names (SnapdSlot *slot, guint *length)
+{
+    GHashTableIter iter;
+    gpointer name;
+    gchar **names;
+    guint size, i;
+
+    g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
+
+    g_hash_table_iter_init (&iter, slot->attributes);
+    size = g_hash_table_size (slot->attributes);
+    names = malloc (sizeof (gchar *) * (size + 1));
+    for (i = 0; g_hash_table_iter_next (&iter, &name, NULL); i++)
+        names[i] = g_strdup (name);
+    names[i] = NULL;
+
+    if (length != NULL)
+        *length = size;
+    return names;
+}
+
+/**
+ * snapd_slot_has_attribute:
+ * @slot: a #SnapdSlot.
+ * @name: an attribute name.
+ *
+ * Check if this slot has an attribute.
+ *
+ * Returns: %TRUE if this attribute exists.
+ */
+gboolean
+snapd_slot_has_attribute (SnapdSlot *slot, const gchar *name)
+{
+    g_return_val_if_fail (SNAPD_IS_SLOT (slot), FALSE);
+    return g_hash_table_contains (slot->attributes, name);
+}
+
+/**
+ * snapd_slot_get_attribute:
+ * @slot: a #SnapdSlot.
+ * @name: an attribute name.
+ *
+ * Get an attribute for this interface.
+ *
+ * Returns: (transfer none) (allow-none): an attribute value or %NULL if not set.
+ */
+GVariant *
+snapd_slot_get_attribute (SnapdSlot *slot, const gchar *name)
+{
+    g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
+    return g_hash_table_lookup (slot->attributes, name);
 }
 
 /**
@@ -157,6 +222,11 @@ snapd_slot_set_property (GObject *object, guint prop_id, const GValue *value, GP
         if (g_value_get_boxed (value) != NULL)
             slot->connections = g_ptr_array_ref (g_value_get_boxed (value));
         break;
+    case PROP_ATTRIBUTES:
+        g_clear_pointer (&slot->attributes, g_hash_table_unref);
+        if (g_value_get_boxed (value) != NULL)
+            slot->attributes = g_hash_table_ref (g_value_get_boxed (value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -184,6 +254,9 @@ snapd_slot_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_CONNECTIONS:
         g_value_set_boxed (value, slot->connections);
         break;
+    case PROP_ATTRIBUTES:
+        g_value_set_boxed (value, slot->attributes);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -198,6 +271,7 @@ snapd_slot_finalize (GObject *object)
     g_clear_pointer (&slot->name, g_free);
     g_clear_pointer (&slot->snap, g_free);
     g_clear_pointer (&slot->interface, g_free);
+    g_clear_pointer (&slot->attributes, g_hash_table_unref);
     g_clear_pointer (&slot->label, g_free);
     if (slot->connections != NULL)
         g_clear_pointer (&slot->connections, g_ptr_array_unref);
@@ -247,9 +321,17 @@ snapd_slot_class_init (SnapdSlotClass *klass)
                                                          "Connections with this slot",
                                                          G_TYPE_PTR_ARRAY,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_ATTRIBUTES,
+                                     g_param_spec_boxed ("attributes",
+                                                         "attributes",
+                                                         "Attributes for this slot",
+                                                         G_TYPE_HASH_TABLE,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void
 snapd_slot_init (SnapdSlot *slot)
 {
+    slot->attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
 }
