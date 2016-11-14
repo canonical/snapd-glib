@@ -962,7 +962,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
                              "snap", get_string (object, "snap", NULL),
                              "interface", get_string (object, "interface", NULL),
                              "label", get_string (object, "label", NULL),
-                             "connections", g_steal_pointer (&connections),
+                             "connections", connections,
                              // FIXME: apps
                              // FIXME: attrs
                              NULL);
@@ -996,7 +996,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
                              "snap", get_string (object, "snap", NULL),
                              "interface", get_string (object, "interface", NULL),
                              "label", get_string (object, "label", NULL),
-                             "connections", g_steal_pointer (&connections),
+                             "connections", connections,
                              // FIXME: apps
                              // FIXME: attrs
                              NULL);
