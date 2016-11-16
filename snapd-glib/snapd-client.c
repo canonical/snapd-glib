@@ -62,7 +62,7 @@ typedef struct
 
 G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 
-/* snapd API documentation is at https://github.com/snapcore/snapd/blob/master/docs/rest.md */
+/* snapd API documentation is at https://github.com/snapcore/snapd/wiki/REST-API */
 
 /* Default socket to connect to */
 #define SNAPD_SOCKET "/run/snapd.socket"
