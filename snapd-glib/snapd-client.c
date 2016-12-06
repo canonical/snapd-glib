@@ -3900,6 +3900,8 @@ snapd_client_finalize (GObject *object)
     g_clear_object (&priv->auth_data);
     g_list_free_full (priv->requests, g_object_unref);
     priv->requests = NULL;
+    if (priv->read_source != NULL)
+        g_source_destroy (priv->read_source);
     g_clear_pointer (&priv->read_source, g_source_unref);
     g_byte_array_unref (priv->buffer);
     priv->buffer = NULL;
