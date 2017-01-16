@@ -287,6 +287,12 @@ QSnapdCheckBuyRequest *QSnapdClient::checkBuy ()
     return new QSnapdCheckBuyRequest (d->client);
 }
 
+QSnapdBuyRequest *QSnapdClient::buy (const QString& id, double amount, const QString& currency)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdBuyRequest (id, amount, currency, d->client);
+}
+
 QSnapdConnectRequest::QSnapdConnectRequest (void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
     d_ptr (new QSnapdConnectRequestPrivate()) {}

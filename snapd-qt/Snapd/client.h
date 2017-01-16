@@ -346,7 +346,7 @@ public:
     Q_INVOKABLE QSnapdEnableRequest *enable (const QString &name);
     Q_INVOKABLE QSnapdDisableRequest *disable (const QString &name);
     Q_INVOKABLE QSnapdCheckBuyRequest *checkBuy ();
-    Q_INVOKABLE QSnapdBuyRequest *buy ();
+    Q_INVOKABLE QSnapdBuyRequest *buy (const QString& id, double amount, const QString& currency);
 
 private:
     QSnapdClientPrivate *d_ptr;
