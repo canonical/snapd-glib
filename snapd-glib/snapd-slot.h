@@ -29,15 +29,24 @@ struct _SnapdSlotClass
     GObjectClass parent_class;
 };
 
-const gchar *snapd_slot_get_name        (SnapdSlot *slot);
+const gchar *snapd_slot_get_name            (SnapdSlot   *slot);
 
-const gchar *snapd_slot_get_snap        (SnapdSlot *slot);
+const gchar *snapd_slot_get_snap            (SnapdSlot   *slot);
 
-const gchar *snapd_slot_get_interface   (SnapdSlot *slot);
+const gchar *snapd_slot_get_interface       (SnapdSlot   *slot);
 
-const gchar *snapd_slot_get_label       (SnapdSlot *slot);
+gchar      **snapd_slot_get_attribute_names (SnapdSlot   *slot,
+                                             guint       *length);
 
-GPtrArray   *snapd_slot_get_connections (SnapdSlot *slot);
+gboolean     snapd_slot_has_attribute       (SnapdSlot   *slot,
+                                             const gchar *name);
+
+GVariant    *snapd_slot_get_attribute       (SnapdSlot   *slot,
+                                             const gchar *name);
+
+const gchar *snapd_slot_get_label           (SnapdSlot   *slot);
+
+GPtrArray   *snapd_slot_get_connections     (SnapdSlot   *slot);
 
 G_END_DECLS
 

@@ -39,6 +39,7 @@ struct _SnapdPlug
     gchar *name;
     gchar *snap;
     gchar *interface;
+    GHashTable *attributes;
     gchar *label;
     GPtrArray *connections;
 };
@@ -50,6 +51,7 @@ enum
     PROP_INTERFACE,
     PROP_LABEL,
     PROP_CONNECTIONS,
+    PROP_ATTRIBUTES,  
     PROP_LAST
 };
  
@@ -98,6 +100,69 @@ snapd_plug_get_interface (SnapdPlug *plug)
 {
     g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
     return plug->interface;
+}
+
+/**
+ * snapd_plug_get_attribute_names:
+ * @plug: a #SnapdPlug.
+ * @length: (out) (allow-none): location to write number of attributes or %NULL if not required.
+ *
+ * Get the names of the attributes this plug has.
+ *
+ * Returns: (transfer full) (array zero-terminated=1): a string array of attribute names. Free with g_strfreev().
+ */
+gchar **
+snapd_plug_get_attribute_names (SnapdPlug *plug, guint *length)
+{
+    GHashTableIter iter;
+    gpointer name;
+    gchar **names;
+    guint size, i;
+
+    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
+
+    g_hash_table_iter_init (&iter, plug->attributes);
+    size = g_hash_table_size (plug->attributes);
+    names = malloc (sizeof (gchar *) * (size + 1));
+    for (i = 0; g_hash_table_iter_next (&iter, &name, NULL); i++)
+        names[i] = g_strdup (name);
+    names[i] = NULL;
+
+    if (length != NULL)
+        *length = size;
+    return names;
+}
+
+/**
+ * snapd_plug_has_attribute:
+ * @plug: a #SnapdPlug.
+ * @name: an attribute name.
+ *
+ * Check if this plug has an attribute.
+ *
+ * Returns: %TRUE if this attribute exists.
+ */
+gboolean
+snapd_plug_has_attribute (SnapdPlug *plug, const gchar *name)
+{
+    g_return_val_if_fail (SNAPD_IS_PLUG (plug), FALSE);
+    return g_hash_table_contains (plug->attributes, name);
+}
+
+/**
+ * snapd_plug_get_attribute:
+ * @plug: a #SnapdPlug.
+ * @name: an attribute name.
+ *
+ * Get an attribute for this interface.
+ *
+ * Returns: (transfer none) (allow-none): an attribute value or %NULL if not set.
+ */
+GVariant *
+snapd_plug_get_attribute (SnapdPlug *plug, const gchar *name)
+{
+    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
+    return g_hash_table_lookup (plug->attributes, name);
 }
 
 /**
@@ -157,6 +222,11 @@ snapd_plug_set_property (GObject *object, guint prop_id, const GValue *value, GP
         if (g_value_get_boxed (value) != NULL)
             plug->connections = g_ptr_array_ref (g_value_get_boxed (value));
         break;
+    case PROP_ATTRIBUTES:
+        g_clear_pointer (&plug->attributes, g_hash_table_unref);
+        if (g_value_get_boxed (value) != NULL)
+            plug->attributes = g_hash_table_ref (g_value_get_boxed (value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -183,6 +253,9 @@ snapd_plug_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_CONNECTIONS:
         g_value_set_boxed (value, plug->connections);
+        break;
+    case PROP_ATTRIBUTES:
+        g_value_set_boxed (value, plug->attributes);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -247,9 +320,17 @@ snapd_plug_class_init (SnapdPlugClass *klass)
                                                          "Connections with this plug",
                                                          G_TYPE_PTR_ARRAY,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_ATTRIBUTES,
+                                     g_param_spec_boxed ("attributes",
+                                                         "attributes",
+                                                         "Attributes for this plug",
+                                                         G_TYPE_HASH_TABLE,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void
 snapd_plug_init (SnapdPlug *plug)
 {
+    plug->attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
 }

@@ -29,15 +29,24 @@ struct _SnapdPlugClass
     GObjectClass parent_class;
 };
 
-const gchar *snapd_plug_get_name        (SnapdPlug *plug);
+const gchar *snapd_plug_get_name            (SnapdPlug   *plug);
 
-const gchar *snapd_plug_get_snap        (SnapdPlug *plug);
+const gchar *snapd_plug_get_snap            (SnapdPlug   *plug);
 
-const gchar *snapd_plug_get_interface   (SnapdPlug *plug);
+const gchar *snapd_plug_get_interface       (SnapdPlug   *plug);
 
-const gchar *snapd_plug_get_label       (SnapdPlug *plug);
+gchar      **snapd_plug_get_attribute_names (SnapdPlug   *plug,
+                                             guint       *length);
 
-GPtrArray   *snapd_plug_get_connections (SnapdPlug *plug);
+gboolean     snapd_plug_has_attribute       (SnapdPlug   *plug,
+                                             const gchar *name);
+
+GVariant    *snapd_plug_get_attribute       (SnapdPlug   *plug,
+                                             const gchar *name);
+
+const gchar *snapd_plug_get_label           (SnapdPlug   *plug);
+
+GPtrArray   *snapd_plug_get_connections     (SnapdPlug   *plug);
 
 G_END_DECLS
 
