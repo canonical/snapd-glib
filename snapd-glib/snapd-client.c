@@ -550,6 +550,27 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
                                  message);
             return FALSE;
         }
+        else if (g_strcmp0 (kind, "terms-not-accepted") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_TERMS_NOT_ACCEPTED,
+                                 message);
+            return FALSE;
+        }
+        else if (g_strcmp0 (kind, "no-payment-methods") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_PAYMENT_NOT_SETUP,
+                                 message);
+            return FALSE;
+        }
+        else if (g_strcmp0 (kind, "payment-declined") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_PAYMENT_DECLINED,
+                                 message);
+            return FALSE;
+        }
         else if (g_strcmp0 (kind, "snap-already-installed") == 0) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
