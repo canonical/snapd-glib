@@ -3938,6 +3938,7 @@ snapd_client_finalize (GObject *object)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (SNAPD_CLIENT (object));
 
+    g_socket_close (priv->snapd_socket, NULL);
     g_clear_object (&priv->snapd_socket);
     g_clear_object (&priv->auth_data);
     g_list_free_full (priv->requests, g_object_unref);
