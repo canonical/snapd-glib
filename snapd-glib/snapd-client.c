@@ -133,6 +133,7 @@ struct _SnapdRequest
     GPtrArray *slots;
     SnapdUserInformation *user_information;
     GPtrArray *users_information;
+    guint complete_handle;
 };
 
 static gboolean
@@ -159,7 +160,7 @@ snapd_request_complete (SnapdRequest *request, GError *error)
         g_propagate_error (&request->error, error);
 
     /* Do in main loop so user can't block our reading callback */
-    g_idle_add (complete_cb, request);
+    request->complete_handle = g_idle_add (complete_cb, request);
 }
 
 static void
@@ -228,7 +229,9 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->plugs, g_ptr_array_unref);
     g_clear_pointer (&request->slots, g_ptr_array_unref);
     g_clear_object (&request->user_information);
-    g_clear_pointer (&request->users_information, g_ptr_array_unref);  
+    g_clear_pointer (&request->users_information, g_ptr_array_unref);
+    if (request->complete_handle != 0)
+        g_source_remove (request->complete_handle);
 }
 
 static void
