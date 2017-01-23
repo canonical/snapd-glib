@@ -38,6 +38,8 @@ const gchar *snapd_task_get_status         (SnapdTask *task);
 
 gboolean     snapd_task_get_ready          (SnapdTask *task);
 
+const gchar *snapd_task_get_progress_label (SnapdTask *task);
+
 gint64       snapd_task_get_progress_done  (SnapdTask *task);
 
 gint64       snapd_task_get_progress_total (SnapdTask *task);

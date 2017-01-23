@@ -1393,6 +1393,7 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
                                   "summary", get_string (object, "summary", NULL),
                                   "status", get_string (object, "status", NULL),
                                   "ready", get_bool (object, "ready", FALSE),
+                                  "progress-label", progress != NULL ? get_string (progress, "label", NULL) : NULL,
                                   "progress-done", progress != NULL ? get_int (progress, "done", 0) : 0,
                                   "progress-total", progress != NULL ? get_int (progress, "total", 0) : 0,
                                   "spawn-time", spawn_time,

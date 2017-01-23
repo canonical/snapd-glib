@@ -253,6 +253,7 @@ snapd_task_get_kind
 snapd_task_get_summary
 snapd_task_get_status
 snapd_task_get_ready
+snapd_task_get_progress_label
 snapd_task_get_progress_done
 snapd_task_get_progress_total
 snapd_task_get_spawn_time
