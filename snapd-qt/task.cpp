@@ -33,9 +33,9 @@ QString QSnapdTask::status () const
     return snapd_task_get_status (SNAPD_TASK (wrapped_object));
 }
 
-bool QSnapdTask::ready () const
+QString QSnapdTask::progressLabel () const
 {
-    return snapd_task_get_ready (SNAPD_TASK (wrapped_object));
+    return snapd_task_get_progress_label (SNAPD_TASK (wrapped_object));
 }
 
 qint64 QSnapdTask::progressDone () const

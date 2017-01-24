@@ -24,8 +24,7 @@ struct QSnapdRequestPrivate
         g_cancellable_cancel (cancellable);
         g_object_unref (cancellable);
         g_object_unref (client);
-        g_object_unref (main_task);
-        g_ptr_array_unref (tasks);
+        g_object_unref (change);
     }
 
     SnapdClient *client;
@@ -33,8 +32,7 @@ struct QSnapdRequestPrivate
     bool finished;
     QSnapdRequest::QSnapdError error;
     QString errorString;
-    SnapdTask *main_task;
-    GPtrArray *tasks;
+    SnapdChange *change;
 };
 
 QSnapdRequest::QSnapdRequest (void *snapd_client, QObject *parent) :
@@ -147,30 +145,15 @@ void QSnapdRequest::cancel ()
     g_cancellable_cancel (d->cancellable);
 }
 
-void QSnapdRequest::handleProgress (void *main_task_, void *tasks_)
+void QSnapdRequest::handleProgress (void *change)
 {
     Q_D(QSnapdRequest);
-    d->main_task = SNAPD_TASK (g_object_ref (main_task_));
-    d->tasks = g_ptr_array_ref ((GPtrArray*) tasks_);
+    d->change = SNAPD_CHANGE (g_object_ref (change));
     emit progress ();
 }
 
-QSnapdTask *QSnapdRequest::mainTask () const
+QSnapdChange *QSnapdRequest::change () const
 {
     Q_D(const QSnapdRequest);
-    return new QSnapdTask (g_object_ref (d->main_task));
-}
-
-int QSnapdRequest::taskCount () const
-{
-    Q_D(const QSnapdRequest);
-    return d->tasks != NULL ? d->tasks->len : 0;
-}
-
-QSnapdTask *QSnapdRequest::task (int n) const
-{
-    Q_D(const QSnapdRequest);
-    if (d->tasks == NULL || n < 0 || (guint) n >= d->tasks->len)
-        return NULL;
-    return new QSnapdTask (g_object_ref (d->tasks->pdata[n]));
+    return new QSnapdChange (g_object_ref (d->change));
 }

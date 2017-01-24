@@ -274,7 +274,7 @@ snapd_snap_get_name (SnapdSnap *snap)
  *
  * Get the prices that this snap can be purchased at.
  *
- * Returns: (transfer none) (element-type SnapdPrice): an array of prices.
+ * Returns: (transfer none) (element-type SnapdPrice): an array of #SnapdPrice.
  */
 GPtrArray *
 snapd_snap_get_prices (SnapdSnap *snap)
@@ -320,7 +320,7 @@ snapd_snap_get_revision (SnapdSnap *snap)
  *
  * Get the screenshots that are available for this snap.
  *
- * Returns: (transfer none) (element-type SnapdScreenshot): an array of screenshots.
+ * Returns: (transfer none) (element-type SnapdScreenshot): an array of #SnapdScreenshot.
  */
 GPtrArray *
 snapd_snap_get_screenshots (SnapdSnap *snap)

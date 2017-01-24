@@ -21,7 +21,7 @@
 #include <snapd-glib/snapd-icon.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
-#include <snapd-glib/snapd-task.h>
+#include <snapd-glib/snapd-change.h>
 #include <snapd-glib/snapd-user-information.h>
 
 G_BEGIN_DECLS
@@ -78,8 +78,8 @@ typedef enum
 /**
  * SnapdProgressCallback:
  * @client: a #SnapdClient
- * @main_task: a #SnapdTask describing the overall task in progress
- * @tasks: (element-type SnapdTask): tasks to be done / being done.
+ * @change: a #SnapdChange describing the change in progress
+ * @deprecated: A deprecated field that is no longer used.
  * @user_data: user data passed to the callback
  *
  * Signature for callback function used in
@@ -91,7 +91,7 @@ typedef enum
  * snapd_client_enable_sync() and
  * snapd_client_disable_sync().
  */
-typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdTask *main_task, GPtrArray *tasks, gpointer user_data);
+typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data);
 
 SnapdClient            *snapd_client_new                           (void);
 

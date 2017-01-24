@@ -11,7 +11,7 @@
 #define SNAPD_REQUEST_H
 
 #include <QtCore/QObject>
-#include <Snapd/Task>
+#include <Snapd/Change>
 
 struct QSnapdRequestPrivate;
   
@@ -22,8 +22,7 @@ class Q_DECL_EXPORT QSnapdRequest : public QObject
     Q_PROPERTY(bool isFinished READ isFinished)
     Q_PROPERTY(QSnapdError error READ error)
     Q_PROPERTY(QString errorString READ errorString)
-    Q_PROPERTY(QSnapdTask mainTask READ mainTask)
-    Q_PROPERTY(int taskCount READ taskCount)
+    Q_PROPERTY(QSnapdChange change READ change)
     Q_ENUMS(QSnapdError)
 
 public:
@@ -54,10 +53,8 @@ public:
     Q_INVOKABLE virtual void runSync () = 0;
     Q_INVOKABLE virtual void runAsync () = 0;
     Q_INVOKABLE void cancel ();
-    Q_INVOKABLE QSnapdTask *mainTask () const;
-    Q_INVOKABLE int taskCount () const;
-    Q_INVOKABLE QSnapdTask *task (int) const;
-    void handleProgress (void*, void*);
+    Q_INVOKABLE QSnapdChange *change () const;
+    void handleProgress (void*);
 
 protected:
     void *getClient () const;

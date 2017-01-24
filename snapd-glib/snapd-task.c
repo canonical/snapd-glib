@@ -12,14 +12,14 @@
 #include <string.h>
 
 #include "snapd-task.h"
+#include "snapd-change.h"
 
 /**
  * SECTION: snapd-task
  * @short_description: Task progress
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdTask contains information on how a request is progressing. Progress
- * information is returned in a #SnapdProgressCallback.
+ * A #SnapdTask contains information on a task in a #SnapdChange.
  */
 
 /**
@@ -37,7 +37,6 @@ struct _SnapdTask
     gchar *kind;  
     gchar *summary;
     gchar *status;  
-    gboolean ready;
     gchar *progress_label;
     gint64 progress_done;
     gint64 progress_total;
@@ -73,6 +72,10 @@ G_DEFINE_TYPE (SnapdTask, snapd_task, G_TYPE_OBJECT)
 const gchar *
 snapd_task_get_id (SnapdTask *task)
 {
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return snapd_change_get_id (SNAPD_CHANGE (task));
+
     g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
     return task->id;
 }
@@ -88,6 +91,10 @@ snapd_task_get_id (SnapdTask *task)
 const gchar *
 snapd_task_get_kind (SnapdTask *task)
 {
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return snapd_change_get_kind (SNAPD_CHANGE (task));
+
     g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
     return task->kind;
 }
@@ -103,6 +110,10 @@ snapd_task_get_kind (SnapdTask *task)
 const gchar *
 snapd_task_get_summary (SnapdTask *task)
 {
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return snapd_change_get_summary (SNAPD_CHANGE (task));
+
     g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
     return task->summary;
 }
@@ -118,6 +129,10 @@ snapd_task_get_summary (SnapdTask *task)
 const gchar *
 snapd_task_get_status (SnapdTask *task)
 {
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return snapd_change_get_status (SNAPD_CHANGE (task));
+
     g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
     return task->status;
 }
@@ -128,13 +143,18 @@ snapd_task_get_status (SnapdTask *task)
  *
  * Get if this task is completed.
  *
+ * Depcrecated: 1.5: Use snapd_change_get_ready() instead.
+ *
  * Returns: %TRUE if this task is complete.
  */
 gboolean
 snapd_task_get_ready (SnapdTask *task)
 {
-    g_return_val_if_fail (SNAPD_IS_TASK (task), FALSE);
-    return task->ready;
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return snapd_change_get_ready (SNAPD_CHANGE (task));
+
+    return FALSE;
 }
 
 /**
@@ -148,6 +168,10 @@ snapd_task_get_ready (SnapdTask *task)
 const gchar *
 snapd_task_get_progress_label (SnapdTask *task)
 {
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return NULL;
+
     g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
     return task->progress_label;
 }
@@ -163,6 +187,10 @@ snapd_task_get_progress_label (SnapdTask *task)
 gint64
 snapd_task_get_progress_done (SnapdTask *task)
 {
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return 0;
+
     g_return_val_if_fail (SNAPD_IS_TASK (task), 0);
     return task->progress_done;
 }
@@ -178,6 +206,10 @@ snapd_task_get_progress_done (SnapdTask *task)
 gint64
 snapd_task_get_progress_total (SnapdTask *task)
 {
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return 0;
+
     g_return_val_if_fail (SNAPD_IS_TASK (task), 0);
     return task->progress_total;
 }
@@ -193,6 +225,10 @@ snapd_task_get_progress_total (SnapdTask *task)
 GDateTime *
 snapd_task_get_spawn_time (SnapdTask *task)
 {
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return snapd_change_get_spawn_time (SNAPD_CHANGE (task));
+
     g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
     return task->spawn_time;
 }
@@ -208,6 +244,10 @@ snapd_task_get_spawn_time (SnapdTask *task)
 GDateTime *
 snapd_task_get_ready_time (SnapdTask *task)
 {
+    /* Workaround to handle API change in SnapdProgressCallback */
+    if (SNAPD_IS_CHANGE (task))
+        return snapd_change_get_ready_time (SNAPD_CHANGE (task));
+
     g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
     return task->ready_time;
 }
@@ -235,7 +275,7 @@ snapd_task_set_property (GObject *object, guint prop_id, const GValue *value, GP
         task->status = g_strdup (g_value_get_string (value));
         break;
     case PROP_READY:
-        task->ready = g_value_get_boolean (value);
+        // Deprecated
         break;
     case PROP_PROGRESS_LABEL:
         g_free (task->progress_label);
@@ -289,6 +329,9 @@ snapd_task_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_PROGRESS_TOTAL:
         g_value_set_int64 (value, task->progress_total);
+        break;
+    case PROP_READY:
+        g_value_set_boolean (value, FALSE);
         break;
     case PROP_SPAWN_TIME:
         g_value_set_boxed (value, task->spawn_time);
@@ -380,7 +423,7 @@ snapd_task_class_init (SnapdTaskClass *klass)
                                                            "ready",
                                                            "TRUE when task complete",
                                                            FALSE,
-                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_DEPRECATED));
     g_object_class_install_property (gobject_class,
                                      PROP_SPAWN_TIME,
                                      g_param_spec_boxed ("spawn-time",

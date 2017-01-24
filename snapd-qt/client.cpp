@@ -618,10 +618,10 @@ QSnapdConnectInterfaceRequest::QSnapdConnectInterfaceRequest (const QString &plu
     QSnapdRequest (snapd_client, parent),
     d_ptr (new QSnapdConnectInterfaceRequestPrivate (plug_snap, plug_name, slot_snap, slot_name)) {}
 
-static void progress_cb (SnapdClient *client, SnapdTask *main_task, GPtrArray *tasks, gpointer data)
+static void progress_cb (SnapdClient *client, SnapdChange *change, gpointer, gpointer data)
 {
     QSnapdRequest *request = static_cast<QSnapdRequest*>(data);
-    request->handleProgress (main_task, tasks);
+    request->handleProgress (change);
 }
 
 void QSnapdConnectInterfaceRequest::runSync ()

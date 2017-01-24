@@ -36,6 +36,7 @@ const gchar *snapd_task_get_summary        (SnapdTask *task);
 
 const gchar *snapd_task_get_status         (SnapdTask *task);
 
+G_DEPRECATED_FOR (snapd_change_get_ready)
 gboolean     snapd_task_get_ready          (SnapdTask *task);
 
 const gchar *snapd_task_get_progress_label (SnapdTask *task);

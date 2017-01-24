@@ -22,6 +22,7 @@
 #include "snapd-plug.h"
 #include "snapd-screenshot.h"
 #include "snapd-slot.h"
+#include "snapd-task.h"
 
 /**
  * SECTION:snapd-client
@@ -118,8 +119,7 @@ struct _SnapdRequest
     gchar *change_id;
     guint poll_timer;
     guint timeout_timer;
-    SnapdTask *main_task;
-    GPtrArray *tasks;
+    SnapdChange *change;
 
     gboolean completed;
     GError *error;
@@ -219,8 +219,7 @@ snapd_request_finalize (GObject *object)
         g_source_remove (request->poll_timer);
     if (request->timeout_timer != 0)
         g_source_remove (request->timeout_timer);
-    g_clear_object (&request->main_task);
-    g_clear_pointer (&request->tasks, g_ptr_array_unref);
+    g_clear_object (&request->change);
     g_clear_object (&request->system_information);
     g_clear_pointer (&request->snaps, g_ptr_array_unref);
     g_free (request->suggested_currency);
@@ -1262,7 +1261,7 @@ tasks_equal (SnapdTask *task1, SnapdTask *task2)
            g_strcmp0 (snapd_task_get_kind (task1), snapd_task_get_kind (task2)) == 0 &&
            g_strcmp0 (snapd_task_get_summary (task1), snapd_task_get_summary (task2)) == 0 &&
            g_strcmp0 (snapd_task_get_status (task1), snapd_task_get_status (task2)) == 0 &&
-           !!snapd_task_get_ready (task1) == !!snapd_task_get_ready (task2) &&
+           g_strcmp0 (snapd_task_get_progress_label (task1), snapd_task_get_progress_label (task2)) == 0 &&
            snapd_task_get_progress_done (task1) == snapd_task_get_progress_done (task2) &&
            snapd_task_get_progress_total (task1) == snapd_task_get_progress_total (task2) &&
            times_equal (snapd_task_get_spawn_time (task1), snapd_task_get_spawn_time (task2)) &&
@@ -1270,8 +1269,15 @@ tasks_equal (SnapdTask *task1, SnapdTask *task2)
 }
 
 static gboolean
-progress_equal (SnapdTask *main_task1, GPtrArray *tasks1, SnapdTask *main_task2, GPtrArray *tasks2)
+changes_equal (SnapdChange *change1, SnapdChange *change2)
 {
+    GPtrArray *tasks1, *tasks2;
+
+    if (change1 == NULL || change2 == NULL)
+        return change1 == change2;
+
+    tasks1 = snapd_change_get_tasks (change1);
+    tasks2 = snapd_change_get_tasks (change2);
     if (tasks1 == NULL || tasks2 == NULL) {
         if (tasks1 != tasks2)
             return FALSE;
@@ -1288,14 +1294,13 @@ progress_equal (SnapdTask *main_task1, GPtrArray *tasks1, SnapdTask *main_task2,
         }
     }
 
-    if (main_task1 == NULL || main_task2 == NULL) {
-        if (main_task1 != main_task2)
-            return FALSE;
-    }
-    else {
-        if (!tasks_equal (main_task1, main_task2))
-            return FALSE;
-    }
+    return g_strcmp0 (snapd_change_get_id (change1), snapd_change_get_id (change2)) == 0 &&
+           g_strcmp0 (snapd_change_get_kind (change1), snapd_change_get_kind (change2)) == 0 &&
+           g_strcmp0 (snapd_change_get_summary (change1), snapd_change_get_summary (change2)) == 0 &&
+           g_strcmp0 (snapd_change_get_status (change1), snapd_change_get_status (change2)) == 0 &&
+           !!snapd_change_get_ready (change1) == !!snapd_change_get_ready (change2) &&
+           times_equal (snapd_change_get_spawn_time (change1), snapd_change_get_spawn_time (change2)) &&
+           times_equal (snapd_change_get_spawn_time (change1), snapd_change_get_spawn_time (change2));
 
     return TRUE;
 }
@@ -1363,7 +1368,7 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
             g_autoptr(JsonArray) array = NULL;
             guint i;
             g_autoptr(GPtrArray) tasks = NULL;
-            g_autoptr(SnapdTask) main_task = NULL;
+            g_autoptr(SnapdChange) change = NULL;
             g_autoptr(GDateTime) main_spawn_time = NULL;
             g_autoptr(GDateTime) main_ready_time = NULL;
 
@@ -1404,22 +1409,21 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 
             main_spawn_time = get_date_time (result, "spawn-time");
             main_ready_time = get_date_time (result, "ready-time");
-            main_task = g_object_new (SNAPD_TYPE_TASK,
-                                      "id", get_string (result, "id", NULL),
-                                      "kind", get_string (result, "kind", NULL),
-                                      "summary", get_string (result, "summary", NULL),
-                                      "status", get_string (result, "status", NULL),
-                                      "ready", get_bool (result, "ready", FALSE),
-                                      "spawn-time", main_spawn_time,
-                                      "ready-time", main_ready_time,
-                                      NULL);
+            change = g_object_new (SNAPD_TYPE_CHANGE,
+                                   "id", get_string (result, "id", NULL),
+                                   "kind", get_string (result, "kind", NULL),
+                                   "summary", get_string (result, "summary", NULL),
+                                   "status", get_string (result, "status", NULL),
+                                   "tasks", tasks,
+                                   "ready", get_bool (result, "ready", FALSE),
+                                   "spawn-time", main_spawn_time,
+                                   "ready-time", main_ready_time,
+                                   NULL);
 
-            if (!progress_equal (request->main_task, request->tasks, main_task, tasks)) {
-                g_clear_object (&request->main_task);
-                request->main_task = g_steal_pointer (&main_task);
-                g_clear_pointer (&request->tasks, g_ptr_array_unref);
-                request->tasks = g_steal_pointer (&tasks);
-                request->progress_callback (request->client, request->main_task, request->tasks, request->progress_callback_data);
+            if (!changes_equal (request->change, change)) {
+                g_clear_object (&request->change);
+                request->change = g_steal_pointer (&change);
+                request->progress_callback (request->client, request->change, tasks, request->progress_callback_data);
             }
         }
 
@@ -2582,8 +2586,8 @@ make_get_interfaces_request (SnapdClient *client,
 /**
  * snapd_client_get_interfaces_sync:
  * @client: a #SnapdClient.
- * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the location to store the plug array or %NULL.
- * @slots: (out) (allow-none) (transfer container) (element-type SnapdSlot): the location to store the slot array or %NULL.
+ * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the location to store the array of #SnapdPlug or %NULL.
+ * @slots: (out) (allow-none) (transfer container) (element-type SnapdSlot): the location to store the array of #SnapdSlot or %NULL.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
@@ -2627,8 +2631,8 @@ snapd_client_get_interfaces_async (SnapdClient *client,
  * snapd_client_get_interfaces_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
- * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the location to store the plug array or %NULL.
- * @slots: (out) (allow-none) (transfer container) (element-type SnapdSlot): the location to store the slot array or %NULL.
+ * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the location to store the array of #SnapdPlug or %NULL.
+ * @slots: (out) (allow-none) (transfer container) (element-type SnapdSlot): the location to store the array of #SnapdSlot or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Complete request started with snapd_client_get_interfaces_async().

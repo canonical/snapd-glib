@@ -10,6 +10,24 @@ SNAPD_TYPE_APP
 </SECTION>
 
 <SECTION>
+<FILE>snapd-change</FILE>
+<TITLE>SnapdChange</TITLE>
+snapd_change_get_id
+snapd_change_get_kind
+snapd_change_get_summary
+snapd_change_get_status
+snapd_change_get_tasks
+snapd_change_get_ready
+snapd_change_get_spawn_time
+snapd_change_get_ready_time
+SnapdChange
+
+<SUBSECTION Private>
+SnapdChangeClass
+SNAPD_TYPE_CHANGE
+</SECTION>
+
+<SECTION>
 <FILE>snapd-client</FILE>
 <TITLE>SnapdClient</TITLE>
 SnapdClient
