@@ -3727,8 +3727,6 @@ make_buy_request (SnapdClient *client,
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "snap-id");
     json_builder_add_string_value (builder, id);
-    json_builder_set_member_name (builder, "snap-name");
-    json_builder_add_string_value (builder, id); // This is unnecessary and will hopefully be removed https://github.com/snapcore/snapd/pull/2158
     json_builder_set_member_name (builder, "price");
     json_builder_add_double_value (builder, amount);
     json_builder_set_member_name (builder, "currency");
