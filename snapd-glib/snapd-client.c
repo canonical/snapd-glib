@@ -1423,6 +1423,8 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
             if (!changes_equal (request->change, change)) {
                 g_clear_object (&request->change);
                 request->change = g_steal_pointer (&change);
+                // NOTE: tasks is passed for ABI compatibility - this field is
+                // deprecated and can be accessed with snapd_change_get_tasks ()
                 request->progress_callback (request->client, request->change, tasks, request->progress_callback_data);
             }
         }
