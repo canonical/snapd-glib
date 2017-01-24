@@ -42,6 +42,9 @@ G_BEGIN_DECLS
  *     method.
  * @SNAPD_ERROR_PAYMENT_DECLINED: this user has had their payment method
  *     declined by the payment provider.
+ * @SNAPD_ERROR_ALREADY_INSTALLED: the requested snap is already installed.
+ * @SNAPD_ERROR_NOT_INSTALLED: the requested snap is not installed.
+ * @SNAPD_ERROR_NO_UPDATE_AVAILABLE: no update is available for this snap.
  *
  * Error codes returned by snapd operations.
  */
@@ -60,7 +63,10 @@ typedef enum
     SNAPD_ERROR_FAILED,
     SNAPD_ERROR_TERMS_NOT_ACCEPTED,
     SNAPD_ERROR_PAYMENT_NOT_SETUP,
-    SNAPD_ERROR_PAYMENT_DECLINED
+    SNAPD_ERROR_PAYMENT_DECLINED,
+    SNAPD_ERROR_ALREADY_INSTALLED,
+    SNAPD_ERROR_NOT_INSTALLED,
+    SNAPD_ERROR_NO_UPDATE_AVAILABLE
 } SnapdError;
 
 /**

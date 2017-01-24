@@ -38,6 +38,7 @@ struct _SnapdTask
     gchar *summary;
     gchar *status;  
     gboolean ready;
+    gchar *progress_label;
     gint64 progress_done;
     gint64 progress_total;
     GDateTime *spawn_time;
@@ -54,7 +55,8 @@ enum
     PROP_PROGRESS_DONE,
     PROP_PROGRESS_TOTAL,
     PROP_SPAWN_TIME,
-    PROP_READY_TIME,  
+    PROP_READY_TIME,
+    PROP_PROGRESS_LABEL,
     PROP_LAST
 };
  
@@ -133,6 +135,21 @@ snapd_task_get_ready (SnapdTask *task)
 {
     g_return_val_if_fail (SNAPD_IS_TASK (task), FALSE);
     return task->ready;
+}
+
+/**
+ * snapd_task_get_progress_label:
+ * @task: a #SnapdTask.
+ *
+ * Get the the label associated with the progress.
+ *
+ * Returns: a label string.
+ */
+const gchar *
+snapd_task_get_progress_label (SnapdTask *task)
+{
+    g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
+    return task->progress_label;
 }
 
 /**
@@ -220,6 +237,10 @@ snapd_task_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_READY:
         task->ready = g_value_get_boolean (value);
         break;
+    case PROP_PROGRESS_LABEL:
+        g_free (task->progress_label);
+        task->progress_label = g_strdup (g_value_get_string (value));
+        break;
     case PROP_PROGRESS_DONE:
         task->progress_done = g_value_get_int64 (value);
         break;
@@ -260,6 +281,9 @@ snapd_task_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_STATUS:
         g_value_set_string (value, task->status);
         break;
+    case PROP_PROGRESS_LABEL:
+        g_value_set_string (value, task->progress_label);
+        break;
     case PROP_PROGRESS_DONE:
         g_value_set_int64 (value, task->progress_done);
         break;
@@ -286,7 +310,8 @@ snapd_task_finalize (GObject *object)
     g_clear_pointer (&task->id, g_free);
     g_clear_pointer (&task->kind, g_free);
     g_clear_pointer (&task->summary, g_free);
-    g_clear_pointer (&task->status, g_free);  
+    g_clear_pointer (&task->status, g_free);
+    g_clear_pointer (&task->progress_label, g_free);
     g_clear_pointer (&task->spawn_time, g_date_time_unref);
     g_clear_pointer (&task->ready_time, g_date_time_unref);  
 }
@@ -326,6 +351,13 @@ snapd_task_class_init (SnapdTaskClass *klass)
                                      g_param_spec_string ("status",
                                                           "status",
                                                           "Status of task",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_PROGRESS_LABEL,
+                                     g_param_spec_string ("progress-label",
+                                                          "progress-label",
+                                                          "Label for progress",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
