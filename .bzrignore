@@ -46,3 +46,7 @@ snapd-login-service/login-service.[ch]
 snapd-login-service/snapd-login-service
 snapd-login-service/io.snapcraft.SnapdLoginService.policy
 snapd-login-service/io.snapcraft.SnapdLoginService.service
+snapd-qt/SnapdConfig.cmake
+snapd-qt/SnapdConfigVersion.cmake
+snapd-qt/snapd-qt.pc
+snapd-qt/*_moc.cpp
