@@ -56,6 +56,9 @@ snapd_client_install_finish
 snapd_client_refresh_sync
 snapd_client_refresh_async
 snapd_client_refresh_finish
+snapd_client_refresh_all_sync
+snapd_client_refresh_all_async
+snapd_client_refresh_all_finish
 snapd_client_remove_sync
 snapd_client_remove_async
 snapd_client_remove_finish

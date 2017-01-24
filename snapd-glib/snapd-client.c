@@ -89,6 +89,7 @@ typedef enum
     SNAPD_REQUEST_BUY,  
     SNAPD_REQUEST_INSTALL,
     SNAPD_REQUEST_REFRESH,
+    SNAPD_REQUEST_REFRESH_ALL,  
     SNAPD_REQUEST_REMOVE,
     SNAPD_REQUEST_ENABLE,
     SNAPD_REQUEST_DISABLE,
@@ -1561,6 +1562,12 @@ parse_refresh_response (SnapdRequest *request, SoupMessageHeaders *headers, cons
 }
 
 static void
+parse_refresh_all_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    parse_async_response (request, headers, content, content_length);
+}
+
+static void
 parse_remove_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     parse_async_response (request, headers, content, content_length);
@@ -1741,6 +1748,9 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         break;
     case SNAPD_REQUEST_REFRESH:
         parse_refresh_response (request, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_REFRESH_ALL:
+        parse_refresh_all_response (request, headers, content, content_length);
         break;
     case SNAPD_REQUEST_REMOVE:
         parse_remove_response (request, headers, content, content_length);
@@ -3224,6 +3234,95 @@ snapd_client_refresh_finish (SnapdClient *client, GAsyncResult *result, GError *
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_REFRESH, FALSE);
+
+    if (snapd_request_set_error (request, error))
+        return FALSE;
+    return request->result;
+}
+
+static SnapdRequest *
+make_refresh_all_request (SnapdClient *client,
+                          SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+    g_autofree gchar *data = NULL;
+
+    request = make_request (client, SNAPD_REQUEST_REFRESH_ALL, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    data = make_action_data ("refresh", NULL);
+    send_request (request, TRUE, "POST", "/v2/snaps", "application/json", data);
+
+    return request;
+}
+
+/**
+ * snapd_client_refresh_all_sync:
+ * @client: a #SnapdClient.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Update all installed snaps to their latest version.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_refresh_all_sync (SnapdClient *client,
+                               SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                               GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+
+    request = g_object_ref (make_refresh_all_request (client, progress_callback, progress_callback_data, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_refresh_all_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_refresh_all_async:
+ * @client: a #SnapdClient.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously ensure all snaps are updated to their latest versions.
+ * See snapd_client_refresh_all_sync() for more information.
+ */
+void
+snapd_client_refresh_all_async (SnapdClient *client,
+                                SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    make_refresh_all_request (client, progress_callback, progress_callback_data, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_refresh_all_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_refresh_all_async().
+ * See snapd_client_refresh_all_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_refresh_all_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_REFRESH_ALL, FALSE);
 
     if (snapd_request_set_error (request, error))
         return FALSE;
