@@ -9,7 +9,7 @@ source_h = \
 	snapd-app.h \
 	snapd-auth-data.h \
 	snapd-change.h \
-	snapd-client.h \        
+	snapd-client.h \
 	snapd-connection.h \
 	snapd-error.h \
 	snapd-icon.h \

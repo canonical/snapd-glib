@@ -8,7 +8,7 @@ source_h = Snapd/App Snapd/app.h \
            Snapd/Client Snapd/client.h \
            Snapd/Connection Snapd/connection.h \
            Snapd/Icon Snapd/icon.h \
-           Snapd/Price Snapd/price.h \           
+           Snapd/Price Snapd/price.h \
            Snapd/Request Snapd/request.h \
            Snapd/Snap Snapd/snap.h \
            Snapd/SystemInformation Snapd/system-information.h \
