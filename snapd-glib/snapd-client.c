@@ -3437,7 +3437,7 @@ snapd_client_refresh_all_finish (SnapdClient *client, GAsyncResult *result, GErr
     SnapdRequest *request;
     g_autoptr(GPtrArray) snap_names = NULL;
     JsonObject *o;
-    JsonArray *a;
+    g_autoptr(JsonArray) a = NULL;
     guint i;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
