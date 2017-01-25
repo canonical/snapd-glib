@@ -157,6 +157,11 @@ struct QSnapdRefreshRequestPrivate
     QString channel;
 };
 
+struct QSnapdRefreshAllRequestPrivate
+{
+    QSnapdRefreshAllRequestPrivate () {}
+};
+
 struct QSnapdRemoveRequestPrivate
 {
     QSnapdRemoveRequestPrivate (const QString& name) :
@@ -277,6 +282,12 @@ QSnapdRefreshRequest *QSnapdClient::refresh (const QString& name, const QString&
 {
     Q_D(QSnapdClient);
     return new QSnapdRefreshRequest (name, channel, d->client);
+}
+
+QSnapdRefreshAllRequest *QSnapdClient::refreshAll ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdRefreshAllRequest (d->client);
 }
 
 QSnapdRemoveRequest *QSnapdClient::remove (const QString& name)
@@ -875,6 +886,42 @@ void QSnapdRefreshRequest::runAsync ()
                                 d->name.toStdString ().c_str (), d->channel.toStdString ().c_str (),
                                 progress_cb, this,
                                 G_CANCELLABLE (getCancellable ()), refresh_ready_cb, (gpointer) this);
+}
+
+QSnapdRefreshAllRequest::QSnapdRefreshAllRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdRefreshAllRequestPrivate ()) {}
+
+void QSnapdRefreshAllRequest::runSync ()
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_refresh_all_sync (SNAPD_CLIENT (getClient ()),
+                                   progress_cb, this,
+                                   G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdRefreshAllRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_refresh_all_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    finish (error);
+}
+
+static void refresh_all_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdRefreshAllRequest *request = static_cast<QSnapdRefreshAllRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdRefreshAllRequest::runAsync ()
+{
+    snapd_client_refresh_all_async (SNAPD_CLIENT (getClient ()),
+                                    progress_cb, this,
+                                    G_CANCELLABLE (getCancellable ()), refresh_all_ready_cb, (gpointer) this);
 }
 
 QSnapdRemoveRequest::QSnapdRemoveRequest (const QString& name, void *snapd_client, QObject *parent) :

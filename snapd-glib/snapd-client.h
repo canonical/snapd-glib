@@ -304,7 +304,7 @@ gboolean                snapd_client_refresh_finish                (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-gboolean                snapd_client_refresh_all_sync              (SnapdClient          *client,
+gchar                 **snapd_client_refresh_all_sync              (SnapdClient          *client,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
@@ -315,7 +315,7 @@ void                    snapd_client_refresh_all_async             (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-gboolean                snapd_client_refresh_all_finish            (SnapdClient          *client,
+gchar                 **snapd_client_refresh_all_finish            (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

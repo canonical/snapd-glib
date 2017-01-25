@@ -249,6 +249,22 @@ private:
     Q_DECLARE_PRIVATE(QSnapdRefreshRequest)
 };
 
+class QSnapdRefreshAllRequestPrivate;
+class Q_DECL_EXPORT QSnapdRefreshAllRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdRefreshAllRequest (void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdRefreshAllRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdRefreshAllRequest)
+};
+
 class QSnapdRemoveRequestPrivate;
 class Q_DECL_EXPORT QSnapdRemoveRequest : public QSnapdRequest
 {
@@ -361,6 +377,7 @@ public:
     Q_INVOKABLE QSnapdFindRefreshableRequest *findRefreshable ();  
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);
+    Q_INVOKABLE QSnapdRefreshAllRequest *refreshAll ();  
     Q_INVOKABLE QSnapdRemoveRequest *remove (const QString &name);
     Q_INVOKABLE QSnapdEnableRequest *enable (const QString &name);
     Q_INVOKABLE QSnapdDisableRequest *disable (const QString &name);

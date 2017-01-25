@@ -136,6 +136,7 @@ struct _SnapdRequest
     SnapdUserInformation *user_information;
     GPtrArray *users_information;
     guint complete_handle;
+    JsonNode *async_data;
 };
 
 static gboolean
@@ -231,6 +232,7 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->slots, g_ptr_array_unref);
     g_clear_object (&request->user_information);
     g_clear_pointer (&request->users_information, g_ptr_array_unref);
+    g_clear_pointer (&request->async_data, json_node_unref);
     if (request->complete_handle != 0)
         g_source_remove (request->complete_handle);
 }
@@ -1433,6 +1435,8 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
         ready = get_bool (result, "ready", FALSE);
         if (ready) {
             request->result = TRUE;
+            if (json_object_has_member (result, "data"))
+                request->async_data = json_node_ref (json_object_get_member (result, "data"));
             snapd_request_complete (request, NULL);
             return;
         }
@@ -3379,16 +3383,16 @@ make_refresh_all_request (SnapdClient *client,
  *
  * Update all installed snaps to their latest version.
  *
- * Returns: %TRUE on success or %FALSE on error.
+ * Returns: (transfer full): a %NULL-terminated array of the snap names refreshed or %NULL on error.
  */
-gboolean
+gchar **
 snapd_client_refresh_all_sync (SnapdClient *client,
                                SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                GCancellable *cancellable, GError **error)
 {
     g_autoptr(SnapdRequest) request = NULL;
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
     request = g_object_ref (make_refresh_all_request (client, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -3425,12 +3429,16 @@ snapd_client_refresh_all_async (SnapdClient *client,
  * Complete request started with snapd_client_refresh_all_async().
  * See snapd_client_refresh_all_sync() for more information.
  *
- * Returns: %TRUE on success or %FALSE on error.
+ * Returns: (transfer full): a %NULL-terminated array of the snap names refreshed or %NULL on error.
  */
-gboolean
+gchar **
 snapd_client_refresh_all_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdRequest *request;
+    g_autoptr(GPtrArray) snap_names = NULL;
+    JsonObject *o;
+    JsonArray *a;
+    guint i;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
@@ -3439,8 +3447,40 @@ snapd_client_refresh_all_finish (SnapdClient *client, GAsyncResult *result, GErr
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_REFRESH_ALL, FALSE);
 
     if (snapd_request_set_error (request, error))
-        return FALSE;
-    return request->result;
+        return NULL;
+
+    if (request->async_data == NULL || json_node_get_value_type (request->async_data) != JSON_TYPE_OBJECT) {
+        g_set_error_literal (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "Unexpected result type");
+        return NULL;
+    }
+    o = json_node_get_object (request->async_data);
+    if (o == NULL) {
+        g_set_error_literal (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "No result returned");
+        return NULL;
+    }
+    a = get_array (o, "snap-names");
+    snap_names = g_ptr_array_new ();
+    for (i = 0; i < json_array_get_length (a); i++) {
+        JsonNode *node = json_array_get_element (a, i);
+        if (json_node_get_value_type (node) != G_TYPE_STRING) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
+                                 "Unexpected snap name type");
+            return NULL;
+        }
+
+        g_ptr_array_add (snap_names, g_strdup (json_node_get_string (node)));
+    }
+    g_ptr_array_add (snap_names, NULL);
+
+    return (gchar **) g_steal_pointer (&snap_names->pdata);
 }
 
 static SnapdRequest *
