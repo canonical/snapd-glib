@@ -36,6 +36,7 @@ SnapdFindFlags
 SnapdCreateUserFlags
 SnapdProgressCallback
 snapd_client_new
+snapd_client_new_from_socket
 snapd_client_connect_sync
 snapd_client_connect_async
 snapd_client_connect_finish

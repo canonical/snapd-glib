@@ -4,6 +4,8 @@ AC_PREREQ([2.63])
 
 AC_INIT([snapd-glib], [1.4])
 
+AC_CONFIG_MACRO_DIR([m4])
+
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_SRCDIR([snapd-glib/snapd-glib.h])
 
@@ -27,6 +29,10 @@ dnl === Dependencies ==========================================================
 
 PKG_CHECK_MODULES(SNAPD, [gobject-2.0 gio-2.0 gio-unix-2.0 libsoup-2.4 json-glib-1.0])
 PKG_CHECK_MODULES(SNAPD_LOGIN_SERVICE, [gio-2.0 gio-unix-2.0 polkit-gobject-1])
+
+dnl === Test suite ============================================================
+
+GLIB_TESTS
 
 dnl === snapd-qt ==============================================================
 
@@ -97,6 +103,7 @@ AC_CONFIG_FILES([
         po/Makefile.in
         snapd-glib/Makefile
         snapd-glib/snapd-glib.pc
+        snapd-glib/tests/Makefile
         snapd-qt/Makefile
         snapd-qt/SnapdConfigVersion.cmake
         snapd-qt/snapd-qt.pc

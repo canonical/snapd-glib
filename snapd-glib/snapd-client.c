@@ -2013,38 +2013,38 @@ snapd_client_connect_sync (SnapdClient *client,
 
     priv = snapd_client_get_instance_private (client);
 
-    /* Already connected... */
-    if (priv->snapd_socket != NULL)
-        return TRUE;
-
-    priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
-                                       G_SOCKET_TYPE_STREAM,
-                                       G_SOCKET_PROTOCOL_DEFAULT,
-                                       &error_local);
     if (priv->snapd_socket == NULL) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_CONNECTION_FAILED,
-                     "Unable to open snapd socket: %s",
-                     error_local->message);
-        return FALSE;
-    }
-    address = g_unix_socket_address_new (SNAPD_SOCKET);
-    if (!g_socket_connect (priv->snapd_socket, address, cancellable, &error_local)) {
-        g_clear_object (&priv->snapd_socket);
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_CONNECTION_FAILED,
-                     "Unable to connect snapd socket: %s",
-                     error_local->message);
-        g_clear_object (&priv->snapd_socket);
-        return FALSE;
+        priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
+                                           G_SOCKET_TYPE_STREAM,
+                                           G_SOCKET_PROTOCOL_DEFAULT,
+                                           &error_local);
+        if (priv->snapd_socket == NULL) {
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_CONNECTION_FAILED,
+                         "Unable to open snapd socket: %s",
+                         error_local->message);
+            return FALSE;
+        }
+        address = g_unix_socket_address_new (SNAPD_SOCKET);
+        if (!g_socket_connect (priv->snapd_socket, address, cancellable, &error_local)) {
+            g_clear_object (&priv->snapd_socket);
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_CONNECTION_FAILED,
+                         "Unable to connect snapd socket: %s",
+                         error_local->message);
+            g_clear_object (&priv->snapd_socket);
+            return FALSE;
+        }      
     }
 
-    priv->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
-    g_source_set_callback (priv->read_source, (GSourceFunc) read_cb, client, NULL);
-    g_source_attach (priv->read_source, NULL);
-
+    if (priv->read_source == NULL) {
+        priv->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
+        g_source_set_callback (priv->read_source, (GSourceFunc) read_cb, client, NULL);
+        g_source_attach (priv->read_source, NULL);
+    }
+      
     return TRUE;
 }
 
@@ -4186,6 +4186,27 @@ SnapdClient *
 snapd_client_new (void)
 {
     return g_object_new (SNAPD_TYPE_CLIENT, NULL);
+}
+
+/**
+ * snapd_client_new_from_socket:
+ * @socket: A #GSocket that is connected to snapd.
+ *
+ * Create a new client to talk on an existing socket.
+ *
+ * Returns: a new #SnapdClient
+ **/
+SnapdClient *
+snapd_client_new_from_socket (GSocket *socket)
+{
+    SnapdClient *client;
+    SnapdClientPrivate *priv;
+
+    client = snapd_client_new ();
+    priv = snapd_client_get_instance_private (SNAPD_CLIENT (client));
+    priv->snapd_socket = g_object_ref (socket);
+
+    return client;
 }
 
 static void

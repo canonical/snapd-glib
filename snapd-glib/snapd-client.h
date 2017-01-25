@@ -95,6 +95,8 @@ typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdChange *change,
 
 SnapdClient            *snapd_client_new                           (void);
 
+SnapdClient            *snapd_client_new_from_socket               (GSocket              *socket);
+
 gboolean                snapd_client_connect_sync                  (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
