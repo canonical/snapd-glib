@@ -20,6 +20,7 @@ source_moc = $(source_cpp:.cpp=_moc.cpp) wrapped-object_moc.cpp
 	$(AM_V_GEN) moc --qt=qt5 $< -o $@
 
 libsnapd_qt_la_CPPFLAGS = $(SNAPD_QT_CFLAGS) $(SNAPD_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)
+libsnapd_qt_la_LDFLAGS = -version-info 1:0:0
 libsnapd_qt_la_LIBADD = $(top_builddir)/snapd-glib/libsnapd-glib.la $(SNAPD_QT_LIBS)
 libsnapd_qt_la_SOURCES = $(source_cpp) $(source_moc) $(source_h)
 
