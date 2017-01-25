@@ -105,6 +105,10 @@ snapd_client_create_users_finish
 
 <SUBSECTION Private>
 SNAPD_TYPE_CLIENT
+SNAPD_TYPE_FIND_FLAGS
+snapd_find_flags_get_type
+SNAPD_TYPE_CREATE_USER_FLAGS
+snapd_create_user_flags_get_type
 </SECTION>
 
 <SECTION>
@@ -125,6 +129,11 @@ SNAPD_TYPE_CONNECTION
 SnapdError
 SNAPD_ERROR
 snapd_error_quark
+</SECTION>
+
+<SUBSECTION Private>
+SNAPD_TYPE_ERROR
+snapd_error_get_type
 </SECTION>
 
 <SECTION>
@@ -253,6 +262,12 @@ SnapdSnap
 <SUBSECTION Private>
 SnapdSnapClass
 SNAPD_TYPE_SNAP
+SNAPD_TYPE_CONFINEMENT
+snapd_confinement_get_type
+SNAPD_TYPE_SNAP_STATUS
+snapd_snap_status_get_type
+SNAPD_TYPE_SNAP_TYPE
+snapd_snap_type_get_type
 </SECTION>
 
 <SECTION>
