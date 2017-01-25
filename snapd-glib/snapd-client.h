@@ -48,7 +48,7 @@ struct _SnapdClientClass
  * @SNAPD_FIND_FLAGS_MATCH_NAME: Search for snaps whose name matches the given
  *     string. The match is exact unless the string ends in *.
  * @SNAPD_FIND_FLAGS_SELECT_PRIVATE: Search private snaps
- * @SNAPD_FIND_FLAGS_SELECT_REFRESH: Search refreshable snaps
+ * @SNAPD_FIND_FLAGS_SELECT_REFRESH: Deprecated, do not use
  *
  * Flag to change how a find is performed.
  */
@@ -253,6 +253,17 @@ void                    snapd_client_find_async                    (SnapdClient 
 GPtrArray              *snapd_client_find_finish                   (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     gchar               **suggested_currency,
+                                                                    GError              **error);
+
+GPtrArray              *snapd_client_find_refreshable_sync         (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_find_refreshable_async        (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_find_refreshable_finish       (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
                                                                     GError              **error);
 
 gboolean                snapd_client_install_sync                  (SnapdClient          *client,

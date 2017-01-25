@@ -198,6 +198,25 @@ private:
     Q_DECLARE_PRIVATE(QSnapdFindRequest)
 };
 
+class QSnapdFindRefreshableRequestPrivate;
+class Q_DECL_EXPORT QSnapdFindRefreshableRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int snapCount READ snapCount)
+
+public:
+    explicit QSnapdFindRefreshableRequest (void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int snapCount () const;
+    Q_INVOKABLE QSnapdSnap *snap (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdFindRefreshableRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdFindRefreshableRequest)
+};
+
 class QSnapdInstallRequestPrivate;
 class Q_DECL_EXPORT QSnapdInstallRequest : public QSnapdRequest
 {
@@ -325,8 +344,7 @@ public:
     {
         None          = 0,
         MatchName     = 1 << 0,
-        SelectPrivate = 1 << 1,
-        SelectRefresh = 1 << 2
+        SelectPrivate = 1 << 1
     };
     Q_DECLARE_FLAGS(FindFlags, FindFlag);
     explicit QSnapdClient (QObject* parent=0);
@@ -340,6 +358,7 @@ public:
     Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags, const QString &query);
+    Q_INVOKABLE QSnapdFindRefreshableRequest *findRefreshable ();  
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRemoveRequest *remove (const QString &name);

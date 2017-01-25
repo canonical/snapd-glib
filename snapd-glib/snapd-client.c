@@ -85,6 +85,7 @@ typedef enum
     SNAPD_REQUEST_CONNECT_INTERFACE,
     SNAPD_REQUEST_DISCONNECT_INTERFACE,
     SNAPD_REQUEST_FIND,
+    SNAPD_REQUEST_FIND_REFRESHABLE,  
     SNAPD_REQUEST_SIDELOAD_SNAP, // FIXME
     SNAPD_REQUEST_CHECK_BUY,
     SNAPD_REQUEST_BUY,  
@@ -1527,6 +1528,30 @@ parse_find_response (SnapdRequest *request, SoupMessageHeaders *headers, const g
 }
 
 static void
+parse_find_refreshable_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonObject) response = NULL;
+    g_autoptr(JsonArray) array = NULL;
+    g_autoptr(GPtrArray) snaps = NULL;
+    GError *error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    array = get_array (response, "result");
+    snaps = parse_snap_array (array, &error);
+    if (snaps == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    request->snaps = g_steal_pointer (&snaps);
+    snapd_request_complete (request, NULL);
+}
+
+static void
 parse_check_buy_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     GError *error = NULL;
@@ -1741,6 +1766,9 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         break;
     case SNAPD_REQUEST_FIND:
         parse_find_response (request, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_FIND_REFRESHABLE:
+        parse_find_refreshable_response (request, headers, content, content_length);
         break;
     case SNAPD_REQUEST_CHECK_BUY:
         parse_check_buy_response (request, headers, content, content_length);
@@ -3021,6 +3049,87 @@ snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, gchar **sug
 
     if (suggested_currency != NULL)
         *suggested_currency = g_steal_pointer (&request->suggested_currency);
+    return g_steal_pointer (&request->snaps);
+}
+
+static SnapdRequest *
+make_find_refreshable_request (SnapdClient *client,
+                               GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+
+    request = make_request (client, SNAPD_REQUEST_FIND_REFRESHABLE, NULL, NULL, cancellable, callback, user_data);
+    send_request (request, TRUE, "GET", "/v2/find?select=refresh", NULL, NULL);
+
+    return request;
+}
+
+/**
+ * snapd_client_find_refreshable_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Find snaps in store that are newer revisions than locally installed versions.
+ *
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ */
+GPtrArray *
+snapd_client_find_refreshable_sync (SnapdClient *client,
+                                    GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    request = g_object_ref (make_find_refreshable_request (client, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_find_refreshable_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_find_refreshable_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously find snaps in store that are newer revisions than locally installed versions.
+ * See snapd_client_find_refreshable_sync() for more information.
+ */
+void
+snapd_client_find_refreshable_async (SnapdClient *client,
+                                     GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    make_find_refreshable_request (client, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_find_refreshable_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_find_refreshable_async().
+ * See snapd_client_find_refreshable_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ */
+GPtrArray *
+snapd_client_find_refreshable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_FIND_REFRESHABLE, NULL);
+
+    if (snapd_request_set_error (request, error))
+        return NULL;
+
     return g_steal_pointer (&request->snaps);
 }
 

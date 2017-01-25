@@ -131,6 +131,16 @@ struct QSnapdFindRequestPrivate
     QString suggestedCurrency;
 };
 
+struct QSnapdFindRefreshableRequestPrivate
+{
+    QSnapdFindRefreshableRequestPrivate () {}
+    ~QSnapdFindRefreshableRequestPrivate ()
+    {
+        g_ptr_array_unref (snaps);
+    }
+    GPtrArray *snaps;
+};
+
 struct QSnapdInstallRequestPrivate
 {
     QSnapdInstallRequestPrivate (const QString& name, const QString& channel) :
@@ -249,6 +259,12 @@ QSnapdFindRequest *QSnapdClient::find (FindFlags flags, const QString& name)
 {
     Q_D(QSnapdClient);
     return new QSnapdFindRequest (flags, name, d->client);
+}
+
+QSnapdFindRefreshableRequest *QSnapdClient::findRefreshable ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdFindRefreshableRequest (d->client);
 }
 
 QSnapdInstallRequest *QSnapdClient::install (const QString& name, const QString& channel)
@@ -716,8 +732,6 @@ static SnapdFindFlags convertFindFlags (int flags)
         result |= SNAPD_FIND_FLAGS_MATCH_NAME;
     if ((flags & QSnapdClient::FindFlag::SelectPrivate) != 0)
         result |= SNAPD_FIND_FLAGS_SELECT_PRIVATE;
-    if ((flags & QSnapdClient::FindFlag::SelectRefresh) != 0)
-        result |= SNAPD_FIND_FLAGS_SELECT_REFRESH;
 
     return (SnapdFindFlags) result;
 }
