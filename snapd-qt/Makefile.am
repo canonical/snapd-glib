@@ -19,8 +19,8 @@ source_moc = $(source_cpp:.cpp=_moc.cpp) wrapped-object_moc.cpp
 %_moc.cpp: Snapd/%.h
 	$(AM_V_GEN) moc --qt=qt5 $< -o $@
 
-libsnapd_qt_la_CPPFLAGS = $(SNAPD_QT_CFLAGS) $(SNAPD_CFLAGS) $(WARN_CFLAGS)
-libsnapd_qt_la_LIBADD = $(top_srcdir)/snapd-glib/libsnapd-glib.la $(SNAPD_QT_LIBS)
+libsnapd_qt_la_CPPFLAGS = $(SNAPD_QT_CFLAGS) $(SNAPD_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)
+libsnapd_qt_la_LIBADD = $(top_builddir)/snapd-glib/libsnapd-glib.la $(SNAPD_QT_LIBS)
 libsnapd_qt_la_SOURCES = $(source_cpp) $(source_moc) $(source_h)
 
 snapdincludedir = $(includedir)/snapd-qt/Snapd
@@ -42,7 +42,7 @@ qml-plugin_moc.cpp: qml-plugin.h
 	$(AM_V_GEN) moc --qt=qt5 $< -o $@
 endif
 
-EXTRA_DIST = $(cmake_in_files)
+EXTRA_DIST = $(cmake_in_files) qmldir
 CLEANFILES = $(source_moc)
 DISTCLEANFILES = SnapdConfig.cmake
 
