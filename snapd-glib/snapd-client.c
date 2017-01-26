@@ -774,8 +774,8 @@ parse_snap (JsonObject *object, GError **error)
         s = json_node_get_object (node);
         screenshot = g_object_new (SNAPD_TYPE_SCREENSHOT,
                                    "url", get_string (s, "url", NULL),
-                                   "width", get_int (s, "width", 0),
-                                   "height", get_int (s, "height", 0),                              
+                                   "width", (guint) get_int (s, "width", 0),
+                                   "height", (guint) get_int (s, "height", 0),                              
                                    NULL);
         g_ptr_array_add (screenshots_array, g_steal_pointer (&screenshot));
     }
