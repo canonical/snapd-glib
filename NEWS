@@ -1,3 +1,15 @@
+Overview of changes in snapd-glib 1.5
+
+    * Add new API: snapd_client_refresh_all, snapd_client_find_refreshable.
+    * Use new objects for progress callbacks - API break, ABI will continue to
+      work.
+    * Add Qt/QML bindings.
+    * Add new errors reported by snapd.
+    * Fix payment errors being detected.
+    * Close socket on unref.
+    * Fix small memory leaks.
+    * Add regression tests.
+
 Overview of changes in snapd-glib 1.4
 
     * Fix crash in snapd-login-service when snap stops
