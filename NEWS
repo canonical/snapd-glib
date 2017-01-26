@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 1.6
+
+    * Fix screenshots not working on 32 bit architectures
+
 Overview of changes in snapd-glib 1.5
 
     * Add new API: snapd_client_refresh_all, snapd_client_find_refreshable.
