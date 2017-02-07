@@ -55,6 +55,7 @@ struct _MockSnapd
     gsize n_read;
     GList *accounts;
     GList *snaps;
+    gchar *store;
     GList *store_sections;
     GList *store_snaps;
     GList *plugs;
@@ -144,6 +145,13 @@ mock_snapd_get_client_socket (MockSnapd *snapd)
 {
     g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
     return snapd->client_socket;
+}
+
+void
+mock_snapd_set_store (MockSnapd *snapd, const gchar *name)
+{
+    g_free (snapd->store);
+    snapd->store = g_strdup (name);
 }
 
 void
@@ -819,6 +827,10 @@ handle_system_info (MockSnapd *snapd, const gchar *method)
     json_builder_add_string_value (builder, "SERIES");
     json_builder_set_member_name (builder, "version");
     json_builder_add_string_value (builder, "VERSION");
+    if (snapd->store) {
+        json_builder_set_member_name (builder, "store");
+        json_builder_add_string_value (builder, snapd->store);
+    }
     json_builder_end_object (builder);
 
     send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
@@ -1955,6 +1967,7 @@ mock_snapd_finalize (GObject *object)
     g_list_free_full (snapd->accounts, (GDestroyNotify) mock_account_free);
     g_list_free_full (snapd->snaps, (GDestroyNotify) mock_snap_free);
     snapd->snaps = NULL;
+    g_free (snapd->store);
     g_list_free_full (snapd->store_sections, g_free);
     snapd->store_sections = NULL;
     g_list_free_full (snapd->store_snaps, (GDestroyNotify) mock_snap_free);

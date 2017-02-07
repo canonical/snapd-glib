@@ -36,6 +36,8 @@ const gchar *snapd_system_information_get_os_version (SnapdSystemInformation *sy
 
 const gchar *snapd_system_information_get_series     (SnapdSystemInformation *system_information);
 
+const gchar *snapd_system_information_get_store      (SnapdSystemInformation *system_information);
+
 const gchar *snapd_system_information_get_version    (SnapdSystemInformation *system_information);
 
 G_END_DECLS

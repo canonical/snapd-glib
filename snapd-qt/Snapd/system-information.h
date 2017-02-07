@@ -28,6 +28,7 @@ public:
     QString osId () const;
     QString osVersion () const;
     QString series () const;
+    QString store () const;  
     QString version () const;
 };
 

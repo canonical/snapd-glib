@@ -658,6 +658,7 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
                                        "os-id", os_release != NULL ? get_string (os_release, "id", NULL) : NULL,
                                        "os-version", os_release != NULL ? get_string (os_release, "version-id", NULL) : NULL,
                                        "series", get_string (result, "series", NULL),
+                                       "store", get_string (result, "store", NULL),
                                        "version", get_string (result, "version", NULL),
                                        NULL);
     request->system_information = g_steal_pointer (&system_information);

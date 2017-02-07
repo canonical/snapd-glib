@@ -28,6 +28,11 @@ QString QSnapdSystemInformation::series () const
     return snapd_system_information_get_series (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
+QString QSnapdSystemInformation::store () const
+{
+    return snapd_system_information_get_store (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+}
+
 QString QSnapdSystemInformation::version () const
 {
     return snapd_system_information_get_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));

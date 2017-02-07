@@ -111,6 +111,9 @@ MockSnapd      *mock_snapd_new                    (void);
 
 GSocket        *mock_snapd_get_client_socket      (MockSnapd   *snapd);
 
+void            mock_snapd_set_store              (MockSnapd   *snapd,
+                                                   const gchar *name);
+
 void            mock_snapd_set_suggested_currency (MockSnapd   *snapd,
                                                    const gchar *currency);
 

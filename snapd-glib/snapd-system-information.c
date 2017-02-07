@@ -35,6 +35,7 @@ struct _SnapdSystemInformation
     gchar *os_id;
     gchar *os_version;
     gchar *series;
+    gchar *store;  
     gchar *version;
 };
 
@@ -44,6 +45,7 @@ enum
     PROP_OS_ID,
     PROP_OS_VERSION,
     PROP_SERIES,
+    PROP_STORE,  
     PROP_VERSION,
     PROP_LAST
 };
@@ -111,6 +113,21 @@ snapd_system_information_get_series (SnapdSystemInformation *system_information)
 }
 
 /**
+ * snapd_system_information_get_store:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the store being used by snapd, e.g. "Ubuntu"
+ *
+ * Returns: (allow-none): a store id or %NULL.
+ */
+const gchar *
+snapd_system_information_get_store (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->store;
+}
+
+/**
  * snapd_system_information_get_version:
  * @system_information: a #SnapdSystemInformation.
  *
@@ -146,6 +163,10 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
         g_free (system_information->series);      
         system_information->series = g_strdup (g_value_get_string (value));
         break;
+    case PROP_STORE:
+        g_free (system_information->store);
+        system_information->store = g_strdup (g_value_get_string (value));
+        break;
     case PROP_VERSION:
         g_free (system_information->version);
         system_information->version = g_strdup (g_value_get_string (value));
@@ -174,6 +195,9 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
     case PROP_SERIES:
         g_value_set_string (value, system_information->series);
         break;
+    case PROP_STORE:
+        g_value_set_string (value, system_information->store);
+        break;
     case PROP_VERSION:
         g_value_set_string (value, system_information->version);
         break;
@@ -191,6 +215,7 @@ snapd_system_information_finalize (GObject *object)
     g_clear_pointer (&system_information->os_id, g_free);
     g_clear_pointer (&system_information->os_version, g_free);
     g_clear_pointer (&system_information->series, g_free);
+    g_clear_pointer (&system_information->store, g_free);  
     g_clear_pointer (&system_information->version, g_free);
 }
 
@@ -229,6 +254,13 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
                                      g_param_spec_string ("series",
                                                           "series",
                                                           "Snappy release series",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_STORE,
+                                     g_param_spec_string ("store",
+                                                          "store",
+                                                          "Snap store",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
