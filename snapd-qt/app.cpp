@@ -17,3 +17,12 @@ QString QSnapdApp::name () const
 {
     return snapd_app_get_name (SNAPD_APP (wrapped_object));
 }
+
+QStringList QSnapdApp::aliases () const
+{
+    gchar **discharges = snapd_app_get_aliases (SNAPD_APP (wrapped_object));
+    QStringList result;
+    for (int i = 0; discharges[i] != NULL; i++)
+        result.append (discharges[i]);
+    return result;
+}

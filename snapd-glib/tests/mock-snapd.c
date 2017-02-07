@@ -68,6 +68,13 @@ struct _MockSnapd
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
 
 static void
+mock_app_free (MockApp *app)
+{
+    g_free (app->name);
+    g_list_free_full (app->aliases, g_free);
+}
+
+static void
 mock_price_free (MockPrice *price)
 {
     g_free (price->currency);
@@ -102,6 +109,7 @@ mock_slot_free (MockSlot *slot)
 static void
 mock_snap_free (MockSnap *snap)
 {
+    g_list_free_full (snap->apps, (GDestroyNotify) mock_app_free);
     g_free (snap->channel);
     g_free (snap->confinement);
     g_free (snap->description);
@@ -180,7 +188,6 @@ mock_snap_new (const gchar *name)
     MockSnap *snap;
 
     snap = g_slice_new0 (MockSnap);
-    // FIXME: apps
     snap->channel = g_strdup ("CHANNEL");
     snap->confinement = g_strdup ("strict");
     snap->description = g_strdup ("DESCRIPTION");
@@ -332,6 +339,24 @@ mock_snapd_find_store_snap_by_id (MockSnapd *snapd, const gchar *id)
     }
 
     return NULL;
+}
+
+MockApp *
+mock_snap_add_app (MockSnap *snap, const gchar *name)
+{
+    MockApp *app;
+
+    app = g_slice_new0 (MockApp);
+    app->name = g_strdup (name);
+    snap->apps = g_list_append (snap->apps, app);
+
+    return app;
+}
+
+void
+mock_app_add_alias (MockApp *app, const gchar *alias)
+{
+    app->aliases = g_list_append (app->aliases, g_strdup (alias));
 }
 
 void
@@ -804,6 +829,28 @@ make_snap_node (MockSnap *snap)
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
+    if (snap->apps != NULL) {
+        GList *link;
+
+        json_builder_set_member_name (builder, "apps");
+        json_builder_begin_array (builder);
+        for (link = snap->apps; link; link = link->next) {
+            MockApp *app = link->data;
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "name");
+            json_builder_add_string_value (builder, app->name);
+            if (app->aliases != NULL) {
+                GList *link2;
+                json_builder_set_member_name (builder, "aliases");
+                json_builder_begin_array (builder);
+                for (link2 = app->aliases; link2; link2 = link2->next)
+                    json_builder_add_string_value (builder, link2->data);
+                json_builder_end_array (builder);
+            }
+            json_builder_end_object (builder);
+        }
+        json_builder_end_array (builder);
+    }
     json_builder_set_member_name (builder, "channel");
     json_builder_add_string_value (builder, snap->channel);
     json_builder_set_member_name (builder, "confinement");

@@ -710,6 +710,8 @@ parse_snap (JsonObject *object, GError **error)
     for (i = 0; i < json_array_get_length (apps); i++) {
         JsonNode *node = json_array_get_element (apps, i);
         JsonObject *a;
+        g_autoptr(JsonArray) aliases = NULL;
+        g_autoptr(GPtrArray) aliases_array = NULL;
         g_autoptr(SnapdApp) app = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
@@ -721,8 +723,27 @@ parse_snap (JsonObject *object, GError **error)
         }
 
         a = json_node_get_object (node);
+
+        aliases = get_array (a, "aliases");
+        aliases_array = g_ptr_array_new ();
+        for (i = 0; i < json_array_get_length (aliases); i++) {
+            JsonNode *node = json_array_get_element (aliases, i);
+
+            if (json_node_get_value_type (node) != G_TYPE_STRING) {
+                g_set_error_literal (error,
+                                     SNAPD_ERROR,
+                                     SNAPD_ERROR_READ_FAILED,
+                                     "Unexpected alias type");
+                return NULL;
+            }
+
+            g_ptr_array_add (aliases_array, (gpointer) json_node_get_string (node));
+        }
+        g_ptr_array_add (aliases_array, NULL);
+
         app = g_object_new (SNAPD_TYPE_APP,
                             "name", get_string (a, "name", NULL),
+                            "aliases", (gchar **) aliases_array->pdata,
                             NULL);
         g_ptr_array_add (apps_array, g_steal_pointer (&app));
     }

@@ -34,14 +34,16 @@ struct _SnapdApp
     GObject parent_instance;
 
     gchar *name;
+    gchar **aliases;
 };
 
-enum 
+enum
 {
     PROP_NAME = 1,
+    PROP_ALIASES,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdApp, snapd_app, G_TYPE_OBJECT)
 
 /**
@@ -59,6 +61,21 @@ snapd_app_get_name (SnapdApp *app)
     return app->name;
 }
 
+/**
+ * snapd_app_get_aliases:
+ * @app: a #SnapdApp.
+ *
+ * Get the aliases for this app.
+ *
+ * Returns: (transfer none) (array zero-terminated=1): the alias names.
+ */
+gchar **
+snapd_app_get_aliases (SnapdApp *app)
+{
+    g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
+    return app->aliases;
+}
+
 static void
 snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
@@ -68,6 +85,10 @@ snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GPa
     case PROP_NAME:
         g_free (app->name);
         app->name = g_strdup (g_value_get_string (value));
+        break;
+    case PROP_ALIASES:
+        g_strfreev (app->aliases);
+        app->aliases = g_strdupv (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -84,6 +105,9 @@ snapd_app_get_property (GObject *object, guint prop_id, GValue *value, GParamSpe
     case PROP_NAME:
         g_value_set_string (value, app->name);
         break;
+    case PROP_ALIASES:
+        g_value_set_boxed (value, app->aliases);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -96,6 +120,7 @@ snapd_app_finalize (GObject *object)
     SnapdApp *app = SNAPD_APP (object);
 
     g_clear_pointer (&app->name, g_free);
+    g_clear_pointer (&app->aliases, g_strfreev);
 }
 
 static void
@@ -104,7 +129,7 @@ snapd_app_class_init (SnapdAppClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_app_set_property;
-    gobject_class->get_property = snapd_app_get_property; 
+    gobject_class->get_property = snapd_app_get_property;
     gobject_class->finalize = snapd_app_finalize;
 
     g_object_class_install_property (gobject_class,
@@ -114,6 +139,13 @@ snapd_app_class_init (SnapdAppClass *klass)
                                                           "App name",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_ALIASES,
+                                     g_param_spec_boxed ("aliases",
+                                                         "aliases",
+                                                         "App aliases",
+                                                         G_TYPE_STRV,
+                                                         G_PARAM_READWRITE));
 }
 
 static void

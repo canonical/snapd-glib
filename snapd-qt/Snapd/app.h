@@ -23,6 +23,7 @@ public:
     explicit QSnapdApp (void* snapd_object, QObject* parent = 0);
 
     QString name () const;
+    QStringList aliases () const;  
 };
 
 #endif

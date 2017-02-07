@@ -171,13 +171,19 @@ test_list_one (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     MockSnap *s;
+    MockApp *a;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(SnapdSnap) snap = NULL;
     g_autoptr(GError) error = NULL;
     g_autoptr(GDateTime) date = NULL;
+    SnapdApp *app;
+    gchar **aliases;
 
     snapd = mock_snapd_new ();
     s = mock_snapd_add_snap (snapd, "snap");
+    a = mock_snap_add_app (s, "app");
+    mock_app_add_alias (a, "app2");
+    mock_app_add_alias (a, "app3");  
     s->devmode = TRUE;
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
     s->installed_size = 1024;
@@ -190,6 +196,13 @@ test_list_one (void)
     snap = snapd_client_list_one_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert (snap != NULL);
+    g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 1);
+    app = snapd_snap_get_apps (snap)->pdata[0];
+    g_assert_cmpstr (snapd_app_get_name (app), ==, "app");
+    aliases = snapd_app_get_aliases (app);
+    g_assert_cmpint (g_strv_length (aliases), ==, 2);
+    g_assert_cmpstr (aliases[0], ==, "app2");
+    g_assert_cmpstr (aliases[1], ==, "app3");
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, "DESCRIPTION");

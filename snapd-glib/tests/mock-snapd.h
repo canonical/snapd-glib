@@ -39,7 +39,7 @@ typedef struct
 
 typedef struct
 {
-    // FIXME: apps
+    GList *apps;
     gchar *channel;
     gchar *confinement;
     gchar *description;
@@ -64,6 +64,12 @@ typedef struct
     GList *slots;
     gboolean disabled;
 } MockSnap;
+
+typedef struct
+{
+    gchar *name;
+    GList *aliases;
+} MockApp;
 
 typedef struct
 {
@@ -131,6 +137,12 @@ MockSnap       *mock_snapd_find_snap              (MockSnapd   *snapd,
 
 MockSnap       *mock_snapd_add_store_snap         (MockSnapd   *snapd,
                                                    const gchar *name);
+
+MockApp        *mock_snap_add_app                 (MockSnap    *snap,
+                                                   const gchar *name);
+
+void            mock_app_add_alias                (MockApp     *app,
+                                                   const gchar *alias);
 
 void            mock_snap_set_channel             (MockSnap    *snap,
                                                    const gchar *channel);

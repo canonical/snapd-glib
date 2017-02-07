@@ -3,6 +3,7 @@
 <TITLE>SnapdApp</TITLE>
 SnapdApp
 snapd_app_get_name
+snapd_app_get_aliases
 
 <SUBSECTION Private>
 SnapdAppClass

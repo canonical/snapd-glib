@@ -29,7 +29,9 @@ struct _SnapdAppClass
     GObjectClass parent_class;
 };
 
-const gchar *snapd_app_get_name (SnapdApp *app);
+const gchar *snapd_app_get_name    (SnapdApp *app);
+
+gchar      **snapd_app_get_aliases (SnapdApp *app);
 
 G_END_DECLS
 
