@@ -188,6 +188,7 @@ test_list_one (void)
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
     s->installed_size = 1024;
     s->trymode = TRUE;
+    mock_snap_set_tracking_channel (s, "CHANNEL");
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
     snapd_client_connect_sync (client, NULL, &error);
@@ -222,6 +223,7 @@ test_list_one (void)
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, "SUMMARY");
+    g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, "CHANNEL");
     g_assert (snapd_snap_get_trymode (snap) == TRUE);
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
 }

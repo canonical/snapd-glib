@@ -53,6 +53,7 @@ struct _SnapdSnap
     GPtrArray *screenshots;
     SnapdSnapStatus status;
     gchar *summary;
+    gchar *tracking_channel;
     gboolean trymode;
     SnapdSnapType snap_type;
     gchar *version;
@@ -81,6 +82,7 @@ enum
     PROP_TRYMODE,
     PROP_SNAP_TYPE,
     PROP_VERSION,
+    PROP_TRACKING_CHANNEL,  
     PROP_LAST
 };
 
@@ -375,6 +377,21 @@ snapd_snap_get_summary (SnapdSnap *snap)
 }
 
 /**
+ * snapd_snap_get_tracking_channel:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the channel that updates will be installed from, e.g. "stable".
+ *
+ * Returns: a channel name.
+ */
+const gchar *
+snapd_snap_get_tracking_channel (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->tracking_channel;
+}
+
+/**
  * snapd_snap_get_trymode:
  * @snap: a #SnapdSnap.
  *
@@ -485,6 +502,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->summary);
         snap->summary = g_strdup (g_value_get_string (value));
         break;
+    case PROP_TRACKING_CHANNEL:
+        g_free (snap->tracking_channel);
+        snap->tracking_channel = g_strdup (g_value_get_string (value));
+        break;
     case PROP_TRYMODE:
         snap->trymode = g_value_get_boolean (value);
         break;
@@ -561,6 +582,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_SUMMARY:
         g_value_set_string (value, snap->summary);
         break;
+    case PROP_TRACKING_CHANNEL:
+        g_value_set_string (value, snap->tracking_channel);
+        break;
     case PROP_TRYMODE:
         g_value_set_boolean (value, snap->trymode);
         break;
@@ -593,6 +617,7 @@ snapd_snap_finalize (GObject *object)
     if (snap->screenshots != NULL)
         g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
     g_clear_pointer (&snap->summary, g_free);
+    g_clear_pointer (&snap->tracking_channel, g_free);  
     g_clear_pointer (&snap->version, g_free);
 }
 
@@ -616,7 +641,7 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                      PROP_CHANEL,
                                      g_param_spec_string ("channel",
                                                           "channel",
-                                                          "Channel the snap is currently tracking",
+                                                          "Channel the snap is from",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
@@ -729,6 +754,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                      g_param_spec_string ("summary",
                                                           "summary",
                                                           "One line description",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_TRACKING_CHANNEL,
+                                     g_param_spec_string ("tracking-channel",
+                                                          "tracking-channel",
+                                                          "Channel the snap is currently tracking",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,

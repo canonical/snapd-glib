@@ -82,47 +82,49 @@ typedef enum
     SNAPD_SNAP_STATUS_ACTIVE
 } SnapdSnapStatus;
 
-GPtrArray        *snapd_snap_get_apps           (SnapdSnap *snap);
+GPtrArray        *snapd_snap_get_apps             (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_channel        (SnapdSnap *snap);
+const gchar      *snapd_snap_get_channel          (SnapdSnap *snap);
 
-SnapdConfinement  snapd_snap_get_confinement    (SnapdSnap *snap);
+SnapdConfinement  snapd_snap_get_confinement      (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_description    (SnapdSnap *snap);
+const gchar      *snapd_snap_get_description      (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_developer      (SnapdSnap *snap);
+const gchar      *snapd_snap_get_developer        (SnapdSnap *snap);
 
-gboolean          snapd_snap_get_devmode        (SnapdSnap *snap);
+gboolean          snapd_snap_get_devmode          (SnapdSnap *snap);
 
-gint64            snapd_snap_get_download_size  (SnapdSnap *snap);
+gint64            snapd_snap_get_download_size    (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_icon           (SnapdSnap *snap);
+const gchar      *snapd_snap_get_icon             (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_id             (SnapdSnap *snap);
+const gchar      *snapd_snap_get_id               (SnapdSnap *snap);
 
-GDateTime        *snapd_snap_get_install_date   (SnapdSnap *snap);
+GDateTime        *snapd_snap_get_install_date     (SnapdSnap *snap);
 
-gint64            snapd_snap_get_installed_size (SnapdSnap *snap);
+gint64            snapd_snap_get_installed_size   (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_name           (SnapdSnap *snap);
+const gchar      *snapd_snap_get_name             (SnapdSnap *snap);
 
-GPtrArray        *snapd_snap_get_prices         (SnapdSnap *snap);
+GPtrArray        *snapd_snap_get_prices           (SnapdSnap *snap);
 
-gboolean          snapd_snap_get_private        (SnapdSnap *snap);
+gboolean          snapd_snap_get_private          (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_revision       (SnapdSnap *snap);
+const gchar      *snapd_snap_get_revision         (SnapdSnap *snap);
 
-GPtrArray        *snapd_snap_get_screenshots    (SnapdSnap *snap);
+GPtrArray        *snapd_snap_get_screenshots      (SnapdSnap *snap);
 
-SnapdSnapType     snapd_snap_get_snap_type      (SnapdSnap *snap);
+SnapdSnapType     snapd_snap_get_snap_type        (SnapdSnap *snap);
 
-SnapdSnapStatus   snapd_snap_get_status         (SnapdSnap *snap);
+SnapdSnapStatus   snapd_snap_get_status           (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_summary        (SnapdSnap *snap);
+const gchar      *snapd_snap_get_summary          (SnapdSnap *snap);
 
-gboolean          snapd_snap_get_trymode        (SnapdSnap *snap);
+const gchar      *snapd_snap_get_tracking_channel (SnapdSnap *snap);
 
-const gchar      *snapd_snap_get_version        (SnapdSnap *snap);
+gboolean          snapd_snap_get_trymode          (SnapdSnap *snap);
+
+const gchar      *snapd_snap_get_version          (SnapdSnap *snap);
 
 G_END_DECLS
 

@@ -177,6 +177,11 @@ QString QSnapdSnap::summary () const
     return snapd_snap_get_summary (SNAPD_SNAP (wrapped_object));
 }
 
+QString QSnapdSnap::trackingChannel () const
+{
+    return snapd_snap_get_tracking_channel (SNAPD_SNAP (wrapped_object));
+}
+
 bool QSnapdSnap::trymode () const
 {
     return snapd_snap_get_trymode (SNAPD_SNAP (wrapped_object));

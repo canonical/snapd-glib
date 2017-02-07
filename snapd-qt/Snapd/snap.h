@@ -38,6 +38,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QSnapdSnapType snapType READ snapType)
     Q_PROPERTY(QSnapdSnapStatus status READ status)
     Q_PROPERTY(QString summary READ summary)
+    Q_PROPERTY(QString trackingChannel READ trackingChannel)
     Q_PROPERTY(bool trymode READ trymode)
     Q_PROPERTY(QString version READ version)
     Q_ENUMS(QSnapdConfinement QSnapdSnapType QSnapdSnapStatus)
@@ -88,6 +89,7 @@ public:
     QSnapdSnapType snapType () const;
     QSnapdSnapStatus status () const;
     QString summary () const;
+    QString trackingChannel () const;
     bool trymode () const;
     QString version () const; 
 };

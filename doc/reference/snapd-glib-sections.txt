@@ -255,6 +255,7 @@ snapd_snap_get_screenshots
 snapd_snap_get_snap_type
 snapd_snap_get_status
 snapd_snap_get_summary
+snapd_snap_get_tracking_channel
 snapd_snap_get_trymode
 snapd_snap_get_version
 SnapdSnap

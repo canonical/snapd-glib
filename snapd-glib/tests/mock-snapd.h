@@ -57,6 +57,7 @@ typedef struct
     GList *screenshots;
     gchar *status;
     gchar *summary;
+    gchar *tracking_channel;
     gboolean trymode;
     gchar *type;
     gchar *version;
@@ -164,6 +165,9 @@ MockScreenshot *mock_snap_add_screenshot          (MockSnap    *snap,
                                                    const gchar *url,
                                                    int          width,
                                                    int          height);
+
+void            mock_snap_set_tracking_channel    (MockSnap    *snap,
+                                                   const gchar *channel);
 
 void            mock_snap_set_version             (MockSnap    *snap,
                                                    const gchar *version);

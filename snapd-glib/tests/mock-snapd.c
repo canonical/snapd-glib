@@ -123,6 +123,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->revision);
     g_free (snap->status);
     g_free (snap->summary);
+    g_free (snap->tracking_channel);
     g_free (snap->type);
     g_free (snap->version);
     g_list_free_full (snap->plugs, (GDestroyNotify) mock_plug_free);
@@ -426,6 +427,13 @@ mock_snap_add_screenshot (MockSnap *snap, const gchar *url, int width, int heigh
     snap->screenshots = g_list_append (snap->screenshots, screenshot);
 
     return screenshot;
+}
+
+void
+mock_snap_set_tracking_channel (MockSnap *snap, const gchar *channel)
+{
+    g_free (snap->tracking_channel);
+    snap->tracking_channel = g_strdup (channel);
 }
 
 void
@@ -924,6 +932,10 @@ make_snap_node (MockSnap *snap)
     json_builder_add_string_value (builder, snap->status);
     json_builder_set_member_name (builder, "summary");
     json_builder_add_string_value (builder, snap->summary);
+    if (snap->tracking_channel) {
+        json_builder_set_member_name (builder, "tracking-channel");
+        json_builder_add_string_value (builder, snap->tracking_channel);
+    }
     json_builder_set_member_name (builder, "trymode");
     json_builder_add_boolean_value (builder, snap->trymode);
     json_builder_set_member_name (builder, "type");
