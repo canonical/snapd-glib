@@ -368,6 +368,34 @@ mock_snap_set_channel (MockSnap *snap, const gchar *channel)
 }
 
 void
+mock_snap_set_confinement (MockSnap *snap, const gchar *confinement)
+{
+    g_free (snap->confinement);
+    snap->confinement = g_strdup (confinement);
+}
+
+void
+mock_snap_set_description (MockSnap *snap, const gchar *description)
+{
+    g_free (snap->description);
+    snap->description = g_strdup (description);
+}
+
+void
+mock_snap_set_developer (MockSnap *snap, const gchar *developer)
+{
+    g_free (snap->developer);
+    snap->developer = g_strdup (developer);
+}
+
+void
+mock_snap_set_icon (MockSnap *snap, const gchar *icon)
+{
+    g_free (snap->icon);
+    snap->icon = g_strdup (icon);
+}
+
+void
 mock_snap_set_id (MockSnap *snap, const gchar *id)
 {
     g_free (snap->id);
@@ -430,10 +458,31 @@ mock_snap_add_screenshot (MockSnap *snap, const gchar *url, int width, int heigh
 }
 
 void
+mock_snap_set_status (MockSnap *snap, const gchar *status)
+{
+    g_free (snap->status);
+    snap->status = g_strdup (status);
+}
+
+void
+mock_snap_set_summary (MockSnap *snap, const gchar *summary)
+{
+    g_free (snap->summary);
+    snap->summary = g_strdup (summary);
+}
+
+void
 mock_snap_set_tracking_channel (MockSnap *snap, const gchar *channel)
 {
     g_free (snap->tracking_channel);
     snap->tracking_channel = g_strdup (channel);
+}
+
+void
+mock_snap_set_type (MockSnap *snap, const gchar *type)
+{
+    g_free (snap->type);
+    snap->type = g_strdup (type);
 }
 
 void

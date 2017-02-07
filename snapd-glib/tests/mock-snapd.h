@@ -148,6 +148,18 @@ void            mock_app_add_alias                (MockApp     *app,
 void            mock_snap_set_channel             (MockSnap    *snap,
                                                    const gchar *channel);
 
+void            mock_snap_set_confinement         (MockSnap    *snap,
+                                                   const gchar *confinement);
+
+void            mock_snap_set_description         (MockSnap    *snap,
+                                                   const gchar *description);
+
+void            mock_snap_set_developer           (MockSnap    *snap,
+                                                   const gchar *developer);
+
+void            mock_snap_set_icon                (MockSnap    *snap,
+                                                   const gchar *icon);
+
 void            mock_snap_set_id                  (MockSnap    *snap,
                                                    const gchar *id);
 
@@ -166,8 +178,17 @@ MockScreenshot *mock_snap_add_screenshot          (MockSnap    *snap,
                                                    int          width,
                                                    int          height);
 
+void            mock_snap_set_status              (MockSnap    *snap,
+                                                   const gchar *status);
+
+void            mock_snap_set_summary             (MockSnap    *snap,
+                                                   const gchar *summary);
+
 void            mock_snap_set_tracking_channel    (MockSnap    *snap,
                                                    const gchar *channel);
+
+void            mock_snap_set_type                (MockSnap    *snap,
+                                                   const gchar *type);
 
 void            mock_snap_set_version             (MockSnap    *snap,
                                                    const gchar *version);
