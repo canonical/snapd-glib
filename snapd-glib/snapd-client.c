@@ -4140,7 +4140,7 @@ snapd_client_create_user_finish (SnapdClient *client, GAsyncResult *result, GErr
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
 
     request = SNAPD_REQUEST (result);
-    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CREATE_USER, FALSE);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CREATE_USER, NULL);
 
     if (snapd_request_set_error (request, error))
         return NULL;
@@ -4231,7 +4231,7 @@ snapd_client_create_users_finish (SnapdClient *client, GAsyncResult *result, GEr
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
 
     request = SNAPD_REQUEST (result);
-    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CREATE_USER, FALSE);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CREATE_USER, NULL);
 
     if (snapd_request_set_error (request, error))
         return NULL;
