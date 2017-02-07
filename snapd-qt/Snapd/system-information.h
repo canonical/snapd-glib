@@ -20,6 +20,7 @@ class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
     Q_PROPERTY(QString osId READ osId)
     Q_PROPERTY(QString osVersion READ osVersion)
     Q_PROPERTY(QString series READ series)
+    Q_PROPERTY(QString store READ store)          
     Q_PROPERTY(QString version READ version)          
 
 public:
