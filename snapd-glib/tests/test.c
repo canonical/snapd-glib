@@ -1775,6 +1775,30 @@ test_buy_invalid_price (void)
     g_assert (!result);
 }
 
+static void
+test_get_sections (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_auto(GStrv) sections = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_section (snapd, "SECTION1");
+    mock_snapd_add_store_section (snapd, "SECTION2");  
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    sections = snapd_client_get_sections_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (sections != NULL);
+    g_assert_cmpint (g_strv_length (sections), ==, 2);
+    g_assert_cmpstr (sections[0], ==, "SECTION1");
+    g_assert_cmpstr (sections[1], ==, "SECTION2");
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1842,6 +1866,7 @@ main (int argc, char **argv)
     g_test_add_func ("/buy/invalid-price", test_buy_invalid_price);
     //FIXMEg_test_add_func ("/create-user/basic", test_create_user);
     //FIXMEg_test_add_func ("/create-users/basic", test_create_user);
+    g_test_add_func ("/get-sections/basic", test_get_sections);
 
     return g_test_run ();
 }

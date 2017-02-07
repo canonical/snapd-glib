@@ -103,6 +103,9 @@ snapd_client_create_user_finish
 snapd_client_create_users_sync
 snapd_client_create_users_async
 snapd_client_create_users_finish
+snapd_client_get_sections_sync
+snapd_client_get_sections_async
+snapd_client_get_sections_finish
 
 <SUBSECTION Private>
 SNAPD_TYPE_CLIENT

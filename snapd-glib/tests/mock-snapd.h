@@ -61,6 +61,7 @@ typedef struct
     gboolean trymode;
     gchar *type;
     gchar *version;
+    GList *store_sections;
     GList *plugs;
     GList *slots;
     gboolean disabled;
@@ -136,6 +137,9 @@ MockSnap       *mock_snapd_add_snap               (MockSnapd   *snapd,
 MockSnap       *mock_snapd_find_snap              (MockSnapd   *snapd,
                                                    const gchar *name);
 
+void            mock_snapd_add_store_section      (MockSnapd   *snapd,
+                                                   const gchar *name);
+
 MockSnap       *mock_snapd_add_store_snap         (MockSnapd   *snapd,
                                                    const gchar *name);
 
@@ -192,6 +196,9 @@ void            mock_snap_set_type                (MockSnap    *snap,
 
 void            mock_snap_set_version             (MockSnap    *snap,
                                                    const gchar *version);
+
+void            mock_snap_add_store_section       (MockSnap    *snap,
+                                                   const gchar *section);
 
 MockPlug       *mock_snap_add_plug                (MockSnap    *snap,
                                                    const gchar *name);

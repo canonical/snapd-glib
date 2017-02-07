@@ -96,7 +96,8 @@ typedef enum
     SNAPD_REQUEST_ENABLE,
     SNAPD_REQUEST_DISABLE,
     SNAPD_REQUEST_CREATE_USER,
-    SNAPD_REQUEST_CREATE_USERS
+    SNAPD_REQUEST_CREATE_USERS,
+    SNAPD_REQUEST_GET_SECTIONS
 } RequestType;
 
 G_DECLARE_FINAL_TYPE (SnapdRequest, snapd_request, SNAPD, REQUEST, GObject)
@@ -135,6 +136,7 @@ struct _SnapdRequest
     GPtrArray *slots;
     SnapdUserInformation *user_information;
     GPtrArray *users_information;
+    gchar **sections;
     guint complete_handle;
     JsonNode *async_data;
 };
@@ -232,6 +234,7 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->slots, g_ptr_array_unref);
     g_clear_object (&request->user_information);
     g_clear_pointer (&request->users_information, g_ptr_array_unref);
+    g_clear_pointer (&request->sections, g_strfreev);
     g_clear_pointer (&request->async_data, json_node_unref);
     if (request->complete_handle != 0)
         g_source_remove (request->complete_handle);
@@ -1736,6 +1739,41 @@ parse_create_users_response (SnapdRequest *request, SoupMessageHeaders *headers,
     snapd_request_complete (request, NULL);
 }
 
+static void
+parse_get_sections_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonObject) response = NULL;
+    g_autoptr(JsonArray) result = NULL;
+    g_autoptr(GPtrArray) sections = NULL;
+    guint i;
+    GError *error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    result = get_array (response, "result");
+    sections = g_ptr_array_new ();
+    for (i = 0; i < json_array_get_length (result); i++) {
+        JsonNode *node = json_array_get_element (result, i);
+        if (json_node_get_value_type (node) != G_TYPE_STRING) {
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
+                                 "Unexpected snap name type");
+            snapd_request_complete (request, error);
+            return;
+        }
+
+        g_ptr_array_add (sections, g_strdup (json_node_get_string (node)));
+    }
+    g_ptr_array_add (sections, NULL);
+
+    request->sections = g_steal_pointer (&sections->pdata);
+
+    snapd_request_complete (request, NULL);
+}
+
 static SnapdRequest *
 get_next_request (SnapdClient *client)
 {
@@ -1825,6 +1863,9 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         break;
     case SNAPD_REQUEST_CREATE_USERS:
         parse_create_users_response (request, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_GET_SECTIONS:
+        parse_get_sections_response (request, headers, content, content_length);
         break;
     default:
         error = g_error_new (SNAPD_ERROR,
@@ -4195,6 +4236,87 @@ snapd_client_create_users_finish (SnapdClient *client, GAsyncResult *result, GEr
     if (snapd_request_set_error (request, error))
         return NULL;
     return request->users_information;
+}
+
+static SnapdRequest *
+make_get_sections_request (SnapdClient *client,
+                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+
+    request = make_request (client, SNAPD_REQUEST_GET_SECTIONS, NULL, NULL, cancellable, callback, user_data);
+    send_request (request, TRUE, "GET", "/v2/sections", NULL, NULL);
+
+    return request;
+}
+
+/**
+ * snapd_client_get_sections_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Get the store sections.
+ *
+ * Returns: (transfer full) (array zero-terminated=1): an array of section names or %NULL on error.
+ */
+gchar **
+snapd_client_get_sections_sync (SnapdClient *client,
+                                GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    request = g_object_ref (make_get_sections_request (client, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_get_sections_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_get_sections_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously create a local user account.
+ * See snapd_client_create_user_sync() for more information.
+ */
+void
+snapd_client_get_sections_async (SnapdClient *client,
+                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    make_get_sections_request (client, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_get_sections_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_sections_async().
+ * See snapd_client_get_sections_sync() for more information.
+ *
+ * Returns: (transfer full) (array zero-terminated=1): an array of section names or %NULL on error.
+ */
+gchar **
+snapd_client_get_sections_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_SECTIONS, NULL);
+
+    if (snapd_request_set_error (request, error))
+        return NULL;
+    return g_steal_pointer (&request->sections);
 }
 
 /**

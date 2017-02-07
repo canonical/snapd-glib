@@ -55,6 +55,7 @@ struct _MockSnapd
     gsize n_read;
     GList *accounts;
     GList *snaps;
+    GList *store_sections;
     GList *store_snaps;
     GList *plugs;
     GList *slots;
@@ -126,6 +127,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->tracking_channel);
     g_free (snap->type);
     g_free (snap->version);
+    g_list_free_full (snap->store_sections, g_free);
     g_list_free_full (snap->plugs, (GDestroyNotify) mock_plug_free);
     g_list_free_full (snap->slots, (GDestroyNotify) mock_slot_free);
     g_slice_free (MockSnap, snap);
@@ -299,6 +301,12 @@ mock_snapd_find_snap (MockSnapd *snapd, const gchar *name)
     }
 
     return NULL;
+}
+
+void
+mock_snapd_add_store_section (MockSnapd *snapd, const gchar *name)
+{
+    snapd->store_sections = g_list_append (snapd->store_sections, g_strdup (name));
 }
 
 MockSnap *
@@ -490,6 +498,12 @@ mock_snap_set_version (MockSnap *snap, const gchar *version)
 {
     g_free (snap->version);
     snap->version = g_strdup (version);
+}
+
+void
+mock_snap_add_store_section (MockSnap *snap, const gchar *name)
+{
+    snap->store_sections = g_list_append (snap->store_sections, g_strdup (name));
 }
 
 MockPlug *
@@ -1512,6 +1526,33 @@ handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id)
     send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
 }
 
+static gboolean
+matches_query (MockSnap *snap, const gchar *query)
+{
+    return query != NULL && strstr (snap->name, query) != NULL;
+}
+
+static gboolean
+matches_name (MockSnap *snap, const gchar *name)
+{
+    return name != NULL && strcmp (snap->name, name) == 0;
+}
+
+static gboolean
+in_section (MockSnap *snap, const gchar *section)
+{
+    GList *link;
+
+    if (section == NULL)
+        return TRUE;
+
+    for (link = snap->store_sections; link; link = link->next) 
+        if (strcmp (link->data, section) == 0)
+            return TRUE;
+
+    return FALSE;
+}
+
 static void
 handle_find (MockSnapd *snapd, const gchar *method, MockAccount *account, const gchar *query)
 {
@@ -1519,6 +1560,7 @@ handle_find (MockSnapd *snapd, const gchar *method, MockAccount *account, const 
     g_autofree gchar *query_param = NULL;
     g_autofree gchar *name_param = NULL;
     g_autofree gchar *select_param = NULL;
+    g_autofree gchar *section_param = NULL;  
     g_autoptr(JsonBuilder) builder = NULL;
     GList *snaps, *link;
 
@@ -1563,10 +1605,10 @@ handle_find (MockSnapd *snapd, const gchar *method, MockAccount *account, const 
              g_free (select_param);
              select_param = g_steal_pointer (&param_value);
         }
-        /*FIXMEelse if (strcmp (param_name, "section") == 0) {
+        else if (strcmp (param_name, "section") == 0) {
              g_free (section_param);
              section_param = g_steal_pointer (&param_value);
-        }*/
+        }
 
         if (*i != '&')
             break;
@@ -1610,8 +1652,7 @@ handle_find (MockSnapd *snapd, const gchar *method, MockAccount *account, const 
     for (link = snaps; link; link = link->next) {
         MockSnap *snap = link->data;
 
-        if ((query_param != NULL && strstr (snap->name, query_param) != NULL) ||
-            (name_param != NULL && strcmp (snap->name, name_param) == 0))
+        if (in_section (snap, section_param) && (matches_query (snap, query_param) || matches_name (snap, name_param)))
             json_builder_add_value (builder, make_snap_node (snap));
     }
     json_builder_end_array (builder);
@@ -1701,6 +1742,26 @@ handle_buy (MockSnapd *snapd, const gchar *method, MockAccount *account, JsonNod
     }
 
     send_sync_response (snapd, 200, "OK", NULL, NULL);
+}
+
+static void
+handle_sections (MockSnapd *snapd, const gchar *method)
+{
+    g_autoptr(JsonBuilder) builder = NULL;
+    GList *link;
+
+    if (strcmp (method, "GET") != 0) {
+        send_error_method_not_allowed (snapd, "method not allowed");
+        return;
+    }
+
+    builder = json_builder_new ();
+    json_builder_begin_array (builder);
+    for (link = snapd->store_sections; link; link = link->next)
+        json_builder_add_string_value (builder, link->data);
+    json_builder_end_array (builder);
+
+    send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
 }
 
 static gboolean
@@ -1828,6 +1889,8 @@ handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMe
         handle_buy_ready (snapd, method, account);
     else if (strcmp (path, "/v2/buy") == 0)
         handle_buy (snapd, method, account, json_content);
+    else if (strcmp (path, "/v2/sections") == 0)
+        handle_sections (snapd, method);
     else
         send_error_not_found (snapd, "not found");
 }
@@ -1892,6 +1955,8 @@ mock_snapd_finalize (GObject *object)
     g_list_free_full (snapd->accounts, (GDestroyNotify) mock_account_free);
     g_list_free_full (snapd->snaps, (GDestroyNotify) mock_snap_free);
     snapd->snaps = NULL;
+    g_list_free_full (snapd->store_sections, g_free);
+    snapd->store_sections = NULL;
     g_list_free_full (snapd->store_snaps, (GDestroyNotify) mock_snap_free);
     snapd->store_snaps = NULL;
     g_list_free_full (snapd->plugs, (GDestroyNotify) mock_plug_free);

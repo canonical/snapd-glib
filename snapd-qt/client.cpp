@@ -197,6 +197,15 @@ struct QSnapdBuyRequestPrivate
     QString currency;
 };
 
+struct QSnapdGetSectionsRequestPrivate
+{
+    ~QSnapdGetSectionsRequestPrivate ()
+    {
+        g_strfreev (sections);
+    }
+    gchar **sections;
+};
+
 QSnapdClient::QSnapdClient(QObject *parent) :
     QObject (parent),
     d_ptr (new QSnapdClientPrivate()) {}
@@ -1124,4 +1133,51 @@ void QSnapdBuyRequest::runAsync ()
     snapd_client_buy_async (SNAPD_CLIENT (getClient ()),
                             d->id.toStdString ().c_str (), d->amount, d->currency.toStdString ().c_str (),
                             G_CANCELLABLE (getCancellable ()), buy_ready_cb, (gpointer) this);
+}
+
+QSnapdGetSectionsRequest::QSnapdGetSectionsRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetSectionsRequestPrivate ()) {}
+
+void QSnapdGetSectionsRequest::runSync ()
+{
+    Q_D(QSnapdGetSectionsRequest);
+    g_autoptr(GError) error = NULL;
+    d->sections = snapd_client_get_sections_sync (SNAPD_CLIENT (getClient ()),
+                                                  G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetSectionsRequest::handleResult (void *object, void *result)
+{
+    gchar **sections;
+    g_autoptr(GError) error = NULL;
+    sections = snapd_client_get_sections_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdGetSectionsRequest);
+    d->sections = sections;
+    finish (error);
+}
+
+static void get_sections_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetSectionsRequest *request = static_cast<QSnapdGetSectionsRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetSectionsRequest::runAsync ()
+{
+    snapd_client_get_sections_async (SNAPD_CLIENT (getClient ()),
+                                     G_CANCELLABLE (getCancellable ()), get_sections_ready_cb, (gpointer) this);
+}
+
+QStringList QSnapdGetSectionsRequest::sections () const
+{
+    Q_D(const QSnapdGetSectionsRequest);
+    QStringList result;
+    for (int i = 0; d->sections[i] != NULL; i++)
+        result.append (d->sections[i]);
+    return result;
 }

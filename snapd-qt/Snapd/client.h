@@ -347,6 +347,23 @@ private:
     Q_DECLARE_PRIVATE(QSnapdBuyRequest)
 };
 
+class QSnapdGetSectionsRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetSectionsRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdGetSectionsRequest (void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE QStringList sections () const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetSectionsRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetSectionsRequest)
+};
+
 Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
 
 class QSnapdClientPrivate;
@@ -383,6 +400,7 @@ public:
     Q_INVOKABLE QSnapdDisableRequest *disable (const QString &name);
     Q_INVOKABLE QSnapdCheckBuyRequest *checkBuy ();
     Q_INVOKABLE QSnapdBuyRequest *buy (const QString& id, double amount, const QString& currency);
+    Q_INVOKABLE QSnapdGetSectionsRequest *getSections ();
 
 private:
     QSnapdClientPrivate *d_ptr;
