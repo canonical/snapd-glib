@@ -20,8 +20,10 @@ class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
     Q_PROPERTY(QString osId READ osId)
     Q_PROPERTY(QString osVersion READ osVersion)
     Q_PROPERTY(QString series READ series)
-    Q_PROPERTY(QString store READ store)          
-    Q_PROPERTY(QString version READ version)          
+    Q_PROPERTY(QString store READ store)
+    Q_PROPERTY(QString version READ version)
+    Q_PROPERTY(bool onClassic READ onClassic)
+    Q_PROPERTY(bool managed READ managed)
 
 public:
     explicit QSnapdSystemInformation (void *snapd_object, QObject* parent = 0);
@@ -31,6 +33,8 @@ public:
     QString series () const;
     QString store () const;  
     QString version () const;
+    bool onClassic () const;
+    bool managed () const;
 };
 
 #endif

@@ -32,6 +32,7 @@ struct _SnapdSystemInformation
     GObject parent_instance;
 
     gboolean on_classic;
+    gboolean managed;  
     gchar *os_id;
     gchar *os_version;
     gchar *series;
@@ -47,10 +48,26 @@ enum
     PROP_SERIES,
     PROP_STORE,  
     PROP_VERSION,
+    PROP_MANAGED,  
     PROP_LAST
 };
 
 G_DEFINE_TYPE (SnapdSystemInformation, snapd_system_information, G_TYPE_OBJECT)
+
+/**
+ * snapd_system_information_get_managed:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get if snapd is running on a managed system.
+ *
+ * Returns: %TRUE if running on a managed system.
+ */
+gboolean
+snapd_system_information_get_managed (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), FALSE);
+    return system_information->managed;
+}
 
 /**
  * snapd_system_information_get_on_classic:
@@ -148,6 +165,9 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
     SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
+    case PROP_MANAGED:
+        system_information->managed = g_value_get_boolean (value);
+        break;
     case PROP_ON_CLASSIC:
         system_information->on_classic = g_value_get_boolean (value);
         break;
@@ -183,6 +203,9 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
     SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
+    case PROP_MANAGED:
+        g_value_set_boolean (value, system_information->managed);
+        break;
     case PROP_ON_CLASSIC:
         g_value_set_boolean (value, system_information->on_classic);
         break;
@@ -227,7 +250,14 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
     gobject_class->set_property = snapd_system_information_set_property;
     gobject_class->get_property = snapd_system_information_get_property; 
     gobject_class->finalize = snapd_system_information_finalize;
-
+ 
+    g_object_class_install_property (gobject_class,
+                                     PROP_MANAGED,
+                                     g_param_spec_boolean ("managed",
+                                                           "managed",
+                                                           "TRUE if snapd managing the system",
+                                                           FALSE,
+                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_ON_CLASSIC,
                                      g_param_spec_boolean ("on-classic",

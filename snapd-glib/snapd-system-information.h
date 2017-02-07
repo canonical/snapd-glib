@@ -28,6 +28,8 @@ struct _SnapdSystemInformationClass
     GObjectClass parent_class;
 };
 
+gboolean     snapd_system_information_get_managed    (SnapdSystemInformation *system_information);
+
 gboolean     snapd_system_information_get_on_classic (SnapdSystemInformation *system_information);
 
 const gchar *snapd_system_information_get_os_id      (SnapdSystemInformation *system_information);

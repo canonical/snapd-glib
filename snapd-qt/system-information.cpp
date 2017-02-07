@@ -37,3 +37,13 @@ QString QSnapdSystemInformation::version () const
 {
     return snapd_system_information_get_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
+
+bool QSnapdSystemInformation::onClassic () const
+{
+    return snapd_system_information_get_on_classic (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+}
+
+bool QSnapdSystemInformation::managed () const
+{
+    return snapd_system_information_get_managed (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+}

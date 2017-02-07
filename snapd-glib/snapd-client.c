@@ -654,6 +654,7 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
 
     os_release = get_object (result, "os-release");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
+                                       "managed", get_bool (result, "managed", FALSE),
                                        "on-classic", get_bool (result, "on-classic", FALSE),
                                        "os-id", os_release != NULL ? get_string (os_release, "id", NULL) : NULL,
                                        "os-version", os_release != NULL ? get_string (os_release, "version-id", NULL) : NULL,

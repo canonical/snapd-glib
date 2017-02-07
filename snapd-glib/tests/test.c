@@ -21,6 +21,8 @@ test_get_system_information (void)
     g_autoptr(SnapdSystemInformation) info = NULL;
 
     snapd = mock_snapd_new ();
+    mock_snapd_set_managed (snapd, TRUE);
+    mock_snapd_set_on_classic (snapd, TRUE);  
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
     snapd_client_connect_sync (client, NULL, &error);
@@ -33,6 +35,8 @@ test_get_system_information (void)
     g_assert_cmpstr (snapd_system_information_get_os_version (info), ==, "OS-VERSION");
     g_assert_cmpstr (snapd_system_information_get_series (info), ==, "SERIES");
     g_assert_cmpstr (snapd_system_information_get_version (info), ==, "VERSION");
+    g_assert (snapd_system_information_get_managed (info));
+    g_assert (snapd_system_information_get_on_classic (info));
     g_assert (snapd_system_information_get_store (info) == NULL);
 }
 
