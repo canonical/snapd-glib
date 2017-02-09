@@ -119,13 +119,14 @@ struct QSnapdDisconnectInterfaceRequestPrivate
 
 struct QSnapdFindRequestPrivate
 {
-    QSnapdFindRequestPrivate (int flags, const QString& name) :
-        flags (flags), name (name) {}
+    QSnapdFindRequestPrivate (int flags, const QString& section, const QString& name) :
+        flags (flags), section (section), name (name) {}
     ~QSnapdFindRequestPrivate ()
     {
         g_ptr_array_unref (snaps);
     }
     int flags;
+    QString section;  
     QString name;
     GPtrArray *snaps;
     QString suggestedCurrency;
@@ -272,7 +273,13 @@ QSnapdDisconnectInterfaceRequest *QSnapdClient::disconnectInterface (const QStri
 QSnapdFindRequest *QSnapdClient::find (FindFlags flags, const QString& name)
 {
     Q_D(QSnapdClient);
-    return new QSnapdFindRequest (flags, name, d->client);
+    return new QSnapdFindRequest (flags, QString (), name, d->client);
+}
+
+QSnapdFindRequest *QSnapdClient::findSection (FindFlags flags, const QString &section, const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdFindRequest (flags, section, name, d->client);
 }
 
 QSnapdFindRefreshableRequest *QSnapdClient::findRefreshable ()
@@ -756,16 +763,16 @@ static SnapdFindFlags convertFindFlags (int flags)
     return (SnapdFindFlags) result;
 }
 
-QSnapdFindRequest::QSnapdFindRequest (int flags, const QString& name, void *snapd_client, QObject *parent) :
+QSnapdFindRequest::QSnapdFindRequest (int flags, const QString& section, const QString& name, void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdFindRequestPrivate (flags, name)) {}
+    d_ptr (new QSnapdFindRequestPrivate (flags, section, name)) {}
 
 void QSnapdFindRequest::runSync ()
 {
     Q_D(QSnapdFindRequest);
     g_autoptr(GError) error = NULL;
     g_autofree gchar *suggested_currency = NULL;
-    d->snaps = snapd_client_find_sync (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->name.toStdString ().c_str (), &suggested_currency, G_CANCELLABLE (getCancellable ()), &error);
+    d->snaps = snapd_client_find_section_sync (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.toStdString().c_str (), d->name.toStdString ().c_str (), &suggested_currency, G_CANCELLABLE (getCancellable ()), &error);
     d->suggestedCurrency = suggested_currency;
     finish (error);
 }
@@ -775,7 +782,7 @@ void QSnapdFindRequest::handleResult (void *object, void *result)
     g_autoptr(GPtrArray) snaps = NULL;
     g_autofree gchar *suggested_currency = NULL;
     g_autoptr(GError) error = NULL;
-    snaps = snapd_client_find_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &suggested_currency, &error);
+    snaps = snapd_client_find_section_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &suggested_currency, &error);
     if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         return;
 
@@ -794,7 +801,7 @@ static void find_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
 void QSnapdFindRequest::runAsync ()
 {
     Q_D(QSnapdFindRequest);
-    snapd_client_find_async (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, (gpointer) this);
+    snapd_client_find_section_async (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.toStdString ().c_str (), d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, (gpointer) this);
 }
 
 int QSnapdFindRequest::snapCount () const

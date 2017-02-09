@@ -3013,26 +3013,45 @@ snapd_client_disconnect_interface_finish (SnapdClient *client,
 
 static SnapdRequest *
 make_find_request (SnapdClient *client,
-                   SnapdFindFlags flags, const gchar *query,
+                   SnapdFindFlags flags, const gchar *section, const gchar *query,
                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
+    g_autoptr(GPtrArray) query_attributes = NULL;
     g_autoptr(GString) path = NULL;
-    g_autofree gchar *escaped = NULL;
 
     request = make_request (client, SNAPD_REQUEST_FIND, NULL, NULL, cancellable, callback, user_data);
     path = g_string_new ("/v2/find");
-    escaped = soup_uri_encode (query, NULL);
 
-    if ((flags & SNAPD_FIND_FLAGS_MATCH_NAME) != 0)
-        g_string_append_printf (path, "?name=%s", escaped);
-    else
-        g_string_append_printf (path, "?q=%s", escaped);
+    query_attributes = g_ptr_array_new_with_free_func (g_free);
+    if (query != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (query, NULL);
+        if ((flags & SNAPD_FIND_FLAGS_MATCH_NAME) != 0)
+            g_ptr_array_add (query_attributes, g_strdup_printf ("name=%s", escaped));
+        else
+            g_ptr_array_add (query_attributes, g_strdup_printf ("q=%s", escaped));
+    }
 
     if ((flags & SNAPD_FIND_FLAGS_SELECT_PRIVATE) != 0)
-        g_string_append_printf (path, "&select=private");
+        g_ptr_array_add (query_attributes, g_strdup_printf ("select=private"));
     else if ((flags & SNAPD_FIND_FLAGS_SELECT_REFRESH) != 0)
-        g_string_append_printf (path, "&select=refresh");
+        g_ptr_array_add (query_attributes, g_strdup_printf ("select=refresh"));
+
+    if (section != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (section, NULL);
+        g_ptr_array_add (query_attributes, g_strdup_printf ("section=%s", escaped));
+    }
+
+    if (query_attributes->len > 0) {
+        guint i;
+
+        g_string_append_c (path, '?');
+        for (i = 0; i < query_attributes->len; i++) {
+            if (i != 0)
+                g_string_append_c (path, '&');
+            g_string_append (path, (gchar *) query_attributes->pdata[i]);
+        }
+    }
 
     send_request (request, TRUE, "GET", path->str, NULL, NULL);
 
@@ -3043,7 +3062,7 @@ make_find_request (SnapdClient *client,
  * snapd_client_find_sync:
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
- * @query: query string to send.
+ * @query: (allow-none): query string to send or %NULL to find all.
  * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
@@ -3058,21 +3077,14 @@ snapd_client_find_sync (SnapdClient *client,
                         gchar **suggested_currency,
                         GCancellable *cancellable, GError **error)
 {
-    g_autoptr(SnapdRequest) request = NULL;
-
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (query != NULL, NULL);
-
-    request = g_object_ref (make_find_request (client, flags, query, cancellable, NULL, NULL));
-    snapd_request_wait (request);
-    return snapd_client_find_finish (client, G_ASYNC_RESULT (request), suggested_currency, error);
+    return snapd_client_find_section_sync (client, flags, NULL, query, suggested_currency, cancellable, error);
 }
 
 /**
  * snapd_client_find_async:
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
- * @query: query string to send.
+ * @query: (allow-none): query string to send or %NULL to find all.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -3085,9 +3097,7 @@ snapd_client_find_async (SnapdClient *client,
                          SnapdFindFlags flags, const gchar *query,
                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    g_return_if_fail (SNAPD_IS_CLIENT (client));
-    g_return_if_fail (query != NULL);
-    make_find_request (client, flags, query, cancellable, callback, user_data);
+    snapd_client_find_section_async (client, flags, NULL, query, cancellable, callback, user_data);
 }
 
 /**
@@ -3104,6 +3114,75 @@ snapd_client_find_async (SnapdClient *client,
  */
 GPtrArray *
 snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, gchar **suggested_currency, GError **error)
+{
+    return snapd_client_find_section_finish (client, result, suggested_currency, error);
+}
+
+/**
+ * snapd_client_find_section_sync:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdFindFlags to control how the find is performed.
+ * @section: (allow-none): store section to search in or %NULL to search in all sections.
+ * @query: (allow-none): query string to send or %NULL to find all.
+ * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Find snaps in the store.
+ *
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ */
+GPtrArray *
+snapd_client_find_section_sync (SnapdClient *client,
+                                SnapdFindFlags flags, const gchar *section, const gchar *query,
+                                gchar **suggested_currency,
+                                GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    request = g_object_ref (make_find_request (client, flags, section, query, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_find_section_finish (client, G_ASYNC_RESULT (request), suggested_currency, error);
+}
+
+/**
+ * snapd_client_find_section_async:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdFindFlags to control how the find is performed.
+ * @section: (allow-none): store section to search in or %NULL to search in all sections.
+ * @query: (allow-none): query string to send or %NULL to find all.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously find snaps in the store.
+ * See snapd_client_find_section_sync() for more information.
+ */
+void
+snapd_client_find_section_async (SnapdClient *client,
+                                 SnapdFindFlags flags, const gchar *section, const gchar *query,
+                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    make_find_request (client, flags, section, query, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_find_section_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_find_async().
+ * See snapd_client_find_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ */
+GPtrArray *
+snapd_client_find_section_finish (SnapdClient *client, GAsyncResult *result, gchar **suggested_currency, GError **error)
 {
     SnapdRequest *request;
 

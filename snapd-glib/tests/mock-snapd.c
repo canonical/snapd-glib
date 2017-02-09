@@ -1682,7 +1682,7 @@ handle_find (MockSnapd *snapd, const gchar *method, MockAccount *account, const 
     for (link = snaps; link; link = link->next) {
         MockSnap *snap = link->data;
 
-        if (in_section (snap, section_param) && (matches_query (snap, query_param) || matches_name (snap, name_param)))
+        if (in_section (snap, section_param) && ((query_param == NULL && name_param == NULL) || matches_query (snap, query_param) || matches_name (snap, name_param)))
             json_builder_add_value (builder, make_snap_node (snap));
     }
     json_builder_end_array (builder);
@@ -1913,6 +1913,8 @@ handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMe
         handle_interfaces (snapd, method, json_content);
     else if (g_str_has_prefix (path, "/v2/changes/"))
         handle_changes (snapd, method, path + strlen ("/v2/changes/"));
+    else if (strcmp (path, "/v2/find") == 0)
+        handle_find (snapd, method, account, "");
     else if (g_str_has_prefix (path, "/v2/find?"))
         handle_find (snapd, method, account, path + strlen ("/v2/find?"));
     else if (strcmp (path, "/v2/buy/ready") == 0)

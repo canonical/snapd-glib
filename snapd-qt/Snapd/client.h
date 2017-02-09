@@ -185,7 +185,7 @@ class Q_DECL_EXPORT QSnapdFindRequest : public QSnapdRequest
     Q_PROPERTY(QString suggestedCurrency READ suggestedCurrency)
 
 public:
-    explicit QSnapdFindRequest (int flags, const QString& name, void *snapd_client, QObject *parent = 0);
+    explicit QSnapdFindRequest (int flags, const QString& section, const QString& name, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE int snapCount () const;
@@ -391,6 +391,7 @@ public:
     Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags, const QString &query);
+    Q_INVOKABLE QSnapdFindRequest *findSection (FindFlags flags, const QString &section, const QString &query);
     Q_INVOKABLE QSnapdFindRefreshableRequest *findRefreshable ();  
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);

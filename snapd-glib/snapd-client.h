@@ -257,6 +257,25 @@ GPtrArray              *snapd_client_find_finish                   (SnapdClient 
                                                                     gchar               **suggested_currency,
                                                                     GError              **error);
 
+GPtrArray              *snapd_client_find_section_sync             (SnapdClient          *client,
+                                                                    SnapdFindFlags        flags,
+                                                                    const gchar          *query,
+                                                                    const gchar          *section,                                                                    
+                                                                    gchar               **suggested_currency,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_find_section_async            (SnapdClient          *client,
+                                                                    SnapdFindFlags        flags,
+                                                                    const gchar          *query,
+                                                                    const gchar          *section,                                                                    
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_find_section_finish           (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    gchar               **suggested_currency,
+                                                                    GError              **error);
+
 GPtrArray              *snapd_client_find_refreshable_sync         (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
