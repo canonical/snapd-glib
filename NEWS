@@ -1,3 +1,14 @@
+Overview of changes in snapd-glib 1.7
+
+    * New API:
+      - snapd_app_get_aliases
+      - snapd_client_get_sections_sync
+      - snapd_client_get_sections_async
+      - snapd_client_get_sections_finish
+      - snapd_snap_get_tracking_channel
+      - snapd_system_information_get_managed
+      - snapd_system_information_get_store
+
 Overview of changes in snapd-glib 1.6
 
     * Fix screenshots not working on 32 bit architectures
