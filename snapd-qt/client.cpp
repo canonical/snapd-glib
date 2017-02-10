@@ -336,6 +336,12 @@ QSnapdBuyRequest *QSnapdClient::buy (const QString& id, double amount, const QSt
     return new QSnapdBuyRequest (id, amount, currency, d->client);
 }
 
+QSnapdGetSectionsRequest *QSnapdClient::getSections ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetSectionsRequest (d->client);
+}
+
 QSnapdConnectRequest::QSnapdConnectRequest (void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
     d_ptr (new QSnapdConnectRequestPrivate()) {}
