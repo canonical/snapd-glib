@@ -25,6 +25,7 @@ Makefile.in
 ./ltmain.sh
 ./missing
 ./stamp-h1
+./test-driver
 doc/reference/html/
 doc/reference/xml/
 doc/reference/*.stamp
