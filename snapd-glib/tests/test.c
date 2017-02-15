@@ -2177,7 +2177,9 @@ test_run_snapctl (void)
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
     g_auto(GStrv) args = NULL;
-    g_autoptr(SnapdSnapCtlOutput) output = NULL;
+    gboolean result;
+    g_autofree gchar *stdout_output = NULL;
+    g_autofree gchar *stderr_output = NULL;  
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -2187,11 +2189,11 @@ test_run_snapctl (void)
     g_assert_no_error (error);
 
     args = g_strsplit ("arg1;arg2", ";", -1);  
-    output = snapd_client_run_snapctl_sync (client, "ABC", args, NULL, &error);
+    result = snapd_client_run_snapctl_sync (client, "ABC", args, &stdout_output, &stderr_output, NULL, &error);
     g_assert_no_error (error);
-    g_assert (output != NULL);
-    g_assert_cmpstr (snapd_snapctl_output_get_stdout (output), ==, "STDOUT:ABC:arg1:arg2");
-    g_assert_cmpstr (snapd_snapctl_output_get_stderr (output), ==, "STDERR");  
+    g_assert (result);
+    g_assert_cmpstr (stdout_output, ==, "STDOUT:ABC:arg1:arg2");
+    g_assert_cmpstr (stderr_output, ==, "STDERR");  
 }
 
 int

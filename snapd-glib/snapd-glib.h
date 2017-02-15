@@ -25,7 +25,6 @@
 #include <snapd-glib/snapd-screenshot.h>
 #include <snapd-glib/snapd-slot.h>
 #include <snapd-glib/snapd-snap.h>
-#include <snapd-glib/snapd-snapctl-output.h>
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-task.h>
 #include <snapd-glib/snapd-user-information.h>

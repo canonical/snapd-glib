@@ -20,7 +20,6 @@ source_h = \
 	snapd-screenshot.h \
 	snapd-slot.h \
 	snapd-snap.h \
-	snapd-snapctl-output.h \        
 	snapd-system-information.h \
 	snapd-task.h \
 	snapd-user-information.h
@@ -40,7 +39,6 @@ source_c = \
 	snapd-screenshot.c \
 	snapd-slot.c \
 	snapd-snap.c \
-	snapd-snapctl-output.c \
 	snapd-system-information.c \
 	snapd-task.c \
 	snapd-user-information.c

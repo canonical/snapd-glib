@@ -20,7 +20,6 @@
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-icon.h>
 #include <snapd-glib/snapd-snap.h>
-#include <snapd-glib/snapd-snapctl-output.h>
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-change.h>
 #include <snapd-glib/snapd-user-information.h>
@@ -525,9 +524,11 @@ gboolean                snapd_client_reset_aliases_finish          (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-SnapdSnapCtlOutput     *snapd_client_run_snapctl_sync              (SnapdClient          *client,
+gboolean                snapd_client_run_snapctl_sync              (SnapdClient          *client,
                                                                     const gchar          *context_id,
                                                                     gchar               **args,
+                                                                    gchar               **stdout_output,
+                                                                    gchar               **stderr_output,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_run_snapctl_async             (SnapdClient          *client,
@@ -536,8 +537,10 @@ void                    snapd_client_run_snapctl_async             (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-SnapdSnapCtlOutput     *snapd_client_run_snapctl_finish            (SnapdClient          *client,
+gboolean                snapd_client_run_snapctl_finish            (SnapdClient          *client,
                                                                     GAsyncResult         *result,
+                                                                    gchar               **stdout_output,
+                                                                    gchar               **stderr_output,
                                                                     GError              **error);
 
 G_END_DECLS

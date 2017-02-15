@@ -310,19 +310,6 @@ snapd_snap_type_get_type
 </SECTION>
 
 <SECTION>
-<FILE>snapd-snapctl-output</FILE>
-<TITLE>SnapdSnapCtlOutput</TITLE>
-SnapdSnapCtlOutput
-snapd_snapctl_output_get_stderr
-snapd_snapctl_output_get_stdout
-SnapdSnap
-
-<SUBSECTION Private>
-SnapdSnapCtlOutputClass
-SNAPD_TYPE_SNAPCTL_OUTPUT
-</SECTION>
-
-<SECTION>
 <FILE>snapd-system-information</FILE>
 <TITLE>SnapdSystemInformation</TITLE>
 snapd_system_information_get_managed
