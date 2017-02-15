@@ -19,7 +19,8 @@
  *
  * A #SnapdAlias represents an optional alias that can be used for an app.
  * Aliases can be queried using snapd_client_get_aliases_sync() and are used in
- * snapd_client_change_aliases_sync().
+ * snapd_client_enable_aliases_sync(), snapd_client_disable_aliases_sync() and
+ * snapd_client_reset_aliases_sync().
  */
 
 /**
