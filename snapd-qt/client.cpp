@@ -207,6 +207,39 @@ struct QSnapdGetSectionsRequestPrivate
     gchar **sections;
 };
 
+struct QSnapdGetAliasesRequestPrivate
+{
+    ~QSnapdGetAliasesRequestPrivate ()
+    {
+        g_ptr_array_unref (aliases);
+    }
+    GPtrArray *aliases;
+};
+
+struct QSnapdEnableAliasesRequestPrivate
+{
+    QSnapdEnableAliasesRequestPrivate (const QString &snap, const QStringList& aliases) :
+        snap (snap), aliases (aliases) {}
+    QString snap;
+    QStringList aliases;
+};
+
+struct QSnapdDisableAliasesRequestPrivate
+{
+    QSnapdDisableAliasesRequestPrivate (const QString &snap, const QStringList& aliases) :
+        snap (snap), aliases (aliases) {}
+    QString snap;
+    QStringList aliases;
+};
+
+struct QSnapdResetAliasesRequestPrivate
+{
+    QSnapdResetAliasesRequestPrivate (const QString &snap, const QStringList& aliases) :
+        snap (snap), aliases (aliases) {}
+    QString snap;
+    QStringList aliases;
+};
+
 QSnapdClient::QSnapdClient(QObject *parent) :
     QObject (parent),
     d_ptr (new QSnapdClientPrivate()) {}
@@ -340,6 +373,30 @@ QSnapdGetSectionsRequest *QSnapdClient::getSections ()
 {
     Q_D(QSnapdClient);
     return new QSnapdGetSectionsRequest (d->client);
+}
+
+QSnapdGetAliasesRequest *QSnapdClient::getAliases ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetAliasesRequest (d->client);
+}
+
+QSnapdEnableAliasesRequest *QSnapdClient::enableAliases (const QString snap, const QStringList &aliases)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdEnableAliasesRequest (snap, aliases, d->client);
+}
+
+QSnapdDisableAliasesRequest *QSnapdClient::disableAliases (const QString snap, const QStringList &aliases)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdDisableAliasesRequest (snap, aliases, d->client);
+}
+
+QSnapdResetAliasesRequest *QSnapdClient::resetAliases (const QString snap, const QStringList &aliases)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdResetAliasesRequest (snap, aliases, d->client);
 }
 
 QSnapdConnectRequest::QSnapdConnectRequest (void *snapd_client, QObject *parent) :
@@ -1193,4 +1250,210 @@ QStringList QSnapdGetSectionsRequest::sections () const
     for (int i = 0; d->sections[i] != NULL; i++)
         result.append (d->sections[i]);
     return result;
+}
+
+QSnapdGetAliasesRequest::QSnapdGetAliasesRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetAliasesRequestPrivate ()) {}
+
+void QSnapdGetAliasesRequest::runSync ()
+{
+    Q_D(QSnapdGetAliasesRequest);
+    g_autoptr(GError) error = NULL;
+    d->aliases = snapd_client_get_aliases_sync (SNAPD_CLIENT (getClient ()),
+                                                G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetAliasesRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GPtrArray) aliases = NULL;
+    g_autoptr(GError) error = NULL;
+
+    aliases = snapd_client_get_aliases_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdGetAliasesRequest);
+    d->aliases = (GPtrArray*) g_steal_pointer (&aliases);
+    finish (error);
+}
+
+static void get_aliases_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetAliasesRequest *request = static_cast<QSnapdGetAliasesRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetAliasesRequest::runAsync ()
+{
+    snapd_client_get_aliases_async (SNAPD_CLIENT (getClient ()),
+                                    G_CANCELLABLE (getCancellable ()), get_aliases_ready_cb, (gpointer) this);
+}
+
+int QSnapdGetAliasesRequest::aliasCount () const
+{
+    Q_D(const QSnapdGetAliasesRequest);
+    return d->aliases != NULL ? d->aliases->len : 0;
+}
+
+QSnapdAlias *QSnapdGetAliasesRequest::alias (int n) const
+{
+    Q_D(const QSnapdGetAliasesRequest);
+    if (d->aliases == NULL || n < 0 || (guint) n >= d->aliases->len)
+        return NULL;
+    return new QSnapdAlias (d->aliases->pdata[n]);
+}
+
+static gchar **
+string_list_to_strv (const QStringList& list)
+{
+    gchar **value;
+    int size, i;
+
+    size = list.size ();
+    value = (gchar **) malloc (sizeof (gchar *) * (size + 1));
+    for (i = 0; i < size; i++)
+        value[i] = (gchar *) list[i].toStdString ().c_str ();
+    value[size] = NULL;
+
+    return value;
+}
+
+QSnapdEnableAliasesRequest::QSnapdEnableAliasesRequest (const QString& name, const QStringList& aliases, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdEnableAliasesRequestPrivate (name, aliases)) {}
+
+void QSnapdEnableAliasesRequest::runSync ()
+{
+    Q_D(QSnapdEnableAliasesRequest);
+    g_autofree gchar **aliases = NULL;
+    g_autoptr(GError) error = NULL;
+
+    aliases = string_list_to_strv (d->aliases);
+    snapd_client_enable_aliases_sync (SNAPD_CLIENT (getClient ()),
+                                      d->snap.toStdString ().c_str (), aliases,
+                                      progress_cb, this,
+                                      G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdEnableAliasesRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_enable_aliases_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    finish (error);
+}
+
+static void enable_aliases_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdEnableAliasesRequest *request = static_cast<QSnapdEnableAliasesRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdEnableAliasesRequest::runAsync ()
+{
+    Q_D(QSnapdEnableAliasesRequest);
+    g_autofree gchar **aliases = NULL;
+
+    aliases = string_list_to_strv (d->aliases);
+    snapd_client_disable_aliases_async (SNAPD_CLIENT (getClient ()),
+                                       d->snap.toStdString ().c_str (), aliases,
+                                       progress_cb, this,
+                                       G_CANCELLABLE (getCancellable ()), enable_aliases_ready_cb, (gpointer) this);
+}
+
+QSnapdDisableAliasesRequest::QSnapdDisableAliasesRequest (const QString& name, const QStringList& aliases, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdDisableAliasesRequestPrivate (name, aliases)) {}
+
+void QSnapdDisableAliasesRequest::runSync ()
+{
+    Q_D(QSnapdDisableAliasesRequest);
+    g_autofree gchar **aliases = NULL;
+    g_autoptr(GError) error = NULL;
+
+    aliases = string_list_to_strv (d->aliases);
+    snapd_client_disable_aliases_sync (SNAPD_CLIENT (getClient ()),
+                                       d->snap.toStdString ().c_str (), aliases,
+                                       progress_cb, this,
+                                       G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdDisableAliasesRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_disable_aliases_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    finish (error);
+}
+
+static void disable_aliases_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdDisableAliasesRequest *request = static_cast<QSnapdDisableAliasesRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdDisableAliasesRequest::runAsync ()
+{
+    Q_D(QSnapdDisableAliasesRequest);
+    g_autofree gchar **aliases = NULL;
+
+    aliases = string_list_to_strv (d->aliases);
+    snapd_client_disable_aliases_async (SNAPD_CLIENT (getClient ()),
+                                       d->snap.toStdString ().c_str (), aliases,
+                                       progress_cb, this,
+                                       G_CANCELLABLE (getCancellable ()), disable_aliases_ready_cb, (gpointer) this);
+}
+
+QSnapdResetAliasesRequest::QSnapdResetAliasesRequest (const QString& name, const QStringList& aliases, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdResetAliasesRequestPrivate (name, aliases)) {}
+
+void QSnapdResetAliasesRequest::runSync ()
+{
+    Q_D(QSnapdResetAliasesRequest);
+    g_autofree gchar **aliases = NULL;
+    g_autoptr(GError) error = NULL;
+
+    aliases = string_list_to_strv (d->aliases);
+    snapd_client_reset_aliases_sync (SNAPD_CLIENT (getClient ()),
+                                     d->snap.toStdString ().c_str (), aliases,
+                                     progress_cb, this,
+                                     G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdResetAliasesRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_reset_aliases_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    finish (error);
+}
+
+static void reset_aliases_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdResetAliasesRequest *request = static_cast<QSnapdResetAliasesRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdResetAliasesRequest::runAsync ()
+{
+    Q_D(QSnapdResetAliasesRequest);
+    g_autofree gchar **aliases = NULL;
+
+    aliases = string_list_to_strv (d->aliases);
+    snapd_client_reset_aliases_async (SNAPD_CLIENT (getClient ()),
+                                      d->snap.toStdString ().c_str (), aliases,
+                                      progress_cb, this,
+                                      G_CANCELLABLE (getCancellable ()), reset_aliases_ready_cb, (gpointer) this);
 }

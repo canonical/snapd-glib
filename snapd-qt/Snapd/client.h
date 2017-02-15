@@ -11,6 +11,7 @@
 #define SNAPD_CLIENT_H
 
 #include <QtCore/QObject>
+#include <Snapd/Alias>
 #include <Snapd/AuthData>
 #include <Snapd/Connection>
 #include <Snapd/Icon>
@@ -364,6 +365,72 @@ private:
     Q_DECLARE_PRIVATE(QSnapdGetSectionsRequest)
 };
 
+class QSnapdGetAliasesRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetAliasesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdGetAliasesRequest (void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int aliasCount () const;
+    Q_INVOKABLE QSnapdAlias *alias (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetAliasesRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetAliasesRequest)
+};
+
+class QSnapdEnableAliasesRequestPrivate;
+class Q_DECL_EXPORT QSnapdEnableAliasesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdEnableAliasesRequest (const QString& snap, const QStringList& aliases, void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdEnableAliasesRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdEnableAliasesRequest)
+};
+
+class QSnapdDisableAliasesRequestPrivate;
+class Q_DECL_EXPORT QSnapdDisableAliasesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdDisableAliasesRequest (const QString& snap, const QStringList& aliases, void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdDisableAliasesRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdDisableAliasesRequest)
+};
+
+class QSnapdResetAliasesRequestPrivate;
+class Q_DECL_EXPORT QSnapdResetAliasesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdResetAliasesRequest (const QString& snap, const QStringList& aliases, void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdResetAliasesRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdResetAliasesRequest)
+};
+
 Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
 
 class QSnapdClientPrivate;
@@ -402,6 +469,10 @@ public:
     Q_INVOKABLE QSnapdCheckBuyRequest *checkBuy ();
     Q_INVOKABLE QSnapdBuyRequest *buy (const QString& id, double amount, const QString& currency);
     Q_INVOKABLE QSnapdGetSectionsRequest *getSections ();
+    Q_INVOKABLE QSnapdGetAliasesRequest *getAliases ();
+    Q_INVOKABLE QSnapdEnableAliasesRequest *enableAliases (const QString snap, const QStringList &aliases);
+    Q_INVOKABLE QSnapdDisableAliasesRequest *disableAliases (const QString snap, const QStringList &aliases);
+    Q_INVOKABLE QSnapdResetAliasesRequest *resetAliases (const QString snap, const QStringList &aliases);  
 
 private:
     QSnapdClientPrivate *d_ptr;
