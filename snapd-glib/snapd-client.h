@@ -486,12 +486,16 @@ gboolean                snapd_client_change_aliases_sync           (SnapdClient 
                                                                     SnapdAliasAction      action,
                                                                     const gchar          *snap,
                                                                     gchar               **aliases,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_change_aliases_async          (SnapdClient          *client,
                                                                     SnapdAliasAction      action,
                                                                     const gchar          *snap,
                                                                     gchar               **aliases,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);

@@ -2034,7 +2034,7 @@ test_change_aliases_alias (void)
     g_assert_no_error (error);
 
     aliases = g_strsplit ("alias1", ";", -1);
-    result = snapd_client_change_aliases_sync (client, SNAPD_ALIAS_ACTION_ALIAS, "snap1", aliases, NULL, &error);
+    result = snapd_client_change_aliases_sync (client, SNAPD_ALIAS_ACTION_ALIAS, "snap1", aliases, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
     g_assert_cmpstr (alias->status, ==, "enabled");
@@ -2062,7 +2062,7 @@ test_change_aliases_unalias (void)
     g_assert_no_error (error);
 
     aliases = g_strsplit ("alias1", ";", -1);
-    result = snapd_client_change_aliases_sync (client, SNAPD_ALIAS_ACTION_UNALIAS, "snap1", aliases, NULL, &error);
+    result = snapd_client_change_aliases_sync (client, SNAPD_ALIAS_ACTION_UNALIAS, "snap1", aliases, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
     g_assert_cmpstr (alias->status, ==, "disabled");
@@ -2091,7 +2091,7 @@ test_change_aliases_reset (void)
     g_assert_no_error (error);
 
     aliases = g_strsplit ("alias1", ";", -1);
-    result = snapd_client_change_aliases_sync (client, SNAPD_ALIAS_ACTION_RESET, "snap1", aliases, NULL, &error);
+    result = snapd_client_change_aliases_sync (client, SNAPD_ALIAS_ACTION_RESET, "snap1", aliases, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
     g_assert (alias->status == NULL);
@@ -2121,11 +2121,54 @@ test_change_aliases_multiple (void)
     g_assert_no_error (error);
 
     aliases = g_strsplit ("alias1;alias2", ";", -1);
-    result = snapd_client_change_aliases_sync (client, SNAPD_ALIAS_ACTION_ALIAS, "snap1", aliases, NULL, &error);
+    result = snapd_client_change_aliases_sync (client, SNAPD_ALIAS_ACTION_ALIAS, "snap1", aliases, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
     g_assert_cmpstr (alias1->status, ==, "enabled");
     g_assert_cmpstr (alias2->status, ==, "enabled");  
+}
+
+typedef struct
+{
+    int progress_done;
+} ChangeAliasesProgressData;
+
+static void
+change_aliases_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data)
+{
+    ChangeAliasesProgressData *data = user_data;
+    data->progress_done++;
+}
+
+static void
+test_change_aliases_progress (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    MockSnap *s;
+    MockApp *a;
+    MockAlias *alias;
+    g_auto(GStrv) aliases = NULL;
+    ConnectInterfaceProgressData change_aliases_progress_data;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    a = mock_snap_add_app (s, "app1");
+    alias = mock_app_add_alias (a, "alias1");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    aliases = g_strsplit ("alias1", ";", -1);
+    change_aliases_progress_data.progress_done = 0;  
+    result = snapd_client_change_aliases_sync (client, SNAPD_ALIAS_ACTION_ALIAS, "snap1", aliases, change_aliases_progress_cb, &change_aliases_progress_data, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    g_assert_cmpstr (alias->status, ==, "enabled");
+    g_assert_cmpint (change_aliases_progress_data.progress_done, >, 0);
 }
 
 int
@@ -2207,6 +2250,7 @@ main (int argc, char **argv)
     g_test_add_func ("/change-aliases/unalias", test_change_aliases_unalias);
     g_test_add_func ("/change-aliases/reset", test_change_aliases_reset);
     g_test_add_func ("/change-aliases/multiple", test_change_aliases_multiple);
+    g_test_add_func ("/change-aliases/progress", test_change_aliases_progress);  
 
     return g_test_run ();
 }

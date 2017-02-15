@@ -1865,15 +1865,7 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
 static void
 parse_change_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    GError *error = NULL;
-
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, NULL, NULL, &error)) {
-        snapd_request_complete (request, error);
-        return;
-    }
-
-    request->result = TRUE;
-    snapd_request_complete (request, NULL);
+    parse_async_response (request, headers, content, content_length);
 }
 
 static SnapdRequest *
@@ -4590,6 +4582,7 @@ snapd_client_get_aliases_finish (SnapdClient *client, GAsyncResult *result, GErr
 static SnapdRequest *
 make_change_aliases_request (SnapdClient *client,
                              SnapdAliasAction action, const gchar *snap, gchar **aliases,
+                             SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
@@ -4597,7 +4590,7 @@ make_change_aliases_request (SnapdClient *client,
     int i;
     g_autofree gchar *data = NULL;
 
-    request = make_request (client, SNAPD_REQUEST_CHANGE_ALIASES, NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, SNAPD_REQUEST_CHANGE_ALIASES, progress_callback, progress_callback_data, cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -4635,6 +4628,8 @@ make_change_aliases_request (SnapdClient *client,
  * @action: the action to perform.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
  *     to ignore.
@@ -4646,6 +4641,7 @@ make_change_aliases_request (SnapdClient *client,
 gboolean
 snapd_client_change_aliases_sync (SnapdClient *client,
                                   SnapdAliasAction action, const gchar *snap, gchar **aliases,
+                                  SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                   GCancellable *cancellable, GError **error)
 {
     g_autoptr(SnapdRequest) request = NULL;
@@ -4654,7 +4650,7 @@ snapd_client_change_aliases_sync (SnapdClient *client,
     g_return_val_if_fail (snap != NULL, FALSE);
     g_return_val_if_fail (aliases != NULL, FALSE);
 
-    request = g_object_ref (make_change_aliases_request (client, action, snap, aliases, cancellable, NULL, NULL));
+    request = g_object_ref (make_change_aliases_request (client, action, snap, aliases, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     snapd_request_wait (request);
     return snapd_client_change_aliases_finish (client, G_ASYNC_RESULT (request), error);
 }
@@ -4665,6 +4661,8 @@ snapd_client_change_aliases_sync (SnapdClient *client,
  * @action: the action to perform.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -4675,12 +4673,13 @@ snapd_client_change_aliases_sync (SnapdClient *client,
 void
 snapd_client_change_aliases_async (SnapdClient *client,
                                    SnapdAliasAction action, const gchar *snap, gchar **aliases,
+                                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (snap != NULL);
     g_return_if_fail (aliases != NULL);
-    make_change_aliases_request (client, action, snap, aliases, cancellable, callback, user_data);
+    make_change_aliases_request (client, action, snap, aliases, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
 /**

@@ -1921,7 +1921,7 @@ handle_aliases (MockSnapd *snapd, const gchar *method, JsonNode *request)
         }
 
         change = add_change (snapd, NULL);
-        add_task (change, "alias");
+        add_task (change, action);
         send_async_response (snapd, 202, "Accepted", change->id);
     }
     else {
