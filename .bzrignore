@@ -44,6 +44,7 @@ snapd-glib/snapd-enum-types.h
 snapd-glib/stamp-enum-types
 snapd-glib/tests/*.log
 snapd-glib/tests/*.trs
+snapd-glib/tests/test
 snapd-login-service/login-service.[ch]
 snapd-login-service/snapd-login-service
 snapd-login-service/io.snapcraft.SnapdLoginService.policy
