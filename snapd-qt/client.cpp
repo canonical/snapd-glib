@@ -1181,7 +1181,7 @@ void QSnapdGetSectionsRequest::runSync ()
 
 void QSnapdGetSectionsRequest::handleResult (void *object, void *result)
 {
-    gchar **sections;
+    g_auto(GStrv) sections = NULL;
     g_autoptr(GError) error = NULL;
 
     sections = snapd_client_get_sections_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
@@ -1189,7 +1189,7 @@ void QSnapdGetSectionsRequest::handleResult (void *object, void *result)
         return;
 
     Q_D(QSnapdGetSectionsRequest);
-    d->sections = sections;
+    d->sections = (gchar**) g_steal_pointer (&sections);
     finish (error);
 }
 
