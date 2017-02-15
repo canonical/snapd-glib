@@ -102,7 +102,8 @@ typedef enum
     SNAPD_REQUEST_GET_ALIASES,
     SNAPD_REQUEST_ENABLE_ALIASES,
     SNAPD_REQUEST_DISABLE_ALIASES,
-    SNAPD_REQUEST_RESET_ALIASES
+    SNAPD_REQUEST_RESET_ALIASES,
+    SNAPD_REQUEST_RUN_SNAPCTL  
 } RequestType;
 
 G_DECLARE_FINAL_TYPE (SnapdRequest, snapd_request, SNAPD, REQUEST, GObject)
@@ -143,6 +144,7 @@ struct _SnapdRequest
     GPtrArray *users_information;
     gchar **sections;
     GPtrArray *aliases;
+    SnapdSnapCtlOutput *snapctl_output;
     guint complete_handle;
     JsonNode *async_data;
 };
@@ -242,6 +244,7 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->users_information, g_ptr_array_unref);
     g_clear_pointer (&request->sections, g_strfreev);
     g_clear_pointer (&request->aliases, g_ptr_array_unref);
+    g_clear_object (&request->snapctl_output);
     g_clear_pointer (&request->async_data, json_node_unref);
     if (request->complete_handle != 0)
         g_source_remove (request->complete_handle);
@@ -1882,6 +1885,26 @@ parse_reset_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers
     parse_async_response (request, headers, content, content_length);
 }
 
+static void
+parse_run_snapctl_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonObject) response = NULL;
+    JsonObject *result;
+    GError *error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    result = get_object (response, "result");
+    request->snapctl_output = g_object_new (SNAPD_TYPE_SNAPCTL_OUTPUT,
+                                            "stdout", get_string (result, "stdout", NULL),
+                                            "stderr", get_string (result, "stderr", NULL),
+                                            NULL);
+    snapd_request_complete (request, NULL);
+}
+
 static SnapdRequest *
 get_next_request (SnapdClient *client)
 {
@@ -1987,6 +2010,9 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_RESET_ALIASES:
         parse_reset_aliases_response (request, headers, content, content_length);
         break;
+    case SNAPD_REQUEST_RUN_SNAPCTL:
+        parse_run_snapctl_response (request, headers, content, content_length);
+        break;      
     default:
         error = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_FAILED,
@@ -4885,6 +4911,114 @@ snapd_client_reset_aliases_finish (SnapdClient *client, GAsyncResult *result, GE
     if (snapd_request_set_error (request, error))
         return FALSE;
     return request->result;
+}
+
+static SnapdRequest *
+make_snapctl_request (SnapdClient *client,
+                      const gchar *context_id, gchar **args,
+                      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+    g_autoptr(JsonBuilder) builder = NULL;
+    int i;
+    g_autofree gchar *data = NULL;
+
+    request = make_request (client, SNAPD_REQUEST_RUN_SNAPCTL, NULL, NULL, cancellable, callback, user_data);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "context-id");
+    json_builder_add_string_value (builder, context_id);
+    json_builder_set_member_name (builder, "args");
+    json_builder_begin_array (builder);
+    for (i = 0; args[i] != NULL; i++)
+        json_builder_add_string_value (builder, args[i]);
+    json_builder_end_array (builder);
+    json_builder_end_object (builder);
+    data = builder_to_string (builder);
+
+    send_request (request, TRUE, "POST", "/v2/snapctl", "application/json", data);
+
+    return request;
+}
+
+/**
+ * snapd_client_run_snapctl_sync:
+ * @client: a #SnapdClient.
+ * @context_id: context for this call.
+ * @args: the arguments to pass to snapctl.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Run a snapctl command.
+ *
+ * Returns: (transfer full): a #SnapdSnapCtlOutput or %NULL on error.
+ */
+SnapdSnapCtlOutput *
+snapd_client_run_snapctl_sync (SnapdClient *client,
+                               const gchar *context_id, gchar **args,
+                               GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (context_id != NULL, NULL);
+    g_return_val_if_fail (args != NULL, NULL);
+
+    request = g_object_ref (make_snapctl_request (client, context_id, args, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_run_snapctl_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_run_snapctl_async:
+ * @client: a #SnapdClient.
+ * @context_id: context for this call.
+ * @args: the arguments to pass to snapctl.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously run a snapctl command.
+ * See snapd_client_create_user_sync() for more information.
+ */
+void
+snapd_client_run_snapctl_async (SnapdClient *client,
+                                const gchar *context_id, gchar **args,
+                                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (context_id != NULL);
+    g_return_if_fail (args != NULL);
+    make_snapctl_request (client, context_id, args, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_run_snapctl_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_run_snapctl_async().
+ * See snapd_client_run_snapctl_sync() for more information.
+ *
+ * Returns: (transfer full): a #SnapdSnapCtlOutput or %NULL on error.
+ */
+SnapdSnapCtlOutput *
+snapd_client_run_snapctl_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_RUN_SNAPCTL, FALSE);
+
+    if (snapd_request_set_error (request, error))
+        return FALSE;
+    return g_steal_pointer (&request->snapctl_output);
 }
 
 /**

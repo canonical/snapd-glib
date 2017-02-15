@@ -2171,6 +2171,29 @@ test_reset_aliases (void)
     g_assert (alias->status == NULL);
 }
 
+static void
+test_run_snapctl (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_auto(GStrv) args = NULL;
+    g_autoptr(SnapdSnapCtlOutput) output = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    args = g_strsplit ("arg1;arg2", ";", -1);  
+    output = snapd_client_run_snapctl_sync (client, "ABC", args, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (output != NULL);
+    g_assert_cmpstr (snapd_snapctl_output_get_stdout (output), ==, "STDOUT:ABC:arg1:arg2");
+    g_assert_cmpstr (snapd_snapctl_output_get_stderr (output), ==, "STDERR");  
+}
+
 int
 main (int argc, char **argv)
 {
@@ -2251,6 +2274,7 @@ main (int argc, char **argv)
     g_test_add_func ("/enable-aliases/progress", test_enable_aliases_progress);  
     g_test_add_func ("/disable-aliases/basic", test_disable_aliases);
     g_test_add_func ("/reset-aliases/basic", test_reset_aliases);
+    g_test_add_func ("/run-snapctl/basic", test_run_snapctl);
 
     return g_test_run ();
 }

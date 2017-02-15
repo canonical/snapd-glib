@@ -1930,6 +1930,43 @@ handle_aliases (MockSnapd *snapd, const gchar *method, JsonNode *request)
     }
 }
 
+static void
+handle_snapctl (MockSnapd *snapd, const gchar *method, JsonNode *request)
+{
+    JsonObject *o;
+    const gchar *context_id;
+    JsonArray *args;
+    int i;
+    g_autoptr(JsonBuilder) builder = NULL;
+    g_autoptr(GString) stdout_text = NULL;
+
+    if (strcmp (method, "POST") != 0) {
+        send_error_method_not_allowed (snapd, "method not allowed");
+        return;
+    }
+
+    o = json_node_get_object (request);  
+    context_id = json_object_get_string_member (o, "context-id");
+    args = json_object_get_array_member (o, "args");
+
+    stdout_text = g_string_new ("STDOUT");
+    g_string_append_printf (stdout_text, ":%s", context_id);
+    for (i = 0; i < json_array_get_length (args); i++) {
+        const gchar *arg = json_array_get_string_element (args, i);
+        g_string_append_printf (stdout_text, ":%s", arg);        
+    }
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "stdout");
+    json_builder_add_string_value (builder, stdout_text->str);
+    json_builder_set_member_name (builder, "stderr");
+    json_builder_add_string_value (builder, "STDERR");
+    json_builder_end_object (builder);
+
+    send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+}
+
 static gboolean
 parse_macaroon (const gchar *authorization, gchar **macaroon, gchar ***discharges)
 {
@@ -2061,6 +2098,8 @@ handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMe
         handle_sections (snapd, method);
     else if (strcmp (path, "/v2/aliases") == 0)
         handle_aliases (snapd, method, json_content);
+    else if (strcmp (path, "/v2/snapctl") == 0)
+        handle_snapctl (snapd, method, json_content);
     else
         send_error_not_found (snapd, "not found");
 }

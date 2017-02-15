@@ -431,6 +431,24 @@ private:
     Q_DECLARE_PRIVATE(QSnapdResetAliasesRequest)
 };
 
+class QSnapdRunSnapCtlRequestPrivate;
+class Q_DECL_EXPORT QSnapdRunSnapCtlRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdRunSnapCtlRequest (const QString& contextId, const QStringList& args, void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE QString stdout () const;
+    Q_INVOKABLE QString stderr () const;  
+    void handleResult (void *, void *);
+
+private:
+    QSnapdRunSnapCtlRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdRunSnapCtlRequest)
+};
+
 Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
 
 class QSnapdClientPrivate;
@@ -473,6 +491,7 @@ public:
     Q_INVOKABLE QSnapdEnableAliasesRequest *enableAliases (const QString snap, const QStringList &aliases);
     Q_INVOKABLE QSnapdDisableAliasesRequest *disableAliases (const QString snap, const QStringList &aliases);
     Q_INVOKABLE QSnapdResetAliasesRequest *resetAliases (const QString snap, const QStringList &aliases);  
+    Q_INVOKABLE QSnapdRunSnapCtlRequest *runSnapCtl (const QString contextId, const QStringList &args);    
 
 private:
     QSnapdClientPrivate *d_ptr;

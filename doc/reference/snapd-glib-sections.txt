@@ -138,6 +138,9 @@ snapd_client_disable_aliases_sync
 snapd_client_reset_aliases_async
 snapd_client_reset_aliases_finish
 snapd_client_reset_aliases_sync
+snapd_client_run_snapctl_async
+snapd_client_run_snapctl_finish
+snapd_client_run_snapctl_sync
 
 <SUBSECTION Private>
 SNAPD_TYPE_CLIENT
@@ -304,6 +307,19 @@ SNAPD_TYPE_SNAP_STATUS
 snapd_snap_status_get_type
 SNAPD_TYPE_SNAP_TYPE
 snapd_snap_type_get_type
+</SECTION>
+
+<SECTION>
+<FILE>snapd-snapctl-output</FILE>
+<TITLE>SnapdSnapCtlOutput</TITLE>
+SnapdSnapCtlOutput
+snapd_snapctl_output_get_stderr
+snapd_snapctl_output_get_stdout
+SnapdSnap
+
+<SUBSECTION Private>
+SnapdSnapCtlOutputClass
+SNAPD_TYPE_SNAPCTL_OUTPUT
 </SECTION>
 
 <SECTION>
