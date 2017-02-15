@@ -2013,7 +2013,7 @@ test_get_aliases_empty (void)
 }
 
 static void
-test_change_aliases_alias (void)
+test_enable_aliases (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
@@ -2041,64 +2041,7 @@ test_change_aliases_alias (void)
 }
 
 static void
-test_change_aliases_unalias (void)
-{
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    MockApp *a;
-    MockAlias *alias;
-    g_auto(GStrv) aliases = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
-    a = mock_snap_add_app (s, "app1");
-    alias = mock_app_add_alias (a, "alias1");
-
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
-    snapd_client_connect_sync (client, NULL, &error);
-    g_assert_no_error (error);
-
-    aliases = g_strsplit ("alias1", ";", -1);
-    result = snapd_client_disable_aliases_sync (client, "snap1", aliases, NULL, NULL, NULL, &error);
-    g_assert_no_error (error);
-    g_assert (result);
-    g_assert_cmpstr (alias->status, ==, "disabled");
-}
-
-static void
-test_change_aliases_reset (void)
-{
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    MockApp *a;
-    MockAlias *alias;
-    g_auto(GStrv) aliases = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
-    a = mock_snap_add_app (s, "app1");
-    alias = mock_app_add_alias (a, "alias1");
-    mock_alias_set_status (alias, "enabled");
-
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
-    snapd_client_connect_sync (client, NULL, &error);
-    g_assert_no_error (error);
-
-    aliases = g_strsplit ("alias1", ";", -1);
-    result = snapd_client_reset_aliases_sync (client, "snap1", aliases, NULL, NULL, NULL, &error);
-    g_assert_no_error (error);
-    g_assert (result);
-    g_assert (alias->status == NULL);
-}
-
-static void
-test_change_aliases_multiple (void)
+test_enable_aliases_multiple (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
@@ -2131,17 +2074,17 @@ test_change_aliases_multiple (void)
 typedef struct
 {
     int progress_done;
-} ChangeAliasesProgressData;
+} EnableAliasesProgressData;
 
 static void
-change_aliases_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data)
+enable_aliases_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data)
 {
-    ChangeAliasesProgressData *data = user_data;
+    EnableAliasesProgressData *data = user_data;
     data->progress_done++;
 }
 
 static void
-test_change_aliases_progress (void)
+test_enable_aliases_progress (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
@@ -2149,7 +2092,7 @@ test_change_aliases_progress (void)
     MockApp *a;
     MockAlias *alias;
     g_auto(GStrv) aliases = NULL;
-    ConnectInterfaceProgressData change_aliases_progress_data;
+    EnableAliasesProgressData enable_aliases_progress_data;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
@@ -2163,12 +2106,69 @@ test_change_aliases_progress (void)
     g_assert_no_error (error);
 
     aliases = g_strsplit ("alias1", ";", -1);
-    change_aliases_progress_data.progress_done = 0;  
-    result = snapd_client_enable_aliases_sync (client, "snap1", aliases, change_aliases_progress_cb, &change_aliases_progress_data, NULL, &error);
+    enable_aliases_progress_data.progress_done = 0;  
+    result = snapd_client_enable_aliases_sync (client, "snap1", aliases, enable_aliases_progress_cb, &enable_aliases_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
     g_assert_cmpstr (alias->status, ==, "enabled");
-    g_assert_cmpint (change_aliases_progress_data.progress_done, >, 0);
+    g_assert_cmpint (enable_aliases_progress_data.progress_done, >, 0);
+}
+
+static void
+test_disable_aliases (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    MockSnap *s;
+    MockApp *a;
+    MockAlias *alias;
+    g_auto(GStrv) aliases = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    a = mock_snap_add_app (s, "app1");
+    alias = mock_app_add_alias (a, "alias1");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    aliases = g_strsplit ("alias1", ";", -1);
+    result = snapd_client_disable_aliases_sync (client, "snap1", aliases, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    g_assert_cmpstr (alias->status, ==, "disabled");
+}
+
+static void
+test_reset_aliases (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    MockSnap *s;
+    MockApp *a;
+    MockAlias *alias;
+    g_auto(GStrv) aliases = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    a = mock_snap_add_app (s, "app1");
+    alias = mock_app_add_alias (a, "alias1");
+    mock_alias_set_status (alias, "enabled");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    aliases = g_strsplit ("alias1", ";", -1);
+    result = snapd_client_reset_aliases_sync (client, "snap1", aliases, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    g_assert (alias->status == NULL);
 }
 
 int
@@ -2246,11 +2246,11 @@ main (int argc, char **argv)
     g_test_add_func ("/get-sections/basic", test_get_sections);
     g_test_add_func ("/get-aliases/basic", test_get_aliases);
     g_test_add_func ("/get-aliases/empty", test_get_aliases_empty);
-    g_test_add_func ("/change-aliases/alias", test_change_aliases_alias);
-    g_test_add_func ("/change-aliases/unalias", test_change_aliases_unalias);
-    g_test_add_func ("/change-aliases/reset", test_change_aliases_reset);
-    g_test_add_func ("/change-aliases/multiple", test_change_aliases_multiple);
-    g_test_add_func ("/change-aliases/progress", test_change_aliases_progress);  
+    g_test_add_func ("/enable-aliases/basic", test_enable_aliases);
+    g_test_add_func ("/enable-aliases/multiple", test_enable_aliases_multiple);
+    g_test_add_func ("/enable-aliases/progress", test_enable_aliases_progress);  
+    g_test_add_func ("/disable-aliases/basic", test_disable_aliases);
+    g_test_add_func ("/reset-aliases/basic", test_reset_aliases);
 
     return g_test_run ();
 }
