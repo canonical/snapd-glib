@@ -1,4 +1,21 @@
 <SECTION>
+<FILE>snapd-alias</FILE>
+<TITLE>SnapdAlias</TITLE>
+SnapdAlias
+SnapdAliasStatus
+snapd_alias_get_app
+snapd_alias_get_name
+snapd_alias_get_snap
+snapd_alias_get_status
+
+<SUBSECTION Private>
+SnapdAliasClass
+SNAPD_TYPE_ALIAS
+SNAPD_TYPE_ALIAS_STATUS
+snapd_alias_status_get_type
+</SECTION>
+
+<SECTION>
 <FILE>snapd-app</FILE>
 <TITLE>SnapdApp</TITLE>
 SnapdApp
@@ -109,6 +126,18 @@ snapd_client_create_users_finish
 snapd_client_get_sections_sync
 snapd_client_get_sections_async
 snapd_client_get_sections_finish
+snapd_client_get_aliases_async
+snapd_client_get_aliases_finish
+snapd_client_get_aliases_sync
+snapd_client_enable_aliases_async
+snapd_client_enable_aliases_finish
+snapd_client_enable_aliases_sync
+snapd_client_disable_aliases_async
+snapd_client_disable_aliases_finish
+snapd_client_disable_aliases_sync
+snapd_client_reset_aliases_async
+snapd_client_reset_aliases_finish
+snapd_client_reset_aliases_sync
 
 <SUBSECTION Private>
 SNAPD_TYPE_CLIENT

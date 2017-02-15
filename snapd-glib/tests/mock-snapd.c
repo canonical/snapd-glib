@@ -72,10 +72,19 @@ struct _MockSnapd
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
 
 static void
+mock_alias_free (MockAlias *alias)
+{
+    g_free (alias->name);
+    g_free (alias->status);  
+    g_slice_free (MockAlias, alias);
+}
+
+static void
 mock_app_free (MockApp *app)
 {
     g_free (app->name);
-    g_list_free_full (app->aliases, g_free);
+    g_list_free_full (app->aliases, (GDestroyNotify) mock_alias_free);
+    g_slice_free (MockApp, app);
 }
 
 static void
@@ -384,10 +393,42 @@ mock_snap_add_app (MockSnap *snap, const gchar *name)
     return app;
 }
 
-void
-mock_app_add_alias (MockApp *app, const gchar *alias)
+MockAlias *
+mock_app_add_alias (MockApp *app, const gchar *name)
 {
-    app->aliases = g_list_append (app->aliases, g_strdup (alias));
+    MockAlias *alias;
+
+    alias = g_slice_new0 (MockAlias);
+    alias->name = g_strdup (name);
+    app->aliases = g_list_append (app->aliases, alias);
+
+    return alias;
+}
+
+static MockAlias *
+mock_snap_find_alias (MockSnap *snap, const gchar *name)
+{
+    GList *link;
+
+    for (link = snap->apps; link; link = link->next) {
+        MockApp *app = link->data;
+        GList *link2;
+
+        for (link2 = app->aliases; link2; link2 = link2->next) {
+            MockAlias *alias = link2->data;
+            if (strcmp (alias->name, name) == 0)
+                return alias;
+        }
+    }
+
+    return NULL;
+}
+
+void
+mock_alias_set_status (MockAlias *alias, const gchar *status)
+{
+    g_free (alias->status);
+    alias->status = g_strdup (status);
 }
 
 void
@@ -944,8 +985,10 @@ make_snap_node (MockSnap *snap)
                 GList *link2;
                 json_builder_set_member_name (builder, "aliases");
                 json_builder_begin_array (builder);
-                for (link2 = app->aliases; link2; link2 = link2->next)
-                    json_builder_add_string_value (builder, link2->data);
+                for (link2 = app->aliases; link2; link2 = link2->next) {
+                    MockAlias *alias = link2->data;
+                    json_builder_add_string_value (builder, alias->name);
+                }
                 json_builder_end_array (builder);
             }
             json_builder_end_object (builder);
@@ -1370,8 +1413,8 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, JsonNode *request)
         send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
     }
     else if (strcmp (method, "POST") == 0) {
-        const gchar *action;
         JsonObject *o;
+        const gchar *action;
         JsonArray *a;
         int i;
         g_autoptr(GList) plugs = NULL;
@@ -1794,6 +1837,99 @@ handle_sections (MockSnapd *snapd, const gchar *method)
     send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
 }
 
+static void
+handle_aliases (MockSnapd *snapd, const gchar *method, JsonNode *request)
+{
+    if (strcmp (method, "GET") == 0) {
+        g_autoptr(JsonBuilder) builder = NULL;
+        GList *link;
+
+        builder = json_builder_new ();
+        json_builder_begin_object (builder);
+        for (link = snapd->snaps; link; link = link->next) {
+            MockSnap *snap = link->data;
+            int alias_count = 0;
+            GList *link2;
+
+            for (link2 = snap->apps; link2; link2 = link2->next) {
+                MockApp *app = link2->data;
+                GList *link3;
+
+                for (link3 = app->aliases; link3; link3 = link3->next) {
+                    MockAlias *alias = link3->data;
+
+                    if (alias_count == 0) {
+                        json_builder_set_member_name (builder, snap->name);
+                        json_builder_begin_object (builder);
+                    }
+                    alias_count++;
+
+                    json_builder_set_member_name (builder, alias->name);
+                    json_builder_begin_object (builder);
+                    json_builder_set_member_name (builder, "app");
+                    json_builder_add_string_value (builder, app->name);
+                    if (alias->status != NULL) {
+                        json_builder_set_member_name (builder, "status");
+                        json_builder_add_string_value (builder, alias->status);
+                    }
+                    json_builder_end_object (builder);
+                }
+            }
+          
+            if (alias_count > 0)
+                json_builder_end_object (builder);
+        }
+        json_builder_end_object (builder);
+        send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+    }
+    else if (strcmp (method, "POST") == 0) {
+        JsonObject *o;
+        MockSnap *snap;
+        const gchar *action;
+        const gchar *status;
+        JsonArray *aliases;
+        int i;
+        MockChange *change;     
+
+        o = json_node_get_object (request);
+        snap = mock_snapd_find_snap (snapd, json_object_get_string_member (o, "snap"));
+        if (snap == NULL) {
+            send_error_not_found (snapd, "cannot find snap");
+            return;
+        }
+
+        action = json_object_get_string_member (o, "action");
+        if (g_strcmp0 (action, "alias") == 0)
+            status = "enabled";
+        else if (g_strcmp0 (action, "unalias") == 0)
+            status = "disabled";
+        else if (g_strcmp0 (action, "reset") == 0)
+            status = NULL;
+        else {
+            send_error_bad_request (snapd, "unsupported alias action", NULL);
+            return;
+        }
+
+        aliases = json_object_get_array_member (o, "aliases");
+        for (i = 0; i < json_array_get_length (aliases); i++) {
+            const gchar *name = json_array_get_string_element (aliases, i);
+            MockAlias *alias;
+
+            alias = mock_snap_find_alias (snap, name);
+            if (alias != NULL)
+                mock_alias_set_status (alias, status);
+        }
+
+        change = add_change (snapd, NULL);
+        add_task (change, action);
+        send_async_response (snapd, 202, "Accepted", change->id);
+    }
+    else {
+        send_error_method_not_allowed (snapd, "method not allowed");
+        return;
+    }
+}
+
 static gboolean
 parse_macaroon (const gchar *authorization, gchar **macaroon, gchar ***discharges)
 {
@@ -1923,6 +2059,8 @@ handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMe
         handle_buy (snapd, method, account, json_content);
     else if (strcmp (path, "/v2/sections") == 0)
         handle_sections (snapd, method);
+    else if (strcmp (path, "/v2/aliases") == 0)
+        handle_aliases (snapd, method, json_content);
     else
         send_error_not_found (snapd, "not found");
 }
