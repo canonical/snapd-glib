@@ -34,6 +34,7 @@ struct _SnapdAliasClass
  * @SNAPD_ALIAS_STATUS_DEFAULT: the alias is set to default behaviour.
  * @SNAPD_ALIAS_STATUS_ENABLED: the alias is enabled.
  * @SNAPD_ALIAS_STATUS_DISABLED: the alias is disabled.
+ * @SNAPD_ALIAS_STATUS_AUTO: the alias is automatically enabled
  *
  * Status of an alias.
  */
@@ -42,7 +43,8 @@ typedef enum
     SNAPD_ALIAS_STATUS_UNKNOWN,
     SNAPD_ALIAS_STATUS_DEFAULT,
     SNAPD_ALIAS_STATUS_ENABLED,
-    SNAPD_ALIAS_STATUS_DISABLED
+    SNAPD_ALIAS_STATUS_DISABLED,
+    SNAPD_ALIAS_STATUS_AUTO
 } SnapdAliasStatus;
 
 const gchar      *snapd_alias_get_app    (SnapdAlias *alias);

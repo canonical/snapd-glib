@@ -1842,6 +1842,8 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
                 status = SNAPD_ALIAS_STATUS_ENABLED;
             else if (strcmp (status_string, "disabled") == 0)
                 status = SNAPD_ALIAS_STATUS_DISABLED;
+            else if (strcmp (status_string, "auto") == 0)
+                status = SNAPD_ALIAS_STATUS_AUTO;
             else
                 status = SNAPD_ALIAS_STATUS_UNKNOWN;
 

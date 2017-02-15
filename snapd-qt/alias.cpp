@@ -32,14 +32,16 @@ QSnapdAlias::QSnapdAliasStatus QSnapdAlias::status () const
 {
     switch (snapd_alias_get_status (SNAPD_ALIAS (wrapped_object)))
     {
+    default:
+    case SNAPD_ALIAS_STATUS_UNKNOWN:
+        return QSnapdAliasStatus::Unknown;
+    case SNAPD_ALIAS_STATUS_DEFAULT:
+        return QSnapdAliasStatus::Default;
     case SNAPD_ALIAS_STATUS_ENABLED:
         return QSnapdAliasStatus::Enabled;
     case SNAPD_ALIAS_STATUS_DISABLED:
         return QSnapdAliasStatus::Disabled;
-    case SNAPD_ALIAS_STATUS_DEFAULT:
-        return QSnapdAliasStatus::Default;
-    case SNAPD_ALIAS_STATUS_UNKNOWN:
-    default:
-        return QSnapdAliasStatus::Unknown;
+    case SNAPD_ALIAS_STATUS_AUTO:
+      return QSnapdAliasStatus::Auto;
     }
 }
