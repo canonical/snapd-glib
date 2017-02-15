@@ -76,21 +76,6 @@ typedef enum
 } SnapdCreateUserFlags;
 
 /**
- * SnapdAliasAction:
- * @SNAPD_ALIAS_ACTION_ALIAS: Enable an alias.
- * @SNAPD_ALIAS_ACTION_UNALIAS: Disable an alias.
- * @SNAPD_ALIAS_ACTION_RESET: Reset an alias to default behaviour.
- *
- * Action to use when changing aliases.
- */
-typedef enum
-{
-    SNAPD_ALIAS_ACTION_ALIAS,
-    SNAPD_ALIAS_ACTION_UNALIAS,
-    SNAPD_ALIAS_ACTION_RESET
-} SnapdAliasAction;
-
-/**
  * SnapdProgressCallback:
  * @client: a #SnapdClient
  * @change: a #SnapdChange describing the change in progress
@@ -482,16 +467,14 @@ GPtrArray              *snapd_client_get_aliases_finish            (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-gboolean                snapd_client_change_aliases_sync           (SnapdClient          *client,
-                                                                    SnapdAliasAction      action,
+gboolean                snapd_client_enable_aliases_sync           (SnapdClient          *client,
                                                                     const gchar          *snap,
                                                                     gchar               **aliases,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
-void                    snapd_client_change_aliases_async          (SnapdClient          *client,
-                                                                    SnapdAliasAction      action,
+void                    snapd_client_enable_aliases_async          (SnapdClient          *client,
                                                                     const gchar          *snap,
                                                                     gchar               **aliases,
                                                                     SnapdProgressCallback progress_callback,
@@ -499,7 +482,45 @@ void                    snapd_client_change_aliases_async          (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-gboolean                snapd_client_change_aliases_finish         (SnapdClient          *client,
+gboolean                snapd_client_enable_aliases_finish         (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_disable_aliases_sync          (SnapdClient          *client,
+                                                                    const gchar          *snap,
+                                                                    gchar               **aliases,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_disable_aliases_async         (SnapdClient          *client,
+                                                                    const gchar          *snap,
+                                                                    gchar               **aliases,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_disable_aliases_finish        (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_reset_aliases_sync            (SnapdClient          *client,
+                                                                    const gchar          *snap,
+                                                                    gchar               **aliases,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_reset_aliases_async           (SnapdClient          *client,
+                                                                    const gchar          *snap,
+                                                                    gchar               **aliases,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_reset_aliases_finish          (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

@@ -100,7 +100,9 @@ typedef enum
     SNAPD_REQUEST_CREATE_USERS,
     SNAPD_REQUEST_GET_SECTIONS,
     SNAPD_REQUEST_GET_ALIASES,
-    SNAPD_REQUEST_CHANGE_ALIASES
+    SNAPD_REQUEST_ENABLE_ALIASES,
+    SNAPD_REQUEST_DISABLE_ALIASES,
+    SNAPD_REQUEST_RESET_ALIASES
 } RequestType;
 
 G_DECLARE_FINAL_TYPE (SnapdRequest, snapd_request, SNAPD, REQUEST, GObject)
@@ -1863,7 +1865,19 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
 }
 
 static void
-parse_change_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_enable_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    parse_async_response (request, headers, content, content_length);
+}
+
+static void
+parse_disable_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    parse_async_response (request, headers, content, content_length);
+}
+
+static void
+parse_reset_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     parse_async_response (request, headers, content, content_length);
 }
@@ -1964,8 +1978,14 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_GET_ALIASES:
         parse_get_aliases_response (request, headers, content, content_length);
         break;
-    case SNAPD_REQUEST_CHANGE_ALIASES:
-        parse_change_aliases_response (request, headers, content, content_length);
+    case SNAPD_REQUEST_ENABLE_ALIASES:
+        parse_enable_aliases_response (request, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_DISABLE_ALIASES:
+        parse_disable_aliases_response (request, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_RESET_ALIASES:
+        parse_reset_aliases_response (request, headers, content, content_length);
         break;
     default:
         error = g_error_new (SNAPD_ERROR,
@@ -4581,7 +4601,8 @@ snapd_client_get_aliases_finish (SnapdClient *client, GAsyncResult *result, GErr
 
 static SnapdRequest *
 make_change_aliases_request (SnapdClient *client,
-                             SnapdAliasAction action, const gchar *snap, gchar **aliases,
+                             RequestType request_type,
+                             const gchar *action, const gchar *snap, gchar **aliases,
                              SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
@@ -4590,23 +4611,12 @@ make_change_aliases_request (SnapdClient *client,
     int i;
     g_autofree gchar *data = NULL;
 
-    request = make_request (client, SNAPD_REQUEST_CHANGE_ALIASES, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, request_type, progress_callback, progress_callback_data, cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "action");
-    switch (action) {
-    case SNAPD_ALIAS_ACTION_ALIAS:
-        json_builder_add_string_value (builder, "alias");
-        break;
-    case SNAPD_ALIAS_ACTION_UNALIAS:
-        json_builder_add_string_value (builder, "unalias");
-        break;
-    default:
-    case SNAPD_ALIAS_ACTION_RESET:
-        json_builder_add_string_value (builder, "reset");
-        break;
-    }
+    json_builder_add_string_value (builder, action);
     json_builder_set_member_name (builder, "snap");
     json_builder_add_string_value (builder, snap);
     json_builder_set_member_name (builder, "aliases");
@@ -4623,9 +4633,8 @@ make_change_aliases_request (SnapdClient *client,
 }
 
 /**
- * snapd_client_change_aliases_sync:
+ * snapd_client_enable_aliases_sync:
  * @client: a #SnapdClient.
- * @action: the action to perform.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
  * @progress_callback: (allow-none) (scope async): function to callback with progress.
@@ -4639,8 +4648,8 @@ make_change_aliases_request (SnapdClient *client,
  * Returns: %TRUE on success or %FALSE on error.
  */
 gboolean
-snapd_client_change_aliases_sync (SnapdClient *client,
-                                  SnapdAliasAction action, const gchar *snap, gchar **aliases,
+snapd_client_enable_aliases_sync (SnapdClient *client,
+                                  const gchar *snap, gchar **aliases,
                                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                   GCancellable *cancellable, GError **error)
 {
@@ -4650,15 +4659,14 @@ snapd_client_change_aliases_sync (SnapdClient *client,
     g_return_val_if_fail (snap != NULL, FALSE);
     g_return_val_if_fail (aliases != NULL, FALSE);
 
-    request = g_object_ref (make_change_aliases_request (client, action, snap, aliases, progress_callback, progress_callback_data, cancellable, NULL, NULL));
+    request = g_object_ref (make_change_aliases_request (client, SNAPD_REQUEST_ENABLE_ALIASES, "alias", snap, aliases, progress_callback, progress_callback_data, cancellable, NULL, NULL));
     snapd_request_wait (request);
-    return snapd_client_change_aliases_finish (client, G_ASYNC_RESULT (request), error);
+    return snapd_client_enable_aliases_finish (client, G_ASYNC_RESULT (request), error);
 }
 
 /**
- * snapd_client_change_aliases_async:
+ * snapd_client_enable_aliases_async:
  * @client: a #SnapdClient.
- * @action: the action to perform.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
  * @progress_callback: (allow-none) (scope async): function to callback with progress.
@@ -4671,30 +4679,30 @@ snapd_client_change_aliases_sync (SnapdClient *client,
  * See snapd_client_create_user_sync() for more information.
  */
 void
-snapd_client_change_aliases_async (SnapdClient *client,
-                                   SnapdAliasAction action, const gchar *snap, gchar **aliases,
+snapd_client_enable_aliases_async (SnapdClient *client,
+                                   const gchar *snap, gchar **aliases,
                                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (snap != NULL);
     g_return_if_fail (aliases != NULL);
-    make_change_aliases_request (client, action, snap, aliases, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    make_change_aliases_request (client, SNAPD_REQUEST_ENABLE_ALIASES, "alias", snap, aliases, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
 /**
- * snapd_client_change_aliases_finish:
+ * snapd_client_enable_aliases_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Complete request started with snapd_client_change_aliases_async().
- * See snapd_client_change_aliases_sync() for more information.
+ * Complete request started with snapd_client_enable_aliases_async().
+ * See snapd_client_enable_aliases_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
 gboolean
-snapd_client_change_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+snapd_client_enable_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdRequest *request;
 
@@ -4702,7 +4710,177 @@ snapd_client_change_aliases_finish (SnapdClient *client, GAsyncResult *result, G
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
 
     request = SNAPD_REQUEST (result);
-    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CHANGE_ALIASES, FALSE);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_ENABLE_ALIASES, FALSE);
+
+    if (snapd_request_set_error (request, error))
+        return FALSE;
+    return request->result;
+}
+
+/**
+ * snapd_client_disable_aliases_sync:
+ * @client: a #SnapdClient.
+ * @snap: the name of the snap to modify.
+ * @aliases: the aliases to modify.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Change the state of aliases.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_disable_aliases_sync (SnapdClient *client,
+                                   const gchar *snap, gchar **aliases,
+                                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                   GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (snap != NULL, FALSE);
+    g_return_val_if_fail (aliases != NULL, FALSE);
+
+    request = g_object_ref (make_change_aliases_request (client, SNAPD_REQUEST_DISABLE_ALIASES, "unalias", snap, aliases, progress_callback, progress_callback_data, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_disable_aliases_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_disable_aliases_async:
+ * @client: a #SnapdClient.
+ * @snap: the name of the snap to modify.
+ * @aliases: the aliases to modify.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously change the state of aliases.
+ * See snapd_client_create_user_sync() for more information.
+ */
+void
+snapd_client_disable_aliases_async (SnapdClient *client,
+                                    const gchar *snap, gchar **aliases,
+                                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (snap != NULL);
+    g_return_if_fail (aliases != NULL);
+    make_change_aliases_request (client, SNAPD_REQUEST_DISABLE_ALIASES, "unalias", snap, aliases, progress_callback, progress_callback_data, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_disable_aliases_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_disable_aliases_async().
+ * See snapd_client_disable_aliases_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_disable_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_DISABLE_ALIASES, FALSE);
+
+    if (snapd_request_set_error (request, error))
+        return FALSE;
+    return request->result;
+}
+
+/**
+ * snapd_client_reset_aliases_sync:
+ * @client: a #SnapdClient.
+ * @snap: the name of the snap to modify.
+ * @aliases: the aliases to modify.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Change the state of aliases.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_reset_aliases_sync (SnapdClient *client,
+                                 const gchar *snap, gchar **aliases,
+                                 SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                 GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (snap != NULL, FALSE);
+    g_return_val_if_fail (aliases != NULL, FALSE);
+
+    request = g_object_ref (make_change_aliases_request (client, SNAPD_REQUEST_RESET_ALIASES, "reset", snap, aliases, progress_callback, progress_callback_data, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_reset_aliases_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_reset_aliases_async:
+ * @client: a #SnapdClient.
+ * @snap: the name of the snap to modify.
+ * @aliases: the aliases to modify.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously change the state of aliases.
+ * See snapd_client_create_user_sync() for more information.
+ */
+void
+snapd_client_reset_aliases_async (SnapdClient *client,
+                                  const gchar *snap, gchar **aliases,
+                                  SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (snap != NULL);
+    g_return_if_fail (aliases != NULL);
+    make_change_aliases_request (client, SNAPD_REQUEST_RESET_ALIASES, "reset", snap, aliases, progress_callback, progress_callback_data, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_reset_aliases_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_reset_aliases_async().
+ * See snapd_client_reset_aliases_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_reset_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_RESET_ALIASES, FALSE);
 
     if (snapd_request_set_error (request, error))
         return FALSE;
