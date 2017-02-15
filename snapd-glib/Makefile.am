@@ -6,7 +6,8 @@ BUILT_SOURCES =
 EXTRA_DIST =
 
 source_h = \
-	snapd-app.h \
+	snapd-alias.h \
+	snapd-app.h \        
 	snapd-auth-data.h \
 	snapd-change.h \
 	snapd-client.h \
@@ -24,7 +25,8 @@ source_h = \
 	snapd-user-information.h
 
 source_c = \
-	snapd-app.c \
+	snapd-alias.c \
+	snapd-app.c \        
 	snapd-auth-data.c \
 	snapd-change.c \
 	snapd-client.c \

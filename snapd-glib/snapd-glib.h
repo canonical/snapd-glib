@@ -12,6 +12,7 @@
 
 #define __SNAPD_GLIB_INSIDE__
 
+#include <snapd-glib/snapd-alias.h>
 #include <snapd-glib/snapd-app.h>
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-client.h>

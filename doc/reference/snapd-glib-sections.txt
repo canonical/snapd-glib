@@ -1,4 +1,21 @@
 <SECTION>
+<FILE>snapd-alias</FILE>
+<TITLE>SnapdAlias</TITLE>
+SnapdAlias
+SnapdAliasStatus
+snapd_alias_get_app
+snapd_alias_get_name
+snapd_alias_get_snap
+snapd_alias_get_status
+
+<SUBSECTION Private>
+SnapdAliasClass
+SNAPD_TYPE_ALIAS
+SNAPD_TYPE_ALIAS_STATUS
+snapd_alias_status_get_type
+</SECTION>
+
+<SECTION>
 <FILE>snapd-app</FILE>
 <TITLE>SnapdApp</TITLE>
 SnapdApp
@@ -35,6 +52,7 @@ SnapdClient
 SnapdClientClass
 SnapdFindFlags
 SnapdCreateUserFlags
+SnapdAliasAction
 SnapdProgressCallback
 snapd_client_new
 snapd_client_new_from_socket
@@ -109,6 +127,12 @@ snapd_client_create_users_finish
 snapd_client_get_sections_sync
 snapd_client_get_sections_async
 snapd_client_get_sections_finish
+snapd_client_get_aliases_async
+snapd_client_get_aliases_finish
+snapd_client_get_aliases_sync
+snapd_client_change_aliases_async
+snapd_client_change_aliases_finish
+snapd_client_change_aliases_sync
 
 <SUBSECTION Private>
 SNAPD_TYPE_CLIENT
@@ -116,6 +140,8 @@ SNAPD_TYPE_FIND_FLAGS
 snapd_find_flags_get_type
 SNAPD_TYPE_CREATE_USER_FLAGS
 snapd_create_user_flags_get_type
+SNAPD_TYPE_ALIAS_ACTION
+snapd_alias_action_get_type
 </SECTION>
 
 <SECTION>

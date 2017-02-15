@@ -75,6 +75,12 @@ typedef struct
 
 typedef struct
 {
+    gchar *name;
+    gchar *status;
+} MockAlias;
+
+typedef struct
+{
     gdouble amount;
     gchar *currency;
 } MockPrice;
@@ -155,8 +161,11 @@ MockSnap       *mock_snapd_add_store_snap         (MockSnapd   *snapd,
 MockApp        *mock_snap_add_app                 (MockSnap    *snap,
                                                    const gchar *name);
 
-void            mock_app_add_alias                (MockApp     *app,
+MockAlias      *mock_app_add_alias                (MockApp     *app,
                                                    const gchar *alias);
+
+void            mock_alias_set_status             (MockAlias   *alias,
+                                                   const gchar *status);
 
 void            mock_snap_set_channel             (MockSnap    *snap,
                                                    const gchar *channel);
