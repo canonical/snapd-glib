@@ -369,6 +369,7 @@ class QSnapdGetAliasesRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetAliasesRequest : public QSnapdRequest
 {
     Q_OBJECT
+    Q_PROPERTY(int aliasCount READ aliasCount)    
 
 public:
     explicit QSnapdGetAliasesRequest (void *snapd_client, QObject *parent = 0);
