@@ -12,6 +12,7 @@
 
 #include <QtCore/QObject>
 #include <Snapd/Alias>
+#include <Snapd/Assertion>
 #include <Snapd/AuthData>
 #include <Snapd/Connection>
 #include <Snapd/Icon>
@@ -122,6 +123,25 @@ public:
 private:
     QSnapdGetIconRequestPrivate *d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetIconRequest)
+};
+
+class QSnapdGetAssertionsRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetAssertionsRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int assertionCount READ assertionCount)
+
+public:
+    explicit QSnapdGetAssertionsRequest (const QString& type, void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int assertionCount () const;
+    Q_INVOKABLE QSnapdAssertion *assertion (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetAssertionsRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetAssertionsRequest)
 };
 
 class QSnapdGetInterfacesRequestPrivate;
@@ -473,6 +493,7 @@ public:
     Q_INVOKABLE QSnapdListRequest *list ();
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
     Q_INVOKABLE QSnapdGetIconRequest *getIcon (const QString &name);
+    Q_INVOKABLE QSnapdGetAssertionsRequest *getAssertions (const QString &type);
     Q_INVOKABLE QSnapdGetInterfacesRequest *getInterfaces ();
     Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);

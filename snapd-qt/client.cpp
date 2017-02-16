@@ -86,6 +86,18 @@ struct QSnapdGetIconRequestPrivate
     SnapdIcon *icon;
 };
 
+struct QSnapdGetAssertionsRequestPrivate
+{
+    QSnapdGetAssertionsRequestPrivate (const QString& type) :
+        type (type) {}
+    ~QSnapdGetAssertionsRequestPrivate ()
+    {
+        g_ptr_array_unref (assertions);
+    }
+    QString type;
+    GPtrArray *assertions;
+};
+
 struct QSnapdGetInterfacesRequestPrivate
 {
     ~QSnapdGetInterfacesRequestPrivate ()
@@ -298,6 +310,12 @@ QSnapdGetIconRequest *QSnapdClient::getIcon (const QString& name)
 {
     Q_D(QSnapdClient);
     return new QSnapdGetIconRequest (name, d->client);
+}
+
+QSnapdGetAssertionsRequest *QSnapdClient::getAssertions (const QString& type)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetAssertionsRequest (type, d->client);
 }
 
 QSnapdGetInterfacesRequest *QSnapdClient::getInterfaces ()
@@ -679,6 +697,58 @@ QSnapdIcon *QSnapdGetIconRequest::icon () const
 {
     Q_D(const QSnapdGetIconRequest);
     return new QSnapdIcon (d->icon);
+}
+
+QSnapdGetAssertionsRequest::QSnapdGetAssertionsRequest (const QString& type, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetAssertionsRequestPrivate (type)) {}
+
+void QSnapdGetAssertionsRequest::runSync ()
+{
+    Q_D(QSnapdGetAssertionsRequest);
+    g_autoptr(GError) error = NULL;
+    snapd_client_get_assertions_sync (SNAPD_CLIENT (getClient ()), d->type.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetAssertionsRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GPtrArray) assertions = NULL;
+    g_autoptr(GError) error = NULL;
+
+    assertions = snapd_client_get_assertions_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdGetAssertionsRequest);
+    d->assertions = (GPtrArray*) g_steal_pointer (&assertions);
+    finish (error);
+}
+
+static void get_assertions_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetAssertionsRequest *request = static_cast<QSnapdGetAssertionsRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetAssertionsRequest::runAsync ()
+{
+    Q_D(QSnapdGetAssertionsRequest);
+    snapd_client_get_assertions_async (SNAPD_CLIENT (getClient ()), d->type.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), get_assertions_ready_cb, (gpointer) this);
+}
+
+int QSnapdGetAssertionsRequest::assertionCount () const
+{
+    Q_D(const QSnapdGetAssertionsRequest);
+    return d->assertions != NULL ? d->assertions->len : 0;
+}
+
+QSnapdAssertion *QSnapdGetAssertionsRequest::assertion (int n) const
+{
+    Q_D(const QSnapdGetAssertionsRequest);
+    if (d->assertions == NULL || n < 0 || (guint) n >= d->assertions->len)
+        return NULL;
+    return new QSnapdAssertion (d->assertions->pdata[n]);
 }
 
 QSnapdGetInterfacesRequest::QSnapdGetInterfacesRequest (void *snapd_client, QObject *parent) :

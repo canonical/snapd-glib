@@ -62,6 +62,7 @@ struct _MockSnapd
     GList *store_snaps;
     GList *plugs;
     GList *slots;
+    GList *assertions;
     int change_index;
     GList *changes;
     gchar *suggested_currency;
@@ -143,6 +144,16 @@ mock_snap_free (MockSnap *snap)
     g_list_free_full (snap->plugs, (GDestroyNotify) mock_plug_free);
     g_list_free_full (snap->slots, (GDestroyNotify) mock_slot_free);
     g_slice_free (MockSnap, snap);
+}
+
+
+static void
+mock_assertion_free (MockAssertion *assertion)
+{
+    g_list_free_full (assertion->headers, g_free);
+    g_free (assertion->body);
+    g_free (assertion->signature);
+    g_slice_free (MockAssertion, assertion);
 }
 
 MockSnapd *
@@ -627,6 +638,50 @@ find_slot (MockSnap *snap, const gchar *name)
     return NULL;
 }
 
+MockAssertion *
+mock_snapd_add_assertion (MockSnapd *snapd, const gchar *type, const gchar *signature)
+{
+    MockAssertion *assertion;
+
+    assertion = g_slice_new0 (MockAssertion);
+    mock_assertion_add_header (assertion, "type", type);
+    assertion->signature = g_strdup (signature);
+    snapd->assertions = g_list_append (snapd->assertions, assertion);
+
+    return assertion;
+}
+
+void
+mock_assertion_set_body (MockAssertion *assertion, const gchar *body)
+{
+    g_free (assertion->body);
+    assertion->body = g_strdup (body);
+}
+
+void
+mock_assertion_add_header (MockAssertion *assertion, const gchar *name, const gchar *value)
+{
+    assertion->headers = g_list_append (assertion->headers, g_strdup_printf ("%s: %s", name, value));
+}
+
+const gchar *
+mock_assertion_get_header (MockAssertion *assertion, const gchar *name)
+{
+    GList *link;
+
+    for (link = assertion->headers; link; link = link->next) {
+        const gchar *header = link->data;
+        if (g_str_has_prefix (header, name) && header[strlen (name)] == ':') {
+            int offset = strlen (name) + 1;
+            while (isspace (header[offset]))
+                offset++;
+            return header + offset;
+        }
+    }
+
+    return NULL;
+}
+  
 static MockChange *
 add_change (MockSnapd *snapd, JsonNode *data)
 {
@@ -1319,6 +1374,45 @@ handle_icon (MockSnapd *snapd, const gchar *method, const gchar *path)
         send_response (snapd, 200, "OK", "image/png", (const guint8 *) "ICON", 4);
     else
         send_error_not_found (snapd, "cannot find snap");
+}
+
+static void
+handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type)
+{
+    g_autoptr(GString) content = NULL;
+    int count = 0;
+    GList *link;
+
+    if (strcmp (method, "GET") != 0) {
+        send_error_method_not_allowed (snapd, "method not allowed");
+        return;
+    }
+
+    content = g_string_new (NULL);
+    for (link = snapd->assertions; link; link = link->next) {
+        MockAssertion *a = link->data;
+        GList *l;
+
+        if (g_strcmp0 (mock_assertion_get_header (a, "type"), type) != 0)
+            continue;
+
+        count++;
+        if (count != 1)
+            g_string_append (content, "\n\n");
+        for (l = a->headers; l; l = l->next)
+            g_string_append_printf (content, "%s\n", (const gchar *) l->data);
+        if (a->body != NULL)
+            g_string_append_printf (content, "\n%s\n", a->body);
+        g_string_append_printf (content, "\n%s", a->signature);
+    }
+
+    if (count == 0) {
+        send_error_bad_request (snapd, "invalid assert type", NULL);
+        return;
+    }
+
+    // FIXME: X-Ubuntu-Assertions-Count header
+    send_response (snapd, 200, "OK", "application/x.ubuntu.assertion; bundle=y", (guint8*) content->str, content->len);
 }
 
 static void
@@ -2082,6 +2176,8 @@ handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMe
         handle_snap (snapd, method, path + strlen ("/v2/snaps/"), json_content);
     else if (g_str_has_prefix (path, "/v2/icons/"))
         handle_icon (snapd, method, path + strlen ("/v2/icons/"));
+    else if (g_str_has_prefix (path, "/v2/assertions/"))
+        handle_assertions (snapd, method, path + strlen ("/v2/assertions/"));
     else if (strcmp (path, "/v2/interfaces") == 0)
         handle_interfaces (snapd, method, json_content);
     else if (g_str_has_prefix (path, "/v2/changes/"))
@@ -2173,6 +2269,8 @@ mock_snapd_finalize (GObject *object)
     snapd->plugs = NULL;
     g_list_free_full (snapd->slots, (GDestroyNotify) mock_slot_free);
     snapd->slots = NULL;
+    g_list_free_full (snapd->assertions, (GDestroyNotify) mock_assertion_free);
+    snapd->assertions = NULL;
     g_list_free_full (snapd->changes, (GDestroyNotify) mock_change_free);
     snapd->changes = NULL;
     g_clear_pointer (&snapd->suggested_currency, g_free);

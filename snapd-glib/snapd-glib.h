@@ -14,6 +14,7 @@
 
 #include <snapd-glib/snapd-alias.h>
 #include <snapd-glib/snapd-app.h>
+#include <snapd-glib/snapd-assertion.h>
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-client.h>
 #include <snapd-glib/snapd-connection.h>

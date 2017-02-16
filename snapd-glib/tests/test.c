@@ -317,6 +317,127 @@ test_icon_not_installed (void)
 }
 
 static void
+test_get_assertions (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockAssertion *a;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) assertions = NULL;
+    SnapdAssertion *assertion;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    a = mock_snapd_add_assertion (snapd, "account", "SIGNATURE");
+    mock_assertion_add_header (a, "authority-id", "canonical");
+    mock_assertion_add_header (a, "revision", "1");
+    mock_assertion_add_header (a, "sign-key-sha3-384", "KEY");
+    mock_assertion_add_header (a, "foo", "bar");
+    mock_snapd_add_assertion (snapd, "model", "SIGNATURE");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
+    g_assert_no_error (error);
+    g_assert (assertions != NULL);
+    g_assert_cmpint (assertions->len, ==, 1);
+    assertion = assertions->pdata[0];
+    g_assert_cmpstr (snapd_assertion_get_assertion_type (assertion), ==, "account");
+    g_assert_cmpstr (snapd_assertion_get_authority_id (assertion), ==, "canonical");
+    g_assert_cmpstr (snapd_assertion_get_revision (assertion), ==, "1");
+    g_assert_cmpstr (snapd_assertion_get_sign_key_sha3_384 (assertion), ==, "KEY");
+    g_assert_cmpstr (snapd_assertion_get_header (assertion, "foo"), ==, "bar");
+    g_assert (snapd_assertion_get_body (assertion) == NULL);
+    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE");
+}
+
+static void
+test_get_assertions_body (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockAssertion *a;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) assertions = NULL;
+    SnapdAssertion *assertion;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    a = mock_snapd_add_assertion (snapd, "account", "SIGNATURE");
+    mock_assertion_set_body (a, "BODY");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
+    g_assert_no_error (error);
+    g_assert (assertions != NULL);
+    g_assert_cmpint (assertions->len, ==, 1);
+    assertion = assertions->pdata[0];
+    g_assert_cmpstr (snapd_assertion_get_assertion_type (assertion), ==, "account");
+    g_assert_cmpstr (snapd_assertion_get_body (assertion), ==, "BODY");
+    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE");
+}
+
+static void
+test_get_assertions_multiple (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockAssertion *a;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) assertions = NULL;
+    SnapdAssertion *assertion;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_assertion (snapd, "account", "SIGNATURE1");
+    a = mock_snapd_add_assertion (snapd, "account", "SIGNATURE2");
+    mock_assertion_set_body (a, "BODY");
+    mock_snapd_add_assertion (snapd, "account", "SIGNATURE3");  
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
+    g_assert_no_error (error);
+    g_assert (assertions != NULL);
+    g_assert_cmpint (assertions->len, ==, 3);
+    assertion = assertions->pdata[0];
+    g_assert_cmpstr (snapd_assertion_get_assertion_type (assertion), ==, "account");
+    g_assert (snapd_assertion_get_body (assertion) == NULL);
+    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE1");
+    assertion = assertions->pdata[1];
+    g_assert_cmpstr (snapd_assertion_get_assertion_type (assertion), ==, "account");
+    g_assert_cmpstr (snapd_assertion_get_body (assertion), ==, "BODY");
+    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE2");
+    assertion = assertions->pdata[2];
+    g_assert_cmpstr (snapd_assertion_get_assertion_type (assertion), ==, "account");
+    g_assert (snapd_assertion_get_body (assertion) == NULL);
+    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE3");
+}
+
+static void
+test_get_assertions_invalid (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) assertions = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
+    g_assert (assertions == NULL);
+}
+
+static void
 test_get_interfaces (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -2213,6 +2334,10 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
     g_test_add_func ("/icon/basic", test_icon);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
+    g_test_add_func ("/get-assertions/basic", test_get_assertions);
+    g_test_add_func ("/get-assertions/body", test_get_assertions_body);
+    g_test_add_func ("/get-assertions/multiple", test_get_assertions_multiple);
+    g_test_add_func ("/get-assertions/invalid", test_get_assertions_invalid);
     g_test_add_func ("/get-interfaces/basic", test_get_interfaces);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
     g_test_add_func ("/connect-interface/basic", test_connect_interface);

@@ -8,6 +8,7 @@ EXTRA_DIST =
 source_h = \
 	snapd-alias.h \
 	snapd-app.h \
+	snapd-assertion.h \
 	snapd-auth-data.h \
 	snapd-change.h \
 	snapd-client.h \
@@ -27,6 +28,7 @@ source_h = \
 source_c = \
 	snapd-alias.c \
 	snapd-app.c \
+	snapd-assertion.c \        
 	snapd-auth-data.c \
 	snapd-change.c \
 	snapd-client.c \

@@ -113,116 +113,137 @@ struct _MockSlot
     gchar *label;
 };
 
+typedef struct
+{
+    GList *headers;
+    gchar *body;
+    gchar *signature;
+} MockAssertion;
+
 MockSnapd      *mock_snapd_new                    (void);
 
-GSocket        *mock_snapd_get_client_socket      (MockSnapd   *snapd);
+GSocket        *mock_snapd_get_client_socket      (MockSnapd     *snapd);
 
-void            mock_snapd_set_store              (MockSnapd   *snapd,
-                                                   const gchar *name);
+void            mock_snapd_set_store              (MockSnapd     *snapd,
+                                                   const gchar   *name);
 
-void            mock_snapd_set_managed            (MockSnapd   *snapd,
-                                                   gboolean     managed);
+void            mock_snapd_set_managed            (MockSnapd     *snapd,
+                                                   gboolean       managed);
 
-void            mock_snapd_set_on_classic         (MockSnapd   *snapd,
-                                                   gboolean     on_classic);
+void            mock_snapd_set_on_classic         (MockSnapd     *snapd,
+                                                   gboolean       on_classic);
 
-void            mock_snapd_set_suggested_currency (MockSnapd   *snapd,
-                                                   const gchar *currency);
+void            mock_snapd_set_suggested_currency (MockSnapd     *snapd,
+                                                   const gchar   *currency);
 
-void            mock_snapd_set_progress_total     (MockSnapd   *snapd,
-                                                   int          total);
+void            mock_snapd_set_progress_total     (MockSnapd     *snapd,
+                                                   int            total);
 
-void            mock_snapd_set_spawn_time         (MockSnapd   *snapd,
-                                                   const gchar *spawn_time);
+void            mock_snapd_set_spawn_time         (MockSnapd     *snapd,
+                                                   const gchar   *spawn_time);
 
-void            mock_snapd_set_ready_time         (MockSnapd   *snapd,
-                                                   const gchar *ready_time);
+void            mock_snapd_set_ready_time         (MockSnapd     *snapd,
+                                                   const gchar   *ready_time);
 
-MockAccount    *mock_snapd_add_account            (MockSnapd   *snapd,
-                                                   const gchar *username,
-                                                   const gchar *password,
-                                                   const gchar *otp);
+MockAccount    *mock_snapd_add_account            (MockSnapd     *snapd,
+                                                   const gchar   *username,
+                                                   const gchar   *password,
+                                                   const gchar   *otp);
 
-MockSnap       *mock_account_add_private_snap     (MockAccount *account,
-                                                   const gchar *name);
+MockSnap       *mock_account_add_private_snap     (MockAccount   *account,
+                                                   const gchar   *name);
 
-MockSnap       *mock_snapd_add_snap               (MockSnapd   *snapd,
-                                                   const gchar *name);
+MockSnap       *mock_snapd_add_snap               (MockSnapd     *snapd,
+                                                   const gchar   *name);
 
-MockSnap       *mock_snapd_find_snap              (MockSnapd   *snapd,
-                                                   const gchar *name);
+MockSnap       *mock_snapd_find_snap              (MockSnapd     *snapd,
+                                                   const gchar   *name);
 
-void            mock_snapd_add_store_section      (MockSnapd   *snapd,
-                                                   const gchar *name);
+void            mock_snapd_add_store_section      (MockSnapd     *snapd,
+                                                   const gchar   *name);
 
-MockSnap       *mock_snapd_add_store_snap         (MockSnapd   *snapd,
-                                                   const gchar *name);
+MockSnap       *mock_snapd_add_store_snap         (MockSnapd     *snapd,
+                                                   const gchar   *name);
 
-MockApp        *mock_snap_add_app                 (MockSnap    *snap,
-                                                   const gchar *name);
+MockApp        *mock_snap_add_app                 (MockSnap      *snap,
+                                                   const gchar   *name);
 
-MockAlias      *mock_app_add_alias                (MockApp     *app,
-                                                   const gchar *alias);
+MockAlias      *mock_app_add_alias                (MockApp       *app,
+                                                   const gchar   *alias);
 
-void            mock_alias_set_status             (MockAlias   *alias,
-                                                   const gchar *status);
+void            mock_alias_set_status             (MockAlias     *alias,
+                                                   const gchar   *status);
 
-void            mock_snap_set_channel             (MockSnap    *snap,
-                                                   const gchar *channel);
+void            mock_snap_set_channel             (MockSnap      *snap,
+                                                   const gchar   *channel);
 
-void            mock_snap_set_confinement         (MockSnap    *snap,
-                                                   const gchar *confinement);
+void            mock_snap_set_confinement         (MockSnap      *snap,
+                                                   const gchar   *confinement);
 
-void            mock_snap_set_description         (MockSnap    *snap,
-                                                   const gchar *description);
+void            mock_snap_set_description         (MockSnap      *snap,
+                                                   const gchar   *description);
 
-void            mock_snap_set_developer           (MockSnap    *snap,
-                                                   const gchar *developer);
+void            mock_snap_set_developer           (MockSnap      *snap,
+                                                   const gchar   *developer);
 
-void            mock_snap_set_icon                (MockSnap    *snap,
-                                                   const gchar *icon);
+void            mock_snap_set_icon                (MockSnap      *snap,
+                                                   const gchar   *icon);
 
-void            mock_snap_set_id                  (MockSnap    *snap,
-                                                   const gchar *id);
+void            mock_snap_set_id                  (MockSnap      *snap,
+                                                   const gchar   *id);
 
-void            mock_snap_set_install_date        (MockSnap    *snap,
-                                                   const gchar *install_date);
+void            mock_snap_set_install_date        (MockSnap      *snap,
+                                                   const gchar   *install_date);
 
-MockPrice      *mock_snap_add_price               (MockSnap    *snap,
-                                                   gdouble      amount,
-                                                   const gchar *currency);
+MockPrice      *mock_snap_add_price               (MockSnap      *snap,
+                                                   gdouble        amount,
+                                                   const gchar   *currency);
 
-void            mock_snap_set_revision            (MockSnap    *snap,
-                                                   const gchar *revision);
+void            mock_snap_set_revision            (MockSnap      *snap,
+                                                   const gchar   *revision);
 
-MockScreenshot *mock_snap_add_screenshot          (MockSnap    *snap,
-                                                   const gchar *url,
-                                                   int          width,
-                                                   int          height);
+MockScreenshot *mock_snap_add_screenshot          (MockSnap      *snap,
+                                                   const gchar   *url,
+                                                   int            width,
+                                                   int            height);
 
-void            mock_snap_set_status              (MockSnap    *snap,
-                                                   const gchar *status);
+void            mock_snap_set_status              (MockSnap      *snap,
+                                                   const gchar   *status);
 
-void            mock_snap_set_summary             (MockSnap    *snap,
-                                                   const gchar *summary);
+void            mock_snap_set_summary             (MockSnap      *snap,
+                                                   const gchar   *summary);
 
-void            mock_snap_set_tracking_channel    (MockSnap    *snap,
-                                                   const gchar *channel);
+void            mock_snap_set_tracking_channel    (MockSnap      *snap,
+                                                   const gchar   *channel);
 
-void            mock_snap_set_type                (MockSnap    *snap,
-                                                   const gchar *type);
+void            mock_snap_set_type                (MockSnap      *snap,
+                                                   const gchar   *type);
 
-void            mock_snap_set_version             (MockSnap    *snap,
-                                                   const gchar *version);
+void            mock_snap_set_version             (MockSnap      *snap,
+                                                   const gchar   *version);
 
-void            mock_snap_add_store_section       (MockSnap    *snap,
-                                                   const gchar *section);
+void            mock_snap_add_store_section       (MockSnap      *snap,
+                                                   const gchar   *section);
 
-MockPlug       *mock_snap_add_plug                (MockSnap    *snap,
-                                                   const gchar *name);
+MockPlug       *mock_snap_add_plug                (MockSnap      *snap,
+                                                   const gchar   *name);
 
-MockSlot       *mock_snap_add_slot                (MockSnap    *snap,
-                                                   const gchar *name);
+MockSlot       *mock_snap_add_slot                (MockSnap      *snap,
+                                                   const gchar   *name);
+
+MockAssertion  *mock_snapd_add_assertion          (MockSnapd     *snapd,
+                                                   const gchar   *type,
+                                                   const gchar   *signature);
+
+void            mock_assertion_add_header         (MockAssertion *assertion,
+                                                   const gchar   *name,
+                                                   const gchar   *value);
+
+void            mock_assertion_set_body           (MockAssertion *assertion,
+                                                   const gchar   *body);
+
+const gchar    *mock_assertion_get_header         (MockAssertion *assertion,
+                                                   const gchar   *name);
 
 G_END_DECLS
 

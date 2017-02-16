@@ -14,10 +14,12 @@
 #include <gio/gunixsocketaddress.h>
 #include <libsoup/soup.h>
 #include <json-glib/json-glib.h>
+#include <ctype.h>
 
 #include "snapd-client.h"
 #include "snapd-alias.h"
 #include "snapd-app.h"
+#include "snapd-assertion.h"
 #include "snapd-error.h"
 #include "snapd-login.h"
 #include "snapd-plug.h"
@@ -82,6 +84,7 @@ typedef enum
     SNAPD_REQUEST_GET_ICON,
     SNAPD_REQUEST_LIST,
     SNAPD_REQUEST_LIST_ONE,
+    SNAPD_REQUEST_GET_ASSERTIONS,
     SNAPD_REQUEST_GET_INTERFACES,
     SNAPD_REQUEST_CONNECT_INTERFACE,
     SNAPD_REQUEST_DISCONNECT_INTERFACE,
@@ -138,6 +141,7 @@ struct _SnapdRequest
     SnapdSnap *snap;
     SnapdIcon *icon;
     SnapdAuthData *received_auth_data;
+    GPtrArray *assertions;
     GPtrArray *plugs;
     GPtrArray *slots;
     SnapdUserInformation *user_information;
@@ -239,6 +243,7 @@ snapd_request_finalize (GObject *object)
     g_clear_object (&request->snap);
     g_clear_object (&request->icon);
     g_clear_object (&request->received_auth_data);
+    g_clear_pointer (&request->assertions, g_ptr_array_unref);  
     g_clear_pointer (&request->plugs, g_ptr_array_unref);
     g_clear_pointer (&request->slots, g_ptr_array_unref);
     g_clear_object (&request->user_information);
@@ -1155,6 +1160,135 @@ get_attributes (JsonObject *object, const gchar *name, GError **error)
 }
 
 static void
+parse_get_assertions_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    const gchar *content_type;
+    g_autoptr(GPtrArray) assertions = NULL;
+    gsize offset = 0;
+
+    content_type = soup_message_headers_get_content_type (headers, NULL);
+    if (g_strcmp0 (content_type, "application/json") == 0) {
+        GError *error = NULL;
+
+        if (!parse_result (content_type, content, content_length, NULL, NULL, &error)) {
+            snapd_request_complete (request, error);
+            return;
+        }
+    }
+
+    if (code != SOUP_STATUS_OK) {
+        GError *error = g_error_new (SNAPD_ERROR,
+                                     SNAPD_ERROR_READ_FAILED,
+                                     "Got response %u retrieving assertions", code);
+        snapd_request_complete (request, error);
+        return;
+    }
+  
+    if (g_strcmp0 (content_type, "application/x.ubuntu.assertion") != 0) {
+        GError *error = g_error_new (SNAPD_ERROR,
+                                     SNAPD_ERROR_READ_FAILED,
+                                     "Got unknown content type '%s' retrieving assertions", content_type);
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    assertions = g_ptr_array_new_with_free_func (g_object_unref);
+    while (offset < content_length) {
+        gsize start;
+        g_autofree gchar *body = NULL;
+        g_autofree gchar *signature = NULL;
+        g_autoptr(GHashTable) headers = NULL;
+        SnapdAssertion *assertion;
+
+        /* Headers should start with type */
+        if (!g_str_has_prefix (content + offset, "type:")) {
+            GError *error = g_error_new (SNAPD_ERROR,
+                                         SNAPD_ERROR_READ_FAILED,
+                                         "Unable to parse assertions - failed to find headers");
+            snapd_request_complete (request, error);
+            return;
+        }
+      
+        /* Decode headers */
+        headers = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+        while (offset < content_length) {
+            g_autofree gchar *name = NULL;
+            g_autofree gchar *value = NULL;
+
+            /* Name separated from value by colon */
+            start = offset;
+            while (offset < content_length && content[offset] != ':' && content[offset] != '\n')
+                offset++;
+            if (offset >= content_length || content[offset] != ':') {
+                GError *error = g_error_new (SNAPD_ERROR,
+                                             SNAPD_ERROR_READ_FAILED,
+                                             "Unable to parse assertions - failed to parse header name");
+                snapd_request_complete (request, error);
+                return;
+            }
+            name = g_strndup (content + start, offset - start);
+            offset++;
+
+            /* Value terminated by newline */
+            while (offset < content_length && isspace (content[offset]))
+                offset++;
+            start = offset;
+            while (offset < content_length && content[offset] != '\n')
+                offset++;
+            if (offset >= content_length || content[offset] != '\n') {
+                GError *error = g_error_new (SNAPD_ERROR,
+                                             SNAPD_ERROR_READ_FAILED,
+                                             "Unable to parse assertions - failed to parse header value");
+                snapd_request_complete (request, error);
+                return;
+            }
+            value = g_strndup (content + start, offset - start);
+            offset++;
+
+            g_hash_table_insert (headers, g_steal_pointer (&name), g_steal_pointer (&value));
+
+            /* Headers terminated by double newline */
+            if (offset < content_length && content[offset] == '\n') {
+                offset++;
+                break;
+            }
+        }
+
+        /* Find end of body or signature */
+        if (offset >= content_length) {
+            GError *error = g_error_new (SNAPD_ERROR,
+                                         SNAPD_ERROR_READ_FAILED,
+                                         "Unable to parse assertions - missing signature");
+            snapd_request_complete (request, error);
+            return;
+        }
+        start = offset;
+        while (offset < content_length && !g_str_has_prefix (content + offset, "\n\n"))
+            offset++;
+        signature = g_strndup (content + start, offset - start);
+        offset += 2;
+        if (offset < content_length && !g_str_has_prefix (content + offset, "type:")) {
+            body = g_steal_pointer (&signature);
+            start = offset;
+            while (offset < content_length && !g_str_has_prefix (content + offset, "\n\n"))
+                offset++;
+            signature = g_strndup (content + start, offset - start);
+            offset += 2;
+        }
+
+        assertion = g_object_new (SNAPD_TYPE_ASSERTION,
+                                  "headers", headers,
+                                  "body", body,
+                                  "signature", signature,
+                                  NULL);
+        g_ptr_array_add (assertions, assertion);        
+    }
+
+    request->assertions = g_steal_pointer (&assertions);
+    snapd_request_complete (request, NULL);
+}
+
+static void
 parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
@@ -1948,6 +2082,9 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         break;
     case SNAPD_REQUEST_LIST_ONE:
         parse_list_one_response (request, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_GET_ASSERTIONS:
+        parse_get_assertions_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_INTERFACES:
         parse_get_interfaces_response (request, headers, content, content_length);
@@ -2814,6 +2951,94 @@ snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **er
     if (snapd_request_set_error (request, error))
         return NULL;
     return g_steal_pointer (&request->snaps);
+}
+
+static SnapdRequest *
+make_get_assertions_request (SnapdClient *client,
+                             const gchar *type,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+    g_autofree gchar *escaped = NULL, *path = NULL;
+
+    request = make_request (client, SNAPD_REQUEST_GET_ASSERTIONS, NULL, NULL, cancellable, callback, user_data);
+    escaped = soup_uri_encode (type, NULL);
+    path = g_strdup_printf ("/v2/assertions/%s", escaped);
+    send_request (request, TRUE, "GET", path, NULL, NULL);
+
+    return request;
+}
+
+/**
+ * snapd_client_get_assertions_sync:
+ * @client: a #SnapdClient.
+ * @type: assertion type to get.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get assertions.
+ *
+ * Returns: (transfer container) (element-type SnapdAssertion): an array of #SnapdAssertion or %NULL on error.
+ */
+GPtrArray *
+snapd_client_get_assertions_sync (SnapdClient *client,
+                                  const gchar *type,
+                                  GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    request = g_object_ref (make_get_assertions_request (client, type, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_get_assertions_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_get_assertions_async:
+ * @client: a #SnapdClient.
+ * @type: assertion type to get.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get assertions.
+ * See snapd_client_get_assertions_sync() for more information.
+ */
+void
+snapd_client_get_assertions_async (SnapdClient *client,
+                                   const gchar *type,
+                                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    make_get_assertions_request (client, type, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_get_assertions_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_assertions_async().
+ * See snapd_client_get_assertions_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdAssertion): an array of #SnapdAssertion or %NULL on error.
+ */
+GPtrArray *
+snapd_client_get_assertions_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_ASSERTIONS, NULL);
+
+    if (snapd_request_set_error (request, error))
+        return NULL;
+    return g_steal_pointer (&request->assertions);
 }
 
 static SnapdRequest *

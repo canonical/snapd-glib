@@ -28,6 +28,24 @@ SNAPD_TYPE_APP
 </SECTION>
 
 <SECTION>
+<FILE>snapd-assertion</FILE>
+<TITLE>SnapdAssertion</TITLE>
+SnapdAssertion
+snapd_assertion_get_assertion_type
+snapd_assertion_get_authority_id
+snapd_assertion_get_revision
+snapd_assertion_get_sign_key_sha3_384
+snapd_assertion_get_header
+snapd_assertion_get_headers
+snapd_assertion_get_body
+snapd_assertion_get_signature
+
+<SUBSECTION Private>
+SnapdAssertionClass
+SNAPD_TYPE_ASSERTION
+</SECTION>
+
+<SECTION>
 <FILE>snapd-change</FILE>
 <TITLE>SnapdChange</TITLE>
 snapd_change_get_id
@@ -75,6 +93,9 @@ snapd_client_list_one_finish
 snapd_client_get_icon_sync
 snapd_client_get_icon_async
 snapd_client_get_icon_finish
+snapd_client_get_assertions_async
+snapd_client_get_assertions_finish
+snapd_client_get_assertions_sync
 snapd_client_get_interfaces_sync
 snapd_client_get_interfaces_async
 snapd_client_get_interfaces_finish
