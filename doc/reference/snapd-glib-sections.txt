@@ -31,10 +31,7 @@ SNAPD_TYPE_APP
 <FILE>snapd-assertion</FILE>
 <TITLE>SnapdAssertion</TITLE>
 SnapdAssertion
-snapd_assertion_get_assertion_type
-snapd_assertion_get_authority_id
-snapd_assertion_get_revision
-snapd_assertion_get_sign_key_sha3_384
+snapd_assertion_new
 snapd_assertion_get_header
 snapd_assertion_get_headers
 snapd_assertion_get_body

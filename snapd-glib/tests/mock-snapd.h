@@ -113,13 +113,6 @@ struct _MockSlot
     gchar *label;
 };
 
-typedef struct
-{
-    GList *headers;
-    gchar *body;
-    gchar *signature;
-} MockAssertion;
-
 MockSnapd      *mock_snapd_new                    (void);
 
 GSocket        *mock_snapd_get_client_socket      (MockSnapd     *snapd);
@@ -231,19 +224,8 @@ MockPlug       *mock_snap_add_plug                (MockSnap      *snap,
 MockSlot       *mock_snap_add_slot                (MockSnap      *snap,
                                                    const gchar   *name);
 
-MockAssertion  *mock_snapd_add_assertion          (MockSnapd     *snapd,
-                                                   const gchar   *type,
-                                                   const gchar   *signature);
-
-void            mock_assertion_add_header         (MockAssertion *assertion,
-                                                   const gchar   *name,
-                                                   const gchar   *value);
-
-void            mock_assertion_set_body           (MockAssertion *assertion,
-                                                   const gchar   *body);
-
-const gchar    *mock_assertion_get_header         (MockAssertion *assertion,
-                                                   const gchar   *name);
+void            mock_snapd_add_assertion          (MockSnapd     *snapd,
+                                                   const gchar   *assertion);
 
 G_END_DECLS
 

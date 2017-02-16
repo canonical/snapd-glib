@@ -7,6 +7,10 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
 #include "config.h"
 
 #include "snapd-assertion.h"
@@ -33,75 +37,109 @@ struct _SnapdAssertion
 {
     GObject parent_instance;
 
-    GHashTable *headers;
-    gchar *body;
-    gchar *signature;  
+    gchar *content;
 };
 
 enum 
 {
-    PROP_HEADERS = 1,
-    PROP_BODY,
-    PROP_SIGNATURE,
+    PROP_CONTENT = 1,
     PROP_LAST
 };
  
 G_DEFINE_TYPE (SnapdAssertion, snapd_assertion, G_TYPE_OBJECT)
 
 /**
- * snapd_assertion_get_assertion_type:
- * @assertion: a #SnapdAssertion.
+ * snapd_assertion_new:
+ * @content: the text content of the assertion.
  *
- * Get the type of assertion, e.g. "account" or "model".
+ * Create a new assertion.
  *
- * Returns: an assertion type.
- */
-const gchar *
-snapd_assertion_get_assertion_type (SnapdAssertion *assertion)
+ * Returns: a new #SnapdAssertion
+ **/
+SnapdAssertion *
+snapd_assertion_new (const gchar *content)
 {
-    return snapd_assertion_get_header (assertion, "type");
+    SnapdAssertion *assertion;
+
+    assertion = g_object_new (SNAPD_TYPE_ASSERTION, NULL);
+    assertion->content = g_strdup (content);
+
+    return assertion;
+}
+
+static gboolean
+get_header (const gchar *content, gsize *offset, gsize *name_start, gsize *name_length, gsize *value_start, gsize *value_length)
+{
+    /* Name separated from value by colon */
+    if (name_start != NULL)
+        *name_start = *offset;
+    while (content[*offset] && content[*offset] != ':' && content[*offset] != '\n')
+        (*offset)++;
+    if (content[*offset] == '\0' || content[*offset] != ':')
+        return FALSE;
+    if (name_start != NULL && name_length != NULL)
+        *name_length = *offset - *name_start;
+    (*offset)++;
+
+    /* Value terminated by newline */
+    while (content[*offset] && content[*offset] != '\n' && isspace (content[*offset]))
+        (*offset)++;
+    if (value_start != NULL)
+        *value_start = *offset;
+    while (content[*offset] && content[*offset] != '\n')
+        (*offset)++;
+    if (content[*offset] == '\0' || content[*offset] != '\n')
+        return FALSE;
+    (*offset)++;
+
+    /* Value continued by lines starting with spaces */
+    while (content[*offset] && content[*offset] == ' ') {
+        while (content[*offset]) {
+           if (content[*offset] == '\n') {
+                (*offset)++;
+                break;
+            }
+            (*offset)++;
+        }
+    }
+    if (value_start != NULL && value_length != NULL)
+        *value_length = *offset - *value_start - 1;
+
+    return TRUE;
 }
 
 /**
- * snapd_assertion_get_authority_id:
+ * snapd_assertion_get_headers:
  * @assertion: a #SnapdAssertion.
  *
- * Get the authority that made the assertion.
+ * Get the headers provided by this assertion.
  *
- * Returns: a authority id.
+ * Returns: (transfer full) (array zero-terminated=1): array of header names.
  */
-const gchar *
-snapd_assertion_get_authority_id (SnapdAssertion *assertion)
+gchar **
+snapd_assertion_get_headers (SnapdAssertion *assertion)
 {
-    return snapd_assertion_get_header (assertion, "authority-id");
-}
+    g_autoptr(GPtrArray) headers = NULL;
+    gsize offset;
 
-/**
- * snapd_assertion_get_revision:
- * @assertion: a #SnapdAssertion.
- *
- * Get the assertion revision.
- *
- * Returns: a revision.
- */
-const gchar *
-snapd_assertion_get_revision (SnapdAssertion *assertion)
-{
-    return snapd_assertion_get_header (assertion, "revision");
-}
+    g_return_val_if_fail (SNAPD_IS_ASSERTION (assertion), NULL);
 
-/**
- * snapd_assertion_get_sign_key_sha3_384:
- * @assertion: a #SnapdAssertion.
- *
- * Get the encoded key id of signing key.
- *
- * Returns: encoded key id.
- */
-const gchar *
-snapd_assertion_get_sign_key_sha3_384 (SnapdAssertion *assertion)
-{
-    return snapd_assertion_get_header (assertion, "sign-key-sha3-384");
+    offset = 0;
+    headers = g_ptr_array_new ();
+    while (TRUE) {
+        gsize name_start, name_length;
+
+        /* Headers terminated by double newline or EOF */
+        if (assertion->content[offset] == '\0' ||
+            assertion->content[offset] == '\n' ||
+            !get_header (assertion->content, &offset, &name_start, &name_length, NULL, NULL))
+            break;
+
+        g_ptr_array_add (headers, g_strndup (assertion->content + name_start, name_length));
+    }
+    g_ptr_array_add (headers, NULL);
+
+    return g_steal_pointer (&headers->pdata);
 }
 
 /**
@@ -111,29 +149,57 @@ snapd_assertion_get_sign_key_sha3_384 (SnapdAssertion *assertion)
  *
  * Get a header from an assertion.
  *
- * Returns: (allow-none): header value or %NULL if undefined.
+ * Returns: (transfer full) (allow-none): header value or %NULL if undefined.
  */
-const gchar *
+gchar *
 snapd_assertion_get_header (SnapdAssertion *assertion, const gchar *name)
 {
+    gsize offset;
+
     g_return_val_if_fail (SNAPD_IS_ASSERTION (assertion), NULL);
-    g_return_val_if_fail (name != NULL, NULL);  
-    return g_hash_table_lookup (assertion->headers, name);
+    g_return_val_if_fail (name != NULL, NULL);
+
+    offset = 0;
+    while (TRUE) {
+        gsize name_start, name_length, value_start, value_length;
+
+        /* Headers terminated by double newline or EOF */
+        if (assertion->content[offset] == '\0' || assertion->content[offset] == '\n')
+            return NULL;
+
+        if (!get_header (assertion->content, &offset, &name_start, &name_length, &value_start, &value_length))
+            return NULL;
+
+        /* Return value if header we're looking for */
+        if (strncmp (assertion->content + name_start, name, name_length) == 0)
+            return g_strndup (assertion->content + value_start, value_length);
+    }
+
+    return NULL;
 }
 
-/**
- * snapd_assertion_get_headers:
- * @assertion: a #SnapdAssertion.
- *
- * Get the headers for this assertion.
- *
- * Returns: (transfer none): table of header values keyed by header name.
- */
-GHashTable *
-snapd_assertion_get_headers (SnapdAssertion *assertion)
+static gsize
+get_headers_length (SnapdAssertion *assertion)
 {
-    g_return_val_if_fail (SNAPD_IS_ASSERTION (assertion), NULL);
-    return assertion->headers;
+    gchar *divider;
+
+    /* Headers terminated by double newline */
+    divider = strstr (assertion->content, "\n\n");
+    if (divider == NULL)
+        return 0;
+
+    return divider - assertion->content;
+}
+
+static gsize
+get_body_length (SnapdAssertion *assertion)
+{
+    g_autofree gchar *body_length_header = NULL;  
+    body_length_header = snapd_assertion_get_header (assertion, "body-length");
+    if (body_length_header == NULL)
+        return 0;
+
+    return strtoul (body_length_header, NULL, 10);
 }
 
 /**
@@ -142,13 +208,20 @@ snapd_assertion_get_headers (SnapdAssertion *assertion)
  *
  * Get the body of the assertion.
  *
- * Returns: (allow-none): assertion body or %NULL.
+ * Returns: (transfer full) (allow-none): assertion body or %NULL.
  */
-const gchar *
+gchar *
 snapd_assertion_get_body (SnapdAssertion *assertion)
 {
+    gsize body_length;
+
     g_return_val_if_fail (SNAPD_IS_ASSERTION (assertion), NULL);
-    return assertion->body;
+
+    body_length = get_body_length (assertion);
+    if (body_length == 0)
+        return NULL;
+
+    return g_strndup (assertion->content + get_headers_length (assertion) + 2, body_length);
 }
 
 /**
@@ -159,11 +232,18 @@ snapd_assertion_get_body (SnapdAssertion *assertion)
  *
  * Returns: assertion signature.
  */
-const gchar *
+gchar *
 snapd_assertion_get_signature (SnapdAssertion *assertion)
 {
+    int body_length;
+
     g_return_val_if_fail (SNAPD_IS_ASSERTION (assertion), NULL);
-    return assertion->signature;
+
+    body_length = get_body_length (assertion);
+    if (body_length > 0)
+        return g_strdup (assertion->content + get_headers_length (assertion) + 2 + body_length + 2);
+    else
+        return g_strdup (assertion->content + get_headers_length (assertion) + 2);
 }
 
 static void
@@ -172,18 +252,9 @@ snapd_assertion_set_property (GObject *object, guint prop_id, const GValue *valu
     SnapdAssertion *assertion = SNAPD_ASSERTION (object);
 
     switch (prop_id) {
-    case PROP_HEADERS:
-        g_clear_pointer (&assertion->headers, g_hash_table_unref);
-        if (g_value_get_boxed (value) != NULL)
-            assertion->headers = g_hash_table_ref (g_value_get_boxed (value));
-        break;
-    case PROP_BODY:
-        g_free (assertion->body);
-        assertion->body = g_strdup (g_value_get_string (value));
-        break;
-    case PROP_SIGNATURE:
-        g_free (assertion->signature);
-        assertion->signature = g_strdup (g_value_get_string (value));
+    case PROP_CONTENT:
+        g_free (assertion->content);
+        assertion->content = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -197,14 +268,8 @@ snapd_assertion_get_property (GObject *object, guint prop_id, GValue *value, GPa
     SnapdAssertion *assertion = SNAPD_ASSERTION (object);
 
     switch (prop_id) {
-    case PROP_HEADERS:
-        g_value_set_boxed (value, assertion->headers);
-        break;
-    case PROP_BODY:
-        g_value_set_string (value, assertion->body);
-        break;
-    case PROP_SIGNATURE:
-        g_value_set_string (value, assertion->signature);
+    case PROP_CONTENT:
+        g_value_set_string (value, assertion->content);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -217,9 +282,7 @@ snapd_assertion_finalize (GObject *object)
 {
     SnapdAssertion *assertion = SNAPD_ASSERTION (object);
 
-    g_clear_pointer (&assertion->headers, g_hash_table_unref);
-    g_clear_pointer (&assertion->body, g_free);
-    g_clear_pointer (&assertion->signature, g_free);  
+    g_clear_pointer (&assertion->content, g_free);
 }
 
 static void
@@ -232,24 +295,10 @@ snapd_assertion_class_init (SnapdAssertionClass *klass)
     gobject_class->finalize = snapd_assertion_finalize;
 
     g_object_class_install_property (gobject_class,
-                                     PROP_HEADERS,
-                                     g_param_spec_boxed ("headers",
-                                                         "headers",
-                                                         "Headers for this assertion",
-                                                         G_TYPE_HASH_TABLE,
-                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
-    g_object_class_install_property (gobject_class,
-                                     PROP_BODY,
-                                     g_param_spec_string ("body",
-                                                          "body",
-                                                          "Assertion body",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
-    g_object_class_install_property (gobject_class,
-                                     PROP_SIGNATURE,
-                                     g_param_spec_string ("signature",
-                                                          "signature",
-                                                          "Assertion signature",
+                                     PROP_CONTENT,
+                                     g_param_spec_string ("content",
+                                                          "content",
+                                                          "Assertion content",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
@@ -257,5 +306,4 @@ snapd_assertion_class_init (SnapdAssertionClass *klass)
 static void
 snapd_assertion_init (SnapdAssertion *assertion)
 {
-    assertion->headers = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 }

@@ -28,22 +28,16 @@ struct _SnapdAssertionClass
     GObjectClass parent_class;
 };
 
-const gchar *snapd_assertion_get_assertion_type    (SnapdAssertion *assertion);
+SnapdAssertion *snapd_assertion_new                   (const gchar    *content);
 
-const gchar *snapd_assertion_get_authority_id      (SnapdAssertion *assertion);
+gchar         **snapd_assertion_get_headers           (SnapdAssertion *assertion);
 
-const gchar *snapd_assertion_get_revision          (SnapdAssertion *assertion);
+gchar          *snapd_assertion_get_header            (SnapdAssertion *assertion,
+                                                       const gchar    *name);
 
-const gchar *snapd_assertion_get_sign_key_sha3_384 (SnapdAssertion *assertion);
+gchar          *snapd_assertion_get_body              (SnapdAssertion *assertion);
 
-const gchar *snapd_assertion_get_header            (SnapdAssertion *assertion,
-                                                    const gchar    *name);
-
-GHashTable  *snapd_assertion_get_headers           (SnapdAssertion *assertion);
-
-const gchar *snapd_assertion_get_body              (SnapdAssertion *assertion);
-
-const gchar *snapd_assertion_get_signature         (SnapdAssertion *assertion);
+gchar          *snapd_assertion_get_signature         (SnapdAssertion *assertion);
 
 G_END_DECLS
 

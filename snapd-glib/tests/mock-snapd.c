@@ -146,16 +146,6 @@ mock_snap_free (MockSnap *snap)
     g_slice_free (MockSnap, snap);
 }
 
-
-static void
-mock_assertion_free (MockAssertion *assertion)
-{
-    g_list_free_full (assertion->headers, g_free);
-    g_free (assertion->body);
-    g_free (assertion->signature);
-    g_slice_free (MockAssertion, assertion);
-}
-
 MockSnapd *
 mock_snapd_new (void)
 {
@@ -638,48 +628,10 @@ find_slot (MockSnap *snap, const gchar *name)
     return NULL;
 }
 
-MockAssertion *
-mock_snapd_add_assertion (MockSnapd *snapd, const gchar *type, const gchar *signature)
-{
-    MockAssertion *assertion;
-
-    assertion = g_slice_new0 (MockAssertion);
-    mock_assertion_add_header (assertion, "type", type);
-    assertion->signature = g_strdup (signature);
-    snapd->assertions = g_list_append (snapd->assertions, assertion);
-
-    return assertion;
-}
-
 void
-mock_assertion_set_body (MockAssertion *assertion, const gchar *body)
+mock_snapd_add_assertion (MockSnapd *snapd, const gchar *assertion)
 {
-    g_free (assertion->body);
-    assertion->body = g_strdup (body);
-}
-
-void
-mock_assertion_add_header (MockAssertion *assertion, const gchar *name, const gchar *value)
-{
-    assertion->headers = g_list_append (assertion->headers, g_strdup_printf ("%s: %s", name, value));
-}
-
-const gchar *
-mock_assertion_get_header (MockAssertion *assertion, const gchar *name)
-{
-    GList *link;
-
-    for (link = assertion->headers; link; link = link->next) {
-        const gchar *header = link->data;
-        if (g_str_has_prefix (header, name) && header[strlen (name)] == ':') {
-            int offset = strlen (name) + 1;
-            while (isspace (header[offset]))
-                offset++;
-            return header + offset;
-        }
-    }
-
-    return NULL;
+    snapd->assertions = g_list_append (snapd->assertions, g_strdup (assertion));
 }
   
 static MockChange *
@@ -1380,6 +1332,7 @@ static void
 handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type)
 {
     g_autoptr(GString) content = NULL;
+    g_autofree gchar *type_header = NULL;
     int count = 0;
     GList *link;
 
@@ -1389,21 +1342,17 @@ handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type)
     }
 
     content = g_string_new (NULL);
+    type_header = g_strdup_printf ("type: %s\n", type);
     for (link = snapd->assertions; link; link = link->next) {
-        MockAssertion *a = link->data;
-        GList *l;
+        const gchar *assertion = link->data;
 
-        if (g_strcmp0 (mock_assertion_get_header (a, "type"), type) != 0)
+        if (!g_str_has_prefix (assertion, type_header))
             continue;
 
         count++;
         if (count != 1)
             g_string_append (content, "\n\n");
-        for (l = a->headers; l; l = l->next)
-            g_string_append_printf (content, "%s\n", (const gchar *) l->data);
-        if (a->body != NULL)
-            g_string_append_printf (content, "\n%s\n", a->body);
-        g_string_append_printf (content, "\n%s", a->signature);
+        g_string_append (content, assertion);
     }
 
     if (count == 0) {
@@ -2269,7 +2218,7 @@ mock_snapd_finalize (GObject *object)
     snapd->plugs = NULL;
     g_list_free_full (snapd->slots, (GDestroyNotify) mock_slot_free);
     snapd->slots = NULL;
-    g_list_free_full (snapd->assertions, (GDestroyNotify) mock_assertion_free);
+    g_list_free_full (snapd->assertions, g_free);
     snapd->assertions = NULL;
     g_list_free_full (snapd->changes, (GDestroyNotify) mock_change_free);
     snapd->changes = NULL;

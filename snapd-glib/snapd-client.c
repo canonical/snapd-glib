@@ -14,7 +14,6 @@
 #include <gio/gunixsocketaddress.h>
 #include <libsoup/soup.h>
 #include <json-glib/json-glib.h>
-#include <ctype.h>
 
 #include "snapd-client.h"
 #include "snapd-alias.h"
@@ -1194,94 +1193,34 @@ parse_get_assertions_response (SnapdRequest *request, guint code, SoupMessageHea
 
     assertions = g_ptr_array_new_with_free_func (g_object_unref);
     while (offset < content_length) {
-        gsize start;
-        g_autofree gchar *body = NULL;
-        g_autofree gchar *signature = NULL;
-        g_autoptr(GHashTable) headers = NULL;
+        gsize assertion_start, assertion_end, body_length = 0;
+        g_autofree gchar *body_length_header;
         SnapdAssertion *assertion;
 
-        /* Headers should start with type */
-        if (!g_str_has_prefix (content + offset, "type:")) {
-            GError *error = g_error_new (SNAPD_ERROR,
-                                         SNAPD_ERROR_READ_FAILED,
-                                         "Unable to parse assertions - failed to find headers");
-            snapd_request_complete (request, error);
-            return;
-        }
-      
-        /* Decode headers */
-        headers = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-        while (offset < content_length) {
-            g_autofree gchar *name = NULL;
-            g_autofree gchar *value = NULL;
-
-            /* Name separated from value by colon */
-            start = offset;
-            while (offset < content_length && content[offset] != ':' && content[offset] != '\n')
-                offset++;
-            if (offset >= content_length || content[offset] != ':') {
-                GError *error = g_error_new (SNAPD_ERROR,
-                                             SNAPD_ERROR_READ_FAILED,
-                                             "Unable to parse assertions - failed to parse header name");
-                snapd_request_complete (request, error);
-                return;
-            }
-            name = g_strndup (content + start, offset - start);
-            offset++;
-
-            /* Value terminated by newline */
-            while (offset < content_length && isspace (content[offset]))
-                offset++;
-            start = offset;
-            while (offset < content_length && content[offset] != '\n')
-                offset++;
-            if (offset >= content_length || content[offset] != '\n') {
-                GError *error = g_error_new (SNAPD_ERROR,
-                                             SNAPD_ERROR_READ_FAILED,
-                                             "Unable to parse assertions - failed to parse header value");
-                snapd_request_complete (request, error);
-                return;
-            }
-            value = g_strndup (content + start, offset - start);
-            offset++;
-
-            g_hash_table_insert (headers, g_steal_pointer (&name), g_steal_pointer (&value));
-
-            /* Headers terminated by double newline */
-            if (offset < content_length && content[offset] == '\n') {
-                offset++;
-                break;
-            }
-        }
-
-        /* Find end of body or signature */
-        if (offset >= content_length) {
-            GError *error = g_error_new (SNAPD_ERROR,
-                                         SNAPD_ERROR_READ_FAILED,
-                                         "Unable to parse assertions - missing signature");
-            snapd_request_complete (request, error);
-            return;
-        }
-        start = offset;
+        /* Headers terminated by double newline */
+        assertion_start = offset;
         while (offset < content_length && !g_str_has_prefix (content + offset, "\n\n"))
             offset++;
-        signature = g_strndup (content + start, offset - start);
         offset += 2;
-        if (offset < content_length && !g_str_has_prefix (content + offset, "type:")) {
-            body = g_steal_pointer (&signature);
-            start = offset;
-            while (offset < content_length && !g_str_has_prefix (content + offset, "\n\n"))
-                offset++;
-            signature = g_strndup (content + start, offset - start);
-            offset += 2;
-        }
 
-        assertion = g_object_new (SNAPD_TYPE_ASSERTION,
-                                  "headers", headers,
-                                  "body", body,
-                                  "signature", signature,
-                                  NULL);
-        g_ptr_array_add (assertions, assertion);        
+        /* Make a temporary assertion object to decode body length header */
+        assertion = snapd_assertion_new (g_strndup (content + assertion_start, offset - assertion_start));
+        body_length_header = snapd_assertion_get_header (assertion, "body-length");
+        g_object_unref (assertion);
+
+        /* Skip over body */
+        body_length = body_length_header != NULL ? strtoul (body_length_header, NULL, 10) : 0;
+        if (body_length > 0)
+            offset += body_length + 2;
+
+        /* Find end of signature */
+        while (offset < content_length && !g_str_has_prefix (content + offset, "\n\n"))
+            offset++;
+        assertion_end = offset;
+        offset += 2;
+
+        assertion = snapd_assertion_new (g_strndup (content + assertion_start, assertion_end - assertion_start));
+        g_ptr_array_add (assertions, assertion);
     }
 
     request->assertions = g_steal_pointer (&assertions);

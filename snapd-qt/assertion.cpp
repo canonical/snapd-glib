@@ -13,24 +13,15 @@
 
 QSnapdAssertion::QSnapdAssertion (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
 
-QString QSnapdAssertion::type () const
+QStringList QSnapdAssertion::headers () const
 {
-    return snapd_assertion_get_assertion_type (SNAPD_ASSERTION (wrapped_object));
-}
+    g_auto(GStrv) headers = NULL;
+    QStringList result;
 
-QString QSnapdAssertion::authorityId () const
-{
-    return snapd_assertion_get_authority_id (SNAPD_ASSERTION (wrapped_object));
-}
-
-QString QSnapdAssertion::revision () const
-{
-    return snapd_assertion_get_revision (SNAPD_ASSERTION (wrapped_object));
-}
-
-QString QSnapdAssertion::signKeySHA3_384 () const
-{
-    return snapd_assertion_get_sign_key_sha3_384 (SNAPD_ASSERTION (wrapped_object));
+    headers = snapd_assertion_get_headers (SNAPD_ASSERTION (wrapped_object));
+    for (int i = 0; headers[i] != NULL; i++)
+        result.append (headers[i]);
+    return result;
 }
 
 QString QSnapdAssertion::header (const QString& name) const
