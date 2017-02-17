@@ -321,9 +321,7 @@ test_get_assertions (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) assertions = NULL;
-    SnapdAssertion *assertion;
-    g_auto(GStrv) headers = NULL;
+    g_auto(GStrv) assertions;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -343,18 +341,14 @@ test_get_assertions (void)
     assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
     g_assert_no_error (error);
     g_assert (assertions != NULL);
-    g_assert_cmpint (assertions->len, ==, 1);
-    assertion = assertions->pdata[0];
-    headers = snapd_assertion_get_headers (assertion);
-    g_assert_cmpint (g_strv_length (headers), ==, 3);
-    g_assert_cmpstr (headers[0], ==, "type");
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "type"), ==, "account");
-    g_assert_cmpstr (headers[1], ==, "list-header");
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "list-header"), ==, "\n  - list-value");
-    g_assert_cmpstr (headers[2], ==, "map-header");
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "map-header"), ==, "\n  map-value: foo");
-    g_assert (snapd_assertion_get_body (assertion) == NULL);
-    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE");
+    g_assert_cmpint (g_strv_length (assertions), ==, 1);
+    g_assert_cmpstr (assertions[0], ==, "type: account\n"
+                                        "list-header:\n"
+                                        "  - list-value\n"
+                                        "map-header:\n"
+                                        "  map-value: foo\n"
+                                        "\n"
+                                        "SIGNATURE");
 }
 
 static void
@@ -362,8 +356,7 @@ test_get_assertions_body (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) assertions = NULL;
-    SnapdAssertion *assertion;
+    g_auto(GStrv) assertions = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -382,11 +375,13 @@ test_get_assertions_body (void)
     assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
     g_assert_no_error (error);
     g_assert (assertions != NULL);
-    g_assert_cmpint (assertions->len, ==, 1);
-    assertion = assertions->pdata[0];
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "type"), ==, "account");
-    g_assert_cmpstr (snapd_assertion_get_body (assertion), ==, "BODY");
-    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE");
+    g_assert_cmpint (g_strv_length (assertions), ==, 1);
+    g_assert_cmpstr (assertions[0], ==, "type: account\n"
+                                        "body-length: 4\n"
+                                        "\n"
+                                        "BODY\n"
+                                        "\n"
+                                        "SIGNATURE");
 }
 
 static void
@@ -394,8 +389,7 @@ test_get_assertions_multiple (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) assertions = NULL;
-    SnapdAssertion *assertion;
+    g_auto(GStrv) assertions = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -422,19 +416,19 @@ test_get_assertions_multiple (void)
     assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
     g_assert_no_error (error);
     g_assert (assertions != NULL);
-    g_assert_cmpint (assertions->len, ==, 3);
-    assertion = assertions->pdata[0];
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "type"), ==, "account");
-    g_assert (snapd_assertion_get_body (assertion) == NULL);
-    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE1");
-    assertion = assertions->pdata[1];
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "type"), ==, "account");
-    g_assert_cmpstr (snapd_assertion_get_body (assertion), ==, "BODY");
-    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE2");
-    assertion = assertions->pdata[2];
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "type"), ==, "account");
-    g_assert (snapd_assertion_get_body (assertion) == NULL);
-    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE3");
+    g_assert_cmpint (g_strv_length (assertions), ==, 3);
+    g_assert_cmpstr (assertions[0], ==, "type: account\n"
+                                        "\n"
+                                        "SIGNATURE1");
+    g_assert_cmpstr (assertions[1], ==, "type: account\n"
+                                        "body-length: 4\n"
+                                        "\n"
+                                        "BODY\n"
+                                        "\n"
+                                        "SIGNATURE2");
+    g_assert_cmpstr (assertions[2], ==, "type: account\n"
+                                        "\n"
+                                        "SIGNATURE3");
 }
 
 static void
@@ -442,7 +436,7 @@ test_get_assertions_invalid (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) assertions = NULL;
+    g_auto(GStrv) assertions = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -459,9 +453,9 @@ test_get_assertions_invalid (void)
 static void
 test_add_assertions (void)
 {
+    gchar *assertions[2];
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    gchar *assertions[2];
     gboolean result;
     g_autoptr(GError) error = NULL;
 
@@ -483,6 +477,50 @@ test_add_assertions (void)
     g_assert (result);
     g_assert_cmpint (g_list_length (mock_snapd_get_assertions (snapd)), == , 1);
     g_assert_cmpstr (mock_snapd_get_assertions (snapd)->data, == , "type: account\n\nSIGNATURE");
+}
+
+static void
+test_assertions (void)
+{
+    g_autoptr(SnapdAssertion) assertion = NULL;
+    g_auto(GStrv) headers = NULL;
+
+    assertion = snapd_assertion_new ("type: account\n"
+                                     "authority-id: canonical\n"
+                                     "\n"
+                                     "SIGNATURE");
+    headers = snapd_assertion_get_headers (assertion);
+    g_assert_cmpint (g_strv_length (headers), ==, 2);
+    g_assert_cmpstr (headers[0], ==, "type");
+    g_assert_cmpstr (snapd_assertion_get_header (assertion, "type"), ==, "account");
+    g_assert_cmpstr (headers[1], ==, "authority-id");
+    g_assert_cmpstr (snapd_assertion_get_header (assertion, "authority-id"), ==, "canonical");
+    g_assert_cmpstr (snapd_assertion_get_header (assertion, "invalid"), ==, NULL);
+    g_assert_cmpstr (snapd_assertion_get_body (assertion), ==, NULL);
+    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE");
+}
+
+static void
+test_assertions_body (void)
+{
+    g_autoptr(SnapdAssertion) assertion = NULL;
+    g_auto(GStrv) headers = NULL;
+
+    assertion = snapd_assertion_new ("type: account\n"
+                                     "body-length: 4\n"
+                                     "\n"
+                                     "BODY\n"
+                                     "\n"
+                                     "SIGNATURE");
+    headers = snapd_assertion_get_headers (assertion);
+    g_assert_cmpint (g_strv_length (headers), ==, 2);
+    g_assert_cmpstr (headers[0], ==, "type");
+    g_assert_cmpstr (snapd_assertion_get_header (assertion, "type"), ==, "account");
+    g_assert_cmpstr (headers[1], ==, "body-length");
+    g_assert_cmpstr (snapd_assertion_get_header (assertion, "body-length"), ==, "4");
+    g_assert_cmpstr (snapd_assertion_get_header (assertion, "invalid"), ==, NULL);
+    g_assert_cmpstr (snapd_assertion_get_body (assertion), ==, "BODY");
+    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE");
 }
 
 static void
@@ -2387,6 +2425,8 @@ main (int argc, char **argv)
     g_test_add_func ("/get-assertions/multiple", test_get_assertions_multiple);
     g_test_add_func ("/get-assertions/invalid", test_get_assertions_invalid);
     g_test_add_func ("/add-assertions/basic", test_add_assertions);
+    g_test_add_func ("/assertions/basic", test_assertions);
+    g_test_add_func ("/assertions/body", test_assertions_body);
     g_test_add_func ("/get-interfaces/basic", test_get_interfaces);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
     g_test_add_func ("/connect-interface/basic", test_connect_interface);

@@ -92,10 +92,10 @@ struct QSnapdGetAssertionsRequestPrivate
         type (type) {}
     ~QSnapdGetAssertionsRequestPrivate ()
     {
-        g_ptr_array_unref (assertions);
+        g_strfreev (assertions);
     }
     QString type;
-    GPtrArray *assertions;
+    gchar **assertions;
 };
 
 struct QSnapdAddAssertionsRequestPrivate
@@ -720,13 +720,13 @@ void QSnapdGetAssertionsRequest::runSync ()
 {
     Q_D(QSnapdGetAssertionsRequest);
     g_autoptr(GError) error = NULL;
-    snapd_client_get_assertions_sync (SNAPD_CLIENT (getClient ()), d->type.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+    d->assertions = snapd_client_get_assertions_sync (SNAPD_CLIENT (getClient ()), d->type.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
 void QSnapdGetAssertionsRequest::handleResult (void *object, void *result)
 {
-    g_autoptr(GPtrArray) assertions = NULL;
+    g_auto(GStrv) assertions = NULL;
     g_autoptr(GError) error = NULL;
 
     assertions = snapd_client_get_assertions_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
@@ -734,7 +734,7 @@ void QSnapdGetAssertionsRequest::handleResult (void *object, void *result)
         return;
 
     Q_D(QSnapdGetAssertionsRequest);
-    d->assertions = (GPtrArray*) g_steal_pointer (&assertions);
+    d->assertions = (gchar **) g_steal_pointer (&assertions);
     finish (error);
 }
 
@@ -750,18 +750,13 @@ void QSnapdGetAssertionsRequest::runAsync ()
     snapd_client_get_assertions_async (SNAPD_CLIENT (getClient ()), d->type.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), get_assertions_ready_cb, (gpointer) this);
 }
 
-int QSnapdGetAssertionsRequest::assertionCount () const
+QStringList QSnapdGetAssertionsRequest::assertions () const
 {
     Q_D(const QSnapdGetAssertionsRequest);
-    return d->assertions != NULL ? d->assertions->len : 0;
-}
-
-QSnapdAssertion *QSnapdGetAssertionsRequest::assertion (int n) const
-{
-    Q_D(const QSnapdGetAssertionsRequest);
-    if (d->assertions == NULL || n < 0 || (guint) n >= d->assertions->len)
-        return NULL;
-    return new QSnapdAssertion (d->assertions->pdata[n]);
+    QStringList result;
+    for (int i = 0; d->assertions[i] != NULL; i++)
+        result.append (d->assertions[i]);
+    return result;
 }
 
 QSnapdAddAssertionsRequest::QSnapdAddAssertionsRequest (const QStringList& assertions, void *snapd_client, QObject *parent) :

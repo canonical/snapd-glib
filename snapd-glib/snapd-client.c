@@ -141,7 +141,7 @@ struct _SnapdRequest
     SnapdSnap *snap;
     SnapdIcon *icon;
     SnapdAuthData *received_auth_data;
-    GPtrArray *assertions;
+    gchar **assertions;
     GPtrArray *plugs;
     GPtrArray *slots;
     SnapdUserInformation *user_information;
@@ -243,7 +243,7 @@ snapd_request_finalize (GObject *object)
     g_clear_object (&request->snap);
     g_clear_object (&request->icon);
     g_clear_object (&request->received_auth_data);
-    g_clear_pointer (&request->assertions, g_ptr_array_unref);  
+    g_clear_pointer (&request->assertions, g_strfreev);
     g_clear_pointer (&request->plugs, g_ptr_array_unref);
     g_clear_pointer (&request->slots, g_ptr_array_unref);
     g_clear_object (&request->user_information);
@@ -1192,7 +1192,7 @@ parse_get_assertions_response (SnapdRequest *request, guint code, SoupMessageHea
         return;
     }
 
-    assertions = g_ptr_array_new_with_free_func (g_object_unref);
+    assertions = g_ptr_array_new ();
     while (offset < content_length) {
         gsize assertion_start, assertion_end, body_length = 0;
         g_autofree gchar *body_length_header;
@@ -1220,11 +1220,11 @@ parse_get_assertions_response (SnapdRequest *request, guint code, SoupMessageHea
         assertion_end = offset;
         offset += 2;
 
-        assertion = snapd_assertion_new (g_strndup (content + assertion_start, assertion_end - assertion_start));
-        g_ptr_array_add (assertions, assertion);
+        g_ptr_array_add (assertions, g_strndup (content + assertion_start, assertion_end - assertion_start));
     }
+    g_ptr_array_add (assertions, NULL);
 
-    request->assertions = g_steal_pointer (&assertions);
+    request->assertions = g_steal_pointer (&assertions->pdata);
     snapd_request_complete (request, NULL);
 }
 
@@ -2935,9 +2935,9 @@ make_get_assertions_request (SnapdClient *client,
  *
  * Get assertions.
  *
- * Returns: (transfer container) (element-type SnapdAssertion): an array of #SnapdAssertion or %NULL on error.
+ * Returns: (transfer full) (array zero-terminated=1): an array of assertions or %NULL on error.
  */
-GPtrArray *
+gchar **
 snapd_client_get_assertions_sync (SnapdClient *client,
                                   const gchar *type,
                                   GCancellable *cancellable, GError **error)
@@ -2980,9 +2980,9 @@ snapd_client_get_assertions_async (SnapdClient *client,
  * Complete request started with snapd_client_get_assertions_async().
  * See snapd_client_get_assertions_sync() for more information.
  *
- * Returns: (transfer container) (element-type SnapdAssertion): an array of #SnapdAssertion or %NULL on error.
+ * Returns: (transfer full) (array zero-terminated=1): an array of assertions or %NULL on error.
  */
-GPtrArray *
+gchar **
 snapd_client_get_assertions_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdRequest *request;

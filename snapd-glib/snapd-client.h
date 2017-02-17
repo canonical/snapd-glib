@@ -179,7 +179,7 @@ SnapdIcon              *snapd_client_get_icon_finish               (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-GPtrArray              *snapd_client_get_assertions_sync           (SnapdClient          *client,
+gchar                 **snapd_client_get_assertions_sync           (SnapdClient          *client,
                                                                     const gchar          *type,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
@@ -188,7 +188,7 @@ void                    snapd_client_get_assertions_async          (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-GPtrArray              *snapd_client_get_assertions_finish         (SnapdClient          *client,
+gchar                 **snapd_client_get_assertions_finish         (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

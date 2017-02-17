@@ -12,7 +12,6 @@
 
 #include <QtCore/QObject>
 #include <Snapd/Alias>
-#include <Snapd/Assertion>
 #include <Snapd/AuthData>
 #include <Snapd/Connection>
 #include <Snapd/Icon>
@@ -129,14 +128,13 @@ class QSnapdGetAssertionsRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetAssertionsRequest : public QSnapdRequest
 {
     Q_OBJECT
-    Q_PROPERTY(int assertionCount READ assertionCount)
+    Q_PROPERTY(QStringList assertions READ assertions)
 
 public:
     explicit QSnapdGetAssertionsRequest (const QString& type, void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
-    Q_INVOKABLE int assertionCount () const;
-    Q_INVOKABLE QSnapdAssertion *assertion (int) const;
+    Q_INVOKABLE QStringList assertions () const;
     void handleResult (void *, void *);
 
 private:

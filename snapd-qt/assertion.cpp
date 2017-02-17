@@ -11,7 +11,11 @@
 
 #include "Snapd/assertion.h"
 
-QSnapdAssertion::QSnapdAssertion (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdAssertion::QSnapdAssertion (const QString& contents, QObject *parent) :
+    QSnapdWrappedObject (NULL, g_object_unref, parent)
+{
+    wrapped_object = snapd_assertion_new (contents.toStdString ().c_str ());
+}
 
 QStringList QSnapdAssertion::headers () const
 {

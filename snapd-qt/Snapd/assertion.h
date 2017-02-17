@@ -22,7 +22,7 @@ class Q_DECL_EXPORT QSnapdAssertion : public QSnapdWrappedObject
     Q_PROPERTY(QString signature READ signature)
 
 public:
-    explicit QSnapdAssertion (void* snapd_object, QObject* parent = 0);
+    explicit QSnapdAssertion (const QString& content, QObject* parent = 0);
 
     QString header (const QString& name) const;
     QStringList headers () const;  
