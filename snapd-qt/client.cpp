@@ -98,6 +98,13 @@ struct QSnapdGetAssertionsRequestPrivate
     GPtrArray *assertions;
 };
 
+struct QSnapdAddAssertionsRequestPrivate
+{
+    QSnapdAddAssertionsRequestPrivate (const QStringList& assertions) :
+        assertions (assertions) {}
+    QStringList assertions;
+};
+
 struct QSnapdGetInterfacesRequestPrivate
 {
     ~QSnapdGetInterfacesRequestPrivate ()
@@ -316,6 +323,12 @@ QSnapdGetAssertionsRequest *QSnapdClient::getAssertions (const QString& type)
 {
     Q_D(QSnapdClient);
     return new QSnapdGetAssertionsRequest (type, d->client);
+}
+
+QSnapdAddAssertionsRequest *QSnapdClient::addAssertions (const QStringList& assertions)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdAddAssertionsRequest (assertions, d->client);
 }
 
 QSnapdGetInterfacesRequest *QSnapdClient::getInterfaces ()
@@ -749,6 +762,63 @@ QSnapdAssertion *QSnapdGetAssertionsRequest::assertion (int n) const
     if (d->assertions == NULL || n < 0 || (guint) n >= d->assertions->len)
         return NULL;
     return new QSnapdAssertion (d->assertions->pdata[n]);
+}
+
+QSnapdAddAssertionsRequest::QSnapdAddAssertionsRequest (const QStringList& assertions, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdAddAssertionsRequestPrivate (assertions)) {}
+
+static gchar **
+string_list_to_strv (const QStringList& list)
+{
+    gchar **value;
+    int size, i;
+
+    size = list.size ();
+    value = (gchar **) malloc (sizeof (gchar *) * (size + 1));
+    for (i = 0; i < size; i++)
+        value[i] = (gchar *) list[i].toStdString ().c_str ();
+    value[size] = NULL;
+
+    return value;
+}
+
+void QSnapdAddAssertionsRequest::runSync ()
+{
+    Q_D(QSnapdAddAssertionsRequest);
+    g_autofree gchar **assertions = NULL;
+    g_autoptr(GError) error = NULL;
+
+    assertions = string_list_to_strv (d->assertions);
+    snapd_client_add_assertions_sync (SNAPD_CLIENT (getClient ()), assertions, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdAddAssertionsRequest::handleResult (void *object, void *result)
+{
+    g_autofree gchar **assertions = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd_client_add_assertions_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    finish (error);
+}
+
+static void add_assertions_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdAddAssertionsRequest *request = static_cast<QSnapdAddAssertionsRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdAddAssertionsRequest::runAsync ()
+{
+    Q_D(QSnapdAddAssertionsRequest);
+    g_autofree gchar **assertions = NULL;
+
+    assertions = string_list_to_strv (d->assertions);
+    snapd_client_add_assertions_async (SNAPD_CLIENT (getClient ()), assertions, G_CANCELLABLE (getCancellable ()), add_assertions_ready_cb, (gpointer) this);
 }
 
 QSnapdGetInterfacesRequest::QSnapdGetInterfacesRequest (void *snapd_client, QObject *parent) :
@@ -1413,21 +1483,6 @@ QSnapdAlias *QSnapdGetAliasesRequest::alias (int n) const
     if (d->aliases == NULL || n < 0 || (guint) n >= d->aliases->len)
         return NULL;
     return new QSnapdAlias (d->aliases->pdata[n]);
-}
-
-static gchar **
-string_list_to_strv (const QStringList& list)
-{
-    gchar **value;
-    int size, i;
-
-    size = list.size ();
-    value = (gchar **) malloc (sizeof (gchar *) * (size + 1));
-    for (i = 0; i < size; i++)
-        value[i] = (gchar *) list[i].toStdString ().c_str ();
-    value[size] = NULL;
-
-    return value;
 }
 
 QSnapdEnableAliasesRequest::QSnapdEnableAliasesRequest (const QString& name, const QStringList& aliases, void *snapd_client, QObject *parent) :

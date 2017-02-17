@@ -84,6 +84,7 @@ typedef enum
     SNAPD_REQUEST_LIST,
     SNAPD_REQUEST_LIST_ONE,
     SNAPD_REQUEST_GET_ASSERTIONS,
+    SNAPD_REQUEST_ADD_ASSERTIONS,
     SNAPD_REQUEST_GET_INTERFACES,
     SNAPD_REQUEST_CONNECT_INTERFACE,
     SNAPD_REQUEST_DISCONNECT_INTERFACE,
@@ -1228,6 +1229,20 @@ parse_get_assertions_response (SnapdRequest *request, guint code, SoupMessageHea
 }
 
 static void
+parse_add_assertions_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    GError *error = NULL;
+
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, NULL, NULL, &error)) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    request->result = TRUE;
+    snapd_request_complete (request, NULL);
+}
+
+static void
 parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
@@ -2024,6 +2039,9 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         break;
     case SNAPD_REQUEST_GET_ASSERTIONS:
         parse_get_assertions_response (request, code, headers, content, content_length);
+        break;
+    case SNAPD_REQUEST_ADD_ASSERTIONS:
+        parse_add_assertions_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_INTERFACES:
         parse_get_interfaces_response (request, headers, content, content_length);
@@ -2978,6 +2996,95 @@ snapd_client_get_assertions_finish (SnapdClient *client, GAsyncResult *result, G
     if (snapd_request_set_error (request, error))
         return NULL;
     return g_steal_pointer (&request->assertions);
+}
+
+static SnapdRequest *
+make_add_assertions_request (SnapdClient *client,
+                             gchar **assertions,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+    g_autofree gchar *content = NULL;
+
+    request = make_request (client, SNAPD_REQUEST_ADD_ASSERTIONS, NULL, NULL, cancellable, callback, user_data);
+    content = g_strjoinv ("\n\n", assertions);
+    send_request (request, TRUE, "POST", "/v2/assertions", "application/x.ubuntu.assertion", content);
+
+    return request;
+}
+
+/**
+ * snapd_client_add_assertions_sync:
+ * @client: a #SnapdClient.
+ * @assertions: assertions to add.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Add an assertion.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_add_assertions_sync (SnapdClient *client,
+                                  gchar **assertions,
+                                  GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (assertions != NULL, FALSE);  
+
+    request = g_object_ref (make_add_assertions_request (client, assertions, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_add_assertions_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_add_assertions_async:
+ * @client: a #SnapdClient.
+ * @assertions: assertions to add.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously add an assertion.
+ * See snapd_client_add_assertions_sync() for more information.
+ */
+void
+snapd_client_add_assertions_async (SnapdClient *client,
+                                   gchar **assertions,
+                                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (assertions != NULL);
+    make_add_assertions_request (client, assertions, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_add_assertions_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_add_assertions_async().
+ * See snapd_client_add_assertions_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_add_assertions_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_ADD_ASSERTIONS, FALSE);
+
+    if (snapd_request_set_error (request, error))
+        return FALSE;
+    return request->result;
 }
 
 static SnapdRequest *

@@ -227,6 +227,8 @@ MockSlot       *mock_snap_add_slot                (MockSnap      *snap,
 void            mock_snapd_add_assertion          (MockSnapd     *snapd,
                                                    const gchar   *assertion);
 
+GList          *mock_snapd_get_assertions         (MockSnapd     *snapd);
+
 G_END_DECLS
 
 #endif /* __MOCK_SNAPD_H__ */

@@ -144,6 +144,22 @@ private:
     Q_DECLARE_PRIVATE(QSnapdGetAssertionsRequest)
 };
 
+class QSnapdAddAssertionsRequestPrivate;
+class Q_DECL_EXPORT QSnapdAddAssertionsRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdAddAssertionsRequest (const QStringList& assertions, void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdAddAssertionsRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdAddAssertionsRequest)
+};
+
 class QSnapdGetInterfacesRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetInterfacesRequest : public QSnapdRequest
 {
@@ -494,6 +510,7 @@ public:
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
     Q_INVOKABLE QSnapdGetIconRequest *getIcon (const QString &name);
     Q_INVOKABLE QSnapdGetAssertionsRequest *getAssertions (const QString &type);
+    Q_INVOKABLE QSnapdAddAssertionsRequest *addAssertions (const QStringList &assertions);  
     Q_INVOKABLE QSnapdGetInterfacesRequest *getInterfaces ();
     Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);

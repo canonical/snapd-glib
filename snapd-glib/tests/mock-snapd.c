@@ -633,6 +633,12 @@ mock_snapd_add_assertion (MockSnapd *snapd, const gchar *assertion)
 {
     snapd->assertions = g_list_append (snapd->assertions, g_strdup (assertion));
 }
+
+GList *
+mock_snapd_get_assertions (MockSnapd *snapd)
+{
+    return snapd->assertions;
+}
   
 static MockChange *
 add_change (MockSnapd *snapd, JsonNode *data)
@@ -1329,39 +1335,44 @@ handle_icon (MockSnapd *snapd, const gchar *method, const gchar *path)
 }
 
 static void
-handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type)
+handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type, const guint8 *content, gsize content_length)
 {
-    g_autoptr(GString) content = NULL;
-    g_autofree gchar *type_header = NULL;
-    int count = 0;
-    GList *link;
+    if (strcmp (method, "GET") == 0) {
+        g_autoptr(GString) response_content = NULL;
+        g_autofree gchar *type_header = NULL;
+        int count = 0;
+        GList *link;
 
-    if (strcmp (method, "GET") != 0) {
+        response_content = g_string_new (NULL);
+        type_header = g_strdup_printf ("type: %s\n", type);
+        for (link = snapd->assertions; link; link = link->next) {
+            const gchar *assertion = link->data;
+
+            if (!g_str_has_prefix (assertion, type_header))
+                continue;
+
+            count++;
+            if (count != 1)
+                g_string_append (response_content, "\n\n");
+            g_string_append (response_content, assertion);
+        }
+
+        if (count == 0) {
+            send_error_bad_request (snapd, "invalid assert type", NULL);
+            return;
+        }
+
+        // FIXME: X-Ubuntu-Assertions-Count header
+        send_response (snapd, 200, "OK", "application/x.ubuntu.assertion; bundle=y", (guint8*) response_content->str, response_content->len);
+    }
+    else if (strcmp (method, "POST") == 0) {
+        mock_snapd_add_assertion (snapd, g_strndup ((gchar *) content, content_length));
+        send_sync_response (snapd, 200, "OK", NULL, NULL);
+    }
+    else {
         send_error_method_not_allowed (snapd, "method not allowed");
         return;
     }
-
-    content = g_string_new (NULL);
-    type_header = g_strdup_printf ("type: %s\n", type);
-    for (link = snapd->assertions; link; link = link->next) {
-        const gchar *assertion = link->data;
-
-        if (!g_str_has_prefix (assertion, type_header))
-            continue;
-
-        count++;
-        if (count != 1)
-            g_string_append (content, "\n\n");
-        g_string_append (content, assertion);
-    }
-
-    if (count == 0) {
-        send_error_bad_request (snapd, "invalid assert type", NULL);
-        return;
-    }
-
-    // FIXME: X-Ubuntu-Assertions-Count header
-    send_response (snapd, 200, "OK", "application/x.ubuntu.assertion; bundle=y", (guint8*) content->str, content->len);
 }
 
 static void
@@ -2125,8 +2136,10 @@ handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMe
         handle_snap (snapd, method, path + strlen ("/v2/snaps/"), json_content);
     else if (g_str_has_prefix (path, "/v2/icons/"))
         handle_icon (snapd, method, path + strlen ("/v2/icons/"));
+    else if (strcmp (path, "/v2/assertions") == 0)
+        handle_assertions (snapd, method, NULL, content, content_length);
     else if (g_str_has_prefix (path, "/v2/assertions/"))
-        handle_assertions (snapd, method, path + strlen ("/v2/assertions/"));
+        handle_assertions (snapd, method, path + strlen ("/v2/assertions/"), NULL, 0);
     else if (strcmp (path, "/v2/interfaces") == 0)
         handle_interfaces (snapd, method, json_content);
     else if (g_str_has_prefix (path, "/v2/changes/"))

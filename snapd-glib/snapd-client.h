@@ -192,6 +192,19 @@ GPtrArray              *snapd_client_get_assertions_finish         (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+gboolean                snapd_client_add_assertions_sync           (SnapdClient          *client,
+                                                                    gchar               **assertions,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_add_assertions_async          (SnapdClient          *client,
+                                                                    gchar               **assertions,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_add_assertions_finish         (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 gboolean                snapd_client_get_interfaces_sync           (SnapdClient          *client,
                                                                     GPtrArray           **plugs,
                                                                     GPtrArray           **slots,
