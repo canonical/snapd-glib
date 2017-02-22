@@ -50,6 +50,7 @@ typedef struct
     gchar *id;
     gchar *install_date;
     int installed_size;
+    gboolean jailmode;
     gchar *name;
     GList *prices;
     gboolean private;

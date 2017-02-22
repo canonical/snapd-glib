@@ -835,6 +835,7 @@ parse_snap (JsonObject *object, GError **error)
                          "id", get_string (object, "id", NULL),
                          "install-date", install_date,
                          "installed-size", get_int (object, "installed-size", 0),
+                         "jailmode", get_bool (object, "jailmode", FALSE),
                          "name", get_string (object, "name", NULL),
                          "prices", prices_array,
                          "private", get_bool (object, "private", FALSE),

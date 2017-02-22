@@ -213,6 +213,7 @@ test_list_one (void)
     s->devmode = TRUE;
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
     s->installed_size = 1024;
+    s->jailmode = TRUE;
     s->trymode = TRUE;
     mock_snap_set_tracking_channel (s, "CHANNEL");
 
@@ -241,6 +242,7 @@ test_list_one (void)
     date = g_date_time_new_utc (2017, 1, 2, 11, 23, 58);
     g_assert (g_date_time_compare (snapd_snap_get_install_date (snap), date) == 0);
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 1024);
+    g_assert (snapd_snap_get_jailmode (snap) == TRUE);
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert (snapd_snap_get_private (snap) == FALSE);
@@ -814,7 +816,6 @@ test_find_query (void)
     mock_snapd_add_store_snap (snapd, "banana");
     mock_snapd_add_store_snap (snapd, "carrot1");
     s = mock_snapd_add_store_snap (snapd, "carrot2");
-    s->devmode = TRUE;
     s->download_size = 1024;
     mock_snap_add_price (s, 1.20, "NZD");
     mock_snap_add_price (s, 0.87, "USD");
@@ -837,7 +838,6 @@ test_find_query (void)
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, "DESCRIPTION");
     g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
-    g_assert (snapd_snap_get_devmode (snap) == TRUE);
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 1024);
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");

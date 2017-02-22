@@ -46,6 +46,7 @@ struct _SnapdSnap
     gchar *id;
     GDateTime *install_date;
     gint64 installed_size;
+    gboolean jailmode;
     gchar *name;
     GPtrArray *prices;
     gboolean private;
@@ -72,6 +73,7 @@ enum
     PROP_ID,
     PROP_INSTALL_DATE,
     PROP_INSTALLED_SIZE,
+    PROP_JAILMODE,
     PROP_NAME,
     PROP_PRICES,
     PROP_PRIVATE,
@@ -252,6 +254,21 @@ snapd_snap_get_installed_size (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), 0);
     return snap->installed_size;
+}
+
+/**
+ * snapd_snap_get_jailmode:
+ * @snap: a #SnapdSnap.
+ *
+ * Get if this snap is running in enforced confinement (jail) mode.
+ *
+ * Returns: %TRUE if this snap is running in jailmode.
+ */
+gboolean
+snapd_snap_get_jailmode (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
+    return snap->jailmode;
 }
 
 /**
@@ -471,6 +488,9 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_INSTALLED_SIZE:
         snap->installed_size = g_value_get_int64 (value);
         break;
+    case PROP_JAILMODE:
+        snap->jailmode = g_value_get_boolean (value);
+        break;
     case PROP_NAME:
         g_free (snap->name);
         snap->name = g_strdup (g_value_get_string (value));
@@ -557,6 +577,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_INSTALLED_SIZE:
         g_value_set_int64 (value, snap->installed_size);
+        break;
+    case PROP_JAILMODE:
+        g_value_set_boolean (value, snap->jailmode);
         break;
     case PROP_NAME:
         g_value_set_string (value, snap->name);
@@ -707,6 +730,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          "Installed size in bytes",
                                                          G_MININT64, G_MAXINT64, 0,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_JAILMODE,
+                                     g_param_spec_boolean ("jailmode",
+                                                           "jailmode",
+                                                           "TRUE if the snap is currently installed in jailmode",
+                                                           FALSE,
+                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_NAME,
                                      g_param_spec_string ("name",

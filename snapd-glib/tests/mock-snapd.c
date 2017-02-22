@@ -1034,6 +1034,8 @@ make_snap_node (MockSnap *snap)
         json_builder_set_member_name (builder, "installed-size");
         json_builder_add_int_value (builder, snap->installed_size);
     }
+    json_builder_set_member_name (builder, "jailmode");
+    json_builder_add_boolean_value (builder, snap->jailmode);  
     json_builder_set_member_name (builder, "name");
     json_builder_add_string_value (builder, snap->name);
     if (snap->prices != NULL) {

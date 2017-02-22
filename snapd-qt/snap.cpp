@@ -103,6 +103,11 @@ qint64 QSnapdSnap::installedSize () const
     return snapd_snap_get_installed_size (SNAPD_SNAP (wrapped_object));
 }
 
+bool QSnapdSnap::jailmode () const
+{
+    return snapd_snap_get_jailmode (SNAPD_SNAP (wrapped_object));
+}
+
 QString QSnapdSnap::name () const
 {
     return snapd_snap_get_name (SNAPD_SNAP (wrapped_object));
