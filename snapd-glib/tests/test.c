@@ -209,7 +209,8 @@ test_list_one (void)
     s = mock_snapd_add_snap (snapd, "snap");
     a = mock_snap_add_app (s, "app");
     mock_app_add_alias (a, "app2");
-    mock_app_add_alias (a, "app3");  
+    mock_app_add_alias (a, "app3");
+    mock_snap_set_confinement (s, "strict");
     s->devmode = TRUE;
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
     s->installed_size = 1024;
@@ -273,6 +274,52 @@ test_list_one_not_installed (void)
     snap = snapd_client_list_one_sync (client, "snap", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
     g_assert (snap == NULL);
+}
+
+static void
+test_list_one_classic_confinement (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdSnap) snap = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "classic");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snap = snapd_client_list_one_sync (client, "snap", NULL, &error);
+    g_assert_no_error (error);
+    g_assert (snap != NULL);
+    g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_CLASSIC);
+}
+
+static void
+test_list_one_devmode_confinement (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdSnap) snap = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "devmode");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snap = snapd_client_list_one_sync (client, "snap", NULL, &error);
+    g_assert_no_error (error);
+    g_assert (snap != NULL);
+    g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_DEVMODE);
 }
 
 static void
@@ -2418,6 +2465,8 @@ main (int argc, char **argv)
     g_test_add_func ("/list/basic", test_list);
     g_test_add_func ("/list-one/basic", test_list_one);
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
+    g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
+    g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
     g_test_add_func ("/icon/basic", test_icon);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
     g_test_add_func ("/get-assertions/basic", test_get_assertions);

@@ -704,6 +704,8 @@ parse_snap (JsonObject *object, GError **error)
     confinement_string = get_string (object, "confinement", "");
     if (strcmp (confinement_string, "strict") == 0)
         confinement = SNAPD_CONFINEMENT_STRICT;
+    if (strcmp (confinement_string, "classic") == 0)
+        confinement = SNAPD_CONFINEMENT_CLASSIC;  
     else if (strcmp (confinement_string, "devmode") == 0)
         confinement = SNAPD_CONFINEMENT_DEVMODE;
 

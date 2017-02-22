@@ -34,6 +34,7 @@ struct _SnapdSnapClass
  * @SNAPD_CONFINEMENT_UNKNOWN: the confinement of the snap is unknown.
  * @SNAPD_CONFINEMENT_STRICT: the snap is using confinement.
  * @SNAPD_CONFINEMENT_DEVMODE: the snap is in dev mode (i.e. unconfined).
+ * @SNAPD_CONFINEMENT_CLASSIC: the snap is using classic confinement.
  *
  * Confinment used by a snap.
  */
@@ -41,7 +42,8 @@ typedef enum
 {
     SNAPD_CONFINEMENT_UNKNOWN,
     SNAPD_CONFINEMENT_STRICT,
-    SNAPD_CONFINEMENT_DEVMODE
+    SNAPD_CONFINEMENT_DEVMODE,
+    SNAPD_CONFINEMENT_CLASSIC
 } SnapdConfinement;
 
 /**

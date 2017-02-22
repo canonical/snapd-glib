@@ -43,6 +43,8 @@ QSnapdSnap::QSnapdConfinement QSnapdSnap::confinement () const
     {
     case SNAPD_CONFINEMENT_STRICT:
         return QSnapdConfinement::Strict;
+    case SNAPD_CONFINEMENT_CLASSIC:
+        return QSnapdConfinement::Classic;
     case SNAPD_CONFINEMENT_DEVMODE:
         return QSnapdConfinement::Devmode;
     case SNAPD_CONFINEMENT_UNKNOWN:

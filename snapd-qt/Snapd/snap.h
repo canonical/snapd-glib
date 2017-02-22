@@ -49,7 +49,8 @@ public:
     {
         ConfinementUnknown,
         Strict,
-        Devmode
+        Devmode,
+        Classic
     };
     enum QSnapdSnapType
     {
