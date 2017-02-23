@@ -278,13 +278,11 @@ append_string (GByteArray *array, const gchar *value)
 
 static void
 send_request (SnapdRequest *request,
-              gboolean authorize,
               const gchar *method, const gchar *path,
-              const gchar *content_type, GHashTable *content_type_params,
-              const guint8 *content, gsize content_length)
+              SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
-    g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autoptr(SoupBuffer) buffer;
     g_autoptr(GByteArray) request_data = NULL;
     SoupMessageHeadersIter iter;
     const char *name, *value;
@@ -294,26 +292,7 @@ send_request (SnapdRequest *request,
     // NOTE: Would love to use libsoup but it doesn't support unix sockets
     // https://bugzilla.gnome.org/show_bug.cgi?id=727563
 
-    headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
-    soup_message_headers_append (headers, "Host", "");
-    soup_message_headers_append (headers, "Connection", "keep-alive");
-    if (content_type)
-        soup_message_headers_set_content_type (headers, content_type, content_type_params);
-    if (content_length > 0)
-        soup_message_headers_set_content_length (headers, content_length);
-    if (authorize && request->auth_data != NULL) {
-        g_autoptr(GString) authorization = NULL;
-        gchar **discharges;
-        gsize i;
-
-        authorization = g_string_new ("");
-        g_string_append_printf (authorization, "Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (request->auth_data));
-        discharges = snapd_auth_data_get_discharges (request->auth_data);
-        if (discharges != NULL)
-            for (i = 0; discharges[i] != NULL; i++)
-                g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
-        soup_message_headers_append (headers, "Authorization", authorization->str);
-    }
+    buffer = soup_message_body_flatten (body);
 
     request_data = g_byte_array_new ();
     append_string (request_data, method);
@@ -328,8 +307,7 @@ send_request (SnapdRequest *request,
         append_string (request_data, "\r\n");
     }
     append_string (request_data, "\r\n");
-    if (content_length > 0)
-        g_byte_array_append (request_data, content, content_length);
+    g_byte_array_append (request_data, (const guint8 *) buffer->data, buffer->length);
 
     if (priv->snapd_socket == NULL) {
         GError *error = g_error_new (SNAPD_ERROR,
@@ -351,10 +329,41 @@ send_request (SnapdRequest *request,
     }
 }
 
-static void
-send_empty_request (SnapdRequest *request, gboolean authorize, const gchar *method, const gchar *path)
+static SoupMessageHeaders *
+headers_new (SnapdRequest *request, gboolean authorize)
 {
-    send_request (request, authorize, method, path, NULL, NULL, NULL, 0);
+    g_autoptr(SoupMessageHeaders) headers = NULL;
+
+    headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
+    soup_message_headers_append (headers, "Host", "");
+    soup_message_headers_append (headers, "Connection", "keep-alive");
+  
+    if (authorize && request->auth_data != NULL) {
+        g_autoptr(GString) authorization = NULL;
+        gchar **discharges;
+        gsize i;
+
+        authorization = g_string_new ("");
+        g_string_append_printf (authorization, "Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (request->auth_data));
+        discharges = snapd_auth_data_get_discharges (request->auth_data);
+        if (discharges != NULL)
+            for (i = 0; discharges[i] != NULL; i++)
+                g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
+        soup_message_headers_append (headers, "Authorization", authorization->str);
+    }
+
+    return g_steal_pointer (&headers);
+}
+
+static void
+send_empty_request (SnapdRequest *request, const gchar *method, const gchar *path)
+{
+    g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autoptr(SoupMessageBody) body = NULL;
+
+    headers = headers_new (request, TRUE);
+    body = soup_message_body_new ();
+    send_request (request, method, path, headers, body);
 }
 
 static void
@@ -363,14 +372,22 @@ send_json_request (SnapdRequest *request, gboolean authorize, const gchar *metho
     g_autoptr(JsonNode) json_root = NULL;
     g_autoptr(JsonGenerator) json_generator = NULL;
     g_autofree gchar *data = NULL;
+    gsize data_length;  
+    g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autoptr(SoupMessageBody) body = NULL;
 
     json_root = json_builder_get_root (builder);
     json_generator = json_generator_new ();
     json_generator_set_pretty (json_generator, TRUE);
     json_generator_set_root (json_generator, json_root);
-    data = json_generator_to_data (json_generator, NULL);
+    data = json_generator_to_data (json_generator, &data_length);
 
-    send_request (request, authorize, method, path, "application/json", NULL, (const guint8 *) data, strlen (data));
+    headers = headers_new (request, authorize);
+    soup_message_headers_set_content_type (headers, "application/json", NULL);
+    body = soup_message_body_new ();
+    soup_message_body_append_take (body, g_steal_pointer (&data), data_length);
+    soup_message_headers_set_content_length (headers, body->length);
+    send_request (request, method, path, headers, body);
 }
 
 static gboolean
@@ -1383,7 +1400,7 @@ async_poll_cb (gpointer data)
     g_autofree gchar *path = NULL;
 
     path = g_strdup_printf ("/v2/changes/%s", request->change_id);
-    send_empty_request (request, TRUE, "GET", path);
+    send_empty_request (request, "GET", path);
 
     request->poll_timer = 0;
     return G_SOURCE_REMOVE;
@@ -2521,7 +2538,7 @@ make_get_system_information_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_GET_SYSTEM_INFORMATION, NULL, NULL, cancellable, callback, user_data);
-    send_empty_request (request, TRUE, "GET", "/v2/system-info");
+    send_empty_request (request, "GET", "/v2/system-info");
 
     return request;
 }
@@ -2606,7 +2623,7 @@ make_list_one_request (SnapdClient *client,
     request = make_request (client, SNAPD_REQUEST_LIST_ONE, NULL, NULL, cancellable, callback, user_data);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    send_empty_request (request, TRUE, "GET", path);
+    send_empty_request (request, "GET", path);
 
     return request;
 }
@@ -2694,7 +2711,7 @@ make_get_icon_request (SnapdClient *client,
     request = make_request (client, SNAPD_REQUEST_GET_ICON, NULL, NULL, cancellable, callback, user_data);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/icons/%s/icon", escaped);
-    send_empty_request (request, TRUE, "GET", path);
+    send_empty_request (request, "GET", path);
 
     return request;
 }
@@ -2778,7 +2795,7 @@ make_list_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_LIST, NULL, NULL, cancellable, callback, user_data);
-    send_empty_request (request, TRUE, "GET", "/v2/snaps");
+    send_empty_request (request, "GET", "/v2/snaps");
 
     return request;
 }
@@ -2862,7 +2879,7 @@ make_get_assertions_request (SnapdClient *client,
     request = make_request (client, SNAPD_REQUEST_GET_ASSERTIONS, NULL, NULL, cancellable, callback, user_data);
     escaped = soup_uri_encode (type, NULL);
     path = g_strdup_printf ("/v2/assertions/%s", escaped);
-    send_empty_request (request, TRUE, "GET", path);
+    send_empty_request (request, "GET", path);
 
     return request;
 }
@@ -2945,11 +2962,22 @@ make_add_assertions_request (SnapdClient *client,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
-    g_autofree gchar *content = NULL;
+    g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autoptr(SoupMessageBody) body = NULL;
+    int i;
 
     request = make_request (client, SNAPD_REQUEST_ADD_ASSERTIONS, NULL, NULL, cancellable, callback, user_data);
-    content = g_strjoinv ("\n\n", assertions);
-    send_request (request, TRUE, "POST", "/v2/assertions", "application/x.ubuntu.assertion", NULL, (const guint8 *) content, strlen (content));
+
+    headers = headers_new (request, TRUE);
+    soup_message_headers_set_content_type (headers, "application/x.ubuntu.assertion", NULL); //FIXME
+    body = soup_message_body_new ();
+    for (i = 0; assertions[i]; i++) {
+        if (i != 0)
+            soup_message_body_append (body, SOUP_MEMORY_TEMPORARY, "\n\n", 2);
+        soup_message_body_append (body, SOUP_MEMORY_TEMPORARY, assertions[i], strlen (assertions[i]));
+    }
+    soup_message_headers_set_content_length (headers, body->length);
+    send_request (request, "POST", "/v2/assertions", headers, body);
 
     return request;
 }
@@ -3035,7 +3063,7 @@ make_get_interfaces_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_GET_INTERFACES, NULL, NULL, cancellable, callback, user_data);
-    send_empty_request (request, TRUE, "GET", "/v2/interfaces");
+    send_empty_request (request, "GET", "/v2/interfaces");
 
     return request;
 }
@@ -3409,7 +3437,7 @@ make_find_request (SnapdClient *client,
         }
     }
 
-    send_empty_request (request, TRUE, "GET", path->str);
+    send_empty_request (request, "GET", path->str);
 
     return request;
 }
@@ -3563,7 +3591,7 @@ make_find_refreshable_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_FIND_REFRESHABLE, NULL, NULL, cancellable, callback, user_data);
-    send_empty_request (request, TRUE, "GET", "/v2/find?select=refresh");
+    send_empty_request (request, "GET", "/v2/find?select=refresh");
 
     return request;
 }
@@ -4313,7 +4341,7 @@ make_check_buy_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_CHECK_BUY, NULL, NULL, cancellable, callback, user_data);
-    send_empty_request (request, TRUE, "GET", "/v2/buy/ready");
+    send_empty_request (request, "GET", "/v2/buy/ready");
 
     return request;
 }
@@ -4696,7 +4724,7 @@ make_get_sections_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_GET_SECTIONS, NULL, NULL, cancellable, callback, user_data);
-    send_empty_request (request, TRUE, "GET", "/v2/sections");
+    send_empty_request (request, "GET", "/v2/sections");
 
     return request;
 }
@@ -4777,7 +4805,7 @@ make_get_aliases_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_GET_ALIASES, NULL, NULL, cancellable, callback, user_data);
-    send_empty_request (request, TRUE, "GET", "/v2/aliases");
+    send_empty_request (request, "GET", "/v2/aliases");
 
     return request;
 }
