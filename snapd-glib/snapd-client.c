@@ -35,7 +35,7 @@
  *
  * To communicate with snapd create a client with snapd_client_new() then
  * connect with snapd_client_connect_sync().
- * 
+ *
  * Some requests require authorization which can be set with
  * snapd_client_set_auth_data().
  */
@@ -89,13 +89,13 @@ typedef enum
     SNAPD_REQUEST_CONNECT_INTERFACE,
     SNAPD_REQUEST_DISCONNECT_INTERFACE,
     SNAPD_REQUEST_FIND,
-    SNAPD_REQUEST_FIND_REFRESHABLE,  
+    SNAPD_REQUEST_FIND_REFRESHABLE,
     SNAPD_REQUEST_SIDELOAD_SNAP, // FIXME
     SNAPD_REQUEST_CHECK_BUY,
-    SNAPD_REQUEST_BUY,  
+    SNAPD_REQUEST_BUY,
     SNAPD_REQUEST_INSTALL,
     SNAPD_REQUEST_REFRESH,
-    SNAPD_REQUEST_REFRESH_ALL,  
+    SNAPD_REQUEST_REFRESH_ALL,
     SNAPD_REQUEST_REMOVE,
     SNAPD_REQUEST_ENABLE,
     SNAPD_REQUEST_DISABLE,
@@ -106,7 +106,7 @@ typedef enum
     SNAPD_REQUEST_ENABLE_ALIASES,
     SNAPD_REQUEST_DISABLE_ALIASES,
     SNAPD_REQUEST_RESET_ALIASES,
-    SNAPD_REQUEST_RUN_SNAPCTL  
+    SNAPD_REQUEST_RUN_SNAPCTL
 } RequestType;
 
 G_DECLARE_FINAL_TYPE (SnapdRequest, snapd_request, SNAPD, REQUEST, GObject)
@@ -149,7 +149,7 @@ struct _SnapdRequest
     gchar **sections;
     GPtrArray *aliases;
     gchar *stdout_output;
-    gchar *stderr_output;  
+    gchar *stderr_output;
     guint complete_handle;
     JsonNode *async_data;
 };
@@ -251,7 +251,7 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->sections, g_strfreev);
     g_clear_pointer (&request->aliases, g_ptr_array_unref);
     g_clear_pointer (&request->stdout_output, g_free);
-    g_clear_pointer (&request->stderr_output, g_free);  
+    g_clear_pointer (&request->stderr_output, g_free);
     g_clear_pointer (&request->async_data, json_node_unref);
     if (request->complete_handle != 0)
         g_source_remove (request->complete_handle);
@@ -705,7 +705,7 @@ parse_snap (JsonObject *object, GError **error)
     if (strcmp (confinement_string, "strict") == 0)
         confinement = SNAPD_CONFINEMENT_STRICT;
     if (strcmp (confinement_string, "classic") == 0)
-        confinement = SNAPD_CONFINEMENT_CLASSIC;  
+        confinement = SNAPD_CONFINEMENT_CLASSIC;
     else if (strcmp (confinement_string, "devmode") == 0)
         confinement = SNAPD_CONFINEMENT_DEVMODE;
 
@@ -820,7 +820,7 @@ parse_snap (JsonObject *object, GError **error)
         screenshot = g_object_new (SNAPD_TYPE_SCREENSHOT,
                                    "url", get_string (s, "url", NULL),
                                    "width", (guint) get_int (s, "width", 0),
-                                   "height", (guint) get_int (s, "height", 0),                              
+                                   "height", (guint) get_int (s, "height", 0),
                                    NULL);
         g_ptr_array_add (screenshots_array, g_steal_pointer (&screenshot));
     }
@@ -1186,7 +1186,7 @@ parse_get_assertions_response (SnapdRequest *request, guint code, SoupMessageHea
         snapd_request_complete (request, error);
         return;
     }
-  
+
     if (g_strcmp0 (content_type, "application/x.ubuntu.assertion") != 0) {
         GError *error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_READ_FAILED,
@@ -1277,7 +1277,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
         JsonNode *node = json_array_get_element (plugs, i);
         JsonObject *object;
         g_autoptr(GPtrArray) connections = NULL;
-        g_autoptr(GHashTable) attributes = NULL;      
+        g_autoptr(GHashTable) attributes = NULL;
         g_autoptr(SnapdPlug) plug = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
@@ -1313,7 +1313,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
         JsonNode *node = json_array_get_element (slots, i);
         JsonObject *object;
         g_autoptr(GPtrArray) connections = NULL;
-        g_autoptr(GHashTable) attributes = NULL;      
+        g_autoptr(GHashTable) attributes = NULL;
         g_autoptr(SnapdSlot) slot = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
@@ -1784,9 +1784,9 @@ parse_create_users_response (SnapdRequest *request, SoupMessageHeaders *headers,
         }
 
         user_information = parse_user_information (json_node_get_object (node), &error);
-        if (user_information == NULL) 
+        if (user_information == NULL)
         {
-            snapd_request_complete (request, error);          
+            snapd_request_complete (request, error);
             return;
         }
         g_ptr_array_add (users_information, user_information);
@@ -1928,7 +1928,7 @@ parse_run_snapctl_response (SnapdRequest *request, SoupMessageHeaders *headers, 
     request->stdout_output = g_strdup (get_string (result, "stdout", NULL));
     request->stderr_output = g_strdup (get_string (result, "stderr", NULL));
 
-    request->result = TRUE;  
+    request->result = TRUE;
     snapd_request_complete (request, NULL);
 }
 
@@ -2258,7 +2258,7 @@ snapd_client_connect_sync (SnapdClient *client,
                          error_local->message);
             g_clear_object (&priv->snapd_socket);
             return FALSE;
-        }      
+        }
     }
 
     if (priv->read_source == NULL) {
@@ -2266,7 +2266,7 @@ snapd_client_connect_sync (SnapdClient *client,
         g_source_set_callback (priv->read_source, (GSourceFunc) read_cb, client, NULL);
         g_source_attach (priv->read_source, NULL);
     }
-      
+
     return TRUE;
 }
 
@@ -2949,7 +2949,7 @@ snapd_client_add_assertions_sync (SnapdClient *client,
     g_autoptr(SnapdRequest) request = NULL;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (assertions != NULL, FALSE);  
+    g_return_val_if_fail (assertions != NULL, FALSE);
 
     request = g_object_ref (make_add_assertions_request (client, assertions, cancellable, NULL, NULL));
     snapd_request_wait (request);
@@ -4473,7 +4473,7 @@ make_create_user_request (SnapdClient *client,
         json_builder_set_member_name (builder, "sudoers");
         json_builder_add_boolean_value (builder, TRUE);
     }
-    if ((flags & SNAPD_CREATE_USER_FLAGS_KNOWN) != 0) {  
+    if ((flags & SNAPD_CREATE_USER_FLAGS_KNOWN) != 0) {
         json_builder_set_member_name (builder, "known");
         json_builder_add_boolean_value (builder, TRUE);
     }
@@ -5138,7 +5138,7 @@ make_snapctl_request (SnapdClient *client,
  * @context_id: context for this call.
  * @args: the arguments to pass to snapctl.
  * @stdout_output: (out) (allow-none): the location to write the stdout from the command or %NULL.
- * @stderr_output: (out) (allow-none): the location to write the stderr from the command or %NULL. * 
+ * @stderr_output: (out) (allow-none): the location to write the stderr from the command or %NULL.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
  *     to ignore.
@@ -5219,7 +5219,7 @@ snapd_client_run_snapctl_finish (SnapdClient *client, GAsyncResult *result,
     if (stdout_output)
         *stdout_output = g_steal_pointer (&request->stdout_output);
     if (stderr_output)
-        *stderr_output = g_steal_pointer (&request->stderr_output);  
+        *stderr_output = g_steal_pointer (&request->stderr_output);
 
     return request->result;
 }
