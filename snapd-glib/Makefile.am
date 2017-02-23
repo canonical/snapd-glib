@@ -28,7 +28,7 @@ source_h = \
 source_c = \
 	snapd-alias.c \
 	snapd-app.c \
-	snapd-assertion.c \        
+	snapd-assertion.c \
 	snapd-auth-data.c \
 	snapd-change.c \
 	snapd-client.c \
