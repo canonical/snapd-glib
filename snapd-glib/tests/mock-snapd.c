@@ -928,15 +928,136 @@ send_macaroon (MockSnapd *snapd, MockAccount *account)
     send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
 }
 
-static void
-handle_login (MockSnapd *snapd, const gchar *method, JsonNode *request)
+static gboolean
+parse_macaroon (const gchar *authorization, gchar **macaroon, gchar ***discharges)
 {
+    g_autofree gchar *scheme = NULL;
+    g_autofree gchar *m = NULL;
+    g_autoptr(GPtrArray) d = NULL;
+    const gchar *i, *start;
+
+    if (authorization == NULL)
+        return FALSE;
+
+    i = authorization;
+    while (isspace (*i)) i++;
+    start = i;
+    while (*i && !isspace (*i)) i++;
+    scheme = g_strndup (start, i - start);
+    if (strcmp (scheme, "Macaroon") != 0)
+        return FALSE;
+
+    d = g_ptr_array_new_with_free_func (g_free);
+    while (TRUE) {
+        g_autofree gchar *param_name = NULL;
+        g_autofree gchar *param_value = NULL;
+
+        while (isspace (*i)) i++;
+        if (*i == '\0')
+            break;
+
+        start = i;
+        while (*i && !(isspace (*i) || *i == '=')) i++;
+        param_name = g_strndup (start, i - start);
+        if (*i == '\0')
+            break;
+        i++;
+
+        while (isspace (*i)) i++;
+        if (*i == '\0')
+            break;
+        if (*i == '"') {
+            i++;
+            start = i;
+            while (*i && *i != '"') i++;
+            param_value = g_strndup (start, i - start);
+            i++;
+            while (isspace (*i)) i++;
+            while (*i && *i != ',') i++;
+        }
+        else {
+            start = i;
+            while (*i && *i != ',') i++;
+            param_value = g_strndup (start, i - start);
+        }
+
+        if (strcmp (param_name, "root") == 0) {
+             g_free (m);
+             m = g_steal_pointer (&param_value);
+        }
+        else if (strcmp (param_name, "discharge") == 0) {
+             g_ptr_array_add (d, g_steal_pointer (&param_value));
+        }
+
+        if (*i != ',')
+            break;
+        i++;
+    }
+    g_ptr_array_add (d, NULL);
+
+    if (m == NULL)
+        return FALSE;
+
+    *macaroon = g_steal_pointer (&m);
+    *discharges = (gchar **) d->pdata;
+    g_ptr_array_free (d, FALSE);
+    d = NULL;
+    return TRUE;
+}
+
+static MockAccount *
+get_account (MockSnapd *snapd, SoupMessageHeaders *headers)
+{
+    const gchar *authorization;
+    g_autofree gchar *macaroon = NULL;
+    g_auto(GStrv) discharges = NULL;
+
+    authorization = soup_message_headers_get_one (headers, "Authorization");
+    if (authorization == NULL)
+        return NULL;
+
+    if (!parse_macaroon (authorization, &macaroon, &discharges))
+        return NULL;
+
+    return find_account_by_macaroon (snapd, macaroon, discharges);
+}
+
+static JsonNode *
+get_json (SoupMessageHeaders *headers, SoupMessageBody *body)
+{
+    const gchar *content_type;
+    g_autoptr(JsonParser) parser = NULL;
+    g_autoptr(GError) error = NULL;
+
+    content_type = soup_message_headers_get_content_type (headers, NULL);
+    if (content_type == NULL)
+        return NULL;
+
+    parser = json_parser_new ();
+    if (!json_parser_load_from_data (parser, body->data, body->length, &error)) {
+        g_warning ("Failed to parse request: %s", error->message);      
+        return NULL;
+    }
+
+    return json_node_ref (json_parser_get_root (parser));
+}
+
+static void
+handle_login (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
+{
+    g_autoptr(JsonNode) request = NULL;
     JsonObject *o;
     const gchar *username, *password, *otp = NULL;
     MockAccount *account;
 
     if (strcmp (method, "POST") != 0) {
         send_error_method_not_allowed (snapd, "method not allowed");
+        return;
+    }
+
+    request = get_json (headers, body);
+    if (request == NULL) {
+        send_error_bad_request (snapd, "unknown content type", NULL);
         return;
     }
 
@@ -1116,8 +1237,12 @@ get_refreshable_snaps (MockSnapd *snapd)
 }
 
 static void
-handle_snaps (MockSnapd *snapd, const gchar *method, JsonNode *request)
+handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
+    const gchar *content_type;
+
+    content_type = soup_message_headers_get_content_type (headers, NULL);
+
     if (strcmp (method, "GET") == 0) {
         g_autoptr(JsonBuilder) builder = NULL;
         GList *link;
@@ -1132,9 +1257,16 @@ handle_snaps (MockSnapd *snapd, const gchar *method, JsonNode *request)
 
         send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
     }
-    else if (strcmp (method, "POST") == 0) {
+    else if (strcmp (method, "POST") == 0 && g_strcmp0 (content_type, "application/json") == 0) {
+        g_autoptr(JsonNode) request = NULL;
         JsonObject *o;
         const gchar *action;
+
+        request = get_json (headers, body);
+        if (request == NULL) {
+            send_error_bad_request (snapd, "unknown content type", NULL);
+            return;
+        }
 
         o = json_node_get_object (request);
         action = json_object_get_string_member (o, "action");
@@ -1172,7 +1304,7 @@ handle_snaps (MockSnapd *snapd, const gchar *method, JsonNode *request)
 }
 
 static void
-handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, JsonNode *request)
+handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     if (strcmp (method, "GET") == 0) {
         MockSnap *snap;
@@ -1184,8 +1316,15 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, JsonNode 
             send_error_not_found (snapd, "cannot find snap");
     }
     else if (strcmp (method, "POST") == 0) {
+        g_autoptr(JsonNode) request = NULL;
         JsonObject *o;
         const gchar *action, *channel = NULL;
+
+        request = get_json (headers, body);
+        if (request == NULL) {
+            send_error_bad_request (snapd, "unknown content type", NULL);
+            return;
+        }
 
         o = json_node_get_object (request);
         action = json_object_get_string_member (o, "action");
@@ -1337,7 +1476,7 @@ handle_icon (MockSnapd *snapd, const gchar *method, const gchar *path)
 }
 
 static void
-handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type, const guint8 *content, gsize content_length)
+handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type, SoupMessageBody *body)
 {
     if (strcmp (method, "GET") == 0) {
         g_autoptr(GString) response_content = NULL;
@@ -1368,7 +1507,7 @@ handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type, con
         send_response (snapd, 200, "OK", "application/x.ubuntu.assertion; bundle=y", (guint8*) response_content->str, response_content->len);
     }
     else if (strcmp (method, "POST") == 0) {
-        mock_snapd_add_assertion (snapd, g_strndup ((gchar *) content, content_length));
+        mock_snapd_add_assertion (snapd, g_strndup (body->data, body->length));
         send_sync_response (snapd, 200, "OK", NULL, NULL);
     }
     else {
@@ -1378,7 +1517,7 @@ handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type, con
 }
 
 static void
-handle_interfaces (MockSnapd *snapd, const gchar *method, JsonNode *request)
+handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     if (strcmp (method, "GET") == 0) {
         g_autoptr(JsonBuilder) builder = NULL;
@@ -1469,12 +1608,19 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, JsonNode *request)
         send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
     }
     else if (strcmp (method, "POST") == 0) {
+        g_autoptr(JsonNode) request = NULL;
         JsonObject *o;
         const gchar *action;
         JsonArray *a;
         int i;
         g_autoptr(GList) plugs = NULL;
         g_autoptr(GList) slots = NULL;
+
+        request = get_json (headers, body);
+        if (request == NULL) {
+            send_error_bad_request (snapd, "unknown content type", NULL);
+            return;
+        }
 
         o = json_node_get_object (request);
         action = json_object_get_string_member (o, "action");
@@ -1683,7 +1829,7 @@ in_section (MockSnap *snap, const gchar *section)
 }
 
 static void
-handle_find (MockSnapd *snapd, const gchar *method, MockAccount *account, const gchar *query)
+handle_find (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, const gchar *query)
 {
     const gchar *i;
     g_autofree gchar *query_param = NULL;
@@ -1767,6 +1913,9 @@ handle_find (MockSnapd *snapd, const gchar *method, MockAccount *account, const 
         return;
     }
     else if (g_strcmp0 (select_param, "private") == 0) {
+        MockAccount *account;
+
+        account = get_account (snapd, headers);
         if (account == NULL) {
             send_error_bad_request (snapd, "you need to log in first", "login-required");
             return;
@@ -1790,15 +1939,17 @@ handle_find (MockSnapd *snapd, const gchar *method, MockAccount *account, const 
 }
 
 static void
-handle_buy_ready (MockSnapd *snapd, const gchar *method, MockAccount *account)
+handle_buy_ready (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers)
 {
     JsonNode *result;
+    MockAccount *account;
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (snapd, "method not allowed");
         return;
     }
 
+    account = get_account (snapd, headers);
     if (account == NULL) {
         send_error_bad_request (snapd, "you need to log in first", "login-required");
         return;
@@ -1821,8 +1972,10 @@ handle_buy_ready (MockSnapd *snapd, const gchar *method, MockAccount *account)
 }
 
 static void
-handle_buy (MockSnapd *snapd, const gchar *method, MockAccount *account, JsonNode *request)
+handle_buy (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
+    MockAccount *account;
+    g_autoptr(JsonNode) request = NULL;
     JsonObject *o;
     const gchar *snap_id, *currency;
     gdouble price;
@@ -1834,6 +1987,7 @@ handle_buy (MockSnapd *snapd, const gchar *method, MockAccount *account, JsonNod
         return;
     }
 
+    account = get_account (snapd, headers);
     if (account == NULL) {
         send_error_bad_request (snapd, "you need to log in first", "login-required");
         return;
@@ -1846,6 +2000,12 @@ handle_buy (MockSnapd *snapd, const gchar *method, MockAccount *account, JsonNod
 
     if (!account->has_payment_methods) {
         send_error_bad_request (snapd, "no payment methods", "no-payment-methods");
+        return;
+    }
+
+    request = get_json (headers, body);
+    if (request == NULL) {
+        send_error_bad_request (snapd, "unknown content type", NULL);
         return;
     }
 
@@ -1894,7 +2054,7 @@ handle_sections (MockSnapd *snapd, const gchar *method)
 }
 
 static void
-handle_aliases (MockSnapd *snapd, const gchar *method, JsonNode *request)
+handle_aliases (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     if (strcmp (method, "GET") == 0) {
         g_autoptr(JsonBuilder) builder = NULL;
@@ -1939,13 +2099,20 @@ handle_aliases (MockSnapd *snapd, const gchar *method, JsonNode *request)
         send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
     }
     else if (strcmp (method, "POST") == 0) {
+        g_autoptr(JsonNode) request = NULL;
         JsonObject *o;
         MockSnap *snap;
         const gchar *action;
         const gchar *status;
         JsonArray *aliases;
         int i;
-        MockChange *change;     
+        MockChange *change;
+
+        request = get_json (headers, body);
+        if (request == NULL) {
+            send_error_bad_request (snapd, "unknown content type", NULL);
+            return;
+        }
 
         o = json_node_get_object (request);
         snap = mock_snapd_find_snap (snapd, json_object_get_string_member (o, "snap"));
@@ -1987,8 +2154,9 @@ handle_aliases (MockSnapd *snapd, const gchar *method, JsonNode *request)
 }
 
 static void
-handle_snapctl (MockSnapd *snapd, const gchar *method, JsonNode *request)
+handle_snapctl (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
+    g_autoptr(JsonNode) request = NULL;
     JsonObject *o;
     const gchar *context_id;
     JsonArray *args;
@@ -1998,6 +2166,12 @@ handle_snapctl (MockSnapd *snapd, const gchar *method, JsonNode *request)
 
     if (strcmp (method, "POST") != 0) {
         send_error_method_not_allowed (snapd, "method not allowed");
+        return;
+    }
+
+    request = get_json (headers, body);
+    if (request == NULL) {
+        send_error_bad_request (snapd, "unknown content type", NULL);
         return;
     }
 
@@ -2023,143 +2197,41 @@ handle_snapctl (MockSnapd *snapd, const gchar *method, JsonNode *request)
     send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
 }
 
-static gboolean
-parse_macaroon (const gchar *authorization, gchar **macaroon, gchar ***discharges)
-{
-    g_autofree gchar *scheme = NULL;
-    g_autofree gchar *m = NULL;
-    g_autoptr(GPtrArray) d = NULL;
-    const gchar *i, *start;
-
-    if (authorization == NULL)
-        return FALSE;
-
-    i = authorization;
-    while (isspace (*i)) i++;
-    start = i;
-    while (*i && !isspace (*i)) i++;
-    scheme = g_strndup (start, i - start);
-    if (strcmp (scheme, "Macaroon") != 0)
-        return FALSE;
-
-    d = g_ptr_array_new_with_free_func (g_free);
-    while (TRUE) {
-        g_autofree gchar *param_name = NULL;
-        g_autofree gchar *param_value = NULL;
-
-        while (isspace (*i)) i++;
-        if (*i == '\0')
-            break;
-
-        start = i;
-        while (*i && !(isspace (*i) || *i == '=')) i++;
-        param_name = g_strndup (start, i - start);
-        if (*i == '\0')
-            break;
-        i++;
-
-        while (isspace (*i)) i++;
-        if (*i == '\0')
-            break;
-        if (*i == '"') {
-            i++;
-            start = i;
-            while (*i && *i != '"') i++;
-            param_value = g_strndup (start, i - start);
-            i++;
-            while (isspace (*i)) i++;
-            while (*i && *i != ',') i++;
-        }
-        else {
-            start = i;
-            while (*i && *i != ',') i++;
-            param_value = g_strndup (start, i - start);
-        }
-
-        if (strcmp (param_name, "root") == 0) {
-             g_free (m);
-             m = g_steal_pointer (&param_value);
-        }
-        else if (strcmp (param_name, "discharge") == 0) {
-             g_ptr_array_add (d, g_steal_pointer (&param_value));
-        }
-
-        if (*i != ',')
-            break;
-        i++;
-    }
-    g_ptr_array_add (d, NULL);
-
-    if (m == NULL)
-        return FALSE;
-
-    *macaroon = g_steal_pointer (&m);
-    *discharges = (gchar **) d->pdata;
-    g_ptr_array_free (d, FALSE);
-    d = NULL;
-    return TRUE;
-}
-
 static void
-handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMessageHeaders *headers, const guint8 *content, gsize content_length)
+handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
-    const gchar *content_type, *authorization;
-    g_autoptr(JsonNode) json_content = NULL;
-    MockAccount *account = NULL;
-
-    content_type = soup_message_headers_get_content_type (headers, NULL);
-    if (g_strcmp0 (content_type, "application/json") == 0) {
-        g_autoptr(JsonParser) parser = NULL;
-        g_autoptr(GError) error = NULL;
-
-        parser = json_parser_new ();
-        if (json_parser_load_from_data (parser, (const gchar *) content, content_length, &error))
-            json_content = json_node_ref (json_parser_get_root (parser));
-        else
-            g_warning ("Failed to parse request: %s", error->message);
-    }
-
-    authorization = soup_message_headers_get_one (headers, "Authorization");
-    if (authorization != NULL) {
-        g_autofree gchar *macaroon = NULL;
-        g_auto(GStrv) discharges = NULL;
-
-        if (parse_macaroon (authorization, &macaroon, &discharges))
-            account = find_account_by_macaroon (snapd, macaroon, discharges);
-    }
-
     if (strcmp (path, "/v2/system-info") == 0)
         handle_system_info (snapd, method);
     else if (strcmp (path, "/v2/login") == 0)
-        handle_login (snapd, method, json_content);
+        handle_login (snapd, method, headers, body);
     else if (strcmp (path, "/v2/snaps") == 0)
-        handle_snaps (snapd, method, json_content);
+        handle_snaps (snapd, method, headers, body);
     else if (g_str_has_prefix (path, "/v2/snaps/"))
-        handle_snap (snapd, method, path + strlen ("/v2/snaps/"), json_content);
+        handle_snap (snapd, method, path + strlen ("/v2/snaps/"), headers, body);
     else if (g_str_has_prefix (path, "/v2/icons/"))
         handle_icon (snapd, method, path + strlen ("/v2/icons/"));
     else if (strcmp (path, "/v2/assertions") == 0)
-        handle_assertions (snapd, method, NULL, content, content_length);
+        handle_assertions (snapd, method, NULL, body);
     else if (g_str_has_prefix (path, "/v2/assertions/"))
-        handle_assertions (snapd, method, path + strlen ("/v2/assertions/"), NULL, 0);
+        handle_assertions (snapd, method, path + strlen ("/v2/assertions/"), NULL);
     else if (strcmp (path, "/v2/interfaces") == 0)
-        handle_interfaces (snapd, method, json_content);
+        handle_interfaces (snapd, method, headers, body);
     else if (g_str_has_prefix (path, "/v2/changes/"))
         handle_changes (snapd, method, path + strlen ("/v2/changes/"));
     else if (strcmp (path, "/v2/find") == 0)
-        handle_find (snapd, method, account, "");
+        handle_find (snapd, method, headers, "");
     else if (g_str_has_prefix (path, "/v2/find?"))
-        handle_find (snapd, method, account, path + strlen ("/v2/find?"));
+        handle_find (snapd, method, headers, path + strlen ("/v2/find?"));
     else if (strcmp (path, "/v2/buy/ready") == 0)
-        handle_buy_ready (snapd, method, account);
+        handle_buy_ready (snapd, method, headers);
     else if (strcmp (path, "/v2/buy") == 0)
-        handle_buy (snapd, method, account, json_content);
+        handle_buy (snapd, method, headers, body);
     else if (strcmp (path, "/v2/sections") == 0)
         handle_sections (snapd, method);
     else if (strcmp (path, "/v2/aliases") == 0)
-        handle_aliases (snapd, method, json_content);
+        handle_aliases (snapd, method, headers, body);
     else if (strcmp (path, "/v2/snapctl") == 0)
-        handle_snapctl (snapd, method, json_content);
+        handle_snapctl (snapd, method, headers, body);
     else
         send_error_not_found (snapd, "not found");
 }
@@ -2173,19 +2245,21 @@ read_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
         return G_SOURCE_REMOVE;
 
     while (TRUE) {
-        guint8 *body;
+        guint8 *body_data;
         gsize header_length;
         g_autoptr(SoupMessageHeaders) headers = NULL;
+        g_autoptr(SoupMessageBody) body = NULL;
+        g_autoptr(SoupBuffer) buffer = NULL;
         g_autofree gchar *method = NULL;
         g_autofree gchar *path = NULL;
         goffset content_length;
 
         /* Look for header divider */
-        body = (guint8 *) g_strstr_len ((gchar *) snapd->buffer->data, snapd->n_read, "\r\n\r\n");
-        if (body == NULL)
+        body_data = (guint8 *) g_strstr_len ((gchar *) snapd->buffer->data, snapd->n_read, "\r\n\r\n");
+        if (body_data == NULL)
             return G_SOURCE_CONTINUE;
-        body += 4;
-        header_length = body - (guint8 *) snapd->buffer->data;
+        body_data += 4;
+        header_length = body_data - (guint8 *) snapd->buffer->data;
 
         /* Parse headers */
         headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
@@ -2199,7 +2273,11 @@ read_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
         if (snapd->n_read < header_length + content_length)
             return G_SOURCE_CONTINUE;
 
-        handle_request (snapd, method, path, headers, body, content_length);
+        body = soup_message_body_new ();
+        soup_message_body_append (body, SOUP_MEMORY_COPY, body_data, content_length);
+        buffer = soup_message_body_flatten (body);
+
+        handle_request (snapd, method, path, headers, body);
 
         /* Move remaining data to the start of the buffer */
         g_byte_array_remove_range (snapd->buffer, 0, header_length + content_length);
