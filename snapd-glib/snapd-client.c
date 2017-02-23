@@ -1580,18 +1580,6 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 }
 
 static void
-parse_connect_interface_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
-parse_disconnect_interface_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
 parse_login_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
@@ -1711,42 +1699,6 @@ parse_buy_response (SnapdRequest *request, SoupMessageHeaders *headers, const gc
 
     request->result = TRUE;
     snapd_request_complete (request, NULL);
-}
-
-static void
-parse_install_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
-parse_refresh_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
-parse_refresh_all_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
-parse_remove_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
-parse_enable_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
-parse_disable_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
 }
 
 static SnapdUserInformation *
@@ -1961,24 +1913,6 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
 }
 
 static void
-parse_enable_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
-parse_disable_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
-parse_reset_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
-{
-    parse_async_response (request, headers, content, content_length);
-}
-
-static void
 parse_run_snapctl_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
@@ -2049,12 +1983,6 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_GET_INTERFACES:
         parse_get_interfaces_response (request, headers, content, content_length);
         break;
-    case SNAPD_REQUEST_CONNECT_INTERFACE:
-        parse_connect_interface_response (request, headers, content, content_length);
-        break;
-    case SNAPD_REQUEST_DISCONNECT_INTERFACE:
-        parse_disconnect_interface_response (request, headers, content, content_length);
-        break;
     case SNAPD_REQUEST_LOGIN:
         parse_login_response (request, headers, content, content_length);
         break;
@@ -2070,24 +1998,6 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_BUY:
         parse_buy_response (request, headers, content, content_length);
         break;
-    case SNAPD_REQUEST_INSTALL:
-        parse_install_response (request, headers, content, content_length);
-        break;
-    case SNAPD_REQUEST_REFRESH:
-        parse_refresh_response (request, headers, content, content_length);
-        break;
-    case SNAPD_REQUEST_REFRESH_ALL:
-        parse_refresh_all_response (request, headers, content, content_length);
-        break;
-    case SNAPD_REQUEST_REMOVE:
-        parse_remove_response (request, headers, content, content_length);
-        break;
-    case SNAPD_REQUEST_ENABLE:
-        parse_enable_response (request, headers, content, content_length);
-        break;
-    case SNAPD_REQUEST_DISABLE:
-        parse_disable_response (request, headers, content, content_length);
-        break;
     case SNAPD_REQUEST_CREATE_USER:
         parse_create_user_response (request, headers, content, content_length);
         break;
@@ -2100,18 +2010,22 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_GET_ALIASES:
         parse_get_aliases_response (request, headers, content, content_length);
         break;
-    case SNAPD_REQUEST_ENABLE_ALIASES:
-        parse_enable_aliases_response (request, headers, content, content_length);
-        break;
-    case SNAPD_REQUEST_DISABLE_ALIASES:
-        parse_disable_aliases_response (request, headers, content, content_length);
-        break;
-    case SNAPD_REQUEST_RESET_ALIASES:
-        parse_reset_aliases_response (request, headers, content, content_length);
-        break;
     case SNAPD_REQUEST_RUN_SNAPCTL:
         parse_run_snapctl_response (request, headers, content, content_length);
-        break;      
+        break;
+    case SNAPD_REQUEST_CONNECT_INTERFACE:
+    case SNAPD_REQUEST_DISCONNECT_INTERFACE:
+    case SNAPD_REQUEST_INSTALL:
+    case SNAPD_REQUEST_REFRESH:
+    case SNAPD_REQUEST_REFRESH_ALL:
+    case SNAPD_REQUEST_REMOVE:
+    case SNAPD_REQUEST_ENABLE:
+    case SNAPD_REQUEST_DISABLE:
+    case SNAPD_REQUEST_ENABLE_ALIASES:
+    case SNAPD_REQUEST_DISABLE_ALIASES:
+    case SNAPD_REQUEST_RESET_ALIASES:
+        parse_async_response (request, headers, content, content_length);
+        break;
     default:
         error = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_FAILED,
