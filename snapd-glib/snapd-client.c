@@ -270,25 +270,22 @@ snapd_request_init (SnapdRequest *request)
 {
 }
 
-static gchar *
-builder_to_string (JsonBuilder *builder)
+static void
+append_string (GByteArray *array, const gchar *value)
 {
-    g_autoptr(JsonNode) json_root = NULL;
-    g_autoptr(JsonGenerator) json_generator = NULL;
-
-    json_root = json_builder_get_root (builder);
-    json_generator = json_generator_new ();
-    json_generator_set_pretty (json_generator, TRUE);
-    json_generator_set_root (json_generator, json_root);
-    return json_generator_to_data (json_generator, NULL);
+    g_byte_array_append (array, (const guint8 *) value, strlen (value));
 }
 
 static void
-send_request (SnapdRequest *request, gboolean authorize, const gchar *method, const gchar *path, const gchar *content_type, const gchar *content)
+send_request (SnapdRequest *request,
+              gboolean authorize,
+              const gchar *method, const gchar *path,
+              const gchar *content_type, GHashTable *content_type_params,
+              const guint8 *content, gsize content_length)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
     g_autoptr(SoupMessageHeaders) headers = NULL;
-    g_autoptr(GString) request_data = NULL;
+    g_autoptr(GByteArray) request_data = NULL;
     SoupMessageHeadersIter iter;
     const char *name, *value;
     gssize n_written;
@@ -301,9 +298,9 @@ send_request (SnapdRequest *request, gboolean authorize, const gchar *method, co
     soup_message_headers_append (headers, "Host", "");
     soup_message_headers_append (headers, "Connection", "keep-alive");
     if (content_type)
-        soup_message_headers_set_content_type (headers, content_type, NULL);
-    if (content)
-        soup_message_headers_set_content_length (headers, strlen (content));
+        soup_message_headers_set_content_type (headers, content_type, content_type_params);
+    if (content_length > 0)
+        soup_message_headers_set_content_length (headers, content_length);
     if (authorize && request->auth_data != NULL) {
         g_autoptr(GString) authorization = NULL;
         gchar **discharges;
@@ -318,14 +315,21 @@ send_request (SnapdRequest *request, gboolean authorize, const gchar *method, co
         soup_message_headers_append (headers, "Authorization", authorization->str);
     }
 
-    request_data = g_string_new ("");
-    g_string_append_printf (request_data, "%s %s HTTP/1.1\r\n", method, path);
+    request_data = g_byte_array_new ();
+    append_string (request_data, method);
+    append_string (request_data, " ");
+    append_string (request_data, path);
+    append_string (request_data, " HTTP/1.1\r\n");
     soup_message_headers_iter_init (&iter, headers);
-    while (soup_message_headers_iter_next (&iter, &name, &value))
-        g_string_append_printf (request_data, "%s: %s\r\n", name, value);
-    g_string_append (request_data, "\r\n");
-    if (content)
-        g_string_append (request_data, content);
+    while (soup_message_headers_iter_next (&iter, &name, &value)) {
+        append_string (request_data, name);
+        append_string (request_data, ": ");
+        append_string (request_data, value);
+        append_string (request_data, "\r\n");
+    }
+    append_string (request_data, "\r\n");
+    if (content_length > 0)
+        g_byte_array_append (request_data, content, content_length);
 
     if (priv->snapd_socket == NULL) {
         GError *error = g_error_new (SNAPD_ERROR,
@@ -337,7 +341,7 @@ send_request (SnapdRequest *request, gboolean authorize, const gchar *method, co
 
     /* send HTTP request */
     // FIXME: Check for short writes
-    n_written = g_socket_send (priv->snapd_socket, request_data->str, request_data->len, request->cancellable, &local_error);
+    n_written = g_socket_send (priv->snapd_socket, (const gchar *) request_data->data, request_data->len, request->cancellable, &local_error);
     if (n_written < 0) {
         GError *error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_WRITE_FAILED,
@@ -345,6 +349,28 @@ send_request (SnapdRequest *request, gboolean authorize, const gchar *method, co
                                      local_error->message);
         snapd_request_complete (request, error);
     }
+}
+
+static void
+send_empty_request (SnapdRequest *request, gboolean authorize, const gchar *method, const gchar *path)
+{
+    send_request (request, authorize, method, path, NULL, NULL, NULL, 0);
+}
+
+static void
+send_json_request (SnapdRequest *request, gboolean authorize, const gchar *method, const gchar *path, JsonBuilder *builder)
+{
+    g_autoptr(JsonNode) json_root = NULL;
+    g_autoptr(JsonGenerator) json_generator = NULL;
+    g_autofree gchar *data = NULL;
+
+    json_root = json_builder_get_root (builder);
+    json_generator = json_generator_new ();
+    json_generator_set_pretty (json_generator, TRUE);
+    json_generator_set_root (json_generator, json_root);
+    data = json_generator_to_data (json_generator, NULL);
+
+    send_request (request, authorize, method, path, "application/json", NULL, (const guint8 *) data, strlen (data));
 }
 
 static gboolean
@@ -1357,7 +1383,7 @@ async_poll_cb (gpointer data)
     g_autofree gchar *path = NULL;
 
     path = g_strdup_printf ("/v2/changes/%s", request->change_id);
-    send_request (request, TRUE, "GET", path, NULL, NULL);
+    send_empty_request (request, TRUE, "GET", path);
 
     request->poll_timer = 0;
     return G_SOURCE_REMOVE;
@@ -2342,7 +2368,6 @@ make_login_request (SnapdClient *client,
 {
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
-    g_autofree gchar *data = NULL;
 
     request = make_request (client, SNAPD_REQUEST_LOGIN, NULL, NULL, cancellable, callback, user_data);
 
@@ -2357,9 +2382,8 @@ make_login_request (SnapdClient *client,
         json_builder_add_string_value (builder, otp);
     }
     json_builder_end_object (builder);
-    data = builder_to_string (builder);
 
-    send_request (request, FALSE, "POST", "/v2/login", "application/json", data);
+    send_json_request (request, FALSE, "POST", "/v2/login", builder);
 
     return request;
 }
@@ -2497,7 +2521,7 @@ make_get_system_information_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_GET_SYSTEM_INFORMATION, NULL, NULL, cancellable, callback, user_data);
-    send_request (request, TRUE, "GET", "/v2/system-info", NULL, NULL);
+    send_empty_request (request, TRUE, "GET", "/v2/system-info");
 
     return request;
 }
@@ -2582,7 +2606,7 @@ make_list_one_request (SnapdClient *client,
     request = make_request (client, SNAPD_REQUEST_LIST_ONE, NULL, NULL, cancellable, callback, user_data);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    send_request (request, TRUE, "GET", path, NULL, NULL);
+    send_empty_request (request, TRUE, "GET", path);
 
     return request;
 }
@@ -2670,7 +2694,7 @@ make_get_icon_request (SnapdClient *client,
     request = make_request (client, SNAPD_REQUEST_GET_ICON, NULL, NULL, cancellable, callback, user_data);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/icons/%s/icon", escaped);
-    send_request (request, TRUE, "GET", path, NULL, NULL);
+    send_empty_request (request, TRUE, "GET", path);
 
     return request;
 }
@@ -2754,7 +2778,7 @@ make_list_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_LIST, NULL, NULL, cancellable, callback, user_data);
-    send_request (request, TRUE, "GET", "/v2/snaps", NULL, NULL);
+    send_empty_request (request, TRUE, "GET", "/v2/snaps");
 
     return request;
 }
@@ -2838,7 +2862,7 @@ make_get_assertions_request (SnapdClient *client,
     request = make_request (client, SNAPD_REQUEST_GET_ASSERTIONS, NULL, NULL, cancellable, callback, user_data);
     escaped = soup_uri_encode (type, NULL);
     path = g_strdup_printf ("/v2/assertions/%s", escaped);
-    send_request (request, TRUE, "GET", path, NULL, NULL);
+    send_empty_request (request, TRUE, "GET", path);
 
     return request;
 }
@@ -2925,7 +2949,7 @@ make_add_assertions_request (SnapdClient *client,
 
     request = make_request (client, SNAPD_REQUEST_ADD_ASSERTIONS, NULL, NULL, cancellable, callback, user_data);
     content = g_strjoinv ("\n\n", assertions);
-    send_request (request, TRUE, "POST", "/v2/assertions", "application/x.ubuntu.assertion", content);
+    send_request (request, TRUE, "POST", "/v2/assertions", "application/x.ubuntu.assertion", NULL, (const guint8 *) content, strlen (content));
 
     return request;
 }
@@ -3011,7 +3035,7 @@ make_get_interfaces_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_GET_INTERFACES, NULL, NULL, cancellable, callback, user_data);
-    send_request (request, TRUE, "GET", "/v2/interfaces", NULL, NULL);
+    send_empty_request (request, TRUE, "GET", "/v2/interfaces");
 
     return request;
 }
@@ -3106,7 +3130,6 @@ make_interface_request (SnapdClient *client,
 {
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
-    g_autofree gchar *data = NULL;
 
     request = make_request (client, request_type, progress_callback, progress_callback_data, cancellable, callback, user_data);
 
@@ -3133,9 +3156,8 @@ make_interface_request (SnapdClient *client,
     json_builder_end_object (builder);
     json_builder_end_array (builder);
     json_builder_end_object (builder);
-    data = builder_to_string (builder);
 
-    send_request (request, TRUE, "POST", "/v2/interfaces", "application/json", data);
+    send_json_request (request, TRUE, "POST", "/v2/interfaces", builder);
 
     return request;
 }
@@ -3387,7 +3409,7 @@ make_find_request (SnapdClient *client,
         }
     }
 
-    send_request (request, TRUE, "GET", path->str, NULL, NULL);
+    send_empty_request (request, TRUE, "GET", path->str);
 
     return request;
 }
@@ -3541,7 +3563,7 @@ make_find_refreshable_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_FIND_REFRESHABLE, NULL, NULL, cancellable, callback, user_data);
-    send_request (request, TRUE, "GET", "/v2/find?select=refresh", NULL, NULL);
+    send_empty_request (request, TRUE, "GET", "/v2/find?select=refresh");
 
     return request;
 }
@@ -3615,24 +3637,6 @@ snapd_client_find_refreshable_finish (SnapdClient *client, GAsyncResult *result,
     return g_steal_pointer (&request->snaps);
 }
 
-static gchar *
-make_action_data (const gchar *action, const gchar *channel)
-{
-    g_autoptr(JsonBuilder) builder = NULL;
-
-    builder = json_builder_new ();
-    json_builder_begin_object (builder);
-    json_builder_set_member_name (builder, "action");
-    json_builder_add_string_value (builder, action);
-    if (channel != NULL) {
-        json_builder_set_member_name (builder, "channel");
-        json_builder_add_string_value (builder, channel);
-    }
-    json_builder_end_object (builder);
-
-    return builder_to_string (builder);
-}
-
 static SnapdRequest *
 make_install_request (SnapdClient *client,
                       const gchar *name, const gchar *channel,
@@ -3640,14 +3644,23 @@ make_install_request (SnapdClient *client,
                       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
-    g_autofree gchar *data = NULL;
+    g_autoptr(JsonBuilder) builder = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
     request = make_request (client, SNAPD_REQUEST_INSTALL, progress_callback, progress_callback_data, cancellable, callback, user_data);
-    data = make_action_data ("install", channel);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "action");
+    json_builder_add_string_value (builder, "install");
+    if (channel != NULL) {
+        json_builder_set_member_name (builder, "channel");
+        json_builder_add_string_value (builder, channel);
+    }
+    json_builder_end_object (builder);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    send_request (request, TRUE, "POST", path, "application/json", data);
+    send_json_request (request, TRUE, "POST", path, builder);
 
     return request;
 }
@@ -3741,14 +3754,23 @@ make_refresh_request (SnapdClient *client,
                       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
-    g_autofree gchar *data = NULL;
+    g_autoptr(JsonBuilder) builder = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
     request = make_request (client, SNAPD_REQUEST_REFRESH, progress_callback, progress_callback_data, cancellable, callback, user_data);
-    data = make_action_data ("refresh", channel);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "action");
+    json_builder_add_string_value (builder, "refresh");
+    if (channel != NULL) {
+        json_builder_set_member_name (builder, "channel");
+        json_builder_add_string_value (builder, channel);
+    }
+    json_builder_end_object (builder);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    send_request (request, TRUE, "POST", path, "application/json", data);
+    send_json_request (request, TRUE, "POST", path, builder);
 
     return request;
 }
@@ -3842,11 +3864,16 @@ make_refresh_all_request (SnapdClient *client,
                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
-    g_autofree gchar *data = NULL;
+    g_autoptr(JsonBuilder) builder = NULL;
 
     request = make_request (client, SNAPD_REQUEST_REFRESH_ALL, progress_callback, progress_callback_data, cancellable, callback, user_data);
-    data = make_action_data ("refresh", NULL);
-    send_request (request, TRUE, "POST", "/v2/snaps", "application/json", data);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "action");
+    json_builder_add_string_value (builder, "refresh");
+    json_builder_end_object (builder);
+    send_json_request (request, TRUE, "POST", "/v2/snaps", builder);
 
     return request;
 }
@@ -3968,14 +3995,19 @@ make_remove_request (SnapdClient *client,
                      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
-    g_autofree gchar *data = NULL;
+    g_autoptr(JsonBuilder) builder = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
     request = make_request (client, SNAPD_REQUEST_REMOVE, progress_callback, progress_callback_data, cancellable, callback, user_data);
-    data = make_action_data ("remove", NULL);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "action");
+    json_builder_add_string_value (builder, "remove");
+    json_builder_end_object (builder);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    send_request (request, TRUE, "POST", path, "application/json", data);
+    send_json_request (request, TRUE, "POST", path, builder);
 
     return request;
 }
@@ -4067,14 +4099,19 @@ make_enable_request (SnapdClient *client,
                      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
-    g_autofree gchar *data = NULL;
+    g_autoptr(JsonBuilder) builder = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
     request = make_request (client, SNAPD_REQUEST_ENABLE, progress_callback, progress_callback_data, cancellable, callback, user_data);
-    data = make_action_data ("enable", NULL);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "action");
+    json_builder_add_string_value (builder, "enable");
+    json_builder_end_object (builder);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    send_request (request, TRUE, "POST", path, "application/json", data);
+    send_json_request (request, TRUE, "POST", path, builder);
 
     return request;
 }
@@ -4167,14 +4204,19 @@ make_disable_request (SnapdClient *client,
                       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
-    g_autofree gchar *data = NULL;
+    g_autoptr(JsonBuilder) builder = NULL;
     g_autofree gchar *escaped = NULL, *path = NULL;
 
     request = make_request (client, SNAPD_REQUEST_DISABLE, progress_callback, progress_callback_data, cancellable, callback, user_data);
-    data = make_action_data ("disable", NULL);
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "action");
+    json_builder_add_string_value (builder, "disable");
+    json_builder_end_object (builder);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    send_request (request, TRUE, "POST", path, "application/json", data);
+    send_json_request (request, TRUE, "POST", path, builder);
 
     return request;
 }
@@ -4271,7 +4313,7 @@ make_check_buy_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_CHECK_BUY, NULL, NULL, cancellable, callback, user_data);
-    send_request (request, TRUE, "GET", "/v2/buy/ready", NULL, NULL);
+    send_empty_request (request, TRUE, "GET", "/v2/buy/ready");
 
     return request;
 }
@@ -4352,7 +4394,6 @@ make_buy_request (SnapdClient *client,
 {
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
-    g_autofree gchar *data = NULL;
 
     request = make_request (client, SNAPD_REQUEST_BUY, NULL, NULL, cancellable, callback, user_data);
 
@@ -4365,9 +4406,8 @@ make_buy_request (SnapdClient *client,
     json_builder_set_member_name (builder, "currency");
     json_builder_add_string_value (builder, currency);
     json_builder_end_object (builder);
-    data = builder_to_string (builder);
 
-    send_request (request, TRUE, "POST", "/v2/buy", "application/json", data);
+    send_json_request (request, TRUE, "POST", "/v2/buy", builder);
 
     return request;
 }
@@ -4461,7 +4501,6 @@ make_create_user_request (SnapdClient *client,
 {
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
-    g_autofree gchar *data = NULL;
 
     request = make_request (client, SNAPD_REQUEST_CREATE_USER, NULL, NULL, cancellable, callback, user_data);
 
@@ -4478,9 +4517,8 @@ make_create_user_request (SnapdClient *client,
         json_builder_add_boolean_value (builder, TRUE);
     }
     json_builder_end_object (builder);
-    data = builder_to_string (builder);
 
-    send_request (request, TRUE, "POST", "/v2/create-user", "application/json", data);
+    send_json_request (request, TRUE, "POST", "/v2/create-user", builder);
 
     return request;
 }
@@ -4568,7 +4606,6 @@ make_create_users_request (SnapdClient *client,
 {
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
-    g_autofree gchar *data = NULL;
 
     request = make_request (client, SNAPD_REQUEST_CREATE_USER, NULL, NULL, cancellable, callback, user_data);
 
@@ -4577,9 +4614,8 @@ make_create_users_request (SnapdClient *client,
     json_builder_set_member_name (builder, "known");
     json_builder_add_boolean_value (builder, TRUE);
     json_builder_end_object (builder);
-    data = builder_to_string (builder);
 
-    send_request (request, TRUE, "POST", "/v2/create-user", "application/json", data);
+    send_json_request (request, TRUE, "POST", "/v2/create-user", builder);
 
     return request;
 }
@@ -4660,7 +4696,7 @@ make_get_sections_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_GET_SECTIONS, NULL, NULL, cancellable, callback, user_data);
-    send_request (request, TRUE, "GET", "/v2/sections", NULL, NULL);
+    send_empty_request (request, TRUE, "GET", "/v2/sections");
 
     return request;
 }
@@ -4741,7 +4777,7 @@ make_get_aliases_request (SnapdClient *client,
     SnapdRequest *request;
 
     request = make_request (client, SNAPD_REQUEST_GET_ALIASES, NULL, NULL, cancellable, callback, user_data);
-    send_request (request, TRUE, "GET", "/v2/aliases", NULL, NULL);
+    send_empty_request (request, TRUE, "GET", "/v2/aliases");
 
     return request;
 }
@@ -4825,7 +4861,6 @@ make_change_aliases_request (SnapdClient *client,
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
     int i;
-    g_autofree gchar *data = NULL;
 
     request = make_request (client, request_type, progress_callback, progress_callback_data, cancellable, callback, user_data);
 
@@ -4841,9 +4876,8 @@ make_change_aliases_request (SnapdClient *client,
         json_builder_add_string_value (builder, aliases[i]);
     json_builder_end_array (builder);
     json_builder_end_object (builder);
-    data = builder_to_string (builder);
 
-    send_request (request, TRUE, "POST", "/v2/aliases", "application/json", data);
+    send_json_request (request, TRUE, "POST", "/v2/aliases", builder);
 
     return request;
 }
@@ -5111,7 +5145,6 @@ make_snapctl_request (SnapdClient *client,
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
     int i;
-    g_autofree gchar *data = NULL;
 
     request = make_request (client, SNAPD_REQUEST_RUN_SNAPCTL, NULL, NULL, cancellable, callback, user_data);
 
@@ -5125,9 +5158,8 @@ make_snapctl_request (SnapdClient *client,
         json_builder_add_string_value (builder, args[i]);
     json_builder_end_array (builder);
     json_builder_end_object (builder);
-    data = builder_to_string (builder);
 
-    send_request (request, TRUE, "POST", "/v2/snapctl", "application/json", data);
+    send_json_request (request, TRUE, "POST", "/v2/snapctl", builder);
 
     return request;
 }
