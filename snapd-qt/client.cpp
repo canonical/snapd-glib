@@ -1053,6 +1053,59 @@ const QString QSnapdFindRequest::suggestedCurrency () const
     return d->suggestedCurrency;
 }
 
+QSnapdFindRefreshableRequest::QSnapdFindRefreshableRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdFindRefreshableRequestPrivate ()) {}
+
+void QSnapdFindRefreshableRequest::runSync ()
+{
+    Q_D(QSnapdFindRefreshableRequest);
+    g_autoptr(GError) error = NULL;
+    g_autofree gchar *suggested_currency = NULL;
+    d->snaps = snapd_client_find_refreshable_sync (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdFindRefreshableRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GPtrArray) snaps = NULL;
+    g_autofree gchar *suggested_currency = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snaps = snapd_client_find_refreshable_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    Q_D(QSnapdFindRefreshableRequest);
+    d->snaps = (GPtrArray*) g_steal_pointer (&snaps);
+    finish (error);
+}
+
+static void find_refreshable_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdFindRefreshableRequest *request = static_cast<QSnapdFindRefreshableRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdFindRefreshableRequest::runAsync ()
+{
+    snapd_client_find_refreshable_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), find_refreshable_ready_cb, (gpointer) this);
+}
+
+int QSnapdFindRefreshableRequest::snapCount () const
+{
+    Q_D(const QSnapdFindRefreshableRequest);
+    return d->snaps != NULL ? d->snaps->len : 0;
+}
+
+QSnapdSnap *QSnapdFindRefreshableRequest::snap (int n) const
+{
+    Q_D(const QSnapdFindRefreshableRequest);
+    if (d->snaps == NULL || n < 0 || (guint) n >= d->snaps->len)
+        return NULL;
+    return new QSnapdSnap (d->snaps->pdata[n]);
+}
+
 QSnapdInstallRequest::QSnapdInstallRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
     d_ptr (new QSnapdInstallRequestPrivate (name, channel)) {}
