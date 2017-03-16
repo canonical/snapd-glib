@@ -42,7 +42,7 @@ AC_ARG_ENABLE(snapd-qt,
 	[enable_snapd_qt="auto"])
 compile_snapd_qt=no
 if test x"$enable_snapd_qt" != "xno"; then
-    PKG_CHECK_MODULES(SNAPD_QT, [Qt5Core],
+    PKG_CHECK_MODULES(SNAPD_QT, [Qt5Core Qt5Network],
     [compile_snapd_qt=yes
      AC_CHECK_TOOLS(MOC5, [moc])
      if test x"$(readlink $(which $MOC5))" = xqtchooser; then
