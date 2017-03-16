@@ -43,7 +43,10 @@ public:
         Failed,
         TermsNotAccepted,
         PaymentNotSetup,
-        PaymentDeclined
+        PaymentDeclined,
+        AlreadyInstalled,
+        NotInstalled,
+        NoUpdateAvailable
     };
 
     explicit QSnapdRequest (void *snapd_client, QObject* parent = 0);

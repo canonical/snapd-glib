@@ -107,6 +107,15 @@ void QSnapdRequest::finish (void *error)
             case SNAPD_ERROR_PAYMENT_DECLINED:
                 d->error = QSnapdRequest::QSnapdError::PaymentDeclined;
                 break;
+            case SNAPD_ERROR_ALREADY_INSTALLED:
+                d->error = QSnapdRequest::QSnapdError::AlreadyInstalled;
+                break;
+            case SNAPD_ERROR_NOT_INSTALLED:
+                d->error = QSnapdRequest::QSnapdError::NotInstalled;
+                break;
+            case SNAPD_ERROR_NO_UPDATE_AVAILABLE:
+                d->error = QSnapdRequest::QSnapdError::NoUpdateAvailable;
+                break;
             default:
                 /* This indicates we should add a new entry here... */
                 d->error = QSnapdRequest::QSnapdError::UnknownError;
