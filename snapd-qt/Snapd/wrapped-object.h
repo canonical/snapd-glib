@@ -23,6 +23,11 @@ public:
         unref_func (wrapped_object);
     }
 
+    void *wrappedObject () 
+    {
+        return wrapped_object;
+    }
+
 protected:
     void *wrapped_object;
 

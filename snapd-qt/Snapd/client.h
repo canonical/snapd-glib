@@ -11,6 +11,7 @@
 #define SNAPD_CLIENT_H
 
 #include <QtCore/QObject>
+#include <QLocalSocket>
 #include <Snapd/Alias>
 #include <Snapd/AuthData>
 #include <Snapd/Connection>
@@ -39,11 +40,13 @@ class QSnapdLoginRequestPrivate;
 class Q_DECL_EXPORT QSnapdLoginRequest : public QSnapdRequest
 {
     Q_OBJECT
+    Q_PROPERTY (QSnapdAuthData* authData READ authData)
 
 public:
     explicit QSnapdLoginRequest (void *snapd_client, const QString& username, const QString& password, const QString& otp, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    Q_INVOKABLE QSnapdAuthData *authData ();
     void handleResult (void *, void *);
 
 private:
@@ -501,8 +504,11 @@ public:
     };
     Q_DECLARE_FLAGS(FindFlags, FindFlag);
     explicit QSnapdClient (QObject* parent=0);
+    explicit QSnapdClient (int fd, QObject* parent=0);
     Q_INVOKABLE QSnapdConnectRequest *connect ();
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
+    Q_INVOKABLE void setAuthData (QSnapdAuthData *authData);
+    Q_INVOKABLE QSnapdAuthData *authData ();
     Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();
     Q_INVOKABLE QSnapdListRequest *list ();
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
