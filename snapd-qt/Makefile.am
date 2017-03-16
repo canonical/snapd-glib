@@ -49,8 +49,8 @@ EXTRA_DIST = $(cmake_in_files) qmldir
 CLEANFILES = $(source_moc)
 DISTCLEANFILES = SnapdConfig.cmake
 
-#if COMPILE_SNAPD_QT
+if COMPILE_SNAPD_QT
 lib_LTLIBRARIES = libsnapd-qt.la
 snapdinclude_DATA = $(source_h)
 cmake_DATA = $(cmake_in_files:.cmake.in=.cmake)
-#endif
+endif
