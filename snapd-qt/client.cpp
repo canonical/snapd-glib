@@ -187,6 +187,11 @@ struct QSnapdRefreshRequestPrivate
 struct QSnapdRefreshAllRequestPrivate
 {
     QSnapdRefreshAllRequestPrivate () {}
+    ~QSnapdRefreshAllRequestPrivate ()
+    {
+        g_strfreev (snap_names);
+    }  
+    gchar **snap_names;
 };
 
 struct QSnapdRemoveRequestPrivate
@@ -1223,20 +1228,25 @@ QSnapdRefreshAllRequest::QSnapdRefreshAllRequest (void *snapd_client, QObject *p
 
 void QSnapdRefreshAllRequest::runSync ()
 {
+    Q_D(QSnapdRefreshAllRequest);  
     g_autoptr(GError) error = NULL;
-    snapd_client_refresh_all_sync (SNAPD_CLIENT (getClient ()),
-                                   progress_cb, this,
-                                   G_CANCELLABLE (getCancellable ()), &error);
+    d->snap_names = snapd_client_refresh_all_sync (SNAPD_CLIENT (getClient ()),
+                                                   progress_cb, this,
+                                                   G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
 void QSnapdRefreshAllRequest::handleResult (void *object, void *result)
 {
+    g_auto(GStrv) snap_names = NULL;  
     g_autoptr(GError) error = NULL;
 
-    snapd_client_refresh_all_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    snap_names = snapd_client_refresh_all_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
     if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         return;
+
+    Q_D(QSnapdRefreshAllRequest);
+    d->snap_names = (gchar **) g_steal_pointer (&snap_names);
 
     finish (error);
 }
@@ -1252,6 +1262,15 @@ void QSnapdRefreshAllRequest::runAsync ()
     snapd_client_refresh_all_async (SNAPD_CLIENT (getClient ()),
                                     progress_cb, this,
                                     G_CANCELLABLE (getCancellable ()), refresh_all_ready_cb, (gpointer) this);
+}
+
+QStringList QSnapdRefreshAllRequest::snapNames () const
+{
+    Q_D(const QSnapdRefreshAllRequest);
+    QStringList result;
+    for (int i = 0; d->snap_names[i] != NULL; i++)
+        result.append (d->snap_names[i]);
+    return result;
 }
 
 QSnapdRemoveRequest::QSnapdRemoveRequest (const QString& name, void *snapd_client, QObject *parent) :

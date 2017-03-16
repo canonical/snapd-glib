@@ -291,11 +291,13 @@ class QSnapdRefreshAllRequestPrivate;
 class Q_DECL_EXPORT QSnapdRefreshAllRequest : public QSnapdRequest
 {
     Q_OBJECT
+    Q_PROPERTY(QStringList snapNames READ snapNames)
 
 public:
     explicit QSnapdRefreshAllRequest (void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
+    Q_INVOKABLE QStringList snapNames () const;
     void handleResult (void *, void *);
 
 private:
