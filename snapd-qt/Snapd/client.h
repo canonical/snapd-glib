@@ -16,7 +16,9 @@
 #include <Snapd/AuthData>
 #include <Snapd/Connection>
 #include <Snapd/Icon>
+#include <Snapd/Plug>
 #include <Snapd/Request>
+#include <Snapd/Slot>
 #include <Snapd/Snap>
 #include <Snapd/SystemInformation>
 
@@ -166,16 +168,16 @@ class Q_DECL_EXPORT QSnapdGetInterfacesRequest : public QSnapdRequest
 {
     Q_OBJECT
     Q_PROPERTY(int plugCount READ plugCount)
-    Q_PROPERTY(int slotCount READ slotCount)      
+    Q_PROPERTY(int slotCount READ slotCount)
 
 public:
     explicit QSnapdGetInterfacesRequest (void *snapd_client, QObject *parent = 0);
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE int plugCount () const;
-    Q_INVOKABLE QSnapdConnection *plug (int) const;
+    Q_INVOKABLE QSnapdPlug *plug (int) const;
     Q_INVOKABLE int slotCount () const;
-    Q_INVOKABLE QSnapdConnection *slot (int) const;
+    Q_INVOKABLE QSnapdSlot *slot (int) const;
     void handleResult (void *, void *);
 
 private:

@@ -895,12 +895,12 @@ int QSnapdGetInterfacesRequest::plugCount () const
     return d->plugs != NULL ? d->plugs->len : 0;
 }
 
-QSnapdConnection *QSnapdGetInterfacesRequest::plug (int n) const
+QSnapdPlug *QSnapdGetInterfacesRequest::plug (int n) const
 {
     Q_D(const QSnapdGetInterfacesRequest);
     if (d->plugs == NULL || n < 0 || (guint) n >= d->plugs->len)
         return NULL;
-    return new QSnapdConnection (d->plugs->pdata[n]);
+    return new QSnapdPlug (d->plugs->pdata[n]);
 }
 
 int QSnapdGetInterfacesRequest::slotCount () const
@@ -909,12 +909,12 @@ int QSnapdGetInterfacesRequest::slotCount () const
     return d->slots_ != NULL ? d->slots_->len : 0;
 }
 
-QSnapdConnection *QSnapdGetInterfacesRequest::slot (int n) const
+QSnapdSlot *QSnapdGetInterfacesRequest::slot (int n) const
 {
     Q_D(const QSnapdGetInterfacesRequest);
     if (d->slots_ == NULL || n < 0 || (guint) n >= d->slots_->len)
         return NULL;
-    return new QSnapdConnection (d->slots_->pdata[n]);
+    return new QSnapdSlot (d->slots_->pdata[n]);
 }
 
 QSnapdConnectInterfaceRequest::QSnapdConnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client, QObject *parent) :
