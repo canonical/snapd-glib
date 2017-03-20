@@ -28,6 +28,7 @@ Makefile.in
 ./test-driver
 doc/reference/html/
 doc/reference/xml/
+doc/reference/*.log
 doc/reference/*.stamp
 doc/reference/version.xml
 po/.intltool-merge-cache
@@ -37,6 +38,7 @@ po/POTFILES
 po/Rules-quot
 po/stamp-it
 po/*.header
+po/*.gmo
 po/*.sed
 po/*.sin
 snapd-glib/snapd-glib.pc
