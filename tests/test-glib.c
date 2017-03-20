@@ -1188,7 +1188,7 @@ test_find_refreshable (void)
     g_assert (snaps != NULL);
     g_assert_cmpint (snaps->len, ==, 2);
     g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
-    g_assert_cmpstr (snapd_snap_get_revision (snaps->pdata[1]), ==, "1");
+    g_assert_cmpstr (snapd_snap_get_revision (snaps->pdata[0]), ==, "1");
     g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "snap3");
     g_assert_cmpstr (snapd_snap_get_revision (snaps->pdata[1]), ==, "1");
 }

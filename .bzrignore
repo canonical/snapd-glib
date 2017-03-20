@@ -43,9 +43,6 @@ snapd-glib/snapd-glib.pc
 snapd-glib/snapd-enum-types.c
 snapd-glib/snapd-enum-types.h
 snapd-glib/stamp-enum-types
-snapd-glib/tests/*.log
-snapd-glib/tests/*.trs
-snapd-glib/tests/test
 snapd-login-service/login-service.[ch]
 snapd-login-service/snapd-login-service
 snapd-login-service/io.snapcraft.SnapdLoginService.policy
@@ -54,3 +51,7 @@ snapd-qt/SnapdConfig.cmake
 snapd-qt/SnapdConfigVersion.cmake
 snapd-qt/snapd-qt.pc
 snapd-qt/*_moc.cpp
+tests/*.log
+tests/*.trs
+tests/test-glib
+tests/test-qt

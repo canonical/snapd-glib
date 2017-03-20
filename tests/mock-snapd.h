@@ -53,7 +53,7 @@ typedef struct
     gboolean jailmode;
     gchar *name;
     GList *prices;
-    gboolean private;
+    gboolean is_private;
     gchar *revision;
     GList *screenshots;
     gchar *status;
@@ -64,7 +64,7 @@ typedef struct
     gchar *version;
     GList *store_sections;
     GList *plugs;
-    GList *slots;
+    GList *slots_;
     gboolean disabled;
 } MockSnap;
 

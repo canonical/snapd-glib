@@ -142,7 +142,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->version);
     g_list_free_full (snap->store_sections, g_free);
     g_list_free_full (snap->plugs, (GDestroyNotify) mock_plug_free);
-    g_list_free_full (snap->slots, (GDestroyNotify) mock_slot_free);
+    g_list_free_full (snap->slots_, (GDestroyNotify) mock_slot_free);
     g_slice_free (MockSnap, snap);
 }
 
@@ -246,7 +246,7 @@ mock_account_add_private_snap (MockAccount *account, const gchar *name)
 
     snap = mock_snap_new (name);
     snap->download_size = 65535;
-    snap->private = TRUE;
+    snap->is_private = TRUE;
     account->private_snaps = g_list_append (account->private_snaps, snap);
 
     return snap;
@@ -609,7 +609,7 @@ mock_snap_add_slot (MockSnap *snap, const gchar *name)
     slot->name = g_strdup (name);
     slot->interface = g_strdup ("INTERFACE");
     slot->label = g_strdup ("LABEL");
-    snap->slots = g_list_append (snap->slots, slot);
+    snap->slots_ = g_list_append (snap->slots_, slot);
 
     return slot;
 }
@@ -619,7 +619,7 @@ find_slot (MockSnap *snap, const gchar *name)
 {
     GList *link;
 
-    for (link = snap->slots; link; link = link->next) {
+    for (link = snap->slots_; link; link = link->next) {
         MockSlot *slot = link->data;
         if (strcmp (slot->name, name) == 0)
             return slot;
@@ -1173,7 +1173,7 @@ make_snap_node (MockSnap *snap)
         json_builder_end_object (builder);
     }
     json_builder_set_member_name (builder, "private");
-    json_builder_add_boolean_value (builder, snap->private);
+    json_builder_add_boolean_value (builder, snap->is_private);
     json_builder_set_member_name (builder, "resource");
     resource = g_strdup_printf ("/v2/snaps/%s", snap->name);
     json_builder_add_string_value (builder, resource);
@@ -1565,7 +1565,7 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
             MockSnap *snap = link->data;
             GList *l;
 
-            for (l = snap->slots; l; l = l->next) {
+            for (l = snap->slots_; l; l = l->next) {
                 MockSlot *slot = l->data;
                 GList *l2;
                 g_autoptr(GList) plugs = NULL;
@@ -2298,7 +2298,6 @@ mock_snapd_finalize (GObject *object)
         g_source_destroy (snapd->read_source);
     g_clear_pointer (&snapd->read_source, g_source_unref);
     g_clear_pointer (&snapd->buffer, g_byte_array_unref);
-    g_clear_pointer (&snapd->read_source, g_source_unref);
     g_list_free_full (snapd->accounts, (GDestroyNotify) mock_account_free);
     g_list_free_full (snapd->snaps, (GDestroyNotify) mock_snap_free);
     snapd->snaps = NULL;

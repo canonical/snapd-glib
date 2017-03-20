@@ -1,4 +1,4 @@
-SUBDIRS = snapd-glib snapd-login-service snapd-qt po doc
+SUBDIRS = snapd-glib snapd-login-service snapd-qt tests po doc
 
 EXTRA_DIST = \
 	COPYING.LGPL2 \

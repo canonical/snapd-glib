@@ -103,11 +103,11 @@ AC_CONFIG_FILES([
         po/Makefile.in
         snapd-glib/Makefile
         snapd-glib/snapd-glib.pc
-        snapd-glib/tests/Makefile
         snapd-qt/Makefile
         snapd-qt/SnapdConfigVersion.cmake
         snapd-qt/snapd-qt.pc
         snapd-login-service/Makefile
+        tests/Makefile
 ])
 
 AC_OUTPUT
