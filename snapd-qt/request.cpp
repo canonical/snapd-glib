@@ -127,7 +127,6 @@ void QSnapdRequest::finish (void *error)
                 d->error = QSnapdRequest::QSnapdError::UnknownError;
                 break;
             }
-            d->error = (QSnapdRequest::QSnapdError) e->code;
         }
         else
             d->error = QSnapdRequest::QSnapdError::UnknownError;
