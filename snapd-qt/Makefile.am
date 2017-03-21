@@ -11,7 +11,7 @@ source_h = Snapd/Alias Snapd/alias.h \
            Snapd/Connection Snapd/connection.h \
            Snapd/Icon Snapd/icon.h \
            Snapd/Plug Snapd/plug.h \
-           Snapd/Price Snapd/price.h \           
+           Snapd/Price Snapd/price.h \
            Snapd/Request Snapd/request.h \
            Snapd/Screenshot Snapd/screenshot.h \
            Snapd/Slot Snapd/slot.h \
