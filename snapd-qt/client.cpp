@@ -43,30 +43,33 @@ struct QSnapdLoginRequestPrivate
         username(username), password(password), otp(otp) {}
     ~QSnapdLoginRequestPrivate ()
     {
-        g_object_unref (auth_data);
+        if (auth_data != NULL)
+            g_object_unref (auth_data);
     }
     QString username;
     QString password;
     QString otp;
-    SnapdAuthData *auth_data;
+    SnapdAuthData *auth_data = NULL;
 };
 
 struct QSnapdGetSystemInformationRequestPrivate
 {
     ~QSnapdGetSystemInformationRequestPrivate ()
     {
-        g_object_unref (info);
+        if (info != NULL)
+            g_object_unref (info);
     }
-    SnapdSystemInformation *info;
+    SnapdSystemInformation *info = NULL;
 };
 
 struct QSnapdListRequestPrivate
 {
     ~QSnapdListRequestPrivate ()
     {
-        g_ptr_array_unref (snaps);
+        if (snaps != NULL)
+            g_ptr_array_unref (snaps);
     }
-    GPtrArray *snaps;
+    GPtrArray *snaps = NULL;
 };
 
 struct QSnapdListOneRequestPrivate
@@ -75,10 +78,11 @@ struct QSnapdListOneRequestPrivate
         name(name) {}
     ~QSnapdListOneRequestPrivate ()
     {
-        g_object_unref (snap);
+        if (snap != NULL)
+            g_object_unref (snap);
     }
     QString name;
-    SnapdSnap *snap;
+    SnapdSnap *snap = NULL;
 };
 
 struct QSnapdGetIconRequestPrivate
@@ -87,10 +91,11 @@ struct QSnapdGetIconRequestPrivate
         name(name) {}
     ~QSnapdGetIconRequestPrivate ()
     {
-        g_object_unref (icon);
+        if (icon != NULL)
+            g_object_unref (icon);
     }
     QString name;
-    SnapdIcon *icon;
+    SnapdIcon *icon = NULL;
 };
 
 struct QSnapdGetAssertionsRequestPrivate
@@ -99,10 +104,11 @@ struct QSnapdGetAssertionsRequestPrivate
         type (type) {}
     ~QSnapdGetAssertionsRequestPrivate ()
     {
-        g_strfreev (assertions);
+        if (assertions != NULL)
+            g_strfreev (assertions);
     }
     QString type;
-    gchar **assertions;
+    gchar **assertions = NULL;
 };
 
 struct QSnapdAddAssertionsRequestPrivate
@@ -116,11 +122,13 @@ struct QSnapdGetInterfacesRequestPrivate
 {
     ~QSnapdGetInterfacesRequestPrivate ()
     {
-        g_ptr_array_unref (plugs);
-        g_ptr_array_unref (slots_);
+        if (plugs != NULL)
+            g_ptr_array_unref (plugs);
+        if (slots_ != NULL)
+            g_ptr_array_unref (slots_);
     }
-    GPtrArray *plugs;
-    GPtrArray *slots_;
+    GPtrArray *plugs = NULL;
+    GPtrArray *slots_ = NULL;
 };
 
 struct QSnapdConnectInterfaceRequestPrivate
@@ -149,12 +157,13 @@ struct QSnapdFindRequestPrivate
         flags (flags), section (section), name (name) {}
     ~QSnapdFindRequestPrivate ()
     {
-        g_ptr_array_unref (snaps);
+        if (snaps != NULL)
+            g_ptr_array_unref (snaps);
     }
     int flags;
     QString section;  
     QString name;
-    GPtrArray *snaps;
+    GPtrArray *snaps = NULL;
     QString suggestedCurrency;
 };
 
@@ -163,9 +172,10 @@ struct QSnapdFindRefreshableRequestPrivate
     QSnapdFindRefreshableRequestPrivate () {}
     ~QSnapdFindRefreshableRequestPrivate ()
     {
-        g_ptr_array_unref (snaps);
+        if (snaps != NULL)
+            g_ptr_array_unref (snaps);
     }
-    GPtrArray *snaps;
+    GPtrArray *snaps = NULL;
 };
 
 struct QSnapdInstallRequestPrivate
@@ -189,9 +199,10 @@ struct QSnapdRefreshAllRequestPrivate
     QSnapdRefreshAllRequestPrivate () {}
     ~QSnapdRefreshAllRequestPrivate ()
     {
-        g_strfreev (snap_names);
+        if (snap_names != NULL)
+            g_strfreev (snap_names);
     }  
-    gchar **snap_names;
+    gchar **snap_names = NULL;
 };
 
 struct QSnapdRemoveRequestPrivate
@@ -233,18 +244,20 @@ struct QSnapdGetSectionsRequestPrivate
 {
     ~QSnapdGetSectionsRequestPrivate ()
     {
-        g_strfreev (sections);
+        if (sections != NULL)
+            g_strfreev (sections);
     }
-    gchar **sections;
+    gchar **sections = NULL;
 };
 
 struct QSnapdGetAliasesRequestPrivate
 {
     ~QSnapdGetAliasesRequestPrivate ()
     {
-        g_ptr_array_unref (aliases);
+        if (aliases != NULL)
+            g_ptr_array_unref (aliases);
     }
-    GPtrArray *aliases;
+    GPtrArray *aliases = NULL;
 };
 
 struct QSnapdEnableAliasesRequestPrivate
@@ -277,13 +290,15 @@ struct QSnapdRunSnapCtlRequestPrivate
         contextId (contextId), args (args) {}
     ~QSnapdRunSnapCtlRequestPrivate ()
     {
-        g_free (stdout_output);
-        g_free (stderr_output);      
+        if (stdout_output != NULL)
+            g_free (stdout_output);
+        if (stderr_output != NULL)
+            g_free (stderr_output);      
     }
     QString contextId;
     QStringList args;
-    gchar *stdout_output;
-    gchar *stderr_output;  
+    gchar *stdout_output = NULL;
+    gchar *stderr_output = NULL;
 };
 
 QSnapdClient::QSnapdClient(QObject *parent) :
