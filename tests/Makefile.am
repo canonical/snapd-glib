@@ -13,10 +13,15 @@ test_glib_CFLAGS = -g $(WARN_CFLAGS) \
 	-I$(top_srcdir)
 test_glib_LDADD = $(top_builddir)/snapd-glib/libsnapd-glib.la $(SNAPD_LIBS)
 
-test_qt_SOURCES = test-qt.cpp mock-snapd.c mock-snapd.h
+test_qt_SOURCES = test-qt.cpp test-qt.h test-qt_moc.cpp mock-snapd.c mock-snapd.h
 test_qt_CPPFLAGS = -g $(WARN_CFLAGS) \
 	-fPIC \
 	$(SNAPD_CFLAGS) \
 	$(SNAPD_QT_CFLAGS) \
 	-I$(top_srcdir)/snapd-qt
 test_qt_LDADD = $(top_builddir)/snapd-qt/libsnapd-qt.la $(SNAPD_LIBS) $(SNAPD_QT_LIBS)
+
+test-qt_moc.cpp: test-qt.h
+	$(AM_V_GEN) moc --qt=qt5 $< -o $@
+
+CLEANFILES += test-qt_moc.cpp

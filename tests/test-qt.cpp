@@ -12,6 +12,8 @@
 #include <Snapd/Client>
 #include <Snapd/Assertion>
 
+#include "test-qt.h"
+
 static void
 test_get_system_information ()
 {
@@ -558,6 +560,29 @@ test_connect_interface ()
 }
 
 static void
+test_connect_interface_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot = mock_snap_add_slot (s, "slot");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    MockPlug *plug = mock_snap_add_plug (s, "plug");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdConnectInterfaceRequest> connectInterfaceRequest (client.connectInterface ("snap2", "plug", "snap1", "slot"));
+    ProgressCounter counter;
+    QObject::connect (connectInterfaceRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    connectInterfaceRequest->runSync ();
+    g_assert_cmpint (connectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (plug->connection == slot);
+    g_assert_cmpint (counter.progress_done, >, 0);
+}
+
+static void
 test_connect_interface_invalid ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -591,6 +616,30 @@ test_disconnect_interface ()
     disconnectInterfaceRequest->runSync ();
     g_assert_cmpint (disconnectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (plug->connection == NULL);
+}
+
+static void
+test_disconnect_interface_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot = mock_snap_add_slot (s, "slot");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    MockPlug *plug = mock_snap_add_plug (s, "plug");
+    plug->connection = slot;
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdDisconnectInterfaceRequest> disconnectInterfaceRequest (client.disconnectInterface ("snap2", "plug", "snap1", "slot"));
+    ProgressCounter counter;
+    QObject::connect (disconnectInterfaceRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    disconnectInterfaceRequest->runSync ();
+    g_assert_cmpint (disconnectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (plug->connection == NULL);
+    g_assert_cmpint (counter.progress_done, >, 0);
 }
 
 static void
@@ -985,6 +1034,28 @@ test_refresh ()
 }
 
 static void
+test_refresh_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_revision (s, "1");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdRefreshRequest> refreshRequest (client.refresh ("snap"));
+    ProgressCounter counter;
+    QObject::connect (refreshRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    refreshRequest->runSync ();
+    g_assert_cmpint (refreshRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (counter.progress_done, >, 0);
+}
+
+static void
 test_refresh_channel ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -1073,6 +1144,37 @@ test_refresh_all ()
 }
 
 static void
+test_refresh_all_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_snap (snapd, "snap3");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_store_snap (snapd, "snap3");
+    mock_snap_set_revision (s, "1");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdRefreshAllRequest> refreshAllRequest (client.refreshAll ());
+    ProgressCounter counter;
+    QObject::connect (refreshAllRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    refreshAllRequest->runSync ();
+    g_assert_cmpint (refreshAllRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (refreshAllRequest->snapNames ().count (), ==, 2);
+    g_assert (refreshAllRequest->snapNames ()[0] == "snap1");
+    g_assert (refreshAllRequest->snapNames ()[1] == "snap3");
+    g_assert_cmpint (counter.progress_done, >, 0);
+}
+
+static void
 test_refresh_all_no_updates ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -1107,6 +1209,27 @@ test_remove ()
 }
 
 static void
+test_remove_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    QScopedPointer<QSnapdRemoveRequest> removeRequest (client.remove ("snap"));
+    ProgressCounter counter;
+    QObject::connect (removeRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    removeRequest->runSync ();
+    g_assert_cmpint (removeRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    g_assert_cmpint (counter.progress_done, >, 0);
+}
+
+static void
 test_remove_not_installed ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -1137,6 +1260,27 @@ test_enable ()
     enableRequest->runSync ();
     g_assert_cmpint (enableRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (!mock_snapd_find_snap (snapd, "snap")->disabled);
+}
+
+static void
+test_enable_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    s->disabled = TRUE;
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdEnableRequest> enableRequest (client.enable ("snap"));
+    ProgressCounter counter;
+    QObject::connect (enableRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    enableRequest->runSync ();
+    g_assert_cmpint (enableRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->disabled);
+    g_assert_cmpint (counter.progress_done, >, 0);
 }
 
 static void
@@ -1189,6 +1333,27 @@ test_disable ()
     disableRequest->runSync ();
     g_assert_cmpint (disableRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (mock_snapd_find_snap (snapd, "snap")->disabled);
+}
+
+static void
+test_disable_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    s->disabled = FALSE;
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdDisableRequest> disableRequest (client.disable ("snap"));
+    ProgressCounter counter;
+    QObject::connect (disableRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    disableRequest->runSync ();
+    g_assert_cmpint (disableRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (mock_snapd_find_snap (snapd, "snap")->disabled);
+    g_assert_cmpint (counter.progress_done, >, 0);
 }
 
 static void
@@ -1570,6 +1735,28 @@ test_enable_aliases_multiple ()
 }
 
 static void
+test_enable_aliases_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockApp *a = mock_snap_add_app (s, "app1");
+    MockAlias *alias = mock_app_add_alias (a, "alias1");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdEnableAliasesRequest> enableAliasesRequest (client.enableAliases ("snap1", QStringList () << "alias1"));
+    ProgressCounter counter;
+    QObject::connect (enableAliasesRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    enableAliasesRequest->runSync ();
+    g_assert_cmpint (enableAliasesRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (alias->status, ==, "enabled");
+    g_assert_cmpint (counter.progress_done, >, 0);
+}
+
+static void
 test_disable_aliases ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -1654,10 +1841,10 @@ main (int argc, char **argv)
     g_test_add_func ("/get-interfaces/basic", test_get_interfaces);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
     g_test_add_func ("/connect-interface/basic", test_connect_interface);
-    //g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);
+    g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);
     g_test_add_func ("/connect-interface/invalid", test_connect_interface_invalid);
     g_test_add_func ("/disconnect-interface/basic", test_disconnect_interface);
-    //g_test_add_func ("/disconnect-interface/progress", test_disconnect_interface_progress);
+    g_test_add_func ("/disconnect-interface/progress", test_disconnect_interface_progress);
     g_test_add_func ("/disconnect-interface/invalid", test_disconnect_interface_invalid);
     g_test_add_func ("/find/query", test_find_query);
     g_test_add_func ("/find/empty", test_find_empty);
@@ -1676,22 +1863,22 @@ main (int argc, char **argv)
     g_test_add_func ("/install/channel", test_install_channel);
     g_test_add_func ("/install/not-available", test_install_not_available);
     g_test_add_func ("/refresh/basic", test_refresh);
-    //g_test_add_func ("/refresh/progress", test_refresh_progress);
+    g_test_add_func ("/refresh/progress", test_refresh_progress);
     g_test_add_func ("/refresh/channel", test_refresh_channel);
     g_test_add_func ("/refresh/no-updates", test_refresh_no_updates);
     g_test_add_func ("/refresh/not-installed", test_refresh_not_installed);
     g_test_add_func ("/refresh-all/basic", test_refresh_all);
-    //g_test_add_func ("/refresh-all/progress", test_refresh_all_progress);
+    g_test_add_func ("/refresh-all/progress", test_refresh_all_progress);
     g_test_add_func ("/refresh-all/no-updates", test_refresh_all_no_updates);
     g_test_add_func ("/remove/basic", test_remove);
-    //g_test_add_func ("/remove/progress", test_remove_progress);
+    g_test_add_func ("/remove/progress", test_remove_progress);
     g_test_add_func ("/remove/not-installed", test_remove_not_installed);
     g_test_add_func ("/enable/basic", test_enable);
-    //g_test_add_func ("/enable/progress", test_enable_progress);
+    g_test_add_func ("/enable/progress", test_enable_progress);
     g_test_add_func ("/enable/already-enabled", test_enable_already_enabled);
     g_test_add_func ("/enable/not-installed", test_enable_not_installed);
     g_test_add_func ("/disable/basic", test_disable);
-    //g_test_add_func ("/disable/progress", test_disable_progress);
+    g_test_add_func ("/disable/progress", test_disable_progress);
     g_test_add_func ("/disable/already-disabled", test_disable_already_disabled);
     g_test_add_func ("/disable/not-installed", test_disable_not_installed);
     g_test_add_func ("/check-buy/basic", test_check_buy);
@@ -1711,7 +1898,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-aliases/empty", test_get_aliases_empty);
     g_test_add_func ("/enable-aliases/basic", test_enable_aliases);
     g_test_add_func ("/enable-aliases/multiple", test_enable_aliases_multiple);
-    //g_test_add_func ("/enable-aliases/progress", test_enable_aliases_progress);
+    g_test_add_func ("/enable-aliases/progress", test_enable_aliases_progress);
     g_test_add_func ("/disable-aliases/basic", test_disable_aliases);
     g_test_add_func ("/reset-aliases/basic", test_reset_aliases);
     g_test_add_func ("/run-snapctl/basic", test_run_snapctl);
