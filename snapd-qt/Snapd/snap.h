@@ -15,6 +15,7 @@
 #include <Snapd/WrappedObject>
 #include <Snapd/App>
 #include <Snapd/Price>
+#include <Snapd/Screenshot>
 
 class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
 {
@@ -89,6 +90,8 @@ public:
     Q_INVOKABLE QSnapdPrice *price (int) const;
     bool isPrivate () const;
     QString revision () const;
+    int screenshotCount () const;
+    Q_INVOKABLE QSnapdScreenshot *screenshot (int) const;
     QSnapdSnapType snapType () const;
     QSnapdSnapStatus status () const;
     QString summary () const;

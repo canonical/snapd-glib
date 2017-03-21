@@ -143,6 +143,24 @@ QString QSnapdSnap::revision () const
     return snapd_snap_get_revision (SNAPD_SNAP (wrapped_object));
 }
 
+int QSnapdSnap::screenshotCount () const
+{
+    GPtrArray *screenshots;
+
+    screenshots = snapd_snap_get_screenshots (SNAPD_SNAP (wrapped_object));
+    return screenshots != NULL ? screenshots->len : 0;
+}
+
+QSnapdScreenshot *QSnapdSnap::screenshot (int n) const
+{
+    GPtrArray *screenshots;
+
+    screenshots = snapd_snap_get_screenshots (SNAPD_SNAP (wrapped_object));
+    if (screenshots == NULL || n < 0 || (guint) n >= screenshots->len)
+        return NULL;
+    return new QSnapdScreenshot (g_object_ref (screenshots->pdata[n]));
+}
+
 QSnapdSnap::QSnapdSnapType QSnapdSnap::snapType () const
 {
     switch (snapd_snap_get_snap_type (SNAPD_SNAP (wrapped_object)))
