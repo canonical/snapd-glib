@@ -20,11 +20,11 @@ test_get_system_information ()
     mock_snapd_set_on_classic (snapd, TRUE);
 
     QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
-    QSnapdConnectRequest *connectRequest = client.connect ();
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
     connectRequest->runSync ();
     g_assert (connectRequest->error () == QSnapdRequest::NoError);
 
-    QSnapdGetSystemInformationRequest *infoRequest = client.getSystemInformation ();
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
     g_assert (infoRequest->error () == QSnapdRequest::NoError);
     g_assert (infoRequest->systemInformation ()->osId () == "OS-ID");
