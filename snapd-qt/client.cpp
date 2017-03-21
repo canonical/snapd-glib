@@ -330,9 +330,20 @@ QSnapdLoginRequest::~QSnapdLoginRequest ()
     delete d_ptr;
 }
 
+QSnapdLoginRequest *login (const QString& username, const QString& password)
+{
+    return new QSnapdLoginRequest (NULL, username, password, NULL);
+}
+
 QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp)
 {
     return new QSnapdLoginRequest (NULL, username, password, otp);
+}
+
+QSnapdLoginRequest *QSnapdClient::login (const QString& username, const QString& password)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdLoginRequest (d->client, username, password, NULL);
 }
 
 QSnapdLoginRequest *QSnapdClient::login (const QString& username, const QString& password, const QString& otp)
@@ -678,9 +689,9 @@ void QSnapdLoginRequest::runSync ()
     Q_D(QSnapdLoginRequest);
     g_autoptr(GError) error = NULL;
     if (getClient () != NULL)
-        d->auth_data = snapd_client_login_sync (SNAPD_CLIENT (getClient ()), d->username.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+        d->auth_data = snapd_client_login_sync (SNAPD_CLIENT (getClient ()), d->username.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.isNull () ? NULL : d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
     else
-        d->auth_data = snapd_login_sync (d->username.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+        d->auth_data = snapd_login_sync (d->username.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.isNull () ? NULL : d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -708,9 +719,9 @@ void QSnapdLoginRequest::runAsync ()
 {
     Q_D(QSnapdLoginRequest);
     if (getClient () != NULL)
-        snapd_client_login_async (SNAPD_CLIENT (getClient ()), d->username.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), login_ready_cb, (gpointer) this);
+        snapd_client_login_async (SNAPD_CLIENT (getClient ()), d->username.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.isNull () ? NULL : d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), login_ready_cb, (gpointer) this);
     else
-        snapd_login_async (d->username.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), login_ready_cb, (gpointer) this);
+        snapd_login_async (d->username.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.isNull () ? NULL : d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), login_ready_cb, (gpointer) this);
 }
 
 QSnapdAuthData *QSnapdLoginRequest::authData ()

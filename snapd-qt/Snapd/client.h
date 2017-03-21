@@ -516,6 +516,7 @@ private:
     Q_DECLARE_PRIVATE(QSnapdRunSnapCtlRequest)
 };
 
+Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password);
 Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
 
 class QSnapdClientPrivate;
@@ -536,7 +537,8 @@ public:
     explicit QSnapdClient (int fd, QObject* parent=0);
     virtual ~QSnapdClient ();
     Q_INVOKABLE QSnapdConnectRequest *connect ();
-    Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
+    Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password);
+    Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);  
     Q_INVOKABLE void setAuthData (QSnapdAuthData *authData);
     Q_INVOKABLE QSnapdAuthData *authData ();
     Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();
