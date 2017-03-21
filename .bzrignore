@@ -55,5 +55,6 @@ snapd-qt/snapd-qt.pc
 snapd-qt/*_moc.cpp
 tests/*.log
 tests/*.trs
+tests/*_moc.cpp
 tests/test-glib
 tests/test-qt
