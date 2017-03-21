@@ -579,7 +579,7 @@ test_connect_interface_progress ()
     connectInterfaceRequest->runSync ();
     g_assert_cmpint (connectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (plug->connection == slot);
-    g_assert_cmpint (counter.progress_done, >, 0);
+    g_assert_cmpint (counter.progressDone, >, 0);
 }
 
 static void
@@ -639,7 +639,7 @@ test_disconnect_interface_progress ()
     disconnectInterfaceRequest->runSync ();
     g_assert_cmpint (disconnectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (plug->connection == NULL);
-    g_assert_cmpint (counter.progress_done, >, 0);
+    g_assert_cmpint (counter.progressDone, >, 0);
 }
 
 static void
@@ -978,6 +978,58 @@ test_install ()
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
 }
 
+void InstallProgressCounter::progress ()
+{
+    progressDone++;
+
+    QScopedPointer<QSnapdChange> change (request->change ());
+
+    // Check we've been notified of all tasks
+    int done = 0, total = 0;
+    for (int i = 0; i < change->taskCount (); i++) {
+        QScopedPointer<QSnapdTask> task (change->task (i));
+        done += task->progressDone ();
+        total += task->progressTotal ();
+    }
+    g_assert_cmpint (progressDone, ==, done);
+
+    g_assert (change->kind () == "KIND");
+    g_assert (change->summary () == "SUMMARY");
+    g_assert (change->status () == "STATUS");
+    if (progressDone == total)
+        g_assert (change->ready ());
+    else
+        g_assert (!change->ready ());
+    g_assert (change->spawnTime () == spawnTime);
+    if (change->ready ())
+        g_assert (readyTime == readyTime);
+    else
+        g_assert (!readyTime.isValid ());
+}
+
+static void
+test_install_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
+    InstallProgressCounter counter (installRequest.data ());
+    counter.spawnTime = QDateTime (QDate (2017, 1, 2), QTime (11, 23, 58), Qt::UTC);
+    counter.readyTime = QDateTime (QDate (2017, 1, 3), QTime (0, 0, 0), Qt::UTC);
+    mock_snapd_set_spawn_time (snapd, counter.spawnTime.toString (Qt::ISODate).toStdString ().c_str ());
+    mock_snapd_set_ready_time (snapd, counter.readyTime.toString (Qt::ISODate).toStdString ().c_str ());
+    QObject::connect (installRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (counter.progressDone, >, 0);
+}
+
 static void
 test_install_channel ()
 {
@@ -1052,7 +1104,7 @@ test_refresh_progress ()
     QObject::connect (refreshRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
     refreshRequest->runSync ();
     g_assert_cmpint (refreshRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpint (counter.progress_done, >, 0);
+    g_assert_cmpint (counter.progressDone, >, 0);
 }
 
 static void
@@ -1171,7 +1223,7 @@ test_refresh_all_progress ()
     g_assert_cmpint (refreshAllRequest->snapNames ().count (), ==, 2);
     g_assert (refreshAllRequest->snapNames ()[0] == "snap1");
     g_assert (refreshAllRequest->snapNames ()[1] == "snap3");
-    g_assert_cmpint (counter.progress_done, >, 0);
+    g_assert_cmpint (counter.progressDone, >, 0);
 }
 
 static void
@@ -1226,7 +1278,7 @@ test_remove_progress ()
     removeRequest->runSync ();
     g_assert_cmpint (removeRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
-    g_assert_cmpint (counter.progress_done, >, 0);
+    g_assert_cmpint (counter.progressDone, >, 0);
 }
 
 static void
@@ -1280,7 +1332,7 @@ test_enable_progress ()
     enableRequest->runSync ();
     g_assert_cmpint (enableRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (!mock_snapd_find_snap (snapd, "snap")->disabled);
-    g_assert_cmpint (counter.progress_done, >, 0);
+    g_assert_cmpint (counter.progressDone, >, 0);
 }
 
 static void
@@ -1353,7 +1405,7 @@ test_disable_progress ()
     disableRequest->runSync ();
     g_assert_cmpint (disableRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (mock_snapd_find_snap (snapd, "snap")->disabled);
-    g_assert_cmpint (counter.progress_done, >, 0);
+    g_assert_cmpint (counter.progressDone, >, 0);
 }
 
 static void
@@ -1753,7 +1805,7 @@ test_enable_aliases_progress ()
     enableAliasesRequest->runSync ();
     g_assert_cmpint (enableAliasesRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpstr (alias->status, ==, "enabled");
-    g_assert_cmpint (counter.progress_done, >, 0);
+    g_assert_cmpint (counter.progressDone, >, 0);
 }
 
 static void
@@ -1859,7 +1911,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find-refreshable/basic", test_find_refreshable);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/basic", test_install);
-    //g_test_add_func ("/install/progress", test_install_progress);
+    g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/channel", test_install_channel);
     g_test_add_func ("/install/not-available", test_install_not_available);
     g_test_add_func ("/refresh/basic", test_refresh);

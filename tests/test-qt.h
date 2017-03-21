@@ -8,17 +8,33 @@
  */
 
 #include <QtCore/QObject>
+#include <Snapd/Client>
 
 class ProgressCounter: public QObject
 {
     Q_OBJECT
 
 public:
-    int progress_done = 0;
+    int progressDone = 0;
 
 public slots:
     void progress ()
     {
-        progress_done++;
+        progressDone++;
     }
+};
+
+class InstallProgressCounter: public QObject
+{
+    Q_OBJECT
+
+public:
+    InstallProgressCounter (QSnapdInstallRequest *request) : request (request) {}
+    QSnapdInstallRequest *request;
+    int progressDone = 0;
+    QDateTime spawnTime;
+    QDateTime readyTime;
+
+public slots:
+    void progress ();
 };
