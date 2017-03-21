@@ -11,7 +11,7 @@
 
 #include "Snapd/screenshot.h"
 
-QSnapdScreenshot::QSnapdScreenshot (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdScreenshot::QSnapdScreenshot (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
 QString QSnapdScreenshot::url () const
 {

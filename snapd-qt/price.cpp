@@ -11,7 +11,7 @@
 
 #include "Snapd/price.h"
 
-QSnapdPrice::QSnapdPrice (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdPrice::QSnapdPrice (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
 double QSnapdPrice::amount () const
 {

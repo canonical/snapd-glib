@@ -11,8 +11,7 @@
 
 #include "Snapd/snap.h"
 
-QSnapdSnap::QSnapdSnap (void *snapd_object, QObject *parent) :
-    QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdSnap::QSnapdSnap (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
 int QSnapdSnap::appCount () const
 {
@@ -29,7 +28,7 @@ QSnapdApp *QSnapdSnap::app (int n) const
     apps = snapd_snap_get_apps (SNAPD_SNAP (wrapped_object));
     if (apps == NULL || n < 0 || (guint) n >= apps->len)
         return NULL;
-    return new QSnapdApp (g_object_ref (apps->pdata[n]));
+    return new QSnapdApp (apps->pdata[n]);
 }
 
 QString QSnapdSnap::channel () const
@@ -133,7 +132,7 @@ QSnapdPrice *QSnapdSnap::price (int n) const
     prices = snapd_snap_get_prices (SNAPD_SNAP (wrapped_object));
     if (prices == NULL || n < 0 || (guint) n >= prices->len)
         return NULL;
-    return new QSnapdPrice (g_object_ref (prices->pdata[n]));
+    return new QSnapdPrice (prices->pdata[n]);
 }
 
 bool QSnapdSnap::isPrivate () const
@@ -161,7 +160,7 @@ QSnapdScreenshot *QSnapdSnap::screenshot (int n) const
     screenshots = snapd_snap_get_screenshots (SNAPD_SNAP (wrapped_object));
     if (screenshots == NULL || n < 0 || (guint) n >= screenshots->len)
         return NULL;
-    return new QSnapdScreenshot (g_object_ref (screenshots->pdata[n]));
+    return new QSnapdScreenshot (screenshots->pdata[n]);
 }
 
 QSnapdSnap::QSnapdSnapType QSnapdSnap::snapType () const

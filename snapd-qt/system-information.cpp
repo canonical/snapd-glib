@@ -11,7 +11,7 @@
 
 #include "Snapd/system-information.h"
 
-QSnapdSystemInformation::QSnapdSystemInformation (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdSystemInformation::QSnapdSystemInformation (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
 QString QSnapdSystemInformation::osId () const
 {

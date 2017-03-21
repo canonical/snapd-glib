@@ -11,7 +11,7 @@
 
 #include "Snapd/change.h"
 
-QSnapdChange::QSnapdChange (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdChange::QSnapdChange (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
 QString QSnapdChange::id () const
 {
@@ -53,7 +53,7 @@ QSnapdTask *QSnapdChange::task (int n) const
     tasks = snapd_change_get_tasks (SNAPD_CHANGE (wrapped_object));  
     if (tasks == NULL || n < 0 || (guint) n >= tasks->len)
         return NULL;
-    return new QSnapdTask (g_object_ref (tasks->pdata[n]));
+    return new QSnapdTask (tasks->pdata[n]);
 }
 
 static QDateTime convertDateTime (GDateTime *datetime)

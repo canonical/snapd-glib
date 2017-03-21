@@ -11,7 +11,7 @@
 
 #include "Snapd/app.h"
 
-QSnapdApp::QSnapdApp (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdApp::QSnapdApp (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
 QString QSnapdApp::name () const
 {

@@ -169,5 +169,5 @@ void QSnapdRequest::handleProgress (void *change)
 QSnapdChange *QSnapdRequest::change () const
 {
     Q_D(const QSnapdRequest);
-    return new QSnapdChange (g_object_ref (d->change));
+    return new QSnapdChange (d->change);
 }

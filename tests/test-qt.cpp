@@ -29,13 +29,14 @@ test_get_system_information ()
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
     g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (infoRequest->systemInformation ()->osId () == "OS-ID");
-    g_assert (infoRequest->systemInformation ()->osVersion () == "OS-VERSION");
-    g_assert (infoRequest->systemInformation ()->series () == "SERIES");
-    g_assert (infoRequest->systemInformation ()->version () == "VERSION");
-    g_assert (infoRequest->systemInformation ()->managed ());
-    g_assert (infoRequest->systemInformation ()->onClassic ());
-    g_assert (infoRequest->systemInformation ()->store () == NULL);
+    QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert (systemInformation->osId () == "OS-ID");
+    g_assert (systemInformation->osVersion () == "OS-VERSION");
+    g_assert (systemInformation->series () == "SERIES");
+    g_assert (systemInformation->version () == "VERSION");
+    g_assert (systemInformation->managed ());
+    g_assert (systemInformation->onClassic ());
+    g_assert (systemInformation->store () == NULL);
 }
 
 static void
@@ -52,7 +53,8 @@ test_get_system_information_store ()
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
     g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (infoRequest->systemInformation ()->store () == "store");
+    QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert (systemInformation->store () == "store");
 }
 
 static void
@@ -69,10 +71,11 @@ test_login ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (loginRequest->authData ()->macaroon () == a->macaroon);
-    g_assert_cmpint (loginRequest->authData ()->discharges ().count (), ==, g_strv_length (a->discharges));
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    g_assert (authData->macaroon () == a->macaroon);
+    g_assert_cmpint (authData->discharges ().count (), ==, g_strv_length (a->discharges));
     for (int i = 0; a->discharges[i]; i++)
-        g_assert (loginRequest->authData ()->discharges ()[i] == a->discharges[i]);
+        g_assert (authData->discharges ()[i] == a->discharges[i]);
 }
 
 static void
@@ -155,9 +158,12 @@ test_list ()
     listRequest->runSync ();
     g_assert_cmpint (listRequest->error (), ==, QSnapdRequest::NoError);  
     g_assert_cmpint (listRequest->snapCount (), ==, 3);
-    g_assert (listRequest->snap (0)->name () == "snap1");
-    g_assert (listRequest->snap (1)->name () == "snap2");
-    g_assert (listRequest->snap (2)->name () == "snap3");
+    QScopedPointer<QSnapdSnap> snap0 (listRequest->snap (0));
+    g_assert (snap0->name () == "snap1");
+    QScopedPointer<QSnapdSnap> snap1 (listRequest->snap (1));
+    g_assert (snap1->name () == "snap2");
+    QScopedPointer<QSnapdSnap> snap2 (listRequest->snap (2));
+    g_assert (snap2->name () == "snap3");
 }
 
 static void
@@ -184,35 +190,36 @@ test_list_one ()
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
     listOneRequest->runSync ();
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpint (listOneRequest->snap ()->appCount (), ==, 1);
-    QSnapdApp *app = listOneRequest->snap ()->app (0);
+    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    g_assert_cmpint (snap->appCount (), ==, 1);
+    QScopedPointer<QSnapdApp> app (snap->app (0));
     g_assert (app->name () == "app");
     g_assert_cmpint (app->aliases ().count (), ==, 2);
     g_assert (app->aliases ()[0] == "app2");
     g_assert (app->aliases ()[1] == "app3");
-    g_assert (listOneRequest->snap ()->channel () == "CHANNEL");
-    g_assert_cmpint (listOneRequest->snap ()->confinement (), ==, QSnapdSnap::Strict);
-    g_assert (listOneRequest->snap ()->description () == "DESCRIPTION");
-    g_assert (listOneRequest->snap ()->developer () == "DEVELOPER");
-    g_assert (listOneRequest->snap ()->devmode () == TRUE);
-    g_assert_cmpint (listOneRequest->snap ()->downloadSize (), ==, 0);
-    g_assert (listOneRequest->snap ()->icon () == "ICON");
-    g_assert (listOneRequest->snap ()->id () == "ID");
+    g_assert (snap->channel () == "CHANNEL");
+    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
+    g_assert (snap->description () == "DESCRIPTION");
+    g_assert (snap->developer () == "DEVELOPER");
+    g_assert (snap->devmode () == TRUE);
+    g_assert_cmpint (snap->downloadSize (), ==, 0);
+    g_assert (snap->icon () == "ICON");
+    g_assert (snap->id () == "ID");
     QDateTime date = QDateTime (QDate (2017, 1, 2), QTime (11, 23, 58), Qt::UTC);
-    g_assert (listOneRequest->snap ()->installDate () == date);
-    g_assert_cmpint (listOneRequest->snap ()->installedSize (), ==, 1024);
-    g_assert (listOneRequest->snap ()->jailmode () == TRUE);
-    g_assert (listOneRequest->snap ()->name () == "snap");
-    g_assert_cmpint (listOneRequest->snap ()->priceCount (), ==, 0);
-    g_assert (listOneRequest->snap ()->isPrivate () == FALSE);
-    g_assert (listOneRequest->snap ()->revision () == "REVISION");
-    g_assert_cmpint (listOneRequest->snap ()->screenshotCount (), ==, 0);
-    g_assert_cmpint (listOneRequest->snap ()->snapType (), ==, QSnapdSnap::App);
-    g_assert_cmpint (listOneRequest->snap ()->status (), ==, QSnapdSnap::Active);
-    g_assert (listOneRequest->snap ()->summary () == "SUMMARY");
-    g_assert (listOneRequest->snap ()->trackingChannel () == "CHANNEL");
-    g_assert (listOneRequest->snap ()->trymode () == TRUE);
-    g_assert (listOneRequest->snap ()->version () == "VERSION");
+    g_assert (snap->installDate () == date);
+    g_assert_cmpint (snap->installedSize (), ==, 1024);
+    g_assert (snap->jailmode () == TRUE);
+    g_assert (snap->name () == "snap");
+    g_assert_cmpint (snap->priceCount (), ==, 0);
+    g_assert (snap->isPrivate () == FALSE);
+    g_assert (snap->revision () == "REVISION");
+    g_assert_cmpint (snap->screenshotCount (), ==, 0);
+    g_assert_cmpint (snap->snapType (), ==, QSnapdSnap::App);
+    g_assert_cmpint (snap->status (), ==, QSnapdSnap::Active);
+    g_assert (snap->summary () == "SUMMARY");
+    g_assert (snap->trackingChannel () == "CHANNEL");
+    g_assert (snap->trymode () == TRUE);
+    g_assert (snap->version () == "VERSION");
 }
 
 static void
@@ -245,7 +252,8 @@ test_list_one_classic_confinement ()
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
     listOneRequest->runSync ();
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpint (listOneRequest->snap ()->confinement (), ==, QSnapdSnap::Classic);
+    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Classic);
 }
 
 static void
@@ -263,7 +271,8 @@ test_list_one_devmode_confinement ()
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
     listOneRequest->runSync ();
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpint (listOneRequest->snap ()->confinement (), ==, QSnapdSnap::Devmode);
+    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Devmode);
 }
 
 static void
@@ -280,8 +289,9 @@ test_icon ()
     QScopedPointer<QSnapdGetIconRequest> getIconRequest (client.getIcon ("snap"));
     getIconRequest->runSync ();
     g_assert_cmpint (getIconRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (getIconRequest->icon ()->mimeType () == "image/png");
-    QByteArray data = getIconRequest->icon ()->data ();
+    QScopedPointer<QSnapdIcon> icon (getIconRequest->icon ());
+    g_assert (icon->mimeType () == "image/png");
+    QByteArray data = icon->data ();
     g_assert_cmpmem (data.data (), data.size (), "ICON", 4);
 }
 
@@ -494,32 +504,34 @@ test_get_interfaces ()
 
     g_assert_cmpint (getInterfacesRequest->plugCount (), ==, 1);
 
-    QSnapdPlug *plug = getInterfacesRequest->plug (0);
+    QScopedPointer<QSnapdPlug> plug (getInterfacesRequest->plug (0));
     g_assert (plug->name () == "plug1");
     g_assert (plug->snap () == "snap2");
     g_assert (plug->interface () == "INTERFACE");
     // FIXME: Attributes
     g_assert (plug->label () == "LABEL");
     g_assert_cmpint (plug->connectionCount (), ==, 1);
-    g_assert (plug->connection (0)->snap () == "snap1");
-    g_assert (plug->connection (0)->name () == "slot1");
+    QScopedPointer<QSnapdConnection> plugConnection (plug->connection (0));
+    g_assert (plugConnection->snap () == "snap1");
+    g_assert (plugConnection->name () == "slot1");
 
     g_assert_cmpint (getInterfacesRequest->slotCount (), ==, 2);
 
-    QSnapdSlot *slot = getInterfacesRequest->slot (0);
-    g_assert (slot->name () == "slot1");
-    g_assert (slot->snap () == "snap1");
-    g_assert (slot->interface () == "INTERFACE");
+    QScopedPointer<QSnapdSlot> slot0 (getInterfacesRequest->slot (0));
+    g_assert (slot0->name () == "slot1");
+    g_assert (slot0->snap () == "snap1");
+    g_assert (slot0->interface () == "INTERFACE");
     // FIXME: Attributes
-    g_assert (slot->label () == "LABEL");
-    g_assert_cmpint (slot->connectionCount (), ==, 1);
-    g_assert (slot->connection (0)->snap () == "snap2");
-    g_assert (slot->connection (0)->name () == "plug1");  
+    g_assert (slot0->label () == "LABEL");
+    g_assert_cmpint (slot0->connectionCount (), ==, 1);
+    QScopedPointer<QSnapdConnection> slotConnection (slot0->connection (0));
+    g_assert (slotConnection->snap () == "snap2");
+    g_assert (slotConnection->name () == "plug1");  
 
-    slot = getInterfacesRequest->slot (1);
-    g_assert (slot->name () == "slot2");
-    g_assert (slot->snap () == "snap1");
-    g_assert_cmpint (slot->connectionCount (), ==, 0);
+    QScopedPointer<QSnapdSlot> slot1 (getInterfacesRequest->slot (1));
+    g_assert (slot1->name () == "slot2");
+    g_assert (slot1->snap () == "snap1");
+    g_assert_cmpint (slot1->connectionCount (), ==, 0);
 }
 
 static void
@@ -683,35 +695,40 @@ test_find_query ()
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 2);
     g_assert (findRequest->suggestedCurrency () == "NZD");
-    g_assert (findRequest->snap (0)->name () == "carrot1");
-    QSnapdSnap *snap = findRequest->snap (1);
-    g_assert (snap->channel () == "CHANNEL");
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
-    g_assert (snap->description () == "DESCRIPTION");
-    g_assert (snap->developer () == "DEVELOPER");
-    g_assert_cmpint (snap->downloadSize (), ==, 1024);
-    g_assert (snap->icon () == "ICON");
-    g_assert (snap->id () == "ID");
-    g_assert (!snap->installDate ().isValid ());
-    g_assert_cmpint (snap->installedSize (), ==, 0);
-    g_assert (snap->name () == "carrot2");
-    g_assert_cmpint (snap->priceCount (), ==, 2);
-    g_assert_cmpfloat (snap->price (0)->amount (), ==, 1.20);
-    g_assert (snap->price (0)->currency () == "NZD");
-    g_assert_cmpfloat (snap->price (1)->amount (), ==, 0.87);
-    g_assert (snap->price (1)->currency () == "USD");
-    g_assert (snap->isPrivate () == FALSE);
-    g_assert (snap->revision () == "REVISION");
-    g_assert_cmpint (snap->screenshotCount (), ==, 2);
-    g_assert (snap->screenshot (0)->url () == "screenshot0.png");
-    g_assert (snap->screenshot (1)->url () == "screenshot1.png");
-    g_assert_cmpint (snap->screenshot (1)->width (), ==, 1024);
-    g_assert_cmpint (snap->screenshot (1)->height (), ==, 1024);
-    g_assert_cmpint (snap->snapType (), ==, QSnapdSnap::App);
-    g_assert_cmpint (snap->status (), ==, QSnapdSnap::Active);
-    g_assert (snap->summary () == "SUMMARY");
-    g_assert (snap->trymode () == TRUE);
-    g_assert (snap->version () == "VERSION");
+    QScopedPointer<QSnapdSnap> snap0 (findRequest->snap (0));
+    g_assert (snap0->name () == "carrot1");
+    QScopedPointer<QSnapdSnap> snap1 (findRequest->snap (1));
+    g_assert (snap1->channel () == "CHANNEL");
+    g_assert_cmpint (snap1->confinement (), ==, QSnapdSnap::Strict);
+    g_assert (snap1->description () == "DESCRIPTION");
+    g_assert (snap1->developer () == "DEVELOPER");
+    g_assert_cmpint (snap1->downloadSize (), ==, 1024);
+    g_assert (snap1->icon () == "ICON");
+    g_assert (snap1->id () == "ID");
+    g_assert (!snap1->installDate ().isValid ());
+    g_assert_cmpint (snap1->installedSize (), ==, 0);
+    g_assert (snap1->name () == "carrot2");
+    g_assert_cmpint (snap1->priceCount (), ==, 2);
+    QScopedPointer<QSnapdPrice> price0 (snap1->price (0));
+    g_assert_cmpfloat (price0->amount (), ==, 1.20);
+    g_assert (price0->currency () == "NZD");
+    QScopedPointer<QSnapdPrice> price1 (snap1->price (1));
+    g_assert_cmpfloat (price1->amount (), ==, 0.87);
+    g_assert (price1->currency () == "USD");
+    g_assert (snap1->isPrivate () == FALSE);
+    g_assert (snap1->revision () == "REVISION");
+    g_assert_cmpint (snap1->screenshotCount (), ==, 2);
+    QScopedPointer<QSnapdScreenshot> screenshot0 (snap1->screenshot (0));
+    g_assert (screenshot0->url () == "screenshot0.png");
+    QScopedPointer<QSnapdScreenshot> screenshot1 (snap1->screenshot (1));  
+    g_assert (screenshot1->url () == "screenshot1.png");
+    g_assert_cmpint (screenshot1->width (), ==, 1024);
+    g_assert_cmpint (screenshot1->height (), ==, 1024);
+    g_assert_cmpint (snap1->snapType (), ==, QSnapdSnap::App);
+    g_assert_cmpint (snap1->status (), ==, QSnapdSnap::Active);
+    g_assert (snap1->summary () == "SUMMARY");
+    g_assert (snap1->trymode () == TRUE);
+    g_assert (snap1->version () == "VERSION");
 }
 
 static void
@@ -733,10 +750,14 @@ test_find_empty ()
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 4);
-    g_assert (findRequest->snap (0)->name () == "apple");
-    g_assert (findRequest->snap (1)->name () == "banana");
-    g_assert (findRequest->snap (2)->name () == "carrot1");
-    g_assert (findRequest->snap (3)->name () == "carrot2");
+    QScopedPointer<QSnapdSnap> snap0 (findRequest->snap (0));
+    g_assert (snap0->name () == "apple");
+    QScopedPointer<QSnapdSnap> snap1 (findRequest->snap (1));
+    g_assert (snap1->name () == "banana");
+    QScopedPointer<QSnapdSnap> snap2 (findRequest->snap (2));
+    g_assert (snap2->name () == "carrot1");
+    QScopedPointer<QSnapdSnap> snap3 (findRequest->snap (3));
+    g_assert (snap3->name () == "carrot2");
 }
 
 static void
@@ -755,14 +776,16 @@ test_find_query_private ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::SelectPrivate, "snap"));
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 1);
-    g_assert (findRequest->snap (0)->name () == "snap2");
-    g_assert (findRequest->snap (0)->isPrivate () == TRUE);
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert (snap->name () == "snap2");
+    g_assert (snap->isPrivate () == TRUE);
 }
 
 static void
@@ -797,7 +820,8 @@ test_find_name ()
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 1);
-    g_assert (findRequest->snap (0)->name () == "snap");
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert (snap->name () == "snap");
 }
 
 static void
@@ -815,14 +839,16 @@ test_find_name_private ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::MatchName | QSnapdClient::SelectPrivate, "snap"));
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 1);
-    g_assert (findRequest->snap (0)->name () == "snap");
-    g_assert (findRequest->snap (0)->isPrivate () == TRUE);
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert (snap->name () == "snap");
+    g_assert (snap->isPrivate () == TRUE);
 }
 
 static void
@@ -861,8 +887,10 @@ test_find_section ()
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 2);
-    g_assert (findRequest->snap (0)->name () == "apple");
-    g_assert (findRequest->snap (1)->name () == "carrot1");
+    QScopedPointer<QSnapdSnap> snap0 (findRequest->snap (0));
+    g_assert (snap0->name () == "apple");
+    QScopedPointer<QSnapdSnap> snap1 (findRequest->snap (1));
+    g_assert (snap1->name () == "carrot1");
 }
 
 static void
@@ -886,7 +914,8 @@ test_find_section_query ()
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 1);
-    g_assert (findRequest->snap (0)->name () == "carrot1");
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert (snap->name () == "carrot1");
 }
 
 static void
@@ -911,7 +940,8 @@ test_find_section_name ()
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 1);
-    g_assert (findRequest->snap (0)->name () == "carrot1");
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert (snap->name () == "carrot1");
 }
 
 static void
@@ -938,10 +968,12 @@ test_find_refreshable ()
     findRefreshableRequest->runSync ();
     g_assert_cmpint (findRefreshableRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRefreshableRequest->snapCount (), ==, 2);
-    g_assert (findRefreshableRequest->snap (0)->name () == "snap1");
-    g_assert (findRefreshableRequest->snap (0)->revision () == "1");
-    g_assert (findRefreshableRequest->snap (1)->name () == "snap3");
-    g_assert (findRefreshableRequest->snap (1)->revision () == "1");
+    QScopedPointer<QSnapdSnap> snap0 (findRefreshableRequest->snap (0));
+    g_assert (snap0->name () == "snap1");
+    g_assert (snap0->revision () == "1");
+    QScopedPointer<QSnapdSnap> snap1 (findRefreshableRequest->snap (1));
+    g_assert (snap1->name () == "snap3");
+    g_assert (snap1->revision () == "1");
 }
 
 static void
@@ -1458,7 +1490,8 @@ test_check_buy ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdCheckBuyRequest> checkBuyRequest (client.checkBuy ());
     checkBuyRequest->runSync ();
@@ -1481,7 +1514,8 @@ test_check_buy_terms_not_accepted ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdCheckBuyRequest> checkBuyRequest (client.checkBuy ());
     checkBuyRequest->runSync ();
@@ -1504,7 +1538,8 @@ test_check_buy_no_payment_methods ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdCheckBuyRequest> checkBuyRequest (client.checkBuy ());
     checkBuyRequest->runSync ();
@@ -1545,7 +1580,8 @@ test_buy ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
     buyRequest->runSync ();
@@ -1586,7 +1622,8 @@ test_buy_not_available ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
     buyRequest->runSync ();
@@ -1612,7 +1649,8 @@ test_buy_terms_not_accepted ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
     buyRequest->runSync ();
@@ -1638,7 +1676,8 @@ test_buy_no_payment_methods ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
     buyRequest->runSync ();
@@ -1664,7 +1703,8 @@ test_buy_invalid_price ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    client.setAuthData (loginRequest->authData ());
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
 
     QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 0.6, "NZD"));
     buyRequest->runSync ();
@@ -1715,18 +1755,21 @@ test_get_aliases ()
     getAliasesRequest->runSync ();
     g_assert_cmpint (getAliasesRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (getAliasesRequest->aliasCount (), ==, 3);
-    g_assert (getAliasesRequest->alias (0)->snap () == "snap1");
-    g_assert (getAliasesRequest->alias (0)->name () == "alias1");
-    g_assert (getAliasesRequest->alias (0)->app () == "app1");
-    g_assert_cmpint (getAliasesRequest->alias (0)->status (), ==, QSnapdAlias::Enabled);
-    g_assert (getAliasesRequest->alias (1)->snap () == "snap1");
-    g_assert (getAliasesRequest->alias (1)->name () == "alias2");
-    g_assert (getAliasesRequest->alias (1)->app () == "app2");
-    g_assert_cmpint (getAliasesRequest->alias (1)->status (), ==, QSnapdAlias::Disabled);
-    g_assert (getAliasesRequest->alias (2)->snap () == "snap2");
-    g_assert (getAliasesRequest->alias (2)->name () == "alias3");
-    g_assert (getAliasesRequest->alias (2)->app () == "app3");
-    g_assert_cmpint (getAliasesRequest->alias (2)->status (), ==, QSnapdAlias::Default);
+    QScopedPointer<QSnapdAlias> alias0 (getAliasesRequest->alias (0));
+    g_assert (alias0->snap () == "snap1");
+    g_assert (alias0->name () == "alias1");
+    g_assert (alias0->app () == "app1");
+    g_assert_cmpint (alias0->status (), ==, QSnapdAlias::Enabled);
+    QScopedPointer<QSnapdAlias> alias1 (getAliasesRequest->alias (1));
+    g_assert (alias1->snap () == "snap1");
+    g_assert (alias1->name () == "alias2");
+    g_assert (alias1->app () == "app2");
+    g_assert_cmpint (alias1->status (), ==, QSnapdAlias::Disabled);
+    QScopedPointer<QSnapdAlias> alias2 (getAliasesRequest->alias (2));
+    g_assert (alias2->snap () == "snap2");
+    g_assert (alias2->name () == "alias3");
+    g_assert (alias2->app () == "app3");
+    g_assert_cmpint (alias2->status (), ==, QSnapdAlias::Default);
 }
 
 static void

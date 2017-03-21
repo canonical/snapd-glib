@@ -11,7 +11,7 @@
 
 #include "Snapd/plug.h"
 
-QSnapdPlug::QSnapdPlug (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdPlug::QSnapdPlug (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
 QString QSnapdPlug::name () const
 {
@@ -48,5 +48,5 @@ QSnapdConnection *QSnapdPlug::connection (int n) const
     connections = snapd_plug_get_connections (SNAPD_PLUG (wrapped_object));
     if (connections == NULL || n < 0 || (guint) n >= connections->len)
         return NULL;
-    return new QSnapdConnection (g_object_ref (connections->pdata[n]));
+    return new QSnapdConnection (connections->pdata[n]);
 }

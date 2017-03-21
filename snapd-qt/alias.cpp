@@ -11,7 +11,7 @@
 
 #include "Snapd/alias.h"
 
-QSnapdAlias::QSnapdAlias (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdAlias::QSnapdAlias (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
 QString QSnapdAlias::app () const
 {

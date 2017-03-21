@@ -11,11 +11,9 @@
 
 #include "Snapd/auth-data.h"
 
-QSnapdAuthData::QSnapdAuthData (void *snapd_object, QObject *parent) :
-    QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdAuthData::QSnapdAuthData (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
-QSnapdAuthData::QSnapdAuthData (const QString& macaroon, const QStringList& discharges, QObject *parent) :
-    QSnapdWrappedObject (NULL, g_object_unref, parent)
+QSnapdAuthData::QSnapdAuthData (const QString& macaroon, const QStringList& discharges, QObject *parent) : QSnapdWrappedObject (NULL, g_object_unref, parent)
 {
     char *strv[discharges.size () + 1];
     int i;

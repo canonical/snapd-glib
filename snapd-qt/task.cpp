@@ -11,7 +11,7 @@
 
 #include "Snapd/task.h"
 
-QSnapdTask::QSnapdTask (void *snapd_object, QObject *parent) : QSnapdWrappedObject (snapd_object, g_object_unref, parent) {}
+QSnapdTask::QSnapdTask (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
 QString QSnapdTask::id () const
 {
