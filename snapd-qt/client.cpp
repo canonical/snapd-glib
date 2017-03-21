@@ -468,6 +468,12 @@ QSnapdFindRequest::~QSnapdFindRequest ()
     delete d_ptr;
 }
 
+QSnapdFindRequest *QSnapdClient::find (FindFlags flags)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdFindRequest (flags, QString (), NULL, d->client);
+}
+
 QSnapdFindRequest *QSnapdClient::find (FindFlags flags, const QString& name)
 {
     Q_D(QSnapdClient);
@@ -496,6 +502,12 @@ QSnapdInstallRequest::~QSnapdInstallRequest ()
     delete d_ptr;
 }
 
+QSnapdInstallRequest *QSnapdClient::install (const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdInstallRequest (name, NULL, d->client);
+}
+
 QSnapdInstallRequest *QSnapdClient::install (const QString& name, const QString& channel)
 {
     Q_D(QSnapdClient);
@@ -505,6 +517,12 @@ QSnapdInstallRequest *QSnapdClient::install (const QString& name, const QString&
 QSnapdRefreshRequest::~QSnapdRefreshRequest ()
 {
     delete d_ptr;
+}
+
+QSnapdRefreshRequest *QSnapdClient::refresh (const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdRefreshRequest (name, NULL, d->client);
 }
 
 QSnapdRefreshRequest *QSnapdClient::refresh (const QString& name, const QString& channel)
@@ -832,7 +850,7 @@ void QSnapdListOneRequest::runSync ()
 {
     Q_D(QSnapdListOneRequest);
     g_autoptr(GError) error = NULL;
-    d->snap = snapd_client_list_one_sync (SNAPD_CLIENT (getClient ()), d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+    d->snap = snapd_client_list_one_sync (SNAPD_CLIENT (getClient ()), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -859,7 +877,7 @@ static void list_one_ready_cb (GObject *object, GAsyncResult *result, gpointer d
 void QSnapdListOneRequest::runAsync ()
 {
     Q_D(QSnapdListOneRequest);
-    snapd_client_list_one_async (SNAPD_CLIENT (getClient ()), d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), list_one_ready_cb, (gpointer) this);
+    snapd_client_list_one_async (SNAPD_CLIENT (getClient ()), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), list_one_ready_cb, (gpointer) this);
 }
 
 QSnapdSnap *QSnapdListOneRequest::snap () const
@@ -1315,7 +1333,7 @@ void QSnapdInstallRequest::runSync ()
     Q_D(QSnapdInstallRequest);
     g_autoptr(GError) error = NULL;
     snapd_client_install_sync (SNAPD_CLIENT (getClient ()),
-                               d->name.toStdString ().c_str (), d->channel.toStdString ().c_str (),
+                               d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
                                progress_cb, this,
                                G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
@@ -1342,7 +1360,7 @@ void QSnapdInstallRequest::runAsync ()
 {
     Q_D(QSnapdInstallRequest);
     snapd_client_install_async (SNAPD_CLIENT (getClient ()),
-                                d->name.toStdString ().c_str (), d->channel.toStdString ().c_str (),
+                                d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
                                 progress_cb, this,
                                 G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
 }
@@ -1356,7 +1374,7 @@ void QSnapdRefreshRequest::runSync ()
     Q_D(QSnapdRefreshRequest);
     g_autoptr(GError) error = NULL;
     snapd_client_refresh_sync (SNAPD_CLIENT (getClient ()),
-                               d->name.toStdString ().c_str (), d->channel.toStdString ().c_str (),
+                               d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
                                progress_cb, this,
                                G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
@@ -1383,7 +1401,7 @@ void QSnapdRefreshRequest::runAsync ()
 {
     Q_D(QSnapdRefreshRequest);
     snapd_client_refresh_async (SNAPD_CLIENT (getClient ()),
-                                d->name.toStdString ().c_str (), d->channel.toStdString ().c_str (),
+                                d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
                                 progress_cb, this,
                                 G_CANCELLABLE (getCancellable ()), refresh_ready_cb, (gpointer) this);
 }
