@@ -972,7 +972,7 @@ string_list_to_strv (const QStringList& list)
     size = list.size ();
     value = (gchar **) malloc (sizeof (gchar *) * (size + 1));
     for (i = 0; i < size; i++)
-        value[i] = (gchar *) list[i].toStdString ().c_str ();
+        value[i] = g_strdup (list[i].toStdString ().c_str ());
     value[size] = NULL;
 
     return value;
@@ -981,7 +981,7 @@ string_list_to_strv (const QStringList& list)
 void QSnapdAddAssertionsRequest::runSync ()
 {
     Q_D(QSnapdAddAssertionsRequest);
-    g_autofree gchar **assertions = NULL;
+    g_auto(GStrv) assertions = NULL;
     g_autoptr(GError) error = NULL;
 
     assertions = string_list_to_strv (d->assertions);
@@ -991,7 +991,7 @@ void QSnapdAddAssertionsRequest::runSync ()
 
 void QSnapdAddAssertionsRequest::handleResult (void *object, void *result)
 {
-    g_autofree gchar **assertions = NULL;
+    g_auto(GStrv) assertions = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd_client_add_assertions_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
@@ -1010,7 +1010,7 @@ static void add_assertions_ready_cb (GObject *object, GAsyncResult *result, gpoi
 void QSnapdAddAssertionsRequest::runAsync ()
 {
     Q_D(QSnapdAddAssertionsRequest);
-    g_autofree gchar **assertions = NULL;
+    g_auto(GStrv) assertions = NULL;
 
     assertions = string_list_to_strv (d->assertions);
     snapd_client_add_assertions_async (SNAPD_CLIENT (getClient ()), assertions, G_CANCELLABLE (getCancellable ()), add_assertions_ready_cb, (gpointer) this);
@@ -1754,7 +1754,7 @@ QSnapdEnableAliasesRequest::QSnapdEnableAliasesRequest (const QString& name, con
 void QSnapdEnableAliasesRequest::runSync ()
 {
     Q_D(QSnapdEnableAliasesRequest);
-    g_autofree gchar **aliases = NULL;
+    g_auto(GStrv) aliases = NULL;
     g_autoptr(GError) error = NULL;
 
     aliases = string_list_to_strv (d->aliases);
@@ -1784,7 +1784,7 @@ static void enable_aliases_ready_cb (GObject *object, GAsyncResult *result, gpoi
 void QSnapdEnableAliasesRequest::runAsync ()
 {
     Q_D(QSnapdEnableAliasesRequest);
-    g_autofree gchar **aliases = NULL;
+    g_auto(GStrv) aliases = NULL;
 
     aliases = string_list_to_strv (d->aliases);
     snapd_client_disable_aliases_async (SNAPD_CLIENT (getClient ()),
@@ -1800,7 +1800,7 @@ QSnapdDisableAliasesRequest::QSnapdDisableAliasesRequest (const QString& name, c
 void QSnapdDisableAliasesRequest::runSync ()
 {
     Q_D(QSnapdDisableAliasesRequest);
-    g_autofree gchar **aliases = NULL;
+    g_auto(GStrv) aliases = NULL;
     g_autoptr(GError) error = NULL;
 
     aliases = string_list_to_strv (d->aliases);
@@ -1830,7 +1830,7 @@ static void disable_aliases_ready_cb (GObject *object, GAsyncResult *result, gpo
 void QSnapdDisableAliasesRequest::runAsync ()
 {
     Q_D(QSnapdDisableAliasesRequest);
-    g_autofree gchar **aliases = NULL;
+    g_auto(GStrv) aliases = NULL;
 
     aliases = string_list_to_strv (d->aliases);
     snapd_client_disable_aliases_async (SNAPD_CLIENT (getClient ()),
@@ -1846,7 +1846,7 @@ QSnapdResetAliasesRequest::QSnapdResetAliasesRequest (const QString& name, const
 void QSnapdResetAliasesRequest::runSync ()
 {
     Q_D(QSnapdResetAliasesRequest);
-    g_autofree gchar **aliases = NULL;
+    g_auto(GStrv) aliases = NULL;
     g_autoptr(GError) error = NULL;
 
     aliases = string_list_to_strv (d->aliases);
@@ -1876,7 +1876,7 @@ static void reset_aliases_ready_cb (GObject *object, GAsyncResult *result, gpoin
 void QSnapdResetAliasesRequest::runAsync ()
 {
     Q_D(QSnapdResetAliasesRequest);
-    g_autofree gchar **aliases = NULL;
+    g_auto(GStrv) aliases = NULL;
 
     aliases = string_list_to_strv (d->aliases);
     snapd_client_reset_aliases_async (SNAPD_CLIENT (getClient ()),
@@ -1892,7 +1892,7 @@ QSnapdRunSnapCtlRequest::QSnapdRunSnapCtlRequest (const QString& contextId, cons
 void QSnapdRunSnapCtlRequest::runSync ()
 {
     Q_D(QSnapdRunSnapCtlRequest);
-    g_autofree gchar **aliases = NULL;
+    g_auto(GStrv) aliases = NULL;
     g_autoptr(GError) error = NULL;
 
     aliases = string_list_to_strv (d->args);
@@ -1924,7 +1924,7 @@ static void run_snapctl_ready_cb (GObject *object, GAsyncResult *result, gpointe
 void QSnapdRunSnapCtlRequest::runAsync ()
 {
     Q_D(QSnapdRunSnapCtlRequest);
-    g_autofree gchar **aliases = NULL;
+    g_auto(GStrv) aliases = NULL;
 
     aliases = string_list_to_strv (d->args);
     snapd_client_run_snapctl_async (SNAPD_CLIENT (getClient ()),
