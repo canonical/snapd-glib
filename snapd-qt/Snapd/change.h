@@ -13,6 +13,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QDateTime>
 #include <Snapd/WrappedObject>
+#include <Snapd/Task>
 
 class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject
 {
@@ -23,6 +24,7 @@ class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject
     Q_PROPERTY (QString summary READ summary)
     Q_PROPERTY (QString status READ status)
     Q_PROPERTY (bool ready READ ready)
+    Q_PROPERTY (int taskCount READ taskCount)              
     Q_PROPERTY (QDateTime spawnTime READ spawnTime)
     Q_PROPERTY (QDateTime readyTime READ readyTime)
 
@@ -34,6 +36,8 @@ public:
     Q_INVOKABLE QString summary () const;
     Q_INVOKABLE QString status () const;
     Q_INVOKABLE bool ready () const;
+    Q_INVOKABLE int taskCount () const;
+    Q_INVOKABLE QSnapdTask *task (int) const;
     Q_INVOKABLE QDateTime spawnTime () const;
     Q_INVOKABLE QDateTime readyTime () const;
 };

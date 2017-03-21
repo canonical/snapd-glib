@@ -38,6 +38,24 @@ bool QSnapdChange::ready () const
     return snapd_change_get_ready (SNAPD_CHANGE (wrapped_object));
 }
 
+int QSnapdChange::taskCount () const
+{
+    GPtrArray *tasks;
+
+    tasks = snapd_change_get_tasks (SNAPD_CHANGE (wrapped_object));  
+    return tasks != NULL ? tasks->len : 0;
+}
+
+QSnapdTask *QSnapdChange::task (int n) const
+{
+    GPtrArray *tasks;
+
+    tasks = snapd_change_get_tasks (SNAPD_CHANGE (wrapped_object));  
+    if (tasks == NULL || n < 0 || (guint) n >= tasks->len)
+        return NULL;
+    return new QSnapdTask (g_object_ref (tasks->pdata[n]));
+}
+
 static QDateTime convertDateTime (GDateTime *datetime)
 {
     QDate date (g_date_time_get_year (datetime),
