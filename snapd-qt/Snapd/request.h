@@ -50,6 +50,7 @@ public:
     };
 
     explicit QSnapdRequest (void *snapd_client, QObject* parent = 0);
+    ~QSnapdRequest ();
     bool isFinished () const;
     QSnapdError error () const;
     QString errorString () const;

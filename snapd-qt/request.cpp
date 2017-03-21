@@ -24,7 +24,8 @@ struct QSnapdRequestPrivate
         g_cancellable_cancel (cancellable);
         g_object_unref (cancellable);
         g_object_unref (client);
-        g_object_unref (change);
+        if (change != NULL)
+            g_object_unref (change);
     }
 
     SnapdClient *client;
@@ -32,12 +33,17 @@ struct QSnapdRequestPrivate
     bool finished;
     QSnapdRequest::QSnapdError error;
     QString errorString;
-    SnapdChange *change;
+    SnapdChange *change = NULL;
 };
 
 QSnapdRequest::QSnapdRequest (void *snapd_client, QObject *parent) :
     QObject (parent),
     d_ptr (new QSnapdRequestPrivate (snapd_client)) {}
+
+QSnapdRequest::~QSnapdRequest ()
+{
+    delete d_ptr;
+}
 
 void* QSnapdRequest::getClient () const
 {

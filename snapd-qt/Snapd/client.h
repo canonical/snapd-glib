@@ -29,6 +29,7 @@ class Q_DECL_EXPORT QSnapdConnectRequest : public QSnapdRequest
 
 public:
     explicit QSnapdConnectRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdConnectRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -46,6 +47,7 @@ class Q_DECL_EXPORT QSnapdLoginRequest : public QSnapdRequest
 
 public:
     explicit QSnapdLoginRequest (void *snapd_client, const QString& username, const QString& password, const QString& otp, QObject *parent = 0);
+    ~QSnapdLoginRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE QSnapdAuthData *authData ();
@@ -64,6 +66,7 @@ class Q_DECL_EXPORT QSnapdGetSystemInformationRequest : public QSnapdRequest
 
 public:
     explicit QSnapdGetSystemInformationRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetSystemInformationRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     QSnapdSystemInformation *systemInformation ();
@@ -82,7 +85,7 @@ class Q_DECL_EXPORT QSnapdListRequest : public QSnapdRequest
 
 public:
     explicit QSnapdListRequest (void *snapd_client, QObject *parent = 0);
-
+    ~QSnapdListRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE int snapCount () const;
@@ -101,7 +104,7 @@ class Q_DECL_EXPORT QSnapdListOneRequest : public QSnapdRequest
 
 public:
     explicit QSnapdListOneRequest (const QString& name, void *snapd_client, QObject *parent = 0);
-
+    ~QSnapdListOneRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE QSnapdSnap *snap () const;
@@ -119,6 +122,7 @@ class Q_DECL_EXPORT QSnapdGetIconRequest : public QSnapdRequest
 
 public:
     explicit QSnapdGetIconRequest (const QString& name, void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetIconRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     QSnapdIcon *icon () const;
@@ -137,6 +141,7 @@ class Q_DECL_EXPORT QSnapdGetAssertionsRequest : public QSnapdRequest
 
 public:
     explicit QSnapdGetAssertionsRequest (const QString& type, void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetAssertionsRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE QStringList assertions () const;
@@ -154,6 +159,7 @@ class Q_DECL_EXPORT QSnapdAddAssertionsRequest : public QSnapdRequest
 
 public:
     explicit QSnapdAddAssertionsRequest (const QStringList& assertions, void *snapd_client, QObject *parent = 0);
+    ~QSnapdAddAssertionsRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -172,6 +178,7 @@ class Q_DECL_EXPORT QSnapdGetInterfacesRequest : public QSnapdRequest
 
 public:
     explicit QSnapdGetInterfacesRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetInterfacesRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE int plugCount () const;
@@ -192,9 +199,10 @@ class Q_DECL_EXPORT QSnapdConnectInterfaceRequest : public QSnapdRequest
 
 public:
     explicit QSnapdConnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client, QObject *parent = 0);
+    ~QSnapdConnectInterfaceRequest ();
     virtual void runSync ();
     virtual void runAsync ();
-    void handleResult (void *, void *);  
+    void handleResult (void *, void *);
 
 private:
     QSnapdConnectInterfaceRequestPrivate *d_ptr;
@@ -208,6 +216,7 @@ class Q_DECL_EXPORT QSnapdDisconnectInterfaceRequest : public QSnapdRequest
 
 public:
     explicit QSnapdDisconnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client, QObject *parent = 0);
+    ~QSnapdDisconnectInterfaceRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -226,6 +235,7 @@ class Q_DECL_EXPORT QSnapdFindRequest : public QSnapdRequest
 
 public:
     explicit QSnapdFindRequest (int flags, const QString& section, const QString& name, void *snapd_client, QObject *parent = 0);
+    ~QSnapdFindRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE int snapCount () const;
@@ -246,6 +256,7 @@ class Q_DECL_EXPORT QSnapdFindRefreshableRequest : public QSnapdRequest
 
 public:
     explicit QSnapdFindRefreshableRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdFindRefreshableRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE int snapCount () const;
@@ -264,6 +275,7 @@ class Q_DECL_EXPORT QSnapdInstallRequest : public QSnapdRequest
 
 public:
     explicit QSnapdInstallRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent = 0);
+    ~QSnapdInstallRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -280,6 +292,7 @@ class Q_DECL_EXPORT QSnapdRefreshRequest : public QSnapdRequest
 
 public:
     explicit QSnapdRefreshRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent = 0);
+    ~QSnapdRefreshRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -297,6 +310,7 @@ class Q_DECL_EXPORT QSnapdRefreshAllRequest : public QSnapdRequest
 
 public:
     explicit QSnapdRefreshAllRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdRefreshAllRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE QStringList snapNames () const;
@@ -314,6 +328,7 @@ class Q_DECL_EXPORT QSnapdRemoveRequest : public QSnapdRequest
 
 public:
     explicit QSnapdRemoveRequest (const QString& name, void *snapd_client, QObject *parent = 0);
+    ~QSnapdRemoveRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -330,6 +345,7 @@ class Q_DECL_EXPORT QSnapdEnableRequest : public QSnapdRequest
 
 public:
     explicit QSnapdEnableRequest (const QString& name, void *snapd_client, QObject *parent = 0);
+    ~QSnapdEnableRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -346,6 +362,7 @@ class Q_DECL_EXPORT QSnapdDisableRequest : public QSnapdRequest
 
 public:
     explicit QSnapdDisableRequest (const QString& name, void *snapd_client, QObject *parent = 0);
+    ~QSnapdDisableRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -363,6 +380,7 @@ class Q_DECL_EXPORT QSnapdCheckBuyRequest : public QSnapdRequest
 
 public:
     explicit QSnapdCheckBuyRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdCheckBuyRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE bool canBuy () const;
@@ -380,6 +398,7 @@ class Q_DECL_EXPORT QSnapdBuyRequest : public QSnapdRequest
 
 public:
     explicit QSnapdBuyRequest (const QString& id, double amount, const QString& currency, void *snapd_client, QObject *parent = 0);
+    ~QSnapdBuyRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -396,6 +415,7 @@ class Q_DECL_EXPORT QSnapdGetSectionsRequest : public QSnapdRequest
 
 public:
     explicit QSnapdGetSectionsRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetSectionsRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE QStringList sections () const;
@@ -410,10 +430,11 @@ class QSnapdGetAliasesRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetAliasesRequest : public QSnapdRequest
 {
     Q_OBJECT
-    Q_PROPERTY(int aliasCount READ aliasCount)    
+    Q_PROPERTY(int aliasCount READ aliasCount)
 
 public:
     explicit QSnapdGetAliasesRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetAliasesRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE int aliasCount () const;
@@ -432,6 +453,7 @@ class Q_DECL_EXPORT QSnapdEnableAliasesRequest : public QSnapdRequest
 
 public:
     explicit QSnapdEnableAliasesRequest (const QString& snap, const QStringList& aliases, void *snapd_client, QObject *parent = 0);
+    ~QSnapdEnableAliasesRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -448,6 +470,7 @@ class Q_DECL_EXPORT QSnapdDisableAliasesRequest : public QSnapdRequest
 
 public:
     explicit QSnapdDisableAliasesRequest (const QString& snap, const QStringList& aliases, void *snapd_client, QObject *parent = 0);
+    ~QSnapdDisableAliasesRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -464,6 +487,7 @@ class Q_DECL_EXPORT QSnapdResetAliasesRequest : public QSnapdRequest
 
 public:
     explicit QSnapdResetAliasesRequest (const QString& snap, const QStringList& aliases, void *snapd_client, QObject *parent = 0);
+    ~QSnapdResetAliasesRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
@@ -480,10 +504,11 @@ class Q_DECL_EXPORT QSnapdRunSnapCtlRequest : public QSnapdRequest
 
 public:
     explicit QSnapdRunSnapCtlRequest (const QString& contextId, const QStringList& args, void *snapd_client, QObject *parent = 0);
+    ~QSnapdRunSnapCtlRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE QString stdout () const;
-    Q_INVOKABLE QString stderr () const;  
+    Q_INVOKABLE QString stderr () const;
     void handleResult (void *, void *);
 
 private:
@@ -509,6 +534,7 @@ public:
     Q_DECLARE_FLAGS(FindFlags, FindFlag);
     explicit QSnapdClient (QObject* parent=0);
     explicit QSnapdClient (int fd, QObject* parent=0);
+    virtual ~QSnapdClient ();
     Q_INVOKABLE QSnapdConnectRequest *connect ();
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
     Q_INVOKABLE void setAuthData (QSnapdAuthData *authData);
@@ -518,16 +544,16 @@ public:
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
     Q_INVOKABLE QSnapdGetIconRequest *getIcon (const QString &name);
     Q_INVOKABLE QSnapdGetAssertionsRequest *getAssertions (const QString &type);
-    Q_INVOKABLE QSnapdAddAssertionsRequest *addAssertions (const QStringList &assertions);  
+    Q_INVOKABLE QSnapdAddAssertionsRequest *addAssertions (const QStringList &assertions);
     Q_INVOKABLE QSnapdGetInterfacesRequest *getInterfaces ();
     Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags, const QString &query);
     Q_INVOKABLE QSnapdFindRequest *findSection (FindFlags flags, const QString &section, const QString &query);
-    Q_INVOKABLE QSnapdFindRefreshableRequest *findRefreshable ();  
+    Q_INVOKABLE QSnapdFindRefreshableRequest *findRefreshable ();
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);
-    Q_INVOKABLE QSnapdRefreshAllRequest *refreshAll ();  
+    Q_INVOKABLE QSnapdRefreshAllRequest *refreshAll ();
     Q_INVOKABLE QSnapdRemoveRequest *remove (const QString &name);
     Q_INVOKABLE QSnapdEnableRequest *enable (const QString &name);
     Q_INVOKABLE QSnapdDisableRequest *disable (const QString &name);
@@ -537,8 +563,8 @@ public:
     Q_INVOKABLE QSnapdGetAliasesRequest *getAliases ();
     Q_INVOKABLE QSnapdEnableAliasesRequest *enableAliases (const QString snap, const QStringList &aliases);
     Q_INVOKABLE QSnapdDisableAliasesRequest *disableAliases (const QString snap, const QStringList &aliases);
-    Q_INVOKABLE QSnapdResetAliasesRequest *resetAliases (const QString snap, const QStringList &aliases);  
-    Q_INVOKABLE QSnapdRunSnapCtlRequest *runSnapCtl (const QString contextId, const QStringList &args);    
+    Q_INVOKABLE QSnapdResetAliasesRequest *resetAliases (const QString snap, const QStringList &aliases);
+    Q_INVOKABLE QSnapdRunSnapCtlRequest *runSnapCtl (const QString contextId, const QStringList &args);
 
 private:
     QSnapdClientPrivate *d_ptr;
