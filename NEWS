@@ -1,3 +1,32 @@
+Overview of changes in snapd-glib 1.8
+
+    * New API:
+      - snapd_client_get_assertions_async
+      - snapd_client_get_assertions_finish
+      - snapd_client_get_assertions_sync
+      - snapd_client_add_assertions_async
+      - snapd_client_add_assertions_finish
+      - snapd_client_add_assertions_sync
+      - snapd_client_get_aliases_async
+      - snapd_client_get_aliases_finish
+      - snapd_client_get_aliases_sync
+      - snapd_client_enable_aliases_async
+      - snapd_client_enable_aliases_finish
+      - snapd_client_enable_aliases_sync
+      - snapd_client_disable_aliases_async
+      - snapd_client_disable_aliases_finish
+      - snapd_client_disable_aliases_sync
+      - snapd_client_reset_aliases_async
+      - snapd_client_reset_aliases_finish
+      - snapd_client_reset_aliases_sync
+      - snapd_client_run_snapctl_async
+      - snapd_client_run_snapctl_finish
+      - snapd_client_run_snapctl_sync
+      - snapd_snap_get_jailmode
+    * Add snapd-qt regression tests.
+    * Add missing snapd-qt API
+    * Fix memory leaks in snapd-qt
+
 Overview of changes in snapd-glib 1.7
 
     * New API:
