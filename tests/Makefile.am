@@ -19,7 +19,7 @@ test_qt_CPPFLAGS = -g $(WARN_CFLAGS) \
 	$(SNAPD_CFLAGS) \
 	$(SNAPD_QT_CFLAGS) \
 	-I$(top_srcdir)/snapd-qt
-test_qt_LDADD = $(top_builddir)/snapd-qt/libsnapd-qt.la $(SNAPD_LIBS) $(SNAPD_QT_LIBS)
+test_qt_LDADD = $(top_builddir)/snapd-glib/libsnapd-glib.la $(top_builddir)/snapd-qt/libsnapd-qt.la $(SNAPD_LIBS) $(SNAPD_QT_LIBS)
 
 test-qt_moc.cpp: test-qt.h
 	$(AM_V_GEN) moc --qt=qt5 $< -o $@
