@@ -197,6 +197,7 @@ test_list_one ()
     g_assert_cmpint (app->aliases ().count (), ==, 2);
     g_assert (app->aliases ()[0] == "app2");
     g_assert (app->aliases ()[1] == "app3");
+    g_assert_cmpint (app->daemonType (), ==, QSnapdApp::DaemonNone);
     g_assert (snap->channel () == "CHANNEL");
     g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
     g_assert (snap->description () == "DESCRIPTION");
@@ -273,6 +274,48 @@ test_list_one_devmode_confinement ()
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
     g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Devmode);
+}
+
+static void
+test_list_one_daemons ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app1");
+    mock_app_set_daemon (a, "simple");
+    a = mock_snap_add_app (s, "app2");
+    mock_app_set_daemon (a, "forking");
+    a = mock_snap_add_app (s, "app3");
+    mock_app_set_daemon (a, "oneshot");
+    a = mock_snap_add_app (s, "app4");
+    mock_app_set_daemon (a, "notify");
+    a = mock_snap_add_app (s, "app5");
+    mock_app_set_daemon (a, "dbus");
+    a = mock_snap_add_app (s, "app6");
+    mock_app_set_daemon (a, "INVALID");  
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
+    listOneRequest->runSync ();
+    g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    g_assert_cmpint (snap->appCount (), ==, 6);
+    QScopedPointer<QSnapdApp> app1 (snap->app (0));
+    g_assert_cmpint (app1->daemonType (), ==, QSnapdApp::Simple);
+    QScopedPointer<QSnapdApp> app2 (snap->app (1));
+    g_assert_cmpint (app2->daemonType (), ==, QSnapdApp::Forking);
+    QScopedPointer<QSnapdApp> app3 (snap->app (2));
+    g_assert_cmpint (app3->daemonType (), ==, QSnapdApp::Oneshot);
+    QScopedPointer<QSnapdApp> app4 (snap->app (3));
+    g_assert_cmpint (app4->daemonType (), ==, QSnapdApp::Notify);
+    QScopedPointer<QSnapdApp> app5 (snap->app (4));
+    g_assert_cmpint (app5->daemonType (), ==, QSnapdApp::Dbus);
+    QScopedPointer<QSnapdApp> app6 (snap->app (5));
+    g_assert_cmpint (app6->daemonType (), ==, QSnapdApp::DaemonUnknown);
 }
 
 static void
@@ -1924,6 +1967,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
+    g_test_add_func ("/list-one/daemons", test_list_one_daemons);
     g_test_add_func ("/icon/basic", test_icon);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
     g_test_add_func ("/get-assertions/basic", test_get_assertions);

@@ -18,13 +18,17 @@ snapd_alias_status_get_type
 <SECTION>
 <FILE>snapd-app</FILE>
 <TITLE>SnapdApp</TITLE>
+SnapdDaemonType
 SnapdApp
 snapd_app_get_name
 snapd_app_get_aliases
+snapd_app_get_daemon_type
 
 <SUBSECTION Private>
 SnapdAppClass
 SNAPD_TYPE_APP
+SNAPD_TYPE_DAEMON_TYPE
+snapd_daemon_type_get_type
 </SECTION>
 
 <SECTION>

@@ -780,7 +780,9 @@ parse_snap (JsonObject *object, GError **error)
         g_autoptr(JsonArray) aliases = NULL;
         g_autoptr(GPtrArray) aliases_array = NULL;
         int j;
+        const gchar *daemon;
         g_autoptr(SnapdApp) app = NULL;
+        SnapdDaemonType daemon_type = SNAPD_DAEMON_TYPE_NONE;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error_literal (error,
@@ -809,9 +811,26 @@ parse_snap (JsonObject *object, GError **error)
         }
         g_ptr_array_add (aliases_array, NULL);
 
+        daemon = get_string (a, "daemon", NULL);
+        if (daemon == NULL)
+            daemon_type = SNAPD_DAEMON_TYPE_NONE;        
+        else if (strcmp (daemon, "simple") == 0)
+            daemon_type = SNAPD_DAEMON_TYPE_SIMPLE;
+        else if (strcmp (daemon, "forking") == 0)
+            daemon_type = SNAPD_DAEMON_TYPE_FORKING;
+        else if (strcmp (daemon, "oneshot") == 0)
+            daemon_type = SNAPD_DAEMON_TYPE_ONESHOT;
+        else if (strcmp (daemon, "dbus") == 0)
+            daemon_type = SNAPD_DAEMON_TYPE_DBUS;
+        else if (strcmp (daemon, "notify") == 0)
+            daemon_type = SNAPD_DAEMON_TYPE_NOTIFY;
+        else
+            daemon_type = SNAPD_DAEMON_TYPE_UNKNOWN;
+
         app = g_object_new (SNAPD_TYPE_APP,
                             "name", get_string (a, "name", NULL),
                             "aliases", (gchar **) aliases_array->pdata,
+                            "daemon-type", daemon_type,
                             NULL);
         g_ptr_array_add (apps_array, g_steal_pointer (&app));
     }

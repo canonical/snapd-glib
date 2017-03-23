@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "snapd-app.h"
+#include "snapd-enum-types.h"
 
 /**
  * SECTION:snapd-app
@@ -33,6 +34,7 @@ struct _SnapdApp
 {
     GObject parent_instance;
 
+    SnapdDaemonType daemon_type;
     gchar *name;
     gchar **aliases;
 };
@@ -41,6 +43,7 @@ enum
 {
     PROP_NAME = 1,
     PROP_ALIASES,
+    PROP_DAEMON_TYPE,  
     PROP_LAST
 };
 
@@ -76,6 +79,21 @@ snapd_app_get_aliases (SnapdApp *app)
     return app->aliases;
 }
 
+/**
+ * snapd_app_get_daemon_type:
+ * @app: a #SnapdApp.
+ *
+ * Get the daemon type for this app.
+ *
+ * Returns: the daemon type.
+ */
+SnapdDaemonType
+snapd_app_get_daemon_type (SnapdApp *app)
+{
+    g_return_val_if_fail (SNAPD_IS_APP (app), SNAPD_DAEMON_TYPE_NONE);
+    return app->daemon_type;
+}
+
 static void
 snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
@@ -89,6 +107,9 @@ snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GPa
     case PROP_ALIASES:
         g_strfreev (app->aliases);
         app->aliases = g_strdupv (g_value_get_boxed (value));
+        break;
+    case PROP_DAEMON_TYPE:
+        app->daemon_type = g_value_get_enum (value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -107,6 +128,9 @@ snapd_app_get_property (GObject *object, guint prop_id, GValue *value, GParamSpe
         break;
     case PROP_ALIASES:
         g_value_set_boxed (value, app->aliases);
+        break;
+    case PROP_DAEMON_TYPE:
+        g_value_set_enum (value, app->daemon_type);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -145,7 +169,14 @@ snapd_app_class_init (SnapdAppClass *klass)
                                                          "aliases",
                                                          "App aliases",
                                                          G_TYPE_STRV,
-                                                         G_PARAM_READWRITE));
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_DAEMON_TYPE,
+                                     g_param_spec_enum ("daemon-type",
+                                                        "daemon-type",
+                                                        "Daemon type",
+                                                        SNAPD_TYPE_DAEMON_TYPE, SNAPD_DAEMON_TYPE_UNKNOWN,
+                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void

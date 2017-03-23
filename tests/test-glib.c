@@ -230,6 +230,7 @@ test_list_one (void)
     g_assert_cmpstr (snapd_app_get_name (app), ==, "app");
     aliases = snapd_app_get_aliases (app);
     g_assert_cmpint (g_strv_length (aliases), ==, 2);
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
     g_assert_cmpstr (aliases[0], ==, "app2");
     g_assert_cmpstr (aliases[1], ==, "app3");
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
@@ -320,6 +321,54 @@ test_list_one_devmode_confinement (void)
     g_assert_no_error (error);
     g_assert (snap != NULL);
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_DEVMODE);
+}
+
+static void
+test_list_one_daemons (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    MockApp *a;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdSnap) snap = NULL;
+    g_autoptr(GError) error = NULL;
+    SnapdApp *app;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    a = mock_snap_add_app (s, "app1");
+    mock_app_set_daemon (a, "simple");
+    a = mock_snap_add_app (s, "app2");
+    mock_app_set_daemon (a, "forking");
+    a = mock_snap_add_app (s, "app3");
+    mock_app_set_daemon (a, "oneshot");
+    a = mock_snap_add_app (s, "app4");
+    mock_app_set_daemon (a, "notify");
+    a = mock_snap_add_app (s, "app5");
+    mock_app_set_daemon (a, "dbus");
+    a = mock_snap_add_app (s, "app6");
+    mock_app_set_daemon (a, "INVALID");  
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snap = snapd_client_list_one_sync (client, "snap", NULL, &error);
+    g_assert_no_error (error);
+    g_assert (snap != NULL);
+    g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 6);
+    app = snapd_snap_get_apps (snap)->pdata[0];
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_SIMPLE);
+    app = snapd_snap_get_apps (snap)->pdata[1];
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_FORKING);
+    app = snapd_snap_get_apps (snap)->pdata[2];
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_ONESHOT);
+    app = snapd_snap_get_apps (snap)->pdata[3];
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NOTIFY);
+    app = snapd_snap_get_apps (snap)->pdata[4];
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_DBUS);
+    app = snapd_snap_get_apps (snap)->pdata[5];
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_UNKNOWN);
 }
 
 static void
@@ -2467,6 +2516,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
+    g_test_add_func ("/list-one/daemons", test_list_one_daemons);
     g_test_add_func ("/icon/basic", test_icon);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
     g_test_add_func ("/get-assertions/basic", test_get_assertions);

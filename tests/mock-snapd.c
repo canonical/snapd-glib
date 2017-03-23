@@ -85,6 +85,7 @@ mock_app_free (MockApp *app)
 {
     g_free (app->name);
     g_list_free_full (app->aliases, (GDestroyNotify) mock_alias_free);
+    g_free (app->daemon);
     g_slice_free (MockApp, app);
 }
 
@@ -430,6 +431,13 @@ mock_alias_set_status (MockAlias *alias, const gchar *status)
 {
     g_free (alias->status);
     alias->status = g_strdup (status);
+}
+
+void
+mock_app_set_daemon (MockApp *app, const gchar *daemon)
+{
+    g_free (app->daemon);
+    app->daemon = g_strdup (daemon);  
 }
 
 void
@@ -1124,6 +1132,10 @@ make_snap_node (MockSnap *snap)
                     json_builder_add_string_value (builder, alias->name);
                 }
                 json_builder_end_array (builder);
+            }
+            if (app->daemon != NULL) {
+                json_builder_set_member_name (builder, "daemon");
+                json_builder_add_string_value (builder, app->daemon);
             }
             json_builder_end_object (builder);
         }

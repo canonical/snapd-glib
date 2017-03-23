@@ -29,9 +29,35 @@ struct _SnapdAppClass
     GObjectClass parent_class;
 };
 
-const gchar *snapd_app_get_name    (SnapdApp *app);
 
-gchar      **snapd_app_get_aliases (SnapdApp *app);
+/**
+ * SnapdDaemonType:
+ * @SNAPD_DAEMON_TYPE_NONE: Not a daemon
+ * @SNAPD_DAEMON_TYPE_UNKNOWN: Unknown daemon type
+ * @SNAPD_DAEMON_TYPE_SIMPLE: Simple daemon
+ * @SNAPD_DAEMON_TYPE_FORKING: Forking daemon
+ * @SNAPD_DAEMON_TYPE_ONESHOT: One-shot daemon
+ * @SNAPD_DAEMON_TYPE_DBUS: D-Bus daemon
+ * @SNAPD_DAEMON_TYPE_NOTIFY: Notify daemon
+ *
+ * Type of daemon.
+ */
+typedef enum
+{
+    SNAPD_DAEMON_TYPE_NONE,  
+    SNAPD_DAEMON_TYPE_UNKNOWN,
+    SNAPD_DAEMON_TYPE_SIMPLE,
+    SNAPD_DAEMON_TYPE_FORKING,
+    SNAPD_DAEMON_TYPE_ONESHOT,
+    SNAPD_DAEMON_TYPE_DBUS,
+    SNAPD_DAEMON_TYPE_NOTIFY
+} SnapdDaemonType;
+
+const gchar    *snapd_app_get_name        (SnapdApp *app);
+
+gchar         **snapd_app_get_aliases     (SnapdApp *app);
+
+SnapdDaemonType snapd_app_get_daemon_type (SnapdApp *app);
 
 G_END_DECLS
 
