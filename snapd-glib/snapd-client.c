@@ -779,6 +779,7 @@ parse_snap (JsonObject *object, GError **error)
         JsonObject *a;
         g_autoptr(JsonArray) aliases = NULL;
         g_autoptr(GPtrArray) aliases_array = NULL;
+        int j;
         g_autoptr(SnapdApp) app = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
@@ -793,8 +794,8 @@ parse_snap (JsonObject *object, GError **error)
 
         aliases = get_array (a, "aliases");
         aliases_array = g_ptr_array_new ();
-        for (i = 0; i < json_array_get_length (aliases); i++) {
-            JsonNode *node = json_array_get_element (aliases, i);
+        for (j = 0; j < json_array_get_length (aliases); j++) {
+            JsonNode *node = json_array_get_element (aliases, j);
 
             if (json_node_get_value_type (node) != G_TYPE_STRING) {
                 g_set_error_literal (error,
