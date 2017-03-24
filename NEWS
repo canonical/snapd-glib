@@ -1,3 +1,16 @@
+Overview of changes in snapd-glib 1.9
+
+    * New API:
+      - snapd_app_get_daemon_type
+      - snapd_client_install_stream_async
+      - snapd_client_install_stream_finish
+      - snapd_client_install_stream_sync
+      - snapd_client_try_async
+      - snapd_client_try_finish
+      - snapd_client_try_sync
+    * Fix iterator double use parsing of apps/aliases
+    * Fix Qt tests not linking against local snapd-glib
+
 Overview of changes in snapd-glib 1.8
 
     * New API:
