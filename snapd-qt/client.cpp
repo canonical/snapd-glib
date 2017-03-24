@@ -10,6 +10,7 @@
 #include <snapd-glib/snapd-glib.h>
 
 #include "Snapd/client.h"
+#include "client-private.h"
 
 struct QSnapdClientPrivate
 {
@@ -31,274 +32,6 @@ struct QSnapdClientPrivate
     }
 
     SnapdClient *client;
-};
-
-struct QSnapdConnectRequestPrivate
-{
-};
-
-struct QSnapdLoginRequestPrivate
-{
-    QSnapdLoginRequestPrivate (const QString& username, const QString& password, const QString& otp) :
-        username(username), password(password), otp(otp) {}
-    ~QSnapdLoginRequestPrivate ()
-    {
-        if (auth_data != NULL)
-            g_object_unref (auth_data);
-    }
-    QString username;
-    QString password;
-    QString otp;
-    SnapdAuthData *auth_data = NULL;
-};
-
-struct QSnapdGetSystemInformationRequestPrivate
-{
-    ~QSnapdGetSystemInformationRequestPrivate ()
-    {
-        if (info != NULL)
-            g_object_unref (info);
-    }
-    SnapdSystemInformation *info = NULL;
-};
-
-struct QSnapdListRequestPrivate
-{
-    ~QSnapdListRequestPrivate ()
-    {
-        if (snaps != NULL)
-            g_ptr_array_unref (snaps);
-    }
-    GPtrArray *snaps = NULL;
-};
-
-struct QSnapdListOneRequestPrivate
-{
-    QSnapdListOneRequestPrivate (const QString& name) :
-        name(name) {}
-    ~QSnapdListOneRequestPrivate ()
-    {
-        if (snap != NULL)
-            g_object_unref (snap);
-    }
-    QString name;
-    SnapdSnap *snap = NULL;
-};
-
-struct QSnapdGetIconRequestPrivate
-{
-    QSnapdGetIconRequestPrivate (const QString& name) :
-        name(name) {}
-    ~QSnapdGetIconRequestPrivate ()
-    {
-        if (icon != NULL)
-            g_object_unref (icon);
-    }
-    QString name;
-    SnapdIcon *icon = NULL;
-};
-
-struct QSnapdGetAssertionsRequestPrivate
-{
-    QSnapdGetAssertionsRequestPrivate (const QString& type) :
-        type (type) {}
-    ~QSnapdGetAssertionsRequestPrivate ()
-    {
-        if (assertions != NULL)
-            g_strfreev (assertions);
-    }
-    QString type;
-    gchar **assertions = NULL;
-};
-
-struct QSnapdAddAssertionsRequestPrivate
-{
-    QSnapdAddAssertionsRequestPrivate (const QStringList& assertions) :
-        assertions (assertions) {}
-    QStringList assertions;
-};
-
-struct QSnapdGetInterfacesRequestPrivate
-{
-    ~QSnapdGetInterfacesRequestPrivate ()
-    {
-        if (plugs != NULL)
-            g_ptr_array_unref (plugs);
-        if (slots_ != NULL)
-            g_ptr_array_unref (slots_);
-    }
-    GPtrArray *plugs = NULL;
-    GPtrArray *slots_ = NULL;
-};
-
-struct QSnapdConnectInterfaceRequestPrivate
-{
-    QSnapdConnectInterfaceRequestPrivate (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name) :
-        plug_snap (plug_snap), plug_name (plug_name), slot_snap (slot_snap), slot_name (slot_name) {}
-    QString plug_snap;
-    QString plug_name;
-    QString slot_snap;
-    QString slot_name;
-};
-
-struct QSnapdDisconnectInterfaceRequestPrivate
-{
-    QSnapdDisconnectInterfaceRequestPrivate (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name) :
-        plug_snap (plug_snap), plug_name (plug_name), slot_snap (slot_snap), slot_name (slot_name) {}
-    QString plug_snap;
-    QString plug_name;
-    QString slot_snap;
-    QString slot_name;
-};
-
-struct QSnapdFindRequestPrivate
-{
-    QSnapdFindRequestPrivate (int flags, const QString& section, const QString& name) :
-        flags (flags), section (section), name (name) {}
-    ~QSnapdFindRequestPrivate ()
-    {
-        if (snaps != NULL)
-            g_ptr_array_unref (snaps);
-    }
-    int flags;
-    QString section;  
-    QString name;
-    GPtrArray *snaps = NULL;
-    QString suggestedCurrency;
-};
-
-struct QSnapdFindRefreshableRequestPrivate
-{
-    QSnapdFindRefreshableRequestPrivate () {}
-    ~QSnapdFindRefreshableRequestPrivate ()
-    {
-        if (snaps != NULL)
-            g_ptr_array_unref (snaps);
-    }
-    GPtrArray *snaps = NULL;
-};
-
-struct QSnapdInstallRequestPrivate
-{
-    QSnapdInstallRequestPrivate (const QString& name, const QString& channel) :
-        name(name), channel(channel) {}
-    QString name;
-    QString channel;
-};
-
-struct QSnapdRefreshRequestPrivate
-{
-    QSnapdRefreshRequestPrivate (const QString& name, const QString& channel) :
-        name(name), channel(channel) {}
-    QString name;
-    QString channel;
-};
-
-struct QSnapdRefreshAllRequestPrivate
-{
-    QSnapdRefreshAllRequestPrivate () {}
-    ~QSnapdRefreshAllRequestPrivate ()
-    {
-        if (snap_names != NULL)
-            g_strfreev (snap_names);
-    }  
-    gchar **snap_names = NULL;
-};
-
-struct QSnapdRemoveRequestPrivate
-{
-    QSnapdRemoveRequestPrivate (const QString& name) :
-        name(name) {}
-    QString name;
-};
-
-struct QSnapdEnableRequestPrivate
-{
-    QSnapdEnableRequestPrivate (const QString& name) :
-        name(name) {}
-    QString name;
-};
-
-struct QSnapdDisableRequestPrivate
-{
-    QSnapdDisableRequestPrivate (const QString& name) :
-        name(name) {}
-    QString name;
-};
-
-struct QSnapdCheckBuyRequestPrivate
-{
-    bool canBuy;
-};
-
-struct QSnapdBuyRequestPrivate
-{
-    QSnapdBuyRequestPrivate (const QString& id, double amount, const QString& currency) :
-      id(id), amount(amount), currency(currency) {}
-    QString id;
-    double amount;
-    QString currency;
-};
-
-struct QSnapdGetSectionsRequestPrivate
-{
-    ~QSnapdGetSectionsRequestPrivate ()
-    {
-        if (sections != NULL)
-            g_strfreev (sections);
-    }
-    gchar **sections = NULL;
-};
-
-struct QSnapdGetAliasesRequestPrivate
-{
-    ~QSnapdGetAliasesRequestPrivate ()
-    {
-        if (aliases != NULL)
-            g_ptr_array_unref (aliases);
-    }
-    GPtrArray *aliases = NULL;
-};
-
-struct QSnapdEnableAliasesRequestPrivate
-{
-    QSnapdEnableAliasesRequestPrivate (const QString &snap, const QStringList& aliases) :
-        snap (snap), aliases (aliases) {}
-    QString snap;
-    QStringList aliases;
-};
-
-struct QSnapdDisableAliasesRequestPrivate
-{
-    QSnapdDisableAliasesRequestPrivate (const QString &snap, const QStringList& aliases) :
-        snap (snap), aliases (aliases) {}
-    QString snap;
-    QStringList aliases;
-};
-
-struct QSnapdResetAliasesRequestPrivate
-{
-    QSnapdResetAliasesRequestPrivate (const QString &snap, const QStringList& aliases) :
-        snap (snap), aliases (aliases) {}
-    QString snap;
-    QStringList aliases;
-};
-
-struct QSnapdRunSnapCtlRequestPrivate
-{
-    QSnapdRunSnapCtlRequestPrivate (const QString &contextId, const QStringList& args) :
-        contextId (contextId), args (args) {}
-    ~QSnapdRunSnapCtlRequestPrivate ()
-    {
-        if (stdout_output != NULL)
-            g_free (stdout_output);
-        if (stderr_output != NULL)
-            g_free (stderr_output);      
-    }
-    QString contextId;
-    QStringList args;
-    gchar *stdout_output = NULL;
-    gchar *stderr_output = NULL;
 };
 
 QSnapdClient::QSnapdClient(QObject *parent) :
@@ -505,13 +238,31 @@ QSnapdInstallRequest::~QSnapdInstallRequest ()
 QSnapdInstallRequest *QSnapdClient::install (const QString& name)
 {
     Q_D(QSnapdClient);
-    return new QSnapdInstallRequest (name, NULL, d->client);
+    return new QSnapdInstallRequest (0, name, NULL, NULL, d->client);
 }
 
 QSnapdInstallRequest *QSnapdClient::install (const QString& name, const QString& channel)
 {
     Q_D(QSnapdClient);
-    return new QSnapdInstallRequest (name, channel, d->client);
+    return new QSnapdInstallRequest (0, name, channel, NULL, d->client);
+}
+
+QSnapdInstallRequest *QSnapdClient::install (QIODevice *ioDevice)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdInstallRequest (0, NULL, NULL, ioDevice, d->client);
+}
+
+QSnapdInstallRequest *QSnapdClient::install (InstallFlags flags, QIODevice *ioDevice)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdInstallRequest (flags, NULL, NULL, ioDevice, d->client);
+}
+
+QSnapdTryRequest *QSnapdClient::trySnap (const QString& path)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdTryRequest (path, d->client);
 }
 
 QSnapdRefreshRequest::~QSnapdRefreshRequest ()
@@ -1324,26 +1075,55 @@ QSnapdSnap *QSnapdFindRefreshableRequest::snap (int n) const
     return new QSnapdSnap (d->snaps->pdata[n]);
 }
 
-QSnapdInstallRequest::QSnapdInstallRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent) :
+static SnapdInstallFlags convertInstallFlags (int flags)
+{
+    int result = SNAPD_INSTALL_FLAGS_NONE;
+
+    if ((flags & QSnapdClient::InstallFlag::Classic) != 0)
+        result |= SNAPD_INSTALL_FLAGS_CLASSIC;
+    if ((flags & QSnapdClient::InstallFlag::Dangerous) != 0)
+        result |= SNAPD_INSTALL_FLAGS_DANGEROUS;
+    if ((flags & QSnapdClient::InstallFlag::Devmode) != 0)
+        result |= SNAPD_INSTALL_FLAGS_DEVMODE;
+    if ((flags & QSnapdClient::InstallFlag::Jailmode) != 0)
+        result |= SNAPD_INSTALL_FLAGS_JAILMODE;
+
+    return (SnapdInstallFlags) result;
+}
+
+QSnapdInstallRequest::QSnapdInstallRequest (int flags, const QString& name, const QString& channel, QIODevice *ioDevice, void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdInstallRequestPrivate (name, channel)) {}
+    d_ptr (new QSnapdInstallRequestPrivate (flags, name, channel, ioDevice)) {}
 
 void QSnapdInstallRequest::runSync ()
 {
     Q_D(QSnapdInstallRequest);
     g_autoptr(GError) error = NULL;
-    snapd_client_install_sync (SNAPD_CLIENT (getClient ()),
-                               d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
-                               progress_cb, this,
-                               G_CANCELLABLE (getCancellable ()), &error);
+    if (d->wrapper != NULL) {
+        snapd_client_install_stream_sync (SNAPD_CLIENT (getClient ()),
+                                          convertInstallFlags (d->flags),
+                                          G_INPUT_STREAM (d->wrapper),
+                                          progress_cb, this,
+                                          G_CANCELLABLE (getCancellable ()), &error);
+    }
+    else {
+        snapd_client_install_sync (SNAPD_CLIENT (getClient ()),
+                                   d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
+                                   progress_cb, this,
+                                   G_CANCELLABLE (getCancellable ()), &error);
+    }
     finish (error);
 }
 
 void QSnapdInstallRequest::handleResult (void *object, void *result)
 {
+    Q_D(QSnapdInstallRequest);
     g_autoptr(GError) error = NULL;
 
-    snapd_client_install_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (d->wrapper != NULL)
+        snapd_client_install_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    else
+        snapd_client_install_stream_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
     if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         return;
 
@@ -1359,10 +1139,58 @@ static void install_ready_cb (GObject *object, GAsyncResult *result, gpointer da
 void QSnapdInstallRequest::runAsync ()
 {
     Q_D(QSnapdInstallRequest);
-    snapd_client_install_async (SNAPD_CLIENT (getClient ()),
-                                d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
-                                progress_cb, this,
-                                G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
+    if (d->wrapper != NULL)
+        snapd_client_install_stream_async (SNAPD_CLIENT (getClient ()),
+                                           convertInstallFlags (d->flags),
+                                           G_INPUT_STREAM (d->wrapper),
+                                           progress_cb, this,
+                                           G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
+    else      
+        snapd_client_install_async (SNAPD_CLIENT (getClient ()),
+                                    d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
+                                    progress_cb, this,
+                                    G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
+}
+
+QSnapdTryRequest::QSnapdTryRequest (const QString& path, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdTryRequestPrivate (path)) {}
+
+void QSnapdTryRequest::runSync ()
+{
+    Q_D(QSnapdTryRequest);
+    g_autoptr(GError) error = NULL;
+    snapd_client_try_sync (SNAPD_CLIENT (getClient ()),
+                           d->path.toStdString ().c_str (),
+                           progress_cb, this,
+                           G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdTryRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GError) error = NULL;
+
+    snapd_client_try_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return;
+
+    finish (error);
+}
+
+static void try_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdTryRequest *request = static_cast<QSnapdTryRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdTryRequest::runAsync ()
+{
+    Q_D(QSnapdTryRequest);
+    snapd_client_try_async (SNAPD_CLIENT (getClient ()),
+                            d->path.toStdString ().c_str (),
+                            progress_cb, this,
+                            G_CANCELLABLE (getCancellable ()), try_ready_cb, (gpointer) this);
 }
 
 QSnapdRefreshRequest::QSnapdRefreshRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent) :

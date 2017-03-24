@@ -2,6 +2,7 @@ pkgconfig_DATA = snapd-qt.pc
 pkgconfigdir = $(libdir)/pkgconfig
 
 source_cpp = alias.cpp app.cpp assertion.cpp auth-data.cpp change.cpp client.cpp connection.cpp icon.cpp plug.cpp price.cpp request.cpp screenshot.cpp slot.cpp snap.cpp system-information.cpp task.cpp
+source_moc = $(source_cpp:.cpp=_moc.cpp) client-private_moc.cpp wrapped-object_moc.cpp
 source_h = Snapd/Alias Snapd/alias.h \
            Snapd/App Snapd/app.h \
            Snapd/Assertion Snapd/assertion.h \
@@ -19,15 +20,17 @@ source_h = Snapd/Alias Snapd/alias.h \
            Snapd/SystemInformation Snapd/system-information.h \
            Snapd/Task Snapd/task.h \
            Snapd/WrappedObject Snapd/wrapped-object.h
-source_moc = $(source_cpp:.cpp=_moc.cpp) wrapped-object_moc.cpp
+private_h = client-private.h stream-wrapper.h
 
 %_moc.cpp: Snapd/%.h
+	$(AM_V_GEN) moc --qt=qt5 $< -o $@
+client-private_moc.cpp: client-private.h
 	$(AM_V_GEN) moc --qt=qt5 $< -o $@
 
 libsnapd_qt_la_CPPFLAGS = $(SNAPD_QT_CFLAGS) $(SNAPD_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)
 libsnapd_qt_la_LDFLAGS = -version-info 1:0:0
 libsnapd_qt_la_LIBADD = $(top_builddir)/snapd-glib/libsnapd-glib.la $(SNAPD_QT_LIBS)
-libsnapd_qt_la_SOURCES = $(source_cpp) $(source_moc) $(source_h)
+libsnapd_qt_la_SOURCES = $(source_cpp)  stream-wrapper.cpp $(source_moc) $(source_h) $(private_h)
 
 snapdincludedir = $(includedir)/snapd-qt/Snapd
 

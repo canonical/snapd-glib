@@ -61,6 +61,27 @@ typedef enum
 } SnapdFindFlags;
 
 /**
+ * SnapdInstallFlags:
+ * @SNAPD_INSTALL_FLAGS_NONE: No flags, default behaviour.
+ * @SNAPD_INSTALL_FLAGS_CLASSIC: Put snap in classic mode and disable security confinement.
+ * @SNAPD_INSTALL_FLAGS_DANGEROUS: Install the given snap file even if there are
+ *    no pre-acknowledged signatures for it, meaning it was not verified and
+ *    could be dangerous (implied by #SNAPD_INSTALL_FLAGS_DEVMODE).
+ * @SNAPD_INSTALL_FLAGS_DEVMODE: Put snap in development mode and disable security confinement.
+ * @SNAPD_INSTALL_FLAGS_JAILMODE: Put snap in enforced confinement mode.
+ *
+ * Flags to control install options.
+ */
+typedef enum
+{
+    SNAPD_INSTALL_FLAGS_NONE      = 0,
+    SNAPD_INSTALL_FLAGS_CLASSIC   = 1 << 0,
+    SNAPD_INSTALL_FLAGS_DANGEROUS = 1 << 1,
+    SNAPD_INSTALL_FLAGS_DEVMODE   = 1 << 2,
+    SNAPD_INSTALL_FLAGS_JAILMODE  = 1 << 3
+} SnapdInstallFlags;
+
+/**
  * SnapdCreateUserFlags:
  * @SNAPD_CREATE_USER_FLAGS_NONE: No flags, default behaviour.
  * @SNAPD_CREATE_USER_FLAGS_SUDO: Gives sudo access to created user.
@@ -329,6 +350,42 @@ void                    snapd_client_install_async                 (SnapdClient 
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 gboolean                snapd_client_install_finish                (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_install_stream_sync           (SnapdClient          *client,
+                                                                    SnapdInstallFlags     flags,
+                                                                    GInputStream         *stream,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_install_stream_async          (SnapdClient          *client,
+                                                                    SnapdInstallFlags     flags,
+                                                                    GInputStream         *stream,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_install_stream_finish         (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_try_sync                      (SnapdClient          *client,
+                                                                    const gchar          *path,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_try_async                     (SnapdClient          *client,
+                                                                    const gchar          *path,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_try_finish                    (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

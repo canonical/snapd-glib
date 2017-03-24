@@ -1411,6 +1411,266 @@ test_install_not_available (void)
 }
 
 static void
+test_install_stream (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GInputStream) stream = NULL;
+    gboolean result;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_NONE, stream, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "strict");
+    g_assert (snap->dangerous == FALSE);
+    g_assert (snap->devmode == FALSE);
+    g_assert (snap->jailmode == FALSE);
+}
+
+typedef struct
+{
+    int progress_done;
+} InstallStreamProgressData;
+
+static void
+install_stream_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data)
+{
+    InstallStreamProgressData *data = user_data;
+    data->progress_done++;
+}
+
+static void
+test_install_stream_progress (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    InstallStreamProgressData install_stream_progress_data;
+    g_autoptr(GInputStream) stream = NULL;
+    gboolean result;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    install_stream_progress_data.progress_done = 0;
+    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_NONE, stream, install_stream_progress_cb, &install_stream_progress_data, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpint (install_stream_progress_data.progress_done, >, 0);
+}
+
+static void
+test_install_stream_classic (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GInputStream) stream = NULL;
+    gboolean result;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, stream, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "classic");
+    g_assert (snap->dangerous == FALSE);
+    g_assert (snap->devmode == FALSE);
+    g_assert (snap->jailmode == FALSE);
+}
+
+static void
+test_install_stream_dangerous (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GInputStream) stream = NULL;
+    gboolean result;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_DANGEROUS, stream, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "strict");
+    g_assert (snap->dangerous == TRUE);
+    g_assert (snap->devmode == FALSE);
+    g_assert (snap->jailmode == FALSE);
+}
+
+static void
+test_install_stream_devmode (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GInputStream) stream = NULL;
+    gboolean result;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_DEVMODE, stream, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "strict");
+    g_assert (snap->dangerous == FALSE);
+    g_assert (snap->devmode == TRUE);
+    g_assert (snap->jailmode == FALSE);
+}
+
+static void
+test_install_stream_jailmode (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GInputStream) stream = NULL;
+    gboolean result;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_JAILMODE, stream, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "strict");
+    g_assert (snap->dangerous == FALSE);
+    g_assert (snap->devmode == FALSE);
+    g_assert (snap->jailmode == TRUE);
+}
+
+static void
+test_try (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GInputStream) stream = NULL;
+    gboolean result;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    result = snapd_client_try_sync (client, "/path/to/snap", NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    snap = mock_snapd_find_snap (snapd, "try");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_path, ==, "/path/to/snap");
+}
+
+typedef struct
+{
+    int progress_done;
+} TryProgressData;
+
+static void
+try_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data)
+{
+    TryProgressData *data = user_data;
+    data->progress_done++;
+}
+
+static void
+test_try_progress (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    TryProgressData try_progress_data;
+    g_autoptr(GInputStream) stream = NULL;
+    gboolean result;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    try_progress_data.progress_done = 0;
+    result = snapd_client_try_sync (client, "/path/to/snap", try_progress_cb, &try_progress_data, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    snap = mock_snapd_find_snap (snapd, "try");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_path, ==, "/path/to/snap");
+    g_assert_cmpint (try_progress_data.progress_done, >, 0);
+}
+
+static void
 test_refresh (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -2550,6 +2810,14 @@ main (int argc, char **argv)
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/channel", test_install_channel);
     g_test_add_func ("/install/not-available", test_install_not_available);
+    g_test_add_func ("/install-stream/basic", test_install_stream);
+    g_test_add_func ("/install-stream/progress", test_install_stream_progress);
+    g_test_add_func ("/install-stream/classic", test_install_stream_classic);
+    g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous); 
+    g_test_add_func ("/install-stream/devmode", test_install_stream_devmode);
+    g_test_add_func ("/install-stream/jailmode", test_install_stream_jailmode);
+    g_test_add_func ("/try/basic", test_try);
+    g_test_add_func ("/try/progress", test_try_progress);
     g_test_add_func ("/refresh/basic", test_refresh);
     g_test_add_func ("/refresh/progress", test_refresh_progress);
     g_test_add_func ("/refresh/channel", test_refresh_channel);

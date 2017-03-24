@@ -70,6 +70,7 @@ SNAPD_TYPE_CHANGE
 SnapdClient
 SnapdClientClass
 SnapdFindFlags
+SnapdInstallFlags
 SnapdCreateUserFlags
 SnapdProgressCallback
 snapd_client_new
@@ -121,6 +122,12 @@ snapd_client_find_refreshable_finish
 snapd_client_install_sync
 snapd_client_install_async
 snapd_client_install_finish
+snapd_client_install_stream_async
+snapd_client_install_stream_finish
+snapd_client_install_stream_sync
+snapd_client_try_async
+snapd_client_try_finish
+snapd_client_try_sync
 snapd_client_refresh_sync
 snapd_client_refresh_async
 snapd_client_refresh_finish
@@ -171,6 +178,8 @@ snapd_client_run_snapctl_sync
 SNAPD_TYPE_CLIENT
 SNAPD_TYPE_FIND_FLAGS
 snapd_find_flags_get_type
+SNAPD_TYPE_INSTALL_FLAGS
+snapd_install_flags_get_type
 SNAPD_TYPE_CREATE_USER_FLAGS
 snapd_create_user_flags_get_type
 </SECTION>

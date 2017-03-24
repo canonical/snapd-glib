@@ -9,6 +9,7 @@
 
 #include "mock-snapd.h"
 
+#include <QBuffer>
 #include <Snapd/Client>
 #include <Snapd/Assertion>
 
@@ -1142,6 +1143,212 @@ test_install_not_available ()
 }
 
 static void
+test_install_stream ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    QBuffer buffer;
+    buffer.open (QBuffer::ReadWrite);
+    buffer.write ("SNAP");
+    buffer.seek (0);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (&buffer));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "strict");
+    g_assert (snap->dangerous == FALSE);
+    g_assert (snap->devmode == FALSE);
+    g_assert (snap->jailmode == FALSE);
+}
+
+static void
+test_install_stream_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    QBuffer buffer;
+    buffer.open (QBuffer::ReadWrite);
+    buffer.write ("SNAP");
+    buffer.seek (0);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (&buffer));
+    ProgressCounter counter;
+    QObject::connect (installRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpint (counter.progressDone, >, 0);
+}
+
+static void
+test_install_stream_classic ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    QBuffer buffer;
+    buffer.open (QBuffer::ReadWrite);
+    buffer.write ("SNAP");
+    buffer.seek (0);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Classic, &buffer));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "classic");
+    g_assert (snap->dangerous == FALSE);
+    g_assert (snap->devmode == FALSE);
+    g_assert (snap->jailmode == FALSE);
+}
+
+static void
+test_install_stream_dangerous ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    QBuffer buffer;
+    buffer.open (QBuffer::ReadWrite);
+    buffer.write ("SNAP");
+    buffer.seek (0);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Dangerous, &buffer));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "strict");
+    g_assert (snap->dangerous == TRUE);
+    g_assert (snap->devmode == FALSE);
+    g_assert (snap->jailmode == FALSE);
+}
+
+static void
+test_install_stream_devmode ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    QBuffer buffer;
+    buffer.open (QBuffer::ReadWrite);
+    buffer.write ("SNAP");
+    buffer.seek (0);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Devmode, &buffer));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "strict");
+    g_assert (snap->dangerous == FALSE);
+    g_assert (snap->devmode == TRUE);
+    g_assert (snap->jailmode == FALSE);
+}
+
+static void
+test_install_stream_jailmode ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
+    QBuffer buffer;
+    buffer.open (QBuffer::ReadWrite);
+    buffer.write ("SNAP");
+    buffer.seek (0);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Jailmode, &buffer));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (snap->confinement, ==, "strict");
+    g_assert (snap->dangerous == FALSE);
+    g_assert (snap->devmode == FALSE);
+    g_assert (snap->jailmode == TRUE);
+}
+
+static void
+test_try ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdTryRequest> tryRequest (client.trySnap ("/path/to/snap"));
+    tryRequest->runSync ();
+    g_assert_cmpint (tryRequest->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "try");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_path, ==, "/path/to/snap");
+}
+
+static void
+test_try_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdTryRequest> tryRequest (client.trySnap ("/path/to/snap"));
+    ProgressCounter counter;
+    QObject::connect (tryRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    tryRequest->runSync ();
+    g_assert_cmpint (tryRequest->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "try");
+    g_assert (snap != NULL);
+    g_assert_cmpstr (snap->snap_path, ==, "/path/to/snap");
+    g_assert_cmpint (counter.progressDone, >, 0);
+}
+
+static void
 test_refresh ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -2001,6 +2208,14 @@ main (int argc, char **argv)
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/channel", test_install_channel);
     g_test_add_func ("/install/not-available", test_install_not_available);
+    g_test_add_func ("/install-stream/basic", test_install_stream);
+    g_test_add_func ("/install-stream/progress", test_install_stream_progress);
+    g_test_add_func ("/install-stream/classic", test_install_stream_classic);
+    g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous); 
+    g_test_add_func ("/install-stream/devmode", test_install_stream_devmode);
+    g_test_add_func ("/install-stream/jailmode", test_install_stream_jailmode);
+    g_test_add_func ("/try/basic", test_try);
+    g_test_add_func ("/try/progress", test_try_progress);
     g_test_add_func ("/refresh/basic", test_refresh);
     g_test_add_func ("/refresh/progress", test_refresh_progress);
     g_test_add_func ("/refresh/channel", test_refresh_channel);

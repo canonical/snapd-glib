@@ -11,6 +11,7 @@
 #define SNAPD_CLIENT_H
 
 #include <QtCore/QObject>
+#include <QIODevice>
 #include <QLocalSocket>
 #include <Snapd/Alias>
 #include <Snapd/AuthData>
@@ -274,7 +275,7 @@ class Q_DECL_EXPORT QSnapdInstallRequest : public QSnapdRequest
     Q_OBJECT
 
 public:
-    explicit QSnapdInstallRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent = 0);
+    explicit QSnapdInstallRequest (int flags, const QString& name, const QString& channel, QIODevice *ioDevice, void *snapd_client, QObject *parent = 0);
     ~QSnapdInstallRequest ();
     virtual void runSync ();
     virtual void runAsync ();
@@ -283,6 +284,22 @@ public:
 private:
     QSnapdInstallRequestPrivate *d_ptr;
     Q_DECLARE_PRIVATE(QSnapdInstallRequest)
+};
+
+class QSnapdTryRequestPrivate;
+class Q_DECL_EXPORT QSnapdTryRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdTryRequest (const QString& path, void *snapd_client, QObject *parent = 0);
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdTryRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdTryRequest)
 };
 
 class QSnapdRefreshRequestPrivate;
@@ -533,6 +550,14 @@ public:
         SelectPrivate = 1 << 1
     };
     Q_DECLARE_FLAGS(FindFlags, FindFlag);
+    enum InstallFlag
+    {
+        Classic        = 1 << 0,
+        Dangerous      = 1 << 1,
+        Devmode        = 1 << 2,
+        Jailmode       = 1 << 3
+    };
+    Q_DECLARE_FLAGS(InstallFlags, InstallFlag);
     explicit QSnapdClient (QObject* parent=0);
     explicit QSnapdClient (int fd, QObject* parent=0);
     virtual ~QSnapdClient ();
@@ -556,6 +581,9 @@ public:
     Q_INVOKABLE QSnapdFindRefreshableRequest *findRefreshable ();
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name);
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
+    Q_INVOKABLE QSnapdInstallRequest *install (QIODevice *ioDevice);
+    Q_INVOKABLE QSnapdInstallRequest *install (InstallFlags flags, QIODevice *ioDevice);  
+    Q_INVOKABLE QSnapdTryRequest *trySnap (const QString &path);  
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name);
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRefreshAllRequest *refreshAll ();
@@ -577,5 +605,6 @@ private:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::FindFlags)
+Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::InstallFlags)
 
 #endif

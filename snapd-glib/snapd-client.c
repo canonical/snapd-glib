@@ -94,6 +94,8 @@ typedef enum
     SNAPD_REQUEST_CHECK_BUY,
     SNAPD_REQUEST_BUY,
     SNAPD_REQUEST_INSTALL,
+    SNAPD_REQUEST_INSTALL_STREAM,
+    SNAPD_REQUEST_TRY,
     SNAPD_REQUEST_REFRESH,
     SNAPD_REQUEST_REFRESH_ALL,
     SNAPD_REQUEST_REMOVE,
@@ -131,6 +133,10 @@ struct _SnapdRequest
     guint poll_timer;
     guint timeout_timer;
     SnapdChange *change;
+
+    SnapdInstallFlags install_flags;  
+    GInputStream *snap_stream;
+    GByteArray *snap_contents;
 
     gboolean completed;
     GError *error;
@@ -237,6 +243,8 @@ snapd_request_finalize (GObject *object)
     if (request->timeout_timer != 0)
         g_source_remove (request->timeout_timer);
     g_clear_object (&request->change);
+    g_clear_object (&request->snap_stream);
+    g_clear_pointer (&request->snap_contents, g_byte_array_unref);
     g_clear_object (&request->system_information);
     g_clear_pointer (&request->snaps, g_ptr_array_unref);
     g_free (request->suggested_currency);
@@ -387,6 +395,20 @@ send_json_request (SnapdRequest *request, gboolean authorize, const gchar *metho
     body = soup_message_body_new ();
     soup_message_body_append_take (body, g_steal_pointer (&data), data_length);
     soup_message_headers_set_content_length (headers, body->length);
+    send_request (request, method, path, headers, body);
+}
+
+static void
+send_multipart_request (SnapdRequest *request, const gchar *method, const gchar *path, SoupMultipart *multipart)
+{
+    g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autoptr(SoupMessageBody) body = NULL;
+
+    headers = headers_new (request, TRUE);
+    body = soup_message_body_new ();
+    soup_multipart_to_message (multipart, headers, body);
+    soup_message_headers_set_content_length (headers, body->length);
+
     send_request (request, method, path, headers, body);
 }
 
@@ -2079,6 +2101,8 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_CONNECT_INTERFACE:
     case SNAPD_REQUEST_DISCONNECT_INTERFACE:
     case SNAPD_REQUEST_INSTALL:
+    case SNAPD_REQUEST_INSTALL_STREAM:
+    case SNAPD_REQUEST_TRY:
     case SNAPD_REQUEST_REFRESH:
     case SNAPD_REQUEST_REFRESH_ALL:
     case SNAPD_REQUEST_REMOVE:
@@ -3789,6 +3813,304 @@ snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError *
 
     request = SNAPD_REQUEST (result);
     g_return_val_if_fail (request->request_type == SNAPD_REQUEST_INSTALL, FALSE);
+
+    if (snapd_request_set_error (request, error))
+        return FALSE;
+    return request->result;
+}
+
+static SnapdRequest *
+make_install_stream_request (SnapdClient *client,
+                             SnapdInstallFlags flags,
+                             GInputStream *stream,
+                             SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+
+    request = make_request (client, SNAPD_REQUEST_INSTALL_STREAM, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request->install_flags = flags;
+    request->snap_stream = g_object_ref (stream);
+    request->snap_contents = g_byte_array_new ();
+
+    return request;
+}
+
+static void
+append_multipart_value (SoupMultipart *multipart, const gchar *name, const gchar *value)
+{
+    g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autoptr(GHashTable) params = NULL;
+    g_autoptr(SoupBuffer) buffer = NULL;
+
+    headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_MULTIPART);
+    params = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    g_hash_table_insert (params, g_strdup ("name"), g_strdup (name));
+    soup_message_headers_set_content_disposition (headers, "form-data", params);
+    buffer = soup_buffer_new_take ((guchar *) g_strdup (value), strlen (value));
+    soup_multipart_append_part (multipart, headers, buffer);
+}
+
+static void
+send_install_stream_request (SnapdRequest *request)
+{
+    g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autoptr(GHashTable) params = NULL;
+    g_autoptr(SoupBuffer) buffer = NULL;
+    g_autoptr(SoupMultipart) multipart = NULL;
+
+    multipart = soup_multipart_new ("multipart/form-data");
+    if ((request->install_flags & SNAPD_INSTALL_FLAGS_CLASSIC) != 0)
+        append_multipart_value (multipart, "classic", "true");
+    if ((request->install_flags & SNAPD_INSTALL_FLAGS_DANGEROUS) != 0)
+        append_multipart_value (multipart, "dangerous", "true");
+    if ((request->install_flags & SNAPD_INSTALL_FLAGS_DEVMODE) != 0)
+        append_multipart_value (multipart, "devmode", "true");
+    if ((request->install_flags & SNAPD_INSTALL_FLAGS_JAILMODE) != 0)
+        append_multipart_value (multipart, "jailmode", "true");
+
+    headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_MULTIPART);
+    params = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    g_hash_table_insert (params, g_strdup ("name"), g_strdup ("snap"));
+    g_hash_table_insert (params, g_strdup ("filename"), g_strdup ("x"));  
+    soup_message_headers_set_content_disposition (headers, "form-data", params);
+    soup_message_headers_set_content_type (headers, "application/vnd.snap", NULL);
+    buffer = soup_buffer_new (SOUP_MEMORY_TEMPORARY, request->snap_contents->data, request->snap_contents->len);
+    soup_multipart_append_part (multipart, headers, buffer);
+    send_multipart_request (request, "POST", "/v2/snaps", multipart);
+}
+
+/**
+ * snapd_client_install_stream_sync:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdInstallFlags to control install options.
+ * @stream: a #GInputStream containing the snap file contents to install.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Install a snap. The snap contents are provided in the form of an input stream.
+ * To install from a local file, do the following:
+ *
+ * |[
+ * g_autoptr(GFile) file = g_file_new_for_path (path_to_snap_file);
+ * g_autoptr(GInputStream) stream = g_file_read (file, cancellable, &error);
+ * snapd_client_install_stream_sync (client, stream, progress_cb, NULL, cancellable, &error);
+ * \]
+ *
+ * Or if you have the file in memory you can use:
+ *
+ * |[
+ * g_autoptr(GInputStream) stream = g_memory_input_stream_new_from_data (data, data_length, free_data);
+ * snapd_client_install_stream_sync (client, stream, progress_cb, NULL, cancellable, &error);
+ * \]
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_install_stream_sync (SnapdClient *client,
+                                  SnapdInstallFlags flags,
+                                  GInputStream *stream,
+                                  SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                  GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (G_IS_INPUT_STREAM (stream), FALSE);
+
+    request = g_object_ref (make_install_stream_request (client, flags, stream, progress_callback, progress_callback_data, cancellable, NULL, NULL));
+    while (TRUE) {
+        g_autoptr(GBytes) data = NULL;
+
+        data = g_input_stream_read_bytes (stream, 65535, cancellable, error);
+        if (data == NULL)
+            return FALSE;
+
+        if (g_bytes_get_size (data) == 0)
+            break;
+        g_byte_array_append (request->snap_contents, g_bytes_get_data (data, NULL), g_bytes_get_size (data));
+    }
+    send_install_stream_request (request);
+    snapd_request_wait (request);
+    return snapd_client_install_stream_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+static void
+stream_read_cb (GObject *source_object, GAsyncResult *result, gpointer user_data)
+{
+    GInputStream *stream = G_INPUT_STREAM (source_object);
+    SnapdRequest *request = user_data;
+    g_autoptr(GBytes) data = NULL;
+    g_autoptr(GError) error = NULL;  
+
+    data = g_input_stream_read_bytes_finish (stream, result, &error);
+    if (snapd_request_set_error (request, &error))
+        return;
+
+    if (g_bytes_get_size (data) == 0)
+        send_install_stream_request (request);
+    else {
+        g_byte_array_append (request->snap_contents, g_bytes_get_data (data, NULL), g_bytes_get_size (data));
+        g_input_stream_read_bytes_async (stream, 65535, G_PRIORITY_DEFAULT, request->cancellable, stream_read_cb, request);
+    }
+}
+
+/**
+ * snapd_client_install_stream_async:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdInstallFlags to control install options.
+ * @stream: a #GInputStream containing the snap file contents to install.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously install a snap.
+ * See snapd_client_install_stream_sync() for more information.
+ */
+void
+snapd_client_install_stream_async (SnapdClient *client,
+                                   SnapdInstallFlags flags,
+                                   GInputStream *stream,
+                                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (G_IS_INPUT_STREAM (stream));
+
+    request = make_install_stream_request (client, flags, stream, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    g_input_stream_read_bytes_async (stream, 65535, G_PRIORITY_DEFAULT, cancellable, stream_read_cb, request);
+}
+
+/**
+ * snapd_client_install_stream_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_install_stream_async().
+ * See snapd_client_install_stream_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_install_stream_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_INSTALL_STREAM, FALSE);
+
+    if (snapd_request_set_error (request, error))
+        return FALSE;
+    return request->result;
+}
+
+static SnapdRequest *
+make_try_request (SnapdClient *client,
+                  const gchar *path,
+                  SnapdProgressCallback progress_callback, gpointer progress_callback_data,                  
+                  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdRequest *request;
+    g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autoptr(GHashTable) params = NULL;
+    g_autoptr(SoupBuffer) buffer = NULL;
+    g_autoptr(SoupMultipart) multipart = NULL;
+
+    request = make_request (client, SNAPD_REQUEST_TRY, progress_callback, progress_callback_data, cancellable, callback, user_data);
+
+    multipart = soup_multipart_new ("multipart/form-data");
+    append_multipart_value (multipart, "action", "try");
+    append_multipart_value (multipart, "snap-path", path);
+    headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_MULTIPART);
+    send_multipart_request (request, "POST", "/v2/snaps", multipart);
+
+    return request;
+}
+
+/**
+ * snapd_client_try_sync:
+ * @client: a #SnapdClient.
+ * @path: path to snap directory to try.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Try a snap.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_try_sync (SnapdClient *client,
+                       const gchar *path,
+                       SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                       GCancellable *cancellable, GError **error)
+{
+    g_autoptr(SnapdRequest) request = NULL;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (path != NULL, FALSE);
+
+    request = g_object_ref (make_try_request (client, path, progress_callback, progress_callback_data, cancellable, NULL, NULL));
+    snapd_request_wait (request);
+    return snapd_client_try_finish (client, G_ASYNC_RESULT (request), error);
+}
+
+/**
+ * snapd_client_try_async:
+ * @client: a #SnapdClient.
+ * @path: path to snap directory to try.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously try a snap.
+ * See snapd_client_try_sync() for more information.
+ */
+void
+snapd_client_try_async (SnapdClient *client,
+                        const gchar *path,
+                        SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                        GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (path == NULL);
+    make_try_request (client, path, progress_callback, progress_callback_data, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_try_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_try_async().
+ * See snapd_client_try_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_try_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_TRY, FALSE);
 
     if (snapd_request_set_error (request, error))
         return FALSE;

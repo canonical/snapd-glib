@@ -144,6 +144,8 @@ mock_snap_free (MockSnap *snap)
     g_list_free_full (snap->store_sections, g_free);
     g_list_free_full (snap->plugs, (GDestroyNotify) mock_plug_free);
     g_list_free_full (snap->slots_, (GDestroyNotify) mock_slot_free);
+    g_free (snap->snap_data);
+    g_free (snap->snap_path);
     g_slice_free (MockSnap, snap);
 }
 
@@ -1307,6 +1309,91 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
         else {
             send_error_bad_request (snapd, "unsupported multi-snap operation", NULL);
             return;
+        }
+    }
+    else if (strcmp (method, "POST") == 0 && g_str_has_prefix (content_type, "multipart/")) {
+        g_autoptr(SoupMultipart) multipart = NULL;
+        int i;
+        gboolean classic = FALSE, dangerous = FALSE, devmode = FALSE, jailmode = FALSE;
+        g_autofree gchar *action = NULL;
+        g_autofree gchar *snap = NULL;
+        g_autofree gchar *snap_path = NULL;
+
+        multipart = soup_multipart_new_from_message (headers, body);
+        if (multipart == NULL) {
+            send_error_bad_request (snapd, "cannot read POST form", NULL);
+            return;
+        }
+
+        for (i = 0; i < soup_multipart_get_length (multipart); i++) {
+            SoupMessageHeaders *part_headers;
+            SoupBuffer *part_body;
+            g_autofree gchar *disposition = NULL;
+            g_autoptr(GHashTable) params = NULL;
+
+            if (!soup_multipart_get_part (multipart, i, &part_headers, &part_body))
+                continue;
+            if (!soup_message_headers_get_content_disposition (part_headers, &disposition, &params))
+                continue;
+
+            if (strcmp (disposition, "form-data") == 0) {
+                const gchar *name = g_hash_table_lookup (params, "name");
+
+                if (g_strcmp0 (name, "action") == 0)
+                    action = g_strndup (part_body->data, part_body->length);
+                else if (g_strcmp0 (name, "classic") == 0)
+                    classic = strncmp (part_body->data, "true", part_body->length) == 0;
+                else if (g_strcmp0 (name, "dangerous") == 0)
+                    dangerous = strncmp (part_body->data, "true", part_body->length) == 0;
+                else if (g_strcmp0 (name, "devmode") == 0)
+                    devmode = strncmp (part_body->data, "true", part_body->length) == 0;
+                else if (g_strcmp0 (name, "jailmode") == 0)
+                    jailmode = strncmp (part_body->data, "true", part_body->length) == 0;
+                else if (g_strcmp0 (name, "snap") == 0)
+                    snap = g_strndup (part_body->data, part_body->length);
+                else if (g_strcmp0 (name, "snap-path") == 0)
+                    snap_path = g_strndup (part_body->data, part_body->length);
+            }
+        }
+
+        if (g_strcmp0 (action, "try") == 0) {
+            MockSnap *s;
+            MockChange *change;
+
+            if (snap_path == NULL) {
+                send_error_bad_request (snapd, "need 'snap-path' value in form", NULL);
+                return;
+            }
+
+            s = mock_snapd_add_snap (snapd, "try");
+            s->trymode = TRUE;
+            s->snap_path = g_steal_pointer (&snap_path);
+
+            change = add_change (snapd, NULL);
+            add_task (change, "try");
+            send_async_response (snapd, 202, "Accepted", change->id);
+        }
+        else {
+            MockSnap *s;
+            MockChange *change;
+
+            if (snap == NULL) {
+                send_error_bad_request (snapd, "cannot find \"snap\" file field in provided multipart/form-data payload", NULL);
+                return;
+            }
+
+            s = mock_snapd_add_snap (snapd, "sideload");
+            if (classic)
+                mock_snap_set_confinement (s, "classic");
+            s->dangerous = dangerous;
+            s->devmode = devmode; // FIXME: Should set confinement to devmode?
+            s->jailmode = jailmode;
+            g_free (s->snap_data);
+            s->snap_data = g_steal_pointer (&snap);
+
+            change = add_change (snapd, NULL);
+            add_task (change, "install");
+            send_async_response (snapd, 202, "Accepted", change->id);
         }
     }
     else {

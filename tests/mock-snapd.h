@@ -66,6 +66,9 @@ typedef struct
     GList *plugs;
     GList *slots_;
     gboolean disabled;
+    gboolean dangerous;
+    gchar *snap_data;
+    gchar *snap_path;
 } MockSnap;
 
 typedef struct
