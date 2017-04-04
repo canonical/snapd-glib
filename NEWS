@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.10
+
+    * Remove gettext-domain from Polkit files - this is an Ubuntu extension that
+      doesn't work elsewhere.
+
 Overview of changes in snapd-glib 1.9
 
     * New API:
