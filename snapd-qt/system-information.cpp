@@ -13,9 +13,19 @@
 
 QSnapdSystemInformation::QSnapdSystemInformation (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
+QString QSnapdSystemInformation::binariesDirectory () const
+{
+    return snapd_system_information_get_binaries_directory (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+}
+
 QString QSnapdSystemInformation::kernelVersion () const
 {
     return snapd_system_information_get_kernel_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+}
+
+QString QSnapdSystemInformation::mountDirectory () const
+{
+    return snapd_system_information_get_mount_directory (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
 QString QSnapdSystemInformation::osId () const

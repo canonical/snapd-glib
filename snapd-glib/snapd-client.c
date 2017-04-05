@@ -736,8 +736,10 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
 
     os_release = get_object (result, "os-release");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
+                                       "binaries-directory", get_string (result, "binaries-directory", NULL),
                                        "kernel-version", get_string (result, "kernel-version", NULL),
                                        "managed", get_bool (result, "managed", FALSE),
+                                       "mount-directory", get_string (result, "mount-directory", NULL),
                                        "on-classic", get_bool (result, "on-classic", FALSE),
                                        "os-id", os_release != NULL ? get_string (os_release, "id", NULL) : NULL,
                                        "os-version", os_release != NULL ? get_string (os_release, "version-id", NULL) : NULL,

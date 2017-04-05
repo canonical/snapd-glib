@@ -31,9 +31,11 @@ struct _SnapdSystemInformation
 {
     GObject parent_instance;
 
+    gchar *binaries_directory;
     gchar *kernel_version;
     gboolean on_classic;
-    gboolean managed;  
+    gboolean managed;
+    gchar *mount_directory;
     gchar *os_id;
     gchar *os_version;
     gchar *series;
@@ -51,10 +53,27 @@ enum
     PROP_VERSION,
     PROP_MANAGED,
     PROP_KERNEL_VERSION,
+    PROP_BINARIES_DIRECTORY,
+    PROP_MOUNT_DIRECTORY,
     PROP_LAST
 };
 
 G_DEFINE_TYPE (SnapdSystemInformation, snapd_system_information, G_TYPE_OBJECT)
+
+/**
+ * snapd_system_information_get_binaries_directory:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the directory snap binaries are stored, e.g. "/snap/bin".
+ *
+ * Returns: a directory.
+ */
+const gchar *
+snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->binaries_directory;
+}
 
 /**
  * snapd_system_information_get_kernel_version:
@@ -84,6 +103,21 @@ snapd_system_information_get_managed (SnapdSystemInformation *system_information
 {
     g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), FALSE);
     return system_information->managed;
+}
+
+/**
+ * snapd_system_information_get_mount_directory:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the directory snaps are mounted, e.g. "/snap".
+ *
+ * Returns: a directory.
+ */
+const gchar *
+snapd_system_information_get_mount_directory (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->mount_directory;
 }
 
 /**
@@ -182,12 +216,20 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
     SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
+    case PROP_BINARIES_DIRECTORY:
+        g_free (system_information->binaries_directory);
+        system_information->binaries_directory = g_strdup (g_value_get_string (value));
+        break;
     case PROP_KERNEL_VERSION:
         g_free (system_information->kernel_version);
         system_information->kernel_version = g_strdup (g_value_get_string (value));
         break;
     case PROP_MANAGED:
         system_information->managed = g_value_get_boolean (value);
+        break;
+    case PROP_MOUNT_DIRECTORY:
+        g_free (system_information->mount_directory);
+        system_information->mount_directory = g_strdup (g_value_get_string (value));
         break;
     case PROP_ON_CLASSIC:
         system_information->on_classic = g_value_get_boolean (value);
@@ -224,11 +266,17 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
     SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
+    case PROP_BINARIES_DIRECTORY:
+        g_value_set_string (value, system_information->binaries_directory);
+        break;
     case PROP_KERNEL_VERSION:
         g_value_set_string (value, system_information->kernel_version);
         break;
     case PROP_MANAGED:
         g_value_set_boolean (value, system_information->managed);
+        break;
+    case PROP_MOUNT_DIRECTORY:
+        g_value_set_string (value, system_information->mount_directory);
         break;
     case PROP_ON_CLASSIC:
         g_value_set_boolean (value, system_information->on_classic);
@@ -259,7 +307,9 @@ snapd_system_information_finalize (GObject *object)
 {
     SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
 
+    g_clear_pointer (&system_information->binaries_directory, g_free);
     g_clear_pointer (&system_information->kernel_version, g_free);
+    g_clear_pointer (&system_information->mount_directory, g_free);
     g_clear_pointer (&system_information->os_id, g_free);
     g_clear_pointer (&system_information->os_version, g_free);
     g_clear_pointer (&system_information->series, g_free);
@@ -277,6 +327,13 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
     gobject_class->finalize = snapd_system_information_finalize;
 
     g_object_class_install_property (gobject_class,
+                                     PROP_BINARIES_DIRECTORY,
+                                     g_param_spec_string ("binaries-directory",
+                                                          "binaries-directory",
+                                                          "Directory with snap binaries",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
                                      PROP_KERNEL_VERSION,
                                      g_param_spec_string ("kernel-version",
                                                           "kernel-version",
@@ -290,6 +347,13 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
                                                            "TRUE if snapd managing the system",
                                                            FALSE,
                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_MOUNT_DIRECTORY,
+                                     g_param_spec_string ("mount-directory",
+                                                          "mount-directory",
+                                                          "Directory snaps are mounted in",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_ON_CLASSIC,
                                      g_param_spec_boolean ("on-classic",
