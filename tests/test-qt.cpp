@@ -38,6 +38,8 @@ test_get_system_information ()
     g_assert (systemInformation->version () == "VERSION");
     g_assert (systemInformation->managed ());
     g_assert (systemInformation->onClassic ());
+    g_assert (systemInformation->mountDirectory () == "/snap");
+    g_assert (systemInformation->binariesDirectory () == "/snap/bin");
     g_assert (systemInformation->store () == NULL);
 }
 

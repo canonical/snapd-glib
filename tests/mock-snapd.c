@@ -911,6 +911,10 @@ handle_system_info (MockSnapd *snapd, const gchar *method)
     json_builder_add_boolean_value (builder, snapd->on_classic);
     json_builder_set_member_name (builder, "kernel-version");
     json_builder_add_string_value (builder, "KERNEL-VERSION");
+    json_builder_set_member_name (builder, "mount-directory");
+    json_builder_add_string_value (builder, "/snap");
+    json_builder_set_member_name (builder, "binaries-directory");
+    json_builder_add_string_value (builder, "/snap/bin");
     if (snapd->store) {
         json_builder_set_member_name (builder, "store");
         json_builder_add_string_value (builder, snapd->store);

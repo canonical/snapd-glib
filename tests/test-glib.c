@@ -38,6 +38,8 @@ test_get_system_information (void)
     g_assert_cmpstr (snapd_system_information_get_version (info), ==, "VERSION");
     g_assert (snapd_system_information_get_managed (info));
     g_assert (snapd_system_information_get_on_classic (info));
+    g_assert_cmpstr (snapd_system_information_get_mount_directory (info), ==, "/snap");
+    g_assert_cmpstr (snapd_system_information_get_binaries_directory (info), ==, "/snap/bin");
     g_assert (snapd_system_information_get_store (info) == NULL);
 }
 
