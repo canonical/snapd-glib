@@ -13,6 +13,11 @@
 
 QSnapdSystemInformation::QSnapdSystemInformation (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
+QString QSnapdSystemInformation::kernelVersion () const
+{
+    return snapd_system_information_get_kernel_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+}
+
 QString QSnapdSystemInformation::osId () const
 {
     return snapd_system_information_get_os_id (SNAPD_SYSTEM_INFORMATION (wrapped_object));

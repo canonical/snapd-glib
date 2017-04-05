@@ -31,6 +31,7 @@ test_get_system_information ()
     infoRequest->runSync ();
     g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert (systemInformation->kernelVersion () == "KERNEL-VERSION");
     g_assert (systemInformation->osId () == "OS-ID");
     g_assert (systemInformation->osVersion () == "OS-VERSION");
     g_assert (systemInformation->series () == "SERIES");

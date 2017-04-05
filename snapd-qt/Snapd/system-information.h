@@ -17,6 +17,7 @@ class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QString kernelVersion READ kernelVersion)
     Q_PROPERTY(bool managed READ managed)
     Q_PROPERTY(bool onClassic READ onClassic)
     Q_PROPERTY(QString osId READ osId)
@@ -28,6 +29,7 @@ class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
 public:
     explicit QSnapdSystemInformation (void *snapd_object, QObject* parent = 0);
 
+    QString kernelVersion () const;
     bool managed () const;
     bool onClassic () const;
     QString osId () const;

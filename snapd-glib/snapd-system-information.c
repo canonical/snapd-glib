@@ -31,12 +31,13 @@ struct _SnapdSystemInformation
 {
     GObject parent_instance;
 
+    gchar *kernel_version;
     gboolean on_classic;
     gboolean managed;  
     gchar *os_id;
     gchar *os_version;
     gchar *series;
-    gchar *store;  
+    gchar *store;
     gchar *version;
 };
 
@@ -48,11 +49,27 @@ enum
     PROP_SERIES,
     PROP_STORE,  
     PROP_VERSION,
-    PROP_MANAGED,  
+    PROP_MANAGED,
+    PROP_KERNEL_VERSION,
     PROP_LAST
 };
 
 G_DEFINE_TYPE (SnapdSystemInformation, snapd_system_information, G_TYPE_OBJECT)
+
+/**
+ * snapd_system_information_get_kernel_version:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the version of the kernel snapd is running on, e.g. "4.10.0-15-generic".
+ *
+ * Returns: a version string.
+ */
+const gchar *
+snapd_system_information_get_kernel_version (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->kernel_version;
+}
 
 /**
  * snapd_system_information_get_managed:
@@ -165,6 +182,10 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
     SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
+    case PROP_KERNEL_VERSION:
+        g_free (system_information->kernel_version);
+        system_information->kernel_version = g_strdup (g_value_get_string (value));
+        break;
     case PROP_MANAGED:
         system_information->managed = g_value_get_boolean (value);
         break;
@@ -203,6 +224,9 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
     SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
+    case PROP_KERNEL_VERSION:
+        g_value_set_string (value, system_information->kernel_version);
+        break;
     case PROP_MANAGED:
         g_value_set_boolean (value, system_information->managed);
         break;
@@ -235,6 +259,7 @@ snapd_system_information_finalize (GObject *object)
 {
     SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
 
+    g_clear_pointer (&system_information->kernel_version, g_free);
     g_clear_pointer (&system_information->os_id, g_free);
     g_clear_pointer (&system_information->os_version, g_free);
     g_clear_pointer (&system_information->series, g_free);
@@ -250,7 +275,14 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
     gobject_class->set_property = snapd_system_information_set_property;
     gobject_class->get_property = snapd_system_information_get_property; 
     gobject_class->finalize = snapd_system_information_finalize;
- 
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_KERNEL_VERSION,
+                                     g_param_spec_string ("kernel-version",
+                                                          "kernel-version",
+                                                          "Kernel version",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_MANAGED,
                                      g_param_spec_boolean ("managed",

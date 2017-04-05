@@ -909,6 +909,8 @@ handle_system_info (MockSnapd *snapd, const gchar *method)
     json_builder_add_boolean_value (builder, snapd->managed);
     json_builder_set_member_name (builder, "on-classic");
     json_builder_add_boolean_value (builder, snapd->on_classic);
+    json_builder_set_member_name (builder, "kernel-version");
+    json_builder_add_string_value (builder, "KERNEL-VERSION");
     if (snapd->store) {
         json_builder_set_member_name (builder, "store");
         json_builder_add_string_value (builder, snapd->store);

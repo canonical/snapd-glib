@@ -31,6 +31,7 @@ test_get_system_information (void)
     info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert (info != NULL);
+    g_assert_cmpstr (snapd_system_information_get_kernel_version (info), ==, "KERNEL-VERSION");
     g_assert_cmpstr (snapd_system_information_get_os_id (info), ==, "OS-ID");
     g_assert_cmpstr (snapd_system_information_get_os_version (info), ==, "OS-VERSION");
     g_assert_cmpstr (snapd_system_information_get_series (info), ==, "SERIES");
