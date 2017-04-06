@@ -717,7 +717,7 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
     g_autoptr(JsonObject) response = NULL;
     JsonObject *result;
     g_autoptr(SnapdSystemInformation) system_information = NULL;
-    JsonObject *os_release;
+    JsonObject *os_release, *locations;
     GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
@@ -735,11 +735,12 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
     }
 
     os_release = get_object (result, "os-release");
+    locations  = get_object (result, "locations");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
-                                       "binaries-directory", get_string (result, "binaries-directory", NULL),
+                                       "binaries-directory", locations != NULL ? get_string (locations, "snap-bin-dir", NULL) : NULL,
                                        "kernel-version", get_string (result, "kernel-version", NULL),
                                        "managed", get_bool (result, "managed", FALSE),
-                                       "mount-directory", get_string (result, "mount-directory", NULL),
+                                       "mount-directory", locations != NULL ? get_string (locations, "snap-mount-dir", NULL) : NULL,
                                        "on-classic", get_bool (result, "on-classic", FALSE),
                                        "os-id", os_release != NULL ? get_string (os_release, "id", NULL) : NULL,
                                        "os-version", os_release != NULL ? get_string (os_release, "version-id", NULL) : NULL,
