@@ -38,19 +38,19 @@ struct _SnapdConnection
     gchar *snap;
 };
 
-enum 
+enum
 {
     PROP_NAME = 1,
     PROP_SNAP,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdConnection, snapd_connection, G_TYPE_OBJECT)
 
 /**
  * snapd_connection_get_name:
  * @connection: a #SnapdConnection.
- * 
+ *
  * Get the name of this connection (i.e. a slot or plug name).
  *
  * Returns: a name.
@@ -130,7 +130,7 @@ snapd_connection_class_init (SnapdConnectionClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_connection_set_property;
-    gobject_class->get_property = snapd_connection_get_property; 
+    gobject_class->get_property = snapd_connection_get_property;
     gobject_class->finalize = snapd_connection_finalize;
 
     g_object_class_install_property (gobject_class,

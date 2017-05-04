@@ -34,9 +34,9 @@ struct _SnapdTask
     GObject parent_instance;
 
     gchar *id;
-    gchar *kind;  
+    gchar *kind;
     gchar *summary;
-    gchar *status;  
+    gchar *status;
     gchar *progress_label;
     gint64 progress_done;
     gint64 progress_total;
@@ -44,12 +44,12 @@ struct _SnapdTask
     GDateTime *ready_time;
 };
 
-enum 
+enum
 {
     PROP_ID = 1,
-    PROP_KIND,  
+    PROP_KIND,
     PROP_SUMMARY,
-    PROP_STATUS,  
+    PROP_STATUS,
     PROP_READY,
     PROP_PROGRESS_DONE,
     PROP_PROGRESS_TOTAL,
@@ -58,7 +58,7 @@ enum
     PROP_PROGRESS_LABEL,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdTask, snapd_task, G_TYPE_OBJECT)
 
 /**
@@ -102,7 +102,7 @@ snapd_task_get_kind (SnapdTask *task)
 /**
  * snapd_task_get_summary:
  * @task: a #SnapdTask.
- * 
+ *
  * Get a human readable description of the task.
  *
  * Returns: a string describing the task.
@@ -356,7 +356,7 @@ snapd_task_finalize (GObject *object)
     g_clear_pointer (&task->status, g_free);
     g_clear_pointer (&task->progress_label, g_free);
     g_clear_pointer (&task->spawn_time, g_date_time_unref);
-    g_clear_pointer (&task->ready_time, g_date_time_unref);  
+    g_clear_pointer (&task->ready_time, g_date_time_unref);
 }
 
 static void
@@ -365,7 +365,7 @@ snapd_task_class_init (SnapdTaskClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_task_set_property;
-    gobject_class->get_property = snapd_task_get_property; 
+    gobject_class->get_property = snapd_task_get_property;
     gobject_class->finalize = snapd_task_finalize;
 
     g_object_class_install_property (gobject_class,

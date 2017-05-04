@@ -20,5 +20,5 @@ double QSnapdPrice::amount () const
 
 QString QSnapdPrice::currency () const
 {
-    return snapd_price_get_currency (SNAPD_PRICE (wrapped_object));  
+    return snapd_price_get_currency (SNAPD_PRICE (wrapped_object));
 }

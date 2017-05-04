@@ -40,12 +40,12 @@ struct _SnapdAssertion
     gchar *content;
 };
 
-enum 
+enum
 {
     PROP_CONTENT = 1,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdAssertion, snapd_assertion, G_TYPE_OBJECT)
 
 /**
@@ -194,7 +194,7 @@ get_headers_length (SnapdAssertion *assertion)
 static gsize
 get_body_length (SnapdAssertion *assertion)
 {
-    g_autofree gchar *body_length_header = NULL;  
+    g_autofree gchar *body_length_header = NULL;
     body_length_header = snapd_assertion_get_header (assertion, "body-length");
     if (body_length_header == NULL)
         return 0;
@@ -291,7 +291,7 @@ snapd_assertion_class_init (SnapdAssertionClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_assertion_set_property;
-    gobject_class->get_property = snapd_assertion_get_property; 
+    gobject_class->get_property = snapd_assertion_get_property;
     gobject_class->finalize = snapd_assertion_finalize;
 
     g_object_class_install_property (gobject_class,

@@ -1145,7 +1145,7 @@ void QSnapdInstallRequest::runAsync ()
                                            G_INPUT_STREAM (d->wrapper),
                                            progress_cb, this,
                                            G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
-    else      
+    else
         snapd_client_install_async (SNAPD_CLIENT (getClient ()),
                                     d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
                                     progress_cb, this,
@@ -1240,7 +1240,7 @@ QSnapdRefreshAllRequest::QSnapdRefreshAllRequest (void *snapd_client, QObject *p
 
 void QSnapdRefreshAllRequest::runSync ()
 {
-    Q_D(QSnapdRefreshAllRequest);  
+    Q_D(QSnapdRefreshAllRequest);
     g_autoptr(GError) error = NULL;
     d->snap_names = snapd_client_refresh_all_sync (SNAPD_CLIENT (getClient ()),
                                                    progress_cb, this,
@@ -1250,7 +1250,7 @@ void QSnapdRefreshAllRequest::runSync ()
 
 void QSnapdRefreshAllRequest::handleResult (void *object, void *result)
 {
-    g_auto(GStrv) snap_names = NULL;  
+    g_auto(GStrv) snap_names = NULL;
     g_autoptr(GError) error = NULL;
 
     snap_names = snapd_client_refresh_all_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);

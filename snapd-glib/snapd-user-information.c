@@ -36,7 +36,7 @@ struct _SnapdUserInformation
     gchar **ssh_keys;
 };
 
-enum 
+enum
 {
     PROP_USERNAME = 1,
     PROP_SSH_KEYS,
@@ -128,7 +128,7 @@ snapd_user_information_class_init (SnapdUserInformationClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_user_information_set_property;
-    gobject_class->get_property = snapd_user_information_get_property; 
+    gobject_class->get_property = snapd_user_information_get_property;
     gobject_class->finalize = snapd_user_information_finalize;
 
     g_object_class_install_property (gobject_class,

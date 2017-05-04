@@ -37,13 +37,13 @@ struct _SnapdIcon
     GBytes *data;
 };
 
-enum 
+enum
 {
     PROP_MIME_TYPE = 1,
     PROP_DATA,
-    PROP_LAST  
+    PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdIcon, snapd_icon, G_TYPE_OBJECT)
 
 /**
@@ -64,7 +64,7 @@ snapd_icon_get_mime_type (SnapdIcon *icon)
 /**
  * snapd_icon_get_data:
  * @icon: a #SnapdIcon.
- * 
+ *
  * Get the binary data for this icon.
  *
  * Returns: (transfer none): the binary data.
@@ -130,7 +130,7 @@ snapd_icon_class_init (SnapdIconClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_icon_set_property;
-    gobject_class->get_property = snapd_icon_get_property; 
+    gobject_class->get_property = snapd_icon_get_property;
     gobject_class->finalize = snapd_icon_finalize;
 
     g_object_class_install_property (gobject_class,

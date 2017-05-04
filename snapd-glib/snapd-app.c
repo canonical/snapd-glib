@@ -43,7 +43,7 @@ enum
 {
     PROP_NAME = 1,
     PROP_ALIASES,
-    PROP_DAEMON_TYPE,  
+    PROP_DAEMON_TYPE,
     PROP_LAST
 };
 

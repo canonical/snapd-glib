@@ -42,7 +42,7 @@ int QSnapdChange::taskCount () const
 {
     GPtrArray *tasks;
 
-    tasks = snapd_change_get_tasks (SNAPD_CHANGE (wrapped_object));  
+    tasks = snapd_change_get_tasks (SNAPD_CHANGE (wrapped_object));
     return tasks != NULL ? tasks->len : 0;
 }
 
@@ -50,7 +50,7 @@ QSnapdTask *QSnapdChange::task (int n) const
 {
     GPtrArray *tasks;
 
-    tasks = snapd_change_get_tasks (SNAPD_CHANGE (wrapped_object));  
+    tasks = snapd_change_get_tasks (SNAPD_CHANGE (wrapped_object));
     if (tasks == NULL || n < 0 || (guint) n >= tasks->len)
         return NULL;
     return new QSnapdTask (tasks->pdata[n]);

@@ -16,7 +16,7 @@
  * @short_description: Authorization data
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdAuthData contains authorization data to 
+ * A #SnapdAuthData contains authorization data to
  * Prices can be queried using snapd_snap_get_prices() and are used in
  * snapd_client_buy_sync().
  */
@@ -36,13 +36,13 @@ struct _SnapdAuthData
     gchar **discharges;
 };
 
-enum 
+enum
 {
     PROP_MACAROON = 1,
     PROP_DISCHARGES,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdAuthData, snapd_auth_data, G_TYPE_OBJECT)
 
 /**
@@ -57,7 +57,7 @@ G_DEFINE_TYPE (SnapdAuthData, snapd_auth_data, G_TYPE_OBJECT)
 SnapdAuthData *
 snapd_auth_data_new (const gchar *macaroon, gchar **discharges)
 {
-    g_return_val_if_fail (macaroon != NULL, NULL);  
+    g_return_val_if_fail (macaroon != NULL, NULL);
     return g_object_new (SNAPD_TYPE_AUTH_DATA,
                          "macaroon", macaroon,
                          "discharges", discharges,
@@ -146,7 +146,7 @@ snapd_auth_data_class_init (SnapdAuthDataClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_auth_data_set_property;
-    gobject_class->get_property = snapd_auth_data_get_property; 
+    gobject_class->get_property = snapd_auth_data_get_property;
     gobject_class->finalize = snapd_auth_data_finalize;
 
     g_object_class_install_property (gobject_class,

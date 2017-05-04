@@ -135,7 +135,7 @@ struct _SnapdRequest
     guint timeout_timer;
     SnapdChange *change;
 
-    SnapdInstallFlags install_flags;  
+    SnapdInstallFlags install_flags;
     GInputStream *snap_stream;
     GByteArray *snap_contents;
 
@@ -340,7 +340,7 @@ headers_new (SnapdRequest *request, gboolean authorize)
     headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
     soup_message_headers_append (headers, "Host", "");
     soup_message_headers_append (headers, "Connection", "keep-alive");
-  
+
     if (authorize && request->auth_data != NULL) {
         g_autoptr(GString) authorization = NULL;
         gchar **discharges;
@@ -375,7 +375,7 @@ send_json_request (SnapdRequest *request, gboolean authorize, const gchar *metho
     g_autoptr(JsonNode) json_root = NULL;
     g_autoptr(JsonGenerator) json_generator = NULL;
     g_autofree gchar *data = NULL;
-    gsize data_length;  
+    gsize data_length;
     g_autoptr(SoupMessageHeaders) headers = NULL;
     g_autoptr(SoupMessageBody) body = NULL;
 
@@ -834,7 +834,7 @@ parse_snap (JsonObject *object, GError **error)
 
         daemon = get_string (a, "daemon", NULL);
         if (daemon == NULL)
-            daemon_type = SNAPD_DAEMON_TYPE_NONE;        
+            daemon_type = SNAPD_DAEMON_TYPE_NONE;
         else if (strcmp (daemon, "simple") == 0)
             daemon_type = SNAPD_DAEMON_TYPE_SIMPLE;
         else if (strcmp (daemon, "forking") == 0)
@@ -3783,7 +3783,7 @@ send_install_stream_request (SnapdRequest *request)
     headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_MULTIPART);
     params = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_hash_table_insert (params, g_strdup ("name"), g_strdup ("snap"));
-    g_hash_table_insert (params, g_strdup ("filename"), g_strdup ("x"));  
+    g_hash_table_insert (params, g_strdup ("filename"), g_strdup ("x"));
     soup_message_headers_set_content_disposition (headers, "form-data", params);
     soup_message_headers_set_content_type (headers, "application/vnd.snap", NULL);
     buffer = soup_buffer_new (SOUP_MEMORY_TEMPORARY, request->snap_contents->data, request->snap_contents->len);
@@ -3843,7 +3843,7 @@ stream_read_cb (GObject *source_object, GAsyncResult *result, gpointer user_data
     GInputStream *stream = G_INPUT_STREAM (source_object);
     SnapdRequest *request = user_data;
     g_autoptr(GBytes) data = NULL;
-    g_autoptr(GError) error = NULL;  
+    g_autoptr(GError) error = NULL;
 
     data = g_input_stream_read_bytes_finish (stream, result, &error);
     if (snapd_request_set_error (request, &error))

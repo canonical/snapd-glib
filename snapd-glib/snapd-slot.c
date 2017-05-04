@@ -44,17 +44,17 @@ struct _SnapdSlot
     GPtrArray *connections;
 };
 
-enum 
+enum
 {
     PROP_NAME = 1,
     PROP_SNAP,
     PROP_INTERFACE,
     PROP_LABEL,
     PROP_CONNECTIONS,
-    PROP_ATTRIBUTES,  
+    PROP_ATTRIBUTES,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdSlot, snapd_slot, G_TYPE_OBJECT)
 
 /**
@@ -283,7 +283,7 @@ snapd_slot_class_init (SnapdSlotClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_slot_set_property;
-    gobject_class->get_property = snapd_slot_get_property; 
+    gobject_class->get_property = snapd_slot_get_property;
     gobject_class->finalize = snapd_slot_finalize;
 
     g_object_class_install_property (gobject_class,

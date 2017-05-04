@@ -145,7 +145,7 @@ struct QSnapdFindRequestPrivate
             g_ptr_array_unref (snaps);
     }
     int flags;
-    QString section;  
+    QString section;
     QString name;
     GPtrArray *snaps = NULL;
     QString suggestedCurrency;
@@ -166,7 +166,7 @@ class QSnapdInstallRequestPrivate : public QObject
 {
     Q_OBJECT
 
-public:    
+public:
     QSnapdInstallRequestPrivate (int flags, const QString& name, const QString& channel, QIODevice *ioDevice, QObject *parent = NULL) :
         QObject (parent),
         flags(flags), name(name), channel(channel)
@@ -210,7 +210,7 @@ struct QSnapdRefreshAllRequestPrivate
     {
         if (snap_names != NULL)
             g_strfreev (snap_names);
-    }  
+    }
     gchar **snap_names = NULL;
 };
 
@@ -302,7 +302,7 @@ struct QSnapdRunSnapCtlRequestPrivate
         if (stdout_output != NULL)
             g_free (stdout_output);
         if (stderr_output != NULL)
-            g_free (stderr_output);      
+            g_free (stderr_output);
     }
     QString contextId;
     QStringList args;

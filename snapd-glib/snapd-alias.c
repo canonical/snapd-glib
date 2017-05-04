@@ -35,20 +35,20 @@ struct _SnapdAlias
     GObject parent_instance;
 
     gchar *app;
-    gchar *name;  
+    gchar *name;
     gchar *snap;
     SnapdAliasStatus status;
 };
 
-enum 
+enum
 {
     PROP_APP = 1,
-    PROP_NAME,  
+    PROP_NAME,
     PROP_SNAP,
-    PROP_STATUS,  
+    PROP_STATUS,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdAlias, snapd_alias, G_TYPE_OBJECT)
 
 /**
@@ -178,7 +178,7 @@ snapd_alias_class_init (SnapdAliasClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_alias_set_property;
-    gobject_class->get_property = snapd_alias_get_property; 
+    gobject_class->get_property = snapd_alias_get_property;
     gobject_class->finalize = snapd_alias_finalize;
 
     g_object_class_install_property (gobject_class,

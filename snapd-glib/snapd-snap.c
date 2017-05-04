@@ -60,7 +60,7 @@ struct _SnapdSnap
     gchar *version;
 };
 
-enum 
+enum
 {
     PROP_APPS = 1,
     PROP_CHANEL,
@@ -68,7 +68,7 @@ enum
     PROP_DESCRIPTION,
     PROP_DEVELOPER,
     PROP_DEVMODE,
-    PROP_DOWNLOAD_SIZE,  
+    PROP_DOWNLOAD_SIZE,
     PROP_ICON,
     PROP_ID,
     PROP_INSTALL_DATE,
@@ -84,7 +84,7 @@ enum
     PROP_TRYMODE,
     PROP_SNAP_TYPE,
     PROP_VERSION,
-    PROP_TRACKING_CHANNEL,  
+    PROP_TRACKING_CHANNEL,
     PROP_LAST
 };
 
@@ -229,7 +229,7 @@ snapd_snap_get_id (SnapdSnap *snap)
 /**
  * snapd_snap_get_install_date:
  * @snap: a #SnapdSnap.
- * 
+ *
  * Get the date this snap was installed or %NULL if unknown.
  *
  * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
@@ -381,7 +381,7 @@ snapd_snap_get_status (SnapdSnap *snap)
 /**
  * snapd_snap_get_summary:
  * @snap: a #SnapdSnap.
- * 
+ *
  * Get a single line summary for this snap, e.g. "Best app ever!".
  *
  * Returns: a summary string.
@@ -589,7 +589,7 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_PRIVATE:
         g_value_set_boolean (value, snap->private);
-        break;      
+        break;
     case PROP_REVISION:
         g_value_set_string (value, snap->revision);
         break;
@@ -625,7 +625,7 @@ snapd_snap_finalize (GObject *object)
 {
     SnapdSnap *snap = SNAPD_SNAP (object);
 
-    if (snap->apps != NULL)  
+    if (snap->apps != NULL)
         g_clear_pointer (&snap->apps, g_ptr_array_unref);
     g_clear_pointer (&snap->channel, g_free);
     g_clear_pointer (&snap->description, g_free);
@@ -640,7 +640,7 @@ snapd_snap_finalize (GObject *object)
     if (snap->screenshots != NULL)
         g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
     g_clear_pointer (&snap->summary, g_free);
-    g_clear_pointer (&snap->tracking_channel, g_free);  
+    g_clear_pointer (&snap->tracking_channel, g_free);
     g_clear_pointer (&snap->version, g_free);
 }
 
@@ -650,7 +650,7 @@ snapd_snap_class_init (SnapdSnapClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_snap_set_property;
-    gobject_class->get_property = snapd_snap_get_property; 
+    gobject_class->get_property = snapd_snap_get_property;
     gobject_class->finalize = snapd_snap_finalize;
 
     g_object_class_install_property (gobject_class,

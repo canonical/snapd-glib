@@ -307,14 +307,14 @@ GPtrArray              *snapd_client_find_finish                   (SnapdClient 
 GPtrArray              *snapd_client_find_section_sync             (SnapdClient          *client,
                                                                     SnapdFindFlags        flags,
                                                                     const gchar          *query,
-                                                                    const gchar          *section,                                                                    
+                                                                    const gchar          *section,
                                                                     gchar               **suggested_currency,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_find_section_async            (SnapdClient          *client,
                                                                     SnapdFindFlags        flags,
                                                                     const gchar          *query,
-                                                                    const gchar          *section,                                                                    
+                                                                    const gchar          *section,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);

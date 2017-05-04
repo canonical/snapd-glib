@@ -43,13 +43,13 @@ struct _SnapdSystemInformation
     gchar *version;
 };
 
-enum 
+enum
 {
     PROP_ON_CLASSIC = 1,
     PROP_OS_ID,
     PROP_OS_VERSION,
     PROP_SERIES,
-    PROP_STORE,  
+    PROP_STORE,
     PROP_VERSION,
     PROP_MANAGED,
     PROP_KERNEL_VERSION,
@@ -243,7 +243,7 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
         system_information->os_version = g_strdup (g_value_get_string (value));
         break;
     case PROP_SERIES:
-        g_free (system_information->series);      
+        g_free (system_information->series);
         system_information->series = g_strdup (g_value_get_string (value));
         break;
     case PROP_STORE:
@@ -313,7 +313,7 @@ snapd_system_information_finalize (GObject *object)
     g_clear_pointer (&system_information->os_id, g_free);
     g_clear_pointer (&system_information->os_version, g_free);
     g_clear_pointer (&system_information->series, g_free);
-    g_clear_pointer (&system_information->store, g_free);  
+    g_clear_pointer (&system_information->store, g_free);
     g_clear_pointer (&system_information->version, g_free);
 }
 
@@ -323,7 +323,7 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_system_information_set_property;
-    gobject_class->get_property = snapd_system_information_get_property; 
+    gobject_class->get_property = snapd_system_information_get_property;
     gobject_class->finalize = snapd_system_information_finalize;
 
     g_object_class_install_property (gobject_class,

@@ -15,22 +15,22 @@ QSnapdSlot::QSnapdSlot (void *snapd_object, QObject *parent) : QSnapdWrappedObje
 
 QString QSnapdSlot::name () const
 {
-    return snapd_slot_get_name (SNAPD_SLOT (wrapped_object));  
+    return snapd_slot_get_name (SNAPD_SLOT (wrapped_object));
 }
 
 QString QSnapdSlot::snap () const
 {
-    return snapd_slot_get_snap (SNAPD_SLOT (wrapped_object));  
+    return snapd_slot_get_snap (SNAPD_SLOT (wrapped_object));
 }
 
 QString QSnapdSlot::interface () const
 {
-    return snapd_slot_get_interface (SNAPD_SLOT (wrapped_object));  
+    return snapd_slot_get_interface (SNAPD_SLOT (wrapped_object));
 }
 
 QString QSnapdSlot::label () const
 {
-    return snapd_slot_get_label (SNAPD_SLOT (wrapped_object));  
+    return snapd_slot_get_label (SNAPD_SLOT (wrapped_object));
 }
 
 int QSnapdSlot::connectionCount () const

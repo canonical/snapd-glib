@@ -15,7 +15,7 @@ QSnapdScreenshot::QSnapdScreenshot (void *snapd_object, QObject *parent) : QSnap
 
 QString QSnapdScreenshot::url () const
 {
-    return snapd_screenshot_get_url (SNAPD_SCREENSHOT (wrapped_object));  
+    return snapd_screenshot_get_url (SNAPD_SCREENSHOT (wrapped_object));
 }
 
 quint64 QSnapdScreenshot::width () const

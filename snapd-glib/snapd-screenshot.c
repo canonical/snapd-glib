@@ -33,17 +33,17 @@ struct _SnapdScreenshot
 
     gchar *url;
     guint width;
-    guint height;  
+    guint height;
 };
 
-enum 
+enum
 {
     PROP_URL = 1,
     PROP_WIDTH,
-    PROP_HEIGHT,  
+    PROP_HEIGHT,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdScreenshot, snapd_screenshot, G_TYPE_OBJECT)
 
 SnapdScreenshot *
@@ -154,7 +154,7 @@ snapd_screenshot_class_init (SnapdScreenshotClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_screenshot_set_property;
-    gobject_class->get_property = snapd_screenshot_get_property; 
+    gobject_class->get_property = snapd_screenshot_get_property;
     gobject_class->finalize = snapd_screenshot_finalize;
 
     g_object_class_install_property (gobject_class,

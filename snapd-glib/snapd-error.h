@@ -49,7 +49,7 @@ G_BEGIN_DECLS
  * Error codes returned by snapd operations.
  */
 typedef enum
-{  
+{
     SNAPD_ERROR_CONNECTION_FAILED,
     SNAPD_ERROR_WRITE_FAILED,
     SNAPD_ERROR_READ_FAILED,

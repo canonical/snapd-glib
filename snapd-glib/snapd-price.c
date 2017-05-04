@@ -36,13 +36,13 @@ struct _SnapdPrice
     gchar *currency;
 };
 
-enum 
+enum
 {
     PROP_AMOUNT = 1,
-    PROP_CURRENCY,  
+    PROP_CURRENCY,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdPrice, snapd_price, G_TYPE_OBJECT)
 
 /**
@@ -105,7 +105,7 @@ snapd_price_get_property (GObject *object, guint prop_id, GValue *value, GParamS
         break;
     case PROP_CURRENCY:
         g_value_set_string (value, price->currency);
-        break;      
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -126,7 +126,7 @@ snapd_price_class_init (SnapdPriceClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_price_set_property;
-    gobject_class->get_property = snapd_price_get_property; 
+    gobject_class->get_property = snapd_price_get_property;
     gobject_class->finalize = snapd_price_finalize;
 
     g_object_class_install_property (gobject_class,

@@ -15,22 +15,22 @@ QSnapdPlug::QSnapdPlug (void *snapd_object, QObject *parent) : QSnapdWrappedObje
 
 QString QSnapdPlug::name () const
 {
-    return snapd_plug_get_name (SNAPD_PLUG (wrapped_object));  
+    return snapd_plug_get_name (SNAPD_PLUG (wrapped_object));
 }
 
 QString QSnapdPlug::snap () const
 {
-    return snapd_plug_get_snap (SNAPD_PLUG (wrapped_object));  
+    return snapd_plug_get_snap (SNAPD_PLUG (wrapped_object));
 }
 
 QString QSnapdPlug::interface () const
 {
-    return snapd_plug_get_interface (SNAPD_PLUG (wrapped_object));  
+    return snapd_plug_get_interface (SNAPD_PLUG (wrapped_object));
 }
 
 QString QSnapdPlug::label () const
 {
-    return snapd_plug_get_label (SNAPD_PLUG (wrapped_object));  
+    return snapd_plug_get_label (SNAPD_PLUG (wrapped_object));
 }
 
 int QSnapdPlug::connectionCount () const

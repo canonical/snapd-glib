@@ -34,7 +34,7 @@ struct _SnapdChange
     GObject parent_instance;
 
     gchar *id;
-    gchar *kind;  
+    gchar *kind;
     gchar *summary;
     gchar *status;
     GPtrArray *tasks;
@@ -43,10 +43,10 @@ struct _SnapdChange
     GDateTime *ready_time;
 };
 
-enum 
+enum
 {
     PROP_ID = 1,
-    PROP_KIND,  
+    PROP_KIND,
     PROP_SUMMARY,
     PROP_STATUS,
     PROP_TASKS,
@@ -55,7 +55,7 @@ enum
     PROP_READY_TIME,
     PROP_LAST
 };
- 
+
 G_DEFINE_TYPE (SnapdChange, snapd_change, G_TYPE_OBJECT)
 
 /**
@@ -91,7 +91,7 @@ snapd_change_get_kind (SnapdChange *change)
 /**
  * snapd_change_get_summary:
  * @change: a #SnapdChange.
- * 
+ *
  * Get a human readable description of the change.
  *
  * Returns: a string describing the change.
@@ -272,7 +272,7 @@ snapd_change_finalize (GObject *object)
     if (change->tasks != NULL)
         g_clear_pointer (&change->tasks, g_ptr_array_unref);
     g_clear_pointer (&change->spawn_time, g_date_time_unref);
-    g_clear_pointer (&change->ready_time, g_date_time_unref);  
+    g_clear_pointer (&change->ready_time, g_date_time_unref);
 }
 
 static void
@@ -281,7 +281,7 @@ snapd_change_class_init (SnapdChangeClass *klass)
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_change_set_property;
-    gobject_class->get_property = snapd_change_get_property; 
+    gobject_class->get_property = snapd_change_get_property;
     gobject_class->finalize = snapd_change_finalize;
 
     g_object_class_install_property (gobject_class,
