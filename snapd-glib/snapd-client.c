@@ -255,7 +255,9 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->stdout_output, g_free);
     g_clear_pointer (&request->stderr_output, g_free);
     g_clear_pointer (&request->async_data, json_node_unref);
-    g_clear_pointer (&request->complete_source, g_source_destroy);
+    if (request->complete_source)
+        g_source_destroy (request->complete_source);
+    g_clear_pointer (&request->complete_source, g_source_unref);
 }
 
 static void
@@ -5458,14 +5460,14 @@ snapd_client_finalize (GObject *object)
     SnapdClientPrivate *priv = snapd_client_get_instance_private (SNAPD_CLIENT (object));
 
     g_main_context_unref (priv->context);
-    g_socket_close (priv->snapd_socket, NULL);
-    g_clear_object (&priv->snapd_socket);
     g_clear_object (&priv->auth_data);
     g_list_free_full (priv->requests, g_object_unref);
     priv->requests = NULL;
     if (priv->read_source != NULL)
         g_source_destroy (priv->read_source);
     g_clear_pointer (&priv->read_source, g_source_unref);
+    g_socket_close (priv->snapd_socket, NULL);
+    g_clear_object (&priv->snapd_socket);
     g_clear_pointer (&priv->buffer, g_byte_array_unref);
 }
 
