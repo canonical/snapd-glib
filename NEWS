@@ -1,3 +1,13 @@
+Overview of changes in snapd-glib 1.11
+
+    * New API:
+      - snapd_system_information_get_binaries_directory
+      - snapd_system_information_get_kernel_version
+      - snapd_system_information_get_mount_directory
+    * Fix calls not working inside threads.
+    * Fix reference counting error when calling snapd_client_get_interfaces and
+      snapd_client_create_user.
+
 Overview of changes in snapd-glib 1.10
 
     * Remove gettext-domain from Polkit files - this is an Ubuntu extension that
