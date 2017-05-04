@@ -347,7 +347,10 @@ snapd_snap_type_get_type
 <SECTION>
 <FILE>snapd-system-information</FILE>
 <TITLE>SnapdSystemInformation</TITLE>
+snapd_system_information_get_binaries_directory
+snapd_system_information_get_kernel_version
 snapd_system_information_get_managed
+snapd_system_information_get_mount_directory
 snapd_system_information_get_on_classic
 snapd_system_information_get_os_id
 snapd_system_information_get_os_version
