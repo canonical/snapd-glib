@@ -1228,7 +1228,7 @@ node_to_variant (JsonNode *node)
 static GHashTable *
 get_attributes (JsonObject *object, const gchar *name, GError **error)
 {
-    g_autoptr(JsonObject) attrs = NULL;
+    JsonObject *attrs;
     JsonObjectIter iter;
     GHashTable *attributes;
     const gchar *attribute_name;
@@ -1819,7 +1819,7 @@ static void
 parse_create_user_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonObject) result = NULL;
+    JsonObject *result;
     g_autoptr(SnapdUserInformation) user_information = NULL;
     GError *error = NULL;
 
