@@ -45,6 +45,12 @@ G_BEGIN_DECLS
  * @SNAPD_ERROR_ALREADY_INSTALLED: the requested snap is already installed.
  * @SNAPD_ERROR_NOT_INSTALLED: the requested snap is not installed.
  * @SNAPD_ERROR_NO_UPDATE_AVAILABLE: no update is available for this snap.
+ * @SNAPD_ERROR_PASSWORD_POLICY_ERROR: provided password is not valid.
+ * @SNAPD_ERROR_NEEDS_DEVMODE: this snap needs to be installed using devmode.
+ * @SNAPD_ERROR_NEEDS_CLASSIC: this snap needs to be installed using classic
+ *     mode.
+ * @SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM: a classic system is required to install
+ *    this snap.
  *
  * Error codes returned by snapd operations.
  */
@@ -66,7 +72,11 @@ typedef enum
     SNAPD_ERROR_PAYMENT_DECLINED,
     SNAPD_ERROR_ALREADY_INSTALLED,
     SNAPD_ERROR_NOT_INSTALLED,
-    SNAPD_ERROR_NO_UPDATE_AVAILABLE
+    SNAPD_ERROR_NO_UPDATE_AVAILABLE,
+    SNAPD_ERROR_PASSWORD_POLICY_ERROR,
+    SNAPD_ERROR_NEEDS_DEVMODE,
+    SNAPD_ERROR_NEEDS_CLASSIC,
+    SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM
 } SnapdError;
 
 /**
