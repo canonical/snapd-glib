@@ -122,6 +122,18 @@ void QSnapdRequest::finish (void *error)
             case SNAPD_ERROR_NO_UPDATE_AVAILABLE:
                 d->error = QSnapdRequest::QSnapdError::NoUpdateAvailable;
                 break;
+            case SNAPD_ERROR_PASSWORD_POLICY_ERROR:
+                d->error = QSnapdRequest::QSnapdError::PasswordPolicyError;
+                break;
+            case SNAPD_ERROR_NEEDS_DEVMODE:
+                d->error = QSnapdRequest::QSnapdError::NeedsDevmode;
+                break;
+            case SNAPD_ERROR_NEEDS_CLASSIC:
+                d->error = QSnapdRequest::QSnapdError::NeedsClassic;
+                break;
+            case SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM:
+                d->error = QSnapdRequest::QSnapdError::NeedsClassicSystem;
+                break;
             default:
                 /* This indicates we should add a new entry here... */
                 d->error = QSnapdRequest::QSnapdError::UnknownError;

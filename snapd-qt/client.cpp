@@ -238,25 +238,49 @@ QSnapdInstallRequest::~QSnapdInstallRequest ()
 QSnapdInstallRequest *QSnapdClient::install (const QString& name)
 {
     Q_D(QSnapdClient);
-    return new QSnapdInstallRequest (0, name, NULL, NULL, d->client);
+    return new QSnapdInstallRequest (0, name, NULL, NULL, NULL, d->client);
 }
 
 QSnapdInstallRequest *QSnapdClient::install (const QString& name, const QString& channel)
 {
     Q_D(QSnapdClient);
-    return new QSnapdInstallRequest (0, name, channel, NULL, d->client);
+    return new QSnapdInstallRequest (0, name, channel, NULL, NULL, d->client);
+}
+
+QSnapdInstallRequest *QSnapdClient::install (const QString& name, const QString& channel, const QString &revision)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdInstallRequest (0, name, channel, revision, NULL, d->client);
+}
+
+QSnapdInstallRequest *QSnapdClient::install (InstallFlags flags, const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdInstallRequest (flags, name, NULL, NULL, NULL, d->client);
+}
+
+QSnapdInstallRequest *QSnapdClient::install (InstallFlags flags, const QString& name, const QString& channel)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdInstallRequest (flags, name, channel, NULL, NULL, d->client);
+}
+
+QSnapdInstallRequest *QSnapdClient::install (InstallFlags flags, const QString& name, const QString& channel, const QString &revision)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdInstallRequest (flags, name, channel, revision, NULL, d->client);
 }
 
 QSnapdInstallRequest *QSnapdClient::install (QIODevice *ioDevice)
 {
     Q_D(QSnapdClient);
-    return new QSnapdInstallRequest (0, NULL, NULL, ioDevice, d->client);
+    return new QSnapdInstallRequest (0, NULL, NULL, NULL, ioDevice, d->client);
 }
 
 QSnapdInstallRequest *QSnapdClient::install (InstallFlags flags, QIODevice *ioDevice)
 {
     Q_D(QSnapdClient);
-    return new QSnapdInstallRequest (flags, NULL, NULL, ioDevice, d->client);
+    return new QSnapdInstallRequest (flags, NULL, NULL, NULL, ioDevice, d->client);
 }
 
 QSnapdTryRequest *QSnapdClient::trySnap (const QString& path)
@@ -1091,9 +1115,9 @@ static SnapdInstallFlags convertInstallFlags (int flags)
     return (SnapdInstallFlags) result;
 }
 
-QSnapdInstallRequest::QSnapdInstallRequest (int flags, const QString& name, const QString& channel, QIODevice *ioDevice, void *snapd_client, QObject *parent) :
+QSnapdInstallRequest::QSnapdInstallRequest (int flags, const QString& name, const QString& channel, const QString& revision, QIODevice *ioDevice, void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdInstallRequestPrivate (flags, name, channel, ioDevice)) {}
+    d_ptr (new QSnapdInstallRequestPrivate (flags, name, channel, revision, ioDevice)) {}
 
 void QSnapdInstallRequest::runSync ()
 {
@@ -1107,10 +1131,13 @@ void QSnapdInstallRequest::runSync ()
                                           G_CANCELLABLE (getCancellable ()), &error);
     }
     else {
-        snapd_client_install_sync (SNAPD_CLIENT (getClient ()),
-                                   d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
-                                   progress_cb, this,
-                                   G_CANCELLABLE (getCancellable ()), &error);
+        snapd_client_install2_sync (SNAPD_CLIENT (getClient ()),
+                                    convertInstallFlags (d->flags),
+                                    d->name.toStdString ().c_str (),
+                                    d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
+                                    d->revision.isNull () ? NULL : d->revision.toStdString ().c_str (),
+                                    progress_cb, this,
+                                    G_CANCELLABLE (getCancellable ()), &error);
     }
     finish (error);
 }
@@ -1121,7 +1148,7 @@ void QSnapdInstallRequest::handleResult (void *object, void *result)
     g_autoptr(GError) error = NULL;
 
     if (d->wrapper != NULL)
-        snapd_client_install_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+        snapd_client_install2_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
     else
         snapd_client_install_stream_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
     if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -1146,10 +1173,13 @@ void QSnapdInstallRequest::runAsync ()
                                            progress_cb, this,
                                            G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
     else
-        snapd_client_install_async (SNAPD_CLIENT (getClient ()),
-                                    d->name.toStdString ().c_str (), d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
-                                    progress_cb, this,
-                                    G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
+        snapd_client_install2_async (SNAPD_CLIENT (getClient ()),
+                                     convertInstallFlags (d->flags),
+                                     d->name.toStdString ().c_str (),
+                                     d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
+                                     d->revision.isNull () ? NULL : d->revision.toStdString ().c_str (),
+                                     progress_cb, this,
+                                     G_CANCELLABLE (getCancellable ()), install_ready_cb, (gpointer) this);
 }
 
 QSnapdTryRequest::QSnapdTryRequest (const QString& path, void *snapd_client, QObject *parent) :

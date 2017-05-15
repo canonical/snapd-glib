@@ -1282,10 +1282,14 @@ test_install (void)
     g_assert_no_error (error);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
-    result = snapd_client_install_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->confinement, ==, "strict");
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->devmode);
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->dangerous);
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->jailmode);
 }
 
 typedef struct
@@ -1362,10 +1366,176 @@ test_install_progress (void)
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
-    result = snapd_client_install_sync (client, "snap", NULL, install_progress_cb, &install_progress_data, NULL, &error);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, install_progress_cb, &install_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
     g_assert_cmpint (install_progress_data.progress_done, >, 0);
+}
+
+static void
+test_install_needs_classic (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "classic");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NEEDS_CLASSIC);
+    g_assert (!result);
+}
+
+static void
+test_install_classic (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_on_classic (snapd, TRUE);
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "classic");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->confinement, ==, "classic");
+}
+
+static void
+test_install_needs_classic_system (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "classic");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM);
+    g_assert (!result);
+}
+
+static void
+test_install_needs_devmode (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "devmode");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NEEDS_DEVMODE);
+    g_assert (!result);
+}
+
+static void
+test_install_devmode (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "devmode");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_DEVMODE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap")->devmode);
+}
+
+static void
+test_install_dangerous (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_DANGEROUS, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap")->dangerous);
+}
+
+static void
+test_install_jailmode (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_JAILMODE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap")->jailmode);
 }
 
 static void
@@ -1387,11 +1557,37 @@ test_install_channel (void)
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
-    result = snapd_client_install_sync (client, "snap", "channel2", NULL, NULL, NULL, &error);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", "channel2", NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
     g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->channel, ==, "channel2");
+}
+
+static void
+test_install_revision (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_revision (s, "1.2");
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_revision (s, "1.1");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, "1.1", NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->revision, ==, "1.1");
 }
 
 static void
@@ -1408,7 +1604,7 @@ test_install_not_available (void)
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
-    result = snapd_client_install_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
     g_assert (!result);
 }
@@ -2811,7 +3007,15 @@ main (int argc, char **argv)
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/basic", test_install);
     g_test_add_func ("/install/progress", test_install_progress);
+    g_test_add_func ("/install/needs-classic", test_install_needs_classic);
+    g_test_add_func ("/install/classic", test_install_classic);
+    g_test_add_func ("/install/needs-classic-system", test_install_needs_classic_system);
+    g_test_add_func ("/install/needs-devmode", test_install_needs_devmode);
+    g_test_add_func ("/install/devmode", test_install_devmode);
+    g_test_add_func ("/install/dangerous", test_install_dangerous);
+    g_test_add_func ("/install/jailmode", test_install_jailmode);
     g_test_add_func ("/install/channel", test_install_channel);
+    g_test_add_func ("/install/revision", test_install_revision);
     g_test_add_func ("/install/not-available", test_install_not_available);
     g_test_add_func ("/install-stream/basic", test_install_stream);
     g_test_add_func ("/install-stream/progress", test_install_stream_progress);

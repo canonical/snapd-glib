@@ -1055,6 +1055,10 @@ test_install ()
     installRequest->runSync ();
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->confinement, ==, "strict");
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->devmode);
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->dangerous);
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->jailmode);
 }
 
 void InstallProgressCounter::progress ()
@@ -1110,6 +1114,139 @@ test_install_progress ()
 }
 
 static void
+test_install_needs_classic ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "classic");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NeedsClassic);
+}
+
+static void
+test_install_classic ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_on_classic (snapd, TRUE);
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "classic");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Classic, "snap"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->confinement, ==, "classic");
+}
+
+static void
+test_install_needs_classic_system ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "classic");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Classic, "snap"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NeedsClassicSystem);
+}
+
+static void
+test_install_needs_devmode ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "devmode");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NeedsDevmode);
+}
+
+static void
+test_install_devmode ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_confinement (s, "devmode");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Devmode, "snap"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap")->devmode);
+}
+
+static void
+test_install_dangerous ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Dangerous, "snap"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap")->dangerous);
+}
+
+static void
+test_install_jailmode ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Jailmode, "snap"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap")->jailmode);
+}
+
+static void
 test_install_channel ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -1128,6 +1265,27 @@ test_install_channel ()
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
     g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->channel, ==, "channel2");
+}
+
+static void
+test_install_revision ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_revision (s, "1.2");
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_revision (s, "1.1");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap", NULL, "1.1"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->revision, ==, "1.1");
 }
 
 static void
@@ -2209,7 +2367,15 @@ main (int argc, char **argv)
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/basic", test_install);
     g_test_add_func ("/install/progress", test_install_progress);
+    g_test_add_func ("/install/needs-classic", test_install_needs_classic);
+    g_test_add_func ("/install/classic", test_install_classic);
+    g_test_add_func ("/install/needs-classic-system", test_install_needs_classic_system);
+    g_test_add_func ("/install/needs-devmode", test_install_needs_devmode);
+    g_test_add_func ("/install/devmode", test_install_devmode);
+    g_test_add_func ("/install/dangerous", test_install_dangerous);
+    g_test_add_func ("/install/jailmode", test_install_jailmode);
     g_test_add_func ("/install/channel", test_install_channel);
+    g_test_add_func ("/install/revision", test_install_revision);
     g_test_add_func ("/install/not-available", test_install_not_available);
     g_test_add_func ("/install-stream/basic", test_install_stream);
     g_test_add_func ("/install-stream/progress", test_install_stream_progress);

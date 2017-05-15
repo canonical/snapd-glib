@@ -678,6 +678,34 @@ parse_result (const gchar *content_type, const gchar *content, gsize content_len
                                  message);
             return FALSE;
         }
+        else if (g_strcmp0 (kind, "password-policy") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_PASSWORD_POLICY_ERROR,
+                                 message);
+            return FALSE;
+        }
+        else if (g_strcmp0 (kind, "snap-needs-devmode") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_NEEDS_DEVMODE,
+                                 message);
+            return FALSE;
+        }
+        else if (g_strcmp0 (kind, "snap-needs-classic") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_NEEDS_CLASSIC,
+                                 message);
+            return FALSE;
+        }
+        else if (g_strcmp0 (kind, "snap-needs-classic-system") == 0) {
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM,
+                                 message);
+            return FALSE;
+        }
         else if (status_code == SOUP_STATUS_BAD_REQUEST) {
             g_set_error_literal (error,
                                  SNAPD_ERROR,
@@ -768,7 +796,7 @@ parse_snap (JsonObject *object, GError **error)
     confinement_string = get_string (object, "confinement", "");
     if (strcmp (confinement_string, "strict") == 0)
         confinement = SNAPD_CONFINEMENT_STRICT;
-    if (strcmp (confinement_string, "classic") == 0)
+    else if (strcmp (confinement_string, "classic") == 0)
         confinement = SNAPD_CONFINEMENT_CLASSIC;
     else if (strcmp (confinement_string, "devmode") == 0)
         confinement = SNAPD_CONFINEMENT_DEVMODE;
@@ -3659,6 +3687,8 @@ snapd_client_find_refreshable_finish (SnapdClient *client, GAsyncResult *result,
  * Install a snap from the store.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Deprecated: Use snapd_client_install2_sync()
  */
 gboolean
 snapd_client_install_sync (SnapdClient *client,
@@ -3666,15 +3696,7 @@ snapd_client_install_sync (SnapdClient *client,
                            SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                            GCancellable *cancellable, GError **error)
 {
-    g_auto(SyncData) data = { 0 };
-
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (name != NULL, FALSE);
-
-    start_sync (client, &data);
-    snapd_client_install_async (client, name, channel, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
-    return snapd_client_install_finish (client, data.result, error);
+    return snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, name, channel, NULL, progress_callback, progress_callback_data, cancellable, error);
 }
 
 /**
@@ -3690,12 +3712,93 @@ snapd_client_install_sync (SnapdClient *client,
  *
  * Asynchronously install a snap from the store.
  * See snapd_client_install_sync() for more information.
+ *
+ * Deprecated: Use snapd_client_install2_async()
  */
 void
 snapd_client_install_async (SnapdClient *client,
                             const gchar *name, const gchar *channel,
                             SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, name, channel, NULL, progress_callback, progress_callback_data, cancellable, callback, user_data);
+}
+
+/**
+ * snapd_client_install_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_install_async().
+ * See snapd_client_install_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Deprecated: Use snapd_client_install2_finish()
+ */
+gboolean
+snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    return snapd_client_install2_finish (client, result, error);
+}
+
+/**
+ * snapd_client_install2_sync:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdInstallFlags to control install options.
+ * @name: name of snap to install.
+ * @channel: (allow-none): channel to install from or %NULL for default.
+ * @revision: (allow-none): revision to install or %NULL for default.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Install a snap from the store.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ */
+gboolean
+snapd_client_install2_sync (SnapdClient *client,
+                            SnapdInstallFlags flags,
+                            const gchar *name, const gchar *channel, const gchar *revision,
+                            SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                            GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (name != NULL, FALSE);
+
+    start_sync (client, &data);
+    snapd_client_install2_async (client, flags, name, channel, revision, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    g_main_loop_run (data.loop);
+    return snapd_client_install2_finish (client, data.result, error);
+}
+
+/**
+ * snapd_client_install2_async:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdInstallFlags to control install options.
+ * @name: name of snap to install.
+ * @channel: (allow-none): channel to install from or %NULL for default.
+ * @revision: (allow-none): revision to install or %NULL for default.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously install a snap from the store.
+ * See snapd_client_install2_sync() for more information.
+ */
+void
+snapd_client_install2_async (SnapdClient *client,
+                             SnapdInstallFlags flags,
+                             const gchar *name, const gchar *channel, const gchar *revision,
+                             SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
@@ -3714,6 +3817,26 @@ snapd_client_install_async (SnapdClient *client,
         json_builder_set_member_name (builder, "channel");
         json_builder_add_string_value (builder, channel);
     }
+    if (revision != NULL) {
+        json_builder_set_member_name (builder, "revision");
+        json_builder_add_string_value (builder, revision);
+    }
+    if ((flags & SNAPD_INSTALL_FLAGS_CLASSIC) != 0) {
+        json_builder_set_member_name (builder, "classic");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+    if ((flags & SNAPD_INSTALL_FLAGS_DANGEROUS) != 0) {
+        json_builder_set_member_name (builder, "dangerous");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+    if ((flags & SNAPD_INSTALL_FLAGS_DEVMODE) != 0) {
+        json_builder_set_member_name (builder, "devmode");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+    if ((flags & SNAPD_INSTALL_FLAGS_JAILMODE) != 0) {
+        json_builder_set_member_name (builder, "jailmode");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
     json_builder_end_object (builder);
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
@@ -3721,18 +3844,18 @@ snapd_client_install_async (SnapdClient *client,
 }
 
 /**
- * snapd_client_install_finish:
+ * snapd_client_install2_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Complete request started with snapd_client_install_async().
- * See snapd_client_install_sync() for more information.
+ * Complete request started with snapd_client_install2_async().
+ * See snapd_client_install2_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
  */
 gboolean
-snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+snapd_client_install2_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdRequest *request;
 
@@ -4606,7 +4729,7 @@ snapd_client_check_buy_finish (SnapdClient *client, GAsyncResult *result, GError
  *     to ignore.
  *
  * Buy a snap from the store. Once purchased, this snap can be installed with
- * snapd_client_install_sync().
+ * snapd_client_install2_sync().
  *
  * Returns: %TRUE on success or %FALSE on error.
  */

@@ -167,9 +167,9 @@ class QSnapdInstallRequestPrivate : public QObject
     Q_OBJECT
 
 public:
-    QSnapdInstallRequestPrivate (int flags, const QString& name, const QString& channel, QIODevice *ioDevice, QObject *parent = NULL) :
+    QSnapdInstallRequestPrivate (int flags, const QString& name, const QString& channel, const QString& revision, QIODevice *ioDevice, QObject *parent = NULL) :
         QObject (parent),
-        flags(flags), name(name), channel(channel)
+        flags(flags), name(name), channel(channel), revision(revision)
     {
         if (ioDevice != NULL) {
             wrapper = (StreamWrapper *) g_object_new (stream_wrapper_get_type (), NULL);
@@ -185,6 +185,7 @@ public:
     int flags;
     QString name;
     QString channel;
+    QString revision;
     StreamWrapper *wrapper = NULL;
 };
 

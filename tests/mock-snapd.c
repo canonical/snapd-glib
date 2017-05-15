@@ -357,14 +357,15 @@ mock_snapd_add_store_snap (MockSnapd *snapd, const gchar *name)
 }
 
 static MockSnap *
-mock_snapd_find_store_snap_by_name (MockSnapd *snapd, const gchar *name, const gchar *channel)
+mock_snapd_find_store_snap_by_name (MockSnapd *snapd, const gchar *name, const gchar *channel,  const gchar *revision)
 {
     GList *link;
 
     for (link = snapd->store_snaps; link; link = link->next) {
         MockSnap *snap = link->data;
         if (strcmp (snap->name, name) == 0 &&
-            (channel == NULL || g_strcmp0 (snap->channel, channel) == 0))
+            (channel == NULL || g_strcmp0 (snap->channel, channel) == 0) &&
+            (revision == NULL || g_strcmp0 (snap->revision, revision) == 0))
             return snap;
     }
 
@@ -1426,7 +1427,8 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
     else if (strcmp (method, "POST") == 0) {
         g_autoptr(JsonNode) request = NULL;
         JsonObject *o;
-        const gchar *action, *channel = NULL;
+        const gchar *action, *channel = NULL, *revision = NULL;
+        gboolean classic = FALSE, dangerous = FALSE, devmode = FALSE, jailmode = FALSE;
 
         request = get_json (headers, body);
         if (request == NULL) {
@@ -1438,33 +1440,60 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
         action = json_object_get_string_member (o, "action");
         if (json_object_has_member (o, "channel"))
             channel = json_object_get_string_member (o, "channel");
+        if (json_object_has_member (o, "revision"))
+            revision = json_object_get_string_member (o, "revision");
+        if (json_object_has_member (o, "classic"))
+            classic = json_object_get_boolean_member (o, "classic");
+        if (json_object_has_member (o, "dangerous"))
+            dangerous = json_object_get_boolean_member (o, "dangerous");
+        if (json_object_has_member (o, "devmode"))
+            devmode = json_object_get_boolean_member (o, "devmode");
+        if (json_object_has_member (o, "jailmode"))
+            jailmode = json_object_get_boolean_member (o, "jailmode");
 
         if (strcmp (action, "install") == 0) {
-            MockSnap *snap;
+            MockSnap *snap, *installed_snap;
+            MockChange *change;
 
             snap = mock_snapd_find_snap (snapd, name);
-            if (snap == NULL) {
-                snap = mock_snapd_find_store_snap_by_name (snapd, name, channel);
-                if (snap != NULL)
-                {
-                    MockSnap *snap;
-                    MockChange *change;
-
-                    snap = mock_snapd_find_snap (snapd, name);
-                    if (snap == NULL)
-                        snap = mock_snapd_add_snap (snapd, name);
-                    g_free (snap->channel);
-                    snap->channel = g_strdup (channel);
-
-                    change = add_change (snapd, NULL);
-                    add_task (change, "install");
-                    send_async_response (snapd, 202, "Accepted", change->id);
-                }
-                else
-                    send_error_bad_request (snapd, "cannot install, snap not found", NULL);
-            }
-            else
+            if (snap != NULL) {
                 send_error_bad_request (snapd, "snap is already installed", "snap-already-installed");
+                return;
+            }
+
+            snap = mock_snapd_find_store_snap_by_name (snapd, name, channel, revision);
+            if (snap == NULL) {
+                send_error_bad_request (snapd, "cannot install, snap not found", NULL);
+                return;
+            }
+
+            if (strcmp (snap->confinement, "classic") == 0 && !classic) {
+                send_error_bad_request (snapd, "requires classic confinement", "snap-needs-classic");
+                return;
+            }
+            if (strcmp (snap->confinement, "classic") == 0 && !snapd->on_classic) {
+                send_error_bad_request (snapd, "requires classic confinement", "snap-needs-classic-system");
+                return;
+            }
+            if (strcmp (snap->confinement, "devmode") == 0 && !devmode) {
+                send_error_bad_request (snapd, "requires devmode or confinement override", "snap-needs-devmode");
+                return;
+            }
+
+            installed_snap = mock_snapd_add_snap (snapd, name);
+            g_free (installed_snap->confinement);
+            installed_snap->confinement = g_strdup (snap->confinement);
+            g_free (installed_snap->channel);
+            installed_snap->channel = g_strdup (snap->channel);
+            g_free (installed_snap->revision);
+            installed_snap->revision = g_strdup (snap->revision);
+            installed_snap->devmode = devmode;
+            installed_snap->jailmode = jailmode;
+            installed_snap->dangerous = dangerous;
+
+            change = add_change (snapd, NULL);
+            add_task (change, "install");
+            send_async_response (snapd, 202, "Accepted", change->id);
         }
         else if (strcmp (action, "refresh") == 0) {
             MockSnap *snap;
@@ -1475,7 +1504,7 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
                 MockSnap *store_snap;
 
                 /* Find if we have a store snap with a newer revision */
-                store_snap = mock_snapd_find_store_snap_by_name (snapd, name, channel);
+                store_snap = mock_snapd_find_store_snap_by_name (snapd, name, channel, NULL);
                 if (store_snap != NULL && strcmp (store_snap->revision, snap->revision) > 0) {
                     MockChange *change;
 

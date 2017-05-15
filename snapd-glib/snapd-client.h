@@ -106,7 +106,7 @@ typedef enum
  * Signature for callback function used in
  * snapd_client_connect_interface_sync(),
  * snapd_client_disconnect_interface_async(),
- * snapd_client_install_sync(),
+ * snapd_client_install2_sync(),
  * snapd_client_refresh_sync(),
  * snapd_client_remove_sync(),
  * snapd_client_enable_sync() and
@@ -340,7 +340,7 @@ gboolean                snapd_client_install_sync                  (SnapdClient 
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_install2_sync);
 void                    snapd_client_install_async                 (SnapdClient          *client,
                                                                     const gchar          *name,
                                                                     const gchar          *channel,
@@ -348,8 +348,31 @@ void                    snapd_client_install_async                 (SnapdClient 
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_install2_async);
 gboolean                snapd_client_install_finish                (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_install2_finish);
+
+gboolean                snapd_client_install2_sync                 (SnapdClient          *client,
+                                                                    SnapdInstallFlags     flags,
+                                                                    const gchar          *name,
+                                                                    const gchar          *channel,
+                                                                    const gchar          *revision,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_install2_async                (SnapdClient          *client,
+                                                                    SnapdInstallFlags     flags,
+                                                                    const gchar          *name,
+                                                                    const gchar          *channel,
+                                                                    const gchar          *revision,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_install2_finish               (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

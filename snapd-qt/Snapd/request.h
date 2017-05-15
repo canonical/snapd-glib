@@ -46,7 +46,11 @@ public:
         PaymentDeclined,
         AlreadyInstalled,
         NotInstalled,
-        NoUpdateAvailable
+        NoUpdateAvailable,
+        PasswordPolicyError,
+        NeedsDevmode,
+        NeedsClassic,
+        NeedsClassicSystem
     };
 
     explicit QSnapdRequest (void *snapd_client, QObject* parent = 0);

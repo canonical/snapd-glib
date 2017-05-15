@@ -275,7 +275,7 @@ class Q_DECL_EXPORT QSnapdInstallRequest : public QSnapdRequest
     Q_OBJECT
 
 public:
-    explicit QSnapdInstallRequest (int flags, const QString& name, const QString& channel, QIODevice *ioDevice, void *snapd_client, QObject *parent = 0);
+    explicit QSnapdInstallRequest (int flags, const QString& name, const QString& channel, const QString& revision, QIODevice *ioDevice, void *snapd_client, QObject *parent = 0);
     ~QSnapdInstallRequest ();
     virtual void runSync ();
     virtual void runAsync ();
@@ -581,6 +581,10 @@ public:
     Q_INVOKABLE QSnapdFindRefreshableRequest *findRefreshable ();
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name);
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
+    Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel, const QString &revision);
+    Q_INVOKABLE QSnapdInstallRequest *install (InstallFlags flags, const QString &name);
+    Q_INVOKABLE QSnapdInstallRequest *install (InstallFlags flags, const QString &name, const QString &channel);
+    Q_INVOKABLE QSnapdInstallRequest *install (InstallFlags flags, const QString &name, const QString &channel, const QString &revision);
     Q_INVOKABLE QSnapdInstallRequest *install (QIODevice *ioDevice);
     Q_INVOKABLE QSnapdInstallRequest *install (InstallFlags flags, QIODevice *ioDevice);  
     Q_INVOKABLE QSnapdTryRequest *trySnap (const QString &path);  
