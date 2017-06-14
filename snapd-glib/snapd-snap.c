@@ -64,7 +64,7 @@ struct _SnapdSnap
 enum
 {
     PROP_APPS = 1,
-    PROP_CHANEL,
+    PROP_CHANNEL,
     PROP_CONFINEMENT,
     PROP_CONTACT,
     PROP_DESCRIPTION,
@@ -468,7 +468,7 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         if (g_value_get_boxed (value) != NULL)
             snap->apps = g_ptr_array_ref (g_value_get_boxed (value));
         break;
-    case PROP_CHANEL:
+    case PROP_CHANNEL:
         g_free (snap->channel);
         snap->channel = g_strdup (g_value_get_string (value));
         break;
@@ -569,7 +569,7 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_APPS:
         g_value_set_boxed (value, snap->apps);
         break;
-    case PROP_CHANEL:
+    case PROP_CHANNEL:
         g_value_set_string (value, snap->channel);
         break;
     case PROP_CONFINEMENT:
@@ -686,7 +686,7 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          G_TYPE_PTR_ARRAY,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
-                                     PROP_CHANEL,
+                                     PROP_CHANNEL,
                                      g_param_spec_string ("channel",
                                                           "channel",
                                                           "Channel the snap is from",
