@@ -1133,8 +1133,10 @@ make_snap_node (MockSnap *snap)
         for (link = snap->apps; link; link = link->next) {
             MockApp *app = link->data;
             json_builder_begin_object (builder);
-            json_builder_set_member_name (builder, "name");
-            json_builder_add_string_value (builder, app->name);
+            if (snap->name) {
+                json_builder_set_member_name (builder, "name");
+                json_builder_add_string_value (builder, app->name);
+            }
             if (app->aliases != NULL) {
                 GList *link2;
                 json_builder_set_member_name (builder, "aliases");
@@ -1153,12 +1155,16 @@ make_snap_node (MockSnap *snap)
         }
         json_builder_end_array (builder);
     }
-    json_builder_set_member_name (builder, "channel");
-    json_builder_add_string_value (builder, snap->channel);
+    if (snap->channel) {
+        json_builder_set_member_name (builder, "channel");
+        json_builder_add_string_value (builder, snap->channel);
+    }
     json_builder_set_member_name (builder, "confinement");
     json_builder_add_string_value (builder, snap->confinement);
-    json_builder_set_member_name (builder, "description");
-    json_builder_add_string_value (builder, snap->description);
+    if (snap->description) {
+        json_builder_set_member_name (builder, "description");
+        json_builder_add_string_value (builder, snap->description);
+    }
     json_builder_set_member_name (builder, "developer");
     json_builder_add_string_value (builder, snap->developer);
     json_builder_set_member_name (builder, "devmode");
@@ -1196,8 +1202,10 @@ make_snap_node (MockSnap *snap)
         }
         json_builder_end_object (builder);
     }
-    json_builder_set_member_name (builder, "private");
-    json_builder_add_boolean_value (builder, snap->is_private);
+    if (snap->is_private) {
+        json_builder_set_member_name (builder, "private");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
     json_builder_set_member_name (builder, "resource");
     resource = g_strdup_printf ("/v2/snaps/%s", snap->name);
     json_builder_add_string_value (builder, resource);
@@ -1226,8 +1234,10 @@ make_snap_node (MockSnap *snap)
     }
     json_builder_set_member_name (builder, "status");
     json_builder_add_string_value (builder, snap->status);
-    json_builder_set_member_name (builder, "summary");
-    json_builder_add_string_value (builder, snap->summary);
+    if (snap->summary) {
+        json_builder_set_member_name (builder, "summary");
+        json_builder_add_string_value (builder, snap->summary);
+    }
     if (snap->tracking_channel) {
         json_builder_set_member_name (builder, "tracking-channel");
         json_builder_add_string_value (builder, snap->tracking_channel);
