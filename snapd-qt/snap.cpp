@@ -52,6 +52,11 @@ QSnapdSnap::QSnapdConfinement QSnapdSnap::confinement () const
     }
 }
 
+QString QSnapdSnap::contact () const
+{
+    return snapd_snap_get_contact (SNAPD_SNAP (wrapped_object));
+}
+
 QString QSnapdSnap::description () const
 {
     return snapd_snap_get_description (SNAPD_SNAP (wrapped_object));

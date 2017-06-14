@@ -90,6 +90,8 @@ const gchar      *snapd_snap_get_channel          (SnapdSnap *snap);
 
 SnapdConfinement  snapd_snap_get_confinement      (SnapdSnap *snap);
 
+const gchar      *snapd_snap_get_contact          (SnapdSnap *snap);
+
 const gchar      *snapd_snap_get_description      (SnapdSnap *snap);
 
 const gchar      *snapd_snap_get_developer        (SnapdSnap *snap);

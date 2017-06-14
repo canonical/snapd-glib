@@ -127,6 +127,7 @@ mock_snap_free (MockSnap *snap)
     g_list_free_full (snap->apps, (GDestroyNotify) mock_app_free);
     g_free (snap->channel);
     g_free (snap->confinement);
+    g_free (snap->contact);
     g_free (snap->description);
     g_free (snap->developer);
     g_free (snap->icon);
@@ -228,6 +229,7 @@ mock_snap_new (const gchar *name)
     snap = g_slice_new0 (MockSnap);
     snap->channel = g_strdup ("CHANNEL");
     snap->confinement = g_strdup ("strict");
+    snap->contact = g_strdup ("CONTACT");
     snap->description = g_strdup ("DESCRIPTION");
     snap->developer = g_strdup ("DEVELOPER");
     snap->icon = g_strdup ("ICON");
@@ -455,6 +457,13 @@ mock_snap_set_confinement (MockSnap *snap, const gchar *confinement)
 {
     g_free (snap->confinement);
     snap->confinement = g_strdup (confinement);
+}
+
+void
+mock_snap_set_contact (MockSnap *snap, const gchar *contact)
+{
+    g_free (snap->contact);
+    snap->contact = g_strdup (contact);
 }
 
 void
@@ -1161,6 +1170,10 @@ make_snap_node (MockSnap *snap)
     }
     json_builder_set_member_name (builder, "confinement");
     json_builder_add_string_value (builder, snap->confinement);
+    if (snap->contact) {
+        json_builder_set_member_name (builder, "contact");
+        json_builder_add_string_value (builder, snap->contact);
+    }
     if (snap->description) {
         json_builder_set_member_name (builder, "description");
         json_builder_add_string_value (builder, snap->description);

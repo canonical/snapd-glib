@@ -238,6 +238,7 @@ test_list_one (void)
     g_assert_cmpstr (aliases[1], ==, "app3");
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
+    g_assert_cmpstr (snapd_snap_get_contact (snap), ==, "CONTACT");
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, "DESCRIPTION");
     g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
     g_assert (snapd_snap_get_devmode (snap) == TRUE);
@@ -935,6 +936,7 @@ test_find_query (void)
     snap = snaps->pdata[1];
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
+    g_assert_cmpstr (snapd_snap_get_contact (snap), ==, "CONTACT");
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, "DESCRIPTION");
     g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 1024);

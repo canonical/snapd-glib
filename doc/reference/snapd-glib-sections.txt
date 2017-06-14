@@ -314,6 +314,7 @@ SnapdSnapStatus
 snapd_snap_get_apps
 snapd_snap_get_channel
 snapd_snap_get_confinement
+snapd_snap_get_contact
 snapd_snap_get_description
 snapd_snap_get_developer
 snapd_snap_get_devmode

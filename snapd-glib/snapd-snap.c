@@ -38,6 +38,7 @@ struct _SnapdSnap
     GPtrArray *apps;
     gchar *channel;
     SnapdConfinement confinement;
+    gchar *contact;
     gchar *description;
     gchar *developer;
     gboolean devmode;
@@ -65,6 +66,7 @@ enum
     PROP_APPS = 1,
     PROP_CHANEL,
     PROP_CONFINEMENT,
+    PROP_CONTACT,
     PROP_DESCRIPTION,
     PROP_DEVELOPER,
     PROP_DEVMODE,
@@ -133,6 +135,21 @@ snapd_snap_get_confinement (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), SNAPD_CONFINEMENT_UNKNOWN);
     return snap->confinement;
+}
+
+/**
+ * snapd_snap_get_contact:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the means of contacting the snap developer, e.g. "mailto:developer@example.com".
+ *
+ * Returns: a contact URL.
+ */
+const gchar *
+snapd_snap_get_contact (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->contact;
 }
 
 /**
@@ -458,6 +475,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_CONFINEMENT:
         snap->confinement = g_value_get_enum (value);
         break;
+    case PROP_CONTACT:
+        g_free (snap->contact);
+        snap->contact = g_strdup (g_value_get_string (value));
+        break;
     case PROP_DESCRIPTION:
         g_free (snap->description);
         snap->description = g_strdup (g_value_get_string (value));
@@ -554,6 +575,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_CONFINEMENT:
         g_value_set_enum (value, snap->confinement);
         break;
+    case PROP_CONTACT:
+        g_value_set_string (value, snap->contact);
+        break;
     case PROP_DESCRIPTION:
         g_value_set_string (value, snap->description);
         break;
@@ -628,6 +652,7 @@ snapd_snap_finalize (GObject *object)
     if (snap->apps != NULL)
         g_clear_pointer (&snap->apps, g_ptr_array_unref);
     g_clear_pointer (&snap->channel, g_free);
+    g_clear_pointer (&snap->contact, g_free);
     g_clear_pointer (&snap->description, g_free);
     g_clear_pointer (&snap->developer, g_free);
     g_clear_pointer (&snap->icon, g_free);
@@ -674,6 +699,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                         "Confinement requested by the snap",
                                                         SNAPD_TYPE_CONFINEMENT, SNAPD_CONFINEMENT_UNKNOWN,
                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_CONTACT,
+                                     g_param_spec_string ("contact",
+                                                          "contact",
+                                                          "Method of contacting developer",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_DESCRIPTION,
                                      g_param_spec_string ("description",

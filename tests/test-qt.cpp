@@ -204,6 +204,7 @@ test_list_one ()
     g_assert_cmpint (app->daemonType (), ==, QSnapdApp::DaemonNone);
     g_assert (snap->channel () == "CHANNEL");
     g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
+    g_assert (snap->contact () == "CONTACT");
     g_assert (snap->description () == "DESCRIPTION");
     g_assert (snap->developer () == "DEVELOPER");
     g_assert (snap->devmode () == TRUE);
@@ -747,6 +748,7 @@ test_find_query ()
     QScopedPointer<QSnapdSnap> snap1 (findRequest->snap (1));
     g_assert (snap1->channel () == "CHANNEL");
     g_assert_cmpint (snap1->confinement (), ==, QSnapdSnap::Strict);
+    g_assert (snap1->contact () == "CONTACT");
     g_assert (snap1->description () == "DESCRIPTION");
     g_assert (snap1->developer () == "DEVELOPER");
     g_assert_cmpint (snap1->downloadSize (), ==, 1024);

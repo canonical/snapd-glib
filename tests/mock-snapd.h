@@ -42,6 +42,7 @@ typedef struct
     GList *apps;
     gchar *channel;
     gchar *confinement;
+    gchar *contact;
     gchar *description;
     gchar *developer;
     gboolean devmode;

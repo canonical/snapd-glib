@@ -941,6 +941,7 @@ parse_snap (JsonObject *object, GError **error)
                          "apps", apps_array,
                          "channel", get_string (object, "channel", NULL),
                          "confinement", confinement,
+                         "contact", get_string (object, "contact", NULL),
                          "description", get_string (object, "description", NULL),
                          "developer", get_string (object, "developer", NULL),
                          "devmode", get_bool (object, "devmode", FALSE),
