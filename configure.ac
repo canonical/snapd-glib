@@ -27,8 +27,23 @@ ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
 dnl === Dependencies ==========================================================
 
-PKG_CHECK_MODULES(SNAPD, [gobject-2.0 gio-2.0 gio-unix-2.0 libsoup-2.4 json-glib-1.0])
-PKG_CHECK_MODULES(SNAPD_LOGIN_SERVICE, [gio-2.0 gio-unix-2.0 polkit-gobject-1])
+GLIB_REQUIRED=2.44
+LIBSOUP_REQUIRED=2.32
+JSON_GLIB_REQUIRED=1.2
+
+PKG_CHECK_MODULES(SNAPD, [
+    glib-2.0 >= $GLIB_REQUIRED
+    gio-2.0 >= $GLIB_REQUIRED
+    gio-unix-2.0 >= $GLIB_REQUIRED
+    libsoup-2.4 >= $LIBSOUP_REQUIRED
+    json-glib-1.0 >= $JSON_GLIB_REQUIRED
+])
+PKG_CHECK_MODULES(SNAPD_LOGIN_SERVICE, [
+    glib-2.0 >= $GLIB_REQUIRED
+    gio-2.0 >= $GLIB_REQUIRED
+    gio-unix-2.0 >= $GLIB_REQUIRED
+    polkit-gobject-1
+])
 
 dnl === Test suite ============================================================
 
