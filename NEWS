@@ -1,3 +1,10 @@
+Overview of changes in snapd-glib 1.13
+
+    * New API:
+      - snapd_snap_get_contact
+    * Check minimum versions of dependencies
+    * Fix swapped variable names in snapd_client_find_section header proptotype.
+
 Overview of changes in snapd-glib 1.12
 
     * New API:
