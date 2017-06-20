@@ -27,7 +27,7 @@ ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
 dnl === Dependencies ==========================================================
 
-GLIB_REQUIRED=2.46
+GLIB_REQUIRED=2.40
 LIBSOUP_REQUIRED=2.32
 JSON_GLIB_REQUIRED=1.2
 

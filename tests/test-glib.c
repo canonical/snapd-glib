@@ -12,6 +12,8 @@
 
 #include "mock-snapd.h"
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(GInputStream, g_object_unref)
+
 static void
 test_get_system_information (void)
 {
@@ -374,6 +376,17 @@ test_list_one_daemons (void)
     app = snapd_snap_get_apps (snap)->pdata[5];
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_UNKNOWN);
 }
+
+#define g_assert_cmpmem(m1, l1, m2, l2) G_STMT_START {\
+                                             gconstpointer __m1 = m1, __m2 = m2; \
+                                             int __l1 = l1, __l2 = l2; \
+                                             if (__l1 != __l2) \
+                                               g_assertion_message_cmpnum (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
+                                                                           #l1 " (len(" #m1 ")) == " #l2 " (len(" #m2 "))", __l1, "==", __l2, 'i'); \
+                                             else if (__l1 != 0 && memcmp (__m1, __m2, __l1) != 0) \
+                                               g_assertion_message (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
+                                                                    "assertion failed (" #m1 " == " #m2 ")"); \
+                                        } G_STMT_END
 
 static void
 test_icon (void)

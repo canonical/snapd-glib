@@ -26,6 +26,20 @@
 #include "snapd-slot.h"
 #include "snapd-task.h"
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (GSocketAddress, g_object_unref)
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SoupBuffer, soup_buffer_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SoupMessageBody, soup_message_body_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SoupMessageHeaders, soup_message_headers_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SoupMultipart, soup_multipart_free)
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonParser, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonArray, json_array_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonObject, json_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonNode, json_node_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonGenerator, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonBuilder, g_object_unref)
+
 /**
  * SECTION:snapd-client
  * @short_description: Client connection to snapd
@@ -254,7 +268,7 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->aliases, g_ptr_array_unref);
     g_clear_pointer (&request->stdout_output, g_free);
     g_clear_pointer (&request->stderr_output, g_free);
-    g_clear_pointer (&request->async_data, json_node_unref);
+    g_clear_pointer (&request->async_data, json_node_free);
     if (request->complete_source)
         g_source_destroy (request->complete_source);
     g_clear_pointer (&request->complete_source, g_source_unref);
@@ -889,12 +903,11 @@ parse_snap (JsonObject *object, GError **error)
     prices = get_object (object, "prices");
     prices_array = g_ptr_array_new_with_free_func (g_object_unref);
     if (prices != NULL) {
-        JsonObjectIter iter;
-        const gchar *currency;
-        JsonNode *amount_node;
+        GList *link;
 
-        json_object_iter_init (&iter, prices);
-        while (json_object_iter_next (&iter, &currency, &amount_node)) {
+        for (link = json_object_get_members (prices); link; link = link->next) {
+            const gchar *currency = link->data;
+            JsonNode *amount_node = json_object_get_member (prices, currency);
             g_autoptr(SnapdPrice) price = NULL;
 
             if (json_node_get_value_type (amount_node) != G_TYPE_DOUBLE) {
@@ -1121,15 +1134,14 @@ static GVariant *node_to_variant (JsonNode *node);
 static GVariant *
 object_to_variant (JsonObject *object)
 {
-    JsonObjectIter iter;
     GType container_type = G_TYPE_INVALID;
-    const gchar *name;
-    JsonNode *node;
     GVariantBuilder builder;
+    GList *link;
 
     /* If has a consistent type, make an array of that type */
-    json_object_iter_init (&iter, object);
-    while (json_object_iter_next (&iter, &name, &node)) {
+    for (link = json_object_get_members (object); link; link = link->next) {
+        const gchar *name = link->data;
+        JsonNode *node = json_object_get_member (object, name);
         GType type;
         type = json_node_get_value_type (node);
         if (container_type == G_TYPE_INVALID || type == container_type)
@@ -1144,33 +1156,43 @@ object_to_variant (JsonObject *object)
     {
     case G_TYPE_BOOLEAN:
         g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sb}"));
-        json_object_iter_init (&iter, object);
-        while (json_object_iter_next (&iter, &name, &node))
+        for (link = json_object_get_members (object); link; link = link->next) {
+            const gchar *name = link->data;
+            JsonNode *node = json_object_get_member (object, name);
             g_variant_builder_add (&builder, "{sb}", name, json_node_get_boolean (node));
+        }
         return g_variant_builder_end (&builder);
     case G_TYPE_INT64:
         g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sx}"));
-        json_object_iter_init (&iter, object);
-        while (json_object_iter_next (&iter, &name, &node))
+        for (link = json_object_get_members (object); link; link = link->next) {
+            const gchar *name = link->data;
+            JsonNode *node = json_object_get_member (object, name);
             g_variant_builder_add (&builder, "{sx}", name, json_node_get_int (node));
+        }
         return g_variant_builder_end (&builder);
     case G_TYPE_DOUBLE:
         g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sd}"));
-        json_object_iter_init (&iter, object);
-        while (json_object_iter_next (&iter, &name, &node))
+        for (link = json_object_get_members (object); link; link = link->next) {
+            const gchar *name = link->data;
+            JsonNode *node = json_object_get_member (object, name);
             g_variant_builder_add (&builder, "{sd}", name, json_node_get_double (node));
+        }
         return g_variant_builder_end (&builder);
     case G_TYPE_STRING:
         g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{ss}"));
-        json_object_iter_init (&iter, object);
-        while (json_object_iter_next (&iter, &name, &node))
+        for (link = json_object_get_members (object); link; link = link->next) {
+            const gchar *name = link->data;
+            JsonNode *node = json_object_get_member (object, name);
             g_variant_builder_add (&builder, "{ss}", name, json_node_get_string (node));
+        }
         return g_variant_builder_end (&builder);
     default:
         g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
-        json_object_iter_init (&iter, object);
-        while (json_object_iter_next (&iter, &name, &node))
+        for (link = json_object_get_members (object); link; link = link->next) {
+            const gchar *name = link->data;
+            JsonNode *node = json_object_get_member (object, name);
             g_variant_builder_add (&builder, "{sv}", name, node_to_variant (node));
+        }
         return g_variant_builder_end (&builder);
     }
 }
@@ -1258,19 +1280,19 @@ static GHashTable *
 get_attributes (JsonObject *object, const gchar *name, GError **error)
 {
     JsonObject *attrs;
-    JsonObjectIter iter;
     GHashTable *attributes;
-    const gchar *attribute_name;
-    JsonNode *node;
+    GList *link;
 
     attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
     attrs = get_object (object, "attrs");
     if (attrs == NULL)
         return attributes;
 
-    json_object_iter_init (&iter, attrs);
-    while (json_object_iter_next (&iter, &attribute_name, &node))
+    for (link = json_object_get_members (attrs); link; link = link->next) {
+        const gchar *attribute_name = link->data;
+        JsonNode *node = json_object_get_member (attrs, attribute_name);
         g_hash_table_insert (attributes, g_strdup (attribute_name), node_to_variant (node));
+    }
 
     return attributes;
 }
@@ -1679,7 +1701,7 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
         if (ready) {
             request->result = TRUE;
             if (json_object_has_member (result, "data"))
-                request->async_data = json_node_ref (json_object_get_member (result, "data"));
+                request->async_data = json_node_copy (json_object_get_member (result, "data"));
             snapd_request_complete (request, NULL);
             return;
         }
@@ -1950,9 +1972,7 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
     g_autoptr(JsonObject) response = NULL;
     JsonObject *result;
     g_autoptr(GPtrArray) aliases = NULL;
-    JsonObjectIter snap_iter;
-    const gchar *snap;
-    JsonNode *snap_node;
+    GList *link;
     GError *error = NULL;
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
@@ -1970,11 +1990,10 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
     }
 
     aliases = g_ptr_array_new_with_free_func (g_object_unref);
-    json_object_iter_init (&snap_iter, result);
-    while (json_object_iter_next (&snap_iter, &snap, &snap_node)) {
-        JsonObjectIter alias_iter;
-        const gchar *name;
-        JsonNode *alias_node;
+    for (link = json_object_get_members (result); link; link = link->next) {
+        const gchar *snap = link->data;
+        JsonNode *snap_node = json_object_get_member (result, snap);
+        GList *alias_link;
 
         if (json_node_get_value_type (snap_node) != JSON_TYPE_OBJECT) {
             error = g_error_new (SNAPD_ERROR,
@@ -1983,8 +2002,9 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
             snapd_request_complete (request, error);
         }
 
-        json_object_iter_init (&alias_iter, json_node_get_object (snap_node));
-        while (json_object_iter_next (&alias_iter, &name, &alias_node)) {
+        for (alias_link = json_object_get_members (json_node_get_object (snap_node)); alias_link; alias_link = alias_link->next) {
+            const gchar *name = alias_link->data;
+            JsonNode *alias_node = json_object_get_member (json_node_get_object (snap_node), name);
             JsonObject *o;
             SnapdAliasStatus status = SNAPD_ALIAS_STATUS_UNKNOWN;
             const gchar *status_string;

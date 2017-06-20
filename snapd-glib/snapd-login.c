@@ -14,6 +14,8 @@
 #include "snapd-login.h"
 #include "snapd-error.h"
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(GDBusConnection, g_object_unref)
+
 /**
  * SECTION: snapd-login
  * @short_description: Client authorization

@@ -15,6 +15,7 @@
 #endif
 
 #include <glib-object.h>
+#include <snapd-glib/glib-compat.h>
 #include <gio/gio.h>
 
 #include <snapd-glib/snapd-auth-data.h>

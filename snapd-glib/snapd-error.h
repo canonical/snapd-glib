@@ -15,6 +15,7 @@
 #endif
 
 #include <glib-object.h>
+#include <snapd-glib/glib-compat.h>
 
 G_BEGIN_DECLS
 

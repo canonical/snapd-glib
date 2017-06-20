@@ -13,6 +13,9 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 
+#define SNAPD_COMPILATION
+#include <snapd-glib/glib-compat.h>
+
 G_BEGIN_DECLS
 
 #define MOCK_TYPE_SNAPD  (mock_snapd_get_type ())

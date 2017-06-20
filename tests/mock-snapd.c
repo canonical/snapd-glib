@@ -18,6 +18,16 @@
 
 #include "mock-snapd.h"
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SoupBuffer, soup_buffer_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SoupMessageBody, soup_message_body_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SoupMessageHeaders, soup_message_headers_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (SoupMultipart, soup_multipart_free)
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonParser, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonNode, json_node_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonGenerator, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (JsonBuilder, g_object_unref)
+
 typedef struct
 {
     gchar *id;
@@ -738,7 +748,7 @@ mock_change_free (MockChange *change)
     g_free (change->ready_time);
     g_list_free_full (change->tasks, (GDestroyNotify) mock_task_free);
     if (change->data)
-        json_node_unref (change->data);
+        json_node_free (change->data);
     g_slice_free (MockChange, change);
 }
 
@@ -1068,7 +1078,7 @@ get_json (SoupMessageHeaders *headers, SoupMessageBody *body)
         return NULL;
     }
 
-    return json_node_ref (json_parser_get_root (parser));
+    return json_node_copy (json_parser_get_root (parser));
 }
 
 static void
@@ -1954,7 +1964,7 @@ handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id)
     }
     if (is_ready && change->data != NULL) {
         json_builder_set_member_name (builder, "data");
-        json_builder_add_value (builder, json_node_ref (change->data));
+        json_builder_add_value (builder, json_node_copy (change->data));
     }
     json_builder_end_object (builder);
 
