@@ -24,7 +24,7 @@ class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject
     Q_PROPERTY (QString summary READ summary)
     Q_PROPERTY (QString status READ status)
     Q_PROPERTY (bool ready READ ready)
-    Q_PROPERTY (int taskCount READ taskCount)              
+    Q_PROPERTY (int taskCount READ taskCount)
     Q_PROPERTY (QDateTime spawnTime READ spawnTime)
     Q_PROPERTY (QDateTime readyTime READ readyTime)
 

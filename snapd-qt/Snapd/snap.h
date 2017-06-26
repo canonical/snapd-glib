@@ -99,7 +99,7 @@ public:
     QString summary () const;
     QString trackingChannel () const;
     bool trymode () const;
-    QString version () const; 
+    QString version () const;
 };
 
 #endif

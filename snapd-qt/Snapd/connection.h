@@ -18,13 +18,13 @@ class Q_DECL_EXPORT QSnapdConnection : public QSnapdWrappedObject
     Q_OBJECT
 
     Q_PROPERTY(QString name READ name)
-    Q_PROPERTY(QString snap READ snap)      
+    Q_PROPERTY(QString snap READ snap)
 
 public:
     explicit QSnapdConnection (void* snapd_object, QObject* parent = 0);
 
     QString name () const;
-    QString snap () const;  
+    QString snap () const;
 };
 
 #endif

@@ -563,7 +563,7 @@ public:
     virtual ~QSnapdClient ();
     Q_INVOKABLE QSnapdConnectRequest *connect ();
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password);
-    Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);  
+    Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
     Q_INVOKABLE void setAuthData (QSnapdAuthData *authData);
     Q_INVOKABLE QSnapdAuthData *authData ();
     Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();
@@ -586,8 +586,8 @@ public:
     Q_INVOKABLE QSnapdInstallRequest *install (InstallFlags flags, const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdInstallRequest *install (InstallFlags flags, const QString &name, const QString &channel, const QString &revision);
     Q_INVOKABLE QSnapdInstallRequest *install (QIODevice *ioDevice);
-    Q_INVOKABLE QSnapdInstallRequest *install (InstallFlags flags, QIODevice *ioDevice);  
-    Q_INVOKABLE QSnapdTryRequest *trySnap (const QString &path);  
+    Q_INVOKABLE QSnapdInstallRequest *install (InstallFlags flags, QIODevice *ioDevice);
+    Q_INVOKABLE QSnapdTryRequest *trySnap (const QString &path);
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name);
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRefreshAllRequest *refreshAll ();

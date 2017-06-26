@@ -19,7 +19,7 @@ class Q_DECL_EXPORT QSnapdScreenshot : public QSnapdWrappedObject
 
     Q_PROPERTY(QString url READ url)
     Q_PROPERTY(quint64 width READ width);
-    Q_PROPERTY(quint64 height READ height);  
+    Q_PROPERTY(quint64 height READ height);
 
 public:
     explicit QSnapdScreenshot (void* snapd_object, QObject* parent = 0);

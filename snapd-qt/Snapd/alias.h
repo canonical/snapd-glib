@@ -30,7 +30,7 @@ public:
         Default,
         Enabled,
         Disabled,
-        Auto       
+        Auto
     };
     explicit QSnapdAlias (void* snapd_object, QObject* parent = 0);
 

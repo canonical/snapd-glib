@@ -14,7 +14,7 @@
 #include <Snapd/Change>
 
 struct QSnapdRequestPrivate;
-  
+
 class Q_DECL_EXPORT QSnapdRequest : public QObject
 {
     Q_OBJECT

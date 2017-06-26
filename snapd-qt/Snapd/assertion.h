@@ -17,7 +17,7 @@ class Q_DECL_EXPORT QSnapdAssertion : public QSnapdWrappedObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QStringList headers READ headers)    
+    Q_PROPERTY(QStringList headers READ headers)
     Q_PROPERTY(QString body READ body)
     Q_PROPERTY(QString signature READ signature)
 
@@ -25,7 +25,7 @@ public:
     explicit QSnapdAssertion (const QString& content, QObject* parent = 0);
 
     QString header (const QString& name) const;
-    QStringList headers () const;  
+    QStringList headers () const;
     QString body () const;
     QString signature () const;
 };
