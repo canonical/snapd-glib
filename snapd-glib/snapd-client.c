@@ -781,7 +781,7 @@ parse_snap (JsonObject *object, GError **error)
     const gchar *confinement_string;
     SnapdConfinement confinement = SNAPD_CONFINEMENT_UNKNOWN;
     const gchar *snap_type_string;
-    SnapdConfinement snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
+    SnapdSnapType snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
     const gchar *snap_status_string;
     SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;
     g_autoptr(JsonArray) apps = NULL;
