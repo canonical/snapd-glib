@@ -4092,8 +4092,6 @@ snapd_client_try_async (SnapdClient *client,
 {
     SnapdRequest *request;
     g_autoptr(SoupMessageHeaders) headers = NULL;
-    g_autoptr(GHashTable) params = NULL;
-    g_autoptr(SoupBuffer) buffer = NULL;
     g_autoptr(SoupMultipart) multipart = NULL;
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
