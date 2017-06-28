@@ -7,6 +7,8 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
+#include "config.h"
+
 #include <stdlib.h>
 #include <gio/gio.h>
 #include <snapd-glib/snapd-glib.h>
