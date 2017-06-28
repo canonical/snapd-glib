@@ -3,3 +3,12 @@
 
 set(SNAPD_LIBRARIES @libdir@/libsnapd-qt.so)
 set(SNAPD_INCLUDE_DIRS @includedir@/snapd-qt/)
+
+add_library(Snapd::Core SHARED IMPORTED)
+set_target_properties(Snapd::Core PROPERTIES
+  IMPORTED_LINK_DEPENDENT_LIBRARIES "Qt5::Core"
+  IMPORTED_LOCATION "${SNAPD_LIBRARIES}"
+  IMPORTED_SONAME "libsnapd-qt.so"
+  )
+
+set_property(TARGET Snapd::Core PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SNAPD_INCLUDE_DIRS})
