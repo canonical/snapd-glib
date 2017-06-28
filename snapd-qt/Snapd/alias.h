@@ -21,7 +21,6 @@ class Q_DECL_EXPORT QSnapdAlias : public QSnapdWrappedObject
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString snap READ snap)
     Q_PROPERTY(QSnapdAliasStatus status READ status)
-    Q_ENUMS(QSnapdAliasStatus)
 
 public:
     enum QSnapdAliasStatus
@@ -32,6 +31,8 @@ public:
         Disabled,
         Auto
     };
+    Q_ENUM(QSnapdAliasStatus)
+
     explicit QSnapdAlias (void* snapd_object, QObject* parent = 0);
 
     QString app () const;

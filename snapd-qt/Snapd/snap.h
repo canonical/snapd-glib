@@ -44,7 +44,6 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString trackingChannel READ trackingChannel)
     Q_PROPERTY(bool trymode READ trymode)
     Q_PROPERTY(QString version READ version)
-    Q_ENUMS(QSnapdConfinement QSnapdSnapType QSnapdSnapStatus)
 
 public:
     enum QSnapdConfinement
@@ -54,6 +53,8 @@ public:
         Devmode,
         Classic
     };
+    Q_ENUM(QSnapdConfinement)
+
     enum QSnapdSnapType
     {
         TypeUnknown,
@@ -62,6 +63,8 @@ public:
         Gadget,
         OperatingSystem
     };
+    Q_ENUM(QSnapdSnapType)
+
     enum QSnapdSnapStatus
     {
         StatusUnknown,
@@ -70,6 +73,7 @@ public:
         Installed,
         Active
     };
+    Q_ENUM(QSnapdSnapStatus)
 
     explicit QSnapdSnap (void* snapd_object, QObject* parent = 0);
 

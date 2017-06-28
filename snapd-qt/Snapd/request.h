@@ -23,7 +23,6 @@ class Q_DECL_EXPORT QSnapdRequest : public QObject
     Q_PROPERTY(QSnapdError error READ error)
     Q_PROPERTY(QString errorString READ errorString)
     Q_PROPERTY(QSnapdChange change READ change)
-    Q_ENUMS(QSnapdError)
 
 public:
     enum QSnapdError
@@ -52,6 +51,7 @@ public:
         NeedsClassic,
         NeedsClassicSystem
     };
+    Q_ENUM(QSnapdError)
 
     explicit QSnapdRequest (void *snapd_client, QObject* parent = 0);
     ~QSnapdRequest ();
