@@ -23,9 +23,9 @@ source_h = Snapd/Alias Snapd/alias.h \
 private_h = client-private.h stream-wrapper.h
 
 %_moc.cpp: Snapd/%.h
-	$(AM_V_GEN) moc --qt=qt5 $< -o $@
+	$(AM_V_GEN) $(MOC5) $< -o $@
 client-private_moc.cpp: client-private.h
-	$(AM_V_GEN) moc --qt=qt5 $< -o $@
+	$(AM_V_GEN) $(MOC5) $< -o $@
 
 libsnapd_qt_la_CPPFLAGS = $(SNAPD_QT_CFLAGS) $(SNAPD_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)
 libsnapd_qt_la_LDFLAGS = -version-info 1:0:0
@@ -48,7 +48,7 @@ libSnapd_la_CXXFLAGS = $(WARN_CXXFLAGS) -fPIC $(QML_MODULE_CFLAGS)
 libSnapd_la_LIBADD = $(QML_MODULE_LIBS) -lsnapd-qt
 libSnapd_la_LDFLAGS = -rpath $(qmlmoduledir) -module -avoid-version -no-undefined
 qml-plugin_moc.cpp: qml-plugin.h
-	$(AM_V_GEN) moc --qt=qt5 $< -o $@
+	$(AM_V_GEN) $(MOC5) $< -o $@
 endif
 
 EXTRA_DIST = $(cmake_in_files) qmldir
