@@ -69,7 +69,7 @@ protected:
     void *getCancellable () const;
     void finish (void *error);
 
-signals:
+Q_SIGNALS:
     void progress ();
     void complete ();
 
