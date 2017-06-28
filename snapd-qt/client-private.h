@@ -17,12 +17,13 @@
 #include <QtCore/QObject>
 #include <QIODevice>
 
-struct QSnapdConnectRequestPrivate
+class QSnapdConnectRequestPrivate
 {
 };
 
-struct QSnapdLoginRequestPrivate
+class QSnapdLoginRequestPrivate
 {
+public:
     QSnapdLoginRequestPrivate (const QString& username, const QString& password, const QString& otp) :
         username(username), password(password), otp(otp) {}
     ~QSnapdLoginRequestPrivate ()
@@ -36,8 +37,9 @@ struct QSnapdLoginRequestPrivate
     SnapdAuthData *auth_data = NULL;
 };
 
-struct QSnapdGetSystemInformationRequestPrivate
+class QSnapdGetSystemInformationRequestPrivate
 {
+public:
     ~QSnapdGetSystemInformationRequestPrivate ()
     {
         if (info != NULL)
@@ -46,8 +48,9 @@ struct QSnapdGetSystemInformationRequestPrivate
     SnapdSystemInformation *info = NULL;
 };
 
-struct QSnapdListRequestPrivate
+class QSnapdListRequestPrivate
 {
+public:
     ~QSnapdListRequestPrivate ()
     {
         if (snaps != NULL)
@@ -56,8 +59,9 @@ struct QSnapdListRequestPrivate
     GPtrArray *snaps = NULL;
 };
 
-struct QSnapdListOneRequestPrivate
+class QSnapdListOneRequestPrivate
 {
+public:
     QSnapdListOneRequestPrivate (const QString& name) :
         name(name) {}
     ~QSnapdListOneRequestPrivate ()
@@ -69,8 +73,9 @@ struct QSnapdListOneRequestPrivate
     SnapdSnap *snap = NULL;
 };
 
-struct QSnapdGetIconRequestPrivate
+class QSnapdGetIconRequestPrivate
 {
+public:
     QSnapdGetIconRequestPrivate (const QString& name) :
         name(name) {}
     ~QSnapdGetIconRequestPrivate ()
@@ -82,8 +87,9 @@ struct QSnapdGetIconRequestPrivate
     SnapdIcon *icon = NULL;
 };
 
-struct QSnapdGetAssertionsRequestPrivate
+class QSnapdGetAssertionsRequestPrivate
 {
+public:
     QSnapdGetAssertionsRequestPrivate (const QString& type) :
         type (type) {}
     ~QSnapdGetAssertionsRequestPrivate ()
@@ -95,15 +101,17 @@ struct QSnapdGetAssertionsRequestPrivate
     gchar **assertions = NULL;
 };
 
-struct QSnapdAddAssertionsRequestPrivate
+class QSnapdAddAssertionsRequestPrivate
 {
+public:
     QSnapdAddAssertionsRequestPrivate (const QStringList& assertions) :
         assertions (assertions) {}
     QStringList assertions;
 };
 
-struct QSnapdGetInterfacesRequestPrivate
+class QSnapdGetInterfacesRequestPrivate
 {
+public:
     ~QSnapdGetInterfacesRequestPrivate ()
     {
         if (plugs != NULL)
@@ -115,8 +123,9 @@ struct QSnapdGetInterfacesRequestPrivate
     GPtrArray *slots_ = NULL;
 };
 
-struct QSnapdConnectInterfaceRequestPrivate
+class QSnapdConnectInterfaceRequestPrivate
 {
+public:
     QSnapdConnectInterfaceRequestPrivate (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name) :
         plug_snap (plug_snap), plug_name (plug_name), slot_snap (slot_snap), slot_name (slot_name) {}
     QString plug_snap;
@@ -125,8 +134,9 @@ struct QSnapdConnectInterfaceRequestPrivate
     QString slot_name;
 };
 
-struct QSnapdDisconnectInterfaceRequestPrivate
+class QSnapdDisconnectInterfaceRequestPrivate
 {
+public:
     QSnapdDisconnectInterfaceRequestPrivate (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name) :
         plug_snap (plug_snap), plug_name (plug_name), slot_snap (slot_snap), slot_name (slot_name) {}
     QString plug_snap;
@@ -135,8 +145,9 @@ struct QSnapdDisconnectInterfaceRequestPrivate
     QString slot_name;
 };
 
-struct QSnapdFindRequestPrivate
+class QSnapdFindRequestPrivate
 {
+public:
     QSnapdFindRequestPrivate (int flags, const QString& section, const QString& name) :
         flags (flags), section (section), name (name) {}
     ~QSnapdFindRequestPrivate ()
@@ -151,8 +162,9 @@ struct QSnapdFindRequestPrivate
     QString suggestedCurrency;
 };
 
-struct QSnapdFindRefreshableRequestPrivate
+class QSnapdFindRefreshableRequestPrivate
 {
+public:
     QSnapdFindRefreshableRequestPrivate () {}
     ~QSnapdFindRefreshableRequestPrivate ()
     {
@@ -164,6 +176,7 @@ struct QSnapdFindRefreshableRequestPrivate
 
 class QSnapdInstallRequestPrivate : public QObject
 {
+public:
     Q_OBJECT
 
 public:
@@ -189,23 +202,26 @@ public:
     StreamWrapper *wrapper = NULL;
 };
 
-struct QSnapdTryRequestPrivate
+class QSnapdTryRequestPrivate
 {
+public:
     QSnapdTryRequestPrivate (const QString& path) :
         path(path) {}
     QString path;
 };
 
-struct QSnapdRefreshRequestPrivate
+class QSnapdRefreshRequestPrivate
 {
+public:
     QSnapdRefreshRequestPrivate (const QString& name, const QString& channel) :
         name(name), channel(channel) {}
     QString name;
     QString channel;
 };
 
-struct QSnapdRefreshAllRequestPrivate
+class QSnapdRefreshAllRequestPrivate
 {
+public:
     QSnapdRefreshAllRequestPrivate () {}
     ~QSnapdRefreshAllRequestPrivate ()
     {
@@ -215,34 +231,39 @@ struct QSnapdRefreshAllRequestPrivate
     gchar **snap_names = NULL;
 };
 
-struct QSnapdRemoveRequestPrivate
+class QSnapdRemoveRequestPrivate
 {
+public:
     QSnapdRemoveRequestPrivate (const QString& name) :
         name(name) {}
     QString name;
 };
 
-struct QSnapdEnableRequestPrivate
+class QSnapdEnableRequestPrivate
 {
+public:
     QSnapdEnableRequestPrivate (const QString& name) :
         name(name) {}
     QString name;
 };
 
-struct QSnapdDisableRequestPrivate
+class QSnapdDisableRequestPrivate
 {
+public:
     QSnapdDisableRequestPrivate (const QString& name) :
         name(name) {}
     QString name;
 };
 
-struct QSnapdCheckBuyRequestPrivate
+class QSnapdCheckBuyRequestPrivate
 {
+public:
     bool canBuy;
 };
 
-struct QSnapdBuyRequestPrivate
+class QSnapdBuyRequestPrivate
 {
+public:
     QSnapdBuyRequestPrivate (const QString& id, double amount, const QString& currency) :
       id(id), amount(amount), currency(currency) {}
     QString id;
@@ -250,8 +271,9 @@ struct QSnapdBuyRequestPrivate
     QString currency;
 };
 
-struct QSnapdGetSectionsRequestPrivate
+class QSnapdGetSectionsRequestPrivate
 {
+public:
     ~QSnapdGetSectionsRequestPrivate ()
     {
         if (sections != NULL)
@@ -260,8 +282,9 @@ struct QSnapdGetSectionsRequestPrivate
     gchar **sections = NULL;
 };
 
-struct QSnapdGetAliasesRequestPrivate
+class QSnapdGetAliasesRequestPrivate
 {
+public:
     ~QSnapdGetAliasesRequestPrivate ()
     {
         if (aliases != NULL)
@@ -270,32 +293,36 @@ struct QSnapdGetAliasesRequestPrivate
     GPtrArray *aliases = NULL;
 };
 
-struct QSnapdEnableAliasesRequestPrivate
+class QSnapdEnableAliasesRequestPrivate
 {
+public:
     QSnapdEnableAliasesRequestPrivate (const QString &snap, const QStringList& aliases) :
         snap (snap), aliases (aliases) {}
     QString snap;
     QStringList aliases;
 };
 
-struct QSnapdDisableAliasesRequestPrivate
+class QSnapdDisableAliasesRequestPrivate
 {
+public:
     QSnapdDisableAliasesRequestPrivate (const QString &snap, const QStringList& aliases) :
         snap (snap), aliases (aliases) {}
     QString snap;
     QStringList aliases;
 };
 
-struct QSnapdResetAliasesRequestPrivate
+class QSnapdResetAliasesRequestPrivate
 {
+public:
     QSnapdResetAliasesRequestPrivate (const QString &snap, const QStringList& aliases) :
         snap (snap), aliases (aliases) {}
     QString snap;
     QStringList aliases;
 };
 
-struct QSnapdRunSnapCtlRequestPrivate
+class QSnapdRunSnapCtlRequestPrivate
 {
+public:
     QSnapdRunSnapCtlRequestPrivate (const QString &contextId, const QStringList& args) :
         contextId (contextId), args (args) {}
     ~QSnapdRunSnapCtlRequestPrivate ()

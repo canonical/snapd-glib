@@ -12,8 +12,9 @@
 #include "Snapd/client.h"
 #include "client-private.h"
 
-struct QSnapdClientPrivate
+class QSnapdClientPrivate
 {
+public:
     QSnapdClientPrivate ()
     {
         client = snapd_client_new ();

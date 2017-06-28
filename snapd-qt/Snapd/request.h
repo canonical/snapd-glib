@@ -13,7 +13,7 @@
 #include <QtCore/QObject>
 #include <Snapd/Change>
 
-struct QSnapdRequestPrivate;
+class QSnapdRequestPrivate;
 
 class Q_DECL_EXPORT QSnapdRequest : public QObject
 {

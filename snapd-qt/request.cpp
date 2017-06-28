@@ -11,8 +11,9 @@
 
 #include "Snapd/request.h"
 
-struct QSnapdRequestPrivate
+class QSnapdRequestPrivate
 {
+public:
     QSnapdRequestPrivate (void *snapd_client)
     {
         client = SNAPD_CLIENT (g_object_ref (snapd_client));
