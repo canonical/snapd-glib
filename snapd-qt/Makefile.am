@@ -27,7 +27,7 @@ private_h = client-private.h stream-wrapper.h
 client-private_moc.cpp: client-private.h
 	$(AM_V_GEN) $(MOC5) $< -o $@
 
-libsnapd_qt_la_CPPFLAGS = $(SNAPD_QT_CFLAGS) $(SNAPD_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)
+libsnapd_qt_la_CPPFLAGS = --std=c++11 $(SNAPD_QT_CFLAGS) $(SNAPD_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)
 libsnapd_qt_la_LDFLAGS = -version-info 1:0:0
 libsnapd_qt_la_LIBADD = $(top_builddir)/snapd-glib/libsnapd-glib.la $(SNAPD_QT_LIBS)
 libsnapd_qt_la_SOURCES = $(source_cpp)  stream-wrapper.cpp $(source_moc) $(source_h) $(private_h)
@@ -44,7 +44,7 @@ qmlmodule_DATA = qmldir
 qmlmoduledir = $(libdir)/qt5/qml/Snapd
 qmlmodule_LTLIBRARIES = libSnapd.la
 libSnapd_la_SOURCES = qml-plugin.cpp qml-plugin.h qml-plugin_moc.cpp
-libSnapd_la_CXXFLAGS = $(WARN_CXXFLAGS) -fPIC $(QML_MODULE_CFLAGS)
+libSnapd_la_CXXFLAGS = --std=c++11 $(WARN_CXXFLAGS) -fPIC $(QML_MODULE_CFLAGS)
 libSnapd_la_LIBADD = $(QML_MODULE_LIBS) -lsnapd-qt
 libSnapd_la_LDFLAGS = -rpath $(qmlmoduledir) -module -avoid-version -no-undefined
 qml-plugin_moc.cpp: qml-plugin.h
