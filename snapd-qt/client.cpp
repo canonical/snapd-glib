@@ -784,7 +784,6 @@ void QSnapdAddAssertionsRequest::runSync ()
 
 void QSnapdAddAssertionsRequest::handleResult (void *object, void *result)
 {
-    g_auto(GStrv) assertions = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd_client_add_assertions_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
@@ -889,8 +888,6 @@ static void progress_cb (SnapdClient *client, SnapdChange *change, gpointer, gpo
 void QSnapdConnectInterfaceRequest::runSync ()
 {
     Q_D(QSnapdConnectInterfaceRequest);
-    g_autoptr(GPtrArray) plugs = NULL;
-    g_autoptr(GPtrArray) slots_ = NULL;
     g_autoptr(GError) error = NULL;
     snapd_client_connect_interface_sync (SNAPD_CLIENT (getClient ()),
                                          d->plug_snap.toStdString ().c_str (), d->plug_name.toStdString ().c_str (),
@@ -934,8 +931,6 @@ QSnapdDisconnectInterfaceRequest::QSnapdDisconnectInterfaceRequest (const QStrin
 void QSnapdDisconnectInterfaceRequest::runSync ()
 {
     Q_D(QSnapdDisconnectInterfaceRequest);
-    g_autoptr(GPtrArray) plugs = NULL;
-    g_autoptr(GPtrArray) slots_ = NULL;
     g_autoptr(GError) error = NULL;
     snapd_client_disconnect_interface_sync (SNAPD_CLIENT (getClient ()),
                                             d->plug_snap.toStdString ().c_str (), d->plug_name.toStdString ().c_str (),
@@ -1054,7 +1049,6 @@ void QSnapdFindRefreshableRequest::runSync ()
 {
     Q_D(QSnapdFindRefreshableRequest);
     g_autoptr(GError) error = NULL;
-    g_autofree gchar *suggested_currency = NULL;
     d->snaps = snapd_client_find_refreshable_sync (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
@@ -1062,7 +1056,6 @@ void QSnapdFindRefreshableRequest::runSync ()
 void QSnapdFindRefreshableRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GPtrArray) snaps = NULL;
-    g_autofree gchar *suggested_currency = NULL;
     g_autoptr(GError) error = NULL;
 
     snaps = snapd_client_find_refreshable_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
