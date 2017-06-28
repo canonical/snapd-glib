@@ -12,6 +12,7 @@
 #include "config.h"
 
 #include "snapd-login.h"
+#include "snapd-login-private.h"
 #include "snapd-error.h"
 
 /**
@@ -25,8 +26,6 @@
  * get a #SnapdAuthData that can be passed to a snapd client with
  * snapd_client_set_auth_data().
  */
-
-G_DECLARE_FINAL_TYPE (SnapdLoginRequest, snapd_login_request, SNAPD, LOGIN_REQUEST, GObject)
 
 struct _SnapdLoginRequest
 {
