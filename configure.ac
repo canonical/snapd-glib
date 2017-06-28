@@ -45,6 +45,10 @@ PKG_CHECK_MODULES(SNAPD_LOGIN_SERVICE, [
     polkit-gobject-1
 ])
 
+PKG_CHECK_EXISTS([polkit-gobject-1 >= 0.114],
+                 [AC_DEFINE(POLKIT_HAS_AUTOPTR_MACROS, 1, [if PolKit has autoptr macros])],
+                 [])
+
 dnl === Test suite ============================================================
 
 GLIB_TESTS
