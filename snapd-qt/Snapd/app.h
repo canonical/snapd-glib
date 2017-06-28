@@ -20,7 +20,6 @@ class Q_DECL_EXPORT QSnapdApp : public QSnapdWrappedObject
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QStringList aliases READ aliases)
     Q_PROPERTY(QSnapdDaemonType daemonType READ daemonType)
-    Q_ENUMS(QSnapdSnapDaemonType)
 
 public:
     enum QSnapdDaemonType
@@ -33,6 +32,8 @@ public:
         Dbus,
         Notify
     };
+    Q_ENUM(QSnapdDaemonType)
+
     explicit QSnapdApp (void* snapd_object, QObject* parent = 0);
 
     QString name () const;
