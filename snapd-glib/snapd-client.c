@@ -978,6 +978,7 @@ parse_snap (JsonObject *object, GError **error)
                          "snap-type", snap_type,
                          "status", snap_status,
                          "summary", get_string (object, "summary", NULL),
+                         "title", get_string (object, "title", NULL),
                          "tracking-channel", get_string (object, "tracking-channel", NULL),
                          "trymode", get_bool (object, "trymode", FALSE),
                          "version", get_string (object, "version", NULL),

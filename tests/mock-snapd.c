@@ -140,6 +140,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->revision);
     g_free (snap->status);
     g_free (snap->summary);
+    g_free (snap->title);
     g_free (snap->tracking_channel);
     g_free (snap->type);
     g_free (snap->version);
@@ -563,6 +564,13 @@ mock_snap_set_summary (MockSnap *snap, const gchar *summary)
 {
     g_free (snap->summary);
     snap->summary = g_strdup (summary);
+}
+
+void
+mock_snap_set_title (MockSnap *snap, const gchar *title)
+{
+    g_free (snap->title);
+    snap->title = g_strdup (title);
 }
 
 void
@@ -1206,6 +1214,10 @@ make_snap_node (MockSnap *snap)
     }
     json_builder_set_member_name (builder, "jailmode");
     json_builder_add_boolean_value (builder, snap->jailmode);
+    if (snap->title) {
+        json_builder_set_member_name (builder, "title");
+        json_builder_add_string_value (builder, snap->title);
+    }
     json_builder_set_member_name (builder, "name");
     json_builder_add_string_value (builder, snap->name);
     if (snap->prices != NULL) {

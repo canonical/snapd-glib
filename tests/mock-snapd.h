@@ -59,6 +59,7 @@ typedef struct
     GList *screenshots;
     gchar *status;
     gchar *summary;
+    gchar *title;
     gchar *tracking_channel;
     gboolean trymode;
     gchar *type;
@@ -220,6 +221,9 @@ void            mock_snap_set_status              (MockSnap      *snap,
 
 void            mock_snap_set_summary             (MockSnap      *snap,
                                                    const gchar   *summary);
+
+void            mock_snap_set_title               (MockSnap      *snap,
+                                                   const gchar   *title);
 
 void            mock_snap_set_tracking_channel    (MockSnap      *snap,
                                                    const gchar   *channel);

@@ -55,6 +55,7 @@ struct _SnapdSnap
     GPtrArray *screenshots;
     SnapdSnapStatus status;
     gchar *summary;
+    gchar *title;
     gchar *tracking_channel;
     gboolean trymode;
     SnapdSnapType snap_type;
@@ -87,6 +88,7 @@ enum
     PROP_SNAP_TYPE,
     PROP_VERSION,
     PROP_TRACKING_CHANNEL,
+    PROP_TITLE,
     PROP_LAST
 };
 
@@ -286,6 +288,21 @@ snapd_snap_get_jailmode (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
     return snap->jailmode;
+}
+
+/**
+ * snapd_snap_get_title:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the title for this snap.
+ *
+ * Returns: a title.
+ */
+const gchar *
+snapd_snap_get_title (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->title;
 }
 
 /**
@@ -512,6 +529,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_JAILMODE:
         snap->jailmode = g_value_get_boolean (value);
         break;
+    case PROP_TITLE:
+        g_free (snap->title);
+        snap->title = g_strdup (g_value_get_string (value));
+        break;
     case PROP_NAME:
         g_free (snap->name);
         snap->name = g_strdup (g_value_get_string (value));
@@ -605,6 +626,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_JAILMODE:
         g_value_set_boolean (value, snap->jailmode);
         break;
+    case PROP_TITLE:
+        g_value_set_string (value, snap->title);
+        break;
     case PROP_NAME:
         g_value_set_string (value, snap->name);
         break;
@@ -658,6 +682,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->icon, g_free);
     g_clear_pointer (&snap->id, g_free);
     g_clear_pointer (&snap->install_date, g_date_time_unref);
+    g_clear_pointer (&snap->title, g_free);
     g_clear_pointer (&snap->name, g_free);
     if (snap->prices != NULL)
         g_clear_pointer (&snap->prices, g_ptr_array_unref);
@@ -769,6 +794,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                            "TRUE if the snap is currently installed in jailmode",
                                                            FALSE,
                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_TITLE,
+                                     g_param_spec_string ("title",
+                                                          "title",
+                                                          "The snap title",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_NAME,
                                      g_param_spec_string ("name",

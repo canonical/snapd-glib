@@ -108,7 +108,7 @@ GDateTime        *snapd_snap_get_install_date     (SnapdSnap *snap);
 
 gint64            snapd_snap_get_installed_size   (SnapdSnap *snap);
 
-gboolean          snapd_snap_get_jailmode          (SnapdSnap *snap);
+gboolean          snapd_snap_get_jailmode         (SnapdSnap *snap);
 
 const gchar      *snapd_snap_get_name             (SnapdSnap *snap);
 
@@ -125,6 +125,8 @@ SnapdSnapType     snapd_snap_get_snap_type        (SnapdSnap *snap);
 SnapdSnapStatus   snapd_snap_get_status           (SnapdSnap *snap);
 
 const gchar      *snapd_snap_get_summary          (SnapdSnap *snap);
+
+const gchar      *snapd_snap_get_title            (SnapdSnap *snap);
 
 const gchar      *snapd_snap_get_tracking_channel (SnapdSnap *snap);
 
