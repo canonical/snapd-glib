@@ -212,6 +212,12 @@ snapd_error_get_type
 </SECTION>
 
 <SECTION>
+<FILE>snapd-version</FILE>
+<TITLE>Version Information</TITLE>
+SNAPD_GLIB_VERSION_1_13
+</SECTION>
+
+<SECTION>
 <FILE>snapd-icon</FILE>
 <TITLE>SnapdIcon</TITLE>
 snapd_icon_get_mime_type

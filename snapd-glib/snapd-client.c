@@ -53,6 +53,21 @@
  * Class structure for #SnapdClient.
  */
 
+/**
+ * SECTION:snapd-version
+ * @short_description: Library version information
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * Programs can check if snapd-glib feature is enabled by checking for the
+ * existance of a define called SNAPD_GLIB_VERSION_<version>, i.e.
+ *
+ * |[<!-- language="C" -->
+ * #ifdef SNAPD_GLIB_VERSION_1_14
+ * confinement = snapd_system_information_get_confinement (info);
+ * #endif
+ * ]|
+ */
+
 typedef struct
 {
     GMainContext *context;

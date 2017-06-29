@@ -21,7 +21,8 @@ source_h = \
 	snapd-snap.h \
 	snapd-system-information.h \
 	snapd-task.h \
-	snapd-user-information.h
+	snapd-user-information.h \
+	snapd-version.h
 
 source_private_h = \
 	snapd-login-private.h

@@ -29,6 +29,7 @@
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-task.h>
 #include <snapd-glib/snapd-user-information.h>
+#include <snapd-glib/snapd-version.h>
 
 #undef __SNAPD_GLIB_INSIDE__
 
