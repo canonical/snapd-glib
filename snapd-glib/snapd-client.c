@@ -73,7 +73,6 @@ G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 
 /* Number of milliseconds to poll for status in asynchronous operations */
 #define ASYNC_POLL_TIME 100
-#define ASYNC_POLL_TIMEOUT 1000
 
 // FIXME: Make multiple async requests work at the same time
 
@@ -132,7 +131,6 @@ struct _SnapdRequest
 
     gchar *change_id;
     guint poll_timer;
-    guint timeout_timer;
     SnapdChange *change;
 
     SnapdInstallFlags install_flags;
@@ -233,8 +231,6 @@ snapd_request_finalize (GObject *object)
     g_free (request->change_id);
     if (request->poll_timer != 0)
         g_source_remove (request->poll_timer);
-    if (request->timeout_timer != 0)
-        g_source_remove (request->timeout_timer);
     g_clear_object (&request->change);
     g_clear_object (&request->snap_stream);
     g_clear_pointer (&request->snap_contents, g_byte_array_unref);
@@ -1485,22 +1481,6 @@ async_poll_cb (gpointer data)
 }
 
 static gboolean
-async_timeout_cb (gpointer data)
-{
-    SnapdRequest *request = data;
-    GError *error;
-
-    request->timeout_timer = 0;
-
-    error = g_error_new (SNAPD_ERROR,
-                         SNAPD_ERROR_READ_FAILED,
-                         "Timeout waiting for snapd");
-    snapd_request_complete (request, error);
-
-    return G_SOURCE_REMOVE;
-}
-
-static gboolean
 times_equal (GDateTime *time1, GDateTime *time2)
 {
     if (time1 == NULL || time2 == NULL)
@@ -1570,11 +1550,6 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
         snapd_request_complete (request, error);
         return;
     }
-
-    /* Cancel any pending timeout */
-    if (request->timeout_timer != 0)
-        g_source_remove (request->timeout_timer);
-    request->timeout_timer = 0;
 
     /* First run we expect the change ID, following runs are updates */
     if (request->change_id == NULL) {
@@ -1697,7 +1672,6 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
     if (request->poll_timer != 0)
         g_source_remove (request->poll_timer);
     request->poll_timer = g_timeout_add (ASYNC_POLL_TIME, async_poll_cb, request);
-    request->timeout_timer = g_timeout_add (ASYNC_POLL_TIMEOUT, async_timeout_cb, request);
 }
 
 static void
