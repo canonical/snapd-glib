@@ -31,6 +31,7 @@ test_get_system_information (void)
     info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert (info != NULL);
+    g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_UNKNOWN);
     g_assert_cmpstr (snapd_system_information_get_kernel_version (info), ==, "KERNEL-VERSION");
     g_assert_cmpstr (snapd_system_information_get_os_id (info), ==, "OS-ID");
     g_assert_cmpstr (snapd_system_information_get_os_version (info), ==, "OS-VERSION");
@@ -62,6 +63,69 @@ test_get_system_information_store (void)
     g_assert_no_error (error);
     g_assert (info != NULL);
     g_assert_cmpstr (snapd_system_information_get_store (info), ==, "store");
+}
+
+static void
+test_get_system_information_confinement_strict (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_confinement (snapd, "strict");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (info != NULL);
+    g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_STRICT);
+}
+
+static void
+test_get_system_information_confinement_none (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_confinement (snapd, "none");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (info != NULL);
+    g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_NONE);
+}
+
+static void
+test_get_system_information_confinement_unknown (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_confinement (snapd, "NOT_DEFINED");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (info != NULL);
+    g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_UNKNOWN);
 }
 
 static void
@@ -2967,6 +3031,9 @@ main (int argc, char **argv)
 
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);  
+    g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);
+    g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);
+    g_test_add_func ("/get-system-information/confinement_unknown", test_get_system_information_confinement_unknown);
     g_test_add_func ("/login/basic", test_login);
     g_test_add_func ("/login/invalid-email", test_login_invalid_email);
     g_test_add_func ("/login/invalid-password", test_login_invalid_password);

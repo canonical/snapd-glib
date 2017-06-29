@@ -28,7 +28,24 @@ struct _SnapdSystemInformationClass
     GObjectClass parent_class;
 };
 
+/**
+ * SnapdSystemConfinement:
+ * @SNAPD_SYSTEM_CONFINEMENT_UNKNOWN: the confinement of the system is unknown.
+ * @SNAPD_SYSTEM_CONFINEMENT_STRICT: the system supports strict confinement.
+ * @SNAPD_SYSTEM_CONFINEMENT_NONE: the system does not support confinement.
+ *
+ * Confinment used by a snap.
+ */
+typedef enum
+{
+    SNAPD_SYSTEM_CONFINEMENT_UNKNOWN,
+    SNAPD_SYSTEM_CONFINEMENT_STRICT,
+    SNAPD_SYSTEM_CONFINEMENT_NONE
+} SnapdSystemConfinement;
+
 const gchar *snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_information);
+
+SnapdSystemConfinement snapd_system_information_get_confinement (SnapdSystemInformation *system_information);
 
 const gchar *snapd_system_information_get_kernel_version     (SnapdSystemInformation *system_information);
 

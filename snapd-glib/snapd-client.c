@@ -740,6 +740,8 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
     g_autoptr(JsonObject) response = NULL;
     JsonObject *result;
     g_autoptr(SnapdSystemInformation) system_information = NULL;
+    const gchar *confinement_string;
+    SnapdSystemConfinement confinement = SNAPD_SYSTEM_CONFINEMENT_UNKNOWN;
     JsonObject *os_release, *locations;
     GError *error = NULL;
 
@@ -757,10 +759,16 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
         return;
     }
 
+    confinement_string = get_string (result, "confinement", "");
+    if (strcmp (confinement_string, "strict") == 0)
+        confinement = SNAPD_SYSTEM_CONFINEMENT_STRICT;
+    else if (strcmp (confinement_string, "none") == 0)
+        confinement = SNAPD_SYSTEM_CONFINEMENT_NONE;
     os_release = get_object (result, "os-release");
     locations  = get_object (result, "locations");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
                                        "binaries-directory", locations != NULL ? get_string (locations, "snap-bin-dir", NULL) : NULL,
+                                       "confinement", confinement,
                                        "kernel-version", get_string (result, "kernel-version", NULL),
                                        "managed", get_bool (result, "managed", FALSE),
                                        "mount-directory", locations != NULL ? get_string (locations, "snap-mount-dir", NULL) : NULL,

@@ -55,6 +55,7 @@ struct _MockSnapd
     gsize n_read;
     GList *accounts;
     GList *snaps;
+    gchar *confinement;
     gchar *store;
     gboolean managed;
     gboolean on_classic;
@@ -161,6 +162,13 @@ mock_snapd_get_client_socket (MockSnapd *snapd)
 {
     g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
     return snapd->client_socket;
+}
+
+void
+mock_snapd_set_confinement (MockSnapd *snapd, const gchar *confinement)
+{
+    g_free (snapd->confinement);
+    snapd->confinement = g_strdup (confinement);
 }
 
 void
@@ -904,6 +912,10 @@ handle_system_info (MockSnapd *snapd, const gchar *method)
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
+    if (snapd->confinement) {
+        json_builder_set_member_name (builder, "confinement");
+        json_builder_add_string_value (builder, snapd->confinement);
+    }
     json_builder_set_member_name (builder, "os-release");
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "id");
@@ -2461,6 +2473,7 @@ mock_snapd_finalize (GObject *object)
     g_list_free_full (snapd->accounts, (GDestroyNotify) mock_account_free);
     g_list_free_full (snapd->snaps, (GDestroyNotify) mock_snap_free);
     snapd->snaps = NULL;
+    g_free (snapd->confinement);
     g_free (snapd->store);
     g_list_free_full (snapd->store_sections, g_free);
     snapd->store_sections = NULL;

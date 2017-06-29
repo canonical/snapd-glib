@@ -351,7 +351,10 @@ snapd_snap_type_get_type
 <SECTION>
 <FILE>snapd-system-information</FILE>
 <TITLE>SnapdSystemInformation</TITLE>
+SnapdSystemConfinement
+SnapdSystemInformation
 snapd_system_information_get_binaries_directory
+snapd_system_information_get_confinement
 snapd_system_information_get_kernel_version
 snapd_system_information_get_managed
 snapd_system_information_get_mount_directory
@@ -361,11 +364,12 @@ snapd_system_information_get_os_version
 snapd_system_information_get_series
 snapd_system_information_get_store
 snapd_system_information_get_version
-SnapdSystemInformation
 
 <SUBSECTION Private>
 SnapdSystemInformationClass
 SNAPD_TYPE_SYSTEM_INFORMATION
+SNAPD_TYPE_SYSTEM_CONFINEMENT
+snapd_system_confinement_get_type
 </SECTION>
 
 <SECTION>

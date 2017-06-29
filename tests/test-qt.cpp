@@ -31,6 +31,7 @@ test_get_system_information ()
     infoRequest->runSync ();
     g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert (systemInformation->confinement () == QSnapdSystemInformation::ConfinementUnknown);
     g_assert (systemInformation->kernelVersion () == "KERNEL-VERSION");
     g_assert (systemInformation->osId () == "OS-ID");
     g_assert (systemInformation->osVersion () == "OS-VERSION");
@@ -59,6 +60,60 @@ test_get_system_information_store ()
     g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
     g_assert (systemInformation->store () == "store");
+}
+
+static void
+test_get_system_information_confinement_strict (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_confinement (snapd, "strict");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert_cmpint (systemInformation->confinement (), ==, QSnapdSystemInformation::ConfinementStrict);
+}
+
+static void
+test_get_system_information_confinement_none (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_confinement (snapd, "none");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert_cmpint (systemInformation->confinement (), ==, QSnapdSystemInformation::ConfinementNone);
+}
+
+static void
+test_get_system_information_confinement_unknown (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_confinement (snapd, "NOT_DEFINED");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert_cmpint (systemInformation->confinement (), ==, QSnapdSystemInformation::ConfinementUnknown);
 }
 
 static void
@@ -2327,6 +2382,9 @@ main (int argc, char **argv)
 
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);
+    g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);
+    g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);
+    g_test_add_func ("/get-system-information/confinement_unknown", test_get_system_information_confinement_unknown);
     g_test_add_func ("/login/basic", test_login);
     g_test_add_func ("/login/invalid-email", test_login_invalid_email);
     g_test_add_func ("/login/invalid-password", test_login_invalid_password);

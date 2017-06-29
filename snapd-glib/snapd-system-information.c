@@ -10,6 +10,7 @@
 #include "config.h"
 
 #include "snapd-system-information.h"
+#include "snapd-enum-types.h"
 
 /**
  * SECTION:snapd-system-information
@@ -32,6 +33,7 @@ struct _SnapdSystemInformation
     GObject parent_instance;
 
     gchar *binaries_directory;
+    SnapdSystemConfinement confinement;
     gchar *kernel_version;
     gboolean on_classic;
     gboolean managed;
@@ -55,6 +57,7 @@ enum
     PROP_KERNEL_VERSION,
     PROP_BINARIES_DIRECTORY,
     PROP_MOUNT_DIRECTORY,
+    PROP_CONFINEMENT,
     PROP_LAST
 };
 
@@ -73,6 +76,21 @@ snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_
 {
     g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
     return system_information->binaries_directory;
+}
+
+/**
+ * snapd_system_information_get_confinement:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the level of confinement the system supports, e.g. %SNAPD_SYSTEM_CONFINEMENT_STRICT.
+ *
+ * Returns: a #SnapdSystemConfinement.
+ */
+SnapdSystemConfinement
+snapd_system_information_get_confinement (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), SNAPD_SYSTEM_CONFINEMENT_UNKNOWN);
+    return system_information->confinement;
 }
 
 /**
@@ -220,6 +238,9 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
         g_free (system_information->binaries_directory);
         system_information->binaries_directory = g_strdup (g_value_get_string (value));
         break;
+    case PROP_CONFINEMENT:
+        system_information->confinement = g_value_get_enum (value);
+        break;
     case PROP_KERNEL_VERSION:
         g_free (system_information->kernel_version);
         system_information->kernel_version = g_strdup (g_value_get_string (value));
@@ -268,6 +289,9 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
     switch (prop_id) {
     case PROP_BINARIES_DIRECTORY:
         g_value_set_string (value, system_information->binaries_directory);
+        break;
+    case PROP_CONFINEMENT:
+        g_value_set_enum (value, system_information->confinement);
         break;
     case PROP_KERNEL_VERSION:
         g_value_set_string (value, system_information->kernel_version);
@@ -333,6 +357,13 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
                                                           "Directory with snap binaries",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_CONFINEMENT,
+                                     g_param_spec_enum ("confinement",
+                                                        "confinement",
+                                                        "Confinement level supported by system",
+                                                        SNAPD_TYPE_SYSTEM_CONFINEMENT, SNAPD_SYSTEM_CONFINEMENT_UNKNOWN,
+                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_KERNEL_VERSION,
                                      g_param_spec_string ("kernel-version",
