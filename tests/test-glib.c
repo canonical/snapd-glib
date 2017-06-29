@@ -263,6 +263,50 @@ static void
 test_list_one (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdSnap) snap = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snap = snapd_client_list_one_sync (client, "snap", NULL, &error);
+    g_assert_no_error (error);
+    g_assert (snap != NULL);
+    g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
+    g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
+    g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
+    g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
+    g_assert_cmpstr (snapd_snap_get_description (snap), ==, NULL);
+    g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
+    g_assert (snapd_snap_get_devmode (snap) == FALSE);
+    g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
+    g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
+    g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
+    g_assert (snapd_snap_get_install_date (snap) == NULL);
+    g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
+    g_assert (snapd_snap_get_jailmode (snap) == FALSE);
+    g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
+    g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
+    g_assert (snapd_snap_get_private (snap) == FALSE);
+    g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
+    g_assert_cmpint (snapd_snap_get_screenshots (snap)->len, ==, 0);
+    g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
+    g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
+    g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
+    g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
+    g_assert (snapd_snap_get_trymode (snap) == FALSE);
+    g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+}
+
+static void
+test_list_one_optional_fields (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
     MockSnap *s;
     MockApp *a;
     g_autoptr(SnapdClient) client = NULL;
@@ -277,12 +321,16 @@ test_list_one (void)
     a = mock_snap_add_app (s, "app");
     mock_app_add_alias (a, "app2");
     mock_app_add_alias (a, "app3");
-    mock_snap_set_confinement (s, "strict");
+    mock_snap_set_confinement (s, "classic");
     s->devmode = TRUE;
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
     s->installed_size = 1024;
     s->jailmode = TRUE;
     s->trymode = TRUE;
+    mock_snap_set_contact (s, "CONTACT");
+    mock_snap_set_channel (s, "CHANNEL");
+    mock_snap_set_description (s, "DESCRIPTION");
+    mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
@@ -295,13 +343,13 @@ test_list_one (void)
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 1);
     app = snapd_snap_get_apps (snap)->pdata[0];
     g_assert_cmpstr (snapd_app_get_name (app), ==, "app");
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
     aliases = snapd_app_get_aliases (app);
     g_assert_cmpint (g_strv_length (aliases), ==, 2);
-    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
     g_assert_cmpstr (aliases[0], ==, "app2");
     g_assert_cmpstr (aliases[1], ==, "app3");
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
-    g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
+    g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_CLASSIC);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, "CONTACT");
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, "DESCRIPTION");
     g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
@@ -980,6 +1028,10 @@ test_find_query (void)
     mock_snapd_add_store_snap (snapd, "banana");
     mock_snapd_add_store_snap (snapd, "carrot1");
     s = mock_snapd_add_store_snap (snapd, "carrot2");
+    mock_snap_set_channel (s, "CHANNEL");
+    mock_snap_set_contact (s, "CONTACT");
+    mock_snap_set_description (s, "DESCRIPTION");
+    mock_snap_set_summary (s, "SUMMARY");
     s->download_size = 1024;
     mock_snap_add_price (s, 1.20, "NZD");
     mock_snap_add_price (s, 0.87, "USD");
@@ -996,7 +1048,12 @@ test_find_query (void)
     g_assert (snaps != NULL);
     g_assert_cmpint (snaps->len, ==, 2);
     g_assert_cmpstr (suggested_currency, ==, "NZD");
-    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "carrot1");
+    snap = snaps->pdata[0];
+    g_assert_cmpstr (snapd_snap_get_name (snap), ==, "carrot1");
+    g_assert (snapd_snap_get_channel (snap) == NULL);
+    g_assert (snapd_snap_get_contact (snap) == NULL);
+    g_assert (snapd_snap_get_description (snap) == NULL);
+    g_assert (snapd_snap_get_summary (snap) == NULL);
     snap = snaps->pdata[1];
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
@@ -3041,6 +3098,7 @@ main (int argc, char **argv)
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
     g_test_add_func ("/list/basic", test_list);
     g_test_add_func ("/list-one/basic", test_list_one);
+    g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);

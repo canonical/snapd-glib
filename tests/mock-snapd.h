@@ -185,6 +185,9 @@ void            mock_snap_set_channel             (MockSnap      *snap,
 void            mock_snap_set_confinement         (MockSnap      *snap,
                                                    const gchar   *confinement);
 
+void            mock_snap_set_contact             (MockSnap      *snap,
+                                                   const gchar   *contact);
+
 void            mock_snap_set_description         (MockSnap      *snap,
                                                    const gchar   *description);
 

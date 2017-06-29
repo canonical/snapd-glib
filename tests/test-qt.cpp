@@ -229,16 +229,61 @@ static void
 test_list_one ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
+    listOneRequest->runSync ();
+    g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    g_assert_cmpint (snap->appCount (), ==, 0);
+    g_assert (snap->channel () == NULL);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
+    g_assert (snap->contact () == NULL);
+    g_assert (snap->description () == NULL);
+    g_assert (snap->developer () == "DEVELOPER");
+    g_assert (snap->devmode () == FALSE);
+    g_assert_cmpint (snap->downloadSize (), ==, 0);
+    g_assert (snap->icon () == "ICON");
+    g_assert (snap->id () == "ID");
+    g_assert (snap->installDate ().isNull ());
+    g_assert_cmpint (snap->installedSize (), ==, 0);
+    g_assert (snap->jailmode () == FALSE);
+    g_assert (snap->name () == "snap");
+    g_assert_cmpint (snap->priceCount (), ==, 0);
+    g_assert (snap->isPrivate () == FALSE);
+    g_assert (snap->revision () == "REVISION");
+    g_assert_cmpint (snap->screenshotCount (), ==, 0);
+    g_assert_cmpint (snap->snapType (), ==, QSnapdSnap::App);
+    g_assert_cmpint (snap->status (), ==, QSnapdSnap::Active);
+    g_assert (snap->summary () == NULL);
+    g_assert (snap->trackingChannel () == NULL);
+    g_assert (snap->trymode () == FALSE);
+    g_assert (snap->version () == "VERSION");
+}
+
+static void
+test_list_one_optional_fields ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     MockApp *a = mock_snap_add_app (s, "app");
     mock_app_add_alias (a, "app2");
     mock_app_add_alias (a, "app3");
-    mock_snap_set_confinement (s, "strict");
+    mock_snap_set_confinement (s, "classic");
     s->devmode = TRUE;
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
     s->installed_size = 1024;
     s->jailmode = TRUE;
     s->trymode = TRUE;
+    mock_snap_set_contact (s, "CONTACT");
+    mock_snap_set_channel (s, "CHANNEL");
+    mock_snap_set_description (s, "DESCRIPTION");
+    mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
 
     QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
@@ -253,12 +298,12 @@ test_list_one ()
     g_assert_cmpint (snap->appCount (), ==, 1);
     QScopedPointer<QSnapdApp> app (snap->app (0));
     g_assert (app->name () == "app");
+    g_assert_cmpint (app->daemonType (), ==, QSnapdApp::DaemonNone);
     g_assert_cmpint (app->aliases ().count (), ==, 2);
     g_assert (app->aliases ()[0] == "app2");
     g_assert (app->aliases ()[1] == "app3");
-    g_assert_cmpint (app->daemonType (), ==, QSnapdApp::DaemonNone);
     g_assert (snap->channel () == "CHANNEL");
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Classic);
     g_assert (snap->contact () == "CONTACT");
     g_assert (snap->description () == "DESCRIPTION");
     g_assert (snap->developer () == "DEVELOPER");
@@ -781,6 +826,10 @@ test_find_query ()
     mock_snapd_add_store_snap (snapd, "banana");
     mock_snapd_add_store_snap (snapd, "carrot1");
     MockSnap *s = mock_snapd_add_store_snap (snapd, "carrot2");
+    mock_snap_set_channel (s, "CHANNEL");
+    mock_snap_set_contact (s, "CONTACT");
+    mock_snap_set_description (s, "DESCRIPTION");
+    mock_snap_set_summary (s, "SUMMARY");
     s->download_size = 1024;
     mock_snap_add_price (s, 1.20, "NZD");
     mock_snap_add_price (s, 0.87, "USD");
@@ -2392,6 +2441,7 @@ main (int argc, char **argv)
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
     g_test_add_func ("/list/basic", test_list);
     g_test_add_func ("/list-one/basic", test_list_one);
+    g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);

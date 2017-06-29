@@ -235,17 +235,13 @@ mock_snap_new (const gchar *name)
     MockSnap *snap;
 
     snap = g_slice_new0 (MockSnap);
-    snap->channel = g_strdup ("CHANNEL");
     snap->confinement = g_strdup ("strict");
-    snap->contact = g_strdup ("CONTACT");
-    snap->description = g_strdup ("DESCRIPTION");
     snap->developer = g_strdup ("DEVELOPER");
     snap->icon = g_strdup ("ICON");
     snap->id = g_strdup ("ID");
     snap->name = g_strdup (name);
     snap->revision = g_strdup ("REVISION");
     snap->status = g_strdup ("active");
-    snap->summary = g_strdup ("SUMMARY");
     snap->type = g_strdup ("app");
     snap->version = g_strdup ("VERSION");
 
@@ -327,8 +323,6 @@ mock_snapd_add_snap (MockSnapd *snapd, const gchar *name)
     MockSnap *snap;
 
     snap = mock_snap_new (name);
-    snap->installed_size = 65535;
-    snap->install_date = g_strdup ("2017-01-01T00:00:00+12:00");
     snapd->snaps = g_list_append (snapd->snaps, snap);
 
     return snap;
@@ -1211,7 +1205,7 @@ make_snap_node (MockSnap *snap)
         json_builder_add_int_value (builder, snap->installed_size);
     }
     json_builder_set_member_name (builder, "jailmode");
-    json_builder_add_boolean_value (builder, snap->jailmode);  
+    json_builder_add_boolean_value (builder, snap->jailmode);
     json_builder_set_member_name (builder, "name");
     json_builder_add_string_value (builder, snap->name);
     if (snap->prices != NULL) {
