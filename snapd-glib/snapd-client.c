@@ -899,6 +899,7 @@ parse_snap (JsonObject *object, GError **error)
                             "name", get_string (a, "name", NULL),
                             "aliases", (gchar **) aliases_array->pdata,
                             "daemon-type", daemon_type,
+                            "desktop-file", get_string (a, "desktop-file", NULL),
                             NULL);
         g_ptr_array_add (apps_array, g_steal_pointer (&app));
     }

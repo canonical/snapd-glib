@@ -78,6 +78,7 @@ typedef struct
     gchar *name;
     GList *aliases;
     gchar *daemon;
+    gchar *desktop_file;
 } MockApp;
 
 typedef struct
@@ -179,6 +180,9 @@ void            mock_alias_set_status             (MockAlias     *alias,
 
 void            mock_app_set_daemon               (MockApp       *app,
                                                    const gchar   *daemon);
+
+void            mock_app_set_desktop_file         (MockApp       *app,
+                                                   const gchar   *desktop_file);
 
 void            mock_snap_set_channel             (MockSnap      *snap,
                                                    const gchar   *channel);

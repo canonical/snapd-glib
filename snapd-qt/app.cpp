@@ -48,3 +48,8 @@ QSnapdApp::QSnapdDaemonType QSnapdApp::daemonType () const
         return Notify;
     }
 }
+
+QString QSnapdApp::desktopFile () const
+{
+    return snapd_app_get_desktop_file (SNAPD_APP (wrapped_object));
+}

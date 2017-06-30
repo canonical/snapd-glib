@@ -20,6 +20,7 @@ class Q_DECL_EXPORT QSnapdApp : public QSnapdWrappedObject
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QStringList aliases READ aliases)
     Q_PROPERTY(QSnapdDaemonType daemonType READ daemonType)
+    Q_PROPERTY(QString desktopFile READ desktopFile)
 
 public:
     enum QSnapdDaemonType
@@ -39,6 +40,7 @@ public:
     QString name () const;
     QStringList aliases () const;
     QSnapdDaemonType daemonType () const;
+    QString desktopFile () const;
 };
 
 #endif

@@ -274,6 +274,7 @@ test_list_one_optional_fields ()
     MockApp *a = mock_snap_add_app (s, "app");
     mock_app_add_alias (a, "app2");
     mock_app_add_alias (a, "app3");
+    mock_app_set_desktop_file (a, "/var/lib/snapd/desktop/applications/app.desktop");
     mock_snap_set_confinement (s, "classic");
     s->devmode = TRUE;
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
@@ -302,6 +303,7 @@ test_list_one_optional_fields ()
     g_assert_cmpint (app->aliases ().count (), ==, 2);
     g_assert (app->aliases ()[0] == "app2");
     g_assert (app->aliases ()[1] == "app3");
+    g_assert (app->desktopFile () == "/var/lib/snapd/desktop/applications/app.desktop");
     g_assert (snap->channel () == "CHANNEL");
     g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Classic);
     g_assert (snap->contact () == "CONTACT");

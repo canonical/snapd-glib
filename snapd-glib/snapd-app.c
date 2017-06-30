@@ -37,6 +37,7 @@ struct _SnapdApp
     SnapdDaemonType daemon_type;
     gchar *name;
     gchar **aliases;
+    gchar *desktop_file;
 };
 
 enum
@@ -44,6 +45,7 @@ enum
     PROP_NAME = 1,
     PROP_ALIASES,
     PROP_DAEMON_TYPE,
+    PROP_DESKTOP_FILE,
     PROP_LAST
 };
 
@@ -94,6 +96,21 @@ snapd_app_get_daemon_type (SnapdApp *app)
     return app->daemon_type;
 }
 
+/**
+ * snapd_app_get_desktop_file:
+ * @app: a #SnapdApp.
+ *
+ * Get the path to the desktop file for this app.
+ *
+ * Returns: (allow-none): a path or %NULL.
+ */
+const gchar *
+snapd_app_get_desktop_file (SnapdApp *app)
+{
+    g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
+    return app->desktop_file;
+}
+
 static void
 snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
@@ -110,6 +127,10 @@ snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GPa
         break;
     case PROP_DAEMON_TYPE:
         app->daemon_type = g_value_get_enum (value);
+        break;
+    case PROP_DESKTOP_FILE:
+        g_free (app->desktop_file);
+        app->desktop_file = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -132,6 +153,9 @@ snapd_app_get_property (GObject *object, guint prop_id, GValue *value, GParamSpe
     case PROP_DAEMON_TYPE:
         g_value_set_enum (value, app->daemon_type);
         break;
+    case PROP_DESKTOP_FILE:
+        g_value_set_string (value, app->desktop_file);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -145,6 +169,7 @@ snapd_app_finalize (GObject *object)
 
     g_clear_pointer (&app->name, g_free);
     g_clear_pointer (&app->aliases, g_strfreev);
+    g_clear_pointer (&app->desktop_file, g_free);
 }
 
 static void
@@ -177,6 +202,13 @@ snapd_app_class_init (SnapdAppClass *klass)
                                                         "Daemon type",
                                                         SNAPD_TYPE_DAEMON_TYPE, SNAPD_DAEMON_TYPE_UNKNOWN,
                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_DESKTOP_FILE,
+                                     g_param_spec_string ("desktop-file",
+                                                          "desktop-file",
+                                                          "App desktop file path",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void

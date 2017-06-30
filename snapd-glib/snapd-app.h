@@ -29,7 +29,6 @@ struct _SnapdAppClass
     GObjectClass parent_class;
 };
 
-
 /**
  * SnapdDaemonType:
  * @SNAPD_DAEMON_TYPE_NONE: Not a daemon
@@ -53,11 +52,13 @@ typedef enum
     SNAPD_DAEMON_TYPE_NOTIFY
 } SnapdDaemonType;
 
-const gchar    *snapd_app_get_name        (SnapdApp *app);
+const gchar    *snapd_app_get_name         (SnapdApp *app);
 
-gchar         **snapd_app_get_aliases     (SnapdApp *app);
+gchar         **snapd_app_get_aliases      (SnapdApp *app);
 
-SnapdDaemonType snapd_app_get_daemon_type (SnapdApp *app);
+SnapdDaemonType snapd_app_get_daemon_type  (SnapdApp *app);
+
+const gchar    *snapd_app_get_desktop_file (SnapdApp *app);
 
 G_END_DECLS
 

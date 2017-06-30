@@ -23,6 +23,7 @@ SnapdApp
 snapd_app_get_name
 snapd_app_get_aliases
 snapd_app_get_daemon_type
+snapd_app_get_desktop_file
 
 <SUBSECTION Private>
 SnapdAppClass

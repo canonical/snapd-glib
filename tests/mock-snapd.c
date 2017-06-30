@@ -77,7 +77,7 @@ static void
 mock_alias_free (MockAlias *alias)
 {
     g_free (alias->name);
-    g_free (alias->status);  
+    g_free (alias->status);
     g_slice_free (MockAlias, alias);
 }
 
@@ -87,6 +87,7 @@ mock_app_free (MockApp *app)
     g_free (app->name);
     g_list_free_full (app->aliases, (GDestroyNotify) mock_alias_free);
     g_free (app->daemon);
+    g_free (app->desktop_file);
     g_slice_free (MockApp, app);
 }
 
@@ -188,7 +189,7 @@ mock_snapd_set_managed (MockSnapd *snapd, gboolean managed)
 void
 mock_snapd_set_on_classic (MockSnapd *snapd, gboolean on_classic)
 {
-    snapd->on_classic = on_classic;  
+    snapd->on_classic = on_classic;
 }
 
 void
@@ -445,7 +446,14 @@ void
 mock_app_set_daemon (MockApp *app, const gchar *daemon)
 {
     g_free (app->daemon);
-    app->daemon = g_strdup (daemon);  
+    app->daemon = g_strdup (daemon);
+}
+
+void
+mock_app_set_desktop_file (MockApp *app, const gchar *desktop_file)
+{
+    g_free (app->desktop_file);
+    app->desktop_file = g_strdup (desktop_file);
 }
 
 void
@@ -669,7 +677,7 @@ mock_snapd_get_assertions (MockSnapd *snapd)
 {
     return snapd->assertions;
 }
-  
+
 static MockChange *
 add_change (MockSnapd *snapd, JsonNode *data)
 {
@@ -731,7 +739,7 @@ mock_task_free (MockTask *task)
     g_free (task->kind);
     g_free (task->summary);
     g_free (task->status);
-    g_free (task->progress_label);  
+    g_free (task->progress_label);
     g_free (task->spawn_time);
     g_free (task->ready_time);
     g_slice_free (MockTask, task);
@@ -1078,7 +1086,7 @@ get_json (SoupMessageHeaders *headers, SoupMessageBody *body)
 
     parser = json_parser_new ();
     if (!json_parser_load_from_data (parser, body->data, body->length, &error)) {
-        g_warning ("Failed to parse request: %s", error->message);      
+        g_warning ("Failed to parse request: %s", error->message);
         return NULL;
     }
 
@@ -1173,6 +1181,10 @@ make_snap_node (MockSnap *snap)
             if (app->daemon != NULL) {
                 json_builder_set_member_name (builder, "daemon");
                 json_builder_add_string_value (builder, app->daemon);
+            }
+            if (app->desktop_file != NULL) {
+                json_builder_set_member_name (builder, "desktop-file");
+                json_builder_add_string_value (builder, app->desktop_file);
             }
             json_builder_end_object (builder);
         }
@@ -1352,7 +1364,7 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
                 json_builder_add_string_value (builder, snap->name);
             }
             json_builder_end_array (builder);
-            json_builder_end_object (builder);          
+            json_builder_end_object (builder);
 
             change = add_change (snapd, json_builder_get_root (builder));
             send_async_response (snapd, 202, "Accepted", change->id);
@@ -1933,7 +1945,7 @@ handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id)
     json_builder_begin_array (builder);
     for (link = change->tasks; link; link = link->next) {
         MockTask *task = link->data;
-        json_builder_begin_object (builder);  
+        json_builder_begin_object (builder);
         json_builder_set_member_name (builder, "id");
         json_builder_add_string_value (builder, task->id);
         json_builder_set_member_name (builder, "kind");
@@ -1999,7 +2011,7 @@ in_section (MockSnap *snap, const gchar *section)
     if (section == NULL)
         return TRUE;
 
-    for (link = snap->store_sections; link; link = link->next) 
+    for (link = snap->store_sections; link; link = link->next)
         if (strcmp (link->data, section) == 0)
             return TRUE;
 
@@ -2013,7 +2025,7 @@ handle_find (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers,
     g_autofree gchar *query_param = NULL;
     g_autofree gchar *name_param = NULL;
     g_autofree gchar *select_param = NULL;
-    g_autofree gchar *section_param = NULL;  
+    g_autofree gchar *section_param = NULL;
     g_autoptr(JsonBuilder) builder = NULL;
     GList *snaps, *link;
 
@@ -2269,7 +2281,7 @@ handle_aliases (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
                     json_builder_end_object (builder);
                 }
             }
-          
+
             if (alias_count > 0)
                 json_builder_end_object (builder);
         }
@@ -2353,7 +2365,7 @@ handle_snapctl (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
         return;
     }
 
-    o = json_node_get_object (request);  
+    o = json_node_get_object (request);
     context_id = json_object_get_string_member (o, "context-id");
     args = json_object_get_array_member (o, "args");
 
@@ -2361,7 +2373,7 @@ handle_snapctl (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
     g_string_append_printf (stdout_text, ":%s", context_id);
     for (i = 0; i < json_array_get_length (args); i++) {
         const gchar *arg = json_array_get_string_element (args, i);
-        g_string_append_printf (stdout_text, ":%s", arg);        
+        g_string_append_printf (stdout_text, ":%s", arg);
     }
 
     builder = json_builder_new ();
@@ -2495,7 +2507,7 @@ mock_snapd_finalize (GObject *object)
     snapd->changes = NULL;
     g_clear_pointer (&snapd->suggested_currency, g_free);
     g_clear_pointer (&snapd->spawn_time, g_free);
-    g_clear_pointer (&snapd->ready_time, g_free);  
+    g_clear_pointer (&snapd->ready_time, g_free);
 }
 
 static void
@@ -2517,5 +2529,5 @@ mock_snapd_init (MockSnapd *snapd)
     snapd->buffer = g_byte_array_new ();
     snapd->read_source = g_socket_create_source (snapd->server_socket, G_IO_IN, NULL);
     g_source_set_callback (snapd->read_source, (GSourceFunc) read_cb, snapd, NULL);
-    g_source_attach (snapd->read_source, NULL);  
+    g_source_attach (snapd->read_source, NULL);
 }
