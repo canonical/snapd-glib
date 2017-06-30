@@ -773,8 +773,8 @@ parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders
     confinement_string = get_string (result, "confinement", "");
     if (strcmp (confinement_string, "strict") == 0)
         confinement = SNAPD_SYSTEM_CONFINEMENT_STRICT;
-    else if (strcmp (confinement_string, "none") == 0)
-        confinement = SNAPD_SYSTEM_CONFINEMENT_NONE;
+    else if (strcmp (confinement_string, "partial") == 0)
+        confinement = SNAPD_SYSTEM_CONFINEMENT_PARTIAL;
     os_release = get_object (result, "os-release");
     locations  = get_object (result, "locations");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,

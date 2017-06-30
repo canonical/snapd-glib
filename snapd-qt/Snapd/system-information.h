@@ -34,7 +34,7 @@ public:
     {
         ConfinementUnknown,
         ConfinementStrict,
-        ConfinementNone
+        ConfinementPartial
     };
     Q_ENUM(QSnapdSystemConfinement)
 

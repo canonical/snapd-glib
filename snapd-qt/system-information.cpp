@@ -24,8 +24,8 @@ QSnapdSystemInformation::QSnapdSystemConfinement QSnapdSystemInformation::confin
     {
     case SNAPD_SYSTEM_CONFINEMENT_STRICT:
         return QSnapdSystemConfinement::ConfinementStrict;
-    case SNAPD_SYSTEM_CONFINEMENT_NONE:
-        return QSnapdSystemConfinement::ConfinementNone;
+    case SNAPD_SYSTEM_CONFINEMENT_PARTIAL:
+        return QSnapdSystemConfinement::ConfinementPartial;
     case SNAPD_SYSTEM_CONFINEMENT_UNKNOWN:
     default:
         return QSnapdSystemConfinement::ConfinementUnknown;

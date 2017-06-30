@@ -95,7 +95,7 @@ test_get_system_information_confinement_none (void)
     g_autoptr(SnapdSystemInformation) info = NULL;
 
     snapd = mock_snapd_new ();
-    mock_snapd_set_confinement (snapd, "none");
+    mock_snapd_set_confinement (snapd, "partial");
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
     snapd_client_connect_sync (client, NULL, &error);
@@ -104,7 +104,7 @@ test_get_system_information_confinement_none (void)
     info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert (info != NULL);
-    g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_NONE);
+    g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_PARTIAL);
 }
 
 static void
