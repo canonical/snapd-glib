@@ -294,9 +294,9 @@ snapd_snap_get_jailmode (SnapdSnap *snap)
  * snapd_snap_get_title:
  * @snap: a #SnapdSnap.
  *
- * Get the title for this snap.
+ * Get the title for this snap. If not available use the snap name instead.
  *
- * Returns: a title.
+ * Returns: (allow-none): a title or %NULL.
  */
 const gchar *
 snapd_snap_get_title (SnapdSnap *snap)

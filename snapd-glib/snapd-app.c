@@ -87,7 +87,7 @@ snapd_app_get_aliases (SnapdApp *app)
  *
  * Get the daemon type for this app.
  *
- * Returns: the daemon type.
+ * Returns: (allow-none): the daemon type or %NULL.
  */
 SnapdDaemonType
 snapd_app_get_daemon_type (SnapdApp *app)
