@@ -30,6 +30,8 @@
  *
  * #SnapdSlot is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdSlot
@@ -64,6 +66,8 @@ G_DEFINE_TYPE (SnapdSlot, snapd_slot, G_TYPE_OBJECT)
  * Get the name of this slot.
  *
  * Returns: a name
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_slot_get_name (SnapdSlot *slot)
@@ -79,6 +83,8 @@ snapd_slot_get_name (SnapdSlot *slot)
  * Get the snap this slot is on.
  *
  * Returns: a snap name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_slot_get_snap (SnapdSlot *slot)
@@ -94,6 +100,8 @@ snapd_slot_get_snap (SnapdSlot *slot)
  * Get the name of the interface this slot accepts.
  *
  * Returns: an interface name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_slot_get_interface (SnapdSlot *slot)
@@ -110,6 +118,8 @@ snapd_slot_get_interface (SnapdSlot *slot)
  * Get the names of the attributes this slot has.
  *
  * Returns: (transfer full) (array zero-terminated=1): a string array of attribute names. Free with g_strfreev().
+ *
+ * Since: 1.3
  */
 gchar **
 snapd_slot_get_attribute_names (SnapdSlot *slot, guint *length)
@@ -141,6 +151,8 @@ snapd_slot_get_attribute_names (SnapdSlot *slot, guint *length)
  * Check if this slot has an attribute.
  *
  * Returns: %TRUE if this attribute exists.
+ *
+ * Since: 1.3
  */
 gboolean
 snapd_slot_has_attribute (SnapdSlot *slot, const gchar *name)
@@ -157,6 +169,8 @@ snapd_slot_has_attribute (SnapdSlot *slot, const gchar *name)
  * Get an attribute for this interface.
  *
  * Returns: (transfer none) (allow-none): an attribute value or %NULL if not set.
+ *
+ * Since: 1.3
  */
 GVariant *
 snapd_slot_get_attribute (SnapdSlot *slot, const gchar *name)
@@ -172,6 +186,8 @@ snapd_slot_get_attribute (SnapdSlot *slot, const gchar *name)
  * Get a human readable label for this slot.
  *
  * Returns: a label.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_slot_get_label (SnapdSlot *slot)
@@ -187,6 +203,8 @@ snapd_slot_get_label (SnapdSlot *slot)
  * Get the connections being made with this slot.
  *
  * Returns: (transfer none) (element-type SnapdConnection): an array of #SnapdConnection.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 snapd_slot_get_connections (SnapdSlot *slot)

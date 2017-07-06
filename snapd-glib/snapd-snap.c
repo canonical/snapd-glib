@@ -29,6 +29,8 @@
  *
  * #SnapdSnap is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdSnap
@@ -101,6 +103,8 @@ G_DEFINE_TYPE (SnapdSnap, snapd_snap, G_TYPE_OBJECT)
  * Get the apps this snap provides.
  *
  * Returns: (transfer none) (element-type SnapdApp): an array of #SnapdApp.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 snapd_snap_get_apps (SnapdSnap *snap)
@@ -116,6 +120,8 @@ snapd_snap_get_apps (SnapdSnap *snap)
  * Get the channel this snap is from, e.g. "stable".
  *
  * Returns: a channel name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_snap_get_channel (SnapdSnap *snap)
@@ -131,6 +137,8 @@ snapd_snap_get_channel (SnapdSnap *snap)
  * Get the confinement this snap is using, e.g. %SNAPD_CONFINEMENT_STRICT.
  *
  * Returns: a #SnapdConfinement.
+ *
+ * Since: 1.0
  */
 SnapdConfinement
 snapd_snap_get_confinement (SnapdSnap *snap)
@@ -146,6 +154,8 @@ snapd_snap_get_confinement (SnapdSnap *snap)
  * Get the means of contacting the snap developer, e.g. "mailto:developer@example.com".
  *
  * Returns: a contact URL.
+ *
+ * Since: 1.13
  */
 const gchar *
 snapd_snap_get_contact (SnapdSnap *snap)
@@ -161,6 +171,8 @@ snapd_snap_get_contact (SnapdSnap *snap)
  * Get a multi-line description of this snap.
  *
  * Returns: description text.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_snap_get_description (SnapdSnap *snap)
@@ -176,6 +188,8 @@ snapd_snap_get_description (SnapdSnap *snap)
  * Get the developer who created this snap.
  *
  * Returns: a developer name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_snap_get_developer (SnapdSnap *snap)
@@ -191,6 +205,8 @@ snapd_snap_get_developer (SnapdSnap *snap)
  * Get if this snap is running in developmer mode.
  *
  * Returns: %TRUE if this snap is running in devmode.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_snap_get_devmode (SnapdSnap *snap)
@@ -206,6 +222,8 @@ snapd_snap_get_devmode (SnapdSnap *snap)
  * Get the download size of this snap or 0 if unknown.
  *
  * Returns: a byte count.
+ *
+ * Since: 1.0
  */
 gint64
 snapd_snap_get_download_size (SnapdSnap *snap)
@@ -222,6 +240,8 @@ snapd_snap_get_download_size (SnapdSnap *snap)
  * from snapd directly.
  *
  * Returns: a URL or path.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_snap_get_icon (SnapdSnap *snap)
@@ -237,6 +257,8 @@ snapd_snap_get_icon (SnapdSnap *snap)
  * Gets the unique ID for this snap.
  *
  * Returns: an ID.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_snap_get_id (SnapdSnap *snap)
@@ -252,6 +274,8 @@ snapd_snap_get_id (SnapdSnap *snap)
  * Get the date this snap was installed or %NULL if unknown.
  *
  * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
+ *
+ * Since: 1.0
  */
 GDateTime *
 snapd_snap_get_install_date (SnapdSnap *snap)
@@ -267,6 +291,8 @@ snapd_snap_get_install_date (SnapdSnap *snap)
  * Get the installed size of this snap or 0 if unknown.
  *
  * Returns: a byte count.
+ *
+ * Since: 1.0
  */
 gint64
 snapd_snap_get_installed_size (SnapdSnap *snap)
@@ -282,6 +308,8 @@ snapd_snap_get_installed_size (SnapdSnap *snap)
  * Get if this snap is running in enforced confinement (jail) mode.
  *
  * Returns: %TRUE if this snap is running in jailmode.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_snap_get_jailmode (SnapdSnap *snap)
@@ -297,6 +325,8 @@ snapd_snap_get_jailmode (SnapdSnap *snap)
  * Get the title for this snap. If not available use the snap name instead.
  *
  * Returns: (allow-none): a title or %NULL.
+ *
+ * Since: 1.14
  */
 const gchar *
 snapd_snap_get_title (SnapdSnap *snap)
@@ -313,6 +343,8 @@ snapd_snap_get_title (SnapdSnap *snap)
  * installing / removing.
  *
  * Returns: a name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_snap_get_name (SnapdSnap *snap)
@@ -328,6 +360,8 @@ snapd_snap_get_name (SnapdSnap *snap)
  * Get the prices that this snap can be purchased at.
  *
  * Returns: (transfer none) (element-type SnapdPrice): an array of #SnapdPrice.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 snapd_snap_get_prices (SnapdSnap *snap)
@@ -343,6 +377,8 @@ snapd_snap_get_prices (SnapdSnap *snap)
  * Get if this snap is only available to the developer.
  *
  * Returns: %TRUE if this is a private snap.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_snap_get_private (SnapdSnap *snap)
@@ -359,6 +395,8 @@ snapd_snap_get_private (SnapdSnap *snap)
  * See also snapd_snap_get_version().
  *
  * Returns: a revision string.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_snap_get_revision (SnapdSnap *snap)
@@ -374,6 +412,8 @@ snapd_snap_get_revision (SnapdSnap *snap)
  * Get the screenshots that are available for this snap.
  *
  * Returns: (transfer none) (element-type SnapdScreenshot): an array of #SnapdScreenshot.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 snapd_snap_get_screenshots (SnapdSnap *snap)
@@ -389,6 +429,8 @@ snapd_snap_get_screenshots (SnapdSnap *snap)
  * Get the type of snap, e.g. %SNAPD_SNAP_TYPE_APP
  *
  * Returns: a #SnapdSnapType.
+ *
+ * Since: 1.0
  */
 SnapdSnapType
 snapd_snap_get_snap_type (SnapdSnap *snap)
@@ -404,6 +446,8 @@ snapd_snap_get_snap_type (SnapdSnap *snap)
  * Get the current status of this snap, e.g. SNAPD_SNAP_STATUS_INSTALLED.
  *
  * Returns: a #SnapdSnapStatus.
+ *
+ * Since: 1.0
  */
 SnapdSnapStatus
 snapd_snap_get_status (SnapdSnap *snap)
@@ -419,6 +463,8 @@ snapd_snap_get_status (SnapdSnap *snap)
  * Get a single line summary for this snap, e.g. "Best app ever!".
  *
  * Returns: a summary string.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_snap_get_summary (SnapdSnap *snap)
@@ -434,6 +480,8 @@ snapd_snap_get_summary (SnapdSnap *snap)
  * Get the channel that updates will be installed from, e.g. "stable".
  *
  * Returns: a channel name.
+ *
+ * Since: 1.7
  */
 const gchar *
 snapd_snap_get_tracking_channel (SnapdSnap *snap)
@@ -450,6 +498,8 @@ snapd_snap_get_tracking_channel (SnapdSnap *snap)
  * directly modified).
  *
  * Returns: %TRUE if using trymode.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_snap_get_trymode (SnapdSnap *snap)
@@ -466,6 +516,8 @@ snapd_snap_get_trymode (SnapdSnap *snap)
  * See also snapd_snap_get_revision().
  *
  * Returns: a version string.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_snap_get_version (SnapdSnap *snap)

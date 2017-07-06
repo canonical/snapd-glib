@@ -37,6 +37,8 @@ struct _SnapdAliasClass
  * @SNAPD_ALIAS_STATUS_AUTO: the alias is automatically enabled
  *
  * Status of an alias.
+ *
+ * Since: 1.8
  */
 typedef enum
 {

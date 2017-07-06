@@ -28,6 +28,8 @@
  *
  * #SnapdConnection is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdConnection
@@ -54,6 +56,8 @@ G_DEFINE_TYPE (SnapdConnection, snapd_connection, G_TYPE_OBJECT)
  * Get the name of this connection (i.e. a slot or plug name).
  *
  * Returns: a name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_connection_get_name (SnapdConnection *connection)
@@ -69,6 +73,8 @@ snapd_connection_get_name (SnapdConnection *connection)
  * Get the snap this connection is on.
  *
  * Returns: a snap name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_connection_get_snap (SnapdConnection *connection)

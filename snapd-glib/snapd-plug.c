@@ -30,6 +30,8 @@
  *
  * #SnapdPlug is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdPlug
@@ -64,6 +66,8 @@ G_DEFINE_TYPE (SnapdPlug, snapd_plug, G_TYPE_OBJECT)
  * Get the name of this plug.
  *
  * Returns: a name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_plug_get_name (SnapdPlug *plug)
@@ -79,6 +83,8 @@ snapd_plug_get_name (SnapdPlug *plug)
  * Get the snap this plug is on.
  *
  * Returns: a snap name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_plug_get_snap (SnapdPlug *plug)
@@ -94,6 +100,8 @@ snapd_plug_get_snap (SnapdPlug *plug)
  * Get the name of the interface this plug provides.
  *
  * Returns: an interface name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_plug_get_interface (SnapdPlug *plug)
@@ -110,6 +118,8 @@ snapd_plug_get_interface (SnapdPlug *plug)
  * Get the names of the attributes this plug has.
  *
  * Returns: (transfer full) (array zero-terminated=1): a string array of attribute names. Free with g_strfreev().
+ *
+ * Since: 1.3
  */
 gchar **
 snapd_plug_get_attribute_names (SnapdPlug *plug, guint *length)
@@ -141,6 +151,8 @@ snapd_plug_get_attribute_names (SnapdPlug *plug, guint *length)
  * Check if this plug has an attribute.
  *
  * Returns: %TRUE if this attribute exists.
+ *
+ * Since: 1.3
  */
 gboolean
 snapd_plug_has_attribute (SnapdPlug *plug, const gchar *name)
@@ -157,6 +169,8 @@ snapd_plug_has_attribute (SnapdPlug *plug, const gchar *name)
  * Get an attribute for this interface.
  *
  * Returns: (transfer none) (allow-none): an attribute value or %NULL if not set.
+ *
+ * Since: 1.3
  */
 GVariant *
 snapd_plug_get_attribute (SnapdPlug *plug, const gchar *name)
@@ -172,6 +186,8 @@ snapd_plug_get_attribute (SnapdPlug *plug, const gchar *name)
  * Get a human readable label for this plug.
  *
  * Returns: a label.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_plug_get_label (SnapdPlug *plug)
@@ -187,6 +203,8 @@ snapd_plug_get_label (SnapdPlug *plug)
  * Get the connections being made with this plug.
  *
  * Returns: (transfer none) (element-type SnapdConnection): an array of #SnapdConnection.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 snapd_plug_get_connections (SnapdPlug *plug)

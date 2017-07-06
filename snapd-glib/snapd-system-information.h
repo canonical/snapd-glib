@@ -36,6 +36,8 @@ struct _SnapdSystemInformationClass
  * @SNAPD_SYSTEM_CONFINEMENT_PARTIAL: the system supports partial confinement.
  *
  * Confinment used by a snap.
+ *
+ * Since: 1.14
  */
 typedef enum
 {

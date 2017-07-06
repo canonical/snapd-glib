@@ -15,10 +15,138 @@
 #endif
 
 /**
+ * SNAPD_GLIB_VERSION_1_0:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.0
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_0
+
+/**
+ * SNAPD_GLIB_VERSION_1_1:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.1
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_1
+
+/**
+ * SNAPD_GLIB_VERSION_1_2:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.2
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_2
+
+/**
+ * SNAPD_GLIB_VERSION_1_3:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.3
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_3
+
+/**
+ * SNAPD_GLIB_VERSION_1_4:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.4
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_4
+
+/**
+ * SNAPD_GLIB_VERSION_1_5:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.5
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_5
+
+/**
+ * SNAPD_GLIB_VERSION_1_6:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.6
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_6
+
+/**
+ * SNAPD_GLIB_VERSION_1_7:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.7
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_7
+
+/**
+ * SNAPD_GLIB_VERSION_1_8:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.8
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_8
+
+/**
+ * SNAPD_GLIB_VERSION_1_9:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.9
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_9
+
+/**
+ * SNAPD_GLIB_VERSION_1_10:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.10
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_10
+
+/**
+ * SNAPD_GLIB_VERSION_1_11:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.11
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_11
+
+/**
+ * SNAPD_GLIB_VERSION_1_12:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.12
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_12
+
+/**
  * SNAPD_GLIB_VERSION_1_13:
  *
  * A define that can be used by the C pre-processor to check for features in 1.13
+ *
+ * Since: 1.14
  */
 #define SNAPD_GLIB_VERSION_1_13
+
+/**
+ * SNAPD_GLIB_VERSION_1_14:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.13
+ *
+ * Since: 1.14
+ */
+#define SNAPD_GLIB_VERSION_1_14
 
 #endif /* __SNAPD_GLIB_VERSION_H__ */

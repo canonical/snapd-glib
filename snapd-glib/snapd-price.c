@@ -26,6 +26,8 @@
  *
  * #SnapdPrice is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdPrice
@@ -52,6 +54,8 @@ G_DEFINE_TYPE (SnapdPrice, snapd_price, G_TYPE_OBJECT)
  * Get the currency amount for this price, e.g. 0.99.
  *
  * Return: a currency amount.
+ *
+ * Since: 1.0
  */
 gdouble
 snapd_price_get_amount (SnapdPrice *price)
@@ -67,6 +71,8 @@ snapd_price_get_amount (SnapdPrice *price)
  * Get the currency this price is in, e.g. "NZD".
  *
  * Returns: an ISO 4217 currency code.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_price_get_currency (SnapdPrice *price)

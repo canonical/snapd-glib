@@ -45,6 +45,8 @@
  *
  * #SnapdClient is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 /**
@@ -2367,6 +2369,8 @@ sync_cb (GObject *object, GAsyncResult *result, gpointer user_data)
  * Connect to snapd.
  *
  * Returns: %TRUE if successfully connected to snapd.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_connect_sync (SnapdClient *client,
@@ -2424,6 +2428,8 @@ snapd_client_connect_sync (SnapdClient *client,
  *
  * Asynchronously connect to snapd.
  * See snapd_client_connect_sync () for more information.
+ *
+ * Since: 1.3
  */
 void
 snapd_client_connect_async (SnapdClient *client,
@@ -2449,6 +2455,8 @@ snapd_client_connect_async (SnapdClient *client,
  * See snapd_client_connect_sync() for more information.
  *
  * Returns: %TRUE if successfully connected to snapd.
+ *
+ * Since: 1.3
  */
 gboolean
 snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -2493,6 +2501,8 @@ make_request (SnapdClient *client, RequestType request_type,
  * This call requires root access; use snapd_login_sync() if you are non-root.
  *
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdAuthData *
 snapd_client_login_sync (SnapdClient *client,
@@ -2523,6 +2533,8 @@ snapd_client_login_sync (SnapdClient *client,
  *
  * Asynchronously get authorization to install/remove snaps.
  * See snapd_client_login_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_login_async (SnapdClient *client,
@@ -2561,6 +2573,8 @@ snapd_client_login_async (SnapdClient *client,
  * See snapd_client_login_sync() for more information.
  *
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdAuthData *
 snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -2591,6 +2605,8 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
  *   (requires root access)
  *
  * - Using an existing authorization with snapd_auth_data_new().
+ *
+ * Since: 1.0
  */
 void
 snapd_client_set_auth_data (SnapdClient *client, SnapdAuthData *auth_data)
@@ -2612,6 +2628,8 @@ snapd_client_set_auth_data (SnapdClient *client, SnapdAuthData *auth_data)
  * Get the authorization data that is used for requests.
  *
  * Returns: (transfer none) (allow-none): a #SnapdAuthData or %NULL.
+ *
+ * Since: 1.0
  */
 SnapdAuthData *
 snapd_client_get_auth_data (SnapdClient *client)
@@ -2635,6 +2653,8 @@ snapd_client_get_auth_data (SnapdClient *client)
  * While this blocks, snapd is expected to return the information quickly.
  *
  * Returns: (transfer full): a #SnapdSystemInformation or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdSystemInformation *
 snapd_client_get_system_information_sync (SnapdClient *client,
@@ -2660,6 +2680,8 @@ snapd_client_get_system_information_sync (SnapdClient *client,
  *
  * Request system information asynchronously from snapd.
  * See snapd_client_get_system_information_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_get_system_information_async (SnapdClient *client,
@@ -2683,6 +2705,8 @@ snapd_client_get_system_information_async (SnapdClient *client,
  * See snapd_client_get_system_information_sync() for more information.
  *
  * Returns: (transfer full): a #SnapdSystemInformation or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdSystemInformation *
 snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -2710,6 +2734,8 @@ snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *r
  * Get information of a single installed snap.
  *
  * Returns: (transfer full): a #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdSnap *
 snapd_client_list_one_sync (SnapdClient *client,
@@ -2736,6 +2762,8 @@ snapd_client_list_one_sync (SnapdClient *client,
  *
  * Asynchronously get information of a single installed snap.
  * See snapd_client_list_one_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_list_one_async (SnapdClient *client,
@@ -2763,6 +2791,8 @@ snapd_client_list_one_async (SnapdClient *client,
  * See snapd_client_list_one_sync() for more information.
  *
  * Returns: (transfer full): a #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdSnap *
 snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -2790,6 +2820,8 @@ snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError 
  * Get the icon for an installed snap.
  *
  * Returns: (transfer full): a #SnapdIcon or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdIcon *
 snapd_client_get_icon_sync (SnapdClient *client,
@@ -2816,6 +2848,8 @@ snapd_client_get_icon_sync (SnapdClient *client,
  *
  * Asynchronously get the icon for an installed snap.
  * See snapd_client_get_icon_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_get_icon_async (SnapdClient *client,
@@ -2843,6 +2877,8 @@ snapd_client_get_icon_async (SnapdClient *client,
  * See snapd_client_get_icon_sync() for more information.
  *
  * Returns: (transfer full): a #SnapdIcon or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdIcon *
 snapd_client_get_icon_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -2869,6 +2905,8 @@ snapd_client_get_icon_finish (SnapdClient *client, GAsyncResult *result, GError 
  * Get information on all installed snaps.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 snapd_client_list_sync (SnapdClient *client,
@@ -2893,6 +2931,8 @@ snapd_client_list_sync (SnapdClient *client,
  *
  * Asynchronously get information on all installed snaps.
  * See snapd_client_list_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_list_async (SnapdClient *client,
@@ -2916,6 +2956,8 @@ snapd_client_list_async (SnapdClient *client,
  * See snapd_client_list_sync() for more information.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -2943,6 +2985,8 @@ snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **er
  * Get assertions.
  *
  * Returns: (transfer full) (array zero-terminated=1): an array of assertions or %NULL on error.
+ *
+ * Since: 1.8
  */
 gchar **
 snapd_client_get_assertions_sync (SnapdClient *client,
@@ -2969,6 +3013,8 @@ snapd_client_get_assertions_sync (SnapdClient *client,
  *
  * Asynchronously get assertions.
  * See snapd_client_get_assertions_sync() for more information.
+ *
+ * Since: 1.8
  */
 void
 snapd_client_get_assertions_async (SnapdClient *client,
@@ -2996,6 +3042,8 @@ snapd_client_get_assertions_async (SnapdClient *client,
  * See snapd_client_get_assertions_sync() for more information.
  *
  * Returns: (transfer full) (array zero-terminated=1): an array of assertions or %NULL on error.
+ *
+ * Since: 1.8
  */
 gchar **
 snapd_client_get_assertions_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -3023,6 +3071,8 @@ snapd_client_get_assertions_finish (SnapdClient *client, GAsyncResult *result, G
  * Add an assertion.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_add_assertions_sync (SnapdClient *client,
@@ -3050,6 +3100,8 @@ snapd_client_add_assertions_sync (SnapdClient *client,
  *
  * Asynchronously add an assertion.
  * See snapd_client_add_assertions_sync() for more information.
+ *
+ * Since: 1.8
  */
 void
 snapd_client_add_assertions_async (SnapdClient *client,
@@ -3088,6 +3140,8 @@ snapd_client_add_assertions_async (SnapdClient *client,
  * See snapd_client_add_assertions_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_add_assertions_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -3116,6 +3170,8 @@ snapd_client_add_assertions_finish (SnapdClient *client, GAsyncResult *result, G
  * Get the installed snap interfaces.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_get_interfaces_sync (SnapdClient *client,
@@ -3141,6 +3197,8 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
  *
  * Asynchronously get the installed snap interfaces.
  * See snapd_client_get_interfaces_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_get_interfaces_async (SnapdClient *client,
@@ -3166,6 +3224,8 @@ snapd_client_get_interfaces_async (SnapdClient *client,
  * See snapd_client_get_interfaces_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
@@ -3246,6 +3306,8 @@ send_interface_request (SnapdClient *client,
  * An asynchronous version of this function is snapd_client_connect_interface_async().
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_connect_interface_sync (SnapdClient *client,
@@ -3279,6 +3341,8 @@ snapd_client_connect_interface_sync (SnapdClient *client,
  *
  * Asynchronously connect two interfaces together.
  * See snapd_client_connect_interface_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_connect_interface_async (SnapdClient *client,
@@ -3307,6 +3371,8 @@ snapd_client_connect_interface_async (SnapdClient *client,
  * See snapd_client_connect_interface_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_connect_interface_finish (SnapdClient *client,
@@ -3340,6 +3406,8 @@ snapd_client_connect_interface_finish (SnapdClient *client,
  * Disconnect two interfaces.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_disconnect_interface_sync (SnapdClient *client,
@@ -3373,6 +3441,8 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
  *
  * Asynchronously disconnect two interfaces.
  * See snapd_client_disconnect_interface_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_disconnect_interface_async (SnapdClient *client,
@@ -3401,6 +3471,8 @@ snapd_client_disconnect_interface_async (SnapdClient *client,
  * See snapd_client_disconnect_interface_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_disconnect_interface_finish (SnapdClient *client,
@@ -3431,6 +3503,8 @@ snapd_client_disconnect_interface_finish (SnapdClient *client,
  * Find snaps in the store.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 snapd_client_find_sync (SnapdClient *client,
@@ -3452,6 +3526,8 @@ snapd_client_find_sync (SnapdClient *client,
  *
  * Asynchronously find snaps in the store.
  * See snapd_client_find_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_find_async (SnapdClient *client,
@@ -3472,6 +3548,8 @@ snapd_client_find_async (SnapdClient *client,
  * See snapd_client_find_sync() for more information.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.0
  */
 GPtrArray *
 snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, gchar **suggested_currency, GError **error)
@@ -3492,6 +3570,8 @@ snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, gchar **sug
  * Find snaps in the store.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.7
  */
 GPtrArray *
 snapd_client_find_section_sync (SnapdClient *client,
@@ -3521,6 +3601,8 @@ snapd_client_find_section_sync (SnapdClient *client,
  *
  * Asynchronously find snaps in the store.
  * See snapd_client_find_section_sync() for more information.
+ *
+ * Since: 1.7
  */
 void
 snapd_client_find_section_async (SnapdClient *client,
@@ -3580,6 +3662,8 @@ snapd_client_find_section_async (SnapdClient *client,
  * See snapd_client_find_sync() for more information.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.7
  */
 GPtrArray *
 snapd_client_find_section_finish (SnapdClient *client, GAsyncResult *result, gchar **suggested_currency, GError **error)
@@ -3609,6 +3693,8 @@ snapd_client_find_section_finish (SnapdClient *client, GAsyncResult *result, gch
  * Find snaps in store that are newer revisions than locally installed versions.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.8
  */
 GPtrArray *
 snapd_client_find_refreshable_sync (SnapdClient *client,
@@ -3633,6 +3719,8 @@ snapd_client_find_refreshable_sync (SnapdClient *client,
  *
  * Asynchronously find snaps in store that are newer revisions than locally installed versions.
  * See snapd_client_find_refreshable_sync() for more information.
+ *
+ * Since: 1.8
  */
 void
 snapd_client_find_refreshable_async (SnapdClient *client,
@@ -3656,6 +3744,8 @@ snapd_client_find_refreshable_async (SnapdClient *client,
  * See snapd_client_find_refreshable_sync() for more information.
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.5
  */
 GPtrArray *
 snapd_client_find_refreshable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -3689,6 +3779,8 @@ snapd_client_find_refreshable_finish (SnapdClient *client, GAsyncResult *result,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Deprecated: Use snapd_client_install2_sync()
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_install_sync (SnapdClient *client,
@@ -3714,6 +3806,8 @@ snapd_client_install_sync (SnapdClient *client,
  * See snapd_client_install_sync() for more information.
  *
  * Deprecated: Use snapd_client_install2_async()
+ *
+ * Since: 1.0
  */
 void
 snapd_client_install_async (SnapdClient *client,
@@ -3736,6 +3830,8 @@ snapd_client_install_async (SnapdClient *client,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Deprecated: Use snapd_client_install2_finish()
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -3758,6 +3854,8 @@ snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError *
  * Install a snap from the store.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.12
  */
 gboolean
 snapd_client_install2_sync (SnapdClient *client,
@@ -3792,6 +3890,8 @@ snapd_client_install2_sync (SnapdClient *client,
  *
  * Asynchronously install a snap from the store.
  * See snapd_client_install2_sync() for more information.
+ *
+ * Since: 1.12
  */
 void
 snapd_client_install2_async (SnapdClient *client,
@@ -3853,6 +3953,8 @@ snapd_client_install2_async (SnapdClient *client,
  * See snapd_client_install2_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.12
  */
 gboolean
 snapd_client_install2_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -3941,6 +4043,8 @@ send_install_stream_request (SnapdRequest *request)
  * \]
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.9
  */
 gboolean
 snapd_client_install_stream_sync (SnapdClient *client,
@@ -3993,6 +4097,8 @@ stream_read_cb (GObject *source_object, GAsyncResult *result, gpointer user_data
  *
  * Asynchronously install a snap.
  * See snapd_client_install_stream_sync() for more information.
+ *
+ * Since: 1.9
  */
 void
 snapd_client_install_stream_async (SnapdClient *client,
@@ -4023,6 +4129,8 @@ snapd_client_install_stream_async (SnapdClient *client,
  * See snapd_client_install_stream_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.9
  */
 gboolean
 snapd_client_install_stream_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4052,6 +4160,8 @@ snapd_client_install_stream_finish (SnapdClient *client, GAsyncResult *result, G
  * Try a snap.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.9
  */
 gboolean
 snapd_client_try_sync (SnapdClient *client,
@@ -4082,6 +4192,8 @@ snapd_client_try_sync (SnapdClient *client,
  *
  * Asynchronously try a snap.
  * See snapd_client_try_sync() for more information.
+ *
+ * Since: 1.9
  */
 void
 snapd_client_try_async (SnapdClient *client,
@@ -4115,6 +4227,8 @@ snapd_client_try_async (SnapdClient *client,
  * See snapd_client_try_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.9
  */
 gboolean
 snapd_client_try_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4145,6 +4259,8 @@ snapd_client_try_finish (SnapdClient *client, GAsyncResult *result, GError **err
  * Ensure an installed snap is at the latest version.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_refresh_sync (SnapdClient *client,
@@ -4176,6 +4292,8 @@ snapd_client_refresh_sync (SnapdClient *client,
  *
  * Asynchronously ensure an installed snap is at the latest version.
  * See snapd_client_refresh_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_refresh_async (SnapdClient *client,
@@ -4216,6 +4334,8 @@ snapd_client_refresh_async (SnapdClient *client,
  * See snapd_client_refresh_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_refresh_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4244,6 +4364,8 @@ snapd_client_refresh_finish (SnapdClient *client, GAsyncResult *result, GError *
  * Update all installed snaps to their latest version.
  *
  * Returns: (transfer full): a %NULL-terminated array of the snap names refreshed or %NULL on error.
+ *
+ * Since: 1.5
  */
 gchar **
 snapd_client_refresh_all_sync (SnapdClient *client,
@@ -4271,6 +4393,8 @@ snapd_client_refresh_all_sync (SnapdClient *client,
  *
  * Asynchronously ensure all snaps are updated to their latest versions.
  * See snapd_client_refresh_all_sync() for more information.
+ *
+ * Since: 1.5
  */
 void
 snapd_client_refresh_all_async (SnapdClient *client,
@@ -4302,6 +4426,8 @@ snapd_client_refresh_all_async (SnapdClient *client,
  * See snapd_client_refresh_all_sync() for more information.
  *
  * Returns: (transfer full): a %NULL-terminated array of the snap names refreshed or %NULL on error.
+ *
+ * Since: 1.5
  */
 gchar **
 snapd_client_refresh_all_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4367,6 +4493,8 @@ snapd_client_refresh_all_finish (SnapdClient *client, GAsyncResult *result, GErr
  * Uninstall a snap.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_remove_sync (SnapdClient *client,
@@ -4397,6 +4525,8 @@ snapd_client_remove_sync (SnapdClient *client,
  *
  * Asynchronously uninstall a snap.
  * See snapd_client_remove_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_remove_async (SnapdClient *client,
@@ -4433,6 +4563,8 @@ snapd_client_remove_async (SnapdClient *client,
  * See snapd_client_remove_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_remove_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4462,6 +4594,8 @@ snapd_client_remove_finish (SnapdClient *client, GAsyncResult *result, GError **
  * Enable an installed snap.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_enable_sync (SnapdClient *client,
@@ -4493,6 +4627,8 @@ snapd_client_enable_sync (SnapdClient *client,
  *
  * Asynchronously enable an installed snap.
  * See snapd_client_enable_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_enable_async (SnapdClient *client,
@@ -4529,6 +4665,8 @@ snapd_client_enable_async (SnapdClient *client,
  * See snapd_client_enable_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_enable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4558,6 +4696,8 @@ snapd_client_enable_finish (SnapdClient *client, GAsyncResult *result, GError **
  * Disable an installed snap.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_disable_sync (SnapdClient *client,
@@ -4589,6 +4729,8 @@ snapd_client_disable_sync (SnapdClient *client,
  *
  * Asynchronously disable an installed snap.
  * See snapd_client_disable_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_client_disable_async (SnapdClient *client,
@@ -4625,6 +4767,8 @@ snapd_client_disable_async (SnapdClient *client,
  * See snapd_client_disable_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4652,6 +4796,8 @@ snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError *
  * Check if able to buy snaps.
  *
  * Returns: %TRUE if able to buy snaps or %FALSE on error.
+ *
+ * Since: 1.3
  */
 gboolean
 snapd_client_check_buy_sync (SnapdClient *client,
@@ -4676,6 +4822,8 @@ snapd_client_check_buy_sync (SnapdClient *client,
  *
  * Asynchronously check if able to buy snaps.
  * See snapd_client_check_buy_sync() for more information.
+ *
+ * Since: 1.3
  */
 void
 snapd_client_check_buy_async (SnapdClient *client,
@@ -4699,6 +4847,8 @@ snapd_client_check_buy_async (SnapdClient *client,
  * See snapd_client_check_buy_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.3
  */
 gboolean
 snapd_client_check_buy_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4730,6 +4880,8 @@ snapd_client_check_buy_finish (SnapdClient *client, GAsyncResult *result, GError
  * snapd_client_install2_sync().
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.3
  */
 gboolean
 snapd_client_buy_sync (SnapdClient *client,
@@ -4760,6 +4912,8 @@ snapd_client_buy_sync (SnapdClient *client,
  *
  * Asynchronously buy a snap from the store.
  * See snapd_client_buy_sync() for more information.
+ *
+ * Since: 1.3
  */
 void
 snapd_client_buy_async (SnapdClient *client,
@@ -4798,6 +4952,8 @@ snapd_client_buy_async (SnapdClient *client,
  * See snapd_client_buy_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.3
  */
 gboolean
 snapd_client_buy_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4827,6 +4983,8 @@ snapd_client_buy_finish (SnapdClient *client, GAsyncResult *result, GError **err
  * Create a local user account for the given user.
  *
  * Returns: (transfer full): a #SnapdUserInformation or %NULL on error.
+ *
+ * Since: 1.3
  */
 SnapdUserInformation *
 snapd_client_create_user_sync (SnapdClient *client,
@@ -4855,6 +5013,8 @@ snapd_client_create_user_sync (SnapdClient *client,
  *
  * Asynchronously create a local user account.
  * See snapd_client_create_user_sync() for more information.
+ *
+ * Since: 1.3
  */
 void
 snapd_client_create_user_async (SnapdClient *client,
@@ -4896,6 +5056,8 @@ snapd_client_create_user_async (SnapdClient *client,
  * See snapd_client_create_user_sync() for more information.
  *
  * Returns: (transfer full): a #SnapdUserInformation or %NULL on error.
+ *
+ * Since: 1.3
  */
 SnapdUserInformation *
 snapd_client_create_user_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -4923,6 +5085,8 @@ snapd_client_create_user_finish (SnapdClient *client, GAsyncResult *result, GErr
  * Create local user accounts using the system-user assertions that are valid for this device.
  *
  * Returns: (transfer container) (element-type SnapdUserInformation): an array of #SnapdUserInformation or %NULL on error.
+ *
+ * Since: 1.3
  */
 GPtrArray *
 snapd_client_create_users_sync (SnapdClient *client,
@@ -4947,6 +5111,8 @@ snapd_client_create_users_sync (SnapdClient *client,
  *
  * Asynchronously create a local user account.
  * See snapd_client_create_user_sync() for more information.
+ *
+ * Since: 1.3
  */
 void
 snapd_client_create_users_async (SnapdClient *client,
@@ -4978,6 +5144,8 @@ snapd_client_create_users_async (SnapdClient *client,
  * See snapd_client_create_users_sync() for more information.
  *
  * Returns: (transfer container) (element-type SnapdUserInformation): an array of #SnapdUserInformation or %NULL on error.
+ *
+ * Since: 1.3
  */
 GPtrArray *
 snapd_client_create_users_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -5005,6 +5173,8 @@ snapd_client_create_users_finish (SnapdClient *client, GAsyncResult *result, GEr
  * Get the store sections.
  *
  * Returns: (transfer full) (array zero-terminated=1): an array of section names or %NULL on error.
+ *
+ * Since: 1.7
  */
 gchar **
 snapd_client_get_sections_sync (SnapdClient *client,
@@ -5029,6 +5199,8 @@ snapd_client_get_sections_sync (SnapdClient *client,
  *
  * Asynchronously create a local user account.
  * See snapd_client_get_sections_sync() for more information.
+ *
+ * Since: 1.7
  */
 void
 snapd_client_get_sections_async (SnapdClient *client,
@@ -5052,6 +5224,8 @@ snapd_client_get_sections_async (SnapdClient *client,
  * See snapd_client_get_sections_sync() for more information.
  *
  * Returns: (transfer full) (array zero-terminated=1): an array of section names or %NULL on error.
+ *
+ * Since: 1.7
  */
 gchar **
 snapd_client_get_sections_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -5079,6 +5253,8 @@ snapd_client_get_sections_finish (SnapdClient *client, GAsyncResult *result, GEr
  * Get the available aliases.
  *
  * Returns: (transfer container) (element-type SnapdAlias): an array of #SnapdAlias or %NULL on error.
+ *
+ * Since: 1.8
  */
 GPtrArray *
 snapd_client_get_aliases_sync (SnapdClient *client,
@@ -5103,6 +5279,8 @@ snapd_client_get_aliases_sync (SnapdClient *client,
  *
  * Asynchronously get the available aliases.
  * See snapd_client_get_aliases_sync() for more information.
+ *
+ * Since: 1.8
  */
 void
 snapd_client_get_aliases_async (SnapdClient *client,
@@ -5126,6 +5304,8 @@ snapd_client_get_aliases_async (SnapdClient *client,
  * See snapd_client_get_aliases_sync() for more information.
  *
  * Returns: (transfer container) (element-type SnapdAlias): an array of #SnapdAlias or %NULL on error.
+ *
+ * Since: 1.8
  */
 GPtrArray *
 snapd_client_get_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -5186,6 +5366,8 @@ send_change_aliases_request (SnapdClient *client,
  * Change the state of aliases.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_enable_aliases_sync (SnapdClient *client,
@@ -5218,6 +5400,8 @@ snapd_client_enable_aliases_sync (SnapdClient *client,
  *
  * Asynchronously change the state of aliases.
  * See snapd_client_enable_aliases_sync() for more information.
+ *
+ * Since: 1.8
  */
 void
 snapd_client_enable_aliases_async (SnapdClient *client,
@@ -5241,6 +5425,8 @@ snapd_client_enable_aliases_async (SnapdClient *client,
  * See snapd_client_enable_aliases_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_enable_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -5272,6 +5458,8 @@ snapd_client_enable_aliases_finish (SnapdClient *client, GAsyncResult *result, G
  * Change the state of aliases.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_disable_aliases_sync (SnapdClient *client,
@@ -5304,6 +5492,8 @@ snapd_client_disable_aliases_sync (SnapdClient *client,
  *
  * Asynchronously change the state of aliases.
  * See snapd_client_disable_aliases_sync() for more information.
+ *
+ * Since: 1.8
  */
 void
 snapd_client_disable_aliases_async (SnapdClient *client,
@@ -5327,6 +5517,8 @@ snapd_client_disable_aliases_async (SnapdClient *client,
  * See snapd_client_disable_aliases_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_disable_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -5358,6 +5550,8 @@ snapd_client_disable_aliases_finish (SnapdClient *client, GAsyncResult *result, 
  * Change the state of aliases.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_reset_aliases_sync (SnapdClient *client,
@@ -5390,6 +5584,8 @@ snapd_client_reset_aliases_sync (SnapdClient *client,
  *
  * Asynchronously change the state of aliases.
  * See snapd_client_reset_aliases_sync() for more information.
+ *
+ * Since: 1.8
  */
 void
 snapd_client_reset_aliases_async (SnapdClient *client,
@@ -5413,6 +5609,8 @@ snapd_client_reset_aliases_async (SnapdClient *client,
  * See snapd_client_reset_aliases_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_reset_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
@@ -5444,6 +5642,8 @@ snapd_client_reset_aliases_finish (SnapdClient *client, GAsyncResult *result, GE
  * Run a snapctl command.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_run_snapctl_sync (SnapdClient *client,
@@ -5474,6 +5674,8 @@ snapd_client_run_snapctl_sync (SnapdClient *client,
  *
  * Asynchronously run a snapctl command.
  * See snapd_client_run_snapctl_sync() for more information.
+ *
+ * Since: 1.8
  */
 void
 snapd_client_run_snapctl_async (SnapdClient *client,
@@ -5516,6 +5718,8 @@ snapd_client_run_snapctl_async (SnapdClient *client,
  * See snapd_client_run_snapctl_sync() for more information.
  *
  * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.8
  */
 gboolean
 snapd_client_run_snapctl_finish (SnapdClient *client, GAsyncResult *result,
@@ -5547,6 +5751,8 @@ snapd_client_run_snapctl_finish (SnapdClient *client, GAsyncResult *result,
  * Create a new client to talk to snapd.
  *
  * Returns: a new #SnapdClient
+ *
+ * Since: 1.0
  **/
 SnapdClient *
 snapd_client_new (void)
@@ -5561,6 +5767,8 @@ snapd_client_new (void)
  * Create a new client to talk on an existing socket.
  *
  * Returns: a new #SnapdClient
+ *
+ * Since: 1.5
  **/
 SnapdClient *
 snapd_client_new_from_socket (GSocket *socket)

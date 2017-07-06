@@ -25,5 +25,7 @@
  * Gets the Snapd Error Quark.
  *
  * Returns: a #GQuark.
+ *
+ * Since: 1.0
  **/
 G_DEFINE_QUARK (snapd-error-quark, snapd_error)

@@ -26,6 +26,8 @@
  *
  * #SnapdSystemInformation is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdSystemInformation
@@ -70,6 +72,8 @@ G_DEFINE_TYPE (SnapdSystemInformation, snapd_system_information, G_TYPE_OBJECT)
  * Get the directory snap binaries are stored, e.g. "/snap/bin".
  *
  * Returns: a directory.
+ *
+ * Since: 1.11
  */
 const gchar *
 snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_information)
@@ -85,6 +89,8 @@ snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_
  * Get the level of confinement the system supports, e.g. %SNAPD_SYSTEM_CONFINEMENT_STRICT.
  *
  * Returns: a #SnapdSystemConfinement.
+ *
+ * Since: 1.14
  */
 SnapdSystemConfinement
 snapd_system_information_get_confinement (SnapdSystemInformation *system_information)
@@ -100,6 +106,8 @@ snapd_system_information_get_confinement (SnapdSystemInformation *system_informa
  * Get the version of the kernel snapd is running on, e.g. "4.10.0-15-generic".
  *
  * Returns: a version string.
+ *
+ * Since: 1.11
  */
 const gchar *
 snapd_system_information_get_kernel_version (SnapdSystemInformation *system_information)
@@ -115,6 +123,8 @@ snapd_system_information_get_kernel_version (SnapdSystemInformation *system_info
  * Get if snapd is running on a managed system.
  *
  * Returns: %TRUE if running on a managed system.
+ *
+ * Since: 1.7
  */
 gboolean
 snapd_system_information_get_managed (SnapdSystemInformation *system_information)
@@ -130,6 +140,8 @@ snapd_system_information_get_managed (SnapdSystemInformation *system_information
  * Get the directory snaps are mounted, e.g. "/snap".
  *
  * Returns: a directory.
+ *
+ * Since: 1.11
  */
 const gchar *
 snapd_system_information_get_mount_directory (SnapdSystemInformation *system_information)
@@ -145,6 +157,8 @@ snapd_system_information_get_mount_directory (SnapdSystemInformation *system_inf
  * Get if this system is a classic system.
  *
  * Returns: %TRUE if running on a classic system.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_system_information_get_on_classic (SnapdSystemInformation *system_information)
@@ -160,6 +174,8 @@ snapd_system_information_get_on_classic (SnapdSystemInformation *system_informat
  * Get the operating system ID, e.g. "ubuntu".
  *
  * Returns: an operating system ID.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_system_information_get_os_id (SnapdSystemInformation *system_information)
@@ -175,6 +191,8 @@ snapd_system_information_get_os_id (SnapdSystemInformation *system_information)
  * Get the operating system version, e.g. "16.04".
  *
  * Returns: a version string.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_system_information_get_os_version (SnapdSystemInformation *system_information)
@@ -190,6 +208,8 @@ snapd_system_information_get_os_version (SnapdSystemInformation *system_informat
  * Get the series of snapd running, e.g. "16".
  *
  * Returns: a series string.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_system_information_get_series (SnapdSystemInformation *system_information)
@@ -205,6 +225,8 @@ snapd_system_information_get_series (SnapdSystemInformation *system_information)
  * Get the store being used by snapd, e.g. "Ubuntu"
  *
  * Returns: (allow-none): a store id or %NULL.
+ *
+ * Since: 1.7
  */
 const gchar *
 snapd_system_information_get_store (SnapdSystemInformation *system_information)
@@ -220,6 +242,8 @@ snapd_system_information_get_store (SnapdSystemInformation *system_information)
  * Get the version of snapd running, e.g. "2.11+ppa174-1".
  *
  * Returns: a version string.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_system_information_get_version (SnapdSystemInformation *system_information)

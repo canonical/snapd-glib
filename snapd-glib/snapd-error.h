@@ -53,6 +53,8 @@ G_BEGIN_DECLS
  *    this snap.
  *
  * Error codes returned by snapd operations.
+ *
+ * Since: 1.0
  */
 typedef enum
 {

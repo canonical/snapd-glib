@@ -40,6 +40,8 @@ struct _SnapdAppClass
  * @SNAPD_DAEMON_TYPE_NOTIFY: Notify daemon
  *
  * Type of daemon.
+ *
+ * Since: 1.9
  */
 typedef enum
 {

@@ -27,6 +27,8 @@
  *
  * #SnapdChange is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.5
  */
 
 struct _SnapdChange
@@ -65,6 +67,8 @@ G_DEFINE_TYPE (SnapdChange, snapd_change, G_TYPE_OBJECT)
  * Get the unique ID for this change.
  *
  * Returns: an ID.
+ *
+ * Since: 1.5
  */
 const gchar *
 snapd_change_get_id (SnapdChange *change)
@@ -80,6 +84,8 @@ snapd_change_get_id (SnapdChange *change)
  * Gets the kind of change this is.
  *
  * Returns: the kind of change.
+ *
+ * Since: 1.5
  */
 const gchar *
 snapd_change_get_kind (SnapdChange *change)
@@ -95,6 +101,8 @@ snapd_change_get_kind (SnapdChange *change)
  * Get a human readable description of the change.
  *
  * Returns: a string describing the change.
+ *
+ * Since: 1.5
  */
 const gchar *
 snapd_change_get_summary (SnapdChange *change)
@@ -110,6 +118,8 @@ snapd_change_get_summary (SnapdChange *change)
  * Get the status of the change.
  *
  * Returns: a status string.
+ *
+ * Since: 1.5
  */
 const gchar *
 snapd_change_get_status (SnapdChange *change)
@@ -125,6 +135,8 @@ snapd_change_get_status (SnapdChange *change)
  * Get the tasks that are in this change.
  *
  * Returns: (transfer none) (element-type SnapdTask): an array of #SnapdTask.
+ *
+ * Since: 1.5
  */
 GPtrArray *
 snapd_change_get_tasks (SnapdChange *change)
@@ -140,6 +152,8 @@ snapd_change_get_tasks (SnapdChange *change)
  * Get if this change is completed.
  *
  * Returns: %TRUE if this change is complete.
+ *
+ * Since: 1.5
  */
 gboolean
 snapd_change_get_ready (SnapdChange *change)
@@ -155,6 +169,8 @@ snapd_change_get_ready (SnapdChange *change)
  * Get the time this change started.
  *
  * Returns: (transfer none): a #GDateTime.
+ *
+ * Since: 1.5
  */
 GDateTime *
 snapd_change_get_spawn_time (SnapdChange *change)
@@ -170,6 +186,8 @@ snapd_change_get_spawn_time (SnapdChange *change)
  * Get the time this taksk completed or %NULL if not yet completed.
  *
  * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
+ *
+ * Since: 1.5
  */
 GDateTime *
 snapd_change_get_ready_time (SnapdChange *change)

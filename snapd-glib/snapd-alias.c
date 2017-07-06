@@ -28,6 +28,8 @@
  *
  * #SnapdAlias is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.8
  */
 
 struct _SnapdAlias
@@ -58,6 +60,8 @@ G_DEFINE_TYPE (SnapdAlias, snapd_alias, G_TYPE_OBJECT)
  * Get the app this is an alias for.
  *
  * Returns: an app name.
+ *
+ * Since: 1.8
  */
 const gchar *
 snapd_alias_get_app (SnapdAlias *alias)
@@ -73,6 +77,8 @@ snapd_alias_get_app (SnapdAlias *alias)
  * Get the name of this alias.
  *
  * Returns: an alias name.
+ *
+ * Since: 1.8
  */
 const gchar *
 snapd_alias_get_name (SnapdAlias *alias)
@@ -88,6 +94,8 @@ snapd_alias_get_name (SnapdAlias *alias)
  * Get the snap this alias is for.
  *
  * Returns: a snap name.
+ *
+ * Since: 1.8
  */
 const gchar *
 snapd_alias_get_snap (SnapdAlias *alias)
@@ -103,6 +111,8 @@ snapd_alias_get_snap (SnapdAlias *alias)
  * Get the status of this alias.
  *
  * Return: a #SnapdAliasStatus.
+ *
+ * Since: 1.8
  */
 SnapdAliasStatus
 snapd_alias_get_status (SnapdAlias *alias)

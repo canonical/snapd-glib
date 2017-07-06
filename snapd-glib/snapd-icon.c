@@ -27,6 +27,8 @@
  *
  * #SnapdIcon is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdIcon
@@ -53,6 +55,8 @@ G_DEFINE_TYPE (SnapdIcon, snapd_icon, G_TYPE_OBJECT)
  * Get the mime-type for this icon, e.g. "image/png".
  *
  * Returns: a MIME type.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_icon_get_mime_type (SnapdIcon *icon)
@@ -68,6 +72,8 @@ snapd_icon_get_mime_type (SnapdIcon *icon)
  * Get the binary data for this icon.
  *
  * Returns: (transfer none): the binary data.
+ *
+ * Since: 1.0
  */
 GBytes *
 snapd_icon_get_data (SnapdIcon *icon)

@@ -51,6 +51,8 @@ struct _SnapdClientClass
  * @SNAPD_FIND_FLAGS_SELECT_REFRESH: Deprecated, do not use
  *
  * Flag to change how a find is performed.
+ *
+ * Since: 1.0
  */
 typedef enum
 {
@@ -71,6 +73,8 @@ typedef enum
  * @SNAPD_INSTALL_FLAGS_JAILMODE: Put snap in enforced confinement mode.
  *
  * Flags to control install options.
+ *
+ * Since: 1.12
  */
 typedef enum
 {
@@ -88,6 +92,8 @@ typedef enum
  * @SNAPD_CREATE_USER_FLAGS_KNOWN: Use the local system-user assertions to create the user.
  *
  * Flag to control when a user accounts is created.
+ *
+ * Since: 1.3
  */
 typedef enum
 {
@@ -111,6 +117,8 @@ typedef enum
  * snapd_client_remove_sync(),
  * snapd_client_enable_sync() and
  * snapd_client_disable_sync().
+ *
+ * Since: 1.0
  */
 typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data);
 

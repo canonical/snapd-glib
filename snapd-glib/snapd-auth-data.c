@@ -26,6 +26,8 @@
  *
  * #SnapdAuthData is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdAuthData
@@ -53,6 +55,8 @@ G_DEFINE_TYPE (SnapdAuthData, snapd_auth_data, G_TYPE_OBJECT)
  * Create some authorization data.
  *
  * Returns: a new #SnapdAuthData
+ *
+ * Since: 1.0
  **/
 SnapdAuthData *
 snapd_auth_data_new (const gchar *macaroon, gchar **discharges)
@@ -70,6 +74,8 @@ snapd_auth_data_new (const gchar *macaroon, gchar **discharges)
  * Get the Macaroon that this authorization uses.
  *
  * Returns: the serialized Macaroon used to authorize access to snapd.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_auth_data_get_macaroon (SnapdAuthData *auth_data)
@@ -85,6 +91,8 @@ snapd_auth_data_get_macaroon (SnapdAuthData *auth_data)
  * Get the discharges that this authorization uses.
  *
  * Returns: (transfer none) (array zero-terminated=1): the discharges as serialized strings.
+ *
+ * Since: 1.0
  */
 gchar **
 snapd_auth_data_get_discharges (SnapdAuthData *auth_data)

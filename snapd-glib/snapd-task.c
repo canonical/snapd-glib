@@ -27,6 +27,8 @@
  *
  * #SnapdTask is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdTask
@@ -68,6 +70,8 @@ G_DEFINE_TYPE (SnapdTask, snapd_task, G_TYPE_OBJECT)
  * Get the unique ID for this task.
  *
  * Returns: an ID.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_task_get_id (SnapdTask *task)
@@ -87,6 +91,8 @@ snapd_task_get_id (SnapdTask *task)
  * Gets the kind of task this is.
  *
  * Returns: the kind of task.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_task_get_kind (SnapdTask *task)
@@ -106,6 +112,8 @@ snapd_task_get_kind (SnapdTask *task)
  * Get a human readable description of the task.
  *
  * Returns: a string describing the task.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_task_get_summary (SnapdTask *task)
@@ -125,6 +133,8 @@ snapd_task_get_summary (SnapdTask *task)
  * Get the status of the task.
  *
  * Returns: a status string.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_task_get_status (SnapdTask *task)
@@ -146,6 +156,8 @@ snapd_task_get_status (SnapdTask *task)
  * Depcrecated: 1.5: Use snapd_change_get_ready() instead.
  *
  * Returns: %TRUE if this task is complete.
+ *
+ * Since: 1.0
  */
 gboolean
 snapd_task_get_ready (SnapdTask *task)
@@ -164,6 +176,8 @@ snapd_task_get_ready (SnapdTask *task)
  * Get the the label associated with the progress.
  *
  * Returns: a label string.
+ *
+ * Since: 1.5
  */
 const gchar *
 snapd_task_get_progress_label (SnapdTask *task)
@@ -183,6 +197,8 @@ snapd_task_get_progress_label (SnapdTask *task)
  * Get the the number of items completed in this task.
  *
  * Returns: a count.
+ *
+ * Since: 1.0
  */
 gint64
 snapd_task_get_progress_done (SnapdTask *task)
@@ -202,6 +218,8 @@ snapd_task_get_progress_done (SnapdTask *task)
  * Get the the total number of items to be completed in this task.
  *
  * Returns: a count.
+ *
+ * Since: 1.0
  */
 gint64
 snapd_task_get_progress_total (SnapdTask *task)
@@ -221,6 +239,8 @@ snapd_task_get_progress_total (SnapdTask *task)
  * Get the time this task started.
  *
  * Returns: (transfer none): a #GDateTime.
+ *
+ * Since: 1.0
  */
 GDateTime *
 snapd_task_get_spawn_time (SnapdTask *task)
@@ -237,9 +257,11 @@ snapd_task_get_spawn_time (SnapdTask *task)
  * snapd_task_get_ready_time:
  * @task: a #SnapdTask.
  *
- * Get the time this taksk completed or %NULL if not yet completed.
+ * Get the time this task completed or %NULL if not yet completed.
  *
  * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
+ *
+ * Since: 1.0
  */
 GDateTime *
 snapd_task_get_ready_time (SnapdTask *task)

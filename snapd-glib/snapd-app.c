@@ -28,6 +28,8 @@
  *
  * #SnapdApp is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdApp
@@ -58,6 +60,8 @@ G_DEFINE_TYPE (SnapdApp, snapd_app, G_TYPE_OBJECT)
  * Get the name of this app.
  *
  * Returns: a name.
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_app_get_name (SnapdApp *app)
@@ -73,6 +77,8 @@ snapd_app_get_name (SnapdApp *app)
  * Get the aliases for this app.
  *
  * Returns: (transfer none) (array zero-terminated=1): the alias names.
+ *
+ * Since: 1.7
  */
 gchar **
 snapd_app_get_aliases (SnapdApp *app)
@@ -88,6 +94,8 @@ snapd_app_get_aliases (SnapdApp *app)
  * Get the daemon type for this app.
  *
  * Returns: (allow-none): the daemon type or %NULL.
+ *
+ * Since: 1.9
  */
 SnapdDaemonType
 snapd_app_get_daemon_type (SnapdApp *app)
@@ -103,6 +111,8 @@ snapd_app_get_daemon_type (SnapdApp *app)
  * Get the path to the desktop file for this app.
  *
  * Returns: (allow-none): a path or %NULL.
+ *
+ * Since: 1.14
  */
 const gchar *
 snapd_app_get_desktop_file (SnapdApp *app)

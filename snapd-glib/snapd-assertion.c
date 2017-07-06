@@ -31,6 +31,8 @@
  *
  * #SnapdAssertion is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdAssertion
@@ -55,6 +57,8 @@ G_DEFINE_TYPE (SnapdAssertion, snapd_assertion, G_TYPE_OBJECT)
  * Create a new assertion.
  *
  * Returns: a new #SnapdAssertion
+ *
+ * Since: 1.0
  **/
 SnapdAssertion *
 snapd_assertion_new (const gchar *content)
@@ -115,6 +119,8 @@ get_header (const gchar *content, gsize *offset, gsize *name_start, gsize *name_
  * Get the headers provided by this assertion.
  *
  * Returns: (transfer full) (array zero-terminated=1): array of header names.
+ *
+ * Since: 1.0
  */
 gchar **
 snapd_assertion_get_headers (SnapdAssertion *assertion)
@@ -150,6 +156,8 @@ snapd_assertion_get_headers (SnapdAssertion *assertion)
  * Get a header from an assertion.
  *
  * Returns: (transfer full) (allow-none): header value or %NULL if undefined.
+ *
+ * Since: 1.0
  */
 gchar *
 snapd_assertion_get_header (SnapdAssertion *assertion, const gchar *name)
@@ -209,6 +217,8 @@ get_body_length (SnapdAssertion *assertion)
  * Get the body of the assertion.
  *
  * Returns: (transfer full) (allow-none): assertion body or %NULL.
+ *
+ * Since: 1.0
  */
 gchar *
 snapd_assertion_get_body (SnapdAssertion *assertion)
@@ -231,6 +241,8 @@ snapd_assertion_get_body (SnapdAssertion *assertion)
  * Get the signature of the assertion.
  *
  * Returns: assertion signature.
+ *
+ * Since: 1.0
  */
 gchar *
 snapd_assertion_get_signature (SnapdAssertion *assertion)

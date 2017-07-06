@@ -25,6 +25,8 @@
  *
  * #SnapdScreenshot is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.0
  */
 
 struct _SnapdScreenshot
@@ -59,6 +61,8 @@ snapd_screenshot_new (void)
  * Get the URL for this screenshot, e.g. "http://example.com/screenshot.png"
  *
  * Returns: a URL
+ *
+ * Since: 1.0
  */
 const gchar *
 snapd_screenshot_get_url (SnapdScreenshot *screenshot)
@@ -74,6 +78,8 @@ snapd_screenshot_get_url (SnapdScreenshot *screenshot)
  * Get the width of the screenshot in pixels or 0 if unknown.
  *
  * Return: a width
+ *
+ * Since: 1.0
  */
 guint
 snapd_screenshot_get_width (SnapdScreenshot *screenshot)
@@ -89,6 +95,8 @@ snapd_screenshot_get_width (SnapdScreenshot *screenshot)
  * Get the height of the screenshot in pixels or 0 if unknown.
  *
  * Return: a height
+ *
+ * Since: 1.0
  */
 guint
 snapd_screenshot_get_height (SnapdScreenshot *screenshot)

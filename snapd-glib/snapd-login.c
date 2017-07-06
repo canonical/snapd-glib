@@ -131,6 +131,8 @@ convert_dbus_error (GError *dbus_error)
  * snapd_client_login_sync().
  *
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdAuthData *
 snapd_login_sync (const gchar *username, const gchar *password, const gchar *otp,
@@ -247,6 +249,8 @@ bus_cb (GObject *object, GAsyncResult *result, gpointer user_data)
  *
  * Asynchronously get authorization to install/remove snaps.
  * See snapd_login_sync() for more information.
+ *
+ * Since: 1.0
  */
 void
 snapd_login_async (const gchar *username, const gchar *password, const gchar *otp,
@@ -277,6 +281,8 @@ snapd_login_async (const gchar *username, const gchar *password, const gchar *ot
  * See snapd_login_sync() for more information.
  *
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
+ *
+ * Since: 1.0
  */
 SnapdAuthData *
 snapd_login_finish (GAsyncResult *result, GError **error)

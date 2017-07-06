@@ -26,6 +26,8 @@
  *
  * #SnapdUserInformation is an opaque data structure and can only be accessed
  * using the provided functions.
+ *
+ * Since: 1.3
  */
 
 struct _SnapdUserInformation
@@ -52,6 +54,8 @@ G_DEFINE_TYPE (SnapdUserInformation, snapd_user_information, G_TYPE_OBJECT)
  * Get the local username for this account.
  *
  * Returns: a username.
+ *
+ * Since: 1.3
  */
 const gchar *
 snapd_user_information_get_username (SnapdUserInformation *user_information)
@@ -67,6 +71,8 @@ snapd_user_information_get_username (SnapdUserInformation *user_information)
  * Get the SSH keys added to this account.
  *
  * Returns: (transfer none) (array zero-terminated=1): the names of the SSH keys.
+ *
+ * Since: 1.3
  */
 gchar **
 snapd_user_information_get_ssh_keys (SnapdUserInformation *user_information)

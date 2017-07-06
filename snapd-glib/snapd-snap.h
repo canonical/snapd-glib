@@ -37,6 +37,8 @@ struct _SnapdSnapClass
  * @SNAPD_CONFINEMENT_CLASSIC: the snap is using classic confinement.
  *
  * Confinment used by a snap.
+ *
+ * Since: 1.0
  */
 typedef enum
 {
@@ -55,6 +57,8 @@ typedef enum
  * @SNAPD_SNAP_TYPE_OS: the snap is an operating system.
  *
  * Type of snap.
+ *
+ * Since: 1.0
  */
 typedef enum
 {
@@ -74,6 +78,8 @@ typedef enum
  * @SNAPD_SNAP_STATUS_ACTIVE: the snap is installed and active.
  *
  * The current state of a snap.
+ *
+ * Since: 1.0
  */
 typedef enum
 {
