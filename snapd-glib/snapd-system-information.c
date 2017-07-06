@@ -90,7 +90,7 @@ snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_
  *
  * Returns: a #SnapdSystemConfinement.
  *
- * Since: 1.14
+ * Since: 1.15
  */
 SnapdSystemConfinement
 snapd_system_information_get_confinement (SnapdSystemInformation *system_information)

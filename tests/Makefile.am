@@ -8,13 +8,13 @@ test_programs += test-qt
 endif
 
 test_glib_SOURCES = test-glib.c mock-snapd.c mock-snapd.h
-test_glib_CFLAGS = -g $(WARN_CFLAGS) -DSNAPD_GLIB_USE_UNSTABLE_API \
+test_glib_CFLAGS = -g $(WARN_CFLAGS) \
 	$(SNAPD_CFLAGS) \
 	-I$(top_srcdir)
 test_glib_LDADD = $(top_builddir)/snapd-glib/libsnapd-glib.la $(SNAPD_LIBS)
 
 test_qt_SOURCES = test-qt.cpp test-qt.h test-qt_moc.cpp mock-snapd.c mock-snapd.h
-test_qt_CPPFLAGS = -g $(WARN_CFLAGS) -DSNAPD_QT_USE_UNSTABLE_API \
+test_qt_CPPFLAGS = -g $(WARN_CFLAGS) \
 	-fPIC \
 	$(SNAPD_CFLAGS) \
 	$(SNAPD_QT_CFLAGS) \

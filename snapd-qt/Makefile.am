@@ -27,7 +27,7 @@ private_h = client-private.h stream-wrapper.h
 client-private_moc.cpp: client-private.h
 	$(AM_V_GEN) $(MOC5) $< -o $@
 
-libsnapd_qt_la_CPPFLAGS = --std=c++11 $(SNAPD_QT_CFLAGS) $(SNAPD_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir) -DSNAPD_GLIB_USE_UNSTABLE_API -DSNAPD_QT_USE_UNSTABLE_API
+libsnapd_qt_la_CPPFLAGS = --std=c++11 $(SNAPD_QT_CFLAGS) $(SNAPD_CFLAGS) $(WARN_CFLAGS) -I$(top_srcdir)
 libsnapd_qt_la_LDFLAGS = -version-info 1:0:0
 libsnapd_qt_la_LIBADD = $(top_builddir)/snapd-glib/libsnapd-glib.la $(SNAPD_QT_LIBS)
 libsnapd_qt_la_SOURCES = $(source_cpp)  stream-wrapper.cpp $(source_moc) $(source_h) $(private_h)
