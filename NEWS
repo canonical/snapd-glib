@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.15
+
+    * Marked snapd_system_information_get_confinement as stable
+    * Correctly stop requests if cancelled
+
 Overview of changes in snapd-glib 1.14
 
     * New API:
