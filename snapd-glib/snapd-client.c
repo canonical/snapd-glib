@@ -140,6 +140,7 @@ struct _SnapdRequest
     RequestType request_type;
 
     GCancellable *cancellable;
+    gulong cancelled_id;
     GAsyncReadyCallback ready_callback;
     gpointer ready_callback_data;
 
@@ -154,7 +155,6 @@ struct _SnapdRequest
     GInputStream *snap_stream;
     GByteArray *snap_contents;
 
-    gboolean completed;
     GError *error;
     gboolean result;
     SnapdSystemInformation *system_information;
@@ -172,24 +172,38 @@ struct _SnapdRequest
     GPtrArray *aliases;
     gchar *stdout_output;
     gchar *stderr_output;
-    GSource *complete_source;
+    gboolean responded;
+    GSource *respond_source;
     JsonNode *async_data;
 };
 
 static gboolean
-complete_cb (gpointer user_data)
+respond_cb (gpointer user_data)
 {
-    g_autoptr(SnapdRequest) request = user_data;
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
-
-    priv->requests = g_list_remove (priv->requests, request);
+    SnapdRequest *request = user_data;
 
     if (request->ready_callback != NULL)
         request->ready_callback (G_OBJECT (request->client), G_ASYNC_RESULT (request), request->ready_callback_data);
 
-    g_source_destroy (request->complete_source);
-    request->complete_source = NULL;
+    g_source_destroy (request->respond_source);
+    request->respond_source = NULL;
     return G_SOURCE_REMOVE;
+}
+
+static void
+snapd_request_respond (SnapdRequest *request, GError *error)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
+
+    if (request->responded)
+        return;
+    request->responded = TRUE;
+    request->error = error;
+
+    /* Do in main loop so user can't block our reading callback */
+    request->respond_source = g_idle_source_new ();
+    g_source_set_callback (request->respond_source, respond_cb, g_object_ref (request), g_object_unref);
+    g_source_attach (request->respond_source, priv->context);
 }
 
 static void
@@ -197,15 +211,9 @@ snapd_request_complete (SnapdRequest *request, GError *error)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
 
-    g_return_if_fail (!request->completed);
-
-    request->completed = TRUE;
-    request->error = error;
-
-    /* Do in main loop so user can't block our reading callback */
-    request->complete_source = g_idle_source_new ();
-    g_source_set_callback (request->complete_source, complete_cb, request, NULL);
-    g_source_attach (request->complete_source, priv->context);
+    snapd_request_respond (request, error);
+    priv->requests = g_list_remove (priv->requests, request);
+    g_object_unref (request);
 }
 
 static gboolean
@@ -226,7 +234,7 @@ snapd_request_set_error (SnapdRequest *request, GError **error)
 static GObject *
 snapd_request_get_source_object (GAsyncResult *result)
 {
-    return G_OBJECT (SNAPD_REQUEST (result)->client);
+    return g_object_ref (SNAPD_REQUEST (result)->client);
 }
 
 static void
@@ -244,6 +252,7 @@ snapd_request_finalize (GObject *object)
     SnapdRequest *request = SNAPD_REQUEST (object);
 
     g_clear_object (&request->auth_data);
+    g_cancellable_disconnect (request->cancellable, request->cancelled_id);
     g_clear_object (&request->cancellable);
     g_free (request->change_id);
     if (request->poll_timer != 0)
@@ -268,9 +277,9 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->stdout_output, g_free);
     g_clear_pointer (&request->stderr_output, g_free);
     g_clear_pointer (&request->async_data, json_node_unref);
-    if (request->complete_source)
-        g_source_destroy (request->complete_source);
-    g_clear_pointer (&request->complete_source, g_source_unref);
+    if (request->respond_source)
+        g_source_destroy (request->respond_source);
+    g_clear_pointer (&request->respond_source, g_source_unref);
 }
 
 static void
@@ -1581,6 +1590,12 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
          }
 
          request->change_id = g_strdup (change_id);
+
+         /* Don't poll for result if cancelled */
+         if (g_cancellable_set_error_if_cancelled (request->cancellable, &error)) {
+             snapd_request_complete (request, error);
+             return;
+         }
     }
     else {
         gboolean ready;
@@ -2046,33 +2061,19 @@ parse_run_snapctl_response (SnapdRequest *request, SoupMessageHeaders *headers, 
     snapd_request_complete (request, NULL);
 }
 
-static SnapdRequest *
-get_next_request (SnapdClient *client)
-{
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
-    GList *link;
-
-    for (link = priv->requests; link != NULL; link = link->next) {
-        SnapdRequest *request = link->data;
-        if (!request->completed)
-            return request;
-    }
-
-    return NULL;
-}
-
 static void
 parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     SnapdRequest *request;
     GError *error = NULL;
 
     /* Match this response to the next uncompleted request */
-    request = get_next_request (client);
-    if (request == NULL) {
+    if (priv->requests == NULL) {
         g_warning ("Ignoring unexpected response");
         return;
     }
+    request = priv->requests->data;
 
     switch (request->request_type)
     {
@@ -2464,6 +2465,14 @@ snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError *
     return g_task_propagate_boolean (G_TASK (result), error);
 }
 
+static void
+request_cancelled_cb (GCancellable *cancellable, SnapdRequest *request)
+{
+    GError *error = NULL;
+    g_cancellable_set_error_if_cancelled (request->cancellable, &error);
+    snapd_request_respond (request, error);
+}
+
 static SnapdRequest *
 make_request (SnapdClient *client, RequestType request_type,
               SnapdProgressCallback progress_callback, gpointer progress_callback_data,
@@ -2477,8 +2486,10 @@ make_request (SnapdClient *client, RequestType request_type,
         request->auth_data = g_object_ref (priv->auth_data);
     request->client = client;
     request->request_type = request_type;
-    if (cancellable != NULL)
+    if (cancellable != NULL) {
         request->cancellable = g_object_ref (cancellable);
+        request->cancelled_id = g_cancellable_connect (cancellable, G_CALLBACK (request_cancelled_cb), request, NULL);
+    }
     request->ready_callback = callback;
     request->ready_callback_data = user_data;
     request->progress_callback = progress_callback;

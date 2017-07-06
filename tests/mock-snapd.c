@@ -2115,6 +2115,10 @@ handle_find (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers,
     else
         snaps = snapd->store_snaps;
 
+    /* Make a special query that never responds */
+    if (g_strcmp0 (query_param, "do-not-respond") == 0)
+        return;
+
     builder = json_builder_new ();
     json_builder_begin_array (builder);
     for (link = snaps; link; link = link->next) {

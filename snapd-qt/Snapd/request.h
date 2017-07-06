@@ -49,7 +49,8 @@ public:
         PasswordPolicyError,
         NeedsDevmode,
         NeedsClassic,
-        NeedsClassicSystem
+        NeedsClassicSystem,
+        Cancelled
     };
     Q_ENUM(QSnapdError)
 

@@ -1021,6 +1021,30 @@ test_find_name_private_not_logged_in ()
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::AuthDataRequired);
 }
 
+static gboolean
+find_cancel_cb (QSnapdFindRequest *request)
+{
+    request->cancel ();
+    return G_SOURCE_REMOVE;
+}
+
+static void
+test_find_cancel (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    /* Use a special query that never responds */
+    QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::None, "do-not-respond"));
+    g_idle_add ((GSourceFunc) find_cancel_cb, findRequest.data ());
+    findRequest->runSync ();
+    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::Cancelled);
+}
+
 static void
 test_find_section ()
 {
@@ -2472,6 +2496,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/name", test_find_name);
     g_test_add_func ("/find/name-private", test_find_name_private);
     g_test_add_func ("/find/name-private/not-logged-in", test_find_name_private_not_logged_in);
+    g_test_add_func ("/find/cancel", test_find_cancel);
     g_test_add_func ("/find/section", test_find_section);
     g_test_add_func ("/find/section_query", test_find_section_query);
     g_test_add_func ("/find/section_name", test_find_section_name);

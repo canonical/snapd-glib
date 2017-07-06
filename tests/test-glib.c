@@ -1245,6 +1245,37 @@ test_find_name_private_not_logged_in (void)
     g_assert (snaps == NULL);
 }
 
+static gboolean
+cancel_cb (gpointer user_data)
+{
+    GCancellable *cancellable = user_data;
+    g_cancellable_cancel (cancellable);
+    return G_SOURCE_REMOVE;
+}
+
+static void
+test_find_cancel (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) snaps = NULL;
+    g_autoptr(GCancellable) cancellable = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    /* Use a special query that never responds */
+    cancellable = g_cancellable_new ();
+    g_idle_add (cancel_cb, cancellable);
+    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "do-not-respond", NULL, cancellable, &error);
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+    g_assert (snaps == NULL);
+}
+
 static void
 test_find_section (void)
 {
@@ -3129,6 +3160,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/name", test_find_name);
     g_test_add_func ("/find/name-private", test_find_name_private);
     g_test_add_func ("/find/name-private/not-logged-in", test_find_name_private_not_logged_in);
+    g_test_add_func ("/find/cancel", test_find_cancel);
     g_test_add_func ("/find/section", test_find_section);
     g_test_add_func ("/find/section_query", test_find_section_query);
     g_test_add_func ("/find/section_name", test_find_section_name);

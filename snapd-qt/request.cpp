@@ -141,6 +141,8 @@ void QSnapdRequest::finish (void *error)
                 break;
             }
         }
+        else if (g_error_matches (e, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+            d->error = QSnapdRequest::QSnapdError::Cancelled;
         else
             d->error = QSnapdRequest::QSnapdError::UnknownError;
         d->errorString = e->message;
