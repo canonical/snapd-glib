@@ -1,3 +1,19 @@
+Overview of changes in snapd-glib 1.14
+
+    * New API:
+      - snapd_app_get_desktop_file
+      - snapd_snap_get_title
+      - snapd_system_information_get_confinement (unstable)
+    * Don't timeout waiting for snapd
+    * Add version defines so can do conditional compilation on new features
+    * Fix compilation with PolKit >= 0.114
+    * Fix snapd-qt compilation in clang
+    * Fix snapd-qt compilation on systems that use different versions of MOC
+    * snapd-qt improvements to better match best practise
+    * Include enum headers in snapd-glib.h
+    * Fix compile warnings using clang
+    * Documentation improvements
+
 Overview of changes in snapd-glib 1.13
 
     * New API:
