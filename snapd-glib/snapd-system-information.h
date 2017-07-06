@@ -28,6 +28,7 @@ struct _SnapdSystemInformationClass
     GObjectClass parent_class;
 };
 
+#ifdef SNAPD_GLIB_USE_UNSTABLE_API
 /**
  * SnapdSystemConfinement:
  * @SNAPD_SYSTEM_CONFINEMENT_UNKNOWN: the confinement of the system is unknown.
@@ -42,10 +43,13 @@ typedef enum
     SNAPD_SYSTEM_CONFINEMENT_STRICT,
     SNAPD_SYSTEM_CONFINEMENT_PARTIAL
 } SnapdSystemConfinement;
+#endif
 
 const gchar *snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_information);
 
+#ifdef SNAPD_GLIB_USE_UNSTABLE_API
 SnapdSystemConfinement snapd_system_information_get_confinement (SnapdSystemInformation *system_information);
+#endif
 
 const gchar *snapd_system_information_get_kernel_version     (SnapdSystemInformation *system_information);
 

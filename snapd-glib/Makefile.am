@@ -58,6 +58,7 @@ lib_LTLIBRARIES = $(snapd_la)
 
 libsnapd_glib_la_CPPFLAGS = \
 	-DSNAPD_COMPILATION=1 \
+	-DSNAPD_GLIB_USE_UNSTABLE_API \
 	-DG_LOG_DOMAIN=\"Snapd\" \
 	-I$(top_srcdir) \
 	-I$(top_builddir) \

@@ -18,7 +18,9 @@ class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
     Q_OBJECT
 
     Q_PROPERTY(QString binariesDirectory READ binariesDirectory)
+#ifdef SNAPD_QT_USE_UNSTABLE_API
     Q_PROPERTY(QSnapdSystemConfinement confinement READ confinement)
+#endif
     Q_PROPERTY(QString kernelVersion READ kernelVersion)
     Q_PROPERTY(bool managed READ managed)
     Q_PROPERTY(QString mountDirectory READ mountDirectory)
@@ -30,6 +32,7 @@ class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
     Q_PROPERTY(QString version READ version)
 
 public:
+#ifdef SNAPD_QT_USE_UNSTABLE_API
     enum QSnapdSystemConfinement
     {
         ConfinementUnknown,
@@ -37,11 +40,14 @@ public:
         ConfinementPartial
     };
     Q_ENUM(QSnapdSystemConfinement)
+#endif
 
     explicit QSnapdSystemInformation (void *snapd_object, QObject* parent = 0);
 
     QString binariesDirectory () const;
+#ifdef SNAPD_QT_USE_UNSTABLE_API
     QSnapdSystemConfinement confinement () const;
+#endif
     QString kernelVersion () const;
     bool managed () const;
     QString mountDirectory () const;
