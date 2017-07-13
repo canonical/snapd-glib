@@ -307,7 +307,7 @@ send_request (SnapdRequest *request,
               SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
-    g_autoptr(SoupBuffer) buffer;
+    g_autoptr(SoupBuffer) buffer = NULL;
     g_autoptr(GByteArray) request_data = NULL;
     SoupMessageHeadersIter iter;
     const char *name, *value;
@@ -1343,7 +1343,7 @@ parse_get_assertions_response (SnapdRequest *request, guint code, SoupMessageHea
     assertions = g_ptr_array_new ();
     while (offset < content_length) {
         gsize assertion_start, assertion_end, body_length = 0;
-        g_autofree gchar *body_length_header;
+        g_autofree gchar *body_length_header = NULL;
         SnapdAssertion *assertion;
 
         /* Headers terminated by double newline */
