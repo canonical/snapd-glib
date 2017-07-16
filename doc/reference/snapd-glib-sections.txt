@@ -4,6 +4,9 @@
 SnapdAlias
 SnapdAliasStatus
 snapd_alias_get_app
+snapd_alias_get_app_auto
+snapd_alias_get_command
+snapd_alias_get_app_manual
 snapd_alias_get_name
 snapd_alias_get_snap
 snapd_alias_get_status
@@ -187,6 +190,15 @@ snapd_client_get_sections_finish
 snapd_client_get_aliases_async
 snapd_client_get_aliases_finish
 snapd_client_get_aliases_sync
+snapd_client_alias_async
+snapd_client_alias_finish
+snapd_client_alias_sync
+snapd_client_unalias_async
+snapd_client_unalias_finish
+snapd_client_unalias_sync
+snapd_client_prefer_async
+snapd_client_prefer_finish
+snapd_client_prefer_sync
 snapd_client_enable_aliases_async
 snapd_client_enable_aliases_finish
 snapd_client_enable_aliases_sync

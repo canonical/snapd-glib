@@ -540,8 +540,8 @@ test_list_one_optional_fields ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     MockApp *a = mock_snap_add_app (s, "app");
-    mock_app_add_alias (a, "app2");
-    mock_app_add_alias (a, "app3");
+    mock_app_add_auto_alias (a, "app2");
+    mock_app_add_auto_alias (a, "app3");
     mock_app_set_desktop_file (a, "/var/lib/snapd/desktop/applications/app.desktop");
     mock_snap_set_broken (s, "BROKEN");
     mock_snap_set_confinement (s, "classic");
@@ -3011,19 +3011,19 @@ test_get_sections_sync ()
 }
 
 static void
-test_get_aliases_sync ()
+test_aliases_get_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockApp *a = mock_snap_add_app (s, "app1");
-    MockAlias *al = mock_app_add_alias (a, "alias1");
-    mock_alias_set_status (al, "enabled");
-    a = mock_snap_add_app (s, "app2");
-    al = mock_app_add_alias (a, "alias2");
-    mock_alias_set_status (al, "disabled");
-    s = mock_snapd_add_snap (snapd, "snap2");
-    a = mock_snap_add_app (s, "app3");
-    mock_app_add_alias (a, "alias3");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
+
+    mock_app_add_auto_alias (a, "alias1");
+
+    mock_app_add_manual_alias (a, "alias2", TRUE);
+
+    mock_app_add_auto_alias (a, "alias3");
+    mock_app_add_manual_alias (a, "alias3", FALSE);
+
     g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -3033,25 +3033,28 @@ test_get_aliases_sync ()
     getAliasesRequest->runSync ();
     g_assert_cmpint (getAliasesRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (getAliasesRequest->aliasCount (), ==, 3);
-    QScopedPointer<QSnapdAlias> alias0 (getAliasesRequest->alias (0));
-    g_assert (alias0->snap () == "snap1");
-    g_assert (alias0->name () == "alias1");
-    g_assert (alias0->app () == "app1");
-    g_assert_cmpint (alias0->status (), ==, QSnapdEnums::AliasStatusEnabled);
-    QScopedPointer<QSnapdAlias> alias1 (getAliasesRequest->alias (1));
-    g_assert (alias1->snap () == "snap1");
-    g_assert (alias1->name () == "alias2");
-    g_assert (alias1->app () == "app2");
-    g_assert_cmpint (alias1->status (), ==, QSnapdEnums::AliasStatusDisabled);
-    QScopedPointer<QSnapdAlias> alias2 (getAliasesRequest->alias (2));
-    g_assert (alias2->snap () == "snap2");
-    g_assert (alias2->name () == "alias3");
-    g_assert (alias2->app () == "app3");
-    g_assert_cmpint (alias2->status (), ==, QSnapdEnums::AliasStatusDefault);
+    QScopedPointer<QSnapdAlias> alias1 (getAliasesRequest->alias (0));
+    g_assert (alias1->name () == "alias1");
+    g_assert (alias1->snap () == "snap");
+    g_assert_cmpint (alias1->status (), ==, QSnapdEnums::AliasStatusAuto);
+    g_assert (alias1->appAuto () == "app");
+    g_assert (alias1->appManual () == NULL);
+    QScopedPointer<QSnapdAlias> alias2 (getAliasesRequest->alias (1));
+    g_assert (alias2->name () == "alias2");
+    g_assert (alias2->snap () == "snap");
+    g_assert_cmpint (alias2->status (), ==, QSnapdEnums::AliasStatusManual);
+    g_assert (alias2->appAuto () == NULL);
+    g_assert (alias2->appManual () == "app");
+    QScopedPointer<QSnapdAlias> alias3 (getAliasesRequest->alias (2));
+    g_assert (alias3->name () == "alias3");
+    g_assert (alias3->snap () == "snap");
+    g_assert_cmpint (alias3->status (), ==, QSnapdEnums::AliasStatusDisabled);
+    g_assert (alias3->appAuto () == "app");
+    g_assert (alias3->appManual () == NULL);
 }
 
 static void
-test_get_aliases_empty ()
+test_aliases_get_empty ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     g_assert (mock_snapd_start (snapd, NULL));
@@ -3066,100 +3069,74 @@ test_get_aliases_empty ()
 }
 
 static void
-test_enable_aliases_sync ()
+test_aliases_alias_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockApp *a = mock_snap_add_app (s, "app1");
-    MockAlias *alias = mock_app_add_alias (a, "alias1");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
     g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdEnableAliasesRequest> enableAliasesRequest (client.enableAliases ("snap1", QStringList () << "alias1"));
-    enableAliasesRequest->runSync ();
-    g_assert_cmpint (enableAliasesRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpstr (alias->status, ==, "enabled");
+    g_assert_null (mock_app_find_alias (a, "foo"));
+    QScopedPointer<QSnapdAliasRequest> aliasRequest (client.alias ("snap", "app", "foo"));
+    aliasRequest->runSync ();
+    g_assert_cmpint (aliasRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_nonnull (mock_app_find_alias (a, "foo"));
 }
 
 static void
-test_enable_aliases_multiple ()
+test_aliases_unalias_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockApp *a = mock_snap_add_app (s, "app1");
-    MockAlias *alias1 = mock_app_add_alias (a, "alias1");
-    a = mock_snap_add_app (s, "app2");
-    MockAlias *alias2 = mock_app_add_alias (a, "alias2");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
+    mock_app_add_manual_alias (a, "foo", TRUE);
     g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdEnableAliasesRequest> enableAliasesRequest (client.enableAliases ("snap1", QStringList () << "alias1" << "alias2"));
-    enableAliasesRequest->runSync ();
-    g_assert_cmpint (enableAliasesRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpstr (alias1->status, ==, "enabled");
-    g_assert_cmpstr (alias2->status, ==, "enabled");
+    QScopedPointer<QSnapdUnaliasRequest> unaliasRequest (client.unalias ("snap", "foo"));
+    unaliasRequest->runSync ();
+    g_assert_cmpint (unaliasRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_null (mock_app_find_alias (a, "foo"));
 }
 
 static void
-test_enable_aliases_progress ()
+test_aliases_unalias_no_snap_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockApp *a = mock_snap_add_app (s, "app1");
-    MockAlias *alias = mock_app_add_alias (a, "alias1");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
+    mock_app_add_manual_alias (a, "foo", TRUE);
     g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdEnableAliasesRequest> enableAliasesRequest (client.enableAliases ("snap1", QStringList () << "alias1"));
-    ProgressCounter counter;
-    QObject::connect (enableAliasesRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
-    enableAliasesRequest->runSync ();
-    g_assert_cmpint (enableAliasesRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpstr (alias->status, ==, "enabled");
-    g_assert_cmpint (counter.progressDone, >, 0);
+    QScopedPointer<QSnapdUnaliasRequest> unaliasRequest (client.unalias ("foo"));
+    unaliasRequest->runSync ();
+    g_assert_cmpint (unaliasRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_null (mock_app_find_alias (a, "foo"));
 }
 
 static void
-test_disable_aliases_sync ()
+test_aliases_prefer_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockApp *a = mock_snap_add_app (s, "app1");
-    MockAlias *alias = mock_app_add_alias (a, "alias1");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdDisableAliasesRequest> disableAliasesRequest (client.disableAliases ("snap1", QStringList () << "alias1"));
-    disableAliasesRequest->runSync ();
-    g_assert_cmpint (disableAliasesRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpstr (alias->status, ==, "disabled");
-}
-
-static void
-test_reset_aliases_sync ()
-{
-    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockApp *a = mock_snap_add_app (s, "app1");
-    MockAlias *alias = mock_app_add_alias (a, "alias1");
-    mock_alias_set_status (alias, "enabled");
-    g_assert (mock_snapd_start (snapd, NULL));
-
-    QSnapdClient client;
-    client.setSocketPath (mock_snapd_get_socket_path (snapd));
-
-    QScopedPointer<QSnapdResetAliasesRequest> resetAliasesRequest (client.resetAliases ("snap1", QStringList () << "alias1"));
-    resetAliasesRequest->runSync ();
-    g_assert_cmpint (resetAliasesRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (alias->status == NULL);
+    g_assert (!s->preferred);
+    QScopedPointer<QSnapdPreferRequest> preferRequest (client.prefer ("snap"));
+    preferRequest->runSync ();
+    g_assert_cmpint (preferRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert (s->preferred);
 }
 
 static void
@@ -3327,13 +3304,12 @@ main (int argc, char **argv)
     //FIXMEg_test_add_func ("/create-user/sync", test_create_user_sync);
     //FIXMEg_test_add_func ("/create-users/sync", test_create_user_sync);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
-    g_test_add_func ("/get-aliases/sync", test_get_aliases_sync);
-    g_test_add_func ("/get-aliases/empty", test_get_aliases_empty);
-    g_test_add_func ("/enable-aliases/sync", test_enable_aliases_sync);
-    g_test_add_func ("/enable-aliases/multiple", test_enable_aliases_multiple);
-    g_test_add_func ("/enable-aliases/progress", test_enable_aliases_progress);
-    g_test_add_func ("/disable-aliases/sync", test_disable_aliases_sync);
-    g_test_add_func ("/reset-aliases/sync", test_reset_aliases_sync);
+    g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
+    g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);
+    g_test_add_func ("/aliases/alias-sync", test_aliases_alias_sync);
+    g_test_add_func ("/aliases/unalias-sync", test_aliases_unalias_sync);
+    g_test_add_func ("/aliases/unalias-no-snap-sync", test_aliases_unalias_no_snap_sync);
+    g_test_add_func ("/aliases/prefer-sync", test_aliases_prefer_sync);
     g_test_add_func ("/run-snapctl/sync", test_run_snapctl_sync);
     g_test_add_func ("/stress/basic", test_stress);
 

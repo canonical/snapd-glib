@@ -19,6 +19,9 @@ class Q_DECL_EXPORT QSnapdAlias : public QSnapdWrappedObject
     Q_OBJECT
 
     Q_PROPERTY(QString app READ app)
+    Q_PROPERTY(QString appAuto READ appAuto)
+    Q_PROPERTY(QString command READ command)
+    Q_PROPERTY(QString appManual READ appManual)
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString snap READ snap)
     Q_PROPERTY(QSnapdEnums::AliasStatus status READ status)
@@ -27,6 +30,9 @@ public:
     explicit QSnapdAlias (void* snapd_object, QObject* parent = 0);
 
     QString app () const;
+    QString appAuto () const;
+    QString command () const;
+    QString appManual () const;
     QString name () const;
     QString snap () const;
     QSnapdEnums::AliasStatus status () const;

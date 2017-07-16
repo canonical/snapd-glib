@@ -89,7 +89,6 @@ static void
 mock_alias_free (MockAlias *alias)
 {
     g_free (alias->name);
-    g_free (alias->status);
     g_slice_free (MockAlias, alias);
 }
 
@@ -97,9 +96,9 @@ static void
 mock_app_free (MockApp *app)
 {
     g_free (app->name);
-    g_list_free_full (app->aliases, (GDestroyNotify) mock_alias_free);
     g_free (app->daemon);
     g_free (app->desktop_file);
+    g_list_free_full (app->aliases, (GDestroyNotify) mock_alias_free);
     g_slice_free (MockApp, app);
 }
 
@@ -519,44 +518,6 @@ mock_snap_add_app (MockSnap *snap, const gchar *name)
     return app;
 }
 
-MockAlias *
-mock_app_add_alias (MockApp *app, const gchar *name)
-{
-    MockAlias *alias;
-
-    alias = g_slice_new0 (MockAlias);
-    alias->name = g_strdup (name);
-    app->aliases = g_list_append (app->aliases, alias);
-
-    return alias;
-}
-
-static MockAlias *
-mock_snap_find_alias (MockSnap *snap, const gchar *name)
-{
-    GList *link;
-
-    for (link = snap->apps; link; link = link->next) {
-        MockApp *app = link->data;
-        GList *link2;
-
-        for (link2 = app->aliases; link2; link2 = link2->next) {
-            MockAlias *alias = link2->data;
-            if (strcmp (alias->name, name) == 0)
-                return alias;
-        }
-    }
-
-    return NULL;
-}
-
-void
-mock_alias_set_status (MockAlias *alias, const gchar *status)
-{
-    g_free (alias->status);
-    alias->status = g_strdup (status);
-}
-
 void
 mock_app_set_daemon (MockApp *app, const gchar *daemon)
 {
@@ -569,6 +530,50 @@ mock_app_set_desktop_file (MockApp *app, const gchar *desktop_file)
 {
     g_free (app->desktop_file);
     app->desktop_file = g_strdup (desktop_file);
+}
+
+static void
+add_alias (MockApp *app, const gchar *name, gboolean automatic, gboolean enabled)
+{
+    MockAlias *a;
+
+    a = g_slice_new (MockAlias);
+    a->name = g_strdup (name);
+    a->automatic = automatic;
+    a->enabled = enabled;
+    app->aliases = g_list_append (app->aliases, a);
+}
+
+void
+mock_app_add_auto_alias (MockApp *app, const gchar *name)
+{
+    add_alias (app, name, TRUE, TRUE);
+}
+
+void
+mock_app_add_manual_alias (MockApp *app, const gchar *name, gboolean enabled)
+{
+    MockAlias *alias = mock_app_find_alias (app, name);
+    if (alias != NULL) {
+        alias->enabled = enabled;
+        return;
+    }
+
+    add_alias (app, name, FALSE, enabled);
+}
+
+MockAlias *
+mock_app_find_alias (MockApp *app, const gchar *name)
+{
+    GList *link;
+
+    for (link = app->aliases; link; link = link->next) {
+        MockAlias *alias = link->data;
+        if (strcmp (alias->name, name) == 0)
+            return alias;
+    }
+
+    return NULL;
 }
 
 void
@@ -2600,6 +2605,67 @@ handle_sections (MockSnapd *snapd, SoupMessage *message)
     send_sync_response (message, 200, json_builder_get_root (builder), NULL);
 }
 
+static MockSnap *
+find_snap_by_alias (MockSnapd *snapd, const gchar *name)
+{
+    GList *link;
+
+    for (link = snapd->snaps; link; link = link->next) {
+        MockSnap *snap = link->data;
+        GList *app_link;
+
+        for (app_link = snap->apps; app_link; app_link = app_link->next) {
+            MockApp *app = app_link->data;
+            MockAlias *alias;
+
+            alias = mock_app_find_alias (app, name);
+            if (alias != NULL)
+                return snap;
+        }
+    }
+
+    return NULL;
+}
+
+static MockApp *
+find_app (MockSnap *snap, const gchar *name)
+{
+    GList *link;
+
+    for (link = snap->apps; link; link = link->next) {
+        MockApp *app = link->data;
+        if (strcmp (app->name, name) == 0)
+            return app;
+    }
+
+    return NULL;
+}
+
+static void
+unalias (MockSnapd *snapd, const gchar *name)
+{
+    GList *link;
+
+    for (link = snapd->snaps; link; link = link->next) {
+        MockSnap *snap = link->data;
+        GList *app_link;
+
+        for (app_link = snap->apps; app_link; app_link = app_link->next) {
+            MockApp *app = app_link->data;
+            MockAlias *alias;
+
+            alias = mock_app_find_alias (app, name);
+            if (alias != NULL) {
+                if (alias->automatic)
+                    alias->enabled = FALSE;
+                else
+                    app->aliases = g_list_remove (app->aliases, alias);
+                return;
+            }
+        }
+    }
+}
+
 static void
 handle_aliases (MockSnapd *snapd, SoupMessage *message)
 {
@@ -2620,6 +2686,7 @@ handle_aliases (MockSnapd *snapd, SoupMessage *message)
 
                 for (link3 = app->aliases; link3; link3 = link3->next) {
                     MockAlias *alias = link3->data;
+                    g_autofree gchar *command = NULL;
 
                     if (alias_count == 0) {
                         json_builder_set_member_name (builder, snap->name);
@@ -2629,11 +2696,23 @@ handle_aliases (MockSnapd *snapd, SoupMessage *message)
 
                     json_builder_set_member_name (builder, alias->name);
                     json_builder_begin_object (builder);
-                    json_builder_set_member_name (builder, "app");
-                    json_builder_add_string_value (builder, app->name);
-                    if (alias->status != NULL) {
+                    command = g_strdup_printf ("%s.%s", snap->name, app->name);
+                    json_builder_set_member_name (builder, "command");
+                    json_builder_add_string_value (builder, command);
+                    if (alias->automatic) {
                         json_builder_set_member_name (builder, "status");
-                        json_builder_add_string_value (builder, alias->status);
+                        if (alias->enabled)
+                            json_builder_add_string_value (builder, "auto");
+                        else
+                            json_builder_add_string_value (builder, "disabled");
+                        json_builder_set_member_name (builder, "auto");
+                        json_builder_add_string_value (builder, app->name);
+                    }
+                    else {
+                        json_builder_set_member_name (builder, "status");
+                        json_builder_add_string_value (builder, "manual");
+                        json_builder_set_member_name (builder, "manual");
+                        json_builder_add_string_value (builder, app->name);
                     }
                     json_builder_end_object (builder);
                 }
@@ -2650,9 +2729,7 @@ handle_aliases (MockSnapd *snapd, SoupMessage *message)
         JsonObject *o;
         MockSnap *snap;
         const gchar *action;
-        const gchar *status;
-        JsonArray *aliases;
-        int i;
+        const gchar *alias = NULL;
         MockChange *change;
 
         request = get_json (message);
@@ -2662,32 +2739,53 @@ handle_aliases (MockSnapd *snapd, SoupMessage *message)
         }
 
         o = json_node_get_object (request);
-        snap = find_snap (snapd, json_object_get_string_member (o, "snap"));
-        if (snap == NULL) {
+        if (json_object_has_member (o, "alias"))
+            alias = json_object_get_string_member (o, "alias");
+        if (json_object_has_member (o, "snap")) {
+            snap = find_snap (snapd, json_object_get_string_member (o, "snap"));
+            if (snap == NULL) {
+                send_error_not_found (message, "cannot find snap");
+                return;
+            }
+        }
+        else if (alias != NULL) {
+            snap = find_snap_by_alias (snapd, alias);
+            if (snap == NULL) {
+                send_error_not_found (message, "cannot find snap");
+                return;
+            }
+        }
+        else {
             send_error_not_found (message, "cannot find snap");
             return;
         }
 
         action = json_object_get_string_member (o, "action");
-        if (g_strcmp0 (action, "alias") == 0)
-            status = "enabled";
-        else if (g_strcmp0 (action, "unalias") == 0)
-            status = "disabled";
-        else if (g_strcmp0 (action, "reset") == 0)
-            status = NULL;
+        if (g_strcmp0 (action, "alias") == 0) {
+            const gchar *app_name;
+            MockApp *app;
+
+            app_name = json_object_get_string_member (o, "app");
+            if (app_name == NULL) {
+                send_error_not_found (message, "No app specified");
+                return;
+            }
+            app = find_app (snap, app_name);
+            if (app == NULL) {
+                send_error_not_found (message, "App not found");
+                return;
+            }
+            mock_app_add_manual_alias (app, alias, TRUE);
+        }
+        else if (g_strcmp0 (action, "unalias") == 0) {
+            unalias (snapd, alias);
+        }
+        else if (g_strcmp0 (action, "prefer") == 0) {
+            snap->preferred = TRUE;
+        }
         else {
             send_error_bad_request (message, "unsupported alias action", NULL);
             return;
-        }
-
-        aliases = json_object_get_array_member (o, "aliases");
-        for (i = 0; i < json_array_get_length (aliases); i++) {
-            const gchar *name = json_array_get_string_element (aliases, i);
-            MockAlias *alias;
-
-            alias = mock_snap_find_alias (snap, name);
-            if (alias != NULL)
-                mock_alias_set_status (alias, status);
         }
 
         change = add_change (snapd);

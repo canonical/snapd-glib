@@ -25,10 +25,11 @@ G_DECLARE_FINAL_TYPE (SnapdAlias, snapd_alias, SNAPD, ALIAS, GObject)
 /**
  * SnapdAliasStatus:
  * @SNAPD_ALIAS_STATUS_UNKNOWN: the alias status is unknown.
- * @SNAPD_ALIAS_STATUS_DEFAULT: the alias is set to default behaviour.
- * @SNAPD_ALIAS_STATUS_ENABLED: the alias is enabled.
+ * @SNAPD_ALIAS_STATUS_DEFAULT: deprecated, do not use.
+ * @SNAPD_ALIAS_STATUS_ENABLED: deprecated, do not use.
  * @SNAPD_ALIAS_STATUS_DISABLED: the alias is disabled.
- * @SNAPD_ALIAS_STATUS_AUTO: the alias is automatically enabled
+ * @SNAPD_ALIAS_STATUS_AUTO: the alias is automatically enabled.
+ * @SNAPD_ALIAS_STATUS_MANUAL: the alias is manually enabled.
  *
  * Status of an alias.
  *
@@ -40,16 +41,23 @@ typedef enum
     SNAPD_ALIAS_STATUS_DEFAULT,
     SNAPD_ALIAS_STATUS_ENABLED,
     SNAPD_ALIAS_STATUS_DISABLED,
-    SNAPD_ALIAS_STATUS_AUTO
+    SNAPD_ALIAS_STATUS_AUTO,
+    SNAPD_ALIAS_STATUS_MANUAL
 } SnapdAliasStatus;
 
-const gchar      *snapd_alias_get_app    (SnapdAlias *alias);
+const gchar      *snapd_alias_get_app           (SnapdAlias *alias) G_DEPRECATED;
 
-const gchar      *snapd_alias_get_name   (SnapdAlias *alias);
+const gchar      *snapd_alias_get_app_auto   (SnapdAlias *alias);
 
-const gchar      *snapd_alias_get_snap   (SnapdAlias *alias);
+const gchar      *snapd_alias_get_command       (SnapdAlias *alias);
 
-SnapdAliasStatus  snapd_alias_get_status (SnapdAlias *alias);
+const gchar      *snapd_alias_get_app_manual (SnapdAlias *alias);
+
+const gchar      *snapd_alias_get_name          (SnapdAlias *alias);
+
+const gchar      *snapd_alias_get_snap          (SnapdAlias *alias);
+
+SnapdAliasStatus  snapd_alias_get_status        (SnapdAlias *alias);
 
 G_END_DECLS
 

@@ -23,7 +23,8 @@ public:
         AliasStatusDefault,
         AliasStatusEnabled,
         AliasStatusDisabled,
-        AliasStatusAuto
+        AliasStatusAuto,
+        AliasStatusManual
     };
     Q_ENUM(AliasStatus)
 

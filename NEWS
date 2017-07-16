@@ -1,7 +1,30 @@
 Overview of changes in snapd-glib 1.25
 
     * New API:
+      - snapd_client_alias_async
+      - snapd_client_alias_finish
+      - snapd_client_alias_sync
+      - snapd_client_unalias_async
+      - snapd_client_unalias_finish
+      - snapd_client_unalias_sync
+      - snapd_client_prefer_async
+      - snapd_client_prefer_finish
+      - snapd_client_prefer_sync
+      - snapd_alias_get_app_auto
+      - snapd_alias_get_command
+      - snapd_alias_get_app_manual
       - snapd_snap_get_broken
+    * Deprecated API:
+      - snapd_client_enable_aliases_async
+      - snapd_client_enable_aliases_finish
+      - snapd_client_enable_aliases_sync
+      - snapd_client_disable_aliases_async
+      - snapd_client_disable_aliases_finish
+      - snapd_client_disable_aliases_sync
+      - snapd_client_reset_aliases_async
+      - snapd_client_reset_aliases_finish
+      - snapd_client_reset_aliases_sync
+    * Implement v2 alias API
 
 Overview of changes in snapd-glib 1.24
 

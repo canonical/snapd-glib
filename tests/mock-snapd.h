@@ -39,6 +39,13 @@ typedef struct
 
 typedef struct
 {
+    gchar *name;
+    gboolean automatic;
+    gboolean enabled;
+} MockAlias;
+
+typedef struct
+{
     GList *apps;
     gchar *broken;
     gchar *channel;
@@ -78,21 +85,16 @@ typedef struct
     gchar *snap_path;
     gchar *error;
     gboolean restart_required;
+    gboolean preferred;
 } MockSnap;
 
 typedef struct
 {
     gchar *name;
-    GList *aliases;
     gchar *daemon;
     gchar *desktop_file;
+    GList *aliases;
 } MockApp;
-
-typedef struct
-{
-    gchar *name;
-    gchar *status;
-} MockAlias;
 
 typedef struct
 {
@@ -204,17 +206,21 @@ MockSnap       *mock_snapd_add_store_snap         (MockSnapd     *snapd,
 MockApp        *mock_snap_add_app                 (MockSnap      *snap,
                                                    const gchar   *name);
 
-MockAlias      *mock_app_add_alias                (MockApp       *app,
-                                                   const gchar   *alias);
-
-void            mock_alias_set_status             (MockAlias     *alias,
-                                                   const gchar   *status);
-
 void            mock_app_set_daemon               (MockApp       *app,
                                                    const gchar   *daemon);
 
 void            mock_app_set_desktop_file         (MockApp       *app,
                                                    const gchar   *desktop_file);
+
+void            mock_app_add_auto_alias           (MockApp       *app,
+                                                   const gchar   *alias);
+
+void            mock_app_add_manual_alias         (MockApp       *app,
+                                                   const gchar   *alias,
+                                                   gboolean       enabled);
+
+MockAlias      *mock_app_find_alias               (MockApp       *app,
+                                                   const gchar   *name);
 
 void            mock_snap_set_broken              (MockSnap      *snap,
                                                    const gchar   *broken);

@@ -10,6 +10,7 @@
 #include "config.h"
 
 #include "snapd-client.h"
+#include "snapd-error.h"
 
 typedef struct {
     GMainContext *context;
@@ -929,6 +930,104 @@ snapd_client_get_aliases_sync (SnapdClient *client,
 }
 
 /**
+ * snapd_client_alias_sync:
+ * @client: a #SnapdClient.
+ * @snap: the name of the snap to modify.
+ * @app: an app in the snap to make the alias to.
+ * @alias: the name of the alias (i.e. the command that will run this app).
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Create an alias to an app.
+ *
+ * Since: 1.25
+ */
+gboolean
+snapd_client_alias_sync (SnapdClient *client,
+                         const gchar *snap, const gchar *app, const gchar *alias,
+                         SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                         GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (snap != NULL, FALSE);
+    g_return_val_if_fail (app != NULL, FALSE);
+    g_return_val_if_fail (alias != NULL, FALSE);
+
+    start_sync (&data);
+    snapd_client_alias_async (client, snap, app, alias, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_alias_finish (client, data.result, error);
+}
+
+/**
+ * snapd_client_unalias_sync:
+ * @client: a #SnapdClient.
+ * @snap: (allow-none): the name of the snap to modify or %NULL.
+ * @alias: (allow-none): the name of the alias to remove or %NULL to remove all aliases for the given snap.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Remove an alias from an app.
+ *
+ * Since: 1.25
+ */
+gboolean
+snapd_client_unalias_sync (SnapdClient *client,
+                           const gchar *snap, const gchar *alias,
+                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                           GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (alias != NULL, FALSE);
+
+    start_sync (&data);
+    snapd_client_unalias_async (client, snap, alias, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_unalias_finish (client, data.result, error);
+}
+
+/**
+ * snapd_client_prefer_sync:
+ * @client: a #SnapdClient.
+ * @snap: the name of the snap to modify.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * ???
+ *
+ * Since: 1.25
+ */
+gboolean
+snapd_client_prefer_sync (SnapdClient *client,
+                          const gchar *snap,
+                          SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                          GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (snap != NULL, FALSE);
+
+    start_sync (&data);
+    snapd_client_prefer_async (client, snap, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_prefer_finish (client, data.result, error);
+}
+
+/**
  * snapd_client_enable_aliases_sync:
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
@@ -944,6 +1043,7 @@ snapd_client_get_aliases_sync (SnapdClient *client,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.8
+ * Deprecated: 1.25: Use snapd_client_alias_sync()
  */
 gboolean
 snapd_client_enable_aliases_sync (SnapdClient *client,
@@ -951,16 +1051,8 @@ snapd_client_enable_aliases_sync (SnapdClient *client,
                                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                   GCancellable *cancellable, GError **error)
 {
-    g_auto(SyncData) data = { 0 };
-
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snap != NULL, FALSE);
-    g_return_val_if_fail (aliases != NULL, FALSE);
-
-    start_sync (&data);
-    snapd_client_enable_aliases_async (client, snap, aliases, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    end_sync (&data);
-    return snapd_client_enable_aliases_finish (client, data.result, error);
+    g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED, "snapd_client_enable_aliases_async is deprecated");
+    return FALSE;
 }
 
 /**
@@ -979,6 +1071,7 @@ snapd_client_enable_aliases_sync (SnapdClient *client,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.8
+ * Deprecated: 1.25: Use snapd_client_unalias_sync()
  */
 gboolean
 snapd_client_disable_aliases_sync (SnapdClient *client,
@@ -986,16 +1079,8 @@ snapd_client_disable_aliases_sync (SnapdClient *client,
                                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                    GCancellable *cancellable, GError **error)
 {
-    g_auto(SyncData) data = { 0 };
-
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snap != NULL, FALSE);
-    g_return_val_if_fail (aliases != NULL, FALSE);
-
-    start_sync (&data);
-    snapd_client_disable_aliases_async (client, snap, aliases, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    end_sync (&data);
-    return snapd_client_disable_aliases_finish (client, data.result, error);
+    g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED, "snapd_client_disable_aliases_async is deprecated");
+    return FALSE;
 }
 
 /**
@@ -1014,6 +1099,7 @@ snapd_client_disable_aliases_sync (SnapdClient *client,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.8
+ * Deprecated: 1.25: Use snapd_client_disable_aliases_sync()
  */
 gboolean
 snapd_client_reset_aliases_sync (SnapdClient *client,
@@ -1021,16 +1107,8 @@ snapd_client_reset_aliases_sync (SnapdClient *client,
                                  SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                  GCancellable *cancellable, GError **error)
 {
-    g_auto(SyncData) data = { 0 };
-
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snap != NULL, FALSE);
-    g_return_val_if_fail (aliases != NULL, FALSE);
-
-    start_sync (&data);
-    snapd_client_reset_aliases_async (client, snap, aliases, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    end_sync (&data);
-    return snapd_client_reset_aliases_finish (client, data.result, error);
+    g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED, "snapd_client_reset_aliases_async is deprecated");
+    return FALSE;
 }
 
 /**

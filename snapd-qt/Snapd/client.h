@@ -463,6 +463,57 @@ private:
     Q_DECLARE_PRIVATE(QSnapdGetAliasesRequest)
 };
 
+class QSnapdAliasRequestPrivate;
+class Q_DECL_EXPORT QSnapdAliasRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdAliasRequest (const QString& snap, const QString& app, const QString& alias, void *snapd_client, QObject *parent = 0);
+    ~QSnapdAliasRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdAliasRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdAliasRequest)
+};
+
+class QSnapdUnaliasRequestPrivate;
+class Q_DECL_EXPORT QSnapdUnaliasRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdUnaliasRequest (const QString& snap, const QString& alias, void *snapd_client, QObject *parent = 0);
+    ~QSnapdUnaliasRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdUnaliasRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdUnaliasRequest)
+};
+
+class QSnapdPreferRequestPrivate;
+class Q_DECL_EXPORT QSnapdPreferRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdPreferRequest (const QString& snap, void *snapd_client, QObject *parent = 0);
+    ~QSnapdPreferRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdPreferRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdPreferRequest)
+};
+
 class QSnapdEnableAliasesRequestPrivate;
 class Q_DECL_EXPORT QSnapdEnableAliasesRequest : public QSnapdRequest
 {
@@ -608,6 +659,10 @@ public:
     Q_INVOKABLE QSnapdBuyRequest *buy (const QString& id, double amount, const QString& currency);
     Q_INVOKABLE QSnapdGetSectionsRequest *getSections ();
     Q_INVOKABLE QSnapdGetAliasesRequest *getAliases ();
+    Q_INVOKABLE QSnapdAliasRequest *alias (const QString &snap, const QString &app, const QString &alias);
+    Q_INVOKABLE QSnapdUnaliasRequest *unalias (const QString &snap, const QString &alias);
+    Q_INVOKABLE QSnapdUnaliasRequest *unalias (const QString &alias);
+    Q_INVOKABLE QSnapdPreferRequest *prefer (const QString &snap);
     Q_INVOKABLE QSnapdEnableAliasesRequest *enableAliases (const QString snap, const QStringList &aliases);
     Q_INVOKABLE QSnapdDisableAliasesRequest *disableAliases (const QString snap, const QStringList &aliases);
     Q_INVOKABLE QSnapdResetAliasesRequest *resetAliases (const QString snap, const QStringList &aliases);

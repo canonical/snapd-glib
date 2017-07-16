@@ -293,6 +293,35 @@ public:
     GPtrArray *aliases = NULL;
 };
 
+class QSnapdAliasRequestPrivate
+{
+public:
+    QSnapdAliasRequestPrivate (const QString &snap, const QString &app, const QString &alias) :
+        snap (snap), app (app), alias (alias) {}
+    QString snap;
+    QString app;
+    QString alias;
+};
+
+class QSnapdUnaliasRequestPrivate
+{
+public:
+    QSnapdUnaliasRequestPrivate (const QString &snap, const QString &alias) :
+        snap (snap), alias (alias) {}
+    QString snap;
+    QString alias;
+};
+
+class QSnapdPreferRequestPrivate
+{
+public:
+    QSnapdPreferRequestPrivate (const QString &snap) :
+        snap (snap) {}
+    QString snap;
+    QString app;
+    QString alias;
+};
+
 class QSnapdEnableAliasesRequestPrivate
 {
 public:
