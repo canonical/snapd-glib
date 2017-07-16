@@ -569,7 +569,7 @@ public:
     Q_INVOKABLE void setUserAgent (const QString &userAgent);
     Q_INVOKABLE QString userAgent () const;
     Q_INVOKABLE void setAuthData (QSnapdAuthData *authData);
-    Q_INVOKABLE QSnapdAuthData *authData ();
+    Q_INVOKABLE QSnapdAuthData *authData () const;
     Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();
     Q_INVOKABLE QSnapdListRequest *list ();
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
