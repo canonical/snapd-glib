@@ -74,6 +74,7 @@ typedef struct
 {
     GMainContext *context;
     GSocket *snapd_socket;
+    gchar *user_agent;
     SnapdAuthData *auth_data;
     GList *requests;
     GSource *read_source;
@@ -357,11 +358,14 @@ send_request (SnapdRequest *request,
 static SoupMessageHeaders *
 headers_new (SnapdRequest *request, gboolean authorize)
 {
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
     g_autoptr(SoupMessageHeaders) headers = NULL;
 
     headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
     soup_message_headers_append (headers, "Host", "");
     soup_message_headers_append (headers, "Connection", "keep-alive");
+    if (priv->user_agent != NULL)
+        soup_message_headers_append (headers, "User-Agent", priv->user_agent);
 
     if (authorize && request->auth_data != NULL) {
         g_autoptr(GString) authorization = NULL;
@@ -2463,6 +2467,49 @@ gboolean
 snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+/**
+ * snapd_client_set_user_agent:
+ * @client: a #SnapdClient
+ * @user_agent: (allow-none): a user agent or %NULL.
+ *
+ * Set the HTTP user-agent that is sent with each request to snapd.
+ * Defaults to "snapd-glib/VERSION".
+ *
+ * Since: 1.16
+ */
+void
+snapd_client_set_user_agent (SnapdClient *client, const gchar *user_agent)
+{
+    SnapdClientPrivate *priv;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    priv = snapd_client_get_instance_private (client);
+    g_free (priv->user_agent);
+    priv->user_agent = g_strdup (user_agent);
+}
+
+/**
+ * snapd_client_get_user_agent:
+ * @client: a #SnapdClient
+ *
+ * Get the HTTP user-agent that is sent with each request to snapd.
+ *
+ * Returns: user agent or %NULL if none set.
+ *
+ * Since: 1.16
+ */
+const gchar *
+snapd_client_get_user_agent (SnapdClient *client)
+{
+    SnapdClientPrivate *priv;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    priv = snapd_client_get_instance_private (client);
+    return priv->user_agent;
 }
 
 static void
@@ -5797,6 +5844,7 @@ snapd_client_finalize (GObject *object)
     SnapdClientPrivate *priv = snapd_client_get_instance_private (SNAPD_CLIENT (object));
 
     g_main_context_unref (priv->context);
+    g_clear_pointer (&priv->user_agent, g_free);
     g_clear_object (&priv->auth_data);
     g_list_free_full (priv->requests, g_object_unref);
     priv->requests = NULL;
@@ -5822,5 +5870,6 @@ snapd_client_init (SnapdClient *client)
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
 
     priv->context = g_main_context_ref_thread_default ();
+    priv->user_agent = g_strdup ("snapd-glib/" VERSION);
     priv->buffer = g_byte_array_new ();
 }

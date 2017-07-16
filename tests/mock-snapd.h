@@ -252,6 +252,8 @@ void            mock_snapd_add_assertion          (MockSnapd     *snapd,
 
 GList          *mock_snapd_get_assertions         (MockSnapd     *snapd);
 
+const gchar    *mock_snapd_get_last_user_agent    (MockSnapd     *snapd);
+
 G_END_DECLS
 
 #endif /* __MOCK_SNAPD_H__ */

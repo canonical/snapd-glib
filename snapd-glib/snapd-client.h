@@ -139,6 +139,11 @@ gboolean                snapd_client_connect_finish                (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+void                    snapd_client_set_user_agent                (SnapdClient          *client,
+                                                                    const gchar          *user_agent);
+
+const gchar            *snapd_client_get_user_agent                (SnapdClient          *client);
+
 SnapdAuthData          *snapd_client_login_sync                    (SnapdClient          *client,
                                                                     const gchar          *username,
                                                                     const gchar          *password,

@@ -82,6 +82,8 @@ snapd_client_connect_finish
 snapd_client_login_sync
 snapd_client_login_async
 snapd_client_login_finish
+snapd_client_set_user_agent
+snapd_client_get_user_agent
 snapd_client_set_auth_data
 snapd_client_get_auth_data
 snapd_client_get_system_information_sync

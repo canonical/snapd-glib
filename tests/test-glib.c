@@ -10,7 +10,72 @@
 #include <string.h>
 #include <snapd-glib/snapd-glib.h>
 
+#include "config.h"
 #include "mock-snapd.h"
+
+static void
+test_user_agent_default (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+
+    snapd = mock_snapd_new ();
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert_cmpstr (snapd_client_get_user_agent (client), ==, "snapd-glib/" VERSION);
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (info != NULL);
+    g_assert_cmpstr (mock_snapd_get_last_user_agent (snapd), ==, "snapd-glib/" VERSION);
+}
+
+static void
+test_user_agent_custom (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+
+    snapd = mock_snapd_new ();
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snapd_client_set_user_agent (client, "Foo/1.0");
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (info != NULL);
+    g_assert_cmpstr (mock_snapd_get_last_user_agent (snapd), ==, "Foo/1.0");
+}
+
+static void
+test_user_agent_null (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+
+    snapd = mock_snapd_new ();
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snapd_client_set_user_agent (client, NULL);
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (info != NULL);
+    g_assert_cmpstr (mock_snapd_get_last_user_agent (snapd), ==, NULL);
+}
 
 static void
 test_get_system_information (void)
@@ -3119,6 +3184,9 @@ main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
 
+    g_test_add_func ("/user-agent/default", test_user_agent_default);
+    g_test_add_func ("/user-agent/custom", test_user_agent_custom);
+    g_test_add_func ("/user-agent/null", test_user_agent_null);
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);  
     g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);

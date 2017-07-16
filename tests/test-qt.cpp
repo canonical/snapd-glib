@@ -13,7 +13,60 @@
 #include <Snapd/Client>
 #include <Snapd/Assertion>
 
+#include "config.h"
 #include "test-qt.h"
+
+static void
+test_user_agent_default (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (client.userAgent () == "snapd-glib/" VERSION);
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snapd_get_last_user_agent (snapd), ==, "snapd-glib/" VERSION);
+}
+
+static void
+test_user_agent_custom (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    client.setUserAgent ("Foo/1.0");
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snapd_get_last_user_agent (snapd), ==, "Foo/1.0");
+}
+
+static void
+test_user_agent_null (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    client.setUserAgent (NULL);
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snapd_get_last_user_agent (snapd), ==, NULL);
+}
 
 static void
 test_get_system_information ()
@@ -2455,6 +2508,9 @@ main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
 
+    g_test_add_func ("/user-agent/default", test_user_agent_default);
+    g_test_add_func ("/user-agent/custom", test_user_agent_custom);
+    g_test_add_func ("/user-agent/null", test_user_agent_null);
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);
     g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);

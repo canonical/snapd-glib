@@ -69,6 +69,7 @@ struct _MockSnapd
     gchar *suggested_currency;
     gchar *spawn_time;
     gchar *ready_time;
+    gchar *last_user_agent;
 };
 
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
@@ -676,6 +677,12 @@ GList *
 mock_snapd_get_assertions (MockSnapd *snapd)
 {
     return snapd->assertions;
+}
+
+const gchar *
+mock_snapd_get_last_user_agent (MockSnapd *snapd)
+{
+    return snapd->last_user_agent;
 }
 
 static MockChange *
@@ -2394,6 +2401,9 @@ handle_snapctl (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
 static void
 handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
+    g_free (snapd->last_user_agent);
+    snapd->last_user_agent = g_strdup (soup_message_headers_get_one (headers, "User-Agent"));
+
     if (strcmp (path, "/v2/system-info") == 0)
         handle_system_info (snapd, method);
     else if (strcmp (path, "/v2/login") == 0)
@@ -2512,6 +2522,7 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->suggested_currency, g_free);
     g_clear_pointer (&snapd->spawn_time, g_free);
     g_clear_pointer (&snapd->ready_time, g_free);
+    g_clear_pointer (&snapd->last_user_agent, g_free);
 }
 
 static void

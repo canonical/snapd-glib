@@ -86,6 +86,18 @@ QSnapdLoginRequest *QSnapdClient::login (const QString& username, const QString&
     return new QSnapdLoginRequest (d->client, username, password, otp);
 }
 
+void QSnapdClient::setUserAgent (const QString &userAgent)
+{
+    Q_D(QSnapdClient);
+    snapd_client_set_user_agent (d->client, userAgent.isNull () ? NULL : userAgent.toStdString ().c_str ());
+}
+
+QString QSnapdClient::userAgent () const
+{
+    Q_D(const QSnapdClient);
+    return snapd_client_get_user_agent (d->client);
+}
+
 void QSnapdClient::setAuthData (QSnapdAuthData *authData)
 {
     Q_D(QSnapdClient);
