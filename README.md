@@ -15,4 +15,4 @@ See [snapcraft.io](https://snapcraft.io) for more information.
 
 ## Reporting bugs
 
-If you have found an issue with the application, please [file a bug](https://bugs.launchpad.net/snapd-glib/+filebug) on the [bugs list on Launchpad](https://bugs.launchpad.net/snapd-glib/).
+If you have found an issue with the application, please [file a issue](https://github.com/snapcore/snapd-glib/issues/new) on the [issues list on GitHub](https://github.com/snapcore/snapd-glib/issues).
