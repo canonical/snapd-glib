@@ -3789,9 +3789,8 @@ snapd_client_find_refreshable_finish (SnapdClient *client, GAsyncResult *result,
  *
  * Returns: %TRUE on success or %FALSE on error.
  *
- * Deprecated: Use snapd_client_install2_sync()
- *
  * Since: 1.0
+ * Deprecated: 1.12: Use snapd_client_install2_sync()
  */
 gboolean
 snapd_client_install_sync (SnapdClient *client,
@@ -3816,9 +3815,8 @@ snapd_client_install_sync (SnapdClient *client,
  * Asynchronously install a snap from the store.
  * See snapd_client_install_sync() for more information.
  *
- * Deprecated: Use snapd_client_install2_async()
- *
  * Since: 1.0
+ * Deprecated: 1.12: Use snapd_client_install2_async()
  */
 void
 snapd_client_install_async (SnapdClient *client,
@@ -3840,9 +3838,8 @@ snapd_client_install_async (SnapdClient *client,
  *
  * Returns: %TRUE on success or %FALSE on error.
  *
- * Deprecated: Use snapd_client_install2_finish()
- *
  * Since: 1.0
+ * Deprecated: 1.12: Use snapd_client_install2_finish()
  */
 gboolean
 snapd_client_install_finish (SnapdClient *client, GAsyncResult *result, GError **error)
