@@ -268,7 +268,7 @@ test_list ()
 
     QScopedPointer<QSnapdListRequest> listRequest (client.list ());
     listRequest->runSync ();
-    g_assert_cmpint (listRequest->error (), ==, QSnapdRequest::NoError);  
+    g_assert_cmpint (listRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (listRequest->snapCount (), ==, 3);
     QScopedPointer<QSnapdSnap> snap0 (listRequest->snap (0));
     g_assert (snap0->name () == "snap1");
@@ -452,7 +452,7 @@ test_list_one_daemons ()
     a = mock_snap_add_app (s, "app5");
     mock_app_set_daemon (a, "dbus");
     a = mock_snap_add_app (s, "app6");
-    mock_app_set_daemon (a, "INVALID");  
+    mock_app_set_daemon (a, "INVALID");
 
     QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
     QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
@@ -729,7 +729,7 @@ test_get_interfaces ()
     g_assert_cmpint (slot0->connectionCount (), ==, 1);
     QScopedPointer<QSnapdConnection> slotConnection (slot0->connection (0));
     g_assert (slotConnection->snap () == "snap2");
-    g_assert (slotConnection->name () == "plug1");  
+    g_assert (slotConnection->name () == "plug1");
 
     QScopedPointer<QSnapdSlot> slot1 (getInterfacesRequest->slot (1));
     g_assert (slot1->name () == "slot2");
@@ -928,7 +928,7 @@ test_find_query ()
     g_assert_cmpint (snap1->screenshotCount (), ==, 2);
     QScopedPointer<QSnapdScreenshot> screenshot0 (snap1->screenshot (0));
     g_assert (screenshot0->url () == "screenshot0.png");
-    QScopedPointer<QSnapdScreenshot> screenshot1 (snap1->screenshot (1));  
+    QScopedPointer<QSnapdScreenshot> screenshot1 (snap1->screenshot (1));
     g_assert (screenshot1->url () == "screenshot1.png");
     g_assert_cmpint (screenshot1->width (), ==, 1024);
     g_assert_cmpint (screenshot1->height (), ==, 1024);
@@ -2573,7 +2573,7 @@ main (int argc, char **argv)
     g_test_add_func ("/install-stream/basic", test_install_stream);
     g_test_add_func ("/install-stream/progress", test_install_stream_progress);
     g_test_add_func ("/install-stream/classic", test_install_stream_classic);
-    g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous); 
+    g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous);
     g_test_add_func ("/install-stream/devmode", test_install_stream_devmode);
     g_test_add_func ("/install-stream/jailmode", test_install_stream_jailmode);
     g_test_add_func ("/try/basic", test_try);

@@ -87,7 +87,7 @@ test_get_system_information (void)
 
     snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
-    mock_snapd_set_on_classic (snapd, TRUE);  
+    mock_snapd_set_on_classic (snapd, TRUE);
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
     snapd_client_connect_sync (client, NULL, &error);
@@ -530,7 +530,7 @@ test_list_one_daemons (void)
     a = mock_snap_add_app (s, "app5");
     mock_app_set_daemon (a, "dbus");
     a = mock_snap_add_app (s, "app6");
-    mock_app_set_daemon (a, "INVALID");  
+    mock_app_set_daemon (a, "INVALID");
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
     snapd_client_connect_sync (client, NULL, &error);
@@ -2912,7 +2912,7 @@ test_get_sections (void)
 
     snapd = mock_snapd_new ();
     mock_snapd_add_store_section (snapd, "SECTION1");
-    mock_snapd_add_store_section (snapd, "SECTION2");  
+    mock_snapd_add_store_section (snapd, "SECTION2");
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
     snapd_client_connect_sync (client, NULL, &error);
@@ -3051,7 +3051,7 @@ test_enable_aliases_multiple (void)
     g_assert_no_error (error);
     g_assert (result);
     g_assert_cmpstr (alias1->status, ==, "enabled");
-    g_assert_cmpstr (alias2->status, ==, "enabled");  
+    g_assert_cmpstr (alias2->status, ==, "enabled");
 }
 
 typedef struct
@@ -3089,7 +3089,7 @@ test_enable_aliases_progress (void)
     g_assert_no_error (error);
 
     aliases = g_strsplit ("alias1", ";", -1);
-    enable_aliases_progress_data.progress_done = 0;  
+    enable_aliases_progress_data.progress_done = 0;
     result = snapd_client_enable_aliases_sync (client, "snap1", aliases, enable_aliases_progress_cb, &enable_aliases_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
@@ -3162,7 +3162,7 @@ test_run_snapctl (void)
     g_auto(GStrv) args = NULL;
     gboolean result;
     g_autofree gchar *stdout_output = NULL;
-    g_autofree gchar *stderr_output = NULL;  
+    g_autofree gchar *stderr_output = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -3171,12 +3171,12 @@ test_run_snapctl (void)
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
-    args = g_strsplit ("arg1;arg2", ";", -1);  
+    args = g_strsplit ("arg1;arg2", ";", -1);
     result = snapd_client_run_snapctl_sync (client, "ABC", args, &stdout_output, &stderr_output, NULL, &error);
     g_assert_no_error (error);
     g_assert (result);
     g_assert_cmpstr (stdout_output, ==, "STDOUT:ABC:arg1:arg2");
-    g_assert_cmpstr (stderr_output, ==, "STDERR");  
+    g_assert_cmpstr (stderr_output, ==, "STDERR");
 }
 
 int
@@ -3188,7 +3188,7 @@ main (int argc, char **argv)
     g_test_add_func ("/user-agent/custom", test_user_agent_custom);
     g_test_add_func ("/user-agent/null", test_user_agent_null);
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
-    g_test_add_func ("/get-system-information/store", test_get_system_information_store);  
+    g_test_add_func ("/get-system-information/store", test_get_system_information_store);
     g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);
     g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);
     g_test_add_func ("/get-system-information/confinement_unknown", test_get_system_information_confinement_unknown);
@@ -3249,7 +3249,7 @@ main (int argc, char **argv)
     g_test_add_func ("/install-stream/basic", test_install_stream);
     g_test_add_func ("/install-stream/progress", test_install_stream_progress);
     g_test_add_func ("/install-stream/classic", test_install_stream_classic);
-    g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous); 
+    g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous);
     g_test_add_func ("/install-stream/devmode", test_install_stream_devmode);
     g_test_add_func ("/install-stream/jailmode", test_install_stream_jailmode);
     g_test_add_func ("/try/basic", test_try);
@@ -3290,7 +3290,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-aliases/empty", test_get_aliases_empty);
     g_test_add_func ("/enable-aliases/basic", test_enable_aliases);
     g_test_add_func ("/enable-aliases/multiple", test_enable_aliases_multiple);
-    g_test_add_func ("/enable-aliases/progress", test_enable_aliases_progress);  
+    g_test_add_func ("/enable-aliases/progress", test_enable_aliases_progress);
     g_test_add_func ("/disable-aliases/basic", test_disable_aliases);
     g_test_add_func ("/reset-aliases/basic", test_reset_aliases);
     g_test_add_func ("/run-snapctl/basic", test_run_snapctl);
