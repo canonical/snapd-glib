@@ -104,9 +104,10 @@ void QSnapdClient::setAuthData (QSnapdAuthData *authData)
     snapd_client_set_auth_data (d->client, SNAPD_AUTH_DATA (authData->wrappedObject ()));
 }
 
-QSnapdAuthData *QSnapdClient::authData () const
+// NOTE: This should be const but we can't do that without breaking ABI..
+QSnapdAuthData *QSnapdClient::authData ()
 {
-    Q_D(const QSnapdClient);
+    Q_D(QSnapdClient);
     return new QSnapdAuthData (snapd_client_get_auth_data (d->client));
 }
 
