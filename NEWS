@@ -1,3 +1,11 @@
+Overview of changes in snapd-glib 1.16
+
+    * Bring introspection and vapigen m4 macros into the source so can build
+      without them installed.
+    * Fix snapd-qt build failure due to conflict of 'signals' variable with
+      GDBus.
+    * Set a user agent when sending requests to snapd-glib
+
 Overview of changes in snapd-glib 1.15
 
     * Marked snapd_system_information_get_confinement as stable
