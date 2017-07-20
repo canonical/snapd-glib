@@ -149,7 +149,7 @@ struct _SnapdRequest
     gpointer progress_callback_data;
 
     gchar *change_id;
-    guint poll_timer;
+    GSource *poll_source;
     SnapdChange *change;
 
     SnapdInstallFlags install_flags;
@@ -256,8 +256,8 @@ snapd_request_finalize (GObject *object)
     g_cancellable_disconnect (request->cancellable, request->cancelled_id);
     g_clear_object (&request->cancellable);
     g_free (request->change_id);
-    if (request->poll_timer != 0)
-        g_source_remove (request->poll_timer);
+    if (request->poll_source != NULL)
+        g_clear_pointer (&request->poll_source, g_source_destroy);
     g_clear_object (&request->change);
     g_clear_object (&request->snap_stream);
     g_clear_pointer (&request->snap_contents, g_byte_array_unref);
@@ -1508,7 +1508,7 @@ async_poll_cb (gpointer data)
     path = g_strdup_printf ("/v2/changes/%s", request->change_id);
     send_empty_request (request, "GET", path);
 
-    request->poll_timer = 0;
+    request->poll_source = NULL;
     return G_SOURCE_REMOVE;
 }
 
@@ -1577,6 +1577,8 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
     g_autoptr(JsonObject) response = NULL;
     g_autofree gchar *change_id = NULL;
     GError *error = NULL;
+
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
 
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, &change_id, &error)) {
         snapd_request_complete (request, error);
@@ -1707,9 +1709,12 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
     }
 
     /* Poll for updates */
-    if (request->poll_timer != 0)
-        g_source_remove (request->poll_timer);
-    request->poll_timer = g_timeout_add (ASYNC_POLL_TIME, async_poll_cb, request);
+    if (request->poll_source != NULL)
+        g_source_destroy (request->poll_source);
+
+    request->poll_source = g_timeout_source_new (ASYNC_POLL_TIME);
+    g_source_set_callback (request->poll_source, async_poll_cb, request, NULL);
+    g_source_attach (request->poll_source, priv->context);
 }
 
 static void
