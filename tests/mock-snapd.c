@@ -48,6 +48,10 @@ struct _MockSnapd
 {
     GObject parent_instance;
 
+    GThread *thread;
+    GMainLoop *loop;
+    GMainContext *ctx;
+
     GSocket *client_socket;
     GSocket *server_socket;
     GSource *read_source;
@@ -2491,10 +2495,26 @@ read_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
     return G_SOURCE_CONTINUE;
 }
 
+static gboolean
+mock_snapd_thread_quit (gpointer user_data)
+{
+        MockSnapd *snapd = MOCK_SNAPD (user_data);
+
+        g_main_loop_quit (snapd->loop);
+
+        return FALSE;
+}
+
 static void
 mock_snapd_finalize (GObject *object)
 {
     MockSnapd *snapd = MOCK_SNAPD (object);
+
+    g_main_context_invoke (snapd->ctx,
+                           mock_snapd_thread_quit,
+                           snapd);
+
+    g_thread_join (snapd->thread);
 
     g_clear_object (&snapd->client_socket);
     g_clear_object (&snapd->server_socket);
@@ -2523,6 +2543,9 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->spawn_time, g_free);
     g_clear_pointer (&snapd->ready_time, g_free);
     g_clear_pointer (&snapd->last_user_agent, g_free);
+    g_clear_pointer (&snapd->ctx, g_main_context_unref);
+    g_clear_pointer (&snapd->loop, g_main_loop_unref);
+    g_clear_pointer (&snapd->thread, g_thread_unref);
 }
 
 static void
@@ -2533,10 +2556,26 @@ mock_snapd_class_init (MockSnapdClass *klass)
     gobject_class->finalize = mock_snapd_finalize;
 }
 
+gpointer
+mock_snapd_init_thread (gpointer user_data)
+{
+    MockSnapd *snapd = MOCK_SNAPD (user_data);
+
+    /* We create & manage the lifecycle of this thread */
+    g_main_context_push_thread_default (snapd->ctx);
+
+    g_main_loop_run (snapd->loop);
+
+    return NULL;
+}
+
 static void
 mock_snapd_init (MockSnapd *snapd)
 {
     int fds[2];
+
+    snapd->ctx = g_main_context_new ();
+    snapd->loop = g_main_loop_new (snapd->ctx, FALSE);
 
     socketpair (AF_UNIX, SOCK_STREAM, 0, fds);
     snapd->client_socket = g_socket_new_from_fd (fds[0], NULL);
@@ -2544,5 +2583,9 @@ mock_snapd_init (MockSnapd *snapd)
     snapd->buffer = g_byte_array_new ();
     snapd->read_source = g_socket_create_source (snapd->server_socket, G_IO_IN, NULL);
     g_source_set_callback (snapd->read_source, (GSourceFunc) read_cb, snapd, NULL);
-    g_source_attach (snapd->read_source, NULL);
+    g_source_attach (snapd->read_source, snapd->ctx);
+
+    snapd->thread = g_thread_new ("mock_snapd_thread",
+                                  mock_snapd_init_thread,
+                                  snapd);
 }
