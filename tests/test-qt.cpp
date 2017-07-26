@@ -1074,13 +1074,6 @@ test_find_name_private_not_logged_in ()
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::AuthDataRequired);
 }
 
-static gboolean
-find_cancel_cb (QSnapdFindRequest *request)
-{
-    request->cancel ();
-    return G_SOURCE_REMOVE;
-}
-
 static void
 test_find_cancel (void)
 {
@@ -1093,7 +1086,7 @@ test_find_cancel (void)
 
     /* Use a special query that never responds */
     QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::None, "do-not-respond"));
-    g_idle_add ((GSourceFunc) find_cancel_cb, findRequest.data ());
+    findRequest->cancel();
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::Cancelled);
 }

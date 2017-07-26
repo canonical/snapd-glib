@@ -2335,7 +2335,6 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
 }
 
 typedef struct {
-    GMainContext *context;
     GMainLoop    *loop;
     GAsyncResult *result;
 } SyncData;
@@ -2351,7 +2350,6 @@ static void
 sync_data_clear (SyncData *data)
 {
     g_clear_pointer (&data->loop, g_main_loop_unref);
-    g_clear_pointer (&data->context, g_main_context_unref);
     g_clear_object (&data->result);
 }
 
@@ -2441,8 +2439,10 @@ void
 snapd_client_connect_async (SnapdClient *client,
                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    GTask *task;
+    g_autoptr(GTask) task = NULL;
     g_autoptr(GError) error = NULL;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
 
     task = g_task_new (client, cancellable, callback, user_data);
     if (snapd_client_connect_sync (client, cancellable, &error))
@@ -5847,7 +5847,6 @@ snapd_client_finalize (GObject *object)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (SNAPD_CLIENT (object));
 
-    g_main_context_unref (priv->context);
     g_clear_pointer (&priv->user_agent, g_free);
     g_clear_object (&priv->auth_data);
     g_list_free_full (priv->requests, g_object_unref);
@@ -5858,6 +5857,8 @@ snapd_client_finalize (GObject *object)
     g_socket_close (priv->snapd_socket, NULL);
     g_clear_object (&priv->snapd_socket);
     g_clear_pointer (&priv->buffer, g_byte_array_unref);
+
+    g_clear_pointer (&priv->context, g_main_context_unref);
 }
 
 static void
@@ -5873,7 +5874,7 @@ snapd_client_init (SnapdClient *client)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
 
-    priv->context = g_main_context_ref_thread_default ();
+    priv->context = g_main_context_new ();
     priv->user_agent = g_strdup ("snapd-glib/" VERSION);
     priv->buffer = g_byte_array_new ();
 }
