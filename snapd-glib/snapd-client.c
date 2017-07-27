@@ -2578,7 +2578,7 @@ snapd_client_login_sync (SnapdClient *client,
     g_return_val_if_fail (username != NULL, NULL);
     g_return_val_if_fail (password != NULL, NULL);
 
-    data.loop = g_main_loop_new (NULL, FALSE);
+    start_sync (client, &data);
     snapd_client_login_async (client, username, password, otp, cancellable, sync_cb, &data);
     g_main_loop_run (data.loop);
     return snapd_client_login_finish (client, data.result, error);
