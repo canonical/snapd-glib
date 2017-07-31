@@ -174,7 +174,6 @@ struct _SnapdRequest
     gchar *stdout_output;
     gchar *stderr_output;
     gboolean responded;
-    GSource *respond_source;
     JsonNode *async_data;
 };
 
@@ -186,8 +185,6 @@ respond_cb (gpointer user_data)
     if (request->ready_callback != NULL)
         request->ready_callback (G_OBJECT (request->client), G_ASYNC_RESULT (request), request->ready_callback_data);
 
-    g_source_destroy (request->respond_source);
-    request->respond_source = NULL;
     return G_SOURCE_REMOVE;
 }
 
@@ -202,9 +199,10 @@ snapd_request_respond (SnapdRequest *request, GError *error)
     request->error = error;
 
     /* Do in main loop so user can't block our reading callback */
-    request->respond_source = g_idle_source_new ();
-    g_source_set_callback (request->respond_source, respond_cb, g_object_ref (request), g_object_unref);
-    g_source_attach (request->respond_source, priv->context);
+    g_main_context_invoke_full (priv->context,
+                                G_PRIORITY_DEFAULT_IDLE,
+                                respond_cb,
+                                g_object_ref (request), g_object_unref);
 }
 
 static void
@@ -278,9 +276,6 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->stdout_output, g_free);
     g_clear_pointer (&request->stderr_output, g_free);
     g_clear_pointer (&request->async_data, json_node_unref);
-    if (request->respond_source)
-        g_source_destroy (request->respond_source);
-    g_clear_pointer (&request->respond_source, g_source_unref);
 }
 
 static void
