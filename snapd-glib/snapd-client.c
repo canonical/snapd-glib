@@ -2467,6 +2467,9 @@ snapd_client_connect_async (SnapdClient *client,
 gboolean
 snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+
     return g_task_propagate_boolean (G_TASK (result), error);
 }
 
