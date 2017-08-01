@@ -2417,6 +2417,7 @@ snapd_client_connect_sync (SnapdClient *client,
 
     if (priv->read_source == NULL) {
         priv->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
+        g_source_set_name (priv->read_source, "snapd-glib-read-source");
         g_source_set_callback (priv->read_source, (GSourceFunc) read_cb, client, NULL);
         g_source_attach (priv->read_source, priv->context);
     }
