@@ -2361,6 +2361,10 @@ sync_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     SyncData *data = user_data;
     data->result = g_object_ref (result);
     g_main_loop_quit (data->loop);
+    /* If we run the loop now, we'll block forever, so get rid of it.
+     * For example, if we're passed an already cancelled GCancellable.
+     */
+    g_clear_pointer (&data->loop, g_main_loop_unref);
 }
 
 /**
@@ -2578,9 +2582,14 @@ snapd_client_login_sync (SnapdClient *client,
     g_return_val_if_fail (username != NULL, NULL);
     g_return_val_if_fail (password != NULL, NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_login_async (client, username, password, otp, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_login_finish (client, data.result, error);
 }
 
@@ -2724,12 +2733,18 @@ snapd_client_get_system_information_sync (SnapdClient *client,
                                           GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_get_system_information_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
 
     return snapd_client_get_system_information_finish (client, data.result, error);
 }
@@ -2806,12 +2821,18 @@ snapd_client_list_one_sync (SnapdClient *client,
                             GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_list_one_async (client, name, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_list_one_finish (client, data.result, error);
 }
 
@@ -2892,12 +2913,18 @@ snapd_client_get_icon_sync (SnapdClient *client,
                             GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_get_icon_async (client, name, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_get_icon_finish (client, data.result, error);
 }
 
@@ -2976,12 +3003,18 @@ snapd_client_list_sync (SnapdClient *client,
                         GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_list_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_list_finish (client, data.result, error);
 }
 
@@ -3057,12 +3090,18 @@ snapd_client_get_assertions_sync (SnapdClient *client,
                                   GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_get_assertions_async (client, type, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_get_assertions_finish (client, data.result, error);
 }
 
@@ -3143,13 +3182,19 @@ snapd_client_add_assertions_sync (SnapdClient *client,
                                   GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (assertions != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_add_assertions_async (client, assertions, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_add_assertions_finish (client, data.result, error);
 }
 
@@ -3242,12 +3287,18 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
                                   GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_get_interfaces_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_get_interfaces_finish (client, data.result, plugs, slots, error);
 }
 
@@ -3380,12 +3431,18 @@ snapd_client_connect_interface_sync (SnapdClient *client,
                                      GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_connect_interface_async (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_connect_interface_finish (client, data.result, error);
 }
 
@@ -3480,12 +3537,18 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
                                         GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_disconnect_interface_async (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_disconnect_interface_finish (client, data.result, error);
 }
 
@@ -3643,12 +3706,18 @@ snapd_client_find_section_sync (SnapdClient *client,
                                 GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_find_section_async (client, flags, section, query, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_find_section_finish (client, data.result, suggested_currency, error);
 }
 
@@ -3764,12 +3833,18 @@ snapd_client_find_refreshable_sync (SnapdClient *client,
                                     GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_find_refreshable_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_find_refreshable_finish (client, data.result, error);
 }
 
@@ -3925,13 +4000,19 @@ snapd_client_install2_sync (SnapdClient *client,
                             GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_install2_async (client, flags, name, channel, revision, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_install2_finish (client, data.result, error);
 }
 
@@ -4114,13 +4195,19 @@ snapd_client_install_stream_sync (SnapdClient *client,
                                   GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (G_IS_INPUT_STREAM (stream), FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_install_stream_async (client, flags, stream, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_install_stream_finish (client, data.result, error);
 }
 
@@ -4230,13 +4317,19 @@ snapd_client_try_sync (SnapdClient *client,
                        GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (path != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_try_async (client, path, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_try_finish (client, data.result, error);
 }
 
@@ -4329,13 +4422,19 @@ snapd_client_refresh_sync (SnapdClient *client,
                            GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_refresh_async (client, name, channel, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_refresh_finish (client, data.result, error);
 }
 
@@ -4433,12 +4532,18 @@ snapd_client_refresh_all_sync (SnapdClient *client,
                                GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_refresh_all_async (client, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_refresh_all_finish (client, data.result, error);
 }
 
@@ -4563,13 +4668,19 @@ snapd_client_remove_sync (SnapdClient *client,
                           GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_remove_async (client, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_remove_finish (client, data.result, error);
 }
 
@@ -4664,13 +4775,19 @@ snapd_client_enable_sync (SnapdClient *client,
                           GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_enable_async (client, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_enable_finish (client, data.result, error);
 }
 
@@ -4766,13 +4883,19 @@ snapd_client_disable_sync (SnapdClient *client,
                            GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_disable_async (client, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_disable_finish (client, data.result, error);
 }
 
@@ -4864,12 +4987,18 @@ snapd_client_check_buy_sync (SnapdClient *client,
                              GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_check_buy_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_check_buy_finish (client, data.result, error);
 }
 
@@ -4949,14 +5078,20 @@ snapd_client_buy_sync (SnapdClient *client,
                        GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (id != NULL, FALSE);
     g_return_val_if_fail (currency != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_buy_async (client, id, amount, currency, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_buy_finish (client, data.result, error);
 }
 
@@ -5052,13 +5187,19 @@ snapd_client_create_user_sync (SnapdClient *client,
                                GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (email != NULL, NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_create_user_async (client, email, flags, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_create_user_finish (client, data.result, error);
 }
 
@@ -5153,12 +5294,18 @@ snapd_client_create_users_sync (SnapdClient *client,
                                 GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_create_users_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_create_users_finish (client, data.result, error);
 }
 
@@ -5241,12 +5388,18 @@ snapd_client_get_sections_sync (SnapdClient *client,
                                 GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_get_sections_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_get_sections_finish (client, data.result, error);
 }
 
@@ -5321,12 +5474,18 @@ snapd_client_get_aliases_sync (SnapdClient *client,
                                GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_get_aliases_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_get_aliases_finish (client, data.result, error);
 }
 
@@ -5436,14 +5595,20 @@ snapd_client_enable_aliases_sync (SnapdClient *client,
                                   GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (snap != NULL, FALSE);
     g_return_val_if_fail (aliases != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_enable_aliases_async (client, snap, aliases, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_enable_aliases_finish (client, data.result, error);
 }
 
@@ -5528,14 +5693,20 @@ snapd_client_disable_aliases_sync (SnapdClient *client,
                                    GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (snap != NULL, FALSE);
     g_return_val_if_fail (aliases != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_disable_aliases_async (client, snap, aliases, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_disable_aliases_finish (client, data.result, error);
 }
 
@@ -5620,14 +5791,20 @@ snapd_client_reset_aliases_sync (SnapdClient *client,
                                  GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (snap != NULL, FALSE);
     g_return_val_if_fail (aliases != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_reset_aliases_async (client, snap, aliases, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_reset_aliases_finish (client, data.result, error);
 }
 
@@ -5712,14 +5889,20 @@ snapd_client_run_snapctl_sync (SnapdClient *client,
                                GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
     g_return_val_if_fail (context_id != NULL, FALSE);
     g_return_val_if_fail (args != NULL, FALSE);
 
+    priv = snapd_client_get_instance_private (client);
+
     start_sync (client, &data);
+    g_main_context_push_thread_default (priv->context);
     snapd_client_run_snapctl_async (client, context_id, args, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    g_main_context_pop_thread_default (priv->context);
+    if (data.loop)
+        g_main_loop_run (data.loop);
     return snapd_client_run_snapctl_finish (client, data.result, stdout_output, stderr_output, error);
 }
 
