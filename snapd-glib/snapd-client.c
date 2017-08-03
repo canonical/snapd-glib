@@ -2537,15 +2537,15 @@ make_request (SnapdClient *client, RequestType request_type,
         request->auth_data = g_object_ref (priv->auth_data);
     request->client = client;
     request->request_type = request_type;
-    if (cancellable != NULL) {
-        request->cancellable = g_object_ref (cancellable);
-        request->cancelled_id = g_cancellable_connect (cancellable, G_CALLBACK (request_cancelled_cb), request, NULL);
-    }
     request->ready_callback = callback;
     request->ready_callback_data = user_data;
     request->progress_callback = progress_callback;
     request->progress_callback_data = progress_callback_data;
     priv->requests = g_list_append (priv->requests, request);
+    if (cancellable != NULL) {
+        request->cancellable = g_object_ref (cancellable);
+        request->cancelled_id = g_cancellable_connect (cancellable, G_CALLBACK (request_cancelled_cb), request, NULL);
+    }
 
     return request;
 }
