@@ -2537,14 +2537,14 @@ make_request (SnapdClient *client, RequestType request_type,
         request->auth_data = g_object_ref (priv->auth_data);
     request->client = client;
     request->request_type = request_type;
-    if (cancellable != NULL) {
-        request->cancellable = g_object_ref (cancellable);
-        request->cancelled_id = g_cancellable_connect (cancellable, G_CALLBACK (request_cancelled_cb), request, NULL);
-    }
     request->ready_callback = callback;
     request->ready_callback_data = user_data;
     request->progress_callback = progress_callback;
     request->progress_callback_data = progress_callback_data;
+    if (cancellable != NULL) {
+        request->cancellable = g_object_ref (cancellable);
+        request->cancelled_id = g_cancellable_connect (cancellable, G_CALLBACK (request_cancelled_cb), request, NULL);
+    }
     priv->requests = g_list_append (priv->requests, request);
 
     return request;
@@ -2572,6 +2572,7 @@ snapd_client_login_sync (SnapdClient *client,
                          GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
+    SnapdClientPrivate *priv;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
     g_return_val_if_fail (username != NULL, NULL);
