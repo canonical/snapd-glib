@@ -9,6 +9,7 @@
 
 #include <QtCore/QObject>
 #include <Snapd/Client>
+#include <glib-object.h>
 
 class ProgressCounter: public QObject
 {
@@ -37,4 +38,21 @@ public:
 
 public slots:
     void progress ();
+};
+
+class GetSystemInformationHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetSystemInformationHandler (GMainLoop *loop, QSnapdGetSystemInformationRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetSystemInformationRequest *request;
+    ~GetSystemInformationHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
 };

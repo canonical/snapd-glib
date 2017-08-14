@@ -97,6 +97,47 @@ test_get_system_information ()
     g_assert (systemInformation->store () == NULL);
 }
 
+void
+GetSystemInformationHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSystemInformation> systemInformation (request->systemInformation ());
+    g_assert (systemInformation->confinement () == QSnapdSystemInformation::ConfinementUnknown);
+    g_assert (systemInformation->kernelVersion () == "KERNEL-VERSION");
+    g_assert (systemInformation->osId () == "OS-ID");
+    g_assert (systemInformation->osVersion () == "OS-VERSION");
+    g_assert (systemInformation->series () == "SERIES");
+    g_assert (systemInformation->version () == "VERSION");
+    g_assert (systemInformation->managed ());
+    g_assert (systemInformation->onClassic ());
+    g_assert (systemInformation->mountDirectory () == "/snap");
+    g_assert (systemInformation->binariesDirectory () == "/snap/bin");
+    g_assert (systemInformation->store () == NULL);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_system_information_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_managed (snapd, TRUE);
+    mock_snapd_set_on_classic (snapd, TRUE);
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    GetSystemInformationHandler infoHandler (loop, client.getSystemInformation ());
+    QObject::connect (infoHandler.request, &QSnapdGetSystemInformationRequest::complete, &infoHandler, &GetSystemInformationHandler::onComplete);
+    infoHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
 static void
 test_get_system_information_store ()
 {
@@ -2512,6 +2553,7 @@ main (int argc, char **argv)
     g_test_add_func ("/user-agent/custom", test_user_agent_custom);
     g_test_add_func ("/user-agent/null", test_user_agent_null);
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
+    g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);
     g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);
     g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);

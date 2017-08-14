@@ -110,6 +110,53 @@ test_get_system_information (void)
 }
 
 static void
+system_information_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(SnapdSystemInformation) info = NULL;
+    GMainLoop *loop = user_data;
+    g_autoptr(GError) error = NULL;
+
+    info = snapd_client_get_system_information_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert (info != NULL);
+    g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_UNKNOWN);
+    g_assert_cmpstr (snapd_system_information_get_kernel_version (info), ==, "KERNEL-VERSION");
+    g_assert_cmpstr (snapd_system_information_get_os_id (info), ==, "OS-ID");
+    g_assert_cmpstr (snapd_system_information_get_os_version (info), ==, "OS-VERSION");
+    g_assert_cmpstr (snapd_system_information_get_series (info), ==, "SERIES");
+    g_assert_cmpstr (snapd_system_information_get_version (info), ==, "VERSION");
+    g_assert (snapd_system_information_get_managed (info));
+    g_assert (snapd_system_information_get_on_classic (info));
+    g_assert_cmpstr (snapd_system_information_get_mount_directory (info), ==, "/snap");
+    g_assert_cmpstr (snapd_system_information_get_binaries_directory (info), ==, "/snap/bin");
+    g_assert (snapd_system_information_get_store (info) == NULL);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_system_information_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_managed (snapd, TRUE);
+    mock_snapd_set_on_classic (snapd, TRUE);
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snapd_client_get_system_information_async (client, NULL, system_information_cb, loop);
+    g_main_loop_run (loop);
+}
+
+static void
 test_get_system_information_store (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -3188,6 +3235,7 @@ main (int argc, char **argv)
     g_test_add_func ("/user-agent/custom", test_user_agent_custom);
     g_test_add_func ("/user-agent/null", test_user_agent_null);
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
+    g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);
     g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);
     g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);
