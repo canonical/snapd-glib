@@ -2335,7 +2335,6 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
 }
 
 typedef struct {
-    GMainContext *context;
     GMainLoop    *loop;
     GAsyncResult *result;
 } SyncData;
@@ -2351,7 +2350,6 @@ static void
 sync_data_clear (SyncData *data)
 {
     g_clear_pointer (&data->loop, g_main_loop_unref);
-    g_clear_pointer (&data->context, g_main_context_unref);
     g_clear_object (&data->result);
 }
 
