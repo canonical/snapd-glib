@@ -2444,6 +2444,8 @@ snapd_client_connect_async (SnapdClient *client,
     GTask *task;
     g_autoptr(GError) error = NULL;
 
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
     task = g_task_new (client, cancellable, callback, user_data);
     if (snapd_client_connect_sync (client, cancellable, &error))
         g_task_return_boolean (task, TRUE);
