@@ -135,6 +135,8 @@ struct _SnapdRequest
 {
     GObject parent_instance;
 
+    GMainContext *context;
+
     SnapdClient *client;
     SnapdAuthData *auth_data;
 
@@ -191,15 +193,12 @@ respond_cb (gpointer user_data)
 static void
 snapd_request_respond (SnapdRequest *request, GError *error)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
-
     if (request->responded)
         return;
     request->responded = TRUE;
     request->error = error;
 
-    /* Do in main loop so user can't block our reading callback */
-    g_main_context_invoke_full (priv->context,
+    g_main_context_invoke_full (request->context,
                                 G_PRIORITY_DEFAULT_IDLE,
                                 respond_cb,
                                 g_object_ref (request), g_object_unref);
@@ -276,6 +275,7 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->stdout_output, g_free);
     g_clear_pointer (&request->stderr_output, g_free);
     g_clear_pointer (&request->async_data, json_node_unref);
+    g_clear_pointer (&request->context, g_main_context_unref);
 }
 
 static void
@@ -1573,8 +1573,6 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
     g_autofree gchar *change_id = NULL;
     GError *error = NULL;
 
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
-
     if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, &change_id, &error)) {
         snapd_request_complete (request, error);
         return;
@@ -1709,7 +1707,7 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 
     request->poll_source = g_timeout_source_new (ASYNC_POLL_TIME);
     g_source_set_callback (request->poll_source, async_poll_cb, request, NULL);
-    g_source_attach (request->poll_source, priv->context);
+    g_source_attach (request->poll_source, request->context);
 }
 
 static void
@@ -2533,6 +2531,7 @@ make_request (SnapdClient *client, RequestType request_type,
     SnapdRequest *request;
 
     request = g_object_new (snapd_request_get_type (), NULL);
+    request->context = g_main_context_ref_thread_default ();
     if (priv->auth_data != NULL)
         request->auth_data = g_object_ref (priv->auth_data);
     request->client = client;
