@@ -2707,6 +2707,27 @@ test_run_snapctl ()
     g_assert (runSnapCtlRequest->stderr () == "STDERR");
 }
 
+static void
+test_stress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_managed (snapd, TRUE);
+    mock_snapd_set_on_classic (snapd, TRUE);
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    for (int i = 0; i < 10000; i++) {
+        QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+        infoRequest->runSync ();
+        g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+        QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+        g_assert (systemInformation->version () == "VERSION");
+    }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -2827,6 +2848,7 @@ main (int argc, char **argv)
     g_test_add_func ("/disable-aliases/basic", test_disable_aliases);
     g_test_add_func ("/reset-aliases/basic", test_reset_aliases);
     g_test_add_func ("/run-snapctl/basic", test_run_snapctl);
+    g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();
 }

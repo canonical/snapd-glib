@@ -3422,6 +3422,29 @@ test_run_snapctl (void)
     g_assert_cmpstr (stderr_output, ==, "STDERR");
 }
 
+static void
+test_stress (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    gint i;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    for (i = 0; i < 10000; i++) {
+        g_autoptr(SnapdSystemInformation) info = NULL;
+        info = snapd_client_get_system_information_sync (client, NULL, &error);
+        g_assert_no_error (error);
+        g_assert (info != NULL);
+        g_assert_cmpstr (snapd_system_information_get_version (info), ==, "VERSION");
+    }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -3542,6 +3565,7 @@ main (int argc, char **argv)
     g_test_add_func ("/disable-aliases/basic", test_disable_aliases);
     g_test_add_func ("/reset-aliases/basic", test_reset_aliases);
     g_test_add_func ("/run-snapctl/basic", test_run_snapctl);
+    g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();
 }
