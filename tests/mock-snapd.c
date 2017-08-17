@@ -50,7 +50,7 @@ struct _MockSnapd
 
     GThread *thread;
     GMainLoop *loop;
-    GMainContext *ctx;
+    GMainContext *context;
 
     GSocket *client_socket;
     GSocket *server_socket;
@@ -2510,7 +2510,7 @@ mock_snapd_finalize (GObject *object)
 {
     MockSnapd *snapd = MOCK_SNAPD (object);
 
-    g_main_context_invoke (snapd->ctx,
+    g_main_context_invoke (snapd->context,
                            mock_snapd_thread_quit,
                            snapd);
 
@@ -2543,7 +2543,7 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->spawn_time, g_free);
     g_clear_pointer (&snapd->ready_time, g_free);
     g_clear_pointer (&snapd->last_user_agent, g_free);
-    g_clear_pointer (&snapd->ctx, g_main_context_unref);
+    g_clear_pointer (&snapd->context, g_main_context_unref);
     g_clear_pointer (&snapd->loop, g_main_loop_unref);
     g_clear_pointer (&snapd->thread, g_thread_unref);
 }
@@ -2562,7 +2562,7 @@ mock_snapd_init_thread (gpointer user_data)
     MockSnapd *snapd = MOCK_SNAPD (user_data);
 
     /* We create & manage the lifecycle of this thread */
-    g_main_context_push_thread_default (snapd->ctx);
+    g_main_context_push_thread_default (snapd->context);
 
     g_main_loop_run (snapd->loop);
 
@@ -2574,8 +2574,8 @@ mock_snapd_init (MockSnapd *snapd)
 {
     int fds[2];
 
-    snapd->ctx = g_main_context_new ();
-    snapd->loop = g_main_loop_new (snapd->ctx, FALSE);
+    snapd->context = g_main_context_new ();
+    snapd->loop = g_main_loop_new (snapd->context, FALSE);
 
     socketpair (AF_UNIX, SOCK_STREAM, 0, fds);
     snapd->client_socket = g_socket_new_from_fd (fds[0], NULL);
@@ -2583,7 +2583,7 @@ mock_snapd_init (MockSnapd *snapd)
     snapd->buffer = g_byte_array_new ();
     snapd->read_source = g_socket_create_source (snapd->server_socket, G_IO_IN, NULL);
     g_source_set_callback (snapd->read_source, (GSourceFunc) read_cb, snapd, NULL);
-    g_source_attach (snapd->read_source, snapd->ctx);
+    g_source_attach (snapd->read_source, snapd->context);
 
     snapd->thread = g_thread_new ("mock_snapd_thread",
                                   mock_snapd_init_thread,
