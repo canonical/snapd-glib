@@ -629,6 +629,38 @@ test_icon ()
     g_assert_cmpmem (data.data (), data.size (), "ICON", 4);
 }
 
+void
+GetIconHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdIcon> icon (request->icon ());
+    g_assert (icon->mimeType () == "image/png");
+    QByteArray data = icon->data ();
+    g_assert_cmpmem (data.data (), data.size (), "ICON", 4);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_icon_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    GetIconHandler getIconHandler (loop, client.getIcon ("snap"));
+    QObject::connect (getIconHandler.request, &QSnapdGetIconRequest::complete, &getIconHandler, &GetIconHandler::onComplete);
+    getIconHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
 static void
 test_icon_not_installed ()
 {
@@ -2663,6 +2695,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
     g_test_add_func ("/list-one/daemons", test_list_one_daemons);
     g_test_add_func ("/icon/basic", test_icon);
+    g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
     g_test_add_func ("/get-assertions/basic", test_get_assertions);
     g_test_add_func ("/get-assertions/body", test_get_assertions_body);

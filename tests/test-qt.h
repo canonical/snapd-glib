@@ -90,3 +90,20 @@ public:
 public slots:
     void onComplete ();
 };
+
+class GetIconHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetIconHandler (GMainLoop *loop, QSnapdGetIconRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetIconRequest *request;
+    ~GetIconHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};

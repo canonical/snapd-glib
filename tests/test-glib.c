@@ -726,6 +726,45 @@ test_icon (void)
 }
 
 static void
+icon_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(SnapdIcon) icon = NULL;
+    GBytes *data;
+    GMainLoop *loop = user_data;
+    g_autoptr(GError) error = NULL;
+
+    icon = snapd_client_get_icon_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert (icon != NULL);
+    g_assert_cmpstr (snapd_icon_get_mime_type (icon), ==, "image/png");
+    data = snapd_icon_get_data (icon);
+    g_assert_cmpmem (g_bytes_get_data (data, NULL), g_bytes_get_size (data), "ICON", 4);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_icon_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snapd_client_get_icon_async (client, "snap", NULL, icon_cb, loop);
+    g_main_loop_run (loop);
+}
+
+static void
 test_icon_not_installed (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -3355,6 +3394,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
     g_test_add_func ("/list-one/daemons", test_list_one_daemons);
     g_test_add_func ("/icon/basic", test_icon);
+    g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
     g_test_add_func ("/get-assertions/basic", test_get_assertions);
     g_test_add_func ("/get-assertions/body", test_get_assertions_body);
