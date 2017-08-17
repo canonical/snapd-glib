@@ -681,6 +681,32 @@ test_icon_not_installed ()
 }
 
 static void
+test_icon_large ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    gsize icon_buffer_length = 1048576;
+    gchar *icon_buffer = (gchar *) g_malloc (icon_buffer_length);
+    for (gsize i = 0; i < icon_buffer_length; i++)
+        icon_buffer[i] = i % 255;
+    g_autoptr(GBytes) icon_data = g_bytes_new (icon_buffer, icon_buffer_length);
+    mock_snap_set_icon_data (s, "image/png", icon_data);
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdGetIconRequest> getIconRequest (client.getIcon ("snap"));
+    getIconRequest->runSync ();
+    g_assert_cmpint (getIconRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdIcon> icon (getIconRequest->icon ());
+    g_assert (icon->mimeType () == "image/png");
+    QByteArray data = icon->data ();
+    g_assert_cmpmem (data.data (), data.size (), icon_buffer, icon_buffer_length);
+}
+
+static void
 test_get_assertions ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -2712,6 +2738,7 @@ main (int argc, char **argv)
     g_test_add_func ("/icon/basic", test_icon);
     g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
+    g_test_add_func ("/icon/large", test_icon_large);
     g_test_add_func ("/get-assertions/basic", test_get_assertions);
     g_test_add_func ("/get-assertions/body", test_get_assertions_body);
     g_test_add_func ("/get-assertions/multiple", test_get_assertions_multiple);

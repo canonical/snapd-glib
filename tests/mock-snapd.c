@@ -806,12 +806,28 @@ read_data (MockSnapd *snapd, gsize size)
 }
 
 static void
+write_data (MockSnapd *snapd, const gchar *content, gsize size)
+{
+    gsize total_written = 0;
+
+    while (total_written < size) {
+        gssize n_written;
+        g_autoptr(GError) error = NULL;
+
+        n_written = g_socket_send (snapd->server_socket, content + total_written, size - total_written, NULL, &error);
+        if (n_written < 0) {
+            g_warning ("Failed to write to snapd client: %s", error->message);
+            return;
+        }
+        total_written += n_written;
+    }
+}
+
+static void
 send_response (MockSnapd *snapd, guint status_code, const gchar *reason_phrase, const gchar *content_type, const guint8 *content, gsize content_length)
 {
     g_autoptr(SoupMessageHeaders) headers = NULL;
     g_autoptr(GString) message = NULL;
-    gssize n_written;
-    g_autoptr(GError) error = NULL;
 
     message = g_string_new (NULL);
     g_string_append_printf (message, "HTTP/1.1 %u %s\r\n", status_code, reason_phrase);
@@ -819,10 +835,8 @@ send_response (MockSnapd *snapd, guint status_code, const gchar *reason_phrase, 
     g_string_append_printf (message, "Content-Length: %zi\r\n", content_length);
     g_string_append (message, "\r\n");
 
-    n_written = g_socket_send (snapd->server_socket, message->str, message->len, NULL, &error);
-    g_assert (n_written == message->len);
-    n_written = g_socket_send (snapd->server_socket, (const gchar *) content, content_length, NULL, &error);
-    g_assert (n_written == content_length);
+    write_data (snapd, message->str, message->len);
+    write_data (snapd, (const gchar *) content, content_length);
 }
 
 static void

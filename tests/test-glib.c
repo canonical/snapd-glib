@@ -792,6 +792,39 @@ test_icon_not_installed (void)
 }
 
 static void
+test_icon_large (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    gchar *icon_buffer;
+    gsize i, icon_buffer_length = 1048576;
+    g_autoptr(GBytes) icon_data = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdIcon) icon = NULL;
+    GBytes *data;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    icon_buffer = g_malloc (icon_buffer_length);
+    for (i = 0; i < icon_buffer_length; i++)
+        icon_buffer[i] = i % 255;
+    icon_data = g_bytes_new (icon_buffer, icon_buffer_length);
+    mock_snap_set_icon_data (s, "image/png", icon_data);
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    icon = snapd_client_get_icon_sync (client, "snap", NULL, &error);
+    g_assert_no_error (error);
+    g_assert (icon != NULL);
+    g_assert_cmpstr (snapd_icon_get_mime_type (icon), ==, "image/png");
+    data = snapd_icon_get_data (icon);
+    g_assert_cmpmem (g_bytes_get_data (data, NULL), g_bytes_get_size (data), icon_buffer, icon_buffer_length);
+}
+
+static void
 test_get_assertions (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -3420,6 +3453,7 @@ main (int argc, char **argv)
     g_test_add_func ("/icon/basic", test_icon);
     g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
+    g_test_add_func ("/icon/large", test_icon_large);
     g_test_add_func ("/get-assertions/basic", test_get_assertions);
     g_test_add_func ("/get-assertions/body", test_get_assertions_body);
     g_test_add_func ("/get-assertions/multiple", test_get_assertions_multiple);
