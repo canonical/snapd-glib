@@ -2498,11 +2498,11 @@ read_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
 static gboolean
 mock_snapd_thread_quit (gpointer user_data)
 {
-        MockSnapd *snapd = MOCK_SNAPD (user_data);
+    MockSnapd *snapd = MOCK_SNAPD (user_data);
 
-        g_main_loop_quit (snapd->loop);
+    g_main_loop_quit (snapd->loop);
 
-        return FALSE;
+    return FALSE;
 }
 
 static void
