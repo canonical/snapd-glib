@@ -372,6 +372,47 @@ test_list (void)
 }
 
 static void
+list_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(GPtrArray) snaps = NULL;
+    GMainLoop *loop = user_data;
+    g_autoptr(GError) error = NULL;
+
+    snaps = snapd_client_list_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert (snaps != NULL);
+    g_assert_cmpint (snaps->len, ==, 3);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "snap2");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[2]), ==, "snap3");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_list_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap1");
+    mock_snapd_add_snap (snapd, "snap2");
+    mock_snapd_add_snap (snapd, "snap3");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snapd_client_list_async (client, NULL, list_cb, loop);
+    g_main_loop_run (loop);
+}
+
+static void
 test_list_one (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -3246,6 +3287,7 @@ main (int argc, char **argv)
     g_test_add_func ("/login/otp-missing", test_login_otp_missing);
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
     g_test_add_func ("/list/basic", test_list);
+    g_test_add_func ("/list/async", test_list_async);
     g_test_add_func ("/list-one/basic", test_list_one);
     g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);

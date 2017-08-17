@@ -319,6 +319,43 @@ test_list ()
     g_assert (snap2->name () == "snap3");
 }
 
+void
+ListHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->snapCount (), ==, 3);
+    QScopedPointer<QSnapdSnap> snap0 (request->snap (0));
+    g_assert (snap0->name () == "snap1");
+    QScopedPointer<QSnapdSnap> snap1 (request->snap (1));
+    g_assert (snap1->name () == "snap2");
+    QScopedPointer<QSnapdSnap> snap2 (request->snap (2));
+    g_assert (snap2->name () == "snap3");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_list_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap1");
+    mock_snapd_add_snap (snapd, "snap2");
+    mock_snapd_add_snap (snapd, "snap3");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    ListHandler listHandler (loop, client.list ());
+    QObject::connect (listHandler.request, &QSnapdListRequest::complete, &listHandler, &ListHandler::onComplete);
+    listHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
 static void
 test_list_one ()
 {
@@ -2564,6 +2601,7 @@ main (int argc, char **argv)
     g_test_add_func ("/login/otp-missing", test_login_otp_missing);
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
     g_test_add_func ("/list/basic", test_list);
+    g_test_add_func ("/list/async", test_list_async);
     g_test_add_func ("/list-one/basic", test_list_one);
     g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
