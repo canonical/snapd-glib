@@ -690,6 +690,7 @@ test_icon_large ()
     for (gsize i = 0; i < icon_buffer_length; i++)
         icon_buffer[i] = i % 255;
     g_autoptr(GBytes) icon_data = g_bytes_new (icon_buffer, icon_buffer_length);
+    g_free (icon_buffer);
     mock_snap_set_icon_data (s, "image/png", icon_data);
 
     QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
