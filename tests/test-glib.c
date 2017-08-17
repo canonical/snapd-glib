@@ -457,6 +457,65 @@ test_list_one (void)
 }
 
 static void
+list_one_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(SnapdSnap) snap = NULL;
+    GMainLoop *loop = user_data;
+    g_autoptr(GError) error = NULL;
+
+    snap = snapd_client_list_one_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert (snap != NULL);
+    g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
+    g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
+    g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
+    g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
+    g_assert_cmpstr (snapd_snap_get_description (snap), ==, NULL);
+    g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
+    g_assert (snapd_snap_get_devmode (snap) == FALSE);
+    g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
+    g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
+    g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
+    g_assert (snapd_snap_get_install_date (snap) == NULL);
+    g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
+    g_assert (snapd_snap_get_jailmode (snap) == FALSE);
+    g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
+    g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
+    g_assert (snapd_snap_get_private (snap) == FALSE);
+    g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
+    g_assert_cmpint (snapd_snap_get_screenshots (snap)->len, ==, 0);
+    g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
+    g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
+    g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
+    g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
+    g_assert (snapd_snap_get_trymode (snap) == FALSE);
+    g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_list_one_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snapd_client_list_one_async (client, "snap", NULL, list_one_cb, loop);
+    g_main_loop_run (loop);
+}
+
+static void
 test_list_one_optional_fields (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -3289,6 +3348,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list/basic", test_list);
     g_test_add_func ("/list/async", test_list_async);
     g_test_add_func ("/list-one/basic", test_list_one);
+    g_test_add_func ("/list-one/basic/async", test_list_one_async);
     g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);

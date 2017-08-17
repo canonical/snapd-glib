@@ -73,3 +73,20 @@ public:
 public slots:
     void onComplete ();
 };
+
+class ListOneHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    ListOneHandler (GMainLoop *loop, QSnapdListOneRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdListOneRequest *request;
+    ~ListOneHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};

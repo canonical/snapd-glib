@@ -397,6 +397,59 @@ test_list_one ()
     g_assert (snap->version () == "VERSION");
 }
 
+void
+ListOneHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (request->snap ());
+    g_assert_cmpint (snap->appCount (), ==, 0);
+    g_assert (snap->channel () == NULL);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
+    g_assert (snap->contact () == NULL);
+    g_assert (snap->description () == NULL);
+    g_assert (snap->developer () == "DEVELOPER");
+    g_assert (snap->devmode () == FALSE);
+    g_assert_cmpint (snap->downloadSize (), ==, 0);
+    g_assert (snap->icon () == "ICON");
+    g_assert (snap->id () == "ID");
+    g_assert (snap->installDate ().isNull ());
+    g_assert_cmpint (snap->installedSize (), ==, 0);
+    g_assert (snap->jailmode () == FALSE);
+    g_assert (snap->name () == "snap");
+    g_assert_cmpint (snap->priceCount (), ==, 0);
+    g_assert (snap->isPrivate () == FALSE);
+    g_assert (snap->revision () == "REVISION");
+    g_assert_cmpint (snap->screenshotCount (), ==, 0);
+    g_assert_cmpint (snap->snapType (), ==, QSnapdSnap::App);
+    g_assert_cmpint (snap->status (), ==, QSnapdSnap::Active);
+    g_assert (snap->summary () == NULL);
+    g_assert (snap->trackingChannel () == NULL);
+    g_assert (snap->trymode () == FALSE);
+    g_assert (snap->version () == "VERSION");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_list_one_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    ListOneHandler listOneHandler (loop, client.listOne ("snap"));
+    QObject::connect (listOneHandler.request, &QSnapdListOneRequest::complete, &listOneHandler, &ListOneHandler::onComplete);
+    listOneHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
 static void
 test_list_one_optional_fields ()
 {
@@ -2603,6 +2656,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list/basic", test_list);
     g_test_add_func ("/list/async", test_list_async);
     g_test_add_func ("/list-one/basic", test_list_one);
+    g_test_add_func ("/list-one/async", test_list_one_async);
     g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
