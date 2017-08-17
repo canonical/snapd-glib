@@ -705,13 +705,17 @@ static void
 test_icon (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(GBytes) icon_data = NULL;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(SnapdIcon) icon = NULL;
     GBytes *data;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    mock_snapd_add_snap (snapd, "snap");
+    s = mock_snapd_add_snap (snapd, "snap");
+    icon_data = g_bytes_new ("ICON-DATA", 9);
+    mock_snap_set_icon_data (s, "image/png", icon_data);
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
     snapd_client_connect_sync (client, NULL, &error);
@@ -722,7 +726,7 @@ test_icon (void)
     g_assert (icon != NULL);
     g_assert_cmpstr (snapd_icon_get_mime_type (icon), ==, "image/png");
     data = snapd_icon_get_data (icon);
-    g_assert_cmpmem (g_bytes_get_data (data, NULL), g_bytes_get_size (data), "ICON", 4);
+    g_assert_cmpmem (g_bytes_get_data (data, NULL), g_bytes_get_size (data), "ICON-DATA", 9);
 }
 
 static void
@@ -738,7 +742,7 @@ icon_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert (icon != NULL);
     g_assert_cmpstr (snapd_icon_get_mime_type (icon), ==, "image/png");
     data = snapd_icon_get_data (icon);
-    g_assert_cmpmem (g_bytes_get_data (data, NULL), g_bytes_get_size (data), "ICON", 4);
+    g_assert_cmpmem (g_bytes_get_data (data, NULL), g_bytes_get_size (data), "ICON-DATA", 9);
 
     g_main_loop_quit (loop);
 }
@@ -748,13 +752,17 @@ test_icon_async (void)
 {
     g_autoptr(GMainLoop) loop = NULL;
     g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(GBytes) icon_data = NULL;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(GError) error = NULL;
 
     loop = g_main_loop_new (NULL, FALSE);
 
     snapd = mock_snapd_new ();
-    mock_snapd_add_snap (snapd, "snap");
+    s = mock_snapd_add_snap (snapd, "snap");
+    icon_data = g_bytes_new ("ICON-DATA", 9);
+    mock_snap_set_icon_data (s, "image/png", icon_data);
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
     snapd_client_connect_sync (client, NULL, &error);

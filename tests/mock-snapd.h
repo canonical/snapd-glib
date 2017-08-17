@@ -48,6 +48,8 @@ typedef struct
     gboolean devmode;
     int download_size;
     gchar *icon;
+    gchar *icon_mime_type;
+    GBytes *icon_data;
     gchar *id;
     gchar *install_date;
     int installed_size;
@@ -201,6 +203,10 @@ void            mock_snap_set_developer           (MockSnap      *snap,
 
 void            mock_snap_set_icon                (MockSnap      *snap,
                                                    const gchar   *icon);
+
+void            mock_snap_set_icon_data           (MockSnap      *snap,
+                                                   const gchar   *mime_type,
+                                                   GBytes        *data);
 
 void            mock_snap_set_id                  (MockSnap      *snap,
                                                    const gchar   *id);

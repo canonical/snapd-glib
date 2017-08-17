@@ -613,7 +613,9 @@ static void
 test_icon ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_snap (snapd, "snap");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(GBytes) icon_data = g_bytes_new ("ICON-DATA", 9);
+    mock_snap_set_icon_data (s, "image/png", icon_data);
 
     QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
     QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
@@ -626,7 +628,7 @@ test_icon ()
     QScopedPointer<QSnapdIcon> icon (getIconRequest->icon ());
     g_assert (icon->mimeType () == "image/png");
     QByteArray data = icon->data ();
-    g_assert_cmpmem (data.data (), data.size (), "ICON", 4);
+    g_assert_cmpmem (data.data (), data.size (), "ICON-DATA", 9);
 }
 
 void
@@ -636,7 +638,7 @@ GetIconHandler::onComplete ()
     QScopedPointer<QSnapdIcon> icon (request->icon ());
     g_assert (icon->mimeType () == "image/png");
     QByteArray data = icon->data ();
-    g_assert_cmpmem (data.data (), data.size (), "ICON", 4);
+    g_assert_cmpmem (data.data (), data.size (), "ICON-DATA", 9);
 
     g_main_loop_quit (loop);
 }
@@ -647,7 +649,9 @@ test_icon_async ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_snap (snapd, "snap");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(GBytes) icon_data = g_bytes_new ("ICON-DATA", 9);
+    mock_snap_set_icon_data (s, "image/png", icon_data);
 
     QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
     QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());

@@ -138,6 +138,8 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->description);
     g_free (snap->developer);
     g_free (snap->icon);
+    g_free (snap->icon_mime_type);
+    g_bytes_unref (snap->icon_data);
     g_free (snap->id);
     g_free (snap->install_date);
     g_free (snap->name);
@@ -501,6 +503,15 @@ mock_snap_set_icon (MockSnap *snap, const gchar *icon)
 {
     g_free (snap->icon);
     snap->icon = g_strdup (icon);
+}
+
+void
+mock_snap_set_icon_data (MockSnap *snap, const gchar *mime_type, GBytes *data)
+{
+    g_free (snap->icon_mime_type);
+    snap->icon_mime_type = g_strdup (mime_type);
+    g_bytes_unref (snap->icon_data);
+    snap->icon_data = g_bytes_ref (data);
 }
 
 void
@@ -1670,10 +1681,14 @@ handle_icon (MockSnapd *snapd, const gchar *method, const gchar *path)
     name = g_strndup (path, strlen (path) - strlen ("/icon"));
 
     snap = mock_snapd_find_snap (snapd, name);
-    if (snap != NULL)
-        send_response (snapd, 200, "OK", "image/png", (const guint8 *) "ICON", 4);
-    else
+    if (snap == NULL)
         send_error_not_found (snapd, "cannot find snap");
+    else if (snap->icon_data == NULL)
+        send_error_not_found (snapd, "not found");
+    else
+        send_response (snapd, 200, "OK", snap->icon_mime_type,
+                       (const guint8 *) g_bytes_get_data (snap->icon_data, NULL),
+                       g_bytes_get_size (snap->icon_data));
 }
 
 static void
