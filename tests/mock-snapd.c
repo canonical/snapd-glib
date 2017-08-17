@@ -2515,6 +2515,7 @@ mock_snapd_finalize (GObject *object)
                            snapd);
 
     g_thread_join (snapd->thread);
+    snapd->thread = NULL;
 
     g_clear_object (&snapd->client_socket);
     g_clear_object (&snapd->server_socket);
@@ -2545,7 +2546,6 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->last_user_agent, g_free);
     g_clear_pointer (&snapd->context, g_main_context_unref);
     g_clear_pointer (&snapd->loop, g_main_loop_unref);
-    g_clear_pointer (&snapd->thread, g_thread_unref);
 }
 
 static void
