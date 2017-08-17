@@ -72,7 +72,6 @@
 
 typedef struct
 {
-    GMainContext *context;
     GSocket *snapd_socket;
     gchar *user_agent;
     SnapdAuthData *auth_data;
@@ -2333,7 +2332,9 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
 }
 
 typedef struct {
+    GMainContext *context;
     GMainLoop    *loop;
+    GSource      *read_source;
     GAsyncResult *result;
 } SyncData;
 
@@ -2341,13 +2342,31 @@ static void
 start_sync (SnapdClient *client, SyncData *data)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
-    data->loop = g_main_loop_new (priv->context, FALSE);
+
+    data->context = g_main_context_new ();
+    data->loop = g_main_loop_new (data->context, FALSE);
+    data->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
+    g_source_set_name (data->read_source, "snapd-glib-sync-read-source");
+    g_source_set_callback (data->read_source, (GSourceFunc) read_cb, client, NULL);
+    g_source_attach (data->read_source, data->context);
+    g_main_context_push_thread_default (data->context);
+}
+
+static void
+end_sync (SyncData *data)
+{
+    g_main_loop_run (data->loop);
+    g_main_context_pop_thread_default (data->context);
 }
 
 static void
 sync_data_clear (SyncData *data)
 {
+    if (data->read_source != NULL)
+        g_source_destroy (data->read_source);
+    g_clear_pointer (&data->read_source, g_source_unref);
     g_clear_pointer (&data->loop, g_main_loop_unref);
+    g_clear_pointer (&data->context, g_main_context_unref);
     g_clear_object (&data->result);
 }
 
@@ -2415,7 +2434,7 @@ snapd_client_connect_sync (SnapdClient *client,
         priv->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
         g_source_set_name (priv->read_source, "snapd-glib-read-source");
         g_source_set_callback (priv->read_source, (GSourceFunc) read_cb, client, NULL);
-        g_source_attach (priv->read_source, priv->context);
+        g_source_attach (priv->read_source, g_main_context_get_thread_default ());
     }
 
     return TRUE;
@@ -2578,7 +2597,8 @@ snapd_client_login_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_login_async (client, username, password, otp, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
+
     return snapd_client_login_finish (client, data.result, error);
 }
 
@@ -2727,7 +2747,7 @@ snapd_client_get_system_information_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_get_system_information_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
 
     return snapd_client_get_system_information_finish (client, data.result, error);
 }
@@ -2809,7 +2829,7 @@ snapd_client_list_one_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_list_one_async (client, name, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_list_one_finish (client, data.result, error);
 }
 
@@ -2895,7 +2915,7 @@ snapd_client_get_icon_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_get_icon_async (client, name, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_get_icon_finish (client, data.result, error);
 }
 
@@ -2979,7 +2999,7 @@ snapd_client_list_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_list_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_list_finish (client, data.result, error);
 }
 
@@ -3060,7 +3080,7 @@ snapd_client_get_assertions_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_get_assertions_async (client, type, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_get_assertions_finish (client, data.result, error);
 }
 
@@ -3147,7 +3167,7 @@ snapd_client_add_assertions_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_add_assertions_async (client, assertions, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_add_assertions_finish (client, data.result, error);
 }
 
@@ -3245,7 +3265,7 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_get_interfaces_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_get_interfaces_finish (client, data.result, plugs, slots, error);
 }
 
@@ -3383,7 +3403,7 @@ snapd_client_connect_interface_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_connect_interface_async (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_connect_interface_finish (client, data.result, error);
 }
 
@@ -3483,7 +3503,7 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_disconnect_interface_async (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_disconnect_interface_finish (client, data.result, error);
 }
 
@@ -3646,7 +3666,7 @@ snapd_client_find_section_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_find_section_async (client, flags, section, query, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_find_section_finish (client, data.result, suggested_currency, error);
 }
 
@@ -3767,7 +3787,7 @@ snapd_client_find_refreshable_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_find_refreshable_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_find_refreshable_finish (client, data.result, error);
 }
 
@@ -3929,7 +3949,7 @@ snapd_client_install2_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_install2_async (client, flags, name, channel, revision, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_install2_finish (client, data.result, error);
 }
 
@@ -4118,7 +4138,7 @@ snapd_client_install_stream_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_install_stream_async (client, flags, stream, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_install_stream_finish (client, data.result, error);
 }
 
@@ -4234,7 +4254,7 @@ snapd_client_try_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_try_async (client, path, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_try_finish (client, data.result, error);
 }
 
@@ -4333,7 +4353,7 @@ snapd_client_refresh_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_refresh_async (client, name, channel, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_refresh_finish (client, data.result, error);
 }
 
@@ -4436,7 +4456,7 @@ snapd_client_refresh_all_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_refresh_all_async (client, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_refresh_all_finish (client, data.result, error);
 }
 
@@ -4567,7 +4587,7 @@ snapd_client_remove_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_remove_async (client, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_remove_finish (client, data.result, error);
 }
 
@@ -4668,7 +4688,7 @@ snapd_client_enable_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_enable_async (client, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_enable_finish (client, data.result, error);
 }
 
@@ -4770,7 +4790,7 @@ snapd_client_disable_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_disable_async (client, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_disable_finish (client, data.result, error);
 }
 
@@ -4867,7 +4887,7 @@ snapd_client_check_buy_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_check_buy_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_check_buy_finish (client, data.result, error);
 }
 
@@ -4954,7 +4974,7 @@ snapd_client_buy_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_buy_async (client, id, amount, currency, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_buy_finish (client, data.result, error);
 }
 
@@ -5056,7 +5076,7 @@ snapd_client_create_user_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_create_user_async (client, email, flags, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_create_user_finish (client, data.result, error);
 }
 
@@ -5156,7 +5176,7 @@ snapd_client_create_users_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_create_users_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_create_users_finish (client, data.result, error);
 }
 
@@ -5244,7 +5264,7 @@ snapd_client_get_sections_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_get_sections_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_get_sections_finish (client, data.result, error);
 }
 
@@ -5324,7 +5344,7 @@ snapd_client_get_aliases_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_get_aliases_async (client, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_get_aliases_finish (client, data.result, error);
 }
 
@@ -5441,7 +5461,7 @@ snapd_client_enable_aliases_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_enable_aliases_async (client, snap, aliases, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_enable_aliases_finish (client, data.result, error);
 }
 
@@ -5533,7 +5553,7 @@ snapd_client_disable_aliases_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_disable_aliases_async (client, snap, aliases, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_disable_aliases_finish (client, data.result, error);
 }
 
@@ -5625,7 +5645,7 @@ snapd_client_reset_aliases_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_reset_aliases_async (client, snap, aliases, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_reset_aliases_finish (client, data.result, error);
 }
 
@@ -5717,7 +5737,7 @@ snapd_client_run_snapctl_sync (SnapdClient *client,
 
     start_sync (client, &data);
     snapd_client_run_snapctl_async (client, context_id, args, cancellable, sync_cb, &data);
-    g_main_loop_run (data.loop);
+    end_sync (&data);
     return snapd_client_run_snapctl_finish (client, data.result, stdout_output, stderr_output, error);
 }
 
@@ -5856,7 +5876,6 @@ snapd_client_finalize (GObject *object)
     g_socket_close (priv->snapd_socket, NULL);
     g_clear_object (&priv->snapd_socket);
     g_clear_pointer (&priv->buffer, g_byte_array_unref);
-    g_clear_pointer (&priv->context, g_main_context_unref);
 }
 
 static void
@@ -5872,7 +5891,6 @@ snapd_client_init (SnapdClient *client)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
 
-    priv->context = g_main_context_ref_thread_default ();
     priv->user_agent = g_strdup ("snapd-glib/" VERSION);
     priv->buffer = g_byte_array_new ();
 }
