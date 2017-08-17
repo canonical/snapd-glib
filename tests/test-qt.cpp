@@ -17,7 +17,7 @@
 #include "test-qt.h"
 
 static void
-test_user_agent_default (void)
+test_user_agent_default ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
@@ -35,7 +35,7 @@ test_user_agent_default (void)
 }
 
 static void
-test_user_agent_custom (void)
+test_user_agent_custom ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
@@ -52,7 +52,7 @@ test_user_agent_custom (void)
 }
 
 static void
-test_user_agent_null (void)
+test_user_agent_null ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
@@ -157,7 +157,7 @@ test_get_system_information_store ()
 }
 
 static void
-test_get_system_information_confinement_strict (void)
+test_get_system_information_confinement_strict ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "strict");
@@ -175,7 +175,7 @@ test_get_system_information_confinement_strict (void)
 }
 
 static void
-test_get_system_information_confinement_none (void)
+test_get_system_information_confinement_none ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "partial");
@@ -193,7 +193,7 @@ test_get_system_information_confinement_none (void)
 }
 
 static void
-test_get_system_information_confinement_unknown (void)
+test_get_system_information_confinement_unknown ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "NOT_DEFINED");
@@ -1282,7 +1282,7 @@ FindHandler::onComplete ()
 }
 
 static void
-test_find_cancel (void)
+test_find_cancel ()
 {
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
