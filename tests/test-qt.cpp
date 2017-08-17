@@ -1244,9 +1244,18 @@ find_cancel_cb (QSnapdFindRequest *request)
     return G_SOURCE_REMOVE;
 }
 
+void
+FindHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::Cancelled);
+    g_main_loop_quit (loop);
+}
+
 static void
 test_find_cancel (void)
 {
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
     QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
@@ -1255,10 +1264,12 @@ test_find_cancel (void)
     g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     /* Use a special query that never responds */
-    QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::None, "do-not-respond"));
-    g_idle_add ((GSourceFunc) find_cancel_cb, findRequest.data ());
-    findRequest->runSync ();
-    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::Cancelled);
+    FindHandler findHandler (loop, client.find (QSnapdClient::None, "do-not-respond"));
+    QObject::connect (findHandler.request, &QSnapdFindRequest::complete, &findHandler, &FindHandler::onComplete);
+    findHandler.request->runAsync ();
+    g_idle_add ((GSourceFunc) find_cancel_cb, findHandler.request);
+
+    g_main_loop_run (loop);
 }
 
 static void

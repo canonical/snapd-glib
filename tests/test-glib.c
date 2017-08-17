@@ -1505,13 +1505,29 @@ cancel_cb (gpointer user_data)
 }
 
 static void
+find_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(GPtrArray) snaps = NULL;
+    GMainLoop *loop = user_data;
+    g_autoptr(GError) error = NULL;
+
+    snaps = snapd_client_find_finish (SNAPD_CLIENT (object), result, NULL, &error);
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+    g_assert (snaps == NULL);
+
+    g_main_loop_quit (loop);
+}
+
+static void
 test_find_cancel (void)
 {
+    g_autoptr(GMainLoop) loop = NULL;
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(GCancellable) cancellable = NULL;
     g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
 
     snapd = mock_snapd_new ();
 
@@ -1521,10 +1537,10 @@ test_find_cancel (void)
 
     /* Use a special query that never responds */
     cancellable = g_cancellable_new ();
+    snapd_client_find_async (client, SNAPD_FIND_FLAGS_NONE, "do-not-respond", cancellable, find_cancel_cb, loop);
     g_idle_add (cancel_cb, cancellable);
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "do-not-respond", NULL, cancellable, &error);
-    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
-    g_assert (snaps == NULL);
+
+    g_main_loop_run (loop);
 }
 
 static void

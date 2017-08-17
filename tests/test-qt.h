@@ -107,3 +107,20 @@ public:
 public slots:
     void onComplete ();
 };
+
+class FindHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    FindHandler (GMainLoop *loop, QSnapdFindRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdFindRequest *request;
+    ~FindHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
