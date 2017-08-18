@@ -1134,35 +1134,6 @@ test_find_query ()
 }
 
 static void
-test_find_empty ()
-{
-    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_set_suggested_currency (snapd, "NZD");
-    mock_snapd_add_store_snap (snapd, "apple");
-    mock_snapd_add_store_snap (snapd, "banana");
-    mock_snapd_add_store_snap (snapd, "carrot1");
-    mock_snapd_add_store_snap (snapd, "carrot2");
-
-    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
-
-    QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::None));
-    findRequest->runSync ();
-    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpint (findRequest->snapCount (), ==, 4);
-    QScopedPointer<QSnapdSnap> snap0 (findRequest->snap (0));
-    g_assert (snap0->name () == "apple");
-    QScopedPointer<QSnapdSnap> snap1 (findRequest->snap (1));
-    g_assert (snap1->name () == "banana");
-    QScopedPointer<QSnapdSnap> snap2 (findRequest->snap (2));
-    g_assert (snap2->name () == "carrot1");
-    QScopedPointer<QSnapdSnap> snap3 (findRequest->snap (3));
-    g_assert (snap3->name () == "carrot2");
-}
-
-static void
 test_find_query_private ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -2777,7 +2748,6 @@ main (int argc, char **argv)
     g_test_add_func ("/disconnect-interface/progress", test_disconnect_interface_progress);
     g_test_add_func ("/disconnect-interface/invalid", test_disconnect_interface_invalid);
     g_test_add_func ("/find/query", test_find_query);
-    g_test_add_func ("/find/empty", test_find_empty);
     g_test_add_func ("/find/query-private", test_find_query_private);
     g_test_add_func ("/find/query-private/not-logged-in", test_find_query_private_not_logged_in);
     g_test_add_func ("/find/name", test_find_name);

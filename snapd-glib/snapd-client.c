@@ -3576,7 +3576,7 @@ snapd_client_disconnect_interface_finish (SnapdClient *client,
  * snapd_client_find_sync:
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
- * @query: (allow-none): query string to send or %NULL to find all.
+ * @query: query string to send.
  * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
@@ -3593,6 +3593,7 @@ snapd_client_find_sync (SnapdClient *client,
                         gchar **suggested_currency,
                         GCancellable *cancellable, GError **error)
 {
+    g_return_val_if_fail (query != NULL, NULL);
     return snapd_client_find_section_sync (client, flags, NULL, query, suggested_currency, cancellable, error);
 }
 
@@ -3600,7 +3601,7 @@ snapd_client_find_sync (SnapdClient *client,
  * snapd_client_find_async:
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
- * @query: (allow-none): query string to send or %NULL to find all.
+ * @query: query string to send.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -3615,6 +3616,7 @@ snapd_client_find_async (SnapdClient *client,
                          SnapdFindFlags flags, const gchar *query,
                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
+    g_return_if_fail (query != NULL);
     snapd_client_find_section_async (client, flags, NULL, query, cancellable, callback, user_data);
 }
 
@@ -3643,7 +3645,7 @@ snapd_client_find_finish (SnapdClient *client, GAsyncResult *result, gchar **sug
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
  * @section: (allow-none): store section to search in or %NULL to search in all sections.
- * @query: (allow-none): query string to send or %NULL to find all.
+ * @query: (allow-none): query string to send or %NULL to get all snaps from the given section.
  * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
@@ -3675,7 +3677,7 @@ snapd_client_find_section_sync (SnapdClient *client,
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
  * @section: (allow-none): store section to search in or %NULL to search in all sections.
- * @query: (allow-none): query string to send or %NULL to find all.
+ * @query: (allow-none): query string to send or %NULL to get all snaps from the given section.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -3695,6 +3697,7 @@ snapd_client_find_section_async (SnapdClient *client,
     g_autoptr(GString) path = NULL;
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (section != NULL || query != NULL);
 
     request = make_request (client, SNAPD_REQUEST_FIND, NULL, NULL, cancellable, callback, user_data);
     path = g_string_new ("/v2/find");

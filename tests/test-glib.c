@@ -1383,35 +1383,6 @@ test_find_query (void)
 }
 
 static void
-test_find_empty (void)
-{
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    mock_snapd_set_suggested_currency (snapd, "NZD");
-    mock_snapd_add_store_snap (snapd, "apple");
-    mock_snapd_add_store_snap (snapd, "banana");
-    mock_snapd_add_store_snap (snapd, "carrot1");
-    mock_snapd_add_store_snap (snapd, "carrot2");
-
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
-    snapd_client_connect_sync (client, NULL, &error);
-    g_assert_no_error (error);
-
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, NULL, NULL, NULL, &error);
-    g_assert_no_error (error);
-    g_assert (snaps != NULL);
-    g_assert_cmpint (snaps->len, ==, 4);
-    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "apple");
-    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "banana");
-    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[2]), ==, "carrot1");
-    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[3]), ==, "carrot2");
-}
-
-static void
 test_find_query_private (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -3494,7 +3465,6 @@ main (int argc, char **argv)
     g_test_add_func ("/disconnect-interface/progress", test_disconnect_interface_progress);
     g_test_add_func ("/disconnect-interface/invalid", test_disconnect_interface_invalid);
     g_test_add_func ("/find/query", test_find_query);
-    g_test_add_func ("/find/empty", test_find_empty);
     g_test_add_func ("/find/query-private", test_find_query_private);
     g_test_add_func ("/find/query-private/not-logged-in", test_find_query_private_not_logged_in);
     g_test_add_func ("/find/name", test_find_name);
