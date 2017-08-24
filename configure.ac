@@ -29,7 +29,7 @@ dnl === Dependencies ==========================================================
 
 GLIB_REQUIRED=2.46
 LIBSOUP_REQUIRED=2.32
-JSON_GLIB_REQUIRED=1.2
+JSON_GLIB_REQUIRED=1.1.2
 
 PKG_CHECK_MODULES(SNAPD, [
     glib-2.0 >= $GLIB_REQUIRED
