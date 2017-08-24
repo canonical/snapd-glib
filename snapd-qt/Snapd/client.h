@@ -542,6 +542,7 @@ class Q_DECL_EXPORT QSnapdClient : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QString userAgent READ userAgent WRITE setUserAgent)
+    Q_PROPERTY(bool allowInteraction READ allowInteraction WRITE setAllowInteraction)
     Q_FLAGS(FindFlags)
 
 public:
@@ -568,6 +569,8 @@ public:
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
     Q_INVOKABLE void setUserAgent (const QString &userAgent);
     Q_INVOKABLE QString userAgent () const;
+    Q_INVOKABLE void setAllowInteraction (bool allowInteraction);
+    Q_INVOKABLE bool allowInteraction () const;
     Q_INVOKABLE void setAuthData (QSnapdAuthData *authData);
     Q_INVOKABLE QSnapdAuthData *authData ();
     Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();

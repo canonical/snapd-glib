@@ -262,6 +262,8 @@ const gchar    *mock_snapd_get_last_user_agent    (MockSnapd     *snapd);
 
 const gchar    *mock_snapd_get_last_accept_language (MockSnapd     *snapd);
 
+const gchar    *mock_snapd_get_last_allow_interaction (MockSnapd *snapd);
+
 G_END_DECLS
 
 #endif /* __MOCK_SNAPD_H__ */

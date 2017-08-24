@@ -98,6 +98,18 @@ QString QSnapdClient::userAgent () const
     return snapd_client_get_user_agent (d->client);
 }
 
+void QSnapdClient::setAllowInteraction (bool allowInteraction)
+{
+    Q_D(QSnapdClient);
+    snapd_client_set_allow_interaction (d->client, allowInteraction);
+}
+
+bool QSnapdClient::allowInteraction () const
+{
+    Q_D(const QSnapdClient);
+    return snapd_client_get_allow_interaction (d->client);
+}
+
 void QSnapdClient::setAuthData (QSnapdAuthData *authData)
 {
     Q_D(QSnapdClient);

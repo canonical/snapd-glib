@@ -128,6 +128,37 @@ test_accept_language_empty (void)
 }
 
 static void
+test_allow_interaction (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+
+    snapd = mock_snapd_new ();
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    /* By default, interaction is allowed */
+    g_assert (snapd_client_get_allow_interaction (client));
+
+    /* ... which sends the X-Allow-Interaction header with requests */
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (info != NULL);
+    g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, "true");
+
+    /* If interaction is not allowed, the header is not sent */
+    snapd_client_set_allow_interaction (client, FALSE);
+    g_assert (!snapd_client_get_allow_interaction (client));
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (info != NULL);
+    g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, NULL);
+}
+
+static void
 test_get_system_information (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -3477,6 +3508,7 @@ main (int argc, char **argv)
     g_test_add_func ("/user-agent/null", test_user_agent_null);
     g_test_add_func ("/accept-language/basic", test_accept_language);
     g_test_add_func ("/accept-language/empty", test_accept_language_empty);
+    g_test_add_func ("/allow-interaction/basic", test_allow_interaction);
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
     g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);

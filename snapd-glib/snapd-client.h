@@ -144,6 +144,11 @@ void                    snapd_client_set_user_agent                (SnapdClient 
 
 const gchar            *snapd_client_get_user_agent                (SnapdClient          *client);
 
+void                    snapd_client_set_allow_interaction         (SnapdClient          *client,
+                                                                    gboolean              allow_interaction);
+
+gboolean                snapd_client_get_allow_interaction         (SnapdClient          *client);
+
 SnapdAuthData          *snapd_client_login_sync                    (SnapdClient          *client,
                                                                     const gchar          *username,
                                                                     const gchar          *password,

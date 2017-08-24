@@ -85,6 +85,9 @@ typedef struct
     GMutex requests_mutex;
     GList *requests;
 
+    /* Whether to send the X-Allow-Interaction request header */
+    gboolean allow_interaction;
+
     /* Data received from snapd */
     GMutex buffer_mutex;
     GByteArray *buffer;
@@ -450,6 +453,8 @@ headers_new (SnapdRequest *request, gboolean authorize)
     soup_message_headers_append (headers, "Connection", "keep-alive");
     if (priv->user_agent != NULL)
         soup_message_headers_append (headers, "User-Agent", priv->user_agent);
+    if (priv->allow_interaction)
+        soup_message_headers_append (headers, "X-Allow-Interaction", "true");
 
     accept_languages = get_accept_languages ();
     soup_message_headers_append (headers, "Accept-Language", accept_languages);
@@ -2604,6 +2609,49 @@ snapd_client_get_user_agent (SnapdClient *client)
 
     priv = snapd_client_get_instance_private (client);
     return priv->user_agent;
+}
+
+/**
+ * snapd_client_set_allow_interaction:
+ * @client: a #SnapdClient
+ * @allow_interaction: whether to allow interaction.
+ *
+ * Set whether snapd operations are allowed to interact with the user.
+ * This affects operations that use polkit authorisation.
+ * Defaults to TRUE.
+ *
+ * Since: 1.19
+ */
+void
+snapd_client_set_allow_interaction (SnapdClient *client, gboolean allow_interaction)
+{
+    SnapdClientPrivate *priv;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    priv = snapd_client_get_instance_private (client);
+    priv->allow_interaction = allow_interaction;
+}
+
+/**
+ * snapd_client_get_allow_interaction:
+ * @client: a #SnapdClient
+ *
+ * Get whether snapd operations are allowed to interact with the user.
+ *
+ * Returns: %TRUE if interaction is allowed.
+ *
+ * Since: 1.19
+ */
+gboolean
+snapd_client_get_allow_interaction (SnapdClient *client)
+{
+    SnapdClientPrivate *priv;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+
+    priv = snapd_client_get_instance_private (client);
+    return priv->allow_interaction;
 }
 
 static void
@@ -5972,6 +6020,7 @@ snapd_client_init (SnapdClient *client)
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
 
     priv->user_agent = g_strdup ("snapd-glib/" VERSION);
+    priv->allow_interaction = TRUE;
     priv->buffer = g_byte_array_new ();
     g_mutex_init (&priv->requests_mutex);
     g_mutex_init (&priv->buffer_mutex);

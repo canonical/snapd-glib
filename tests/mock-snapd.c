@@ -712,6 +712,15 @@ mock_snapd_get_last_accept_language (MockSnapd *snapd)
     return soup_message_headers_get_one (snapd->last_request_headers, "Accept-Language");
 }
 
+const gchar *
+mock_snapd_get_last_allow_interaction (MockSnapd *snapd)
+{
+    if (snapd->last_request_headers == NULL)
+        return NULL;
+
+    return soup_message_headers_get_one (snapd->last_request_headers, "X-Allow-Interaction");
+}
+
 static MockChange *
 add_change (MockSnapd *snapd, JsonNode *data)
 {

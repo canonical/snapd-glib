@@ -111,6 +111,34 @@ test_accept_language_empty (void)
 }
 
 static void
+test_allow_interaction ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    /* By default, interaction is allowed */
+    g_assert (client.allowInteraction());
+
+    /* ... which sends the X-Allow-Interaction header with requests */
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, "true");
+
+    /* If interaction is not allowed, the header is not sent */
+    client.setAllowInteraction (false);
+    g_assert (!client.allowInteraction ());
+    infoRequest.reset (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, NULL);
+}
+
+static void
 test_get_system_information ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -2752,6 +2780,7 @@ main (int argc, char **argv)
     g_test_add_func ("/user-agent/null", test_user_agent_null);
     g_test_add_func ("/accept-language/basic", test_accept_language);
     g_test_add_func ("/accept-language/empty", test_accept_language_empty);
+    g_test_add_func ("/allow-interaction/basic", test_allow_interaction);
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
     g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);
