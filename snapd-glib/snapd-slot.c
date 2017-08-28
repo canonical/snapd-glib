@@ -133,7 +133,7 @@ snapd_slot_get_attribute_names (SnapdSlot *slot, guint *length)
 
     g_hash_table_iter_init (&iter, slot->attributes);
     size = g_hash_table_size (slot->attributes);
-    names = malloc (sizeof (gchar *) * (size + 1));
+    names = g_malloc (sizeof (gchar *) * (size + 1));
     for (i = 0; g_hash_table_iter_next (&iter, &name, NULL); i++)
         names[i] = g_strdup (name);
     names[i] = NULL;
