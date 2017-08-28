@@ -74,6 +74,7 @@ struct _MockSnapd
     gchar *spawn_time;
     gchar *ready_time;
     gchar *last_user_agent;
+    gchar *last_accept_language;
 };
 
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
@@ -698,6 +699,12 @@ const gchar *
 mock_snapd_get_last_user_agent (MockSnapd *snapd)
 {
     return snapd->last_user_agent;
+}
+
+const gchar *
+mock_snapd_get_last_accept_language (MockSnapd *snapd)
+{
+    return snapd->last_accept_language;
 }
 
 static MockChange *
@@ -2436,6 +2443,8 @@ handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMe
 {
     g_free (snapd->last_user_agent);
     snapd->last_user_agent = g_strdup (soup_message_headers_get_one (headers, "User-Agent"));
+    g_free (snapd->last_accept_language);
+    snapd->last_accept_language = g_strdup (soup_message_headers_get_one (headers, "Accept-Language"));
 
     if (strcmp (path, "/v2/system-info") == 0)
         handle_system_info (snapd, method);
@@ -2573,6 +2582,7 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->spawn_time, g_free);
     g_clear_pointer (&snapd->ready_time, g_free);
     g_clear_pointer (&snapd->last_user_agent, g_free);
+    g_clear_pointer (&snapd->last_accept_language, g_free);
     g_clear_pointer (&snapd->context, g_main_context_unref);
     g_clear_pointer (&snapd->loop, g_main_loop_unref);
 }

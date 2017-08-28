@@ -260,6 +260,8 @@ GList          *mock_snapd_get_assertions         (MockSnapd     *snapd);
 
 const gchar    *mock_snapd_get_last_user_agent    (MockSnapd     *snapd);
 
+const gchar    *mock_snapd_get_last_accept_language (MockSnapd     *snapd);
+
 G_END_DECLS
 
 #endif /* __MOCK_SNAPD_H__ */

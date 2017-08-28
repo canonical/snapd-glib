@@ -69,6 +69,48 @@ test_user_agent_null ()
 }
 
 static void
+test_accept_language (void)
+{
+    g_setenv ("LANG", "en_US.UTF-8", TRUE);
+    g_setenv ("LANGUAGE", "en_US:fr", TRUE);
+    g_setenv ("LC_ALL", "", TRUE);
+    g_setenv ("LC_MESSAGES", "", TRUE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snapd_get_last_accept_language (snapd), ==, "en-us, en;q=0.9, fr;q=0.8");
+}
+
+static void
+test_accept_language_empty (void)
+{
+    g_setenv ("LANG", "", TRUE);
+    g_setenv ("LANGUAGE", "", TRUE);
+    g_setenv ("LC_ALL", "", TRUE);
+    g_setenv ("LC_MESSAGES", "", TRUE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snapd_get_last_accept_language (snapd), ==, "en");
+}
+
+static void
 test_get_system_information ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -2708,6 +2750,8 @@ main (int argc, char **argv)
     g_test_add_func ("/user-agent/default", test_user_agent_default);
     g_test_add_func ("/user-agent/custom", test_user_agent_custom);
     g_test_add_func ("/user-agent/null", test_user_agent_null);
+    g_test_add_func ("/accept-language/basic", test_accept_language);
+    g_test_add_func ("/accept-language/empty", test_accept_language_empty);
     g_test_add_func ("/get-system-information/basic", test_get_system_information);
     g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);

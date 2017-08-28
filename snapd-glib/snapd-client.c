@@ -349,17 +349,94 @@ send_request (SnapdRequest *request,
     }
 }
 
+/* Converts a language in POSIX format and to be RFC2616 compliant */
+static gchar *
+posix_lang_to_rfc2616 (const gchar *language)
+{
+    /* Don't include charset variants, etc */
+    if (strchr (language, '.') || strchr (language, '@'))
+        return NULL;
+
+    /* Ignore "C" locale, which g_get_language_names() always includes as a fallback. */
+    if (strcmp (language, "C") == 0)
+        return NULL;
+
+    return g_strdelimit (g_ascii_strdown (language, -1), "_", '-');
+}
+
+/* Converts @quality from 0-100 to 0.0-1.0 and appends to @str */
+static gchar *
+add_quality_value (const gchar *str, int quality)
+{
+    g_return_val_if_fail (str != NULL, NULL);
+
+    if (quality >= 0 && quality < 100) {
+        /* We don't use %.02g because of "." vs "," locale issues */
+        if (quality % 10)
+            return g_strdup_printf ("%s;q=0.%02d", str, quality);
+        else
+            return g_strdup_printf ("%s;q=0.%d", str, quality / 10);
+    } else
+        return g_strdup (str);
+}
+
+/* Returns a RFC2616 compliant languages list from system locales */
+/* Copied from libsoup */
+static gchar *
+get_accept_languages (void)
+{
+    const char * const * lang_names;
+    g_autoptr(GPtrArray) langs = NULL;
+    int delta;
+    guint i;
+
+    lang_names = g_get_language_names ();
+    g_return_val_if_fail (lang_names != NULL, NULL);
+
+    /* Build the array of languages */
+    langs = g_ptr_array_new_with_free_func (g_free);
+    for (i = 0; lang_names[i] != NULL; i++) {
+        gchar *lang = posix_lang_to_rfc2616 (lang_names[i]);
+        if (lang != NULL)
+            g_ptr_array_add (langs, lang);
+    }
+
+    /* Add quality values */
+    if (langs->len < 10)
+        delta = 10;
+    else if (langs->len < 20)
+        delta = 5;
+    else
+        delta = 1;
+    for (i = 0; i < langs->len; i++) {
+        gchar *lang = langs->pdata[i];
+        langs->pdata[i] = add_quality_value (lang, 100 - i * delta);
+        g_free (lang);
+    }
+
+    /* Fallback to "en" if list is empty */
+    if (langs->len == 0)
+        return g_strdup ("en");
+
+    g_ptr_array_add (langs, NULL);
+    return g_strjoinv (", ", (char **)langs->pdata);
+}
+
 static SoupMessageHeaders *
 headers_new (SnapdRequest *request, gboolean authorize)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
     g_autoptr(SoupMessageHeaders) headers = NULL;
+    g_autofree gchar *accept_languages;
 
     headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
     soup_message_headers_append (headers, "Host", "");
     soup_message_headers_append (headers, "Connection", "keep-alive");
     if (priv->user_agent != NULL)
         soup_message_headers_append (headers, "User-Agent", priv->user_agent);
+
+    accept_languages = get_accept_languages ();
+    soup_message_headers_append (headers, "Accept-Language", accept_languages);
 
     if (authorize && request->auth_data != NULL) {
         g_autoptr(GString) authorization = NULL;
