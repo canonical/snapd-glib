@@ -2263,6 +2263,9 @@ read_data (SnapdClient *client,
                                &error_local);
     if (n_read < 0)
     {
+        if (g_error_matches (error_local, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
+            return TRUE;
+
         g_warning ("Failed to read from snapd: %s", error_local->message);
         // FIXME: Cancel all requests
         //g_set_error (error,
@@ -2481,6 +2484,7 @@ snapd_client_connect_sync (SnapdClient *client,
                          error_local->message);
             return FALSE;
         }
+        g_socket_set_blocking (priv->snapd_socket, FALSE);
         address = g_unix_socket_address_new (SNAPD_SOCKET);
         if (!g_socket_connect (priv->snapd_socket, address, cancellable, &error_local)) {
             g_clear_object (&priv->snapd_socket);
