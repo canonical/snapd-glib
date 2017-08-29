@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 1.18
+
+    * Ensure socket reads never block
+
 Overview of changes in snapd-glib 1.17
 
     * Fix issues when accessing snapd-glib from threads.
