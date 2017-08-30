@@ -72,8 +72,6 @@
 
 typedef struct
 {
-    GMutex mutex;
-
     /* Socket to communicate with snapd */
     GSocket *snapd_socket;
 
@@ -84,9 +82,11 @@ typedef struct
     SnapdAuthData *auth_data;
 
     /* Outstanding requests */
+    GMutex requests_mutex;
     GList *requests;
 
     /* Data received from snapd */
+    GMutex buffer_mutex;
     GByteArray *buffer;
     gsize n_read;
 } SnapdClientPrivate;
@@ -219,6 +219,7 @@ static void
 snapd_request_complete (SnapdRequest *request, GError *error)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->requests_mutex);
 
     snapd_request_respond (request, error);
     priv->requests = g_list_remove (priv->requests, request);
@@ -2154,19 +2155,30 @@ parse_run_snapctl_response (SnapdRequest *request, SoupMessageHeaders *headers, 
     snapd_request_complete (request, NULL);
 }
 
+static SnapdRequest *
+get_first_request (SnapdClient *client)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->requests_mutex);
+
+    if (priv->requests == NULL)
+        return NULL;
+
+    return priv->requests->data;
+}
+
 static void
 parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     SnapdRequest *request;
     GError *error = NULL;
 
     /* Match this response to the next uncompleted request */
-    if (priv->requests == NULL) {
+    request = get_first_request (client);
+    if (request == NULL) {
         g_warning ("Ignoring unexpected response");
         return;
     }
-    request = priv->requests->data;
 
     switch (request->request_type)
     {
@@ -2349,7 +2361,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
     g_autofree gchar *reason_phrase = NULL;
     gchar *combined_start;
     gsize content_length, combined_length;
-    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->mutex);
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->buffer_mutex);
 
     if (!read_data (client, 1024, NULL)) // FIXME: What cancellable to use?
         return G_SOURCE_REMOVE;
@@ -2609,6 +2621,7 @@ make_request (SnapdClient *client, RequestType request_type,
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     SnapdRequest *request;
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->requests_mutex);
 
     request = g_object_new (snapd_request_get_type (), NULL);
     request->context = g_main_context_ref_thread_default ();
@@ -5934,7 +5947,8 @@ snapd_client_finalize (GObject *object)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (SNAPD_CLIENT (object));
 
-    g_mutex_clear (&priv->mutex);
+    g_mutex_clear (&priv->requests_mutex);
+    g_mutex_clear (&priv->buffer_mutex);
     g_clear_pointer (&priv->user_agent, g_free);
     g_clear_object (&priv->auth_data);
     g_list_free_full (priv->requests, g_object_unref);
@@ -5959,5 +5973,6 @@ snapd_client_init (SnapdClient *client)
 
     priv->user_agent = g_strdup ("snapd-glib/" VERSION);
     priv->buffer = g_byte_array_new ();
-    g_mutex_init (&priv->mutex);
+    g_mutex_init (&priv->requests_mutex);
+    g_mutex_init (&priv->buffer_mutex);
 }
