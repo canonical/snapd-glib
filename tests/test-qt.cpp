@@ -454,6 +454,7 @@ test_list_one ()
     g_assert (snap->installDate ().isNull ());
     g_assert_cmpint (snap->installedSize (), ==, 0);
     g_assert (snap->jailmode () == FALSE);
+    g_assert (snap->license () == NULL);
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert (snap->isPrivate () == FALSE);
@@ -538,6 +539,7 @@ test_list_one_optional_fields ()
     mock_snap_set_contact (s, "CONTACT");
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_description (s, "DESCRIPTION");
+    mock_snap_set_license (s, "LICENSE");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
 
@@ -571,6 +573,7 @@ test_list_one_optional_fields ()
     g_assert (snap->installDate () == date);
     g_assert_cmpint (snap->installedSize (), ==, 1024);
     g_assert (snap->jailmode () == TRUE);
+    g_assert (snap->license () == "LICENSE");
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert (snap->isPrivate () == FALSE);

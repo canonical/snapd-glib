@@ -142,6 +142,7 @@ mock_snap_free (MockSnap *snap)
     g_bytes_unref (snap->icon_data);
     g_free (snap->id);
     g_free (snap->install_date);
+    g_free (snap->license);
     g_free (snap->name);
     g_list_free_full (snap->prices, (GDestroyNotify) mock_price_free);
     g_list_free_full (snap->screenshots, (GDestroyNotify) mock_screenshot_free);
@@ -526,6 +527,13 @@ mock_snap_set_install_date (MockSnap *snap, const gchar *install_date)
 {
     g_free (snap->install_date);
     snap->install_date = g_strdup (install_date);
+}
+
+void
+mock_snap_set_license (MockSnap *snap, const gchar *license)
+{
+    g_free (snap->license);
+    snap->license = g_strdup (license);
 }
 
 MockPrice *
@@ -1283,9 +1291,9 @@ make_snap_node (MockSnap *snap)
     }
     json_builder_set_member_name (builder, "jailmode");
     json_builder_add_boolean_value (builder, snap->jailmode);
-    if (snap->title) {
-        json_builder_set_member_name (builder, "title");
-        json_builder_add_string_value (builder, snap->title);
+    if (snap->license) {
+        json_builder_set_member_name (builder, "license");
+        json_builder_add_string_value (builder, snap->license);
     }
     json_builder_set_member_name (builder, "name");
     json_builder_add_string_value (builder, snap->name);
@@ -1337,6 +1345,10 @@ make_snap_node (MockSnap *snap)
     if (snap->summary) {
         json_builder_set_member_name (builder, "summary");
         json_builder_add_string_value (builder, snap->summary);
+    }
+    if (snap->title) {
+        json_builder_set_member_name (builder, "title");
+        json_builder_add_string_value (builder, snap->title);
     }
     if (snap->tracking_channel) {
         json_builder_set_member_name (builder, "tracking-channel");

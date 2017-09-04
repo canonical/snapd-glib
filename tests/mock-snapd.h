@@ -54,6 +54,7 @@ typedef struct
     gchar *install_date;
     int installed_size;
     gboolean jailmode;
+    gchar *license;
     gchar *name;
     GList *prices;
     gboolean is_private;
@@ -213,6 +214,9 @@ void            mock_snap_set_id                  (MockSnap      *snap,
 
 void            mock_snap_set_install_date        (MockSnap      *snap,
                                                    const gchar   *install_date);
+
+void            mock_snap_set_license             (MockSnap      *snap,
+                                                   const gchar   *license);
 
 MockPrice      *mock_snap_add_price               (MockSnap      *snap,
                                                    gdouble        amount,

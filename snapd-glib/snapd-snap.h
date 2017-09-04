@@ -116,6 +116,8 @@ gint64            snapd_snap_get_installed_size   (SnapdSnap *snap);
 
 gboolean          snapd_snap_get_jailmode         (SnapdSnap *snap);
 
+const gchar      *snapd_snap_get_license          (SnapdSnap *snap);
+
 const gchar      *snapd_snap_get_name             (SnapdSnap *snap);
 
 GPtrArray        *snapd_snap_get_prices           (SnapdSnap *snap);

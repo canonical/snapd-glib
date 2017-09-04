@@ -117,6 +117,11 @@ bool QSnapdSnap::jailmode () const
     return snapd_snap_get_jailmode (SNAPD_SNAP (wrapped_object));
 }
 
+QString QSnapdSnap::license () const
+{
+    return snapd_snap_get_license (SNAPD_SNAP (wrapped_object));
+}
+
 QString QSnapdSnap::name () const
 {
     return snapd_snap_get_name (SNAPD_SNAP (wrapped_object));

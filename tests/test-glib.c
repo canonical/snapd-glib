@@ -560,6 +560,7 @@ list_one_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert (snapd_snap_get_install_date (snap) == NULL);
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
     g_assert (snapd_snap_get_jailmode (snap) == FALSE);
+    g_assert (snapd_snap_get_license (snap) == NULL);
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert (snapd_snap_get_private (snap) == FALSE);
@@ -624,6 +625,7 @@ test_list_one_optional_fields (void)
     mock_snap_set_contact (s, "CONTACT");
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_description (s, "DESCRIPTION");
+    mock_snap_set_license (s, "LICENSE");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
 
@@ -656,6 +658,7 @@ test_list_one_optional_fields (void)
     g_assert (g_date_time_compare (snapd_snap_get_install_date (snap), date) == 0);
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 1024);
     g_assert (snapd_snap_get_jailmode (snap) == TRUE);
+    g_assert_cmpstr (snapd_snap_get_license (snap), ==, "LICENSE");
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert (snapd_snap_get_private (snap) == FALSE);

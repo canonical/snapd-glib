@@ -50,6 +50,7 @@ struct _SnapdSnap
     GDateTime *install_date;
     gint64 installed_size;
     gboolean jailmode;
+    gchar *license;
     gchar *name;
     GPtrArray *prices;
     gboolean private;
@@ -91,6 +92,7 @@ enum
     PROP_VERSION,
     PROP_TRACKING_CHANNEL,
     PROP_TITLE,
+    PROP_LICENSE,
     PROP_LAST
 };
 
@@ -316,6 +318,23 @@ snapd_snap_get_jailmode (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
     return snap->jailmode;
+}
+
+/**
+ * snapd_snap_get_license:
+ * @snap: a #SnapdSnap.
+ *
+ * Gets the SPDX license expression for this snap, e.g. "GPL-3.0+".
+ *
+ * Returns: (allow-none): an SPDX license expression or %NULL.
+ *
+ * Since: 1.19
+ */
+const gchar *
+snapd_snap_get_license (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->license;
 }
 
 /**
@@ -627,6 +646,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->version);
         snap->version = g_strdup (g_value_get_string (value));
         break;
+    case PROP_LICENSE:
+        g_free (snap->license);
+        snap->license = g_strdup (g_value_get_string (value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -714,6 +737,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_VERSION:
         g_value_set_string (value, snap->version);
         break;
+    case PROP_LICENSE:
+        g_value_set_string (value, snap->license);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -734,14 +760,15 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->icon, g_free);
     g_clear_pointer (&snap->id, g_free);
     g_clear_pointer (&snap->install_date, g_date_time_unref);
-    g_clear_pointer (&snap->title, g_free);
     g_clear_pointer (&snap->name, g_free);
+    g_clear_pointer (&snap->license, g_free);
     if (snap->prices != NULL)
         g_clear_pointer (&snap->prices, g_ptr_array_unref);
     g_clear_pointer (&snap->revision, g_free);
     if (snap->screenshots != NULL)
         g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
     g_clear_pointer (&snap->summary, g_free);
+    g_clear_pointer (&snap->title, g_free);
     g_clear_pointer (&snap->tracking_channel, g_free);
     g_clear_pointer (&snap->version, g_free);
 }
@@ -846,6 +873,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                            "TRUE if the snap is currently installed in jailmode",
                                                            FALSE,
                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_LICENSE,
+                                     g_param_spec_string ("license",
+                                                          "license",
+                                                          "The snap license as an SPDX expression",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_TITLE,
                                      g_param_spec_string ("title",

@@ -354,6 +354,7 @@ snapd_snap_get_id
 snapd_snap_get_install_date
 snapd_snap_get_installed_size
 snapd_snap_get_jailmode
+snapd_snap_get_license
 snapd_snap_get_name
 snapd_snap_get_prices
 snapd_snap_get_private
