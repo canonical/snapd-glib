@@ -1,3 +1,11 @@
+Overview of changes in snapd-glib 1.19
+
+    * New API:
+      - snapd_client_get_allow_interaction
+      - snapd_client_set_allow_interaction
+      - snapd_snap_get_license
+    * Add mutex in request queue
+
 Overview of changes in snapd-glib 1.18
 
     * Ensure socket reads never block
