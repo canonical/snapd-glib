@@ -9,8 +9,6 @@
 
 #include "config.h"
 
-#define SNAPD_BUY_SUPPORT
-
 #include "snapd-snap.h"
 #include "snapd-enum-types.h"
 
