@@ -36,6 +36,29 @@ QString QSnapdSnap::channel () const
     return snapd_snap_get_channel (SNAPD_SNAP (wrapped_object));
 }
 
+int QSnapdSnap::channelCount () const
+{
+    GPtrArray *channels;
+
+    channels = snapd_snap_get_channels (SNAPD_SNAP (wrapped_object));
+    return channels != NULL ? channels->len : 0;
+}
+
+QSnapdChannel *QSnapdSnap::channel (int n) const
+{
+    GPtrArray *channels;
+
+    channels = snapd_snap_get_channels (SNAPD_SNAP (wrapped_object));
+    if (channels == NULL || n < 0 || (guint) n >= channels->len)
+        return NULL;
+    return new QSnapdChannel (channels->pdata[n]);
+}
+
+QSnapdChannel *QSnapdSnap::matchChannel (QString name) const
+{
+    return new QSnapdChannel (snapd_snap_match_channel (SNAPD_SNAP (wrapped_object), name.toStdString ().c_str ()));
+}
+
 QSnapdSnap::QSnapdConfinement QSnapdSnap::confinement () const
 {
     switch (snapd_snap_get_confinement (SNAPD_SNAP (wrapped_object)))
@@ -222,6 +245,15 @@ QString QSnapdSnap::title () const
 QString QSnapdSnap::trackingChannel () const
 {
     return snapd_snap_get_tracking_channel (SNAPD_SNAP (wrapped_object));
+}
+
+QStringList QSnapdSnap::tracks () const
+{
+    gchar **tracks = snapd_snap_get_tracks (SNAPD_SNAP (wrapped_object));
+    QStringList result;
+    for (int i = 0; tracks[i] != NULL; i++)
+        result.append (tracks[i]);
+    return result;
 }
 
 bool QSnapdSnap::trymode () const

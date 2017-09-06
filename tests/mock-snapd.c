@@ -97,6 +97,25 @@ mock_app_free (MockApp *app)
 }
 
 static void
+mock_channel_free (MockChannel *channel)
+{
+    g_free (channel->risk);
+    g_free (channel->branch);
+    g_free (channel->confinement);
+    g_free (channel->epoch);
+    g_free (channel->revision);
+    g_free (channel->version);
+    g_slice_free (MockChannel, channel);
+}
+
+static void
+mock_track_free (MockTrack *track)
+{
+    g_free (track->name);
+    g_list_free_full (track->channels, (GDestroyNotify) mock_channel_free);
+}
+
+static void
 mock_price_free (MockPrice *price)
 {
     g_free (price->currency);
@@ -151,6 +170,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->summary);
     g_free (snap->title);
     g_free (snap->tracking_channel);
+    g_list_free_full (snap->tracks, (GDestroyNotify) mock_track_free);
     g_free (snap->type);
     g_free (snap->version);
     g_list_free_full (snap->store_sections, g_free);
@@ -362,10 +382,16 @@ MockSnap *
 mock_snapd_add_store_snap (MockSnapd *snapd, const gchar *name)
 {
     MockSnap *snap;
+    MockTrack *track;
+    MockChannel *channel;
 
     snap = mock_snap_new (name);
     snap->download_size = 65535;
     snapd->store_snaps = g_list_append (snapd->store_snaps, snap);
+
+    track = mock_snap_add_track (snap, "latest");
+    channel = mock_track_add_channel (track, "stable", NULL);
+    channel->size = 65535;
 
     return snap;
 }
@@ -469,6 +495,71 @@ mock_snap_set_channel (MockSnap *snap, const gchar *channel)
 {
     g_free (snap->channel);
     snap->channel = g_strdup (channel);
+}
+
+MockTrack *
+mock_snap_add_track (MockSnap *snap, const gchar *name)
+{
+    GList *link;
+    MockTrack *track;
+
+    for (link = snap->tracks; link; link = link->next) {
+        track = link->data;
+        if (g_strcmp0 (track->name, name) == 0)
+            return track;
+    }
+
+    track = g_slice_new0 (MockTrack);
+    track->name = g_strdup (name);
+    snap->tracks = g_list_append (snap->tracks, track);
+
+    return track;
+}
+
+MockChannel *
+mock_track_add_channel (MockTrack *track, const gchar *risk, const gchar *branch)
+{
+    MockChannel *channel;
+
+    channel = g_slice_new0 (MockChannel);
+    channel->risk = g_strdup (risk);
+    channel->branch = g_strdup (branch);
+    channel->confinement = g_strdup ("strict");
+    channel->epoch = g_strdup ("0");
+    channel->revision = g_strdup ("REVISION");
+    channel->size = 65535;
+    channel->version = g_strdup ("VERSION");
+    track->channels = g_list_append (track->channels, channel);
+
+    return channel;
+}
+
+void
+mock_channel_set_confinement (MockChannel *channel, const gchar *confinement)
+{
+    g_free (channel->confinement);
+    channel->confinement = g_strdup (confinement);
+}
+
+void
+mock_channel_set_epoch (MockChannel *channel, const gchar *epoch)
+{
+    g_free (channel->epoch);
+    channel->epoch = g_strdup (epoch);
+}
+
+void
+mock_channel_set_revision (MockChannel *channel, const gchar *revision)
+{
+    g_free (channel->revision);
+    channel->revision = g_strdup (revision);
+}
+
+void
+mock_channel_set_version (MockChannel *channel, const gchar *version)
+{
+    g_free (channel->version);
+    channel->version = g_strdup (version);
 }
 
 void
@@ -1259,6 +1350,53 @@ make_snap_node (MockSnap *snap)
         json_builder_set_member_name (builder, "channel");
         json_builder_add_string_value (builder, snap->channel);
     }
+    if (snap->tracks != NULL) {
+        GList *link;
+
+        json_builder_set_member_name (builder, "channels");
+        json_builder_begin_object (builder);
+        for (link = snap->tracks; link; link = link->next) {
+            MockTrack *track = link->data;
+            GList *channel_link;
+
+            for (channel_link = track->channels; channel_link; channel_link = channel_link->next) {
+                MockChannel *channel = channel_link->data;
+                g_autofree gchar *key = NULL;
+                g_autofree gchar *name = NULL;
+
+                if (channel->branch != NULL)
+                    key = g_strdup_printf ("%s/%s/%s", track->name, channel->risk, channel->branch);
+                else
+                    key = g_strdup_printf ("%s/%s", track->name, channel->risk);
+
+                if (g_strcmp0 (track->name, "latest") == 0) {
+                    if (channel->branch != NULL)
+                        name = g_strdup_printf ("%s/%s", channel->risk, channel->branch);
+                    else
+                        name = g_strdup (channel->risk);
+                }
+                else
+                    name = g_strdup (key);
+
+                json_builder_set_member_name (builder, key);
+                json_builder_begin_object (builder);
+                json_builder_set_member_name (builder, "revision");
+                json_builder_add_string_value (builder, channel->revision);
+                json_builder_set_member_name (builder, "confinement");
+                json_builder_add_string_value (builder, channel->confinement);
+                json_builder_set_member_name (builder, "version");
+                json_builder_add_string_value (builder, channel->version);
+                json_builder_set_member_name (builder, "channel");
+                json_builder_add_string_value (builder, name);
+                json_builder_set_member_name (builder, "epoch");
+                json_builder_add_string_value (builder, channel->epoch);
+                json_builder_set_member_name (builder, "size");
+                json_builder_add_int_value (builder, channel->size);
+                json_builder_end_object (builder);
+            }
+        }
+        json_builder_end_object (builder);
+    }
     json_builder_set_member_name (builder, "confinement");
     json_builder_add_string_value (builder, snap->confinement);
     if (snap->contact) {
@@ -1353,6 +1491,17 @@ make_snap_node (MockSnap *snap)
     if (snap->tracking_channel) {
         json_builder_set_member_name (builder, "tracking-channel");
         json_builder_add_string_value (builder, snap->tracking_channel);
+    }
+    if (snap->tracks) {
+        GList *link;
+
+        json_builder_set_member_name (builder, "tracks");
+        json_builder_begin_array (builder);
+        for (link = snap->tracks; link; link = link->next) {
+            MockTrack *track = link->data;
+            json_builder_add_string_value (builder, track->name);
+        }
+        json_builder_end_array (builder);
     }
     json_builder_set_member_name (builder, "trymode");
     json_builder_add_boolean_value (builder, snap->trymode);

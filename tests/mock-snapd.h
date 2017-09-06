@@ -64,6 +64,7 @@ typedef struct
     gchar *summary;
     gchar *title;
     gchar *tracking_channel;
+    GList *tracks;
     gboolean trymode;
     gchar *type;
     gchar *version;
@@ -89,6 +90,23 @@ typedef struct
     gchar *name;
     gchar *status;
 } MockAlias;
+
+typedef struct
+{
+    gchar *name;
+    GList *channels;
+} MockTrack;
+
+typedef struct
+{
+    gchar *risk;
+    gchar *branch;
+    gchar *confinement;
+    gchar *epoch;
+    gchar *revision;
+    int size;
+    gchar *version;
+} MockChannel;
 
 typedef struct
 {
@@ -189,6 +207,25 @@ void            mock_app_set_desktop_file         (MockApp       *app,
 
 void            mock_snap_set_channel             (MockSnap      *snap,
                                                    const gchar   *channel);
+
+MockTrack      *mock_snap_add_track               (MockSnap      *snap,
+                                                   const gchar   *name);
+
+MockChannel    *mock_track_add_channel            (MockTrack     *track,
+                                                   const gchar   *risk,
+                                                   const gchar   *branch);
+
+void            mock_channel_set_confinement      (MockChannel  *channel,
+                                                   const gchar   *confinement);
+
+void            mock_channel_set_epoch            (MockChannel  *channel,
+                                                   const gchar   *epoch);
+
+void            mock_channel_set_revision         (MockChannel  *channel,
+                                                   const gchar   *revision);
+
+void            mock_channel_set_version          (MockChannel  *channel,
+                                                   const gchar   *version);
 
 void            mock_snap_set_confinement         (MockSnap      *snap,
                                                    const gchar   *confinement);

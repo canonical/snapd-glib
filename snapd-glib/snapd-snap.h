@@ -15,6 +15,7 @@
 #endif
 
 #include <glib-object.h>
+#include <snapd-glib/snapd-channel.h>
 #include <snapd-glib/snapd-price.h>
 
 G_BEGIN_DECLS
@@ -28,25 +29,6 @@ struct _SnapdSnapClass
     /*< private >*/
     GObjectClass parent_class;
 };
-
-/**
- * SnapdConfinement:
- * @SNAPD_CONFINEMENT_UNKNOWN: the confinement of the snap is unknown.
- * @SNAPD_CONFINEMENT_STRICT: the snap is using confinement.
- * @SNAPD_CONFINEMENT_DEVMODE: the snap is in dev mode (i.e. unconfined).
- * @SNAPD_CONFINEMENT_CLASSIC: the snap is using classic confinement.
- *
- * Confinment used by a snap.
- *
- * Since: 1.0
- */
-typedef enum
-{
-    SNAPD_CONFINEMENT_UNKNOWN,
-    SNAPD_CONFINEMENT_STRICT,
-    SNAPD_CONFINEMENT_DEVMODE,
-    SNAPD_CONFINEMENT_CLASSIC
-} SnapdConfinement;
 
 /**
  * SnapdSnapType:
@@ -90,57 +72,64 @@ typedef enum
     SNAPD_SNAP_STATUS_ACTIVE
 } SnapdSnapStatus;
 
-GPtrArray        *snapd_snap_get_apps             (SnapdSnap *snap);
+GPtrArray        *snapd_snap_get_apps             (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_channel          (SnapdSnap *snap);
+const gchar      *snapd_snap_get_channel          (SnapdSnap   *snap);
 
-SnapdConfinement  snapd_snap_get_confinement      (SnapdSnap *snap);
+GPtrArray        *snapd_snap_get_channels         (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_contact          (SnapdSnap *snap);
+SnapdChannel     *snapd_snap_match_channel        (SnapdSnap   *snap,
+                                                   const gchar *name);
 
-const gchar      *snapd_snap_get_description      (SnapdSnap *snap);
+SnapdConfinement  snapd_snap_get_confinement      (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_developer        (SnapdSnap *snap);
+const gchar      *snapd_snap_get_contact          (SnapdSnap   *snap);
 
-gboolean          snapd_snap_get_devmode          (SnapdSnap *snap);
+const gchar      *snapd_snap_get_description      (SnapdSnap   *snap);
 
-gint64            snapd_snap_get_download_size    (SnapdSnap *snap);
+const gchar      *snapd_snap_get_developer        (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_icon             (SnapdSnap *snap);
+gboolean          snapd_snap_get_devmode          (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_id               (SnapdSnap *snap);
+gint64            snapd_snap_get_download_size    (SnapdSnap   *snap);
 
-GDateTime        *snapd_snap_get_install_date     (SnapdSnap *snap);
+const gchar      *snapd_snap_get_icon             (SnapdSnap   *snap);
 
-gint64            snapd_snap_get_installed_size   (SnapdSnap *snap);
+const gchar      *snapd_snap_get_id               (SnapdSnap   *snap);
 
-gboolean          snapd_snap_get_jailmode         (SnapdSnap *snap);
+GDateTime        *snapd_snap_get_install_date     (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_license          (SnapdSnap *snap);
+gint64            snapd_snap_get_installed_size   (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_name             (SnapdSnap *snap);
+gboolean          snapd_snap_get_jailmode         (SnapdSnap   *snap);
 
-GPtrArray        *snapd_snap_get_prices           (SnapdSnap *snap);
+const gchar      *snapd_snap_get_license          (SnapdSnap   *snap);
 
-gboolean          snapd_snap_get_private          (SnapdSnap *snap);
+const gchar      *snapd_snap_get_name             (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_revision         (SnapdSnap *snap);
+GPtrArray        *snapd_snap_get_prices           (SnapdSnap   *snap);
 
-GPtrArray        *snapd_snap_get_screenshots      (SnapdSnap *snap);
+gboolean          snapd_snap_get_private          (SnapdSnap   *snap);
 
-SnapdSnapType     snapd_snap_get_snap_type        (SnapdSnap *snap);
+const gchar      *snapd_snap_get_revision         (SnapdSnap   *snap);
 
-SnapdSnapStatus   snapd_snap_get_status           (SnapdSnap *snap);
+GPtrArray        *snapd_snap_get_screenshots      (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_summary          (SnapdSnap *snap);
+SnapdSnapType     snapd_snap_get_snap_type        (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_title            (SnapdSnap *snap);
+SnapdSnapStatus   snapd_snap_get_status           (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_tracking_channel (SnapdSnap *snap);
+const gchar      *snapd_snap_get_summary          (SnapdSnap   *snap);
 
-gboolean          snapd_snap_get_trymode          (SnapdSnap *snap);
+const gchar      *snapd_snap_get_title            (SnapdSnap   *snap);
 
-const gchar      *snapd_snap_get_version          (SnapdSnap *snap);
+const gchar      *snapd_snap_get_tracking_channel (SnapdSnap   *snap);
+
+gchar           **snapd_snap_get_tracks           (SnapdSnap   *snap);
+
+gboolean          snapd_snap_get_trymode          (SnapdSnap   *snap);
+
+const gchar      *snapd_snap_get_version          (SnapdSnap   *snap);
 
 G_END_DECLS
 

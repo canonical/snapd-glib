@@ -9,6 +9,7 @@ source_h = \
 	snapd-assertion.h \
 	snapd-auth-data.h \
 	snapd-change.h \
+	snapd-channel.h \
 	snapd-client.h \
 	snapd-connection.h \
 	snapd-error.h \
@@ -33,6 +34,7 @@ source_c = \
 	snapd-assertion.c \
 	snapd-auth-data.c \
 	snapd-change.c \
+	snapd-channel.c \
 	snapd-client.c \
 	snapd-connection.c \
 	snapd-error.c \

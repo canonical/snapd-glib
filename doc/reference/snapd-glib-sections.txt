@@ -66,6 +66,22 @@ SNAPD_TYPE_CHANGE
 </SECTION>
 
 <SECTION>
+<FILE>snapd-channel</FILE>
+<TITLE>SnapdChannel</TITLE>
+snapd_channel_get_confinement
+snapd_channel_get_epoch
+snapd_channel_get_name
+snapd_channel_get_revision
+snapd_channel_get_size
+snapd_channel_get_version
+SnapdChannel
+
+<SUBSECTION Private>
+SnapdChannelClass
+SNAPD_TYPE_CHANNEL
+</SECTION>
+
+<SECTION>
 <FILE>snapd-client</FILE>
 <TITLE>SnapdClient</TITLE>
 SnapdClient
@@ -346,6 +362,8 @@ SnapdSnapType
 SnapdSnapStatus
 snapd_snap_get_apps
 snapd_snap_get_channel
+snapd_snap_get_channels
+snapd_snap_match_channel
 snapd_snap_get_confinement
 snapd_snap_get_contact
 snapd_snap_get_description
@@ -368,6 +386,7 @@ snapd_snap_get_status
 snapd_snap_get_summary
 snapd_snap_get_title
 snapd_snap_get_tracking_channel
+snapd_snap_get_tracks
 snapd_snap_get_trymode
 snapd_snap_get_version
 SnapdSnap
