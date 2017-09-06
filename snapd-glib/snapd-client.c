@@ -271,8 +271,7 @@ snapd_request_finalize (GObject *object)
     g_cancellable_disconnect (request->cancellable, request->cancelled_id);
     g_clear_object (&request->cancellable);
     g_free (request->change_id);
-    if (request->poll_source != NULL)
-        g_clear_pointer (&request->poll_source, g_source_destroy);
+    g_clear_pointer (&request->poll_source, g_source_destroy);
     g_clear_object (&request->change);
     g_clear_object (&request->snap_stream);
     g_clear_pointer (&request->snap_contents, g_byte_array_unref);

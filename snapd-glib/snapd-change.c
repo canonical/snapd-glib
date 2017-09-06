@@ -287,8 +287,7 @@ snapd_change_finalize (GObject *object)
     g_clear_pointer (&change->kind, g_free);
     g_clear_pointer (&change->summary, g_free);
     g_clear_pointer (&change->status, g_free);
-    if (change->tasks != NULL)
-        g_clear_pointer (&change->tasks, g_ptr_array_unref);
+    g_clear_pointer (&change->tasks, g_ptr_array_unref);
     g_clear_pointer (&change->spawn_time, g_date_time_unref);
     g_clear_pointer (&change->ready_time, g_date_time_unref);
 }

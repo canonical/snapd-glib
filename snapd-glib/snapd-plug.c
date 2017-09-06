@@ -291,8 +291,7 @@ snapd_plug_finalize (GObject *object)
     g_clear_pointer (&plug->interface, g_free);
     g_clear_pointer (&plug->attributes, g_hash_table_unref);
     g_clear_pointer (&plug->label, g_free);
-    if (plug->connections != NULL)
-        g_clear_pointer (&plug->connections, g_ptr_array_unref);
+    g_clear_pointer (&plug->connections, g_ptr_array_unref);
 }
 
 static void

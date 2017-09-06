@@ -749,8 +749,7 @@ snapd_snap_finalize (GObject *object)
 {
     SnapdSnap *snap = SNAPD_SNAP (object);
 
-    if (snap->apps != NULL)
-        g_clear_pointer (&snap->apps, g_ptr_array_unref);
+    g_clear_pointer (&snap->apps, g_ptr_array_unref);
     g_clear_pointer (&snap->channel, g_free);
     g_clear_pointer (&snap->contact, g_free);
     g_clear_pointer (&snap->description, g_free);
@@ -760,11 +759,9 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->install_date, g_date_time_unref);
     g_clear_pointer (&snap->name, g_free);
     g_clear_pointer (&snap->license, g_free);
-    if (snap->prices != NULL)
-        g_clear_pointer (&snap->prices, g_ptr_array_unref);
+    g_clear_pointer (&snap->prices, g_ptr_array_unref);
     g_clear_pointer (&snap->revision, g_free);
-    if (snap->screenshots != NULL)
-        g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
+    g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
     g_clear_pointer (&snap->summary, g_free);
     g_clear_pointer (&snap->title, g_free);
     g_clear_pointer (&snap->tracking_channel, g_free);
