@@ -37,6 +37,7 @@ struct _SnapdSnap
 
     GPtrArray *apps;
     gchar *channel;
+    GPtrArray *channels;
     SnapdConfinement confinement;
     gchar *contact;
     gchar *description;
@@ -58,6 +59,7 @@ struct _SnapdSnap
     gchar *summary;
     gchar *title;
     gchar *tracking_channel;
+    gchar **tracks;
     gboolean trymode;
     SnapdSnapType snap_type;
     gchar *version;
@@ -91,6 +93,8 @@ enum
     PROP_TRACKING_CHANNEL,
     PROP_TITLE,
     PROP_LICENSE,
+    PROP_CHANNELS,
+    PROP_TRACKS,
     PROP_LAST
 };
 
@@ -128,6 +132,143 @@ snapd_snap_get_channel (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
     return snap->channel;
+}
+
+/**
+ * snapd_snap_get_channels:
+ * @snap: a #SnapdSnap.
+ *
+ * Gets the available channels for this snap.
+ *
+ * Returns: (transfer none) (element-type SnapdChannel): an array of #SnapdChannel.
+ *
+ * Since: 1.22
+ */
+GPtrArray *
+snapd_snap_get_channels (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->channels;
+}
+
+static int
+parse_risk (const gchar *risk)
+{
+    if (g_strcmp0 (risk, "stable"))
+        return 0;
+    else if (g_strcmp0 (risk, "candidate"))
+        return 1;
+    else if (g_strcmp0 (risk, "beta"))
+        return 2;
+    else if (g_strcmp0 (risk, "edge"))
+        return 3;
+    else
+        return -1;
+}
+
+static gboolean
+parse_channel_name (const gchar *name, gchar **track, int *risk, gchar **branch)
+{
+    g_auto(GStrv) tokens = NULL;
+    const gchar *t = NULL, *b = NULL;
+    int r;
+
+    tokens = g_strsplit (name, "/", -1);
+    switch (g_strv_length (tokens)) {
+    case 1:
+        r = parse_risk (tokens[0]);
+        if (r >= 0) {
+            t = "latest";
+        }
+        else {
+            t = tokens[0];
+            r = parse_risk ("stable");
+        }
+        break;
+    case 2:
+        r = parse_risk (tokens[0]);
+        if (r >= 0) {
+            t = "latest";
+            b = tokens[1];
+        }
+        else {
+            r = parse_risk (tokens[1]);
+            if (r < 0)
+                return FALSE;
+            t = tokens[0];
+        }
+    case 3:
+        t = tokens[0];
+        r = parse_risk (tokens[1]);
+        if (r < 0)
+            return FALSE;
+        b = tokens[2];
+        break;
+    default:
+        return FALSE;
+    }
+
+    if (track)
+        *track = g_strdup (t);
+    if (risk)
+        *risk = r;
+    if (branch)
+        *branch = g_strdup (b);
+
+    return TRUE;
+}
+
+/**
+ * snapd_snap_match_channel:
+ * @snap: a #SnapdSnap.
+ * @name: a channel name.
+ *
+ * Finds the available channel that best matches the given name.
+ * If none matches %NULL is returned.
+ *
+ * Returns: (transfer none) (allow-none): an #SnapdChannel or %NULL.
+ *
+ * Since: 1.22
+ */
+SnapdChannel *
+snapd_snap_match_channel (SnapdSnap *snap, const gchar *name)
+{
+    g_autofree gchar *track = NULL;
+    int risk;
+    g_autofree gchar *branch = NULL;
+    guint i;
+    SnapdChannel *matched_channel = NULL;
+    int matched_risk = -1;
+
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+
+    if (!parse_channel_name (name, &track, &risk, &branch))
+        return FALSE;
+    for (i = 0; i < snap->channels->len; i++) {
+        SnapdChannel *channel = snap->channels->pdata[i];
+        g_autofree gchar *t = NULL;
+        int r;
+        g_autofree gchar *b = NULL;
+
+        if (!parse_channel_name (snapd_channel_get_name (channel), &t, &r, &b))
+            continue;
+
+        /* Must be same track and branch */
+        if (g_strcmp0 (track, t) != 0 || g_strcmp0 (branch, b) != 0)
+            continue;
+
+        /* Must be no riskier than requested */
+        if (r > risk)
+            continue;
+
+        /* Use this if unmatched or a better risk match */
+        if (matched_channel == NULL || r > matched_risk) {
+            matched_channel = channel;
+            matched_risk = r;
+        }
+    }
+
+    return matched_channel;
 }
 
 /**
@@ -508,6 +649,23 @@ snapd_snap_get_tracking_channel (SnapdSnap *snap)
 }
 
 /**
+ * snapd_snap_get_tracks:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the tracks that are available.
+ *
+ * Returns: (transfer none) (array zero-terminated=1): an orderered array of track names.
+ *
+ * Since: 1.22
+ */
+gchar **
+snapd_snap_get_tracks (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->tracks;
+}
+
+/**
  * snapd_snap_get_trymode:
  * @snap: a #SnapdSnap.
  *
@@ -557,6 +715,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_CHANNEL:
         g_free (snap->channel);
         snap->channel = g_strdup (g_value_get_string (value));
+        break;
+    case PROP_CHANNELS:
+        g_clear_pointer (&snap->channels, g_ptr_array_unref);
+        if (g_value_get_boxed (value) != NULL)
+            snap->channels = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_CONFINEMENT:
         snap->confinement = g_value_get_enum (value);
@@ -637,6 +800,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->tracking_channel);
         snap->tracking_channel = g_strdup (g_value_get_string (value));
         break;
+    case PROP_TRACKS:
+        g_strfreev (snap->tracks);
+        snap->tracks = g_strdupv (g_value_get_boxed (value));
+        break;
     case PROP_TRYMODE:
         snap->trymode = g_value_get_boolean (value);
         break;
@@ -665,6 +832,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_CHANNEL:
         g_value_set_string (value, snap->channel);
+        break;
+    case PROP_CHANNELS:
+        g_value_set_boxed (value, snap->channels);
         break;
     case PROP_CONFINEMENT:
         g_value_set_enum (value, snap->confinement);
@@ -729,6 +899,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_TRACKING_CHANNEL:
         g_value_set_string (value, snap->tracking_channel);
         break;
+    case PROP_TRACKS:
+        g_value_set_boxed (value, snap->tracks);
+        break;
     case PROP_TRYMODE:
         g_value_set_boolean (value, snap->trymode);
         break;
@@ -751,6 +924,7 @@ snapd_snap_finalize (GObject *object)
 
     g_clear_pointer (&snap->apps, g_ptr_array_unref);
     g_clear_pointer (&snap->channel, g_free);
+    g_clear_pointer (&snap->channels, g_ptr_array_unref);
     g_clear_pointer (&snap->contact, g_free);
     g_clear_pointer (&snap->description, g_free);
     g_clear_pointer (&snap->developer, g_free);
@@ -765,6 +939,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->summary, g_free);
     g_clear_pointer (&snap->title, g_free);
     g_clear_pointer (&snap->tracking_channel, g_free);
+    g_clear_pointer (&snap->tracks, g_strfreev);
     g_clear_pointer (&snap->version, g_free);
 }
 
@@ -791,6 +966,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           "Channel the snap is from",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_CHANNELS,
+                                     g_param_spec_boxed ("channels",
+                                                         "channels",
+                                                         "Channels this snap is available on",
+                                                         G_TYPE_PTR_ARRAY,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_CONFINEMENT,
                                      g_param_spec_enum ("confinement",
@@ -938,6 +1120,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           "Channel the snap is currently tracking",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_TRACKS,
+                                     g_param_spec_boxed ("tracks",
+                                                         "tracks",
+                                                         "Track names",
+                                                         G_TYPE_STRV,
+                                                         G_PARAM_READWRITE));
     g_object_class_install_property (gobject_class,
                                      PROP_TRYMODE,
                                      g_param_spec_boolean ("trymode",

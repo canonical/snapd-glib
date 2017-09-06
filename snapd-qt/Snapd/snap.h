@@ -15,6 +15,7 @@
 #include <Snapd/WrappedObject>
 #include <Snapd/Enums>
 #include <Snapd/App>
+#include <Snapd/Channel>
 #include <Snapd/Price>
 #include <Snapd/Screenshot>
 
@@ -24,6 +25,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
 
     Q_PROPERTY(int appCount READ appCount)
     Q_PROPERTY(QString channel READ channel)
+    Q_PROPERTY(int channelCount READ channelCount)
     Q_PROPERTY(QSnapdEnums::SnapConfinement confinement READ confinement)
     Q_PROPERTY(QString contact READ contact)
     Q_PROPERTY(QString description READ description)
@@ -45,6 +47,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString summary READ summary)
     Q_PROPERTY(QString title READ title)
     Q_PROPERTY(QString trackingChannel READ trackingChannel)
+    Q_PROPERTY(QStringList tracks READ tracks)
     Q_PROPERTY(bool trymode READ trymode)
     Q_PROPERTY(QString version READ version)
 
@@ -54,6 +57,9 @@ public:
     int appCount () const;
     Q_INVOKABLE QSnapdApp *app (int) const;
     QString channel () const;
+    int channelCount () const;
+    Q_INVOKABLE QSnapdChannel *channel (int) const;
+    Q_INVOKABLE QSnapdChannel *matchChannel (QString) const;
     QSnapdEnums::SnapConfinement confinement () const;
     QString contact () const;
     QString description () const;
@@ -78,6 +84,7 @@ public:
     QString summary () const;
     QString title () const;
     QString trackingChannel () const;
+    QStringList tracks () const;
     bool trymode () const;
     QString version () const;
 };

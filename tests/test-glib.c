@@ -553,6 +553,8 @@ test_list_one (void)
     g_assert (snap != NULL);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
+    g_assert_cmpint (g_strv_length (snapd_snap_get_tracks (snap)), ==, 0);
+    g_assert_cmpint (snapd_snap_get_channels (snap)->len, ==, 0);
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, NULL);
@@ -1437,7 +1439,9 @@ test_find_query (void)
     g_autofree gchar *suggested_currency = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     SnapdSnap *snap;
-    GPtrArray *prices, *screenshots;
+    gchar **tracks;
+    GPtrArray *channels, *prices, *screenshots;
+    SnapdChannel *channel;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -1469,6 +1473,18 @@ test_find_query (void)
     snap = snaps->pdata[0];
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "carrot1");
     g_assert (snapd_snap_get_channel (snap) == NULL);
+    tracks = snapd_snap_get_tracks (snap);
+    g_assert_cmpint (g_strv_length (tracks), ==, 1);
+    g_assert_cmpstr (tracks[0], ==, "latest");
+    channels = snapd_snap_get_channels (snap);
+    g_assert_cmpint (channels->len, ==, 1);
+    channel = channels->pdata[0];
+    g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable");
+    g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_STRICT);
+    g_assert_cmpstr (snapd_channel_get_revision (channel), ==, "REVISION");
+    g_assert_cmpstr (snapd_channel_get_version (channel), ==, "VERSION");
+    g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "0");
+    g_assert_cmpint (snapd_channel_get_size (channel), ==, 65535);
     g_assert (snapd_snap_get_contact (snap) == NULL);
     g_assert (snapd_snap_get_description (snap) == NULL);
     g_assert (snapd_snap_get_summary (snap) == NULL);
@@ -1630,6 +1646,66 @@ test_find_name_private_not_logged_in (void)
     snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME | SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_REQUIRED);
     g_assert (snaps == NULL);
+}
+
+static void
+test_find_channels (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    MockTrack *t;
+    MockChannel *c;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) snaps = NULL;
+    SnapdSnap *snap;
+    gchar **tracks;
+    GPtrArray *channels;
+    SnapdChannel *channel;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    t = mock_snap_add_track (s, "latest");
+    c = mock_track_add_channel (t, "beta", NULL);
+    mock_channel_set_revision (c, "BETA-REVISION");
+    mock_channel_set_version (c, "BETA-VERSION");
+    mock_channel_set_epoch (c, "1");
+    mock_channel_set_confinement (c, "classic");
+    c->size = 10000;
+    mock_snap_add_track (s, "TRACK");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "snap", NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (snaps != NULL);
+    g_assert_cmpint (snaps->len, ==, 1);
+    snap = snaps->pdata[0];
+    g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
+    tracks = snapd_snap_get_tracks (snap);
+    g_assert_cmpint (g_strv_length (tracks), ==, 2);
+    g_assert_cmpstr (tracks[0], ==, "latest");
+    g_assert_cmpstr (tracks[1], ==, "TRACK");
+    channels = snapd_snap_get_channels (snap);
+    g_assert_cmpint (channels->len, ==, 2);
+    channel = snapd_snap_match_channel (snap, "stable");
+    g_assert (channel != NULL);
+    g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable");
+    g_assert_cmpstr (snapd_channel_get_revision (channel), ==, "REVISION");
+    g_assert_cmpstr (snapd_channel_get_version (channel), ==, "VERSION");
+    g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "0");
+    g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_STRICT);
+    g_assert_cmpint (snapd_channel_get_size (channel), ==, 65535);
+    channel = snapd_snap_match_channel (snap, "beta");
+    g_assert (channel != NULL);
+    g_assert_cmpstr (snapd_channel_get_name (channel), ==, "beta");
+    g_assert_cmpstr (snapd_channel_get_revision (channel), ==, "BETA-REVISION");
+    g_assert_cmpstr (snapd_channel_get_version (channel), ==, "BETA-VERSION");
+    g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "1");
+    g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_CLASSIC);
+    g_assert_cmpint (snapd_channel_get_size (channel), ==, 10000);
 }
 
 static gboolean
@@ -3598,6 +3674,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/name", test_find_name);
     g_test_add_func ("/find/name-private", test_find_name_private);
     g_test_add_func ("/find/name-private/not-logged-in", test_find_name_private_not_logged_in);
+    g_test_add_func ("/find/channels", test_find_channels);
     g_test_add_func ("/find/cancel", test_find_cancel);
     g_test_add_func ("/find/section", test_find_section);
     g_test_add_func ("/find/section_query", test_find_section_query);

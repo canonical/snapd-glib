@@ -3,13 +3,14 @@ pkgconfig_DATA = snapd-qt.pc
 pkgconfigdir = $(libdir)/pkgconfig
 endif
 
-source_cpp = alias.cpp app.cpp assertion.cpp auth-data.cpp change.cpp client.cpp connection.cpp icon.cpp plug.cpp price.cpp request.cpp screenshot.cpp slot.cpp snap.cpp system-information.cpp task.cpp
+source_cpp = alias.cpp app.cpp assertion.cpp auth-data.cpp change.cpp channel.cpp client.cpp connection.cpp icon.cpp plug.cpp price.cpp request.cpp screenshot.cpp slot.cpp snap.cpp system-information.cpp task.cpp
 source_moc = $(source_cpp:.cpp=_moc.cpp) client-private_moc.cpp wrapped-object_moc.cpp enums_moc.cpp
 source_h = Snapd/Alias Snapd/alias.h \
            Snapd/App Snapd/app.h \
            Snapd/Assertion Snapd/assertion.h \
            Snapd/AuthData Snapd/auth-data.h \
            Snapd/Change Snapd/change.h \
+           Snapd/Channel Snapd/channel.h \
            Snapd/Client Snapd/client.h \
            Snapd/Connection Snapd/connection.h \
            Snapd/Enums Snapd/enums.h \

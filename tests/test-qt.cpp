@@ -475,6 +475,8 @@ test_list_one ()
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
     g_assert_cmpint (snap->appCount (), ==, 0);
     g_assert (snap->channel () == NULL);
+    g_assert_cmpint (snap->tracks ().count (), ==, 0);
+    g_assert_cmpint (snap->channelCount (), ==, 0);
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert (snap->contact () == NULL);
     g_assert (snap->description () == NULL);
@@ -1204,6 +1206,16 @@ test_find_query ()
     g_assert (snap0->name () == "carrot1");
     QScopedPointer<QSnapdSnap> snap1 (findRequest->snap (1));
     g_assert (snap1->channel () == "CHANNEL");
+    g_assert_cmpint (snap1->tracks ().count (), ==, 1);
+    g_assert (snap1->tracks ()[0] == "latest");
+    g_assert (snap1->channelCount () == 1);
+    QScopedPointer<QSnapdChannel> channel (snap1->channel (0));
+    g_assert (channel->name () == "stable");
+    g_assert_cmpint (channel->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
+    g_assert (channel->revision () == "REVISION");
+    g_assert (channel->version () == "VERSION");
+    g_assert (channel->epoch () == "0");
+    g_assert_cmpint (channel->size (), ==, 65535);
     g_assert_cmpint (snap1->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert (snap1->contact () == "CONTACT");
     g_assert (snap1->description () == "DESCRIPTION");
@@ -1341,6 +1353,53 @@ test_find_name_private_not_logged_in ()
     QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::MatchName | QSnapdClient::SelectPrivate, "snap"));
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::AuthDataRequired);
+}
+
+static void
+test_find_channels ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    MockTrack *t = mock_snap_add_track (s, "latest");
+    MockChannel *c = mock_track_add_channel (t, "beta", NULL);
+    mock_channel_set_revision (c, "BETA-REVISION");
+    mock_channel_set_version (c, "BETA-VERSION");
+    mock_channel_set_epoch (c, "1");
+    mock_channel_set_confinement (c, "classic");
+    c->size = 10000;
+    mock_snap_add_track (s, "TRACK");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::MatchName, "snap"));
+    findRequest->runSync ();
+    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert (snap->name () == "snap");
+    g_assert_cmpint (snap->tracks ().count (), ==, 2);
+    g_assert (snap->tracks ()[0] == "latest");
+    g_assert (snap->tracks ()[1] == "TRACK");
+    g_assert_cmpint (snap->channelCount (), ==, 2);
+    QScopedPointer<QSnapdChannel> channel1 (snap->matchChannel ("stable"));
+    g_assert (channel1 != NULL);
+    g_assert (channel1->name () == "stable");
+    g_assert (channel1->revision () == "REVISION");
+    g_assert (channel1->version () == "VERSION");
+    g_assert (channel1->epoch () == "0");
+    g_assert_cmpint (channel1->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
+    g_assert_cmpint (channel1->size (), ==, 65535);
+    QScopedPointer<QSnapdChannel> channel2 (snap->matchChannel ("beta"));
+    g_assert (channel2 != NULL);
+    g_assert (channel2->name () == "beta");
+    g_assert (channel2->revision () == "BETA-REVISION");
+    g_assert (channel2->version () == "BETA-VERSION");
+    g_assert (channel2->epoch () == "1");
+    g_assert_cmpint (channel2->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
+    g_assert_cmpint (channel2->size (), ==, 10000);
 }
 
 static gboolean
@@ -2862,6 +2921,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/name", test_find_name);
     g_test_add_func ("/find/name-private", test_find_name_private);
     g_test_add_func ("/find/name-private/not-logged-in", test_find_name_private_not_logged_in);
+    g_test_add_func ("/find/channels", test_find_channels);
     g_test_add_func ("/find/cancel", test_find_cancel);
     g_test_add_func ("/find/section", test_find_section);
     g_test_add_func ("/find/section_query", test_find_section_query);
