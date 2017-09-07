@@ -20,10 +20,10 @@ QString QSnapdApp::name () const
 
 QStringList QSnapdApp::aliases () const
 {
-    gchar **discharges = snapd_app_get_aliases (SNAPD_APP (wrapped_object));
+    gchar **aliases = snapd_app_get_aliases (SNAPD_APP (wrapped_object));
     QStringList result;
-    for (int i = 0; discharges[i] != NULL; i++)
-        result.append (discharges[i]);
+    for (int i = 0; aliases[i] != NULL; i++)
+        result.append (aliases[i]);
     return result;
 }
 
