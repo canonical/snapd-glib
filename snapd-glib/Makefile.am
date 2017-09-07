@@ -96,24 +96,24 @@ Snapd_1_gir_INCLUDES = GObject-2.0 Gio-2.0
 Snapd_1_gir_SCANNERFLAGS = --warn-all --pkg-export snapd-glib --c-include "snapd-glib/snapd-glib.h"
 
 girdir = $(datadir)/gir-1.0
-dist_gir_DATA = Snapd-1.gir
+gir_DATA = Snapd-1.gir
 
 typelibsdir = $(libdir)/girepository-1.0/
 typelibs_DATA = Snapd-1.typelib
 
-CLEANFILES += $(dist_gir_DATA) $(typelibs_DATA)
+CLEANFILES += $(gir_DATA) $(typelibs_DATA)
 endif # HAVE_INTROSPECTION
 
 if ENABLE_VAPIGEN
 include $(VAPIGEN_MAKEFILE)
 
-snapd-glib.vapi: $(dist_gir_DATA)
+snapd-glib.vapi: $(gir_DATA)
 
 VAPIGEN_VAPIS = snapd-glib.vapi
 
 snapd_glib_vapi_DEPS = gio-2.0
 snapd_glib_vapi_METADATADIRS = $(srcdir)
-snapd_glib_vapi_FILES = $(dist_gir_DATA)
+snapd_glib_vapi_FILES = $(gir_DATA)
 
 vapidir = $(datadir)/vala/vapi
 vapi_DATA = $(VAPIGEN_VAPIS) $(srcdir)/snapd-glib.deps
