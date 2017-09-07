@@ -13,6 +13,22 @@
 
 QSnapdChannel::QSnapdChannel (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
+QSnapdChannel::QSnapdConfinement QSnapdChannel::confinement () const
+{
+    switch (snapd_channel_get_confinement (SNAPD_CHANNEL (wrapped_object)))
+    {
+    case SNAPD_CONFINEMENT_STRICT:
+        return QSnapdConfinement::Strict;
+    case SNAPD_CONFINEMENT_CLASSIC:
+        return QSnapdConfinement::Classic;
+    case SNAPD_CONFINEMENT_DEVMODE:
+        return QSnapdConfinement::Devmode;
+    case SNAPD_CONFINEMENT_UNKNOWN:
+    default:
+        return QSnapdConfinement::ConfinementUnknown;
+    }
+}
+
 QString QSnapdChannel::epoch () const
 {
     return snapd_channel_get_epoch (SNAPD_CHANNEL (wrapped_object));

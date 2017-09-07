@@ -59,19 +59,19 @@ QSnapdChannel *QSnapdSnap::matchChannel (QString name) const
     return new QSnapdChannel (snapd_snap_match_channel (SNAPD_SNAP (wrapped_object), name.toStdString ().c_str ()));
 }
 
-QSnapdSnap::QSnapdConfinement QSnapdSnap::confinement () const
+QSnapdChannel::QSnapdConfinement QSnapdSnap::confinement () const
 {
     switch (snapd_snap_get_confinement (SNAPD_SNAP (wrapped_object)))
     {
     case SNAPD_CONFINEMENT_STRICT:
-        return QSnapdConfinement::Strict;
+        return QSnapdChannel::QSnapdConfinement::Strict;
     case SNAPD_CONFINEMENT_CLASSIC:
-        return QSnapdConfinement::Classic;
+        return QSnapdChannel::QSnapdConfinement::Classic;
     case SNAPD_CONFINEMENT_DEVMODE:
-        return QSnapdConfinement::Devmode;
+        return QSnapdChannel::QSnapdConfinement::Devmode;
     case SNAPD_CONFINEMENT_UNKNOWN:
     default:
-        return QSnapdConfinement::ConfinementUnknown;
+        return QSnapdChannel::QSnapdConfinement::ConfinementUnknown;
     }
 }
 

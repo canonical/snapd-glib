@@ -17,7 +17,7 @@ class Q_DECL_EXPORT QSnapdChannel : public QSnapdWrappedObject
 {
     Q_OBJECT
 
-    //Q_PROPERTY(QSnapdSnap::QSnapdConfinement confinement READ confinement)
+    Q_PROPERTY(QSnapdConfinement confinement READ confinement)
     Q_PROPERTY(QString epoch READ epoch)
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString revision READ revision)
@@ -25,9 +25,18 @@ class Q_DECL_EXPORT QSnapdChannel : public QSnapdWrappedObject
     Q_PROPERTY(QString version READ version)
 
 public:
+    enum QSnapdConfinement
+    {
+        ConfinementUnknown,
+        Strict,
+        Devmode,
+        Classic
+    };
+    Q_ENUM(QSnapdConfinement)
+
     explicit QSnapdChannel (void* snapd_object, QObject* parent = 0);
 
-    //QSnapdSnap::QSnapdConfinement confinement () const;
+    QSnapdConfinement confinement () const;
     QString epoch () const;
     QString name () const;
     QString revision () const;

@@ -25,7 +25,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(int appCount READ appCount)
     Q_PROPERTY(QString channel READ channel)
     Q_PROPERTY(int channelCount READ channelCount)
-    Q_PROPERTY(QSnapdConfinement confinement READ confinement)
+    Q_PROPERTY(QSnapdChannel::QSnapdConfinement confinement READ confinement)
     Q_PROPERTY(QString contact READ contact)
     Q_PROPERTY(QString description READ description)
     Q_PROPERTY(QString developer READ developer)
@@ -51,15 +51,6 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString version READ version)
 
 public:
-    enum QSnapdConfinement
-    {
-        ConfinementUnknown,
-        Strict,
-        Devmode,
-        Classic
-    };
-    Q_ENUM(QSnapdConfinement)
-
     enum QSnapdSnapType
     {
         TypeUnknown,
@@ -88,7 +79,7 @@ public:
     int channelCount () const;
     Q_INVOKABLE QSnapdChannel *channel (int) const;
     Q_INVOKABLE QSnapdChannel *matchChannel (QString) const;
-    QSnapdConfinement confinement () const;
+    QSnapdChannel::QSnapdConfinement confinement () const;
     QString contact () const;
     QString description () const;
     QString developer () const;

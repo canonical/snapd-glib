@@ -445,7 +445,7 @@ test_list_one ()
     g_assert (snap->channel () == NULL);
     g_assert_cmpint (snap->tracks ().count (), ==, 0);
     g_assert_cmpint (snap->channelCount (), ==, 0);
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdChannel::Strict);
     g_assert (snap->contact () == NULL);
     g_assert (snap->description () == NULL);
     g_assert (snap->developer () == "DEVELOPER");
@@ -477,7 +477,7 @@ ListOneHandler::onComplete ()
     QScopedPointer<QSnapdSnap> snap (request->snap ());
     g_assert_cmpint (snap->appCount (), ==, 0);
     g_assert (snap->channel () == NULL);
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdChannel::Strict);
     g_assert (snap->contact () == NULL);
     g_assert (snap->description () == NULL);
     g_assert (snap->developer () == "DEVELOPER");
@@ -563,7 +563,7 @@ test_list_one_optional_fields ()
     g_assert (app->aliases ()[1] == "app3");
     g_assert (app->desktopFile () == "/var/lib/snapd/desktop/applications/app.desktop");
     g_assert (snap->channel () == "CHANNEL");
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Classic);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdChannel::Classic);
     g_assert (snap->contact () == "CONTACT");
     g_assert (snap->description () == "DESCRIPTION");
     g_assert (snap->developer () == "DEVELOPER");
@@ -620,7 +620,7 @@ test_list_one_classic_confinement ()
     listOneRequest->runSync ();
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Classic);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdChannel::Classic);
 }
 
 static void
@@ -639,7 +639,7 @@ test_list_one_devmode_confinement ()
     listOneRequest->runSync ();
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Devmode);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdChannel::Devmode);
 }
 
 static void
@@ -1180,12 +1180,12 @@ test_find_query ()
     g_assert (snap1->channelCount () == 1);
     QScopedPointer<QSnapdChannel> channel (snap1->channel (0));
     g_assert (channel->name () == "stable");
-    //g_assert_cmpint (channel->confinement (), ==, QSnapdSnap::Strict);
+    g_assert_cmpint (channel->confinement (), ==, QSnapdChannel::Strict);
     g_assert (channel->revision () == "REVISION");
     g_assert (channel->version () == "VERSION");
     g_assert (channel->epoch () == "0");
     g_assert_cmpint (channel->size (), ==, 65535);
-    g_assert_cmpint (snap1->confinement (), ==, QSnapdSnap::Strict);
+    g_assert_cmpint (snap1->confinement (), ==, QSnapdChannel::Strict);
     g_assert (snap1->contact () == "CONTACT");
     g_assert (snap1->description () == "DESCRIPTION");
     g_assert (snap1->developer () == "DEVELOPER");
@@ -1359,7 +1359,7 @@ test_find_channels ()
     g_assert (channel1->revision () == "REVISION");
     g_assert (channel1->version () == "VERSION");
     g_assert (channel1->epoch () == "0");
-    //g_assert_cmpint (channel1->confinement (), ==, QSnapdSnap::Strict);
+    g_assert_cmpint (channel1->confinement (), ==, QSnapdChannel::Strict);
     g_assert_cmpint (channel1->size (), ==, 65535);
     QScopedPointer<QSnapdChannel> channel2 (snap->matchChannel ("beta"));
     g_assert (channel2 != NULL);
@@ -1367,7 +1367,7 @@ test_find_channels ()
     g_assert (channel2->revision () == "BETA-REVISION");
     g_assert (channel2->version () == "BETA-VERSION");
     g_assert (channel2->epoch () == "1");
-    //g_assert_cmpint (channel2->confinement (), ==, QSnapdSnap::Classic);
+    g_assert_cmpint (channel2->confinement (), ==, QSnapdChannel::Classic);
     g_assert_cmpint (channel2->size (), ==, 10000);
 }
 
