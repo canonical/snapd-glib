@@ -65,7 +65,8 @@ libsnapd_glib_la_CPPFLAGS = \
 libsnapd_glib_la_CFLAGS = $(SNAPD_CFLAGS) $(WARN_CFLAGS)
 libsnapd_glib_la_LDFLAGS = -version-info 1:0:0
 libsnapd_glib_la_LIBADD = $(SNAPD_LIBS)
-libsnapd_glib_la_SOURCES = $(source_c) $(source_private_h) $(source_h) $(BUILT_SOURCES)
+libsnapd_glib_la_SOURCES = $(source_c) $(source_private_h) $(source_h)
+nodist_libsnapd_glib_la_SOURCES = $(BUILT_SOURCES)
 
 snapdincludedir = $(includedir)/snapd-glib/snapd-glib
 snapdinclude_DATA = \
