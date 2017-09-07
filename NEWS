@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 1.20
+
+    * Stop distributing generated files
+
 Overview of changes in snapd-glib 1.19
 
     * New API:

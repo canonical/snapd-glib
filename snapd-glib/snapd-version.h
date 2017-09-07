@@ -194,4 +194,13 @@
  */
 #define SNAPD_GLIB_VERSION_1_19
 
+/**
+ * SNAPD_GLIB_VERSION_1_20:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.20
+ *
+ * Since: 1.20
+ */
+#define SNAPD_GLIB_VERSION_1_20
+
 #endif /* __SNAPD_GLIB_VERSION_H__ */
