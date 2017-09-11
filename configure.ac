@@ -62,17 +62,26 @@ AC_ARG_ENABLE(snapd-qt,
 compile_snapd_qt=no
 if test x"$enable_snapd_qt" != "xno"; then
     PKG_CHECK_MODULES(SNAPD_QT, [Qt5Core Qt5Network],
-    [compile_snapd_qt=yes
-     AC_CHECK_TOOLS(MOC5, [moc-qt5 moc])
-     if test x"$(readlink $(which $MOC5))" = xqtchooser; then
-         MOC5="$MOC5 --qt=qt5"
-     fi
-    ],
+    [compile_snapd_qt=yes],
     [if test "x$enable_snapd_qt" != xauto; then
-        AC_MSG_FAILURE(
-          [--enable-snapd-qt was given, but test for Qt5 failed])
-      fi
+       AC_MSG_FAILURE(
+         [--enable-snapd-qt was given, but test for Qt5 failed])
+     fi
     ])
+
+    AC_CHECK_TOOLS(MOC5, [moc-qt5 moc])
+    if test x$MOC5 = x; then
+        compile_snapd_qt=no
+        if test "x$enable_snapd_qt" != xauto; then
+            AC_MSG_FAILURE(
+              [--enable-snapd-qt was given, but MOC not found])
+        fi
+    fi
+    if test x"$MOC5" = xmoc; then
+        if test x"$(readlink $(which $MOC5))" = xqtchooser; then
+            MOC5="$MOC5 --qt=qt5"
+        fi
+    fi
 fi
 AM_CONDITIONAL(COMPILE_SNAPD_QT, test x"$compile_snapd_qt" != "xno")
 
