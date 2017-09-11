@@ -445,7 +445,7 @@ headers_new (SnapdRequest *request, gboolean authorize)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
     g_autoptr(SoupMessageHeaders) headers = NULL;
-    g_autofree gchar *accept_languages;
+    g_autofree gchar *accept_languages = NULL;
 
     headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
     soup_message_headers_append (headers, "Host", "");
