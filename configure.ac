@@ -91,15 +91,22 @@ AC_ARG_ENABLE(qml-module,
 	[enable_qml_module="auto"])
 compile_qml_module=no
 if test x"$enable_qml_module" != "xno"; then
-    PKG_CHECK_MODULES(QML_MODULE, [
-        Qt5Qml
-    ],
-    [compile_qml_module=yes],
-    [if test "x$enable_qml_module" != xauto; then
-        AC_MSG_FAILURE(
-          [--enable-qml-module was given, but test for QML failed])
-      fi
-    ])
+    if test $compile_snapd_qt != yes; then
+        if test "x$enable_qml_module" != xauto; then
+            AC_MSG_FAILURE(
+              [--enable-qml-module was given, but snapd-qt is not being built])
+        fi
+    else
+        PKG_CHECK_MODULES(QML_MODULE, [
+            Qt5Qml
+        ],
+        [compile_qml_module=yes],
+        [if test "x$enable_qml_module" != xauto; then
+            AC_MSG_FAILURE(
+              [--enable-qml-module was given, but test for QML failed])
+          fi
+        ])
+   fi
 fi
 AM_CONDITIONAL(COMPILE_QML_MODULE, test x"$compile_qml_module" != "xno")
 
