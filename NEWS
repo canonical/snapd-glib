@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.21
+
+    * Fix MOC detection in Fedora
+    * Handle Qt configure failures
+
 Overview of changes in snapd-glib 1.20
 
     * Stop distributing generated files
