@@ -28,7 +28,7 @@ Overview of changes in snapd-glib 1.17
 
     * Fix issues when accessing snapd-glib from threads.
     * snapd-qt: Emit the complete signal when requests are cancelled.
-    * Reduce snapd-glib dependency to 1.1.2.
+    * Reduce json-glib dependency to 1.1.2.
     * Documentation updates.
     * Test improvements.
 
