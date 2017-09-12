@@ -47,7 +47,7 @@ qmlmodule_LTLIBRARIES = libSnapd.la
 libSnapd_la_SOURCES = qml-plugin.cpp qml-plugin.h
 nodist_libSnapd_la_SOURCES = qml-plugin_moc.cpp
 libSnapd_la_CXXFLAGS = --std=c++11 $(WARN_CXXFLAGS) -fPIC $(QML_MODULE_CFLAGS)
-libSnapd_la_LIBADD = $(QML_MODULE_LIBS) -lsnapd-qt
+libSnapd_la_LIBADD = $(QML_MODULE_LIBS) libsnapd-qt.la
 libSnapd_la_LDFLAGS = -rpath $(qmlmoduledir) -module -avoid-version -no-undefined
 qml-plugin_moc.cpp: qml-plugin.h
 	$(AM_V_GEN) $(MOC5) $< -o $@
