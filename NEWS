@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.22
+
+    * Make QML module depend on liblightdm-qt being compiled first
+    * Fix compile warning
+
 Overview of changes in snapd-glib 1.21
 
     * Fix MOC detection in Fedora
