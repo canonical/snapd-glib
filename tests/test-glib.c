@@ -880,7 +880,7 @@ test_icon_large (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     MockSnap *s;
-    gchar *icon_buffer;
+    g_autofree gchar *icon_buffer = NULL;
     gsize i, icon_buffer_length = 1048576;
     g_autoptr(GBytes) icon_data = NULL;
     g_autoptr(SnapdClient) client = NULL;
@@ -894,7 +894,6 @@ test_icon_large (void)
     for (i = 0; i < icon_buffer_length; i++)
         icon_buffer[i] = i % 255;
     icon_data = g_bytes_new (icon_buffer, icon_buffer_length);
-    g_free (icon_buffer);
     mock_snap_set_icon_data (s, "image/png", icon_data);
 
     client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
