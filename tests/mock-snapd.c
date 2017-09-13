@@ -57,6 +57,7 @@ struct _MockSnapd
     GSource *read_source;
     GByteArray *buffer;
     gsize n_read;
+    gboolean close_on_request;
     GList *accounts;
     GList *snaps;
     gchar *confinement;
@@ -172,6 +173,23 @@ mock_snapd_get_client_socket (MockSnapd *snapd)
 {
     g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
     return snapd->client_socket;
+}
+
+void
+mock_snapd_set_close_on_request (MockSnapd *snapd, gboolean close_on_request)
+{
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+    snapd->close_on_request = close_on_request;
+}
+
+void
+mock_snapd_stop (MockSnapd *snapd)
+{
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+    g_socket_close (snapd->server_socket, NULL);
+    if (snapd->read_source != NULL)
+        g_source_destroy (snapd->read_source);
+    g_clear_pointer (&snapd->read_source, g_source_unref);
 }
 
 void
@@ -2546,6 +2564,11 @@ read_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
         body = soup_message_body_new ();
         soup_message_body_append (body, SOUP_MEMORY_COPY, body_data, content_length);
         buffer = soup_message_body_flatten (body);
+
+        if (snapd->close_on_request) {
+            g_socket_close (socket, NULL);
+            return G_SOURCE_REMOVE;
+        }
 
         handle_request (snapd, method, path, headers, body);
 

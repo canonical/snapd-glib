@@ -224,9 +224,30 @@ snapd_request_complete (SnapdRequest *request, GError *error)
     SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->requests_mutex);
 
+    if (request->read_source != NULL)
+        g_source_destroy (request->read_source);
+    g_clear_pointer (&request->read_source, g_source_unref);
+
     snapd_request_respond (request, error);
     priv->requests = g_list_remove (priv->requests, request);
     g_object_unref (request);
+}
+
+static void
+complete_all_requests (SnapdClient *client, GError *error)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GList *link;
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->requests_mutex);
+
+    for (link = priv->requests; link; link = link->next) {
+        SnapdRequest *request = link->data;
+        snapd_request_respond (request, g_error_copy (error));
+    }
+    g_error_free (error);
+
+    g_list_free_full (priv->requests, g_object_unref);
+    priv->requests = NULL;
 }
 
 static gboolean
@@ -2280,23 +2301,27 @@ read_data (SnapdClient *client,
                                &error_local);
 
     if (n_read == 0) {
-        g_warning ("snapd socket closed");
-        // FIXME: Cancel all requests
+        GError *error;
+
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "snapd connection closed");
+        complete_all_requests (client, error);
         return FALSE;
     }
 
     if (n_read < 0)
     {
+        GError *error;
+
         if (g_error_matches (error_local, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
             return TRUE;
 
-        g_warning ("Failed to read from snapd: %s", error_local->message);
-        // FIXME: Cancel all requests
-        //g_set_error (error,
-        //             SNAPD_ERROR,
-        //             SNAPD_ERROR_READ_FAILED,
-        //             "Failed to read from snapd: %s",
-        //             error_local->message);
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "Failed to read from snapd: %s",
+                             error_local->message);
+        complete_all_requests (client, error);
         return FALSE;
     }
 
@@ -2379,6 +2404,8 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
         return G_SOURCE_REMOVE;
 
     while (TRUE) {
+        GError *error;
+
         /* Look for header divider */
         body = g_strstr_len ((gchar *) priv->buffer->data, priv->n_read, "\r\n\r\n");
         if (body == NULL)
@@ -2390,7 +2417,10 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
         headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_RESPONSE);
         if (!soup_headers_parse_response ((gchar *) priv->buffer->data, header_length, headers,
                                           NULL, &code, &reason_phrase)) {
-            // FIXME: Cancel all requests
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
+                                 "Failed to parse headers from snapd");
+            complete_all_requests (client, error);
             return G_SOURCE_REMOVE;
         }
 
@@ -2422,7 +2452,10 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
             break;
 
         default:
-            // FIXME
+            error = g_error_new (SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
+                                 "Unable to determine header encoding");
+            complete_all_requests (client, error);
             return G_SOURCE_REMOVE;
         }
 

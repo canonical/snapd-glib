@@ -128,6 +128,11 @@ MockSnapd      *mock_snapd_new                    (void);
 
 GSocket        *mock_snapd_get_client_socket      (MockSnapd     *snapd);
 
+void            mock_snapd_set_close_on_request   (MockSnapd     *snapd,
+                                                   gboolean       close_on_request);
+
+void            mock_snapd_stop                   (MockSnapd     *snapd);
+
 void            mock_snapd_set_confinement        (MockSnapd     *snapd,
                                                    const gchar   *confinement);
 
