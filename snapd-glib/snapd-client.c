@@ -2278,6 +2278,13 @@ read_data (SnapdClient *client,
                                size,
                                cancellable,
                                &error_local);
+
+    if (n_read == 0) {
+        g_warning ("snapd socket closed");
+        // FIXME: Cancel all requests
+        return FALSE;
+    }
+
     if (n_read < 0)
     {
         if (g_error_matches (error_local, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
