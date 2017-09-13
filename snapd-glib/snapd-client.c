@@ -2442,7 +2442,8 @@ start_sync (SyncData *data)
 static void
 end_sync (SyncData *data)
 {
-    g_main_loop_run (data->loop);
+    if (data->loop != NULL)
+        g_main_loop_run (data->loop);
     g_main_context_pop_thread_default (data->context);
 }
 
@@ -2462,6 +2463,7 @@ sync_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     SyncData *data = user_data;
     data->result = g_object_ref (result);
     g_main_loop_quit (data->loop);
+    g_clear_pointer (&data->loop, g_main_loop_unref);
 }
 
 /**
