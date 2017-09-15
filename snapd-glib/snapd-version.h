@@ -230,4 +230,13 @@
  */
 #define SNAPD_GLIB_VERSION_1_23
 
+/**
+ * SNAPD_GLIB_VERSION_1_24:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.24
+ *
+ * Since: 1.24
+ */
+#define SNAPD_GLIB_VERSION_1_24
+
 #endif /* __SNAPD_GLIB_VERSION_H__ */
