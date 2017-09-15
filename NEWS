@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.23
+
+    * Fix snapd-login-service crash
+    * Improve failure handling when snapd socket read/writes fail
+
 Overview of changes in snapd-glib 1.22
 
     * Make QML module depend on snapd-qt being compiled first
