@@ -207,15 +207,16 @@ respond_cb (gpointer user_data)
 static void
 snapd_request_respond (SnapdRequest *request, GError *error)
 {
+    g_autoptr(GSource) source = NULL;
+
     if (request->responded)
         return;
     request->responded = TRUE;
     request->error = error;
 
-    g_main_context_invoke_full (request->context,
-                                G_PRIORITY_DEFAULT_IDLE,
-                                respond_cb,
-                                g_object_ref (request), g_object_unref);
+    source = g_idle_source_new ();
+    g_source_set_callback (source, respond_cb, g_object_ref (request), g_object_unref);
+    g_source_attach (source, request->context);
 }
 
 static void
