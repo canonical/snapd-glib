@@ -1,5 +1,7 @@
+if COMPILE_QML_MODULE
 pkgconfig_DATA = snapd-qt.pc
 pkgconfigdir = $(libdir)/pkgconfig
+endif
 
 source_cpp = alias.cpp app.cpp assertion.cpp auth-data.cpp change.cpp client.cpp connection.cpp icon.cpp plug.cpp price.cpp request.cpp screenshot.cpp slot.cpp snap.cpp system-information.cpp task.cpp
 source_moc = $(source_cpp:.cpp=_moc.cpp) client-private_moc.cpp wrapped-object_moc.cpp
