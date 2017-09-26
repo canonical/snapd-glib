@@ -4,7 +4,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 endif
 
 source_cpp = alias.cpp app.cpp assertion.cpp auth-data.cpp change.cpp client.cpp connection.cpp icon.cpp plug.cpp price.cpp request.cpp screenshot.cpp slot.cpp snap.cpp system-information.cpp task.cpp
-source_moc = $(source_cpp:.cpp=_moc.cpp) client-private_moc.cpp wrapped-object_moc.cpp
+source_moc = $(source_cpp:.cpp=_moc.cpp) client-private_moc.cpp wrapped-object_moc.cpp enums_moc.cpp
 source_h = Snapd/Alias Snapd/alias.h \
            Snapd/App Snapd/app.h \
            Snapd/Assertion Snapd/assertion.h \
@@ -12,6 +12,7 @@ source_h = Snapd/Alias Snapd/alias.h \
            Snapd/Change Snapd/change.h \
            Snapd/Client Snapd/client.h \
            Snapd/Connection Snapd/connection.h \
+           Snapd/Enums Snapd/enums.h \
            Snapd/Icon Snapd/icon.h \
            Snapd/Plug Snapd/plug.h \
            Snapd/Price Snapd/price.h \

@@ -18,17 +18,17 @@ QString QSnapdSystemInformation::binariesDirectory () const
     return snapd_system_information_get_binaries_directory (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
-QSnapdSystemInformation::QSnapdSystemConfinement QSnapdSystemInformation::confinement () const
+QSnapdEnums::SystemConfinement QSnapdSystemInformation::confinement () const
 {
     switch (snapd_system_information_get_confinement (SNAPD_SYSTEM_INFORMATION (wrapped_object)))
     {
     case SNAPD_SYSTEM_CONFINEMENT_STRICT:
-        return QSnapdSystemConfinement::ConfinementStrict;
+        return QSnapdEnums::SystemConfinement::SystemConfinementStrict;
     case SNAPD_SYSTEM_CONFINEMENT_PARTIAL:
-        return QSnapdSystemConfinement::ConfinementPartial;
+        return QSnapdEnums::SystemConfinement::SystemConfinementPartial;
     case SNAPD_SYSTEM_CONFINEMENT_UNKNOWN:
     default:
-        return QSnapdSystemConfinement::ConfinementUnknown;
+        return QSnapdEnums::SystemConfinement::SystemConfinementUnknown;
     }
 }
 

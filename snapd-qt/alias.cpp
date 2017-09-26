@@ -28,20 +28,20 @@ QString QSnapdAlias::snap () const
     return snapd_alias_get_snap (SNAPD_ALIAS (wrapped_object));
 }
 
-QSnapdAlias::QSnapdAliasStatus QSnapdAlias::status () const
+QSnapdEnums::AliasStatus QSnapdAlias::status () const
 {
     switch (snapd_alias_get_status (SNAPD_ALIAS (wrapped_object)))
     {
     default:
     case SNAPD_ALIAS_STATUS_UNKNOWN:
-        return QSnapdAliasStatus::Unknown;
+        return QSnapdEnums::AliasStatusUnknown;
     case SNAPD_ALIAS_STATUS_DEFAULT:
-        return QSnapdAliasStatus::Default;
+        return QSnapdEnums::AliasStatusDefault;
     case SNAPD_ALIAS_STATUS_ENABLED:
-        return QSnapdAliasStatus::Enabled;
+        return QSnapdEnums::AliasStatusEnabled;
     case SNAPD_ALIAS_STATUS_DISABLED:
-        return QSnapdAliasStatus::Disabled;
+        return QSnapdEnums::AliasStatusDisabled;
     case SNAPD_ALIAS_STATUS_AUTO:
-      return QSnapdAliasStatus::Auto;
+      return QSnapdEnums::AliasStatusAuto;
     }
 }

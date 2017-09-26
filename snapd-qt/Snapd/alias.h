@@ -12,6 +12,7 @@
 
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
+#include <Snapd/Enums>
 
 class Q_DECL_EXPORT QSnapdAlias : public QSnapdWrappedObject
 {
@@ -20,25 +21,15 @@ class Q_DECL_EXPORT QSnapdAlias : public QSnapdWrappedObject
     Q_PROPERTY(QString app READ app)
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString snap READ snap)
-    Q_PROPERTY(QSnapdAliasStatus status READ status)
+    Q_PROPERTY(QSnapdEnums::AliasStatus status READ status)
 
 public:
-    enum QSnapdAliasStatus
-    {
-        Unknown,
-        Default,
-        Enabled,
-        Disabled,
-        Auto
-    };
-    Q_ENUM(QSnapdAliasStatus)
-
     explicit QSnapdAlias (void* snapd_object, QObject* parent = 0);
 
     QString app () const;
     QString name () const;
     QString snap () const;
-    QSnapdAliasStatus status () const;
+    QSnapdEnums::AliasStatus status () const;
 };
 
 #endif

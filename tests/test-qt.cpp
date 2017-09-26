@@ -186,7 +186,7 @@ test_get_system_information ()
     infoRequest->runSync ();
     g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
-    g_assert (systemInformation->confinement () == QSnapdSystemInformation::ConfinementUnknown);
+    g_assert (systemInformation->confinement () == QSnapdEnums::SystemConfinementUnknown);
     g_assert (systemInformation->kernelVersion () == "KERNEL-VERSION");
     g_assert (systemInformation->osId () == "OS-ID");
     g_assert (systemInformation->osVersion () == "OS-VERSION");
@@ -204,7 +204,7 @@ GetSystemInformationHandler::onComplete ()
 {
     g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (request->systemInformation ());
-    g_assert (systemInformation->confinement () == QSnapdSystemInformation::ConfinementUnknown);
+    g_assert (systemInformation->confinement () == QSnapdEnums::SystemConfinementUnknown);
     g_assert (systemInformation->kernelVersion () == "KERNEL-VERSION");
     g_assert (systemInformation->osId () == "OS-ID");
     g_assert (systemInformation->osVersion () == "OS-VERSION");
@@ -273,7 +273,7 @@ test_get_system_information_confinement_strict ()
     infoRequest->runSync ();
     g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
-    g_assert_cmpint (systemInformation->confinement (), ==, QSnapdSystemInformation::ConfinementStrict);
+    g_assert_cmpint (systemInformation->confinement (), ==, QSnapdEnums::SystemConfinementStrict);
 }
 
 static void
@@ -291,7 +291,7 @@ test_get_system_information_confinement_none ()
     infoRequest->runSync ();
     g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
-    g_assert_cmpint (systemInformation->confinement (), ==, QSnapdSystemInformation::ConfinementPartial);
+    g_assert_cmpint (systemInformation->confinement (), ==, QSnapdEnums::SystemConfinementPartial);
 }
 
 static void
@@ -309,7 +309,7 @@ test_get_system_information_confinement_unknown ()
     infoRequest->runSync ();
     g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
-    g_assert_cmpint (systemInformation->confinement (), ==, QSnapdSystemInformation::ConfinementUnknown);
+    g_assert_cmpint (systemInformation->confinement (), ==, QSnapdEnums::SystemConfinementUnknown);
 }
 
 static void
@@ -475,7 +475,7 @@ test_list_one ()
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
     g_assert_cmpint (snap->appCount (), ==, 0);
     g_assert (snap->channel () == NULL);
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert (snap->contact () == NULL);
     g_assert (snap->description () == NULL);
     g_assert (snap->developer () == "DEVELOPER");
@@ -492,8 +492,8 @@ test_list_one ()
     g_assert (snap->isPrivate () == FALSE);
     g_assert (snap->revision () == "REVISION");
     g_assert_cmpint (snap->screenshotCount (), ==, 0);
-    g_assert_cmpint (snap->snapType (), ==, QSnapdSnap::App);
-    g_assert_cmpint (snap->status (), ==, QSnapdSnap::Active);
+    g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
+    g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert (snap->summary () == NULL);
     g_assert (snap->trackingChannel () == NULL);
     g_assert (snap->trymode () == FALSE);
@@ -507,7 +507,7 @@ ListOneHandler::onComplete ()
     QScopedPointer<QSnapdSnap> snap (request->snap ());
     g_assert_cmpint (snap->appCount (), ==, 0);
     g_assert (snap->channel () == NULL);
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Strict);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert (snap->contact () == NULL);
     g_assert (snap->description () == NULL);
     g_assert (snap->developer () == "DEVELOPER");
@@ -523,8 +523,8 @@ ListOneHandler::onComplete ()
     g_assert (snap->isPrivate () == FALSE);
     g_assert (snap->revision () == "REVISION");
     g_assert_cmpint (snap->screenshotCount (), ==, 0);
-    g_assert_cmpint (snap->snapType (), ==, QSnapdSnap::App);
-    g_assert_cmpint (snap->status (), ==, QSnapdSnap::Active);
+    g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
+    g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert (snap->summary () == NULL);
     g_assert (snap->trackingChannel () == NULL);
     g_assert (snap->trymode () == FALSE);
@@ -587,13 +587,13 @@ test_list_one_optional_fields ()
     g_assert_cmpint (snap->appCount (), ==, 1);
     QScopedPointer<QSnapdApp> app (snap->app (0));
     g_assert (app->name () == "app");
-    g_assert_cmpint (app->daemonType (), ==, QSnapdApp::DaemonNone);
+    g_assert_cmpint (app->daemonType (), ==, QSnapdEnums::DaemonTypeNone);
     g_assert_cmpint (app->aliases ().count (), ==, 2);
     g_assert (app->aliases ()[0] == "app2");
     g_assert (app->aliases ()[1] == "app3");
     g_assert (app->desktopFile () == "/var/lib/snapd/desktop/applications/app.desktop");
     g_assert (snap->channel () == "CHANNEL");
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Classic);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
     g_assert (snap->contact () == "CONTACT");
     g_assert (snap->description () == "DESCRIPTION");
     g_assert (snap->developer () == "DEVELOPER");
@@ -611,8 +611,8 @@ test_list_one_optional_fields ()
     g_assert (snap->isPrivate () == FALSE);
     g_assert (snap->revision () == "REVISION");
     g_assert_cmpint (snap->screenshotCount (), ==, 0);
-    g_assert_cmpint (snap->snapType (), ==, QSnapdSnap::App);
-    g_assert_cmpint (snap->status (), ==, QSnapdSnap::Active);
+    g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
+    g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert (snap->summary () == "SUMMARY");
     g_assert (snap->trackingChannel () == "CHANNEL");
     g_assert (snap->trymode () == TRUE);
@@ -650,7 +650,7 @@ test_list_one_classic_confinement ()
     listOneRequest->runSync ();
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Classic);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
 }
 
 static void
@@ -669,7 +669,7 @@ test_list_one_devmode_confinement ()
     listOneRequest->runSync ();
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
-    g_assert_cmpint (snap->confinement (), ==, QSnapdSnap::Devmode);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementDevmode);
 }
 
 static void
@@ -701,17 +701,17 @@ test_list_one_daemons ()
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
     g_assert_cmpint (snap->appCount (), ==, 6);
     QScopedPointer<QSnapdApp> app1 (snap->app (0));
-    g_assert_cmpint (app1->daemonType (), ==, QSnapdApp::Simple);
+    g_assert_cmpint (app1->daemonType (), ==, QSnapdEnums::DaemonTypeSimple);
     QScopedPointer<QSnapdApp> app2 (snap->app (1));
-    g_assert_cmpint (app2->daemonType (), ==, QSnapdApp::Forking);
+    g_assert_cmpint (app2->daemonType (), ==, QSnapdEnums::DaemonTypeForking);
     QScopedPointer<QSnapdApp> app3 (snap->app (2));
-    g_assert_cmpint (app3->daemonType (), ==, QSnapdApp::Oneshot);
+    g_assert_cmpint (app3->daemonType (), ==, QSnapdEnums::DaemonTypeOneshot);
     QScopedPointer<QSnapdApp> app4 (snap->app (3));
-    g_assert_cmpint (app4->daemonType (), ==, QSnapdApp::Notify);
+    g_assert_cmpint (app4->daemonType (), ==, QSnapdEnums::DaemonTypeNotify);
     QScopedPointer<QSnapdApp> app5 (snap->app (4));
-    g_assert_cmpint (app5->daemonType (), ==, QSnapdApp::Dbus);
+    g_assert_cmpint (app5->daemonType (), ==, QSnapdEnums::DaemonTypeDbus);
     QScopedPointer<QSnapdApp> app6 (snap->app (5));
-    g_assert_cmpint (app6->daemonType (), ==, QSnapdApp::DaemonUnknown);
+    g_assert_cmpint (app6->daemonType (), ==, QSnapdEnums::DaemonTypeUnknown);
 }
 
 static void
@@ -1204,7 +1204,7 @@ test_find_query ()
     g_assert (snap0->name () == "carrot1");
     QScopedPointer<QSnapdSnap> snap1 (findRequest->snap (1));
     g_assert (snap1->channel () == "CHANNEL");
-    g_assert_cmpint (snap1->confinement (), ==, QSnapdSnap::Strict);
+    g_assert_cmpint (snap1->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert (snap1->contact () == "CONTACT");
     g_assert (snap1->description () == "DESCRIPTION");
     g_assert (snap1->developer () == "DEVELOPER");
@@ -1230,8 +1230,8 @@ test_find_query ()
     g_assert (screenshot1->url () == "screenshot1.png");
     g_assert_cmpint (screenshot1->width (), ==, 1024);
     g_assert_cmpint (screenshot1->height (), ==, 1024);
-    g_assert_cmpint (snap1->snapType (), ==, QSnapdSnap::App);
-    g_assert_cmpint (snap1->status (), ==, QSnapdSnap::Active);
+    g_assert_cmpint (snap1->snapType (), ==, QSnapdEnums::SnapTypeApp);
+    g_assert_cmpint (snap1->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert (snap1->summary () == "SUMMARY");
     g_assert (snap1->trymode () == TRUE);
     g_assert (snap1->version () == "VERSION");
@@ -2635,17 +2635,17 @@ test_get_aliases ()
     g_assert (alias0->snap () == "snap1");
     g_assert (alias0->name () == "alias1");
     g_assert (alias0->app () == "app1");
-    g_assert_cmpint (alias0->status (), ==, QSnapdAlias::Enabled);
+    g_assert_cmpint (alias0->status (), ==, QSnapdEnums::AliasStatusEnabled);
     QScopedPointer<QSnapdAlias> alias1 (getAliasesRequest->alias (1));
     g_assert (alias1->snap () == "snap1");
     g_assert (alias1->name () == "alias2");
     g_assert (alias1->app () == "app2");
-    g_assert_cmpint (alias1->status (), ==, QSnapdAlias::Disabled);
+    g_assert_cmpint (alias1->status (), ==, QSnapdEnums::AliasStatusDisabled);
     QScopedPointer<QSnapdAlias> alias2 (getAliasesRequest->alias (2));
     g_assert (alias2->snap () == "snap2");
     g_assert (alias2->name () == "alias3");
     g_assert (alias2->app () == "app3");
-    g_assert_cmpint (alias2->status (), ==, QSnapdAlias::Default);
+    g_assert_cmpint (alias2->status (), ==, QSnapdEnums::AliasStatusDefault);
 }
 
 static void
