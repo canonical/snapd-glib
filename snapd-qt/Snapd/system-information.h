@@ -12,13 +12,14 @@
 
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
+#include <Snapd/Enums>
 
 class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
 {
     Q_OBJECT
 
     Q_PROPERTY(QString binariesDirectory READ binariesDirectory)
-    Q_PROPERTY(QSnapdSystemConfinement confinement READ confinement)
+    Q_PROPERTY(QSnapdEnums::SystemConfinement confinement READ confinement)
     Q_PROPERTY(QString kernelVersion READ kernelVersion)
     Q_PROPERTY(bool managed READ managed)
     Q_PROPERTY(QString mountDirectory READ mountDirectory)
@@ -41,7 +42,7 @@ public:
     explicit QSnapdSystemInformation (void *snapd_object, QObject* parent = 0);
 
     QString binariesDirectory () const;
-    QSnapdSystemConfinement confinement () const;
+    QSnapdEnums::SystemConfinement confinement () const;
     QString kernelVersion () const;
     bool managed () const;
     QString mountDirectory () const;

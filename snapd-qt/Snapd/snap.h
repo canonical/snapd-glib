@@ -13,6 +13,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QDate>
 #include <Snapd/WrappedObject>
+#include <Snapd/Enums>
 #include <Snapd/App>
 #include <Snapd/Price>
 #include <Snapd/Screenshot>
@@ -23,7 +24,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
 
     Q_PROPERTY(int appCount READ appCount)
     Q_PROPERTY(QString channel READ channel)
-    Q_PROPERTY(QSnapdConfinement confinement READ confinement)
+    Q_PROPERTY(QSnapdEnums::SnapConfinement confinement READ confinement)
     Q_PROPERTY(QString contact READ contact)
     Q_PROPERTY(QString description READ description)
     Q_PROPERTY(QString developer READ developer)
@@ -39,8 +40,8 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(int priceCount READ priceCount)
     Q_PROPERTY(bool isPrivate READ isPrivate)
     Q_PROPERTY(QString revision READ revision)
-    Q_PROPERTY(QSnapdSnapType snapType READ snapType)
-    Q_PROPERTY(QSnapdSnapStatus status READ status)
+    Q_PROPERTY(QSnapdEnums::SnapType snapType READ snapType)
+    Q_PROPERTY(QSnapdEnums::SnapStatus status READ status)
     Q_PROPERTY(QString summary READ summary)
     Q_PROPERTY(QString title READ title)
     Q_PROPERTY(QString trackingChannel READ trackingChannel)
@@ -82,7 +83,7 @@ public:
     int appCount () const;
     Q_INVOKABLE QSnapdApp *app (int) const;
     QString channel () const;
-    QSnapdConfinement confinement () const;
+    QSnapdEnums::SnapConfinement confinement () const;
     QString contact () const;
     QString description () const;
     QString developer () const;
@@ -101,8 +102,8 @@ public:
     QString revision () const;
     int screenshotCount () const;
     Q_INVOKABLE QSnapdScreenshot *screenshot (int) const;
-    QSnapdSnapType snapType () const;
-    QSnapdSnapStatus status () const;
+    QSnapdEnums::SnapType snapType () const;
+    QSnapdEnums::SnapStatus status () const;
     QString summary () const;
     QString title () const;
     QString trackingChannel () const;

@@ -36,19 +36,19 @@ QString QSnapdSnap::channel () const
     return snapd_snap_get_channel (SNAPD_SNAP (wrapped_object));
 }
 
-QSnapdSnap::QSnapdConfinement QSnapdSnap::confinement () const
+QSnapdEnums::SnapConfinement QSnapdSnap::confinement () const
 {
     switch (snapd_snap_get_confinement (SNAPD_SNAP (wrapped_object)))
     {
     case SNAPD_CONFINEMENT_STRICT:
-        return QSnapdConfinement::Strict;
+        return QSnapdEnums::SnapConfinementStrict;
     case SNAPD_CONFINEMENT_CLASSIC:
-        return QSnapdConfinement::Classic;
+        return QSnapdEnums::SnapConfinementClassic;
     case SNAPD_CONFINEMENT_DEVMODE:
-        return QSnapdConfinement::Devmode;
+        return QSnapdEnums::SnapConfinementDevmode;
     case SNAPD_CONFINEMENT_UNKNOWN:
     default:
-        return QSnapdConfinement::ConfinementUnknown;
+        return QSnapdEnums::SnapConfinementUnknown;
     }
 }
 
@@ -173,39 +173,39 @@ QSnapdScreenshot *QSnapdSnap::screenshot (int n) const
     return new QSnapdScreenshot (screenshots->pdata[n]);
 }
 
-QSnapdSnap::QSnapdSnapType QSnapdSnap::snapType () const
+QSnapdEnums::SnapType QSnapdSnap::snapType () const
 {
     switch (snapd_snap_get_snap_type (SNAPD_SNAP (wrapped_object)))
     {
     case SNAPD_SNAP_TYPE_APP:
-        return QSnapdSnapType::App;
+        return QSnapdEnums::SnapTypeApp;
     case SNAPD_SNAP_TYPE_KERNEL:
-        return QSnapdSnapType::Kernel;
+        return QSnapdEnums::SnapTypeKernel;
     case SNAPD_SNAP_TYPE_GADGET:
-        return QSnapdSnapType::Gadget;
+        return QSnapdEnums::SnapTypeGadget;
     case SNAPD_SNAP_TYPE_OS:
-        return QSnapdSnapType::OperatingSystem;
+        return QSnapdEnums::SnapTypeOperatingSystem;
     case SNAPD_SNAP_TYPE_UNKNOWN:
     default:
-        return QSnapdSnapType::TypeUnknown;
+        return QSnapdEnums::SnapTypeUnknown;
     }
 }
 
-QSnapdSnap::QSnapdSnapStatus QSnapdSnap::status () const
+QSnapdEnums::SnapStatus QSnapdSnap::status () const
 {
     switch (snapd_snap_get_status (SNAPD_SNAP (wrapped_object)))
     {
     case SNAPD_SNAP_STATUS_AVAILABLE:
-        return QSnapdSnapStatus::Available;
+        return QSnapdEnums::SnapStatusAvailable;
     case SNAPD_SNAP_STATUS_PRICED:
-        return QSnapdSnapStatus::Priced;
+        return QSnapdEnums::SnapStatusPriced;
     case SNAPD_SNAP_STATUS_INSTALLED:
-        return QSnapdSnapStatus::Installed;
+        return QSnapdEnums::SnapStatusInstalled;
     case SNAPD_SNAP_STATUS_ACTIVE:
-        return QSnapdSnapStatus::Active;
+        return QSnapdEnums::SnapStatusActive;
     case SNAPD_SNAP_STATUS_UNKNOWN:
     default:
-        return QSnapdSnapStatus::StatusUnknown;
+        return QSnapdEnums::SnapStatusUnknown;
     }
 }
 

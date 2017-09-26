@@ -12,6 +12,7 @@
 
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
+#include <Snapd/Enums>
 
 class Q_DECL_EXPORT QSnapdApp : public QSnapdWrappedObject
 {
@@ -19,7 +20,7 @@ class Q_DECL_EXPORT QSnapdApp : public QSnapdWrappedObject
 
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QStringList aliases READ aliases)
-    Q_PROPERTY(QSnapdDaemonType daemonType READ daemonType)
+    Q_PROPERTY(QSnapdEnums::DaemonType daemonType READ daemonType)
     Q_PROPERTY(QString desktopFile READ desktopFile)
 
 public:
@@ -39,7 +40,7 @@ public:
 
     QString name () const;
     QStringList aliases () const;
-    QSnapdDaemonType daemonType () const;
+    QSnapdEnums::DaemonType daemonType () const;
     QString desktopFile () const;
 };
 

@@ -27,25 +27,25 @@ QStringList QSnapdApp::aliases () const
     return result;
 }
 
-QSnapdApp::QSnapdDaemonType QSnapdApp::daemonType () const
+QSnapdEnums::DaemonType QSnapdApp::daemonType () const
 {
     switch (snapd_app_get_daemon_type (SNAPD_APP (wrapped_object)))
     {
     case SNAPD_DAEMON_TYPE_NONE:
-        return DaemonNone;
+        return QSnapdEnums::DaemonTypeNone;
     default:
     case SNAPD_DAEMON_TYPE_UNKNOWN:
-        return DaemonUnknown;
+        return QSnapdEnums::DaemonTypeUnknown;
     case SNAPD_DAEMON_TYPE_SIMPLE:
-        return Simple;
+        return QSnapdEnums::DaemonTypeSimple;
     case SNAPD_DAEMON_TYPE_FORKING:
-        return Forking;
+        return QSnapdEnums::DaemonTypeForking;
     case SNAPD_DAEMON_TYPE_ONESHOT:
-        return Oneshot;
+        return QSnapdEnums::DaemonTypeOneshot;
     case SNAPD_DAEMON_TYPE_DBUS:
-        return Dbus;
+        return QSnapdEnums::DaemonTypeDbus;
     case SNAPD_DAEMON_TYPE_NOTIFY:
-        return Notify;
+        return QSnapdEnums::DaemonTypeNotify;
     }
 }
 
