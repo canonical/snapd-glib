@@ -6095,6 +6095,7 @@ snapd_client_new_from_socket (GSocket *socket)
     client = snapd_client_new ();
     priv = snapd_client_get_instance_private (SNAPD_CLIENT (client));
     priv->snapd_socket = g_object_ref (socket);
+    g_socket_set_blocking (priv->snapd_socket, FALSE);
 
     return client;
 }
