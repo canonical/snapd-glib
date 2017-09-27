@@ -2377,8 +2377,7 @@ read_data (SnapdClient *client,
         return FALSE;
     }
 
-    if (n_read < 0)
-    {
+    if (n_read < 0) {
         GError *error;
 
         if (g_error_matches (error_local, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
