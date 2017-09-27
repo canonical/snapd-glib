@@ -24,12 +24,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdSnap, snapd_snap, SNAPD, SNAP, GObject)
 
-struct _SnapdSnapClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 /**
  * SnapdSnapType:
  * @SNAPD_SNAP_TYPE_UNKNOWN: the type of snap is unknown.

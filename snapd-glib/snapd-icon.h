@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdIcon, snapd_icon, SNAPD, ICON, GObject)
 
-struct _SnapdIconClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 const gchar  *snapd_icon_get_mime_type   (SnapdIcon *icon);
 
 GBytes       *snapd_icon_get_data        (SnapdIcon *icon);

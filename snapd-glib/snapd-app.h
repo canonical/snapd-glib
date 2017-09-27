@@ -23,12 +23,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdApp, snapd_app, SNAPD, APP, GObject)
 
-struct _SnapdAppClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 /**
  * SnapdDaemonType:
  * @SNAPD_DAEMON_TYPE_NONE: Not a daemon

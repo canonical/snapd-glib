@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdAlias, snapd_alias, SNAPD, ALIAS, GObject)
 
-struct _SnapdAliasClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 /**
  * SnapdAliasStatus:
  * @SNAPD_ALIAS_STATUS_UNKNOWN: the alias status is unknown.

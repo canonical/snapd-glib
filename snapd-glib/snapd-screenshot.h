@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdScreenshot, snapd_screenshot, SNAPD, SCREENSHOT, GObject)
 
-struct _SnapdScreenshotClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 const gchar *snapd_screenshot_get_url   (SnapdScreenshot *screenshot);
 
 guint        snapd_screenshot_get_width (SnapdScreenshot *screenshot);

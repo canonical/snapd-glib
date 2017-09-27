@@ -30,11 +30,17 @@ G_BEGIN_DECLS
 
 G_DECLARE_DERIVABLE_TYPE (SnapdClient, snapd_client, SNAPD, CLIENT, GObject)
 
+/**
+ * SnapdClientClass:
+ *
+ * #SnapdClient class.
+ */
 struct _SnapdClientClass
 {
     /*< private >*/
     GObjectClass parent_class;
 
+    /*< private >*/  
     /* padding, for future expansion */
     void (* _snapd_reserved1) (void);
     void (* _snapd_reserved2) (void);

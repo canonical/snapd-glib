@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdSystemInformation, snapd_system_information, SNAPD, SYSTEM_INFORMATION, GObject)
 
-struct _SnapdSystemInformationClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 /**
  * SnapdSystemConfinement:
  * @SNAPD_SYSTEM_CONFINEMENT_UNKNOWN: the confinement of the system is unknown.

@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdPrice, snapd_price, SNAPD, PRICE, GObject)
 
-struct _SnapdPriceClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 gdouble      snapd_price_get_amount   (SnapdPrice *price);
 
 const gchar *snapd_price_get_currency (SnapdPrice *price);

@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdChange, snapd_change, SNAPD, CHANGE, GObject)
 
-struct _SnapdChangeClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 const gchar *snapd_change_get_id         (SnapdChange *change);
 
 const gchar *snapd_change_get_kind       (SnapdChange *change);

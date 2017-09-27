@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdAssertion, snapd_assertion, SNAPD, ASSERTION, GObject)
 
-struct _SnapdAssertionClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 SnapdAssertion *snapd_assertion_new                   (const gchar    *content);
 
 gchar         **snapd_assertion_get_headers           (SnapdAssertion *assertion);

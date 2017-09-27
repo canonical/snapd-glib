@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdChannel, snapd_channel, SNAPD, CHANNEL, GObject)
 
-struct _SnapdChannelClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 /**
  * SnapdConfinement:
  * @SNAPD_CONFINEMENT_UNKNOWN: the confinement of the snap is unknown.

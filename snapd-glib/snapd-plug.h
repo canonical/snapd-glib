@@ -23,12 +23,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdPlug, snapd_plug, SNAPD, PLUG, GObject)
 
-struct _SnapdPlugClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 const gchar *snapd_plug_get_name            (SnapdPlug   *plug);
 
 const gchar *snapd_plug_get_snap            (SnapdPlug   *plug);

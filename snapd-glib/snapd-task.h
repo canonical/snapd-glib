@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdTask, snapd_task, SNAPD, TASK, GObject)
 
-struct _SnapdTaskClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 const gchar *snapd_task_get_id             (SnapdTask *task);
 
 const gchar *snapd_task_get_kind           (SnapdTask *task);

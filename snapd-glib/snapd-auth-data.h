@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdAuthData, snapd_auth_data, SNAPD, AUTH_DATA, GObject)
 
-struct _SnapdAuthDataClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 SnapdAuthData  *snapd_auth_data_new                 (const gchar    *macaroon,
                                                      gchar         **discharges);
 

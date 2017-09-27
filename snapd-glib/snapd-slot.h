@@ -23,12 +23,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdSlot, snapd_slot, SNAPD, SLOT, GObject)
 
-struct _SnapdSlotClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 const gchar *snapd_slot_get_name            (SnapdSlot   *slot);
 
 const gchar *snapd_slot_get_snap            (SnapdSlot   *slot);

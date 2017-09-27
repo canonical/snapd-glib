@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdUserInformation, snapd_user_information, SNAPD, USER_INFORMATION, GObject)
 
-struct _SnapdUserInformationClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 const gchar  *snapd_user_information_get_username (SnapdUserInformation *user_information);
 
 gchar       **snapd_user_information_get_ssh_keys (SnapdUserInformation *user_information);

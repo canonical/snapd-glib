@@ -22,12 +22,6 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdConnection, snapd_connection, SNAPD, CONNECTION, GObject)
 
-struct _SnapdConnectionClass
-{
-    /*< private >*/
-    GObjectClass parent_class;
-};
-
 const gchar *snapd_connection_get_name (SnapdConnection *connection);
 
 const gchar *snapd_connection_get_snap (SnapdConnection *connection);
