@@ -27,6 +27,9 @@
  * snapd_client_set_auth_data().
  */
 
+/**
+ * SnapdLoginRequest: (skip)
+ */
 struct _SnapdLoginRequest
 {
     GObject parent_instance;
