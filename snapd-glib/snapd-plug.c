@@ -28,8 +28,7 @@
 /**
  * SnapdPlug:
  *
- * #SnapdPlug is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdPlug contains information about a Snap plug.
  *
  * Since: 1.0
  */

@@ -24,8 +24,8 @@
 /**
  * SnapdUserInformation:
  *
- * #SnapdUserInformation is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdUserInformation contains information about a user account on the system
+ * snapd is running on.
  *
  * Since: 1.3
  */

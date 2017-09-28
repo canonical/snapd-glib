@@ -26,8 +26,9 @@
 /**
  * SnapdAlias:
  *
- * #SnapdAlias is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdAlias contains alias information for a Snap.
+ *
+ * Aliases are used to provide alternative binary names for Snap apps.
  *
  * Since: 1.8
  */

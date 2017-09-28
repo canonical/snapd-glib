@@ -23,14 +23,17 @@
  * A #SnapdAssertion represents an digitally signed documents that express a
  * fact or policy by a particular authority about a particular object in the
  * snap universe. Assertions can be queried using
- * snapd_client_get_assertions_sync().
+ * snapd_client_get_assertions_sync(). New assertions can be provided using
+ * snapd_client_add_assertions_sync().
  */
 
 /**
  * SnapdAssertion:
  *
- * #SnapdAssertion is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdAssertion contains information about a Snap assertion.
+ *
+ * Assertions are digitally signed documents that allow Snaps to have secure
+ * trust and control features.
  *
  * Since: 1.0
  */

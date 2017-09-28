@@ -25,8 +25,7 @@
 /**
  * SnapdIcon:
  *
- * #SnapdIcon is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdIcon contains icon data.
  *
  * Since: 1.0
  */

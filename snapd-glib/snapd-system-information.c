@@ -24,8 +24,7 @@
 /**
  * SnapdSystemInformation:
  *
- * #SnapdSystemInformation is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdSystemInformation contains information about the system snapd is running on.
  *
  * Since: 1.0
  */

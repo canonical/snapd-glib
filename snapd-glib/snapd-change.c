@@ -25,8 +25,7 @@
 /**
  * SnapdChange:
  *
- * #SnapdChange is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdChange contains information on a current Snap transaction.
  *
  * Since: 1.5
  */

@@ -23,8 +23,7 @@
 /**
  * SnapdScreenshot:
  *
- * #SnapdScreenshot is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdScreenshot contains screenshot information.
  *
  * Since: 1.0
  */

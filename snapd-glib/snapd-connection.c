@@ -26,8 +26,7 @@
 /**
  * SnapdConnection:
  *
- * #SnapdConnection is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdConnection contains the state of Snap a interface connection.
  *
  * Since: 1.0
  */

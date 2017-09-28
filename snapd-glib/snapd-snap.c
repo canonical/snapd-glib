@@ -25,8 +25,7 @@
 /**
  * SnapdSnap:
  *
- * #SnapdSnap is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdSnap contains Snap metadata.
  *
  * Since: 1.0
  */

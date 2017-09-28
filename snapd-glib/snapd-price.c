@@ -24,8 +24,7 @@
 /**
  * SnapdPrice:
  *
- * #SnapdPrice is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdPrice contains pricing information.
  *
  * Since: 1.0
  */

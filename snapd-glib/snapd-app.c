@@ -26,8 +26,9 @@
 /**
  * SnapdApp:
  *
- * #SnapdApp is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdApp contains information about an app in a Snap.
+ *
+ * Snaps can contain apps which is a single binary executable.
  *
  * Since: 1.0
  */

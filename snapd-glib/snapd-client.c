@@ -44,8 +44,7 @@
 /**
  * SnapdClient:
  *
- * #SnapdClient is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdClient contains connection state with snapd.
  *
  * Since: 1.0
  */

@@ -28,8 +28,7 @@
 /**
  * SnapdSlot:
  *
- * #SnapdSlot is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdSlot contains information about a Snap slot.
  *
  * Since: 1.0
  */

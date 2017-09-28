@@ -25,8 +25,7 @@
 /**
  * SnapdTask:
  *
- * #SnapdTask is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdTask contains progress information for a task in a Snap transaction.
  *
  * Since: 1.0
  */

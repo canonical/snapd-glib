@@ -16,16 +16,22 @@
  * @short_description: Authorization data
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdAuthData contains authorization data to
- * Prices can be queried using snapd_snap_get_prices() and are used in
- * snapd_client_buy_sync().
+ * A #SnapdAuthData contains authorization data to communicate with snapd.
+ * Authenticating with snapd_login_sync() or snapd_client_login_sync() returns
+ * authorization data that can be used for requests by calling
+ * snapd_client_set_auth_data().
+ *
+ * It is recommended that the data is securely stored between sessions so
+ * authentication is not required to be repeated. The authorization data is
+ * made up of printable strings that can be easily written to a file/database.
  */
 
 /**
  * SnapdAuthData:
  *
- * #SnapdAuthData is an opaque data structure and can only be accessed
- * using the provided functions.
+ * #SnapdAuthData contains authorization data used to communicate with snapd.
+ *
+ * The authorization data is in the form of a [Macaroon](https://research.google.com/pubs/pub41892.html).
  *
  * Since: 1.0
  */
