@@ -1762,127 +1762,143 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
         return;
     }
 
-    /* First run we expect the change ID, following runs are updates */
-    if (request->change_id == NULL) {
-         if (change_id == NULL) {
-             g_error_new (SNAPD_ERROR,
-                          SNAPD_ERROR_READ_FAILED,
-                          "No async response received");
-             snapd_request_complete (request, error);
-             return;
-         }
-
-         request->change_id = g_strdup (change_id);
-
-         /* Don't poll for result if cancelled */
-         if (g_cancellable_set_error_if_cancelled (request->cancellable, &error)) {
-             snapd_request_complete (request, error);
-             return;
-         }
+    if (change_id == NULL) {
+        g_error_new (SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "No async response received");
+        snapd_request_complete (request, error);
+        return;
     }
-    else {
-        gboolean ready;
-        JsonObject *result;
 
-        if (change_id != NULL) {
-             error = g_error_new (SNAPD_ERROR,
-                                  SNAPD_ERROR_READ_FAILED,
-                                  "Duplicate async response received");
-             snapd_request_complete (request, error);
-             return;
-        }
+    request->change_id = g_strdup (change_id);
 
-        result = get_object (response, "result");
-        if (result == NULL) {
-            error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "No async result returned");
-            snapd_request_complete (request, error);
-            return;
-        }
+    /* Don't poll for result if cancelled */
+    if (g_cancellable_set_error_if_cancelled (request->cancellable, &error)) {
+        snapd_request_complete (request, error);
+        return;
+    }
 
-        if (g_strcmp0 (request->change_id, get_string (result, "id", NULL)) != 0) {
-            error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected change ID returned");
-            snapd_request_complete (request, error);
-            return;
-        }
+    /* Poll for updates */
+    if (request->poll_source != NULL)
+        g_source_destroy (request->poll_source);
 
-        /* Update caller with progress */
-        if (request->progress_callback != NULL) {
-            g_autoptr(JsonArray) array = NULL;
-            guint i;
-            g_autoptr(GPtrArray) tasks = NULL;
-            g_autoptr(SnapdChange) change = NULL;
-            g_autoptr(GDateTime) main_spawn_time = NULL;
-            g_autoptr(GDateTime) main_ready_time = NULL;
+    request->poll_source = g_timeout_source_new (ASYNC_POLL_TIME);
+    g_source_set_callback (request->poll_source, async_poll_cb, request, NULL);
+    g_source_attach (request->poll_source, request->context);
+}
 
-            array = get_array (result, "tasks");
-            tasks = g_ptr_array_new_with_free_func (g_object_unref);
-            for (i = 0; i < json_array_get_length (array); i++) {
-                JsonNode *node = json_array_get_element (array, i);
-                JsonObject *object, *progress;
-                g_autoptr(GDateTime) spawn_time = NULL;
-                g_autoptr(GDateTime) ready_time = NULL;
-                g_autoptr(SnapdTask) t = NULL;
+static void
+parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+{
+    g_autoptr(JsonObject) response = NULL;
+    g_autofree gchar *change_id = NULL;
+    gboolean ready;
+    JsonObject *result;
+    GError *error = NULL;
 
-                if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-                    error = g_error_new (SNAPD_ERROR,
-                                         SNAPD_ERROR_READ_FAILED,
-                                         "Unexpected task type");
-                    snapd_request_complete (request, error);
-                    return;
-                }
-                object = json_node_get_object (node);
-                progress = get_object (object, "progress");
-                spawn_time = get_date_time (object, "spawn-time");
-                ready_time = get_date_time (object, "ready-time");
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, &change_id, &error)) {
+        snapd_request_complete (request, error);
+        return;
+    }
 
-                t = g_object_new (SNAPD_TYPE_TASK,
-                                  "id", get_string (object, "id", NULL),
-                                  "kind", get_string (object, "kind", NULL),
-                                  "summary", get_string (object, "summary", NULL),
-                                  "status", get_string (object, "status", NULL),
-                                  "progress-label", progress != NULL ? get_string (progress, "label", NULL) : NULL,
-                                  "progress-done", progress != NULL ? get_int (progress, "done", 0) : 0,
-                                  "progress-total", progress != NULL ? get_int (progress, "total", 0) : 0,
-                                  "spawn-time", spawn_time,
-                                  "ready-time", ready_time,
-                                  NULL);
-                g_ptr_array_add (tasks, g_steal_pointer (&t));
+    if (change_id != NULL) {
+         error = g_error_new (SNAPD_ERROR,
+                              SNAPD_ERROR_READ_FAILED,
+                              "Duplicate async response received");
+         snapd_request_complete (request, error);
+         return;
+    }
+
+    result = get_object (response, "result");
+    if (result == NULL) {
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "No async result returned");
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    if (g_strcmp0 (request->change_id, get_string (result, "id", NULL)) != 0) {
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "Unexpected change ID returned");
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    /* Update caller with progress */
+    if (request->progress_callback != NULL) {
+        g_autoptr(JsonArray) array = NULL;
+        guint i;
+        g_autoptr(GPtrArray) tasks = NULL;
+        g_autoptr(SnapdChange) change = NULL;
+        g_autoptr(GDateTime) main_spawn_time = NULL;
+        g_autoptr(GDateTime) main_ready_time = NULL;
+
+        array = get_array (result, "tasks");
+        tasks = g_ptr_array_new_with_free_func (g_object_unref);
+        for (i = 0; i < json_array_get_length (array); i++) {
+            JsonNode *node = json_array_get_element (array, i);
+            JsonObject *object, *progress;
+            g_autoptr(GDateTime) spawn_time = NULL;
+            g_autoptr(GDateTime) ready_time = NULL;
+            g_autoptr(SnapdTask) t = NULL;
+
+            if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+                error = g_error_new (SNAPD_ERROR,
+                                     SNAPD_ERROR_READ_FAILED,
+                                     "Unexpected task type");
+                snapd_request_complete (request, error);
+                return;
             }
+            object = json_node_get_object (node);
+            progress = get_object (object, "progress");
+            spawn_time = get_date_time (object, "spawn-time");
+            ready_time = get_date_time (object, "ready-time");
 
-            main_spawn_time = get_date_time (result, "spawn-time");
-            main_ready_time = get_date_time (result, "ready-time");
-            change = g_object_new (SNAPD_TYPE_CHANGE,
-                                   "id", get_string (result, "id", NULL),
-                                   "kind", get_string (result, "kind", NULL),
-                                   "summary", get_string (result, "summary", NULL),
-                                   "status", get_string (result, "status", NULL),
-                                   "tasks", tasks,
-                                   "ready", get_bool (result, "ready", FALSE),
-                                   "spawn-time", main_spawn_time,
-                                   "ready-time", main_ready_time,
-                                   NULL);
-
-            if (!changes_equal (request->change, change)) {
-                g_clear_object (&request->change);
-                request->change = g_steal_pointer (&change);
-                // NOTE: tasks is passed for ABI compatibility - this field is
-                // deprecated and can be accessed with snapd_change_get_tasks ()
-                request->progress_callback (request->client, request->change, tasks, request->progress_callback_data);
-            }
+            t = g_object_new (SNAPD_TYPE_TASK,
+                              "id", get_string (object, "id", NULL),
+                              "kind", get_string (object, "kind", NULL),
+                              "summary", get_string (object, "summary", NULL),
+                              "status", get_string (object, "status", NULL),
+                              "progress-label", progress != NULL ? get_string (progress, "label", NULL) : NULL,
+                              "progress-done", progress != NULL ? get_int (progress, "done", 0) : 0,
+                              "progress-total", progress != NULL ? get_int (progress, "total", 0) : 0,
+                              "spawn-time", spawn_time,
+                              "ready-time", ready_time,
+                              NULL);
+            g_ptr_array_add (tasks, g_steal_pointer (&t));
         }
 
-        ready = get_bool (result, "ready", FALSE);
-        if (ready) {
-            request->result = TRUE;
-            if (json_object_has_member (result, "data"))
-                request->async_data = json_node_ref (json_object_get_member (result, "data"));
-            snapd_request_complete (request, NULL);
-            return;
+        main_spawn_time = get_date_time (result, "spawn-time");
+        main_ready_time = get_date_time (result, "ready-time");
+        change = g_object_new (SNAPD_TYPE_CHANGE,
+                               "id", get_string (result, "id", NULL),
+                               "kind", get_string (result, "kind", NULL),
+                               "summary", get_string (result, "summary", NULL),
+                               "status", get_string (result, "status", NULL),
+                               "tasks", tasks,
+                               "ready", get_bool (result, "ready", FALSE),
+                               "spawn-time", main_spawn_time,
+                               "ready-time", main_ready_time,
+                               NULL);
+
+        if (!changes_equal (request->change, change)) {
+            g_clear_object (&request->change);
+            request->change = g_steal_pointer (&change);
+            // NOTE: tasks is passed for ABI compatibility - this field is
+            // deprecated and can be accessed with snapd_change_get_tasks ()
+            request->progress_callback (request->client, request->change, tasks, request->progress_callback_data);
         }
+    }
+
+    ready = get_bool (result, "ready", FALSE);
+    if (ready) {
+        request->result = TRUE;
+        if (json_object_has_member (result, "data"))
+            request->async_data = json_node_ref (json_object_get_member (result, "data"));
+        snapd_request_complete (request, NULL);
+        return;
     }
 
     /* Poll for updates */
@@ -2338,7 +2354,10 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_ENABLE_ALIASES:
     case SNAPD_REQUEST_DISABLE_ALIASES:
     case SNAPD_REQUEST_RESET_ALIASES:
-        parse_async_response (request, headers, content, content_length);
+        if (request->change_id == NULL)
+            parse_async_response (request, headers, content, content_length);
+        else
+            parse_change_response (request, headers, content, content_length);
         break;
     default:
         error = g_error_new (SNAPD_ERROR,
