@@ -144,3 +144,21 @@ public:
 public slots:
     void onComplete ();
 };
+
+class RemoveHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    RemoveHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdRemoveRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdRemoveRequest *request;
+    ~RemoveHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};

@@ -13,6 +13,31 @@
 #include "config.h"
 #include "mock-snapd.h"
 
+typedef struct
+{
+    GMainLoop *loop;
+    MockSnapd *snapd;
+} AsyncData;
+
+static AsyncData *
+async_data_new (GMainLoop *loop, MockSnapd *snapd)
+{
+    AsyncData *data = g_slice_new0 (AsyncData);
+    data->loop = g_main_loop_ref (loop);
+    data->snapd = g_object_ref (snapd);
+    return data;
+}
+
+static void
+async_data_free (AsyncData *data)
+{
+    g_main_loop_unref (data->loop);
+    g_object_unref (data->snapd);
+    g_slice_free (AsyncData, data);
+}
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(AsyncData, async_data_free)
+
 static void
 test_socket_closed_before_request (void)
 {
@@ -234,7 +259,7 @@ static void
 system_information_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(SnapdSystemInformation) info = NULL;
-    GMainLoop *loop = user_data;
+    AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
     info = snapd_client_get_system_information_finish (SNAPD_CLIENT (object), result, &error);
@@ -252,7 +277,7 @@ system_information_cb (GObject *object, GAsyncResult *result, gpointer user_data
     g_assert_cmpstr (snapd_system_information_get_binaries_directory (info), ==, "/snap/bin");
     g_assert (snapd_system_information_get_store (info) == NULL);
 
-    g_main_loop_quit (loop);
+    g_main_loop_quit (data->loop);
 }
 
 static void
@@ -273,7 +298,7 @@ test_get_system_information_async (void)
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
-    snapd_client_get_system_information_async (client, NULL, system_information_cb, loop);
+    snapd_client_get_system_information_async (client, NULL, system_information_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
@@ -496,7 +521,7 @@ static void
 list_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(GPtrArray) snaps = NULL;
-    GMainLoop *loop = user_data;
+    AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
     snaps = snapd_client_list_finish (SNAPD_CLIENT (object), result, &error);
@@ -507,7 +532,7 @@ list_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "snap2");
     g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[2]), ==, "snap3");
 
-    g_main_loop_quit (loop);
+    g_main_loop_quit (data->loop);
 }
 
 static void
@@ -529,7 +554,7 @@ test_list_async (void)
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
-    snapd_client_list_async (client, NULL, list_cb, loop);
+    snapd_client_list_async (client, NULL, list_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
@@ -583,7 +608,7 @@ static void
 list_one_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(SnapdSnap) snap = NULL;
-    GMainLoop *loop = user_data;
+    AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
     snap = snapd_client_list_one_finish (SNAPD_CLIENT (object), result, &error);
@@ -615,7 +640,7 @@ list_one_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert (snapd_snap_get_trymode (snap) == FALSE);
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
 
-    g_main_loop_quit (loop);
+    g_main_loop_quit (data->loop);
 }
 
 static void
@@ -635,7 +660,7 @@ test_list_one_async (void)
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
-    snapd_client_list_one_async (client, "snap", NULL, list_one_cb, loop);
+    snapd_client_list_one_async (client, "snap", NULL, list_one_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
@@ -859,18 +884,18 @@ static void
 icon_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(SnapdIcon) icon = NULL;
-    GBytes *data;
-    GMainLoop *loop = user_data;
+    GBytes *icon_data;
+    AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
     icon = snapd_client_get_icon_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert (icon != NULL);
     g_assert_cmpstr (snapd_icon_get_mime_type (icon), ==, "image/png");
-    data = snapd_icon_get_data (icon);
-    g_assert_cmpmem (g_bytes_get_data (data, NULL), g_bytes_get_size (data), "ICON-DATA", 9);
+    icon_data = snapd_icon_get_data (icon);
+    g_assert_cmpmem (g_bytes_get_data (icon_data, NULL), g_bytes_get_size (icon_data), "ICON-DATA", 9);
 
-    g_main_loop_quit (loop);
+    g_main_loop_quit (data->loop);
 }
 
 static void
@@ -894,7 +919,7 @@ test_icon_async (void)
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
-    snapd_client_get_icon_async (client, "snap", NULL, icon_cb, loop);
+    snapd_client_get_icon_async (client, "snap", NULL, icon_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
@@ -1720,14 +1745,14 @@ static void
 find_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(GPtrArray) snaps = NULL;
-    GMainLoop *loop = user_data;
+    AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
     snaps = snapd_client_find_finish (SNAPD_CLIENT (object), result, NULL, &error);
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
     g_assert (snaps == NULL);
 
-    g_main_loop_quit (loop);
+    g_main_loop_quit (data->loop);
 }
 
 static void
@@ -1749,7 +1774,7 @@ test_find_cancel (void)
 
     /* Use a special query that never responds */
     cancellable = g_cancellable_new ();
-    snapd_client_find_async (client, SNAPD_FIND_FLAGS_NONE, "do-not-respond", cancellable, find_cancel_cb, loop);
+    snapd_client_find_async (client, SNAPD_FIND_FLAGS_NONE, "do-not-respond", cancellable, find_cancel_cb, async_data_new (loop, snapd));
     g_idle_add (cancel_cb, cancellable);
 
     g_main_loop_run (loop);
@@ -1925,6 +1950,47 @@ test_install (void)
     g_assert (!mock_snapd_find_snap (snapd, "snap")->devmode);
     g_assert (!mock_snapd_find_snap (snapd, "snap")->dangerous);
     g_assert (!mock_snapd_find_snap (snapd, "snap")->jailmode);
+}
+
+static void
+install_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    gboolean r;
+    g_autoptr(AsyncData) data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert (r);
+    g_assert (mock_snapd_find_snap (data->snapd, "snap") != NULL);
+    g_assert_cmpstr (mock_snapd_find_snap (data->snapd, "snap")->confinement, ==, "strict");
+    g_assert (!mock_snapd_find_snap (data->snapd, "snap")->devmode);
+    g_assert (!mock_snapd_find_snap (data->snapd, "snap")->dangerous);
+    g_assert (!mock_snapd_find_snap (data->snapd, "snap")->jailmode);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_install_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, install_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
 }
 
 typedef struct
@@ -2759,6 +2825,43 @@ test_remove (void)
     g_assert_no_error (error);
     g_assert (result);
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+}
+
+static void
+remove_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    gboolean r;
+    g_autoptr(AsyncData) data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert (r);
+    g_assert (mock_snapd_find_snap (data->snapd, "snap") == NULL);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_remove_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    snapd_client_remove_async (client, "snap", NULL, NULL, NULL, remove_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
 }
 
 typedef struct
@@ -3682,6 +3785,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find-refreshable/basic", test_find_refreshable);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/basic", test_install);
+    g_test_add_func ("/install/async", test_install_async);
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/needs-classic", test_install_needs_classic);
     g_test_add_func ("/install/classic", test_install_classic);
@@ -3710,6 +3814,7 @@ main (int argc, char **argv)
     g_test_add_func ("/refresh-all/progress", test_refresh_all_progress);
     g_test_add_func ("/refresh-all/no-updates", test_refresh_all_no_updates);
     g_test_add_func ("/remove/basic", test_remove);
+    g_test_add_func ("/remove/async", test_remove_async);
     g_test_add_func ("/remove/progress", test_remove_progress);
     g_test_add_func ("/remove/not-installed", test_remove_not_installed);
     g_test_add_func ("/enable/basic", test_enable);
