@@ -1585,6 +1585,40 @@ test_install ()
     g_assert (!mock_snapd_find_snap (snapd, "snap")->jailmode);
 }
 
+void
+InstallHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->confinement, ==, "strict");
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->devmode);
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->dangerous);
+    g_assert (!mock_snapd_find_snap (snapd, "snap")->jailmode);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_install_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    InstallHandler installHandler (loop, snapd, client.install ("snap"));
+    QObject::connect (installHandler.request, &QSnapdInstallRequest::complete, &installHandler, &InstallHandler::onComplete);
+    installHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
 void InstallProgressCounter::progress ()
 {
     progressDone++;
@@ -2929,6 +2963,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find-refreshable/basic", test_find_refreshable);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/basic", test_install);
+    g_test_add_func ("/install/async", test_install_async);
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/needs-classic", test_install_needs_classic);
     g_test_add_func ("/install/classic", test_install_classic);

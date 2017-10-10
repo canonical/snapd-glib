@@ -1141,9 +1141,9 @@ void QSnapdInstallRequest::handleResult (void *object, void *result)
     g_autoptr(GError) error = NULL;
 
     if (d->wrapper != NULL)
-        snapd_client_install2_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
-    else
         snapd_client_install_stream_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    else
+        snapd_client_install2_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
 
     finish (error);
 }

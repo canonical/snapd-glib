@@ -7,6 +7,8 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
+#include "mock-snapd.h"
+
 #include <QtCore/QObject>
 #include <Snapd/Client>
 #include <glib-object.h>
@@ -117,6 +119,24 @@ public:
     GMainLoop *loop;
     QSnapdFindRequest *request;
     ~FindHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class InstallHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    InstallHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdInstallRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdInstallRequest *request;
+    ~InstallHandler ()
     {
         delete request;
     }
