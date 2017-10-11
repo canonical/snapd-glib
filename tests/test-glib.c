@@ -2082,6 +2082,46 @@ test_install_async_multiple (void)
     g_main_loop_run (loop);
 }
 
+static void
+install_failure_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    gboolean r;
+    g_autoptr(AsyncData) data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
+    g_assert_cmpstr (error->message, ==, "ERROR");
+    g_assert (!r);
+    g_assert (mock_snapd_find_snap (data->snapd, "snap") == NULL);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_install_async_failure (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_error (s, "ERROR");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, install_failure_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
 typedef struct
 {
     int progress_done;
@@ -2950,6 +2990,46 @@ test_remove_async (void)
 
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
     snapd_client_remove_async (client, "snap", NULL, NULL, NULL, remove_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
+remove_failure_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    gboolean r;
+    g_autoptr(AsyncData) data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
+    g_assert_cmpstr (error->message, ==, "ERROR");
+    g_assert (!r);
+    g_assert (mock_snapd_find_snap (data->snapd, "snap") != NULL);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_remove_async_failure (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_error (s, "ERROR");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
+    snapd_client_remove_async (client, "snap", NULL, NULL, NULL, remove_failure_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
@@ -3877,6 +3957,7 @@ main (int argc, char **argv)
     g_test_add_func ("/install/multiple", test_install_multiple);
     g_test_add_func ("/install/async", test_install_async);
     g_test_add_func ("/install/async-multiple", test_install_async_multiple);
+    g_test_add_func ("/install/async-failure", test_install_async_failure);
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/needs-classic", test_install_needs_classic);
     g_test_add_func ("/install/classic", test_install_classic);
@@ -3906,6 +3987,7 @@ main (int argc, char **argv)
     g_test_add_func ("/refresh-all/no-updates", test_refresh_all_no_updates);
     g_test_add_func ("/remove/basic", test_remove);
     g_test_add_func ("/remove/async", test_remove_async);
+    g_test_add_func ("/remove/async-failure", test_remove_async_failure);
     g_test_add_func ("/remove/progress", test_remove_progress);
     g_test_add_func ("/remove/not-installed", test_remove_not_installed);
     g_test_add_func ("/enable/basic", test_enable);

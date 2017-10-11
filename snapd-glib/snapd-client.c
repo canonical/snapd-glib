@@ -1901,10 +1901,16 @@ parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const
 
     ready = get_bool (result, "ready", FALSE);
     if (ready) {
+        GError *error = NULL;
+
         request->parent->result = TRUE;
         if (json_object_has_member (result, "data"))
             request->parent->async_data = json_node_ref (json_object_get_member (result, "data"));
-        snapd_request_complete (request->parent, NULL);
+        if (json_object_has_member (result, "err"))
+            error = g_error_new_literal (SNAPD_ERROR,
+                                         SNAPD_ERROR_FAILED,
+                                         get_string (result, "err", "Unknown error"));
+        snapd_request_complete (request->parent, error);
         snapd_request_complete (request, NULL);
         return;
     }

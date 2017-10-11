@@ -75,6 +75,7 @@ typedef struct
     gboolean dangerous;
     gchar *snap_data;
     gchar *snap_path;
+    gchar *error;
 } MockSnap;
 
 typedef struct
@@ -243,6 +244,9 @@ void            mock_snap_set_description         (MockSnap      *snap,
 
 void            mock_snap_set_developer           (MockSnap      *snap,
                                                    const gchar   *developer);
+
+void            mock_snap_set_error               (MockSnap      *snap,
+                                                   const gchar   *error);
 
 void            mock_snap_set_icon                (MockSnap      *snap,
                                                    const gchar   *icon);

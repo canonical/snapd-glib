@@ -145,6 +145,24 @@ public slots:
     void onComplete ();
 };
 
+class InstallErrorHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    InstallErrorHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdInstallRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdInstallRequest *request;
+    ~InstallErrorHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class InstallMultipleHandler: public QObject
 {
     Q_OBJECT
@@ -176,6 +194,24 @@ public:
     MockSnapd *snapd;
     QSnapdRemoveRequest *request;
     ~RemoveHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class RemoveErrorHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    RemoveErrorHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdRemoveRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdRemoveRequest *request;
+    ~RemoveErrorHandler ()
     {
         delete request;
     }
