@@ -145,6 +145,27 @@ public slots:
     void onComplete ();
 };
 
+class InstallMultipleHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    InstallMultipleHandler (GMainLoop *loop, MockSnapd *snapd, QList<QSnapdInstallRequest*> requests) : loop (loop), snapd (snapd), requests (requests) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    int counter = 0;
+    QList<QSnapdInstallRequest*> requests;
+    ~InstallMultipleHandler ()
+    {
+        QSnapdInstallRequest *request;
+        foreach (request, requests)
+            delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class RemoveHandler: public QObject
 {
     Q_OBJECT

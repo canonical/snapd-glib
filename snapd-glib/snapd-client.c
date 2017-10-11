@@ -108,6 +108,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 
 typedef enum
 {
+    SNAPD_REQUEST_GET_CHANGE,
     SNAPD_REQUEST_GET_SYSTEM_INFORMATION,
     SNAPD_REQUEST_LOGIN,
     SNAPD_REQUEST_GET_ICON,
@@ -156,6 +157,8 @@ struct _SnapdRequest
 
     RequestType request_type;
 
+    SnapdRequest *parent;
+
     GCancellable *cancellable;
     gulong cancelled_id;
     GAsyncReadyCallback ready_callback;
@@ -192,6 +195,11 @@ struct _SnapdRequest
     gboolean responded;
     JsonNode *async_data;
 };
+
+static SnapdRequest *
+make_request (SnapdClient *client, RequestType request_type,
+              SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
 
 static gboolean
 respond_cb (gpointer user_data)
@@ -290,6 +298,7 @@ snapd_request_finalize (GObject *object)
     if (request->read_source != NULL)
         g_source_destroy (request->read_source);
     g_clear_pointer (&request->read_source, g_source_unref);
+    g_clear_object (&request->parent);
     g_cancellable_disconnect (request->cancellable, request->cancelled_id);
     g_clear_object (&request->cancellable);
     g_free (request->change_id);
@@ -1682,10 +1691,13 @@ static gboolean
 async_poll_cb (gpointer data)
 {
     SnapdRequest *request = data;
+    SnapdRequest *change_request;
     g_autofree gchar *path = NULL;
 
+    change_request = make_request (request->client, SNAPD_REQUEST_GET_CHANGE, NULL, NULL, request->cancellable, NULL, NULL);
+    change_request->parent = g_object_ref (request);
     path = g_strdup_printf ("/v2/changes/%s", request->change_id);
-    send_empty_request (request, "GET", path);
+    send_empty_request (change_request, "GET", path);
 
     request->poll_source = NULL;
     return G_SOURCE_REMOVE;
@@ -1791,43 +1803,37 @@ static void
 parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autofree gchar *change_id = NULL;
     gboolean ready;
     JsonObject *result;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, &change_id, &error)) {
-        snapd_request_complete (request, error);
+    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+        snapd_request_complete (request->parent, error);
+        snapd_request_complete (request, NULL);
         return;
-    }
-
-    if (change_id != NULL) {
-         error = g_error_new (SNAPD_ERROR,
-                              SNAPD_ERROR_READ_FAILED,
-                              "Duplicate async response received");
-         snapd_request_complete (request, error);
-         return;
     }
 
     result = get_object (response, "result");
     if (result == NULL) {
         error = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
-                             "No async result returned");
-        snapd_request_complete (request, error);
+                             "No result returned");
+        snapd_request_complete (request->parent, error);
+        snapd_request_complete (request, NULL);
         return;
     }
 
-    if (g_strcmp0 (request->change_id, get_string (result, "id", NULL)) != 0) {
+    if (g_strcmp0 (request->parent->change_id, get_string (result, "id", NULL)) != 0) {
         error = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
                              "Unexpected change ID returned");
-        snapd_request_complete (request, error);
+        snapd_request_complete (request->parent, error);
+        snapd_request_complete (request, NULL);
         return;
     }
 
     /* Update caller with progress */
-    if (request->progress_callback != NULL) {
+    if (request->parent->progress_callback != NULL) {
         g_autoptr(JsonArray) array = NULL;
         guint i;
         g_autoptr(GPtrArray) tasks = NULL;
@@ -1848,7 +1854,8 @@ parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const
                 error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_READ_FAILED,
                                      "Unexpected task type");
-                snapd_request_complete (request, error);
+                snapd_request_complete (request->parent, error);
+                snapd_request_complete (request, NULL);
                 return;
             }
             object = json_node_get_object (node);
@@ -1883,31 +1890,34 @@ parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const
                                "ready-time", main_ready_time,
                                NULL);
 
-        if (!changes_equal (request->change, change)) {
-            g_clear_object (&request->change);
-            request->change = g_steal_pointer (&change);
+        if (!changes_equal (request->parent->change, change)) {
+            g_clear_object (&request->parent->change);
+            request->parent->change = g_steal_pointer (&change);
             // NOTE: tasks is passed for ABI compatibility - this field is
             // deprecated and can be accessed with snapd_change_get_tasks ()
-            request->progress_callback (request->client, request->change, tasks, request->progress_callback_data);
+            request->parent->progress_callback (request->parent->client, request->parent->change, tasks, request->parent->progress_callback_data);
         }
     }
 
     ready = get_bool (result, "ready", FALSE);
     if (ready) {
-        request->result = TRUE;
+        request->parent->result = TRUE;
         if (json_object_has_member (result, "data"))
-            request->async_data = json_node_ref (json_object_get_member (result, "data"));
+            request->parent->async_data = json_node_ref (json_object_get_member (result, "data"));
+        snapd_request_complete (request->parent, NULL);
         snapd_request_complete (request, NULL);
         return;
     }
 
     /* Poll for updates */
-    if (request->poll_source != NULL)
-        g_source_destroy (request->poll_source);
+    if (request->parent->poll_source != NULL)
+        g_source_destroy (request->parent->poll_source);
 
-    request->poll_source = g_timeout_source_new (ASYNC_POLL_TIME);
-    g_source_set_callback (request->poll_source, async_poll_cb, request, NULL);
-    g_source_attach (request->poll_source, request->context);
+    request->parent->poll_source = g_timeout_source_new (ASYNC_POLL_TIME);
+    g_source_set_callback (request->parent->poll_source, async_poll_cb, request->parent, NULL);
+    g_source_attach (request->parent->poll_source, request->parent->context);
+
+    snapd_request_complete (request, NULL);
 }
 
 static void
@@ -2267,12 +2277,18 @@ static SnapdRequest *
 get_first_request (SnapdClient *client)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GList *link;
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->requests_mutex);
 
-    if (priv->requests == NULL)
-        return NULL;
+    for (link = priv->requests; link; link = link->next) {
+        SnapdRequest *request = link->data;
 
-    return priv->requests->data;
+        /* Return first non-async request */
+        if (request->change_id == NULL)
+            return request;
+    }
+
+    return NULL;
 }
 
 static void
@@ -2290,6 +2306,9 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
 
     switch (request->request_type)
     {
+    case SNAPD_REQUEST_GET_CHANGE:
+        parse_change_response (request, headers, content, content_length);
+        break;
     case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
         parse_get_system_information_response (request, headers, content, content_length);
         break;
@@ -2354,10 +2373,7 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_ENABLE_ALIASES:
     case SNAPD_REQUEST_DISABLE_ALIASES:
     case SNAPD_REQUEST_RESET_ALIASES:
-        if (request->change_id == NULL)
-            parse_async_response (request, headers, content, content_length);
-        else
-            parse_change_response (request, headers, content, content_length);
+        parse_async_response (request, headers, content, content_length);
         break;
     default:
         error = g_error_new (SNAPD_ERROR,

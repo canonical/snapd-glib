@@ -1585,6 +1585,34 @@ test_install ()
     g_assert (!mock_snapd_find_snap (snapd, "snap")->jailmode);
 }
 
+static void
+test_install_multiple ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snapd_add_store_snap (snapd, "snap3");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    QScopedPointer<QSnapdInstallRequest> installRequest1 (client.install ("snap1"));
+    installRequest1->runSync ();
+    g_assert_cmpint (installRequest1->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdInstallRequest> installRequest2 (client.install ("snap2"));
+    installRequest2->runSync ();
+    g_assert_cmpint (installRequest2->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdInstallRequest> installRequest3 (client.install ("snap3"));
+    installRequest3->runSync ();
+    g_assert_cmpint (installRequest3->error (), ==, QSnapdRequest::NoError);
+    g_assert (mock_snapd_find_snap (snapd, "snap1") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap2") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap3") != NULL);
+}
+
 void
 InstallHandler::onComplete ()
 {
@@ -1615,6 +1643,56 @@ test_install_async ()
     InstallHandler installHandler (loop, snapd, client.install ("snap"));
     QObject::connect (installHandler.request, &QSnapdInstallRequest::complete, &installHandler, &InstallHandler::onComplete);
     installHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
+void
+InstallMultipleHandler::onComplete ()
+{
+    QSnapdInstallRequest *request;
+    foreach (request, requests)
+        g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+
+    counter++;
+    if (counter == requests.size ()) {
+        g_assert (mock_snapd_find_snap (snapd, "snap1") != NULL);
+        g_assert (mock_snapd_find_snap (snapd, "snap2") != NULL);
+        g_assert (mock_snapd_find_snap (snapd, "snap3") != NULL);
+
+        g_main_loop_quit (loop);
+    }
+}
+
+static void
+test_install_async_multiple ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snapd_add_store_snap (snapd, "snap3");
+
+    QSnapdClient client (g_socket_get_fd (mock_snapd_get_client_socket (snapd)));
+    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
+    connectRequest->runSync ();
+    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap1") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap2") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap3") == NULL);
+
+    QList<QSnapdInstallRequest*> requests;
+    requests.append (client.install ("snap1"));
+    requests.append (client.install ("snap2"));
+    requests.append (client.install ("snap3"));
+    InstallMultipleHandler installHandler (loop, snapd, requests);
+    QSnapdInstallRequest *request;
+    foreach (request, requests) {
+        QObject::connect (request, &QSnapdInstallRequest::complete, &installHandler, &InstallMultipleHandler::onComplete);
+        request->runAsync ();
+    }
 
     g_main_loop_run (loop);
 }
@@ -2993,7 +3071,9 @@ main (int argc, char **argv)
     g_test_add_func ("/find-refreshable/basic", test_find_refreshable);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/basic", test_install);
+    g_test_add_func ("/install/multiple", test_install_multiple);
     g_test_add_func ("/install/async", test_install_async);
+    g_test_add_func ("/install/async-multiple", test_install_async_multiple);
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/needs-classic", test_install_needs_classic);
     g_test_add_func ("/install/classic", test_install_classic);

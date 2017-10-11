@@ -17,6 +17,7 @@ typedef struct
 {
     GMainLoop *loop;
     MockSnapd *snapd;
+    int counter;
 } AsyncData;
 
 static AsyncData *
@@ -1953,6 +1954,40 @@ test_install (void)
 }
 
 static void
+test_install_multiple (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snapd_add_store_snap (snapd, "snap3");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap1") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap2") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap3") == NULL);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap2", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap3", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert (result);
+    g_assert (mock_snapd_find_snap (snapd, "snap1") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap2") != NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap3") != NULL);
+}
+
+static void
 install_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     gboolean r;
@@ -1990,6 +2025,60 @@ test_install_async (void)
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, install_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
+install_multiple_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    gboolean r;
+    AsyncData *data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert (r);
+
+    data->counter--;
+    if (data->counter == 0) {
+        g_assert (mock_snapd_find_snap (data->snapd, "snap1") != NULL);
+        g_assert (mock_snapd_find_snap (data->snapd, "snap2") != NULL);
+        g_assert (mock_snapd_find_snap (data->snapd, "snap3") != NULL);
+
+        g_main_loop_quit (data->loop);
+
+        async_data_free (data);
+    }
+}
+
+static void
+test_install_async_multiple (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    AsyncData *data;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snapd_add_store_snap (snapd, "snap3");
+
+    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    snapd_client_connect_sync (client, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert (mock_snapd_find_snap (snapd, "snap1") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap2") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap3") == NULL);
+    data = async_data_new (loop, snapd);
+    data->counter = 3;
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL, NULL, NULL, NULL, NULL, install_multiple_cb, data);
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap2", NULL, NULL, NULL, NULL, NULL, install_multiple_cb, data);
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap3", NULL, NULL, NULL, NULL, NULL, install_multiple_cb, data);
     g_main_loop_run (loop);
 }
 
@@ -3785,7 +3874,9 @@ main (int argc, char **argv)
     g_test_add_func ("/find-refreshable/basic", test_find_refreshable);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/basic", test_install);
+    g_test_add_func ("/install/multiple", test_install_multiple);
     g_test_add_func ("/install/async", test_install_async);
+    g_test_add_func ("/install/async-multiple", test_install_async_multiple);
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/needs-classic", test_install_needs_classic);
     g_test_add_func ("/install/classic", test_install_classic);
