@@ -31,8 +31,8 @@ public:
 
     SnapdClient *client;
     GCancellable *cancellable;
-    bool finished;
-    QSnapdRequest::QSnapdError error;
+    bool finished = false;
+    QSnapdRequest::QSnapdError error = QSnapdRequest::NoError;
     QString errorString;
     SnapdChange *change = NULL;
 };
