@@ -29,6 +29,8 @@
 
 /**
  * SnapdLoginRequest: (skip)
+ *
+ * Internal object.
  */
 struct _SnapdLoginRequest
 {
