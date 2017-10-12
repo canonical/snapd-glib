@@ -2494,9 +2494,9 @@ compress_chunks (gchar *body, gsize body_length, gchar **combined_start, gsize *
 }
 
 static gboolean
-read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
+read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *request)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
     gchar *body;
     gsize header_length;
     g_autoptr(SoupMessageHeaders) headers = NULL;
@@ -2506,8 +2506,10 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
     gsize content_length, combined_length;
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->buffer_mutex);
 
-    if (!read_data (client, 1024, NULL)) // FIXME: What cancellable to use?
+    if (!read_data (request->client, 1024, request->cancellable)) {
+        request->read_source = NULL;
         return G_SOURCE_REMOVE;
+    }
 
     while (TRUE) {
         GError *error;
@@ -2526,7 +2528,8 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
             error = g_error_new (SNAPD_ERROR,
                                  SNAPD_ERROR_READ_FAILED,
                                  "Failed to parse headers from snapd");
-            complete_all_requests (client, error);
+            complete_all_requests (request->client, error);
+            request->read_source = NULL;
             return G_SOURCE_REMOVE;
         }
 
@@ -2537,7 +2540,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
                 return G_SOURCE_CONTINUE;
 
             content_length = priv->n_read - header_length;
-            parse_response (client, code, headers, body, content_length);
+            parse_response (request->client, code, headers, body, content_length);
             break;
 
         case SOUP_ENCODING_CHUNKED:
@@ -2546,7 +2549,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
                 return G_SOURCE_CONTINUE;
 
             compress_chunks (body, priv->n_read - header_length, &combined_start, &combined_length, &content_length);
-            parse_response (client, code, headers, combined_start, combined_length);
+            parse_response (request->client, code, headers, combined_start, combined_length);
             break;
 
         case SOUP_ENCODING_CONTENT_LENGTH:
@@ -2554,14 +2557,15 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
             if (priv->n_read < header_length + content_length)
                 return G_SOURCE_CONTINUE;
 
-            parse_response (client, code, headers, body, content_length);
+            parse_response (request->client, code, headers, body, content_length);
             break;
 
         default:
             error = g_error_new (SNAPD_ERROR,
                                  SNAPD_ERROR_READ_FAILED,
                                  "Unable to determine header encoding");
-            complete_all_requests (client, error);
+            complete_all_requests (request->client, error);
+            request->read_source = NULL;
             return G_SOURCE_REMOVE;
         }
 
@@ -2836,7 +2840,7 @@ make_request (SnapdClient *client, RequestType request_type,
     }
     request->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
     g_source_set_name (request->read_source, "snapd-glib-read-source");
-    g_source_set_callback (request->read_source, (GSourceFunc) read_cb, client, NULL);
+    g_source_set_callback (request->read_source, (GSourceFunc) read_cb, request, NULL);
     g_source_attach (request->read_source, request->context);
 
     return request;
