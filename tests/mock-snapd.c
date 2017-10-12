@@ -43,6 +43,7 @@ typedef struct
     int progress_total;
     gchar *spawn_time;
     gchar *ready_time;
+    MockSnap *snap;
 } MockTask;
 
 struct _MockSnapd
@@ -1686,42 +1687,42 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
         }
 
         if (g_strcmp0 (action, "try") == 0) {
-            MockSnap *s;
             MockChange *change;
+            MockTask *task;
 
             if (snap_path == NULL) {
                 send_error_bad_request (snapd, "need 'snap-path' value in form", NULL);
                 return;
             }
 
-            s = mock_snapd_add_snap (snapd, "try");
-            s->trymode = TRUE;
-            s->snap_path = g_steal_pointer (&snap_path);
-
             change = add_change (snapd);
-            add_task (change, "try");
+            task = add_task (change, "try");
+            task->snap = mock_snap_new ("try");
+            task->snap->trymode = TRUE;
+            task->snap->snap_path = g_steal_pointer (&snap_path);
+
             send_async_response (snapd, 202, "Accepted", change->id);
         }
         else {
-            MockSnap *s;
             MockChange *change;
+            MockTask *task;
 
             if (snap == NULL) {
                 send_error_bad_request (snapd, "cannot find \"snap\" file field in provided multipart/form-data payload", NULL);
                 return;
             }
 
-            s = mock_snapd_add_snap (snapd, "sideload");
-            if (classic)
-                mock_snap_set_confinement (s, "classic");
-            s->dangerous = dangerous;
-            s->devmode = devmode; // FIXME: Should set confinement to devmode?
-            s->jailmode = jailmode;
-            g_free (s->snap_data);
-            s->snap_data = g_steal_pointer (&snap);
-
             change = add_change (snapd);
-            add_task (change, "install");
+            task = add_task (change, "install");
+            task->snap = mock_snap_new ("sideload");
+            if (classic)
+                mock_snap_set_confinement (task->snap, "classic");
+            task->snap->dangerous = dangerous;
+            task->snap->devmode = devmode; // FIXME: Should set confinement to devmode?
+            task->snap->jailmode = jailmode;
+            g_free (task->snap->snap_data);
+            task->snap->snap_data = g_steal_pointer (&snap);
+
             send_async_response (snapd, 202, "Accepted", change->id);
         }
     }
@@ -1771,8 +1772,9 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
             jailmode = json_object_get_boolean_member (o, "jailmode");
 
         if (strcmp (action, "install") == 0) {
-            MockSnap *snap, *installed_snap;
+            MockSnap *snap;
             MockChange *change;
+            MockTask *task;
 
             snap = mock_snapd_find_snap (snapd, name);
             if (snap != NULL) {
@@ -1799,18 +1801,16 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
                 return;
             }
 
-            if (snap->error == NULL) {
-                installed_snap = mock_snapd_add_snap (snapd, name);
-                mock_snap_set_confinement (installed_snap, snap->confinement);
-                mock_snap_set_channel (installed_snap, snap->channel);
-                mock_snap_set_revision (installed_snap, snap->revision);
-                installed_snap->devmode = devmode;
-                installed_snap->jailmode = jailmode;
-                installed_snap->dangerous = dangerous;
-            }
-
             change = add_change_with_error (snapd, snap->error);
-            add_task (change, "install");
+            task = add_task (change, "install");
+            task->snap = mock_snap_new (name);
+            mock_snap_set_confinement (task->snap, snap->confinement);
+            mock_snap_set_channel (task->snap, snap->channel);
+            mock_snap_set_revision (task->snap, snap->revision);
+            task->snap->devmode = devmode;
+            task->snap->jailmode = jailmode;
+            task->snap->dangerous = dangerous;
+
             send_async_response (snapd, 202, "Accepted", change->id);
         }
         else if (strcmp (action, "refresh") == 0) {
@@ -1845,14 +1845,11 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
             if (snap != NULL)
             {
                 MockChange *change;
+                MockTask *task;
 
                 change = add_change_with_error (snapd, snap->error);
-                add_task (change, "remove");
-
-                if (snap->error == NULL) {
-                    snapd->snaps = g_list_remove (snapd->snaps, snap);
-                    mock_snap_free (snap);
-                }
+                task = add_task (change, "remove");
+                task->snap = snap;
 
                 send_async_response (snapd, 202, "Accepted", change->id);
 
@@ -2168,40 +2165,20 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
         send_error_method_not_allowed (snapd, "method not allowed");
 }
 
-static void
-handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id)
+static JsonNode *
+change_to_result (MockChange *change)
 {
-    MockChange *change;
-    g_autoptr(JsonBuilder) builder = NULL;
     int progress_total, progress_done;
     gboolean is_ready;
+    g_autoptr(JsonBuilder) builder = NULL;
     GList *link;
 
-    if (strcmp (method, "GET") != 0) {
-        send_error_method_not_allowed (snapd, "method not allowed");
-        return;
-    }
-
-    change = get_change (snapd, change_id);
-    if (change == NULL) {
-        send_error_not_found (snapd, "cannot find change");
-        return;
-    }
-
-    /* Make progress... */
-    for (link = change->tasks; link; link = link->next) {
-        MockTask *task = link->data;
-        if (task->progress_done < task->progress_total) {
-            task->progress_done++;
-            break;
-        }
-    }
     for (progress_done = 0, progress_total = 0, link = change->tasks; link; link = link->next) {
         MockTask *task = link->data;
         progress_done += task->progress_done;
         progress_total += task->progress_total;
     }
-    is_ready = progress_done >= progress_total;
+    is_ready = progress_done >= progress_total || change->error != NULL;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -2264,7 +2241,85 @@ handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id)
     }
     json_builder_end_object (builder);
 
-    send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+    return json_node_ref (json_builder_get_root (builder));
+}
+
+static void
+handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id, SoupMessageHeaders *headers, SoupMessageBody *body)
+{
+    if (strcmp (method, "GET") == 0) {
+        MockChange *change;
+        GList *link;
+        g_autoptr(JsonNode) result = NULL;
+
+        change = get_change (snapd, change_id);
+        if (change == NULL) {
+            send_error_not_found (snapd, "cannot find change");
+            return;
+        }
+
+        /* Make progress... */
+        if (change->error == NULL) {
+            for (link = change->tasks; link; link = link->next) {
+                MockTask *task = link->data;
+                if (task->progress_done < task->progress_total) {
+                    task->progress_done++;
+
+                    /* Complete task */
+                    if (task->progress_done >= task->progress_total) {
+                        if (strcmp (task->kind, "install") == 0 || strcmp (task->kind, "try") == 0)
+                            snapd->snaps = g_list_append (snapd->snaps, task->snap);
+                        else if (strcmp (task->kind, "remove") == 0) {
+                            snapd->snaps = g_list_remove (snapd->snaps, task->snap);
+                            g_clear_pointer (&task->snap, mock_snap_free);
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        result = change_to_result (change);
+        send_sync_response (snapd, 200, "OK", result, NULL);
+    }
+    else if (strcmp (method, "POST") == 0) {
+        MockChange *change;
+        g_autoptr(JsonNode) request = NULL;
+        JsonObject *o;
+        const gchar *action;
+
+        change = get_change (snapd, change_id);
+        if (change == NULL) {
+            send_error_not_found (snapd, "cannot find change");
+            return;
+        }
+
+        request = get_json (headers, body);
+        if (request == NULL) {
+            send_error_bad_request (snapd, "unknown content type", NULL);
+            return;
+        }
+
+        o = json_node_get_object (request);
+        action = json_object_get_string_member (o, "action");
+        if (strcmp (action, "abort") == 0) {
+            g_autoptr(JsonNode) result = NULL;
+
+            g_free (change->status);
+            change->status = g_strdup ("Error");
+            change->error = g_strdup ("cancelled");
+            result = change_to_result (change);
+            send_sync_response (snapd, 200, "OK", result, NULL);
+        }
+        else {
+            send_error_bad_request (snapd, "change action is unsupported", NULL);
+            return;
+        }
+    }
+    else {
+        send_error_method_not_allowed (snapd, "method not allowed");
+        return;
+    }
 }
 
 static gboolean
@@ -2690,7 +2745,7 @@ handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMe
     else if (strcmp (path, "/v2/interfaces") == 0)
         handle_interfaces (snapd, method, headers, body);
     else if (g_str_has_prefix (path, "/v2/changes/"))
-        handle_changes (snapd, method, path + strlen ("/v2/changes/"));
+        handle_changes (snapd, method, path + strlen ("/v2/changes/"), headers, body);
     else if (strcmp (path, "/v2/find") == 0)
         handle_find (snapd, method, headers, "");
     else if (g_str_has_prefix (path, "/v2/find?"))

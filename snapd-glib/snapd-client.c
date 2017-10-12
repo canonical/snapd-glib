@@ -109,6 +109,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 typedef enum
 {
     SNAPD_REQUEST_GET_CHANGE,
+    SNAPD_REQUEST_ABORT_CHANGE,
     SNAPD_REQUEST_GET_SYSTEM_INFORMATION,
     SNAPD_REQUEST_LOGIN,
     SNAPD_REQUEST_GET_ICON,
@@ -163,6 +164,7 @@ struct _SnapdRequest
     gulong cancelled_id;
     GAsyncReadyCallback ready_callback;
     gpointer ready_callback_data;
+    gboolean sent_cancel;
 
     SnapdProgressCallback progress_callback;
     gpointer progress_callback_data;
@@ -262,14 +264,15 @@ complete_all_requests (SnapdClient *client, GError *error)
 static gboolean
 snapd_request_set_error (SnapdRequest *request, GError **error)
 {
-    if (g_cancellable_set_error_if_cancelled (request->cancellable, error))
-        return TRUE;
-
     if (request->error != NULL) {
         g_propagate_error (error, request->error);
         request->error = NULL;
         return TRUE;
     }
+
+    /* If no error provided from snapd, use a generic cancelled error */
+    if (g_cancellable_set_error_if_cancelled (request->cancellable, error))
+        return TRUE;
 
     return FALSE;
 }
@@ -1694,7 +1697,7 @@ async_poll_cb (gpointer data)
     SnapdRequest *change_request;
     g_autofree gchar *path = NULL;
 
-    change_request = make_request (request->client, SNAPD_REQUEST_GET_CHANGE, NULL, NULL, request->cancellable, NULL, NULL);
+    change_request = make_request (request->client, SNAPD_REQUEST_GET_CHANGE, NULL, NULL, NULL, NULL, NULL);
     change_request->parent = g_object_ref (request);
     path = g_strdup_printf ("/v2/changes/%s", request->change_id);
     send_empty_request (change_request, "GET", path);
@@ -1763,6 +1766,28 @@ changes_equal (SnapdChange *change1, SnapdChange *change2)
 }
 
 static void
+send_cancel (SnapdRequest *request)
+{
+    SnapdRequest *change_request;
+    g_autofree gchar *path = NULL;
+    g_autoptr(JsonBuilder) builder = NULL;
+
+    if (request->sent_cancel)
+        return;
+    request->sent_cancel = TRUE;
+
+    change_request = make_request (request->client, SNAPD_REQUEST_ABORT_CHANGE, NULL, NULL, NULL, NULL, NULL);
+    change_request->parent = g_object_ref (request);
+    path = g_strdup_printf ("/v2/changes/%s", request->change_id);
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "action");
+    json_builder_add_string_value (builder, "abort");
+    json_builder_end_object (builder);
+    send_json_request (change_request, TRUE, "POST", path, builder);
+}
+
+static void
 parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
@@ -1784,9 +1809,9 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 
     request->change_id = g_strdup (change_id);
 
-    /* Don't poll for result if cancelled */
-    if (g_cancellable_set_error_if_cancelled (request->cancellable, &error)) {
-        snapd_request_complete (request, error);
+    /* Immediately cancel if requested */
+    if (g_cancellable_is_cancelled (request->cancellable)) {
+        send_cancel (request);
         return;
     }
 
@@ -1906,7 +1931,8 @@ parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const
         request->parent->result = TRUE;
         if (json_object_has_member (result, "data"))
             request->parent->async_data = json_node_ref (json_object_get_member (result, "data"));
-        if (json_object_has_member (result, "err"))
+        if (!g_cancellable_set_error_if_cancelled (request->parent->cancellable, &error) &&
+            json_object_has_member (result, "err"))
             error = g_error_new_literal (SNAPD_ERROR,
                                          SNAPD_ERROR_FAILED,
                                          get_string (result, "err", "Unknown error"));
@@ -2313,6 +2339,7 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     switch (request->request_type)
     {
     case SNAPD_REQUEST_GET_CHANGE:
+    case SNAPD_REQUEST_ABORT_CHANGE:
         parse_change_response (request, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
@@ -2506,7 +2533,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *request)
     gsize content_length, combined_length;
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->buffer_mutex);
 
-    if (!read_data (request->client, 1024, request->cancellable)) {
+    if (!read_data (request->client, 1024, NULL)) {
         request->read_source = NULL;
         return G_SOURCE_REMOVE;
     }
@@ -2806,12 +2833,46 @@ snapd_client_get_allow_interaction (SnapdClient *client)
     return priv->allow_interaction;
 }
 
+static gboolean
+request_is_async (SnapdRequest *request)
+{
+    switch (request->request_type)
+    {
+    case SNAPD_REQUEST_CONNECT_INTERFACE:
+    case SNAPD_REQUEST_DISCONNECT_INTERFACE:
+    case SNAPD_REQUEST_INSTALL:
+    case SNAPD_REQUEST_INSTALL_STREAM:
+    case SNAPD_REQUEST_TRY:
+    case SNAPD_REQUEST_REFRESH:
+    case SNAPD_REQUEST_REFRESH_ALL:
+    case SNAPD_REQUEST_REMOVE:
+    case SNAPD_REQUEST_ENABLE:
+    case SNAPD_REQUEST_DISABLE:
+    case SNAPD_REQUEST_ENABLE_ALIASES:
+    case SNAPD_REQUEST_DISABLE_ALIASES:
+    case SNAPD_REQUEST_RESET_ALIASES:
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
 static void
 request_cancelled_cb (GCancellable *cancellable, SnapdRequest *request)
 {
-    GError *error = NULL;
-    g_cancellable_set_error_if_cancelled (request->cancellable, &error);
-    snapd_request_respond (request, error);
+    /* Asynchronous requests require asking snapd to stop them */
+    if (request_is_async (request))
+    {
+        /* Cancel if we have got a response from snapd */
+        if (request->change_id != NULL)
+            send_cancel (request);
+    }
+    else
+    {
+        GError *error = NULL;
+        g_cancellable_set_error_if_cancelled (request->cancellable, &error);
+        snapd_request_respond (request, error);
+    }
 }
 
 static SnapdRequest *
