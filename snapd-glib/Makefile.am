@@ -36,6 +36,7 @@ source_c = \
 	snapd-change.c \
 	snapd-channel.c \
 	snapd-client.c \
+	snapd-client-sync.c \
 	snapd-connection.c \
 	snapd-error.c \
 	snapd-icon.c \
