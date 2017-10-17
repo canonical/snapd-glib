@@ -2659,42 +2659,15 @@ gboolean
 snapd_client_connect_sync (SnapdClient *client,
                            GCancellable *cancellable, GError **error)
 {
-    SnapdClientPrivate *priv;
-    g_autoptr(GSocketAddress) address = NULL;
-    g_autoptr(GError) error_local = NULL;
+    g_auto(SyncData) data = { 0 };
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
-    priv = snapd_client_get_instance_private (client);
+    start_sync (&data);
+    snapd_client_connect_async (client, cancellable, sync_cb, &data);
+    end_sync (&data);
 
-    if (priv->snapd_socket == NULL) {
-        priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
-                                           G_SOCKET_TYPE_STREAM,
-                                           G_SOCKET_PROTOCOL_DEFAULT,
-                                           &error_local);
-        if (priv->snapd_socket == NULL) {
-            g_set_error (error,
-                         SNAPD_ERROR,
-                         SNAPD_ERROR_CONNECTION_FAILED,
-                         "Unable to open snapd socket: %s",
-                         error_local->message);
-            return FALSE;
-        }
-        g_socket_set_blocking (priv->snapd_socket, FALSE);
-        address = g_unix_socket_address_new (SNAPD_SOCKET);
-        if (!g_socket_connect (priv->snapd_socket, address, cancellable, &error_local)) {
-            g_clear_object (&priv->snapd_socket);
-            g_set_error (error,
-                         SNAPD_ERROR,
-                         SNAPD_ERROR_CONNECTION_FAILED,
-                         "Unable to connect snapd socket: %s",
-                         error_local->message);
-            g_clear_object (&priv->snapd_socket);
-            return FALSE;
-        }
-    }
-
-    return TRUE;
+    return snapd_client_connect_finish (client, data.result, error);
 }
 
 /**
@@ -2713,16 +2686,45 @@ void
 snapd_client_connect_async (SnapdClient *client,
                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
+    SnapdClientPrivate *priv;
     g_autoptr(GTask) task = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GSocketAddress) address = NULL;
+    g_autoptr(GError) error_local = NULL;
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
+    priv = snapd_client_get_instance_private (client);
+
     task = g_task_new (client, cancellable, callback, user_data);
-    if (snapd_client_connect_sync (client, cancellable, &error))
-        g_task_return_boolean (task, TRUE);
-    else
-        g_task_return_error (task, error);
+
+    if (priv->snapd_socket == NULL) {
+        priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
+                                           G_SOCKET_TYPE_STREAM,
+                                           G_SOCKET_PROTOCOL_DEFAULT,
+                                           &error_local);
+        if (priv->snapd_socket == NULL) {
+            g_task_return_new_error (task,
+                                     SNAPD_ERROR,
+                                     SNAPD_ERROR_CONNECTION_FAILED,
+                                     "Unable to open snapd socket: %s",
+                                     error_local->message);
+            return;
+        }
+        g_socket_set_blocking (priv->snapd_socket, FALSE);
+        address = g_unix_socket_address_new (SNAPD_SOCKET);
+        if (!g_socket_connect (priv->snapd_socket, address, cancellable, &error_local)) {
+            g_clear_object (&priv->snapd_socket);
+            g_task_return_new_error (task,
+                                     SNAPD_ERROR,
+                                     SNAPD_ERROR_CONNECTION_FAILED,
+                                     "Unable to connect snapd socket: %s",
+                                     error_local->message);
+            g_clear_object (&priv->snapd_socket);
+            return;
+        }
+    }
+
+    g_task_return_boolean (task, TRUE);
 }
 
 /**
@@ -2742,7 +2744,7 @@ gboolean
 snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (SNAPD_IS_REQUEST (result), FALSE);
+    g_return_val_if_fail (G_IS_TASK (result), FALSE);
 
     return g_task_propagate_boolean (G_TASK (result), error);
 }
