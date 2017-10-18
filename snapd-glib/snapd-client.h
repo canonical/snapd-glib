@@ -35,7 +35,7 @@ struct _SnapdClientClass
     /*< private >*/
     GObjectClass parent_class;
 
-    /*< private >*/  
+    /*< private >*/
     /* padding, for future expansion */
     void (* _snapd_reserved1) (void);
     void (* _snapd_reserved2) (void);
