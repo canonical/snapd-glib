@@ -4658,8 +4658,8 @@ snapd_client_create_user_finish (SnapdClient *client, GAsyncResult *result, GErr
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
  *
- * Asynchronously create a local user account.
- * See snapd_client_create_user_sync() for more information.
+ * Asynchronously create local user accounts using the system-user assertions that are valid for this device.
+ * See snapd_client_create_users_sync() for more information.
  *
  * Since: 1.3
  */
