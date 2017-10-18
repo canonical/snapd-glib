@@ -1064,7 +1064,7 @@ parse_snap (JsonObject *object, GError **error)
         json_object_iter_init (&iter, channels);
         while (json_object_iter_next (&iter, &name, &channel_node)) {
             JsonObject *c;
-            SnapdSystemConfinement confinement;
+            SnapdConfinement confinement;
             g_autoptr(SnapdChannel) channel = NULL;
 
             if (json_node_get_value_type (channel_node) != JSON_TYPE_OBJECT) {
