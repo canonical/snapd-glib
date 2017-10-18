@@ -105,8 +105,6 @@ G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 /* Number of milliseconds to poll for status in asynchronous operations */
 #define ASYNC_POLL_TIME 100
 
-// FIXME: Make multiple async requests work at the same time
-
 typedef enum
 {
     SNAPD_REQUEST_GET_CHANGE,
