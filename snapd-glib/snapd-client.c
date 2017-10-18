@@ -21,6 +21,7 @@
 #include "snapd-assertion.h"
 #include "snapd-channel.h"
 #include "snapd-error.h"
+#include "snapd-json.h"
 #include "snapd-login.h"
 #include "snapd-plug.h"
 #include "snapd-screenshot.h"
@@ -558,666 +559,50 @@ send_multipart_request (SnapdRequest *request, const gchar *method, const gchar 
     send_request (request, method, path, headers, body);
 }
 
-static gboolean
-get_bool (JsonObject *object, const gchar *name, gboolean default_value)
-{
-    JsonNode *node = json_object_get_member (object, name);
-    if (node != NULL && json_node_get_value_type (node) == G_TYPE_BOOLEAN)
-        return json_node_get_boolean (node);
-    else
-        return default_value;
-}
-
-static gint64
-get_int (JsonObject *object, const gchar *name, gint64 default_value)
-{
-    JsonNode *node = json_object_get_member (object, name);
-    if (node != NULL && json_node_get_value_type (node) == G_TYPE_INT64)
-        return json_node_get_int (node);
-    else
-        return default_value;
-}
-
-static const gchar *
-get_string (JsonObject *object, const gchar *name, const gchar *default_value)
-{
-    JsonNode *node = json_object_get_member (object, name);
-    if (node != NULL && json_node_get_value_type (node) == G_TYPE_STRING)
-        return json_node_get_string (node);
-    else
-        return default_value;
-}
-
-static JsonArray *
-get_array (JsonObject *object, const gchar *name)
-{
-    JsonNode *node = json_object_get_member (object, name);
-    if (node != NULL && json_node_get_value_type (node) == JSON_TYPE_ARRAY)
-        return json_array_ref (json_node_get_array (node));
-    else
-        return json_array_new ();
-}
-
-static JsonObject *
-get_object (JsonObject *object, const gchar *name)
-{
-    JsonNode *node = json_object_get_member (object, name);
-    if (node != NULL && json_node_get_value_type (node) == JSON_TYPE_OBJECT)
-        return json_node_get_object (node);
-    else
-        return NULL;
-}
-
-static gboolean
-parse_date (const gchar *date_string, gint *year, gint *month, gint *day)
-{
-    /* Example: 2016-05-17 */
-    if (strchr (date_string, '-') != NULL) {
-        g_auto(GStrv) tokens = NULL;
-
-        tokens = g_strsplit (date_string, "-", -1);
-        if (g_strv_length (tokens) != 3)
-            return FALSE;
-
-        *year = atoi (tokens[0]);
-        *month = atoi (tokens[1]);
-        *day = atoi (tokens[2]);
-
-        return TRUE;
-    }
-    /* Example: 20160517 */
-    else if (strlen (date_string) == 8) {
-        // FIXME: Implement
-        return FALSE;
-    }
-    else
-        return FALSE;
-}
-
-static gboolean
-parse_time (const gchar *time_string, gint *hour, gint *minute, gdouble *seconds)
-{
-    /* Example: 09:36:53.682 or 09:36:53 or 09:36 */
-    if (strchr (time_string, ':') != NULL) {
-        g_auto(GStrv) tokens = NULL;
-
-        tokens = g_strsplit (time_string, ":", 3);
-        *hour = atoi (tokens[0]);
-        if (tokens[1] == NULL)
-            return FALSE;
-        *minute = atoi (tokens[1]);
-        if (tokens[2] != NULL)
-            *seconds = g_ascii_strtod (tokens[2], NULL);
-        else
-            *seconds = 0.0;
-
-        return TRUE;
-    }
-    /* Example: 093653.682 or 093653 or 0936 */
-    else {
-        // FIXME: Implement
-        return FALSE;
-    }
-}
-
-static gboolean
-is_timezone_prefix (gchar c)
-{
-    return c == '+' || c == '-' || c == 'Z';
-}
-
-static GDateTime *
-get_date_time (JsonObject *object, const gchar *name)
-{
-    const gchar *value;
-    g_auto(GStrv) tokens = NULL;
-    g_autoptr(GTimeZone) timezone = NULL;
-    gint year = 0, month = 0, day = 0, hour = 0, minute = 0;
-    gdouble seconds = 0.0;
-
-    value = get_string (object, name, NULL);
-    if (value == NULL)
-        return NULL;
-
-    /* Example: 2016-05-17T09:36:53+12:00 */
-    tokens = g_strsplit (value, "T", 2);
-    if (!parse_date (tokens[0], &year, &month, &day))
-        return NULL;
-    if (tokens[1] != NULL) {
-        gchar *timezone_start;
-
-        /* Timezone is either Z (UTC) +hh:mm or -hh:mm */
-        timezone_start = tokens[1];
-        while (*timezone_start != '\0' && !is_timezone_prefix (*timezone_start))
-            timezone_start++;
-        if (*timezone_start != '\0')
-            timezone = g_time_zone_new (timezone_start);
-
-        /* Strip off timezone */
-        *timezone_start = '\0';
-
-        if (!parse_time (tokens[1], &hour, &minute, &seconds))
-            return NULL;
-    }
-
-    if (timezone == NULL)
-        timezone = g_time_zone_new_local ();
-
-    return g_date_time_new (timezone, year, month, day, hour, minute, seconds);
-}
-
-static gboolean
-parse_result (const gchar *content_type, const gchar *content, gsize content_length, JsonObject **response, gchar **change_id, GError **error)
-{
-    g_autoptr(JsonParser) parser = NULL;
-    g_autoptr(GError) error_local = NULL;
-    JsonObject *root;
-    const gchar *type;
-
-    if (content_type == NULL) {
-        g_set_error_literal (error,
-                             SNAPD_ERROR,
-                             SNAPD_ERROR_BAD_RESPONSE,
-                             "snapd returned no content type");
-        return FALSE;
-    }
-    if (g_strcmp0 (content_type, "application/json") != 0) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_BAD_RESPONSE,
-                     "snapd returned unexpected content type %s", content_type);
-        return FALSE;
-    }
-
-    parser = json_parser_new ();
-    if (!json_parser_load_from_data (parser, content, content_length, &error_local)) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_BAD_RESPONSE,
-                     "Unable to parse snapd response: %s",
-                     error_local->message);
-        return FALSE;
-    }
-
-    if (!JSON_NODE_HOLDS_OBJECT (json_parser_get_root (parser))) {
-        g_set_error_literal (error,
-                             SNAPD_ERROR,
-                             SNAPD_ERROR_BAD_RESPONSE,
-                             "snapd response does is not a valid JSON object");
-        return FALSE;
-    }
-    root = json_node_get_object (json_parser_get_root (parser));
-
-    type = get_string (root, "type", NULL);
-    if (g_strcmp0 (type, "error") == 0) {
-        const gchar *kind, *message;
-        gint64 status_code;
-        JsonObject *result;
-
-        result = get_object (root, "result");
-        status_code = get_int (root, "status-code", 0);
-        kind = result != NULL ? get_string (result, "kind", NULL) : NULL;
-        message = result != NULL ? get_string (result, "message", NULL) : NULL;
-
-        if (g_strcmp0 (kind, "login-required") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_AUTH_DATA_REQUIRED,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "invalid-auth-data") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_AUTH_DATA_INVALID,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "two-factor-required") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_TWO_FACTOR_REQUIRED,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "two-factor-failed") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_TWO_FACTOR_INVALID,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "terms-not-accepted") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_TERMS_NOT_ACCEPTED,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "no-payment-methods") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_PAYMENT_NOT_SETUP,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "payment-declined") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_PAYMENT_DECLINED,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "snap-already-installed") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_ALREADY_INSTALLED,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "snap-not-installed") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_NOT_INSTALLED,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "snap-no-update-available") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_NO_UPDATE_AVAILABLE,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "password-policy") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_PASSWORD_POLICY_ERROR,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "snap-needs-devmode") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_NEEDS_DEVMODE,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "snap-needs-classic") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_NEEDS_CLASSIC,
-                                 message);
-            return FALSE;
-        }
-        else if (g_strcmp0 (kind, "snap-needs-classic-system") == 0) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM,
-                                 message);
-            return FALSE;
-        }
-        else if (status_code == SOUP_STATUS_BAD_REQUEST) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_BAD_REQUEST,
-                                 message);
-            return FALSE;
-        }
-        else {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_FAILED,
-                                 message);
-            return FALSE;
-        }
-    }
-    else if (g_strcmp0 (type, "async") == 0) {
-        if (change_id)
-            *change_id = g_strdup (get_string (root, "change", NULL));
-    }
-    else if (g_strcmp0 (type, "sync") == 0) {
-    }
-
-    if (response != NULL)
-        *response = json_object_ref (root);
-
-    return TRUE;
-}
-
 static void
-parse_get_system_information_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_get_system_information_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    JsonObject *result;
+    g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdSystemInformation) system_information = NULL;
     const gchar *confinement_string;
     SnapdSystemConfinement confinement = SNAPD_SYSTEM_CONFINEMENT_UNKNOWN;
     JsonObject *os_release, *locations;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request, error);
         return;
     }
-
-    result = get_object (response, "result");
+    result = snapd_json_get_sync_result_o (response, &error);
     if (result == NULL) {
-        error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_FAILED,
-                             "No result returned");
         snapd_request_complete (request, error);
         return;
     }
 
-    confinement_string = get_string (result, "confinement", "");
+    confinement_string = snapd_json_get_string (result, "confinement", "");
     if (strcmp (confinement_string, "strict") == 0)
         confinement = SNAPD_SYSTEM_CONFINEMENT_STRICT;
     else if (strcmp (confinement_string, "partial") == 0)
         confinement = SNAPD_SYSTEM_CONFINEMENT_PARTIAL;
-    os_release = get_object (result, "os-release");
-    locations  = get_object (result, "locations");
+    os_release = snapd_json_get_object (result, "os-release");
+    locations  = snapd_json_get_object (result, "locations");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
-                                       "binaries-directory", locations != NULL ? get_string (locations, "snap-bin-dir", NULL) : NULL,
+                                       "binaries-directory", locations != NULL ? snapd_json_get_string (locations, "snap-bin-dir", NULL) : NULL,
                                        "confinement", confinement,
-                                       "kernel-version", get_string (result, "kernel-version", NULL),
-                                       "managed", get_bool (result, "managed", FALSE),
-                                       "mount-directory", locations != NULL ? get_string (locations, "snap-mount-dir", NULL) : NULL,
-                                       "on-classic", get_bool (result, "on-classic", FALSE),
-                                       "os-id", os_release != NULL ? get_string (os_release, "id", NULL) : NULL,
-                                       "os-version", os_release != NULL ? get_string (os_release, "version-id", NULL) : NULL,
-                                       "series", get_string (result, "series", NULL),
-                                       "store", get_string (result, "store", NULL),
-                                       "version", get_string (result, "version", NULL),
+                                       "kernel-version", snapd_json_get_string (result, "kernel-version", NULL),
+                                       "managed", snapd_json_get_bool (result, "managed", FALSE),
+                                       "mount-directory", locations != NULL ? snapd_json_get_string (locations, "snap-mount-dir", NULL) : NULL,
+                                       "on-classic", snapd_json_get_bool (result, "on-classic", FALSE),
+                                       "os-id", os_release != NULL ? snapd_json_get_string (os_release, "id", NULL) : NULL,
+                                       "os-version", os_release != NULL ? snapd_json_get_string (os_release, "version-id", NULL) : NULL,
+                                       "series", snapd_json_get_string (result, "series", NULL),
+                                       "store", snapd_json_get_string (result, "store", NULL),
+                                       "version", snapd_json_get_string (result, "version", NULL),
                                        NULL);
     request->system_information = g_steal_pointer (&system_information);
     snapd_request_complete (request, NULL);
-}
-
-static SnapdConfinement
-parse_confinement (const gchar *value)
-{
-    if (strcmp (value, "strict") == 0)
-        return SNAPD_CONFINEMENT_STRICT;
-    else if (strcmp (value, "classic") == 0)
-        return SNAPD_CONFINEMENT_CLASSIC;
-    else if (strcmp (value, "devmode") == 0)
-        return SNAPD_CONFINEMENT_DEVMODE;
-    else
-        return SNAPD_CONFINEMENT_UNKNOWN;
-}
-
-static SnapdSnap *
-parse_snap (JsonObject *object, GError **error)
-{
-    SnapdConfinement confinement;
-    const gchar *snap_type_string;
-    SnapdSnapType snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
-    const gchar *snap_status_string;
-    SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;
-    g_autoptr(JsonArray) apps = NULL;
-    JsonObject *channels;
-    g_autoptr(GDateTime) install_date = NULL;
-    JsonObject *prices;
-    g_autoptr(GPtrArray) apps_array = NULL;
-    g_autoptr(GPtrArray) channels_array = NULL;
-    g_autoptr(GPtrArray) prices_array = NULL;
-    g_autoptr(JsonArray) screenshots = NULL;
-    g_autoptr(GPtrArray) screenshots_array = NULL;
-    g_autoptr(JsonArray) tracks = NULL;
-    g_autoptr(GPtrArray) track_array = NULL;
-    guint i;
-
-    confinement = parse_confinement (get_string (object, "confinement", ""));
-
-    snap_type_string = get_string (object, "type", "");
-    if (strcmp (snap_type_string, "app") == 0)
-        snap_type = SNAPD_SNAP_TYPE_APP;
-    else if (strcmp (snap_type_string, "kernel") == 0)
-        snap_type = SNAPD_SNAP_TYPE_KERNEL;
-    else if (strcmp (snap_type_string, "gadget") == 0)
-        snap_type = SNAPD_SNAP_TYPE_GADGET;
-    else if (strcmp (snap_type_string, "os") == 0)
-        snap_type = SNAPD_SNAP_TYPE_OS;
-
-    snap_status_string = get_string (object, "status", "");
-    if (strcmp (snap_status_string, "available") == 0)
-        snap_status = SNAPD_SNAP_STATUS_AVAILABLE;
-    else if (strcmp (snap_status_string, "priced") == 0)
-        snap_status = SNAPD_SNAP_STATUS_PRICED;
-    else if (strcmp (snap_status_string, "installed") == 0)
-        snap_status = SNAPD_SNAP_STATUS_INSTALLED;
-    else if (strcmp (snap_status_string, "active") == 0)
-        snap_status = SNAPD_SNAP_STATUS_ACTIVE;
-
-    apps = get_array (object, "apps");
-    apps_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (apps); i++) {
-        JsonNode *node = json_array_get_element (apps, i);
-        JsonObject *a;
-        g_autoptr(JsonArray) aliases = NULL;
-        g_autoptr(GPtrArray) aliases_array = NULL;
-        int j;
-        const gchar *daemon;
-        g_autoptr(SnapdApp) app = NULL;
-        SnapdDaemonType daemon_type = SNAPD_DAEMON_TYPE_NONE;
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected app type");
-            return NULL;
-        }
-
-        a = json_node_get_object (node);
-
-        aliases = get_array (a, "aliases");
-        aliases_array = g_ptr_array_new ();
-        for (j = 0; j < json_array_get_length (aliases); j++) {
-            JsonNode *node = json_array_get_element (aliases, j);
-
-            if (json_node_get_value_type (node) != G_TYPE_STRING) {
-                g_set_error_literal (error,
-                                     SNAPD_ERROR,
-                                     SNAPD_ERROR_READ_FAILED,
-                                     "Unexpected alias type");
-                return NULL;
-            }
-
-            g_ptr_array_add (aliases_array, (gpointer) json_node_get_string (node));
-        }
-        g_ptr_array_add (aliases_array, NULL);
-
-        daemon = get_string (a, "daemon", NULL);
-        if (daemon == NULL)
-            daemon_type = SNAPD_DAEMON_TYPE_NONE;
-        else if (strcmp (daemon, "simple") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_SIMPLE;
-        else if (strcmp (daemon, "forking") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_FORKING;
-        else if (strcmp (daemon, "oneshot") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_ONESHOT;
-        else if (strcmp (daemon, "dbus") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_DBUS;
-        else if (strcmp (daemon, "notify") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_NOTIFY;
-        else
-            daemon_type = SNAPD_DAEMON_TYPE_UNKNOWN;
-
-        app = g_object_new (SNAPD_TYPE_APP,
-                            "name", get_string (a, "name", NULL),
-                            "aliases", (gchar **) aliases_array->pdata,
-                            "daemon-type", daemon_type,
-                            "desktop-file", get_string (a, "desktop-file", NULL),
-                            NULL);
-        g_ptr_array_add (apps_array, g_steal_pointer (&app));
-    }
-
-    channels = get_object (object, "channels");
-    channels_array = g_ptr_array_new_with_free_func (g_object_unref);
-    if (channels != NULL) {
-        JsonObjectIter iter;
-        const gchar *name;
-        JsonNode *channel_node;
-
-        json_object_iter_init (&iter, channels);
-        while (json_object_iter_next (&iter, &name, &channel_node)) {
-            JsonObject *c;
-            SnapdConfinement confinement;
-            g_autoptr(SnapdChannel) channel = NULL;
-
-            if (json_node_get_value_type (channel_node) != JSON_TYPE_OBJECT) {
-                g_set_error_literal (error,
-                                     SNAPD_ERROR,
-                                     SNAPD_ERROR_READ_FAILED,
-                                     "Unexpected channel type");
-                return NULL;
-            }
-            c = json_node_get_object (channel_node);
-
-            confinement = parse_confinement (get_string (c, "confinement", ""));
-
-            channel = g_object_new (SNAPD_TYPE_CHANNEL,
-                                    "confinement", confinement,
-                                    "epoch", get_string (c, "epoch", NULL),
-                                    "name", get_string (c, "channel", NULL),
-                                    "revision", get_string (c, "revision", NULL),
-                                    "size", get_int (c, "size", 0),
-                                    "version", get_string (c, "version", NULL),
-                                    NULL);
-            g_ptr_array_add (channels_array, g_steal_pointer (&channel));
-        }
-    }
-
-    install_date = get_date_time (object, "install-date");
-
-    prices = get_object (object, "prices");
-    prices_array = g_ptr_array_new_with_free_func (g_object_unref);
-    if (prices != NULL) {
-        JsonObjectIter iter;
-        const gchar *currency;
-        JsonNode *amount_node;
-
-        json_object_iter_init (&iter, prices);
-        while (json_object_iter_next (&iter, &currency, &amount_node)) {
-            g_autoptr(SnapdPrice) price = NULL;
-
-            if (json_node_get_value_type (amount_node) != G_TYPE_DOUBLE) {
-                g_set_error_literal (error,
-                                     SNAPD_ERROR,
-                                     SNAPD_ERROR_READ_FAILED,
-                                     "Unexpected price type");
-                return NULL;
-            }
-
-            price = g_object_new (SNAPD_TYPE_PRICE,
-                                  "amount", json_node_get_double (amount_node),
-                                  "currency", currency,
-                                  NULL);
-            g_ptr_array_add (prices_array, g_steal_pointer (&price));
-        }
-    }
-
-    screenshots = get_array (object, "screenshots");
-    screenshots_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (screenshots); i++) {
-        JsonNode *node = json_array_get_element (screenshots, i);
-        JsonObject *s;
-        g_autoptr(SnapdScreenshot) screenshot = NULL;
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected screenshot type");
-            return NULL;
-        }
-
-        s = json_node_get_object (node);
-        screenshot = g_object_new (SNAPD_TYPE_SCREENSHOT,
-                                   "url", get_string (s, "url", NULL),
-                                   "width", (guint) get_int (s, "width", 0),
-                                   "height", (guint) get_int (s, "height", 0),
-                                   NULL);
-        g_ptr_array_add (screenshots_array, g_steal_pointer (&screenshot));
-    }
-
-    tracks = get_array (object, "tracks");
-    track_array = g_ptr_array_new ();
-    for (i = 0; i < json_array_get_length (tracks); i++) {
-        JsonNode *node = json_array_get_element (tracks, i);
-
-        if (json_node_get_value_type (node) != G_TYPE_STRING) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected track type");
-            return NULL;
-        }
-
-        g_ptr_array_add (track_array, (gpointer) json_node_get_string (node));
-    }
-    g_ptr_array_add (track_array, NULL);
-
-    return g_object_new (SNAPD_TYPE_SNAP,
-                         "apps", apps_array,
-                         "channel", get_string (object, "channel", NULL),
-                         "channels", channels_array,
-                         "confinement", confinement,
-                         "contact", get_string (object, "contact", NULL),
-                         "description", get_string (object, "description", NULL),
-                         "developer", get_string (object, "developer", NULL),
-                         "devmode", get_bool (object, "devmode", FALSE),
-                         "download-size", get_int (object, "download-size", 0),
-                         "icon", get_string (object, "icon", NULL),
-                         "id", get_string (object, "id", NULL),
-                         "install-date", install_date,
-                         "installed-size", get_int (object, "installed-size", 0),
-                         "jailmode", get_bool (object, "jailmode", FALSE),
-                         "license", get_string (object, "license", NULL),
-                         "name", get_string (object, "name", NULL),
-                         "prices", prices_array,
-                         "private", get_bool (object, "private", FALSE),
-                         "revision", get_string (object, "revision", NULL),
-                         "screenshots", screenshots_array,
-                         "snap-type", snap_type,
-                         "status", snap_status,
-                         "summary", get_string (object, "summary", NULL),
-                         "title", get_string (object, "title", NULL),
-                         "tracking-channel", get_string (object, "tracking-channel", NULL),
-                         "tracks", (gchar **) track_array->pdata,
-                         "trymode", get_bool (object, "trymode", FALSE),
-                         "version", get_string (object, "version", NULL),
-                         NULL);
-}
-
-static GPtrArray *
-parse_snap_array (JsonArray *array, GError **error)
-{
-    g_autoptr(GPtrArray) snaps = NULL;
-    guint i;
-
-    snaps = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (array); i++) {
-        JsonNode *node = json_array_get_element (array, i);
-        SnapdSnap *snap;
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected snap type");
-            return NULL;
-        }
-
-        snap = parse_snap (json_node_get_object (node), error);
-        if (snap == NULL)
-            return NULL;
-        g_ptr_array_add (snaps, snap);
-    }
-
-    return g_steal_pointer (&snaps);
 }
 
 static void
@@ -1229,12 +614,26 @@ parse_get_icon_response (SnapdRequest *request, guint code, SoupMessageHeaders *
 
     content_type = soup_message_headers_get_content_type (headers, NULL);
     if (g_strcmp0 (content_type, "application/json") == 0) {
+        g_autoptr(JsonObject) response = NULL;
+        g_autoptr(JsonObject) result = NULL;
         GError *error = NULL;
 
-        if (!parse_result (content_type, content, content_length, NULL, NULL, &error)) {
+        response = snapd_json_parse_response (code, headers, content, content_length, &error);
+        if (response == NULL) {
             snapd_request_complete (request, error);
             return;
         }
+        result = snapd_json_get_sync_result_o (response, &error);
+        if (result == NULL) {
+            snapd_request_complete (request, error);
+            return;
+        }
+
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "Unknown response");
+        snapd_request_complete (request, error);
+        return;
     }
 
     if (code != SOUP_STATUS_OK) {
@@ -1255,20 +654,25 @@ parse_get_icon_response (SnapdRequest *request, guint code, SoupMessageHeaders *
 }
 
 static void
-parse_list_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_list_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) array = NULL;
+    g_autoptr(JsonArray) result = NULL;
     GPtrArray *snaps;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+    result = snapd_json_get_sync_result_a (response, &error);
+    if (result == NULL) {
         snapd_request_complete (request, error);
         return;
     }
 
-    array = get_array (response, "result");
-    snaps = parse_snap_array (array, &error);
+    snaps = snapd_json_parse_snap_array (result, &error);
     if (snaps == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1279,28 +683,25 @@ parse_list_response (SnapdRequest *request, SoupMessageHeaders *headers, const g
 }
 
 static void
-parse_list_one_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_list_one_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    JsonObject *result;
+    g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdSnap) snap = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request, error);
         return;
     }
-
-    result = get_object (response, "result");
+    result = snapd_json_get_sync_result_o (response, &error);
     if (result == NULL) {
-        error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_FAILED,
-                             "No result returned");
         snapd_request_complete (request, error);
         return;
     }
 
-    snap = parse_snap (result, &error);
+    snap = snapd_json_parse_snap (result, &error);
     if (snap == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1318,7 +719,7 @@ get_connections (JsonObject *object, const gchar *name, GError **error)
     guint i;
 
     connections = g_ptr_array_new_with_free_func (g_object_unref);
-    array = get_array (object, "connections");
+    array = snapd_json_get_array (object, "connections");
     for (i = 0; i < json_array_get_length (array); i++) {
         JsonNode *node = json_array_get_element (array, i);
         JsonObject *object;
@@ -1334,8 +735,8 @@ get_connections (JsonObject *object, const gchar *name, GError **error)
 
         object = json_node_get_object (node);
         connection = g_object_new (SNAPD_TYPE_CONNECTION,
-                                   "name", get_string (object, name, NULL),
-                                   "snap", get_string (object, "snap", NULL),
+                                   "name", snapd_json_get_string (object, name, NULL),
+                                   "snap", snapd_json_get_string (object, "snap", NULL),
                                    NULL);
         g_ptr_array_add (connections, connection);
     }
@@ -1491,7 +892,7 @@ get_attributes (JsonObject *object, const gchar *name, GError **error)
     JsonNode *node;
 
     attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
-    attrs = get_object (object, "attrs");
+    attrs = snapd_json_get_object (object, "attrs");
     if (attrs == NULL)
         return attributes;
 
@@ -1511,12 +912,26 @@ parse_get_assertions_response (SnapdRequest *request, guint code, SoupMessageHea
 
     content_type = soup_message_headers_get_content_type (headers, NULL);
     if (g_strcmp0 (content_type, "application/json") == 0) {
+        g_autoptr(JsonObject) response = NULL;
+        g_autoptr(JsonObject) result = NULL;
         GError *error = NULL;
 
-        if (!parse_result (content_type, content, content_length, NULL, NULL, &error)) {
+        response = snapd_json_parse_response (code, headers, content, content_length, &error);
+        if (response == NULL) {
             snapd_request_complete (request, error);
             return;
         }
+        result = snapd_json_get_sync_result_o (response, &error);
+        if (result == NULL) {
+            snapd_request_complete (request, error);
+            return;
+        }
+
+        error = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "Unknown response");
+        snapd_request_complete (request, error);
+        return;
     }
 
     if (code != SOUP_STATUS_OK) {
@@ -1574,9 +989,11 @@ parse_get_assertions_response (SnapdRequest *request, guint code, SoupMessageHea
 static void
 parse_add_assertions_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
+    g_autoptr(JsonObject) response = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, NULL, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request, error);
         return;
     }
@@ -1586,32 +1003,29 @@ parse_add_assertions_response (SnapdRequest *request, guint code, SoupMessageHea
 }
 
 static void
-parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_get_interfaces_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
+    g_autoptr(JsonObject) result = NULL;
     g_autoptr(GPtrArray) plug_array = NULL;
     g_autoptr(GPtrArray) slot_array = NULL;
-    JsonObject *result;
     g_autoptr(JsonArray) plugs = NULL;
     g_autoptr(JsonArray) slots = NULL;
     guint i;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request, error);
         return;
     }
-
-    result = get_object (response, "result");
+    result = snapd_json_get_sync_result_o (response, &error);
     if (result == NULL) {
-        error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_FAILED,
-                             "No result returned");
         snapd_request_complete (request, error);
         return;
     }
 
-    plugs = get_array (result, "plugs");
+    plugs = snapd_json_get_array (result, "plugs");
     plug_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (plugs); i++) {
         JsonNode *node = json_array_get_element (plugs, i);
@@ -1637,17 +1051,17 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
         attributes = get_attributes (object, "slot", &error);
 
         plug = g_object_new (SNAPD_TYPE_PLUG,
-                             "name", get_string (object, "plug", NULL),
-                             "snap", get_string (object, "snap", NULL),
-                             "interface", get_string (object, "interface", NULL),
-                             "label", get_string (object, "label", NULL),
+                             "name", snapd_json_get_string (object, "plug", NULL),
+                             "snap", snapd_json_get_string (object, "snap", NULL),
+                             "interface", snapd_json_get_string (object, "interface", NULL),
+                             "label", snapd_json_get_string (object, "label", NULL),
                              "connections", connections,
                              "attributes", attributes,
                              // FIXME: apps
                              NULL);
         g_ptr_array_add (plug_array, g_steal_pointer (&plug));
     }
-    slots = get_array (result, "slots");
+    slots = snapd_json_get_array (result, "slots");
     slot_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (slots); i++) {
         JsonNode *node = json_array_get_element (slots, i);
@@ -1673,10 +1087,10 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessageHeaders *header
         attributes = get_attributes (object, "plug", &error);
 
         slot = g_object_new (SNAPD_TYPE_SLOT,
-                             "name", get_string (object, "slot", NULL),
-                             "snap", get_string (object, "snap", NULL),
-                             "interface", get_string (object, "interface", NULL),
-                             "label", get_string (object, "label", NULL),
+                             "name", snapd_json_get_string (object, "slot", NULL),
+                             "snap", snapd_json_get_string (object, "snap", NULL),
+                             "interface", snapd_json_get_string (object, "interface", NULL),
+                             "label", snapd_json_get_string (object, "label", NULL),
                              "connections", connections,
                              "attributes", attributes,
                              // FIXME: apps
@@ -1788,21 +1202,19 @@ send_cancel (SnapdRequest *request)
 }
 
 static void
-parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_async_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autofree gchar *change_id = NULL;
+    gchar *change_id = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, &change_id, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request, error);
         return;
     }
-
+    change_id = snapd_json_get_async_result (response, &error);
     if (change_id == NULL) {
-        g_error_new (SNAPD_ERROR,
-                     SNAPD_ERROR_READ_FAILED,
-                     "No async response received");
         snapd_request_complete (request, error);
         return;
     }
@@ -1825,30 +1237,27 @@ parse_async_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
 }
 
 static void
-parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_change_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
+    g_autoptr(JsonObject) result = NULL;
     gboolean ready;
-    JsonObject *result;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request->parent, error);
         snapd_request_complete (request, NULL);
         return;
     }
-
-    result = get_object (response, "result");
+    result = snapd_json_get_sync_result_o (response, &error);
     if (result == NULL) {
-        error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_FAILED,
-                             "No result returned");
         snapd_request_complete (request->parent, error);
         snapd_request_complete (request, NULL);
         return;
     }
 
-    if (g_strcmp0 (request->parent->change_id, get_string (result, "id", NULL)) != 0) {
+    if (g_strcmp0 (request->parent->change_id, snapd_json_get_string (result, "id", NULL)) != 0) {
         error = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
                              "Unexpected change ID returned");
@@ -1866,7 +1275,7 @@ parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const
         g_autoptr(GDateTime) main_spawn_time = NULL;
         g_autoptr(GDateTime) main_ready_time = NULL;
 
-        array = get_array (result, "tasks");
+        array = snapd_json_get_array (result, "tasks");
         tasks = g_ptr_array_new_with_free_func (g_object_unref);
         for (i = 0; i < json_array_get_length (array); i++) {
             JsonNode *node = json_array_get_element (array, i);
@@ -1884,33 +1293,33 @@ parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const
                 return;
             }
             object = json_node_get_object (node);
-            progress = get_object (object, "progress");
-            spawn_time = get_date_time (object, "spawn-time");
-            ready_time = get_date_time (object, "ready-time");
+            progress = snapd_json_get_object (object, "progress");
+            spawn_time = snapd_json_get_date_time (object, "spawn-time");
+            ready_time = snapd_json_get_date_time (object, "ready-time");
 
             t = g_object_new (SNAPD_TYPE_TASK,
-                              "id", get_string (object, "id", NULL),
-                              "kind", get_string (object, "kind", NULL),
-                              "summary", get_string (object, "summary", NULL),
-                              "status", get_string (object, "status", NULL),
-                              "progress-label", progress != NULL ? get_string (progress, "label", NULL) : NULL,
-                              "progress-done", progress != NULL ? get_int (progress, "done", 0) : 0,
-                              "progress-total", progress != NULL ? get_int (progress, "total", 0) : 0,
+                              "id", snapd_json_get_string (object, "id", NULL),
+                              "kind", snapd_json_get_string (object, "kind", NULL),
+                              "summary", snapd_json_get_string (object, "summary", NULL),
+                              "status", snapd_json_get_string (object, "status", NULL),
+                              "progress-label", progress != NULL ? snapd_json_get_string (progress, "label", NULL) : NULL,
+                              "progress-done", progress != NULL ? snapd_json_get_int (progress, "done", 0) : 0,
+                              "progress-total", progress != NULL ? snapd_json_get_int (progress, "total", 0) : 0,
                               "spawn-time", spawn_time,
                               "ready-time", ready_time,
                               NULL);
             g_ptr_array_add (tasks, g_steal_pointer (&t));
         }
 
-        main_spawn_time = get_date_time (result, "spawn-time");
-        main_ready_time = get_date_time (result, "ready-time");
+        main_spawn_time = snapd_json_get_date_time (result, "spawn-time");
+        main_ready_time = snapd_json_get_date_time (result, "ready-time");
         change = g_object_new (SNAPD_TYPE_CHANGE,
-                               "id", get_string (result, "id", NULL),
-                               "kind", get_string (result, "kind", NULL),
-                               "summary", get_string (result, "summary", NULL),
-                               "status", get_string (result, "status", NULL),
+                               "id", snapd_json_get_string (result, "id", NULL),
+                               "kind", snapd_json_get_string (result, "kind", NULL),
+                               "summary", snapd_json_get_string (result, "summary", NULL),
+                               "status", snapd_json_get_string (result, "status", NULL),
                                "tasks", tasks,
-                               "ready", get_bool (result, "ready", FALSE),
+                               "ready", snapd_json_get_bool (result, "ready", FALSE),
                                "spawn-time", main_spawn_time,
                                "ready-time", main_ready_time,
                                NULL);
@@ -1924,7 +1333,7 @@ parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const
         }
     }
 
-    ready = get_bool (result, "ready", FALSE);
+    ready = snapd_json_get_bool (result, "ready", FALSE);
     if (ready) {
         GError *error = NULL;
 
@@ -1935,7 +1344,7 @@ parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const
             json_object_has_member (result, "err"))
             error = g_error_new_literal (SNAPD_ERROR,
                                          SNAPD_ERROR_FAILED,
-                                         get_string (result, "err", "Unknown error"));
+                                         snapd_json_get_string (result, "err", "Unknown error"));
         snapd_request_complete (request->parent, error);
         snapd_request_complete (request, NULL);
         return;
@@ -1953,30 +1362,27 @@ parse_change_response (SnapdRequest *request, SoupMessageHeaders *headers, const
 }
 
 static void
-parse_login_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_login_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    JsonObject *result;
+    g_autoptr(JsonObject) result = NULL;
     g_autoptr(JsonArray) discharges = NULL;
     g_autoptr(GPtrArray) discharge_array = NULL;
     guint i;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request, error);
         return;
     }
-
-    result = get_object (response, "result");
+    result = snapd_json_get_sync_result_o (response, &error);
     if (result == NULL) {
-        error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_FAILED,
-                             "No result returned");
         snapd_request_complete (request, error);
         return;
     }
 
-    discharges = get_array (result, "discharges");
+    discharges = snapd_json_get_array (result, "discharges");
     discharge_array = g_ptr_array_new ();
     for (i = 0; i < json_array_get_length (discharges); i++) {
         JsonNode *node = json_array_get_element (discharges, i);
@@ -1992,51 +1398,61 @@ parse_login_response (SnapdRequest *request, SoupMessageHeaders *headers, const 
         g_ptr_array_add (discharge_array, (gpointer) json_node_get_string (node));
     }
     g_ptr_array_add (discharge_array, NULL);
-    request->received_auth_data = snapd_auth_data_new (get_string (result, "macaroon", NULL), (gchar **) discharge_array->pdata);
+    request->received_auth_data = snapd_auth_data_new (snapd_json_get_string (result, "macaroon", NULL), (gchar **) discharge_array->pdata);
     snapd_request_complete (request, NULL);
 }
 
 static void
-parse_find_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_find_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) array = NULL;
+    g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+    result = snapd_json_get_sync_result_a (response, &error);
+    if (result == NULL) {
         snapd_request_complete (request, error);
         return;
     }
 
-    array = get_array (response, "result");
-    snaps = parse_snap_array (array, &error);
+    snaps = snapd_json_parse_snap_array (result, &error);
     if (snaps == NULL) {
         snapd_request_complete (request, error);
         return;
     }
 
-    request->suggested_currency = g_strdup (get_string (response, "suggested-currency", NULL));
+    request->suggested_currency = g_strdup (snapd_json_get_string (response, "suggested-currency", NULL));
 
     request->snaps = g_steal_pointer (&snaps);
     snapd_request_complete (request, NULL);
 }
 
 static void
-parse_find_refreshable_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_find_refreshable_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) array = NULL;
+    g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+    result = snapd_json_get_sync_result_a (response, &error);
+    if (result == NULL) {
         snapd_request_complete (request, error);
         return;
     }
 
-    array = get_array (response, "result");
-    snaps = parse_snap_array (array, &error);
+    snaps = snapd_json_parse_snap_array (result, &error);
     if (snaps == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2047,11 +1463,13 @@ parse_find_refreshable_response (SnapdRequest *request, SoupMessageHeaders *head
 }
 
 static void
-parse_check_buy_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_check_buy_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
+    g_autoptr(JsonObject) response = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, NULL, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request, error);
         return;
     }
@@ -2061,11 +1479,13 @@ parse_check_buy_response (SnapdRequest *request, SoupMessageHeaders *headers, co
 }
 
 static void
-parse_buy_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_buy_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
+    g_autoptr(JsonObject) response = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, NULL, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request, error);
         return;
     }
@@ -2074,51 +1494,26 @@ parse_buy_response (SnapdRequest *request, SoupMessageHeaders *headers, const gc
     snapd_request_complete (request, NULL);
 }
 
-static SnapdUserInformation *
-parse_user_information (JsonObject *object, GError **error)
-{
-    g_autoptr(JsonArray) ssh_keys = NULL;
-    g_autoptr(GPtrArray) ssh_key_array = NULL;
-    guint i;
-
-    ssh_keys = get_array (object, "ssh-keys");
-    ssh_key_array = g_ptr_array_new ();
-    for (i = 0; i < json_array_get_length (ssh_keys); i++) {
-        JsonNode *node = json_array_get_element (ssh_keys, i);
-
-        if (json_node_get_value_type (node) != G_TYPE_STRING) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected SSH key type");
-            return NULL;
-        }
-
-        g_ptr_array_add (ssh_key_array, (gpointer) json_node_get_string (node));
-    }
-    g_ptr_array_add (ssh_key_array, NULL);
-
-    return g_object_new (SNAPD_TYPE_USER_INFORMATION,
-                         "username", get_string (object, "username", NULL),
-                         "ssh-keys", (gchar **) ssh_key_array->pdata,
-                         NULL);
-}
-
 static void
-parse_create_user_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_create_user_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    JsonObject *result;
+    g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdUserInformation) user_information = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+    result = snapd_json_get_sync_result_o (response, &error);
+    if (result == NULL) {
         snapd_request_complete (request, error);
         return;
     }
 
-    result = get_object (response, "result");
-    user_information = parse_user_information (result, &error);
+    user_information = snapd_json_parse_user_information (result, &error);
     if (user_information == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2129,23 +1524,28 @@ parse_create_user_response (SnapdRequest *request, SoupMessageHeaders *headers, 
 }
 
 static void
-parse_create_users_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_create_users_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) array = NULL;
+    g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) users_information = NULL;
     guint i;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+    result = snapd_json_get_sync_result_a (response, &error);
+    if (result == NULL) {
         snapd_request_complete (request, error);
         return;
     }
 
-    array = get_array (response, "result");
     users_information = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (array); i++) {
-        JsonNode *node = json_array_get_element (array, i);
+    for (i = 0; i < json_array_get_length (result); i++) {
+        JsonNode *node = json_array_get_element (result, i);
         SnapdUserInformation *user_information;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
@@ -2156,7 +1556,7 @@ parse_create_users_response (SnapdRequest *request, SoupMessageHeaders *headers,
             return;
         }
 
-        user_information = parse_user_information (json_node_get_object (node), &error);
+        user_information = snapd_json_parse_user_information (json_node_get_object (node), &error);
         if (user_information == NULL)
         {
             snapd_request_complete (request, error);
@@ -2170,7 +1570,7 @@ parse_create_users_response (SnapdRequest *request, SoupMessageHeaders *headers,
 }
 
 static void
-parse_get_sections_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_get_sections_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
@@ -2178,12 +1578,17 @@ parse_get_sections_response (SnapdRequest *request, SoupMessageHeaders *headers,
     guint i;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+    result = snapd_json_get_sync_result_a (response, &error);
+    if (result == NULL) {
         snapd_request_complete (request, error);
         return;
     }
 
-    result = get_array (response, "result");
     sections = g_ptr_array_new ();
     for (i = 0; i < json_array_get_length (result); i++) {
         JsonNode *node = json_array_get_element (result, i);
@@ -2205,26 +1610,23 @@ parse_get_sections_response (SnapdRequest *request, SoupMessageHeaders *headers,
 }
 
 static void
-parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_get_aliases_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    JsonObject *result;
+    g_autoptr(JsonObject) result = NULL;
     g_autoptr(GPtrArray) aliases = NULL;
     JsonObjectIter snap_iter;
     const gchar *snap;
     JsonNode *snap_node;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
         snapd_request_complete (request, error);
         return;
     }
-
-    result = get_object (response, "result");
+    result = snapd_json_get_sync_result_o (response, &error);
     if (result == NULL) {
-        error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_FAILED,
-                             "No result returned");
         snapd_request_complete (request, error);
         return;
     }
@@ -2258,7 +1660,7 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
             }
 
             o = json_node_get_object (alias_node);
-            status_string = get_string (o, "status", NULL);
+            status_string = snapd_json_get_string (o, "status", NULL);
             if (status_string == NULL)
                 status = SNAPD_ALIAS_STATUS_DEFAULT;
             else if (strcmp (status_string, "enabled") == 0)
@@ -2272,7 +1674,7 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
 
             alias = g_object_new (SNAPD_TYPE_ALIAS,
                                   "snap", snap,
-                                  "app", get_string (o, "app", NULL),
+                                  "app", snapd_json_get_string (o, "app", NULL),
                                   "name", name,
                                   "status", status,
                                   NULL);
@@ -2286,20 +1688,25 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessageHeaders *headers, 
 }
 
 static void
-parse_run_snapctl_response (SnapdRequest *request, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
+parse_run_snapctl_response (SnapdRequest *request, guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length)
 {
     g_autoptr(JsonObject) response = NULL;
-    JsonObject *result;
+    g_autoptr(JsonObject) result = NULL;
     GError *error = NULL;
 
-    if (!parse_result (soup_message_headers_get_content_type (headers, NULL), content, content_length, &response, NULL, &error)) {
+    response = snapd_json_parse_response (code, headers, content, content_length, &error);
+    if (response == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+    result = snapd_json_get_sync_result_o (response, &error);
+    if (result == NULL) {
         snapd_request_complete (request, error);
         return;
     }
 
-    result = get_object (response, "result");
-    request->stdout_output = g_strdup (get_string (result, "stdout", NULL));
-    request->stderr_output = g_strdup (get_string (result, "stderr", NULL));
+    request->stdout_output = g_strdup (snapd_json_get_string (result, "stdout", NULL));
+    request->stderr_output = g_strdup (snapd_json_get_string (result, "stderr", NULL));
 
     request->result = TRUE;
     snapd_request_complete (request, NULL);
@@ -2340,19 +1747,19 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     {
     case SNAPD_REQUEST_GET_CHANGE:
     case SNAPD_REQUEST_ABORT_CHANGE:
-        parse_change_response (request, headers, content, content_length);
+        parse_change_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
-        parse_get_system_information_response (request, headers, content, content_length);
+        parse_get_system_information_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_ICON:
         parse_get_icon_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_LIST:
-        parse_list_response (request, headers, content, content_length);
+        parse_list_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_LIST_ONE:
-        parse_list_one_response (request, headers, content, content_length);
+        parse_list_one_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_ASSERTIONS:
         parse_get_assertions_response (request, code, headers, content, content_length);
@@ -2361,37 +1768,37 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
         parse_add_assertions_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_INTERFACES:
-        parse_get_interfaces_response (request, headers, content, content_length);
+        parse_get_interfaces_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_LOGIN:
-        parse_login_response (request, headers, content, content_length);
+        parse_login_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_FIND:
-        parse_find_response (request, headers, content, content_length);
+        parse_find_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_FIND_REFRESHABLE:
-        parse_find_refreshable_response (request, headers, content, content_length);
+        parse_find_refreshable_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_CHECK_BUY:
-        parse_check_buy_response (request, headers, content, content_length);
+        parse_check_buy_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_BUY:
-        parse_buy_response (request, headers, content, content_length);
+        parse_buy_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_CREATE_USER:
-        parse_create_user_response (request, headers, content, content_length);
+        parse_create_user_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_CREATE_USERS:
-        parse_create_users_response (request, headers, content, content_length);
+        parse_create_users_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_SECTIONS:
-        parse_get_sections_response (request, headers, content, content_length);
+        parse_get_sections_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_GET_ALIASES:
-        parse_get_aliases_response (request, headers, content, content_length);
+        parse_get_aliases_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_RUN_SNAPCTL:
-        parse_run_snapctl_response (request, headers, content, content_length);
+        parse_run_snapctl_response (request, code, headers, content, content_length);
         break;
     case SNAPD_REQUEST_CONNECT_INTERFACE:
     case SNAPD_REQUEST_DISCONNECT_INTERFACE:
@@ -2406,7 +1813,7 @@ parse_response (SnapdClient *client, guint code, SoupMessageHeaders *headers, co
     case SNAPD_REQUEST_ENABLE_ALIASES:
     case SNAPD_REQUEST_DISABLE_ALIASES:
     case SNAPD_REQUEST_RESET_ALIASES:
-        parse_async_response (request, headers, content, content_length);
+        parse_async_response (request, code, headers, content, content_length);
         break;
     default:
         error = g_error_new (SNAPD_ERROR,
@@ -4228,7 +3635,7 @@ snapd_client_refresh_all_finish (SnapdClient *client, GAsyncResult *result, GErr
                              "No result returned");
         return NULL;
     }
-    a = get_array (o, "snap-names");
+    a = snapd_json_get_array (o, "snap-names");
     snap_names = g_ptr_array_new ();
     for (i = 0; i < json_array_get_length (a); i++) {
         JsonNode *node = json_array_get_element (a, i);

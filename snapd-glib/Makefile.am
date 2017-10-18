@@ -26,6 +26,7 @@ source_h = \
 	snapd-version.h
 
 source_private_h = \
+	snapd-json.h \
 	snapd-login-private.h
 
 source_c = \
@@ -40,6 +41,7 @@ source_c = \
 	snapd-connection.c \
 	snapd-error.c \
 	snapd-icon.c \
+	snapd-json.c \
 	snapd-login.c \
 	snapd-plug.c \
 	snapd-price.c \
@@ -93,7 +95,7 @@ Snapd-1.gir: $(snapd_la) Makefile
 Snapd_1_gir_NAMESPACE = Snapd
 Snapd_1_gir_VERSION = 1
 Snapd_1_gir_LIBS = $(snapd_la)
-Snapd_1_gir_FILES = $(source_c) $(source_private_h) $(source_h) snapd-enum-types.h snapd-enum-types.c
+Snapd_1_gir_FILES = $(source_c) $(source_h) snapd-enum-types.h snapd-enum-types.c
 Snapd_1_gir_CFLAGS = -DSNAPD_COMPILATION=1 -I$(top_srcdir) -I$(top_builddir) $(SNAPD_CFLAGS)
 Snapd_1_gir_INCLUDES = GObject-2.0 Gio-2.0
 Snapd_1_gir_SCANNERFLAGS = --warn-all --pkg-export snapd-glib --c-include "snapd-glib/snapd-glib.h"
