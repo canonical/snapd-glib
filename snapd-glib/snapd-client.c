@@ -4610,7 +4610,7 @@ snapd_client_create_user_async (SnapdClient *client,
     json_builder_set_member_name (builder, "email");
     json_builder_add_string_value (builder, email);
     if ((flags & SNAPD_CREATE_USER_FLAGS_SUDO) != 0) {
-        json_builder_set_member_name (builder, "sudoers");
+        json_builder_set_member_name (builder, "sudoer");
         json_builder_add_boolean_value (builder, TRUE);
     }
     if ((flags & SNAPD_CREATE_USER_FLAGS_KNOWN) != 0) {
