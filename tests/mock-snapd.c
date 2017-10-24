@@ -2849,6 +2849,7 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->read_source, g_source_unref);
     g_clear_pointer (&snapd->buffer, g_byte_array_unref);
     g_list_free_full (snapd->accounts, (GDestroyNotify) mock_account_free);
+    snapd->accounts = NULL;
     g_list_free_full (snapd->snaps, (GDestroyNotify) mock_snap_free);
     snapd->snaps = NULL;
     g_free (snapd->confinement);
