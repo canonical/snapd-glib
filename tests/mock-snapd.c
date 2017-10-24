@@ -964,6 +964,8 @@ read_data (MockSnapd *snapd, gsize size)
                                size,
                                NULL,
                                &error);
+    if (n_read == 0)
+        return FALSE;
     if (n_read < 0) {
         g_printerr ("read error: %s\n", error->message);
         return FALSE;
