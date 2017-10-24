@@ -246,16 +246,39 @@ parse_error_response (JsonObject *root, GError **error)
                              SNAPD_ERROR,
                              SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM,
                              message);
-    else if (status_code == SOUP_STATUS_BAD_REQUEST)
-        g_set_error_literal (error,
-                             SNAPD_ERROR,
-                             SNAPD_ERROR_BAD_REQUEST,
-                             message);
-    else
-        g_set_error_literal (error,
-                             SNAPD_ERROR,
-                             SNAPD_ERROR_FAILED,
-                             message);
+    else {
+        switch (status_code) {
+        case SOUP_STATUS_BAD_REQUEST:
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_BAD_REQUEST,
+                                 message);
+            break;
+        case SOUP_STATUS_UNAUTHORIZED:
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_AUTH_DATA_REQUIRED,
+                                 message);
+            break;
+        case SOUP_STATUS_FORBIDDEN:
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_PERMISSION_DENIED,
+                                 message);
+            break;
+        /* Other response codes currently produced by snapd:
+        case SOUP_STATUS_NOT_FOUND:
+        case SOUP_STATUS_METHOD_NOT_ALLOWED:
+        case SOUP_STATUS_NOT_IMPLEMENTED:
+        case SOUP_STATUS_CONFLICT:
+         */
+        default:
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_FAILED,
+                                 message);
+        }
+    }
 }
 
 JsonObject *
