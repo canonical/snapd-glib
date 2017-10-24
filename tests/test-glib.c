@@ -280,7 +280,7 @@ static void
 system_information_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(SnapdSystemInformation) info = NULL;
-    AsyncData *data = user_data;
+    g_autoptr(AsyncData) data = user_data;
     g_autoptr(GError) error = NULL;
 
     info = snapd_client_get_system_information_finish (SNAPD_CLIENT (object), result, &error);
@@ -564,7 +564,7 @@ static void
 list_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(GPtrArray) snaps = NULL;
-    AsyncData *data = user_data;
+    g_autoptr(AsyncData) data = user_data;
     g_autoptr(GError) error = NULL;
 
     snaps = snapd_client_list_finish (SNAPD_CLIENT (object), result, &error);
@@ -655,7 +655,7 @@ static void
 list_one_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(SnapdSnap) snap = NULL;
-    AsyncData *data = user_data;
+    g_autoptr(AsyncData) data = user_data;
     g_autoptr(GError) error = NULL;
 
     snap = snapd_client_list_one_finish (SNAPD_CLIENT (object), result, &error);
@@ -946,7 +946,7 @@ icon_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(SnapdIcon) icon = NULL;
     GBytes *icon_data;
-    AsyncData *data = user_data;
+    g_autoptr(AsyncData) data = user_data;
     g_autoptr(GError) error = NULL;
 
     icon = snapd_client_get_icon_finish (SNAPD_CLIENT (object), result, &error);
@@ -1852,7 +1852,7 @@ static void
 find_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(GPtrArray) snaps = NULL;
-    AsyncData *data = user_data;
+    g_autoptr(AsyncData) data = user_data;
     g_autoptr(GError) error = NULL;
 
     snaps = snapd_client_find_finish (SNAPD_CLIENT (object), result, NULL, &error);

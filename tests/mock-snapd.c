@@ -2966,17 +2966,33 @@ accept_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
     return G_SOURCE_CONTINUE;
 }
 
+static gboolean
+mock_snapd_thread_quit (gpointer user_data)
+{
+    MockSnapd *snapd = MOCK_SNAPD (user_data);
+
+    g_main_loop_quit (snapd->loop);
+
+    return FALSE;
+}
+
 static void
 mock_snapd_finalize (GObject *object)
 {
     MockSnapd *snapd = MOCK_SNAPD (object);
 
-    g_mutex_clear (&snapd->mutex);
+    if (snapd->thread != NULL) {
+        g_main_context_invoke (snapd->context, mock_snapd_thread_quit, snapd);
+        g_thread_join (snapd->thread);
+        snapd->thread = NULL;
+    }
 
     if (snapd->socket != NULL)
         g_socket_close (snapd->socket, NULL);
-    g_unlink (snapd->socket_path);
-    g_rmdir (snapd->dir_path);
+    if (g_unlink (snapd->socket_path) < 0)
+        g_printerr ("Failed to mock snapd socket\n");
+    if (g_rmdir (snapd->dir_path) < 0)
+        g_printerr ("Failed to remove temporary directory\n");
 
     g_clear_pointer (&snapd->dir_path, g_free);
     g_clear_pointer (&snapd->socket_path, g_free);
@@ -3010,12 +3026,14 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->last_request_headers, soup_message_headers_free);
     g_clear_pointer (&snapd->context, g_main_context_unref);
     g_clear_pointer (&snapd->loop, g_main_loop_unref);
+
+    g_mutex_clear (&snapd->mutex);
 }
 
 gpointer
 mock_snapd_init_thread (gpointer user_data)
 {
-    g_autoptr(MockSnapd) snapd = g_object_ref (MOCK_SNAPD (user_data));
+    MockSnapd *snapd = MOCK_SNAPD (user_data);
 
     /* We create & manage the lifecycle of this thread */
     g_main_context_push_thread_default (snapd->context);
@@ -3062,16 +3080,6 @@ mock_snapd_start (MockSnapd *snapd, GError **error)
     return TRUE;
 }
 
-static gboolean
-mock_snapd_thread_quit (gpointer user_data)
-{
-    MockSnapd *snapd = MOCK_SNAPD (user_data);
-
-    g_main_loop_quit (snapd->loop);
-
-    return FALSE;
-}
-
 void
 mock_snapd_stop (MockSnapd *snapd)
 {
@@ -3091,6 +3099,7 @@ mock_snapd_stop (MockSnapd *snapd)
 
     g_main_context_invoke (snapd->context, mock_snapd_thread_quit, snapd);
     g_thread_join (snapd->thread);
+    snapd->thread = NULL;
 }
 
 static void
