@@ -242,13 +242,13 @@ QSnapdFindRequest::~QSnapdFindRequest ()
 QSnapdFindRequest *QSnapdClient::find (FindFlags flags)
 {
     Q_D(QSnapdClient);
-    return new QSnapdFindRequest (flags, QString (), NULL, d->client);
+    return new QSnapdFindRequest (flags, NULL, NULL, d->client);
 }
 
 QSnapdFindRequest *QSnapdClient::find (FindFlags flags, const QString& name)
 {
     Q_D(QSnapdClient);
-    return new QSnapdFindRequest (flags, QString (), name, d->client);
+    return new QSnapdFindRequest (flags, NULL, name, d->client);
 }
 
 QSnapdFindRequest *QSnapdClient::findSection (FindFlags flags, const QString &section, const QString& name)
@@ -1004,7 +1004,7 @@ void QSnapdFindRequest::runSync ()
     Q_D(QSnapdFindRequest);
     g_autoptr(GError) error = NULL;
     g_autofree gchar *suggested_currency = NULL;
-    d->snaps = snapd_client_find_section_sync (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.toStdString().c_str (), d->name.toStdString ().c_str (), &suggested_currency, G_CANCELLABLE (getCancellable ()), &error);
+    d->snaps = snapd_client_find_section_sync (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.isNull () ? NULL : d->section.toStdString().c_str (), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), &suggested_currency, G_CANCELLABLE (getCancellable ()), &error);
     d->suggestedCurrency = suggested_currency;
     finish (error);
 }
@@ -1032,7 +1032,7 @@ static void find_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
 void QSnapdFindRequest::runAsync ()
 {
     Q_D(QSnapdFindRequest);
-    snapd_client_find_section_async (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.toStdString ().c_str (), d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, (gpointer) this);
+    snapd_client_find_section_async (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.isNull () ? NULL : d->section.toStdString ().c_str (), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, (gpointer) this);
 }
 
 int QSnapdFindRequest::snapCount () const
