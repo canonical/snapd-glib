@@ -50,6 +50,8 @@ struct _MockSnapd
 {
     GObject parent_instance;
 
+    GMutex mutex;
+
     GThread *thread;
     GMainLoop *loop;
     GMainContext *context;
@@ -208,7 +210,12 @@ mock_snapd_set_close_on_request (MockSnapd *snapd, gboolean close_on_request)
 void
 mock_snapd_stop (MockSnapd *snapd)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
     g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+
     g_socket_close (snapd->server_socket, NULL);
     if (snapd->read_source != NULL)
         g_source_destroy (snapd->read_source);
@@ -218,6 +225,11 @@ mock_snapd_stop (MockSnapd *snapd)
 void
 mock_snapd_set_confinement (MockSnapd *snapd, const gchar *confinement)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
     g_free (snapd->confinement);
     snapd->confinement = g_strdup (confinement);
 }
@@ -225,6 +237,11 @@ mock_snapd_set_confinement (MockSnapd *snapd, const gchar *confinement)
 void
 mock_snapd_set_store (MockSnapd *snapd, const gchar *name)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
     g_free (snapd->store);
     snapd->store = g_strdup (name);
 }
@@ -232,18 +249,33 @@ mock_snapd_set_store (MockSnapd *snapd, const gchar *name)
 void
 mock_snapd_set_managed (MockSnapd *snapd, gboolean managed)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
     snapd->managed = managed;
 }
 
 void
 mock_snapd_set_on_classic (MockSnapd *snapd, gboolean on_classic)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
     snapd->on_classic = on_classic;
 }
 
 void
 mock_snapd_set_suggested_currency (MockSnapd *snapd, const gchar *currency)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
     g_free (snapd->suggested_currency);
     snapd->suggested_currency = g_strdup (currency);
 }
@@ -251,6 +283,11 @@ mock_snapd_set_suggested_currency (MockSnapd *snapd, const gchar *currency)
 void
 mock_snapd_set_spawn_time (MockSnapd *snapd, const gchar *spawn_time)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
     g_free (snapd->spawn_time);
     snapd->spawn_time = g_strdup (spawn_time);
 }
@@ -258,6 +295,11 @@ mock_snapd_set_spawn_time (MockSnapd *snapd, const gchar *spawn_time)
 void
 mock_snapd_set_ready_time (MockSnapd *snapd, const gchar *ready_time)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
     g_free (snapd->ready_time);
     snapd->ready_time = g_strdup (ready_time);
 }
@@ -265,7 +307,12 @@ mock_snapd_set_ready_time (MockSnapd *snapd, const gchar *ready_time)
 MockAccount *
 mock_snapd_add_account (MockSnapd *snapd, const gchar *username, const gchar *password, const gchar *otp)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
     MockAccount *account;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
 
     account = g_slice_new0 (MockAccount);
     account->username = g_strdup (username);
@@ -371,7 +418,12 @@ mock_account_free (MockAccount *account)
 MockSnap *
 mock_snapd_add_snap (MockSnapd *snapd, const gchar *name)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
     MockSnap *snap;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
 
     snap = mock_snap_new (name);
     snapd->snaps = g_list_append (snapd->snaps, snap);
@@ -379,8 +431,8 @@ mock_snapd_add_snap (MockSnapd *snapd, const gchar *name)
     return snap;
 }
 
-MockSnap *
-mock_snapd_find_snap (MockSnapd *snapd, const gchar *name)
+static MockSnap *
+find_snap (MockSnapd *snapd, const gchar *name)
 {
     GList *link;
 
@@ -393,18 +445,39 @@ mock_snapd_find_snap (MockSnapd *snapd, const gchar *name)
     return NULL;
 }
 
+MockSnap *
+mock_snapd_find_snap (MockSnapd *snapd, const gchar *name)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+    return find_snap (snapd, name);
+}
+
 void
 mock_snapd_add_store_section (MockSnapd *snapd, const gchar *name)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
     snapd->store_sections = g_list_append (snapd->store_sections, g_strdup (name));
 }
 
 MockSnap *
 mock_snapd_add_store_snap (MockSnapd *snapd, const gchar *name)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
     MockSnap *snap;
     MockTrack *track;
     MockChannel *channel;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
 
     snap = mock_snap_new (name);
     snap->download_size = 65535;
@@ -418,7 +491,7 @@ mock_snapd_add_store_snap (MockSnapd *snapd, const gchar *name)
 }
 
 static MockSnap *
-mock_snapd_find_store_snap_by_name (MockSnapd *snapd, const gchar *name, const gchar *channel,  const gchar *revision)
+find_store_snap_by_name (MockSnapd *snapd, const gchar *name, const gchar *channel,  const gchar *revision)
 {
     GList *link;
 
@@ -434,7 +507,7 @@ mock_snapd_find_store_snap_by_name (MockSnapd *snapd, const gchar *name, const g
 }
 
 static MockSnap *
-mock_snapd_find_store_snap_by_id (MockSnapd *snapd, const gchar *id)
+find_store_snap_by_id (MockSnapd *snapd, const gchar *id)
 {
     GList *link;
 
@@ -809,21 +882,41 @@ find_slot (MockSnap *snap, const gchar *name)
     return NULL;
 }
 
+static void
+add_assertion (MockSnapd *snapd, const gchar *assertion)
+{
+    snapd->assertions = g_list_append (snapd->assertions, g_strdup (assertion));
+}
+
 void
 mock_snapd_add_assertion (MockSnapd *snapd, const gchar *assertion)
 {
-    snapd->assertions = g_list_append (snapd->assertions, g_strdup (assertion));
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+    return add_assertion (snapd, assertion);
 }
 
 GList *
 mock_snapd_get_assertions (MockSnapd *snapd)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
     return snapd->assertions;
 }
 
 const gchar *
 mock_snapd_get_last_user_agent (MockSnapd *snapd)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+
     if (snapd->last_request_headers == NULL)
         return NULL;
 
@@ -833,6 +926,12 @@ mock_snapd_get_last_user_agent (MockSnapd *snapd)
 const gchar *
 mock_snapd_get_last_accept_language (MockSnapd *snapd)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+
     if (snapd->last_request_headers == NULL)
         return NULL;
 
@@ -842,6 +941,12 @@ mock_snapd_get_last_accept_language (MockSnapd *snapd)
 const gchar *
 mock_snapd_get_last_allow_interaction (MockSnapd *snapd)
 {
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+
     if (snapd->last_request_headers == NULL)
         return NULL;
 
@@ -966,6 +1071,7 @@ read_data (MockSnapd *snapd, gsize size)
                                &error);
     if (n_read == 0)
         return FALSE;
+
     if (n_read < 0) {
         g_printerr ("read error: %s\n", error->message);
         return FALSE;
@@ -1574,7 +1680,7 @@ get_refreshable_snaps (MockSnapd *snapd)
         MockSnap *store_snap = link->data;
         MockSnap *snap;
 
-        snap = mock_snapd_find_snap (snapd, store_snap->name);
+        snap = find_snap (snapd, store_snap->name);
         if (snap != NULL && strcmp (store_snap->revision, snap->revision) > 0)
             refreshable_snaps = g_list_append (refreshable_snaps, store_snap);
     }
@@ -1740,7 +1846,7 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
     if (strcmp (method, "GET") == 0) {
         MockSnap *snap;
 
-        snap = mock_snapd_find_snap (snapd, name);
+        snap = find_snap (snapd, name);
         if (snap != NULL)
             send_sync_response (snapd, 200, "OK", make_snap_node (snap), NULL);
         else
@@ -1778,13 +1884,13 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
             MockChange *change;
             MockTask *task;
 
-            snap = mock_snapd_find_snap (snapd, name);
+            snap = find_snap (snapd, name);
             if (snap != NULL) {
                 send_error_bad_request (snapd, "snap is already installed", "snap-already-installed");
                 return;
             }
 
-            snap = mock_snapd_find_store_snap_by_name (snapd, name, channel, revision);
+            snap = find_store_snap_by_name (snapd, name, channel, revision);
             if (snap == NULL) {
                 send_error_bad_request (snapd, "cannot install, snap not found", NULL);
                 return;
@@ -1818,13 +1924,13 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
         else if (strcmp (action, "refresh") == 0) {
             MockSnap *snap;
 
-            snap = mock_snapd_find_snap (snapd, name);
+            snap = find_snap (snapd, name);
             if (snap != NULL)
             {
                 MockSnap *store_snap;
 
                 /* Find if we have a store snap with a newer revision */
-                store_snap = mock_snapd_find_store_snap_by_name (snapd, name, channel, NULL);
+                store_snap = find_store_snap_by_name (snapd, name, channel, NULL);
                 if (store_snap != NULL && strcmp (store_snap->revision, snap->revision) > 0) {
                     MockChange *change;
 
@@ -1843,7 +1949,7 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
         else if (strcmp (action, "remove") == 0) {
             MockSnap *snap;
 
-            snap = mock_snapd_find_snap (snapd, name);
+            snap = find_snap (snapd, name);
             if (snap != NULL)
             {
                 MockChange *change;
@@ -1862,7 +1968,7 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
         else if (strcmp (action, "enable") == 0) {
             MockSnap *snap;
 
-            snap = mock_snapd_find_snap (snapd, name);
+            snap = find_snap (snapd, name);
             if (snap != NULL)
             {
                 MockChange *change;
@@ -1883,7 +1989,7 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
         else if (strcmp (action, "disable") == 0) {
             MockSnap *snap;
 
-            snap = mock_snapd_find_snap (snapd, name);
+            snap = find_snap (snapd, name);
             if (snap != NULL)
             {
                 MockChange *change;
@@ -1925,7 +2031,7 @@ handle_icon (MockSnapd *snapd, const gchar *method, const gchar *path)
     }
     name = g_strndup (path, strlen (path) - strlen ("/icon"));
 
-    snap = mock_snapd_find_snap (snapd, name);
+    snap = find_snap (snapd, name);
     if (snap == NULL)
         send_error_not_found (snapd, "cannot find snap");
     else if (snap->icon_data == NULL)
@@ -1968,7 +2074,7 @@ handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type, Sou
         send_response (snapd, 200, "OK", "application/x.ubuntu.assertion; bundle=y", (guint8*) response_content->str, response_content->len);
     }
     else if (strcmp (method, "POST") == 0) {
-        mock_snapd_add_assertion (snapd, g_strndup (body->data, body->length));
+        add_assertion (snapd, g_strndup (body->data, body->length));
         send_sync_response (snapd, 200, "OK", NULL, NULL);
     }
     else {
@@ -2092,7 +2198,7 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
             MockSnap *snap;
             MockPlug *plug;
 
-            snap = mock_snapd_find_snap (snapd, json_object_get_string_member (po, "snap"));
+            snap = find_snap (snapd, json_object_get_string_member (po, "snap"));
             if (snap == NULL) {
                 send_error_bad_request (snapd, "invalid snap", NULL);
                 return;
@@ -2111,7 +2217,7 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
             MockSnap *snap;
             MockSlot *slot;
 
-            snap = mock_snapd_find_snap (snapd, json_object_get_string_member (so, "snap"));
+            snap = find_snap (snapd, json_object_get_string_member (so, "snap"));
             if (snap == NULL) {
                 send_error_bad_request (snapd, "invalid snap", NULL);
                 return;
@@ -2541,7 +2647,7 @@ handle_buy (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, 
     price = json_object_get_double_member (o, "price");
     currency = json_object_get_string_member (o, "currency");
 
-    snap = mock_snapd_find_store_snap_by_id (snapd, snap_id);
+    snap = find_store_snap_by_id (snapd, snap_id);
     if (snap == NULL) {
         send_error_not_found (snapd, "not found"); // FIXME: Check is error snapd returns
         return;
@@ -2642,7 +2748,7 @@ handle_aliases (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
         }
 
         o = json_node_get_object (request);
-        snap = mock_snapd_find_snap (snapd, json_object_get_string_member (o, "snap"));
+        snap = find_snap (snapd, json_object_get_string_member (o, "snap"));
         if (snap == NULL) {
             send_error_not_found (snapd, "cannot find snap");
             return;
@@ -2769,6 +2875,7 @@ handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMe
 static gboolean
 read_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
 {
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&snapd->mutex);
     g_autoptr(GError) error = NULL;
 
     if (!read_data (snapd, 1024))
@@ -2822,24 +2929,12 @@ read_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
     return G_SOURCE_CONTINUE;
 }
 
-static gboolean
-mock_snapd_thread_quit (gpointer user_data)
-{
-    MockSnapd *snapd = MOCK_SNAPD (user_data);
-
-    g_main_loop_quit (snapd->loop);
-
-    return FALSE;
-}
-
 static void
 mock_snapd_finalize (GObject *object)
 {
     MockSnapd *snapd = MOCK_SNAPD (object);
 
-    g_main_context_invoke (snapd->context,
-                           mock_snapd_thread_quit,
-                           snapd);
+    g_mutex_clear (&snapd->mutex);
 
     g_thread_join (snapd->thread);
     snapd->thread = NULL;
@@ -2887,7 +2982,7 @@ mock_snapd_class_init (MockSnapdClass *klass)
 gpointer
 mock_snapd_init_thread (gpointer user_data)
 {
-    MockSnapd *snapd = MOCK_SNAPD (user_data);
+    g_autoptr(MockSnapd) snapd = g_object_ref (MOCK_SNAPD (user_data));
 
     /* We create & manage the lifecycle of this thread */
     g_main_context_push_thread_default (snapd->context);
@@ -2901,6 +2996,8 @@ static void
 mock_snapd_init (MockSnapd *snapd)
 {
     int fds[2];
+
+    g_mutex_init (&snapd->mutex);
 
     snapd->context = g_main_context_new ();
     snapd->loop = g_main_loop_new (snapd->context, FALSE);
