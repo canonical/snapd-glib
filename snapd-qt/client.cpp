@@ -86,6 +86,18 @@ QSnapdLoginRequest *QSnapdClient::login (const QString& username, const QString&
     return new QSnapdLoginRequest (d->client, username, password, otp);
 }
 
+void QSnapdClient::setSocketPath (const QString &socketPath)
+{
+    Q_D(QSnapdClient);
+    snapd_client_set_socket_path (d->client, socketPath.isNull () ? NULL : socketPath.toStdString ().c_str ());
+}
+
+QString QSnapdClient::socketPath () const
+{
+    Q_D(const QSnapdClient);
+    return snapd_client_get_socket_path (d->client);
+}
+
 void QSnapdClient::setUserAgent (const QString &userAgent)
 {
     Q_D(QSnapdClient);

@@ -73,6 +73,9 @@
 
 typedef struct
 {
+    /* Socket path to connect to */
+    gchar *socket_path;
+
     /* Socket to communicate with snapd */
     GSocket *snapd_socket;
 
@@ -2048,7 +2051,7 @@ snapd_client_connect_async (SnapdClient *client,
             return;
         }
         g_socket_set_blocking (priv->snapd_socket, FALSE);
-        address = g_unix_socket_address_new (SNAPD_SOCKET);
+        address = g_unix_socket_address_new (priv->socket_path);
         if (!g_socket_connect (priv->snapd_socket, address, cancellable, &error_local)) {
             g_clear_object (&priv->snapd_socket);
             g_task_return_new_error (task,
@@ -2084,6 +2087,52 @@ snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError *
     g_return_val_if_fail (G_IS_TASK (result), FALSE);
 
     return g_task_propagate_boolean (G_TASK (result), error);
+}
+
+/**
+ * snapd_client_set_socket_path:
+ * @client: a #SnapdClient
+ * @socket_path: (allow-none): a socket path or %NULL to reset to the default.
+ *
+ * Set the Unix socket path to connect to snapd with.
+ * Defaults to the system socket.
+ *
+ * Since: 1.24
+ */
+void
+snapd_client_set_socket_path (SnapdClient *client, const gchar *socket_path)
+{
+    SnapdClientPrivate *priv;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    priv = snapd_client_get_instance_private (client);
+    g_free (priv->socket_path);
+    if (priv->socket_path != NULL)
+        priv->socket_path = g_strdup (socket_path);
+    else
+        priv->socket_path = g_strdup (SNAPD_SOCKET);
+}
+
+/**
+ * snapd_client_get_socket_path:
+ * @client: a #SnapdClient
+ *
+ * Get the unix socket path to connect to snapd with.
+ *
+ * Returns: socket path.
+ *
+ * Since: 1.24
+ */
+const gchar *
+snapd_client_get_socket_path (SnapdClient *client)
+{
+    SnapdClientPrivate *priv;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    priv = snapd_client_get_instance_private (client);
+    return priv->socket_path;
 }
 
 /**
@@ -4551,6 +4600,7 @@ snapd_client_finalize (GObject *object)
 
     g_mutex_clear (&priv->requests_mutex);
     g_mutex_clear (&priv->buffer_mutex);
+    g_clear_pointer (&priv->socket_path, g_free);
     g_clear_pointer (&priv->user_agent, g_free);
     g_clear_object (&priv->auth_data);
     g_list_free_full (priv->requests, g_object_unref);
@@ -4574,6 +4624,7 @@ snapd_client_init (SnapdClient *client)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
 
+    priv->socket_path = g_strdup (SNAPD_SOCKET);
     priv->user_agent = g_strdup ("snapd-glib/" VERSION);
     priv->allow_interaction = TRUE;
     priv->buffer = g_byte_array_new ();

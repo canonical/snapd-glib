@@ -92,6 +92,8 @@ SnapdCreateUserFlags
 SnapdProgressCallback
 snapd_client_new
 snapd_client_new_from_socket
+snapd_client_set_socket_path
+snapd_client_get_socket_path
 snapd_client_get_allow_interaction
 snapd_client_set_allow_interaction
 snapd_client_connect_sync

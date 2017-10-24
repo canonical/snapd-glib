@@ -541,6 +541,7 @@ class Q_DECL_EXPORT QSnapdClient : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QString socketPath READ socketPath WRITE setSocketPath)
     Q_PROPERTY(QString userAgent READ userAgent WRITE setUserAgent)
     Q_PROPERTY(bool allowInteraction READ allowInteraction WRITE setAllowInteraction)
     Q_FLAGS(FindFlags)
@@ -567,6 +568,8 @@ public:
     Q_INVOKABLE QSnapdConnectRequest *connect ();
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password);
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
+    Q_INVOKABLE void setSocketPath (const QString &socketPath);
+    Q_INVOKABLE QString socketPath () const;
     Q_INVOKABLE void setUserAgent (const QString &userAgent);
     Q_INVOKABLE QString userAgent () const;
     Q_INVOKABLE void setAllowInteraction (bool allowInteraction);
