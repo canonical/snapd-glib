@@ -235,24 +235,6 @@ mock_snapd_set_close_on_request (MockSnapd *snapd, gboolean close_on_request)
 }
 
 void
-mock_snapd_stop (MockSnapd *snapd)
-{
-    g_autoptr(GMutexLocker) locker = NULL;
-
-    g_return_if_fail (MOCK_IS_SNAPD (snapd));
-
-    locker = g_mutex_locker_new (&snapd->mutex);
-
-    g_list_free_full (snapd->clients, (GDestroyNotify) mock_client_free);
-    snapd->clients = NULL;
-    g_socket_close (snapd->socket, NULL);
-    g_clear_object (&snapd->socket);
-    if (snapd->read_source != NULL)
-        g_source_destroy (snapd->read_source);
-    g_clear_pointer (&snapd->read_source, g_source_unref);
-}
-
-void
 mock_snapd_set_confinement (MockSnapd *snapd, const gchar *confinement)
 {
     g_autoptr(GMutexLocker) locker = NULL;
@@ -3030,14 +3012,6 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->loop, g_main_loop_unref);
 }
 
-static void
-mock_snapd_class_init (MockSnapdClass *klass)
-{
-    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-
-    gobject_class->finalize = mock_snapd_finalize;
-}
-
 gpointer
 mock_snapd_init_thread (gpointer user_data)
 {
@@ -3051,36 +3025,31 @@ mock_snapd_init_thread (gpointer user_data)
     return NULL;
 }
 
-static void
-mock_snapd_init (MockSnapd *snapd)
+gboolean
+mock_snapd_start (MockSnapd *snapd, GError **error)
 {
     g_autoptr(GSocketAddress) address = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMutexLocker) locker = NULL;
 
-    g_mutex_init (&snapd->mutex);
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), FALSE);
 
-    snapd->context = g_main_context_new ();
-    snapd->loop = g_main_loop_new (snapd->context, FALSE);
+    locker = g_mutex_locker_new (&snapd->mutex);
 
-    snapd->dir_path = g_dir_make_tmp ("mock-snapd-XXXXXX", &error);
+    snapd->dir_path = g_dir_make_tmp ("mock-snapd-XXXXXX", error);
     if (snapd->dir_path == NULL)
-        g_warning ("Failed to make temporary directory: %s", error->message);
-    g_clear_error (&error);
+        return FALSE;
     snapd->socket_path = g_build_filename (snapd->dir_path, "snapd.socket", NULL);
     snapd->socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
                                   G_SOCKET_TYPE_STREAM,
                                   G_SOCKET_PROTOCOL_DEFAULT,
-                                  &error);
+                                  error);
     if (snapd->socket == NULL)
-        g_warning ("Failed to make socket: %s", error->message);
-    g_clear_error (&error);
+        return FALSE;
     address = g_unix_socket_address_new (snapd->socket_path);
-    if (!g_socket_bind (snapd->socket, address, TRUE, &error))
-        g_warning ("Failed to bind: %s", error->message);
-    g_clear_error (&error);
-    if (!g_socket_listen (snapd->socket, &error))
-        g_warning ("Failed to listen: %s", error->message);
-    g_clear_error (&error);
+    if (!g_socket_bind (snapd->socket, address, TRUE, error))
+        return FALSE;
+    if (!g_socket_listen (snapd->socket, error))
+        return FALSE;
 
     snapd->read_source = g_socket_create_source (snapd->socket, G_IO_IN, NULL);
     g_source_set_callback (snapd->read_source, (GSourceFunc) accept_cb, snapd, NULL);
@@ -3089,4 +3058,54 @@ mock_snapd_init (MockSnapd *snapd)
     snapd->thread = g_thread_new ("mock_snapd_thread",
                                   mock_snapd_init_thread,
                                   snapd);
+
+    return TRUE;
+}
+
+static gboolean
+mock_snapd_thread_quit (gpointer user_data)
+{
+    MockSnapd *snapd = MOCK_SNAPD (user_data);
+
+    g_main_loop_quit (snapd->loop);
+
+    return FALSE;
+}
+
+void
+mock_snapd_stop (MockSnapd *snapd)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+
+    g_list_free_full (snapd->clients, (GDestroyNotify) mock_client_free);
+    snapd->clients = NULL;
+    g_socket_close (snapd->socket, NULL);
+    g_clear_object (&snapd->socket);
+    if (snapd->read_source != NULL)
+        g_source_destroy (snapd->read_source);
+    g_clear_pointer (&snapd->read_source, g_source_unref);
+
+    g_main_context_invoke (snapd->context, mock_snapd_thread_quit, snapd);
+    g_thread_join (snapd->thread);
+}
+
+static void
+mock_snapd_class_init (MockSnapdClass *klass)
+{
+    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+    gobject_class->finalize = mock_snapd_finalize;
+}
+
+static void
+mock_snapd_init (MockSnapd *snapd)
+{
+    g_mutex_init (&snapd->mutex);
+
+    snapd->context = g_main_context_new ();
+    snapd->loop = g_main_loop_new (snapd->context, FALSE);
 }

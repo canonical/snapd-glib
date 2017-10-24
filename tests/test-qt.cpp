@@ -20,6 +20,7 @@ static void
 test_socket_closed_before_request ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -39,6 +40,7 @@ test_socket_closed_after_request (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_close_on_request (snapd, TRUE);
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -55,6 +57,7 @@ static void
 test_user_agent_default ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -74,6 +77,7 @@ static void
 test_user_agent_custom ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -92,6 +96,7 @@ static void
 test_user_agent_null ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -115,6 +120,7 @@ test_accept_language (void)
     g_setenv ("LC_MESSAGES", "", TRUE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -137,6 +143,7 @@ test_accept_language_empty (void)
     g_setenv ("LC_MESSAGES", "", TRUE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -154,6 +161,7 @@ static void
 test_allow_interaction ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -185,6 +193,7 @@ test_get_system_information ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -237,6 +246,7 @@ test_get_system_information_async ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -256,6 +266,7 @@ test_get_system_information_store ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_store (snapd, "store");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -275,6 +286,7 @@ test_get_system_information_confinement_strict ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "strict");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -294,6 +306,7 @@ test_get_system_information_confinement_none ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "partial");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -313,6 +326,7 @@ test_get_system_information_confinement_unknown ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "NOT_DEFINED");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -332,6 +346,7 @@ test_login ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -353,6 +368,7 @@ static void
 test_login_invalid_email ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -370,6 +386,7 @@ test_login_invalid_password ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -387,6 +404,7 @@ test_login_otp_missing ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_account (snapd, "test@example.com", "secret", "1234");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -404,6 +422,7 @@ test_login_otp_invalid ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_account (snapd, "test@example.com", "secret", "1234");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -423,6 +442,7 @@ test_list ()
     mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -466,6 +486,7 @@ test_list_async ()
     mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -485,6 +506,7 @@ test_list_one ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -565,6 +587,7 @@ test_list_one_async ()
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -600,6 +623,7 @@ test_list_one_optional_fields ()
     mock_snap_set_license (s, "LICENSE");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -650,6 +674,7 @@ static void
 test_list_one_not_installed ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -668,6 +693,7 @@ test_list_one_classic_confinement ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -688,6 +714,7 @@ test_list_one_devmode_confinement ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_confinement (s, "devmode");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -719,6 +746,7 @@ test_list_one_daemons ()
     mock_app_set_daemon (a, "dbus");
     a = mock_snap_add_app (s, "app6");
     mock_app_set_daemon (a, "INVALID");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -752,6 +780,7 @@ test_icon ()
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     g_autoptr(GBytes) icon_data = g_bytes_new ("ICON-DATA", 9);
     mock_snap_set_icon_data (s, "image/png", icon_data);
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -789,6 +818,7 @@ test_icon_async ()
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     g_autoptr(GBytes) icon_data = g_bytes_new ("ICON-DATA", 9);
     mock_snap_set_icon_data (s, "image/png", icon_data);
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -807,6 +837,7 @@ static void
 test_icon_not_installed ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -830,6 +861,7 @@ test_icon_large ()
         icon_buffer[i] = i % 255;
     g_autoptr(GBytes) icon_data = g_bytes_new (icon_buffer, icon_buffer_length);
     mock_snap_set_icon_data (s, "image/png", icon_data);
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -858,6 +890,7 @@ test_get_assertions ()
                               "  map-value: foo\n"
                               "\n"
                               "SIGNATURE");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -889,6 +922,7 @@ test_get_assertions_body ()
                               "BODY\n"
                               "\n"
                               "SIGNATURE");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -927,6 +961,7 @@ test_get_assertions_multiple ()
                               "type: account\n"
                               "\n"
                               "SIGNATURE3");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -956,6 +991,7 @@ static void
 test_get_assertions_invalid ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -972,6 +1008,7 @@ static void
 test_add_assertions ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1033,6 +1070,7 @@ test_get_interfaces ()
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *p = mock_snap_add_plug (s, "plug1");
     p->connection = sl;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1080,6 +1118,7 @@ static void
 test_get_interfaces_no_snaps ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1102,6 +1141,7 @@ test_connect_interface ()
     MockSlot *slot = mock_snap_add_slot (s, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *plug = mock_snap_add_plug (s, "plug");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1123,6 +1163,7 @@ test_connect_interface_progress ()
     MockSlot *slot = mock_snap_add_slot (s, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *plug = mock_snap_add_plug (s, "plug");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1143,6 +1184,7 @@ static void
 test_connect_interface_invalid ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1164,6 +1206,7 @@ test_disconnect_interface ()
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *plug = mock_snap_add_plug (s, "plug");
     plug->connection = slot;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1186,6 +1229,7 @@ test_disconnect_interface_progress ()
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *plug = mock_snap_add_plug (s, "plug");
     plug->connection = slot;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1206,6 +1250,7 @@ static void
 test_disconnect_interface_invalid ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1237,6 +1282,7 @@ test_find_query ()
     mock_snap_add_screenshot (s, "screenshot0.png", 0, 0);
     mock_snap_add_screenshot (s, "screenshot1.png", 1024, 1024);
     s->trymode = TRUE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1303,6 +1349,7 @@ test_find_query_private ()
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_account_add_private_snap (a, "snap2");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1329,6 +1376,7 @@ static void
 test_find_query_private_not_logged_in ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1348,6 +1396,7 @@ test_find_name ()
     mock_snapd_add_store_snap (snapd, "snap");
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1369,6 +1418,7 @@ test_find_name_private ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
     mock_account_add_private_snap (a, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1395,6 +1445,7 @@ static void
 test_find_name_private_not_logged_in ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1420,6 +1471,7 @@ test_find_channels ()
     mock_channel_set_confinement (c, "classic");
     c->size = 10000;
     mock_snap_add_track (s, "TRACK");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1475,6 +1527,7 @@ test_find_cancel ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1502,6 +1555,7 @@ test_find_section ()
     s = mock_snapd_add_store_snap (snapd, "carrot1");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "carrot2");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1530,6 +1584,7 @@ test_find_section_query ()
     s = mock_snapd_add_store_snap (snapd, "carrot1");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "carrot2");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1557,6 +1612,7 @@ test_find_section_name ()
     mock_snap_add_store_section (s, "section");
     s = mock_snapd_add_store_snap (snapd, "carrot2");
     mock_snap_add_store_section (s, "section");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1586,6 +1642,7 @@ test_find_refreshable ()
     mock_snap_set_revision (s, "1");
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1609,6 +1666,7 @@ static void
 test_find_refreshable_no_updates ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1627,6 +1685,7 @@ test_install ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1652,6 +1711,7 @@ test_install_multiple ()
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1694,6 +1754,7 @@ test_install_async ()
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1735,6 +1796,7 @@ test_install_async_multiple ()
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1778,6 +1840,7 @@ test_install_async_failure ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_error (s, "ERROR");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1816,6 +1879,7 @@ test_install_async_cancel ()
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1866,6 +1930,7 @@ test_install_progress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1891,6 +1956,7 @@ test_install_needs_classic ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1911,6 +1977,7 @@ test_install_classic ()
     mock_snapd_set_on_classic (snapd, TRUE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1932,6 +1999,7 @@ test_install_needs_classic_system ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1951,6 +2019,7 @@ test_install_needs_devmode ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "devmode");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1970,6 +2039,7 @@ test_install_devmode ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "devmode");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -1990,6 +2060,7 @@ test_install_dangerous ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2010,6 +2081,7 @@ test_install_jailmode ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2033,6 +2105,7 @@ test_install_channel ()
     mock_snap_set_channel (s, "channel1");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_channel (s, "channel2");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2055,6 +2128,7 @@ test_install_revision ()
     mock_snap_set_revision (s, "1.2");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1.1");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2073,6 +2147,7 @@ static void
 test_install_not_available ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2090,6 +2165,7 @@ test_install_stream ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2119,6 +2195,7 @@ test_install_stream_progress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2147,6 +2224,7 @@ test_install_stream_classic ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2176,6 +2254,7 @@ test_install_stream_dangerous ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2205,6 +2284,7 @@ test_install_stream_devmode ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2234,6 +2314,7 @@ test_install_stream_jailmode ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2262,6 +2343,7 @@ static void
 test_try ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2281,6 +2363,7 @@ static void
 test_try_progress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2307,6 +2390,7 @@ test_refresh ()
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2327,6 +2411,7 @@ test_refresh_progress ()
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2354,6 +2439,7 @@ test_refresh_channel ()
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
     mock_snap_set_channel (s, "channel2");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2375,6 +2461,7 @@ test_refresh_no_updates ()
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "0");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2391,6 +2478,7 @@ static void
 test_refresh_not_installed ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2419,6 +2507,7 @@ test_refresh_all ()
     mock_snap_set_revision (s, "1");
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2448,6 +2537,7 @@ test_refresh_all_progress ()
     mock_snap_set_revision (s, "1");
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2470,6 +2560,7 @@ static void
 test_refresh_all_no_updates ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2488,6 +2579,7 @@ test_remove ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2518,6 +2610,7 @@ test_remove_async ()
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2551,6 +2644,7 @@ test_remove_async_failure ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_error (s, "ERROR");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2589,6 +2683,7 @@ test_remove_async_cancel ()
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2610,6 +2705,7 @@ test_remove_progress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2631,6 +2727,7 @@ static void
 test_remove_not_installed ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2649,6 +2746,7 @@ test_enable ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = TRUE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2668,6 +2766,7 @@ test_enable_progress ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = TRUE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2690,6 +2789,7 @@ test_enable_already_enabled ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = FALSE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2706,6 +2806,7 @@ static void
 test_enable_not_installed ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2726,6 +2827,7 @@ test_disable ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = FALSE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2745,6 +2847,7 @@ test_disable_progress ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = FALSE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2767,6 +2870,7 @@ test_disable_already_disabled ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = TRUE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2783,6 +2887,7 @@ static void
 test_disable_not_installed ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2804,6 +2909,7 @@ test_check_buy ()
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2829,6 +2935,7 @@ test_check_buy_terms_not_accepted ()
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
     a->terms_accepted = FALSE;
     a->has_payment_methods = TRUE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2854,6 +2961,7 @@ test_check_buy_no_payment_methods ()
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
     a->terms_accepted = TRUE;
     a->has_payment_methods = FALSE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2876,6 +2984,7 @@ static void
 test_check_buy_not_logged_in ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2898,6 +3007,7 @@ test_buy ()
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2923,6 +3033,7 @@ test_buy_not_logged_in ()
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2942,6 +3053,7 @@ test_buy_not_available ()
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2970,6 +3082,7 @@ test_buy_terms_not_accepted ()
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -2998,6 +3111,7 @@ test_buy_no_payment_methods ()
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3026,6 +3140,7 @@ test_buy_invalid_price ()
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3050,6 +3165,7 @@ test_get_sections ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_section (snapd, "SECTION1");
     mock_snapd_add_store_section (snapd, "SECTION2");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3079,6 +3195,7 @@ test_get_aliases ()
     s = mock_snapd_add_snap (snapd, "snap2");
     a = mock_snap_add_app (s, "app3");
     mock_app_add_alias (a, "alias3");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3111,6 +3228,7 @@ static void
 test_get_aliases_empty ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3131,6 +3249,7 @@ test_enable_aliases ()
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     MockApp *a = mock_snap_add_app (s, "app1");
     MockAlias *alias = mock_app_add_alias (a, "alias1");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3153,6 +3272,7 @@ test_enable_aliases_multiple ()
     MockAlias *alias1 = mock_app_add_alias (a, "alias1");
     a = mock_snap_add_app (s, "app2");
     MockAlias *alias2 = mock_app_add_alias (a, "alias2");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3174,6 +3294,7 @@ test_enable_aliases_progress ()
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     MockApp *a = mock_snap_add_app (s, "app1");
     MockAlias *alias = mock_app_add_alias (a, "alias1");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3197,6 +3318,7 @@ test_disable_aliases ()
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     MockApp *a = mock_snap_add_app (s, "app1");
     MockAlias *alias = mock_app_add_alias (a, "alias1");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3218,6 +3340,7 @@ test_reset_aliases ()
     MockApp *a = mock_snap_add_app (s, "app1");
     MockAlias *alias = mock_app_add_alias (a, "alias1");
     mock_alias_set_status (alias, "enabled");
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3235,6 +3358,7 @@ static void
 test_run_snapctl ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3255,6 +3379,7 @@ test_stress ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
+    g_assert (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));

@@ -150,6 +150,9 @@ const gchar    *mock_snapd_get_socket_path        (MockSnapd     *snapd);
 void            mock_snapd_set_close_on_request   (MockSnapd     *snapd,
                                                    gboolean       close_on_request);
 
+gboolean        mock_snapd_start                  (MockSnapd     *snapd,
+                                                   GError       **error);
+
 void            mock_snapd_stop                   (MockSnapd     *snapd);
 
 void            mock_snapd_set_confinement        (MockSnapd     *snapd,
