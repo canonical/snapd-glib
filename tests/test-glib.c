@@ -48,11 +48,13 @@ test_socket_closed_before_request (void)
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    mock_snapd_stop (snapd);
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
+
+    mock_snapd_stop (snapd);
 
     info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert (info == NULL);
@@ -70,7 +72,8 @@ test_socket_closed_after_request (void)
     snapd = mock_snapd_new ();
     mock_snapd_set_close_on_request (snapd, TRUE);
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -89,7 +92,8 @@ test_user_agent_default (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -111,7 +115,8 @@ test_user_agent_custom (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -132,7 +137,8 @@ test_user_agent_null (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -158,7 +164,8 @@ test_accept_language (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -183,7 +190,8 @@ test_accept_language_empty (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -202,7 +210,8 @@ test_allow_interaction (void)
     g_autoptr(SnapdSystemInformation) info = NULL;
 
     snapd = mock_snapd_new ();
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -236,7 +245,8 @@ test_get_system_information (void)
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -295,7 +305,8 @@ test_get_system_information_async (void)
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -314,7 +325,8 @@ test_get_system_information_store (void)
     snapd = mock_snapd_new ();
     mock_snapd_set_store (snapd, "store");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -335,7 +347,8 @@ test_get_system_information_confinement_strict (void)
     snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "strict");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -356,7 +369,8 @@ test_get_system_information_confinement_none (void)
     snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "partial");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -377,7 +391,8 @@ test_get_system_information_confinement_unknown (void)
     snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "NOT_DEFINED");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -400,7 +415,8 @@ test_login (void)
     snapd = mock_snapd_new ();
     a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -423,7 +439,8 @@ test_login_invalid_email (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -443,7 +460,8 @@ test_login_invalid_password (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -463,7 +481,8 @@ test_login_otp_missing (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_account (snapd, "test@example.com", "secret", "1234");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -483,7 +502,8 @@ test_login_otp_invalid (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_account (snapd, "test@example.com", "secret", "1234");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -505,7 +525,8 @@ test_list (void)
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -551,7 +572,8 @@ test_list_async (void)
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -570,7 +592,8 @@ test_list_one (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -657,7 +680,8 @@ test_list_one_async (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -697,7 +721,8 @@ test_list_one_optional_fields (void)
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -750,7 +775,8 @@ test_list_one_not_installed (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -772,7 +798,8 @@ test_list_one_classic_confinement (void)
     s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -795,7 +822,8 @@ test_list_one_devmode_confinement (void)
     s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_confinement (s, "devmode");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -831,7 +859,8 @@ test_list_one_daemons (void)
     a = mock_snap_add_app (s, "app6");
     mock_app_set_daemon (a, "INVALID");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -869,7 +898,8 @@ test_icon (void)
     icon_data = g_bytes_new ("ICON-DATA", 9);
     mock_snap_set_icon_data (s, "image/png", icon_data);
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -916,7 +946,8 @@ test_icon_async (void)
     icon_data = g_bytes_new ("ICON-DATA", 9);
     mock_snap_set_icon_data (s, "image/png", icon_data);
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -934,7 +965,8 @@ test_icon_not_installed (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -964,7 +996,8 @@ test_icon_large (void)
     icon_data = g_bytes_new (icon_buffer, icon_buffer_length);
     mock_snap_set_icon_data (s, "image/png", icon_data);
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -994,7 +1027,8 @@ test_get_assertions (void)
                               "\n"
                               "SIGNATURE");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1028,7 +1062,8 @@ test_get_assertions_body (void)
                               "\n"
                               "SIGNATURE");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1069,7 +1104,8 @@ test_get_assertions_multiple (void)
                               "\n"
                               "SIGNATURE3");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1101,7 +1137,8 @@ test_get_assertions_invalid (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1121,7 +1158,8 @@ test_add_assertions (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1208,7 +1246,8 @@ test_get_interfaces (void)
     p = mock_snap_add_plug (s, "plug1");
     p->connection = sl;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1265,7 +1304,8 @@ test_get_interfaces_no_snaps (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1295,7 +1335,8 @@ test_connect_interface (void)
     s = mock_snapd_add_snap (snapd, "snap2");
     plug = mock_snap_add_plug (s, "plug");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1335,7 +1376,8 @@ test_connect_interface_progress (void)
     s = mock_snapd_add_snap (snapd, "snap2");
     plug = mock_snap_add_plug (s, "plug");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1357,7 +1399,8 @@ test_connect_interface_invalid (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1384,7 +1427,8 @@ test_disconnect_interface (void)
     plug = mock_snap_add_plug (s, "plug");
     plug->connection = slot;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1425,7 +1469,8 @@ test_disconnect_interface_progress (void)
     plug = mock_snap_add_plug (s, "plug");
     plug->connection = slot;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1447,7 +1492,8 @@ test_disconnect_interface_invalid (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1487,7 +1533,8 @@ test_find_query (void)
     mock_snap_add_screenshot (s, "screenshot1.png", 1024, 1024);
     s->trymode = TRUE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1562,7 +1609,8 @@ test_find_query_private (void)
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_account_add_private_snap (a, "snap2");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1590,7 +1638,8 @@ test_find_query_private_not_logged_in (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1612,7 +1661,8 @@ test_find_name (void)
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1637,7 +1687,8 @@ test_find_name_private (void)
     a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
     mock_account_add_private_snap (a, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1665,7 +1716,8 @@ test_find_name_private_not_logged_in (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1700,7 +1752,8 @@ test_find_channels (void)
     c->size = 10000;
     mock_snap_add_track (s, "TRACK");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1769,7 +1822,8 @@ test_find_cancel (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1799,7 +1853,8 @@ test_find_section (void)
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "carrot2");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1829,7 +1884,8 @@ test_find_section_query (void)
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "carrot2");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1859,7 +1915,8 @@ test_find_section_name (void)
     s = mock_snapd_add_store_snap (snapd, "carrot2");
     mock_snap_add_store_section (s, "section");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1892,7 +1949,8 @@ test_find_refreshable (void)
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1917,7 +1975,8 @@ test_find_refreshable_no_updates (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1938,7 +1997,8 @@ test_install (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -1966,7 +2026,8 @@ test_install_multiple (void)
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2019,7 +2080,8 @@ test_install_async (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2067,7 +2129,8 @@ test_install_async_multiple (void)
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2113,7 +2176,8 @@ test_install_async_failure (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_error (s, "ERROR");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2151,7 +2215,8 @@ test_install_async_cancel (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2232,7 +2297,8 @@ test_install_progress (void)
     mock_snapd_set_ready_time (snapd, install_progress_data.ready_time);
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2255,7 +2321,8 @@ test_install_needs_classic (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2279,7 +2346,8 @@ test_install_classic (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2304,7 +2372,8 @@ test_install_needs_classic_system (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2327,7 +2396,8 @@ test_install_needs_devmode (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "devmode");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2350,7 +2420,8 @@ test_install_devmode (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "devmode");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2373,7 +2444,8 @@ test_install_dangerous (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2396,7 +2468,8 @@ test_install_jailmode (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2423,7 +2496,8 @@ test_install_channel (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_channel (s, "channel2");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2449,7 +2523,8 @@ test_install_revision (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1.1");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2470,7 +2545,8 @@ test_install_not_available (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2492,7 +2568,8 @@ test_install_stream (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2536,7 +2613,8 @@ test_install_stream_progress (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2565,7 +2643,8 @@ test_install_stream_classic (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2596,7 +2675,8 @@ test_install_stream_dangerous (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2627,7 +2707,8 @@ test_install_stream_devmode (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2658,7 +2739,8 @@ test_install_stream_jailmode (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2688,7 +2770,8 @@ test_try (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2725,7 +2808,8 @@ test_try_progress (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2754,7 +2838,8 @@ test_refresh (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2791,7 +2876,8 @@ test_refresh_progress (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2821,7 +2907,8 @@ test_refresh_channel (void)
     mock_snap_set_revision (s, "1");
     mock_snap_set_channel (s, "channel2");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2846,7 +2933,8 @@ test_refresh_no_updates (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "0");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2865,7 +2953,8 @@ test_refresh_not_installed (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2897,7 +2986,8 @@ test_refresh_all (void)
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2942,7 +3032,8 @@ test_refresh_all_progress (void)
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2965,7 +3056,8 @@ test_refresh_all_no_updates (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -2985,7 +3077,8 @@ test_remove (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3024,7 +3117,8 @@ test_remove_async (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3064,7 +3158,8 @@ test_remove_async_failure (void)
     s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_error (s, "ERROR");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3102,7 +3197,8 @@ test_remove_async_cancel (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3137,7 +3233,8 @@ test_remove_progress (void)
     snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3160,7 +3257,8 @@ test_remove_not_installed (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3182,7 +3280,8 @@ test_enable (void)
     s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = TRUE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3218,7 +3317,8 @@ test_enable_progress (void)
     s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = TRUE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3243,7 +3343,8 @@ test_enable_already_enabled (void)
     s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = FALSE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3262,7 +3363,8 @@ test_enable_not_installed (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3286,7 +3388,8 @@ test_disable (void)
     s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = FALSE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3322,7 +3425,8 @@ test_disable_progress (void)
     s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = FALSE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3347,7 +3451,8 @@ test_disable_already_disabled (void)
     s = mock_snapd_add_snap (snapd, "snap");
     s->disabled = TRUE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3366,7 +3471,8 @@ test_disable_not_installed (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3392,7 +3498,8 @@ test_check_buy (void)
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3421,7 +3528,8 @@ test_check_buy_terms_not_accepted (void)
     a->terms_accepted = FALSE;
     a->has_payment_methods = TRUE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3450,7 +3558,8 @@ test_check_buy_no_payment_methods (void)
     a->terms_accepted = TRUE;
     a->has_payment_methods = FALSE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3474,7 +3583,8 @@ test_check_buy_not_logged_in (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3502,7 +3612,8 @@ test_buy (void)
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3531,7 +3642,8 @@ test_buy_not_logged_in (void)
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3555,7 +3667,8 @@ test_buy_not_available (void)
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3588,7 +3701,8 @@ test_buy_terms_not_accepted (void)
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3621,7 +3735,8 @@ test_buy_no_payment_methods (void)
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3654,7 +3769,8 @@ test_buy_invalid_price (void)
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3680,7 +3796,8 @@ test_get_sections (void)
     mock_snapd_add_store_section (snapd, "SECTION1");
     mock_snapd_add_store_section (snapd, "SECTION2");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3716,7 +3833,8 @@ test_get_aliases (void)
     a = mock_snap_add_app (s, "app3");
     mock_app_add_alias (a, "alias3");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3751,7 +3869,8 @@ test_get_aliases_empty (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3778,7 +3897,8 @@ test_enable_aliases (void)
     a = mock_snap_add_app (s, "app1");
     alias = mock_app_add_alias (a, "alias1");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3808,7 +3928,8 @@ test_enable_aliases_multiple (void)
     a = mock_snap_add_app (s, "app2");
     alias2 = mock_app_add_alias (a, "alias2");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3850,7 +3971,8 @@ test_enable_aliases_progress (void)
     a = mock_snap_add_app (s, "app1");
     alias = mock_app_add_alias (a, "alias1");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3880,7 +4002,8 @@ test_disable_aliases (void)
     a = mock_snap_add_app (s, "app1");
     alias = mock_app_add_alias (a, "alias1");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3909,7 +4032,8 @@ test_reset_aliases (void)
     alias = mock_app_add_alias (a, "alias1");
     mock_alias_set_status (alias, "enabled");
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3933,7 +4057,8 @@ test_run_snapctl (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 
@@ -3955,7 +4080,8 @@ test_stress (void)
 
     snapd = mock_snapd_new ();
 
-    client = snapd_client_new_from_socket (mock_snapd_get_client_socket (snapd));
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
     snapd_client_connect_sync (client, NULL, &error);
     g_assert_no_error (error);
 

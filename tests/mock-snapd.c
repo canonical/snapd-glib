@@ -9,14 +9,26 @@
 
 #include "config.h"
 
-#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <libsoup/soup.h>
-#include <json-glib/json-glib.h>
+#include <string.h>
 #include <ctype.h>
 
+#include <glib/gstdio.h>
+#include <gio/gunixsocketaddress.h>
+#include <libsoup/soup.h>
+#include <json-glib/json-glib.h>
+
 #include "mock-snapd.h"
+
+typedef struct
+{
+    MockSnapd *snapd;
+    GSocket *socket;
+    GSource *read_source;
+    GByteArray *buffer;
+    gsize n_read;
+} MockClient;
 
 typedef struct
 {
@@ -56,11 +68,11 @@ struct _MockSnapd
     GMainLoop *loop;
     GMainContext *context;
 
-    GSocket *client_socket;
-    GSocket *server_socket;
+    gchar *dir_path;
+    gchar *socket_path;
+    GSocket *socket;
     GSource *read_source;
-    GByteArray *buffer;
-    gsize n_read;
+    GList *clients;
     gboolean close_on_request;
     GList *accounts;
     GList *snaps;
@@ -82,6 +94,21 @@ struct _MockSnapd
 };
 
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
+
+static void
+mock_client_free (MockClient *client)
+{
+    if (client->socket != NULL)
+        g_socket_close (client->socket, NULL);
+    g_clear_object (&client->socket);
+    if (client->read_source != NULL)
+        g_source_destroy (client->read_source);
+    g_clear_pointer (&client->read_source, g_source_unref);
+    g_clear_pointer (&client->buffer, g_byte_array_unref);
+    g_slice_free (MockClient, client);
+}
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(MockClient, mock_client_free)
 
 static void
 mock_alias_free (MockAlias *alias)
@@ -193,11 +220,11 @@ mock_snapd_new (void)
     return g_object_new (MOCK_TYPE_SNAPD, NULL);
 }
 
-GSocket *
-mock_snapd_get_client_socket (MockSnapd *snapd)
+const gchar *
+mock_snapd_get_socket_path (MockSnapd *snapd)
 {
     g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
-    return snapd->client_socket;
+    return snapd->socket_path;
 }
 
 void
@@ -216,7 +243,10 @@ mock_snapd_stop (MockSnapd *snapd)
 
     locker = g_mutex_locker_new (&snapd->mutex);
 
-    g_socket_close (snapd->server_socket, NULL);
+    g_list_free_full (snapd->clients, (GDestroyNotify) mock_client_free);
+    snapd->clients = NULL;
+    g_socket_close (snapd->socket, NULL);
+    g_clear_object (&snapd->socket);
     if (snapd->read_source != NULL)
         g_source_destroy (snapd->read_source);
     g_clear_pointer (&snapd->read_source, g_source_unref);
@@ -1057,15 +1087,15 @@ mock_change_free (MockChange *change)
 }
 
 static gboolean
-read_data (MockSnapd *snapd, gsize size)
+read_data (MockClient *client, gsize size)
 {
     gssize n_read;
     g_autoptr(GError) error = NULL;
 
-    if (snapd->n_read + size > snapd->buffer->len)
-        g_byte_array_set_size (snapd->buffer, snapd->n_read + size);
-    n_read = g_socket_receive (snapd->server_socket,
-                               (gchar *) (snapd->buffer->data + snapd->n_read),
+    if (client->n_read + size > client->buffer->len)
+        g_byte_array_set_size (client->buffer, client->n_read + size);
+    n_read = g_socket_receive (client->socket,
+                               (gchar *) (client->buffer->data + client->n_read),
                                size,
                                NULL,
                                &error);
@@ -1077,13 +1107,13 @@ read_data (MockSnapd *snapd, gsize size)
         return FALSE;
     }
 
-    snapd->n_read += n_read;
+    client->n_read += n_read;
 
     return TRUE;
 }
 
 static void
-write_data (MockSnapd *snapd, const gchar *content, gsize size)
+write_data (MockClient *client, const gchar *content, gsize size)
 {
     gsize total_written = 0;
 
@@ -1091,7 +1121,7 @@ write_data (MockSnapd *snapd, const gchar *content, gsize size)
         gssize n_written;
         g_autoptr(GError) error = NULL;
 
-        n_written = g_socket_send (snapd->server_socket, content + total_written, size - total_written, NULL, &error);
+        n_written = g_socket_send (client->socket, content + total_written, size - total_written, NULL, &error);
         if (n_written < 0) {
             g_warning ("Failed to write to snapd client: %s", error->message);
             return;
@@ -1101,7 +1131,7 @@ write_data (MockSnapd *snapd, const gchar *content, gsize size)
 }
 
 static void
-send_response (MockSnapd *snapd, guint status_code, const gchar *reason_phrase, const gchar *content_type, const guint8 *content, gsize content_length)
+send_response (MockClient *client, guint status_code, const gchar *reason_phrase, const gchar *content_type, const guint8 *content, gsize content_length)
 {
     g_autoptr(SoupMessageHeaders) headers = NULL;
     g_autoptr(GString) message = NULL;
@@ -1112,12 +1142,12 @@ send_response (MockSnapd *snapd, guint status_code, const gchar *reason_phrase, 
     g_string_append_printf (message, "Content-Length: %zi\r\n", content_length);
     g_string_append (message, "\r\n");
 
-    write_data (snapd, message->str, message->len);
-    write_data (snapd, (const gchar *) content, content_length);
+    write_data (client, message->str, message->len);
+    write_data (client, (const gchar *) content, content_length);
 }
 
 static void
-send_json_response (MockSnapd *snapd, guint status_code, const gchar *reason_phrase, JsonNode *node)
+send_json_response (MockClient *client, guint status_code, const gchar *reason_phrase, JsonNode *node)
 {
     g_autoptr(JsonGenerator) generator = NULL;
     g_autofree gchar *data;
@@ -1127,7 +1157,7 @@ send_json_response (MockSnapd *snapd, guint status_code, const gchar *reason_phr
     json_generator_set_root (generator, node);
     data = json_generator_to_data (generator, &data_length);
 
-    send_response (snapd, status_code, reason_phrase, "application/json", (guint8*) data, data_length);
+    send_response (client, status_code, reason_phrase, "application/json", (guint8*) data, data_length);
 }
 
 static JsonNode *
@@ -1162,25 +1192,25 @@ make_response (const gchar *type, guint status_code, const gchar *status, JsonNo
 }
 
 static void
-send_sync_response (MockSnapd *snapd, guint status_code, const gchar *reason_phrase, JsonNode *result, const gchar *suggested_currency)
+send_sync_response (MockClient *client, guint status_code, const gchar *reason_phrase, JsonNode *result, const gchar *suggested_currency)
 {
     g_autoptr(JsonNode) response = NULL;
 
     response = make_response ("sync", status_code, reason_phrase, result, NULL, suggested_currency);
-    send_json_response (snapd, status_code, reason_phrase, response);
+    send_json_response (client, status_code, reason_phrase, response);
 }
 
 static void
-send_async_response (MockSnapd *snapd, guint status_code, const gchar *reason_phrase, const gchar *change_id)
+send_async_response (MockClient *client, guint status_code, const gchar *reason_phrase, const gchar *change_id)
 {
     g_autoptr(JsonNode) response = NULL;
 
     response = make_response ("async", status_code, reason_phrase, NULL, change_id, NULL);
-    send_json_response (snapd, status_code, reason_phrase, response);
+    send_json_response (client, status_code, reason_phrase, response);
 }
 
 static void
-send_error_response (MockSnapd *snapd, guint status_code, const gchar *reason_phrase, const gchar *message, const gchar *kind)
+send_error_response (MockClient *client, guint status_code, const gchar *reason_phrase, const gchar *message, const gchar *kind)
 {
     g_autoptr(JsonBuilder) builder = NULL;
     g_autoptr(JsonNode) response = NULL;
@@ -1196,48 +1226,48 @@ send_error_response (MockSnapd *snapd, guint status_code, const gchar *reason_ph
     json_builder_end_object (builder);
 
     response = make_response ("error", status_code, reason_phrase, json_builder_get_root (builder), NULL, NULL);
-    send_json_response (snapd, status_code, reason_phrase, response);
+    send_json_response (client, status_code, reason_phrase, response);
 }
 
 static void
-send_error_bad_request (MockSnapd *snapd, const gchar *message, const gchar *kind)
+send_error_bad_request (MockClient *client, const gchar *message, const gchar *kind)
 {
-    send_error_response (snapd, 400, "Bad Request", message, kind);
+    send_error_response (client, 400, "Bad Request", message, kind);
 }
 
 static void
-send_error_unauthorized (MockSnapd *snapd, const gchar *message, const gchar *kind)
+send_error_unauthorized (MockClient *client, const gchar *message, const gchar *kind)
 {
-    send_error_response (snapd, 401, "Unauthorized", message, kind);
+    send_error_response (client, 401, "Unauthorized", message, kind);
 }
 
 static void
-send_error_not_found (MockSnapd *snapd, const gchar *message)
+send_error_not_found (MockClient *client, const gchar *message)
 {
-    send_error_response (snapd, 404, "Not Found", message, NULL);
+    send_error_response (client, 404, "Not Found", message, NULL);
 }
 
 static void
-send_error_method_not_allowed (MockSnapd *snapd, const gchar *message)
+send_error_method_not_allowed (MockClient *client, const gchar *message)
 {
-    send_error_response (snapd, 405, "Method Not Allowed", message, NULL);
+    send_error_response (client, 405, "Method Not Allowed", message, NULL);
 }
 
 static void
-handle_system_info (MockSnapd *snapd, const gchar *method)
+handle_system_info (MockClient *client, const gchar *method)
 {
     g_autoptr(JsonBuilder) builder = NULL;
 
     if (strcmp (method, "GET") != 0) {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
-    if (snapd->confinement) {
+    if (client->snapd->confinement) {
         json_builder_set_member_name (builder, "confinement");
-        json_builder_add_string_value (builder, snapd->confinement);
+        json_builder_add_string_value (builder, client->snapd->confinement);
     }
     json_builder_set_member_name (builder, "os-release");
     json_builder_begin_object (builder);
@@ -1251,9 +1281,9 @@ handle_system_info (MockSnapd *snapd, const gchar *method)
     json_builder_set_member_name (builder, "version");
     json_builder_add_string_value (builder, "VERSION");
     json_builder_set_member_name (builder, "managed");
-    json_builder_add_boolean_value (builder, snapd->managed);
+    json_builder_add_boolean_value (builder, client->snapd->managed);
     json_builder_set_member_name (builder, "on-classic");
-    json_builder_add_boolean_value (builder, snapd->on_classic);
+    json_builder_add_boolean_value (builder, client->snapd->on_classic);
     json_builder_set_member_name (builder, "kernel-version");
     json_builder_add_string_value (builder, "KERNEL-VERSION");
     json_builder_set_member_name (builder, "locations");
@@ -1263,17 +1293,17 @@ handle_system_info (MockSnapd *snapd, const gchar *method)
     json_builder_set_member_name (builder, "snap-bin-dir");
     json_builder_add_string_value (builder, "/snap/bin");
     json_builder_end_object (builder);
-    if (snapd->store) {
+    if (client->snapd->store) {
         json_builder_set_member_name (builder, "store");
-        json_builder_add_string_value (builder, snapd->store);
+        json_builder_add_string_value (builder, client->snapd->store);
     }
     json_builder_end_object (builder);
 
-    send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+    send_sync_response (client, 200, "OK", json_builder_get_root (builder), NULL);
 }
 
 static void
-send_macaroon (MockSnapd *snapd, MockAccount *account)
+send_macaroon (MockClient *client, MockAccount *account)
 {
     g_autoptr(JsonBuilder) builder = NULL;
     int i;
@@ -1289,7 +1319,7 @@ send_macaroon (MockSnapd *snapd, MockAccount *account)
     json_builder_end_array (builder);
     json_builder_end_object (builder);
 
-    send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+    send_sync_response (client, 200, "OK", json_builder_get_root (builder), NULL);
 }
 
 static gboolean
@@ -1407,7 +1437,7 @@ get_json (SoupMessageHeaders *headers, SoupMessageBody *body)
 }
 
 static void
-handle_login (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
+handle_login (MockClient *client, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     g_autoptr(JsonNode) request = NULL;
     JsonObject *o;
@@ -1415,13 +1445,13 @@ handle_login (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
     MockAccount *account;
 
     if (strcmp (method, "POST") != 0) {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 
     request = get_json (headers, body);
     if (request == NULL) {
-        send_error_bad_request (snapd, "unknown content type", NULL);
+        send_error_bad_request (client, "unknown content type", NULL);
         return;
     }
 
@@ -1432,33 +1462,33 @@ handle_login (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
         otp = json_object_get_string_member (o, "otp");
 
     if (strstr (username, "@") == NULL) {
-        send_error_bad_request (snapd, "please use a valid email address.", "invalid-auth-data");
+        send_error_bad_request (client, "please use a valid email address.", "invalid-auth-data");
         return;
     }
 
-    account = find_account (snapd, username);
+    account = find_account (client->snapd, username);
     if (account == NULL) {
-        send_error_unauthorized (snapd, "cannot authenticate to snap store: Provided email/password is not correct.", "login-required");
+        send_error_unauthorized (client, "cannot authenticate to snap store: Provided email/password is not correct.", "login-required");
         return;
     }
 
     if (strcmp (account->password, password) != 0) {
-        send_error_unauthorized (snapd, "cannot authenticate to snap store: Provided email/password is not correct.", "login-required");
+        send_error_unauthorized (client, "cannot authenticate to snap store: Provided email/password is not correct.", "login-required");
         return;
     }
 
     if (account->otp != NULL) {
         if (otp == NULL) {
-            send_error_unauthorized (snapd, "two factor authentication required", "two-factor-required");
+            send_error_unauthorized (client, "two factor authentication required", "two-factor-required");
             return;
         }
         if (strcmp (account->otp, otp) != 0) {
-            send_error_unauthorized (snapd, "two factor authentication failed", "two-factor-failed");
+            send_error_unauthorized (client, "two factor authentication failed", "two-factor-failed");
             return;
         }
     }
 
-    send_macaroon (snapd, account);
+    send_macaroon (client, account);
 }
 
 static JsonNode *
@@ -1689,7 +1719,7 @@ get_refreshable_snaps (MockSnapd *snapd)
 }
 
 static void
-handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
+handle_snaps (MockClient *client, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     const gchar *content_type;
 
@@ -1701,13 +1731,13 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
 
         builder = json_builder_new ();
         json_builder_begin_array (builder);
-        for (link = snapd->snaps; link; link = link->next) {
+        for (link = client->snapd->snaps; link; link = link->next) {
             MockSnap *snap = link->data;
             json_builder_add_value (builder, make_snap_node (snap));
         }
         json_builder_end_array (builder);
 
-        send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+        send_sync_response (client, 200, "OK", json_builder_get_root (builder), NULL);
     }
     else if (strcmp (method, "POST") == 0 && g_strcmp0 (content_type, "application/json") == 0) {
         g_autoptr(JsonNode) request = NULL;
@@ -1716,7 +1746,7 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
 
         request = get_json (headers, body);
         if (request == NULL) {
-            send_error_bad_request (snapd, "unknown content type", NULL);
+            send_error_bad_request (client, "unknown content type", NULL);
             return;
         }
 
@@ -1728,7 +1758,7 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
             GList *link;
             MockChange *change;
 
-            refreshable_snaps = get_refreshable_snaps (snapd);
+            refreshable_snaps = get_refreshable_snaps (client->snapd);
 
             builder = json_builder_new ();
             json_builder_begin_object (builder);
@@ -1741,11 +1771,11 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
             json_builder_end_array (builder);
             json_builder_end_object (builder);
 
-            change = add_change_with_data (snapd, json_builder_get_root (builder));
-            send_async_response (snapd, 202, "Accepted", change->id);
+            change = add_change_with_data (client->snapd, json_builder_get_root (builder));
+            send_async_response (client, 202, "Accepted", change->id);
         }
         else {
-            send_error_bad_request (snapd, "unsupported multi-snap operation", NULL);
+            send_error_bad_request (client, "unsupported multi-snap operation", NULL);
             return;
         }
     }
@@ -1759,7 +1789,7 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
 
         multipart = soup_multipart_new_from_message (headers, body);
         if (multipart == NULL) {
-            send_error_bad_request (snapd, "cannot read POST form", NULL);
+            send_error_bad_request (client, "cannot read POST form", NULL);
             return;
         }
 
@@ -1799,28 +1829,28 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
             MockTask *task;
 
             if (snap_path == NULL) {
-                send_error_bad_request (snapd, "need 'snap-path' value in form", NULL);
+                send_error_bad_request (client, "need 'snap-path' value in form", NULL);
                 return;
             }
 
-            change = add_change (snapd);
+            change = add_change (client->snapd);
             task = add_task (change, "try");
             task->snap = mock_snap_new ("try");
             task->snap->trymode = TRUE;
             task->snap->snap_path = g_steal_pointer (&snap_path);
 
-            send_async_response (snapd, 202, "Accepted", change->id);
+            send_async_response (client, 202, "Accepted", change->id);
         }
         else {
             MockChange *change;
             MockTask *task;
 
             if (snap == NULL) {
-                send_error_bad_request (snapd, "cannot find \"snap\" file field in provided multipart/form-data payload", NULL);
+                send_error_bad_request (client, "cannot find \"snap\" file field in provided multipart/form-data payload", NULL);
                 return;
             }
 
-            change = add_change (snapd);
+            change = add_change (client->snapd);
             task = add_task (change, "install");
             task->snap = mock_snap_new ("sideload");
             if (classic)
@@ -1831,26 +1861,26 @@ handle_snaps (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers
             g_free (task->snap->snap_data);
             task->snap->snap_data = g_steal_pointer (&snap);
 
-            send_async_response (snapd, 202, "Accepted", change->id);
+            send_async_response (client, 202, "Accepted", change->id);
         }
     }
     else {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 }
 
 static void
-handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessageHeaders *headers, SoupMessageBody *body)
+handle_snap (MockClient *client, const gchar *method, const gchar *name, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     if (strcmp (method, "GET") == 0) {
         MockSnap *snap;
 
-        snap = find_snap (snapd, name);
+        snap = find_snap (client->snapd, name);
         if (snap != NULL)
-            send_sync_response (snapd, 200, "OK", make_snap_node (snap), NULL);
+            send_sync_response (client, 200, "OK", make_snap_node (snap), NULL);
         else
-            send_error_not_found (snapd, "cannot find snap");
+            send_error_not_found (client, "cannot find snap");
     }
     else if (strcmp (method, "POST") == 0) {
         g_autoptr(JsonNode) request = NULL;
@@ -1860,7 +1890,7 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
 
         request = get_json (headers, body);
         if (request == NULL) {
-            send_error_bad_request (snapd, "unknown content type", NULL);
+            send_error_bad_request (client, "unknown content type", NULL);
             return;
         }
 
@@ -1884,32 +1914,32 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
             MockChange *change;
             MockTask *task;
 
-            snap = find_snap (snapd, name);
+            snap = find_snap (client->snapd, name);
             if (snap != NULL) {
-                send_error_bad_request (snapd, "snap is already installed", "snap-already-installed");
+                send_error_bad_request (client, "snap is already installed", "snap-already-installed");
                 return;
             }
 
-            snap = find_store_snap_by_name (snapd, name, channel, revision);
+            snap = find_store_snap_by_name (client->snapd, name, channel, revision);
             if (snap == NULL) {
-                send_error_bad_request (snapd, "cannot install, snap not found", NULL);
+                send_error_bad_request (client, "cannot install, snap not found", NULL);
                 return;
             }
 
             if (strcmp (snap->confinement, "classic") == 0 && !classic) {
-                send_error_bad_request (snapd, "requires classic confinement", "snap-needs-classic");
+                send_error_bad_request (client, "requires classic confinement", "snap-needs-classic");
                 return;
             }
-            if (strcmp (snap->confinement, "classic") == 0 && !snapd->on_classic) {
-                send_error_bad_request (snapd, "requires classic confinement", "snap-needs-classic-system");
+            if (strcmp (snap->confinement, "classic") == 0 && !client->snapd->on_classic) {
+                send_error_bad_request (client, "requires classic confinement", "snap-needs-classic-system");
                 return;
             }
             if (strcmp (snap->confinement, "devmode") == 0 && !devmode) {
-                send_error_bad_request (snapd, "requires devmode or confinement override", "snap-needs-devmode");
+                send_error_bad_request (client, "requires devmode or confinement override", "snap-needs-devmode");
                 return;
             }
 
-            change = add_change_with_error (snapd, snap->error);
+            change = add_change_with_error (client->snapd, snap->error);
             task = add_task (change, "install");
             task->snap = mock_snap_new (name);
             mock_snap_set_confinement (task->snap, snap->confinement);
@@ -1919,131 +1949,131 @@ handle_snap (MockSnapd *snapd, const gchar *method, const gchar *name, SoupMessa
             task->snap->jailmode = jailmode;
             task->snap->dangerous = dangerous;
 
-            send_async_response (snapd, 202, "Accepted", change->id);
+            send_async_response (client, 202, "Accepted", change->id);
         }
         else if (strcmp (action, "refresh") == 0) {
             MockSnap *snap;
 
-            snap = find_snap (snapd, name);
+            snap = find_snap (client->snapd, name);
             if (snap != NULL)
             {
                 MockSnap *store_snap;
 
                 /* Find if we have a store snap with a newer revision */
-                store_snap = find_store_snap_by_name (snapd, name, channel, NULL);
+                store_snap = find_store_snap_by_name (client->snapd, name, channel, NULL);
                 if (store_snap != NULL && strcmp (store_snap->revision, snap->revision) > 0) {
                     MockChange *change;
 
                     mock_snap_set_channel (snap, channel);
 
-                    change = add_change (snapd);
+                    change = add_change (client->snapd);
                     add_task (change, "refresh");
-                    send_async_response (snapd, 202, "Accepted", change->id);
+                    send_async_response (client, 202, "Accepted", change->id);
                 }
                 else
-                    send_error_bad_request (snapd, "snap has no updates available", "snap-no-update-available");
+                    send_error_bad_request (client, "snap has no updates available", "snap-no-update-available");
             }
             else
-                send_error_bad_request (snapd, "cannot refresh: cannot find snap", NULL);
+                send_error_bad_request (client, "cannot refresh: cannot find snap", NULL);
         }
         else if (strcmp (action, "remove") == 0) {
             MockSnap *snap;
 
-            snap = find_snap (snapd, name);
+            snap = find_snap (client->snapd, name);
             if (snap != NULL)
             {
                 MockChange *change;
                 MockTask *task;
 
-                change = add_change_with_error (snapd, snap->error);
+                change = add_change_with_error (client->snapd, snap->error);
                 task = add_task (change, "remove");
                 task->snap = snap;
 
-                send_async_response (snapd, 202, "Accepted", change->id);
+                send_async_response (client, 202, "Accepted", change->id);
 
             }
             else
-                send_error_bad_request (snapd, "snap is not installed", "snap-not-installed");
+                send_error_bad_request (client, "snap is not installed", "snap-not-installed");
         }
         else if (strcmp (action, "enable") == 0) {
             MockSnap *snap;
 
-            snap = find_snap (snapd, name);
+            snap = find_snap (client->snapd, name);
             if (snap != NULL)
             {
                 MockChange *change;
 
                 if (!snap->disabled) {
-                    send_error_bad_request (snapd, "cannot enable: snap is already enabled", NULL);
+                    send_error_bad_request (client, "cannot enable: snap is already enabled", NULL);
                     return;
                 }
                 snap->disabled = FALSE;
 
-                change = add_change (snapd);
+                change = add_change (client->snapd);
                 add_task (change, "enable");
-                send_async_response (snapd, 202, "Accepted", change->id);
+                send_async_response (client, 202, "Accepted", change->id);
             }
             else
-                send_error_bad_request (snapd, "cannot enable: cannot find snap", NULL);
+                send_error_bad_request (client, "cannot enable: cannot find snap", NULL);
         }
         else if (strcmp (action, "disable") == 0) {
             MockSnap *snap;
 
-            snap = find_snap (snapd, name);
+            snap = find_snap (client->snapd, name);
             if (snap != NULL)
             {
                 MockChange *change;
 
                 if (snap->disabled) {
-                    send_error_bad_request (snapd, "cannot disable: snap is already disabled", NULL);
+                    send_error_bad_request (client, "cannot disable: snap is already disabled", NULL);
                     return;
                 }
                 snap->disabled = TRUE;
 
-                change = add_change (snapd);
+                change = add_change (client->snapd);
                 add_task (change, "disable");
-                send_async_response (snapd, 202, "Accepted", change->id);
+                send_async_response (client, 202, "Accepted", change->id);
             }
             else
-                send_error_bad_request (snapd, "cannot disable: cannot find snap", NULL);
+                send_error_bad_request (client, "cannot disable: cannot find snap", NULL);
         }
         else
-            send_error_bad_request (snapd, "unknown action", NULL);
+            send_error_bad_request (client, "unknown action", NULL);
     }
     else
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
 }
 
 static void
-handle_icon (MockSnapd *snapd, const gchar *method, const gchar *path)
+handle_icon (MockClient *client, const gchar *method, const gchar *path)
 {
     MockSnap *snap;
     g_autofree gchar *name = NULL;
 
     if (strcmp (method, "GET") != 0) {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 
     if (!g_str_has_suffix (path, "/icon")) {
-        send_error_not_found (snapd, "not found");
+        send_error_not_found (client, "not found");
         return;
     }
     name = g_strndup (path, strlen (path) - strlen ("/icon"));
 
-    snap = find_snap (snapd, name);
+    snap = find_snap (client->snapd, name);
     if (snap == NULL)
-        send_error_not_found (snapd, "cannot find snap");
+        send_error_not_found (client, "cannot find snap");
     else if (snap->icon_data == NULL)
-        send_error_not_found (snapd, "not found");
+        send_error_not_found (client, "not found");
     else
-        send_response (snapd, 200, "OK", snap->icon_mime_type,
+        send_response (client, 200, "OK", snap->icon_mime_type,
                        (const guint8 *) g_bytes_get_data (snap->icon_data, NULL),
                        g_bytes_get_size (snap->icon_data));
 }
 
 static void
-handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type, SoupMessageBody *body)
+handle_assertions (MockClient *client, const gchar *method, const gchar *type, SoupMessageBody *body)
 {
     if (strcmp (method, "GET") == 0) {
         g_autoptr(GString) response_content = NULL;
@@ -2053,7 +2083,7 @@ handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type, Sou
 
         response_content = g_string_new (NULL);
         type_header = g_strdup_printf ("type: %s\n", type);
-        for (link = snapd->assertions; link; link = link->next) {
+        for (link = client->snapd->assertions; link; link = link->next) {
             const gchar *assertion = link->data;
 
             if (!g_str_has_prefix (assertion, type_header))
@@ -2066,25 +2096,25 @@ handle_assertions (MockSnapd *snapd, const gchar *method, const gchar *type, Sou
         }
 
         if (count == 0) {
-            send_error_bad_request (snapd, "invalid assert type", NULL);
+            send_error_bad_request (client, "invalid assert type", NULL);
             return;
         }
 
         // FIXME: X-Ubuntu-Assertions-Count header
-        send_response (snapd, 200, "OK", "application/x.ubuntu.assertion; bundle=y", (guint8*) response_content->str, response_content->len);
+        send_response (client, 200, "OK", "application/x.ubuntu.assertion; bundle=y", (guint8*) response_content->str, response_content->len);
     }
     else if (strcmp (method, "POST") == 0) {
-        add_assertion (snapd, g_strndup (body->data, body->length));
-        send_sync_response (snapd, 200, "OK", NULL, NULL);
+        add_assertion (client->snapd, g_strndup (body->data, body->length));
+        send_sync_response (client, 200, "OK", NULL, NULL);
     }
     else {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 }
 
 static void
-handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
+handle_interfaces (MockClient *client, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     if (strcmp (method, "GET") == 0) {
         g_autoptr(JsonBuilder) builder = NULL;
@@ -2095,7 +2125,7 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
         json_builder_begin_object (builder);
         json_builder_set_member_name (builder, "plugs");
         json_builder_begin_array (builder);
-        for (link = snapd->snaps; link; link = link->next) {
+        for (link = client->snapd->snaps; link; link = link->next) {
             MockSnap *snap = link->data;
             GList *l;
 
@@ -2128,7 +2158,7 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
         json_builder_end_array (builder);
         json_builder_set_member_name (builder, "slots");
         json_builder_begin_array (builder);
-        for (link = snapd->snaps; link; link = link->next) {
+        for (link = client->snapd->snaps; link; link = link->next) {
             MockSnap *snap = link->data;
             GList *l;
 
@@ -2172,7 +2202,7 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
         json_builder_end_array (builder);
         json_builder_end_object (builder);
 
-        send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+        send_sync_response (client, 200, "OK", json_builder_get_root (builder), NULL);
     }
     else if (strcmp (method, "POST") == 0) {
         g_autoptr(JsonNode) request = NULL;
@@ -2185,7 +2215,7 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
 
         request = get_json (headers, body);
         if (request == NULL) {
-            send_error_bad_request (snapd, "unknown content type", NULL);
+            send_error_bad_request (client, "unknown content type", NULL);
             return;
         }
 
@@ -2198,14 +2228,14 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
             MockSnap *snap;
             MockPlug *plug;
 
-            snap = find_snap (snapd, json_object_get_string_member (po, "snap"));
+            snap = find_snap (client->snapd, json_object_get_string_member (po, "snap"));
             if (snap == NULL) {
-                send_error_bad_request (snapd, "invalid snap", NULL);
+                send_error_bad_request (client, "invalid snap", NULL);
                 return;
             }
             plug = find_plug (snap, json_object_get_string_member (po, "plug"));
             if (plug == NULL) {
-                send_error_bad_request (snapd, "invalid plug", NULL);
+                send_error_bad_request (client, "invalid plug", NULL);
                 return;
             }
             plugs = g_list_append (plugs, plug);
@@ -2217,14 +2247,14 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
             MockSnap *snap;
             MockSlot *slot;
 
-            snap = find_snap (snapd, json_object_get_string_member (so, "snap"));
+            snap = find_snap (client->snapd, json_object_get_string_member (so, "snap"));
             if (snap == NULL) {
-                send_error_bad_request (snapd, "invalid snap", NULL);
+                send_error_bad_request (client, "invalid snap", NULL);
                 return;
             }
             slot = find_slot (snap, json_object_get_string_member (so, "slot"));
             if (slot == NULL) {
-                send_error_bad_request (snapd, "invalid slot", NULL);
+                send_error_bad_request (client, "invalid slot", NULL);
                 return;
             }
             slots = g_list_append (slots, slot);
@@ -2235,7 +2265,7 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
             GList *link;
 
             if (g_list_length (plugs) < 1 || g_list_length (slots) < 1) {
-                send_error_bad_request (snapd, "at least one plug and slot is required", NULL);
+                send_error_bad_request (client, "at least one plug and slot is required", NULL);
                 return;
             }
 
@@ -2244,16 +2274,16 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
                 plug->connection = slots->data;
             }
 
-            change = add_change (snapd);
+            change = add_change (client->snapd);
             add_task (change, "connect-snap");
-            send_async_response (snapd, 202, "Accepted", change->id);
+            send_async_response (client, 202, "Accepted", change->id);
         }
         else if (strcmp (action, "disconnect") == 0) {
             MockChange *change;
             GList *link;
 
             if (g_list_length (plugs) < 1 || g_list_length (slots) < 1) {
-                send_error_bad_request (snapd, "at least one plug and slot is required", NULL);
+                send_error_bad_request (client, "at least one plug and slot is required", NULL);
                 return;
             }
 
@@ -2262,15 +2292,15 @@ handle_interfaces (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *he
                 plug->connection = NULL;
             }
 
-            change = add_change (snapd);
+            change = add_change (client->snapd);
             add_task (change, "disconnect");
-            send_async_response (snapd, 202, "Accepted", change->id);
+            send_async_response (client, 202, "Accepted", change->id);
         }
         else
-            send_error_bad_request (snapd, "unsupported interface action", NULL);
+            send_error_bad_request (client, "unsupported interface action", NULL);
     }
     else
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
 }
 
 static JsonNode *
@@ -2353,16 +2383,16 @@ change_to_result (MockChange *change)
 }
 
 static void
-handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id, SoupMessageHeaders *headers, SoupMessageBody *body)
+handle_changes (MockClient *client, const gchar *method, const gchar *change_id, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     if (strcmp (method, "GET") == 0) {
         MockChange *change;
         GList *link;
         g_autoptr(JsonNode) result = NULL;
 
-        change = get_change (snapd, change_id);
+        change = get_change (client->snapd, change_id);
         if (change == NULL) {
-            send_error_not_found (snapd, "cannot find change");
+            send_error_not_found (client, "cannot find change");
             return;
         }
 
@@ -2376,9 +2406,9 @@ handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id, S
                     /* Complete task */
                     if (task->progress_done >= task->progress_total) {
                         if (strcmp (task->kind, "install") == 0 || strcmp (task->kind, "try") == 0)
-                            snapd->snaps = g_list_append (snapd->snaps, task->snap);
+                            client->snapd->snaps = g_list_append (client->snapd->snaps, task->snap);
                         else if (strcmp (task->kind, "remove") == 0) {
-                            snapd->snaps = g_list_remove (snapd->snaps, task->snap);
+                            client->snapd->snaps = g_list_remove (client->snapd->snaps, task->snap);
                             g_clear_pointer (&task->snap, mock_snap_free);
                         }
                     }
@@ -2388,7 +2418,7 @@ handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id, S
         }
 
         result = change_to_result (change);
-        send_sync_response (snapd, 200, "OK", result, NULL);
+        send_sync_response (client, 200, "OK", result, NULL);
     }
     else if (strcmp (method, "POST") == 0) {
         MockChange *change;
@@ -2396,15 +2426,15 @@ handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id, S
         JsonObject *o;
         const gchar *action;
 
-        change = get_change (snapd, change_id);
+        change = get_change (client->snapd, change_id);
         if (change == NULL) {
-            send_error_not_found (snapd, "cannot find change");
+            send_error_not_found (client, "cannot find change");
             return;
         }
 
         request = get_json (headers, body);
         if (request == NULL) {
-            send_error_bad_request (snapd, "unknown content type", NULL);
+            send_error_bad_request (client, "unknown content type", NULL);
             return;
         }
 
@@ -2417,15 +2447,15 @@ handle_changes (MockSnapd *snapd, const gchar *method, const gchar *change_id, S
             change->status = g_strdup ("Error");
             change->error = g_strdup ("cancelled");
             result = change_to_result (change);
-            send_sync_response (snapd, 200, "OK", result, NULL);
+            send_sync_response (client, 200, "OK", result, NULL);
         }
         else {
-            send_error_bad_request (snapd, "change action is unsupported", NULL);
+            send_error_bad_request (client, "change action is unsupported", NULL);
             return;
         }
     }
     else {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 }
@@ -2458,7 +2488,7 @@ in_section (MockSnap *snap, const gchar *section)
 }
 
 static void
-handle_find (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, const gchar *query)
+handle_find (MockClient *client, const gchar *method, SoupMessageHeaders *headers, const gchar *query)
 {
     const gchar *i;
     g_autofree gchar *query_param = NULL;
@@ -2469,7 +2499,7 @@ handle_find (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers,
     GList *snaps, *link;
 
     if (strcmp (method, "GET") != 0) {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 
@@ -2523,36 +2553,36 @@ handle_find (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers,
         g_autoptr(GList) refreshable_snaps = NULL;
 
         if (query_param != NULL) {
-            send_error_bad_request (snapd, "cannot use 'q' with 'select=refresh'", NULL);
+            send_error_bad_request (client, "cannot use 'q' with 'select=refresh'", NULL);
             return;
         }
         if (name_param != NULL) {
-            send_error_bad_request (snapd, "cannot use 'name' with 'select=refresh'", NULL);
+            send_error_bad_request (client, "cannot use 'name' with 'select=refresh'", NULL);
             return;
         }
 
         builder = json_builder_new ();
         json_builder_begin_array (builder);
-        refreshable_snaps = get_refreshable_snaps (snapd);
+        refreshable_snaps = get_refreshable_snaps (client->snapd);
         for (link = refreshable_snaps; link; link = link->next)
             json_builder_add_value (builder, make_snap_node (link->data));
         json_builder_end_array (builder);
 
-        send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), snapd->suggested_currency);
+        send_sync_response (client, 200, "OK", json_builder_get_root (builder), client->snapd->suggested_currency);
         return;
     }
     else if (g_strcmp0 (select_param, "private") == 0) {
         MockAccount *account;
 
-        account = get_account (snapd, headers);
+        account = get_account (client->snapd, headers);
         if (account == NULL) {
-            send_error_bad_request (snapd, "you need to log in first", "login-required");
+            send_error_bad_request (client, "you need to log in first", "login-required");
             return;
         }
         snaps = account->private_snaps;
     }
     else
-        snaps = snapd->store_snaps;
+        snaps = client->snapd->store_snaps;
 
     /* Make a special query that never responds */
     if (g_strcmp0 (query_param, "do-not-respond") == 0)
@@ -2568,44 +2598,44 @@ handle_find (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers,
     }
     json_builder_end_array (builder);
 
-    send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), snapd->suggested_currency);
+    send_sync_response (client, 200, "OK", json_builder_get_root (builder), client->snapd->suggested_currency);
 }
 
 static void
-handle_buy_ready (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers)
+handle_buy_ready (MockClient *client, const gchar *method, SoupMessageHeaders *headers)
 {
     JsonNode *result;
     MockAccount *account;
 
     if (strcmp (method, "GET") != 0) {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 
-    account = get_account (snapd, headers);
+    account = get_account (client->snapd, headers);
     if (account == NULL) {
-        send_error_bad_request (snapd, "you need to log in first", "login-required");
+        send_error_bad_request (client, "you need to log in first", "login-required");
         return;
     }
 
     if (!account->terms_accepted) {
-        send_error_bad_request (snapd, "terms of service not accepted", "terms-not-accepted");
+        send_error_bad_request (client, "terms of service not accepted", "terms-not-accepted");
         return;
     }
 
     if (!account->has_payment_methods) {
-        send_error_bad_request (snapd, "no payment methods", "no-payment-methods");
+        send_error_bad_request (client, "no payment methods", "no-payment-methods");
         return;
     }
 
     result = json_node_new (JSON_NODE_VALUE);
     json_node_set_boolean (result, TRUE);
 
-    send_sync_response (snapd, 200, "OK", result, NULL);
+    send_sync_response (client, 200, "OK", result, NULL);
 }
 
 static void
-handle_buy (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
+handle_buy (MockClient *client, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     MockAccount *account;
     g_autoptr(JsonNode) request = NULL;
@@ -2616,29 +2646,29 @@ handle_buy (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, 
     gdouble amount;
 
     if (strcmp (method, "POST") != 0) {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 
-    account = get_account (snapd, headers);
+    account = get_account (client->snapd, headers);
     if (account == NULL) {
-        send_error_bad_request (snapd, "you need to log in first", "login-required");
+        send_error_bad_request (client, "you need to log in first", "login-required");
         return;
     }
 
     if (!account->terms_accepted) {
-        send_error_bad_request (snapd, "terms of service not accepted", "terms-not-accepted");
+        send_error_bad_request (client, "terms of service not accepted", "terms-not-accepted");
         return;
     }
 
     if (!account->has_payment_methods) {
-        send_error_bad_request (snapd, "no payment methods", "no-payment-methods");
+        send_error_bad_request (client, "no payment methods", "no-payment-methods");
         return;
     }
 
     request = get_json (headers, body);
     if (request == NULL) {
-        send_error_bad_request (snapd, "unknown content type", NULL);
+        send_error_bad_request (client, "unknown content type", NULL);
         return;
     }
 
@@ -2647,47 +2677,47 @@ handle_buy (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, 
     price = json_object_get_double_member (o, "price");
     currency = json_object_get_string_member (o, "currency");
 
-    snap = find_store_snap_by_id (snapd, snap_id);
+    snap = find_store_snap_by_id (client->snapd, snap_id);
     if (snap == NULL) {
-        send_error_not_found (snapd, "not found"); // FIXME: Check is error snapd returns
+        send_error_not_found (client, "not found"); // FIXME: Check is error snapd returns
         return;
     }
 
     amount = mock_snap_find_price (snap, currency);
     if (amount == 0) {
-        send_error_bad_request (snapd, "no price found", "payment-declined"); // FIXME: Check is error snapd returns
+        send_error_bad_request (client, "no price found", "payment-declined"); // FIXME: Check is error snapd returns
         return;
     }
     if (amount != price) {
-        send_error_bad_request (snapd, "invalid price", "payment-declined"); // FIXME: Check is error snapd returns
+        send_error_bad_request (client, "invalid price", "payment-declined"); // FIXME: Check is error snapd returns
         return;
     }
 
-    send_sync_response (snapd, 200, "OK", NULL, NULL);
+    send_sync_response (client, 200, "OK", NULL, NULL);
 }
 
 static void
-handle_sections (MockSnapd *snapd, const gchar *method)
+handle_sections (MockClient *client, const gchar *method)
 {
     g_autoptr(JsonBuilder) builder = NULL;
     GList *link;
 
     if (strcmp (method, "GET") != 0) {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 
     builder = json_builder_new ();
     json_builder_begin_array (builder);
-    for (link = snapd->store_sections; link; link = link->next)
+    for (link = client->snapd->store_sections; link; link = link->next)
         json_builder_add_string_value (builder, link->data);
     json_builder_end_array (builder);
 
-    send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+    send_sync_response (client, 200, "OK", json_builder_get_root (builder), NULL);
 }
 
 static void
-handle_aliases (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
+handle_aliases (MockClient *client, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     if (strcmp (method, "GET") == 0) {
         g_autoptr(JsonBuilder) builder = NULL;
@@ -2695,7 +2725,7 @@ handle_aliases (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
 
         builder = json_builder_new ();
         json_builder_begin_object (builder);
-        for (link = snapd->snaps; link; link = link->next) {
+        for (link = client->snapd->snaps; link; link = link->next) {
             MockSnap *snap = link->data;
             int alias_count = 0;
             GList *link2;
@@ -2729,7 +2759,7 @@ handle_aliases (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
                 json_builder_end_object (builder);
         }
         json_builder_end_object (builder);
-        send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+        send_sync_response (client, 200, "OK", json_builder_get_root (builder), NULL);
     }
     else if (strcmp (method, "POST") == 0) {
         g_autoptr(JsonNode) request = NULL;
@@ -2743,14 +2773,14 @@ handle_aliases (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
 
         request = get_json (headers, body);
         if (request == NULL) {
-            send_error_bad_request (snapd, "unknown content type", NULL);
+            send_error_bad_request (client, "unknown content type", NULL);
             return;
         }
 
         o = json_node_get_object (request);
-        snap = find_snap (snapd, json_object_get_string_member (o, "snap"));
+        snap = find_snap (client->snapd, json_object_get_string_member (o, "snap"));
         if (snap == NULL) {
-            send_error_not_found (snapd, "cannot find snap");
+            send_error_not_found (client, "cannot find snap");
             return;
         }
 
@@ -2762,7 +2792,7 @@ handle_aliases (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
         else if (g_strcmp0 (action, "reset") == 0)
             status = NULL;
         else {
-            send_error_bad_request (snapd, "unsupported alias action", NULL);
+            send_error_bad_request (client, "unsupported alias action", NULL);
             return;
         }
 
@@ -2776,18 +2806,18 @@ handle_aliases (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
                 mock_alias_set_status (alias, status);
         }
 
-        change = add_change (snapd);
+        change = add_change (client->snapd);
         add_task (change, action);
-        send_async_response (snapd, 202, "Accepted", change->id);
+        send_async_response (client, 202, "Accepted", change->id);
     }
     else {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 }
 
 static void
-handle_snapctl (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
+handle_snapctl (MockClient *client, const gchar *method, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
     g_autoptr(JsonNode) request = NULL;
     JsonObject *o;
@@ -2798,13 +2828,13 @@ handle_snapctl (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
     g_autoptr(GString) stdout_text = NULL;
 
     if (strcmp (method, "POST") != 0) {
-        send_error_method_not_allowed (snapd, "method not allowed");
+        send_error_method_not_allowed (client, "method not allowed");
         return;
     }
 
     request = get_json (headers, body);
     if (request == NULL) {
-        send_error_bad_request (snapd, "unknown content type", NULL);
+        send_error_bad_request (client, "unknown content type", NULL);
         return;
     }
 
@@ -2827,58 +2857,58 @@ handle_snapctl (MockSnapd *snapd, const gchar *method, SoupMessageHeaders *heade
     json_builder_add_string_value (builder, "STDERR");
     json_builder_end_object (builder);
 
-    send_sync_response (snapd, 200, "OK", json_builder_get_root (builder), NULL);
+    send_sync_response (client, 200, "OK", json_builder_get_root (builder), NULL);
 }
 
 static void
-handle_request (MockSnapd *snapd, const gchar *method, const gchar *path, SoupMessageHeaders *headers, SoupMessageBody *body)
+handle_request (MockClient *client, const gchar *method, const gchar *path, SoupMessageHeaders *headers, SoupMessageBody *body)
 {
-    g_clear_pointer (&snapd->last_request_headers, soup_message_headers_free);
-    snapd->last_request_headers = g_boxed_copy (SOUP_TYPE_MESSAGE_HEADERS, headers);
+    g_clear_pointer (&client->snapd->last_request_headers, soup_message_headers_free);
+    client->snapd->last_request_headers = g_boxed_copy (SOUP_TYPE_MESSAGE_HEADERS, headers);
 
     if (strcmp (path, "/v2/system-info") == 0)
-        handle_system_info (snapd, method);
+        handle_system_info (client, method);
     else if (strcmp (path, "/v2/login") == 0)
-        handle_login (snapd, method, headers, body);
+        handle_login (client, method, headers, body);
     else if (strcmp (path, "/v2/snaps") == 0)
-        handle_snaps (snapd, method, headers, body);
+        handle_snaps (client, method, headers, body);
     else if (g_str_has_prefix (path, "/v2/snaps/"))
-        handle_snap (snapd, method, path + strlen ("/v2/snaps/"), headers, body);
+        handle_snap (client, method, path + strlen ("/v2/snaps/"), headers, body);
     else if (g_str_has_prefix (path, "/v2/icons/"))
-        handle_icon (snapd, method, path + strlen ("/v2/icons/"));
+        handle_icon (client, method, path + strlen ("/v2/icons/"));
     else if (strcmp (path, "/v2/assertions") == 0)
-        handle_assertions (snapd, method, NULL, body);
+        handle_assertions (client, method, NULL, body);
     else if (g_str_has_prefix (path, "/v2/assertions/"))
-        handle_assertions (snapd, method, path + strlen ("/v2/assertions/"), NULL);
+        handle_assertions (client, method, path + strlen ("/v2/assertions/"), NULL);
     else if (strcmp (path, "/v2/interfaces") == 0)
-        handle_interfaces (snapd, method, headers, body);
+        handle_interfaces (client, method, headers, body);
     else if (g_str_has_prefix (path, "/v2/changes/"))
-        handle_changes (snapd, method, path + strlen ("/v2/changes/"), headers, body);
+        handle_changes (client, method, path + strlen ("/v2/changes/"), headers, body);
     else if (strcmp (path, "/v2/find") == 0)
-        handle_find (snapd, method, headers, "");
+        handle_find (client, method, headers, "");
     else if (g_str_has_prefix (path, "/v2/find?"))
-        handle_find (snapd, method, headers, path + strlen ("/v2/find?"));
+        handle_find (client, method, headers, path + strlen ("/v2/find?"));
     else if (strcmp (path, "/v2/buy/ready") == 0)
-        handle_buy_ready (snapd, method, headers);
+        handle_buy_ready (client, method, headers);
     else if (strcmp (path, "/v2/buy") == 0)
-        handle_buy (snapd, method, headers, body);
+        handle_buy (client, method, headers, body);
     else if (strcmp (path, "/v2/sections") == 0)
-        handle_sections (snapd, method);
+        handle_sections (client, method);
     else if (strcmp (path, "/v2/aliases") == 0)
-        handle_aliases (snapd, method, headers, body);
+        handle_aliases (client, method, headers, body);
     else if (strcmp (path, "/v2/snapctl") == 0)
-        handle_snapctl (snapd, method, headers, body);
+        handle_snapctl (client, method, headers, body);
     else
-        send_error_not_found (snapd, "not found");
+        send_error_not_found (client, "not found");
 }
 
 static gboolean
-read_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
+read_cb (GSocket *socket, GIOCondition condition, MockClient *client)
 {
-    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&snapd->mutex);
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&client->snapd->mutex);
     g_autoptr(GError) error = NULL;
 
-    if (!read_data (snapd, 1024))
+    if (!read_data (client, 1024))
         return G_SOURCE_REMOVE;
 
     while (TRUE) {
@@ -2892,39 +2922,64 @@ read_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
         goffset content_length;
 
         /* Look for header divider */
-        body_data = (guint8 *) g_strstr_len ((gchar *) snapd->buffer->data, snapd->n_read, "\r\n\r\n");
+        body_data = (guint8 *) g_strstr_len ((gchar *) client->buffer->data, client->n_read, "\r\n\r\n");
         if (body_data == NULL)
             return G_SOURCE_CONTINUE;
         body_data += 4;
-        header_length = body_data - (guint8 *) snapd->buffer->data;
+        header_length = body_data - (guint8 *) client->buffer->data;
 
         /* Parse headers */
         headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_REQUEST);
-        if (!soup_headers_parse_request ((gchar *) snapd->buffer->data, header_length, headers,
+        if (!soup_headers_parse_request ((gchar *) client->buffer->data, header_length, headers,
                                          &method, &path, NULL)) {
             g_socket_close (socket, NULL);
             return G_SOURCE_REMOVE;
         }
 
         content_length = soup_message_headers_get_content_length (headers);
-        if (snapd->n_read < header_length + content_length)
+        if (client->n_read < header_length + content_length)
             return G_SOURCE_CONTINUE;
 
         body = soup_message_body_new ();
         soup_message_body_append (body, SOUP_MEMORY_COPY, body_data, content_length);
         buffer = soup_message_body_flatten (body);
 
-        if (snapd->close_on_request) {
+        if (client->snapd->close_on_request) {
             g_socket_close (socket, NULL);
             return G_SOURCE_REMOVE;
         }
 
-        handle_request (snapd, method, path, headers, body);
+        handle_request (client, method, path, headers, body);
 
         /* Move remaining data to the start of the buffer */
-        g_byte_array_remove_range (snapd->buffer, 0, header_length + content_length);
-        snapd->n_read -= header_length + content_length;
+        g_byte_array_remove_range (client->buffer, 0, header_length + content_length);
+        client->n_read -= header_length + content_length;
     }
+
+    return G_SOURCE_CONTINUE;
+}
+
+static gboolean
+accept_cb (GSocket *socket, GIOCondition condition, MockSnapd *snapd)
+{
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&snapd->mutex);
+    g_autoptr(MockClient) client = NULL;
+    GError *error = NULL;
+
+    client = g_slice_new0 (MockClient);
+    client->snapd = snapd;
+
+    client->socket = g_socket_accept (socket, NULL, &error);
+    if (client->socket == NULL) {
+        g_debug ("Failed to accept connection: %s", error->message);
+        return G_SOURCE_CONTINUE;
+    }
+
+    client->buffer = g_byte_array_new ();
+    client->read_source = g_socket_create_source (client->socket, G_IO_IN, NULL);
+    g_source_set_callback (client->read_source, (GSourceFunc) read_cb, client, NULL);
+    g_source_attach (client->read_source, snapd->context);
+    snapd->clients = g_list_append (snapd->clients, g_steal_pointer (&client));
 
     return G_SOURCE_CONTINUE;
 }
@@ -2936,15 +2991,19 @@ mock_snapd_finalize (GObject *object)
 
     g_mutex_clear (&snapd->mutex);
 
-    g_thread_join (snapd->thread);
-    snapd->thread = NULL;
+    if (snapd->socket != NULL)
+        g_socket_close (snapd->socket, NULL);
+    g_unlink (snapd->socket_path);
+    g_rmdir (snapd->dir_path);
 
-    g_clear_object (&snapd->client_socket);
-    g_clear_object (&snapd->server_socket);
+    g_clear_pointer (&snapd->dir_path, g_free);
+    g_clear_pointer (&snapd->socket_path, g_free);
+    g_clear_object (&snapd->socket);
     if (snapd->read_source != NULL)
         g_source_destroy (snapd->read_source);
     g_clear_pointer (&snapd->read_source, g_source_unref);
-    g_clear_pointer (&snapd->buffer, g_byte_array_unref);
+    g_list_free_full (snapd->clients, (GDestroyNotify) mock_client_free);
+    snapd->clients = NULL;
     g_list_free_full (snapd->accounts, (GDestroyNotify) mock_account_free);
     snapd->accounts = NULL;
     g_list_free_full (snapd->snaps, (GDestroyNotify) mock_snap_free);
@@ -2995,19 +3054,36 @@ mock_snapd_init_thread (gpointer user_data)
 static void
 mock_snapd_init (MockSnapd *snapd)
 {
-    int fds[2];
+    g_autoptr(GSocketAddress) address = NULL;
+    g_autoptr(GError) error = NULL;
 
     g_mutex_init (&snapd->mutex);
 
     snapd->context = g_main_context_new ();
     snapd->loop = g_main_loop_new (snapd->context, FALSE);
 
-    socketpair (AF_UNIX, SOCK_STREAM, 0, fds);
-    snapd->client_socket = g_socket_new_from_fd (fds[0], NULL);
-    snapd->server_socket = g_socket_new_from_fd (fds[1], NULL);
-    snapd->buffer = g_byte_array_new ();
-    snapd->read_source = g_socket_create_source (snapd->server_socket, G_IO_IN, NULL);
-    g_source_set_callback (snapd->read_source, (GSourceFunc) read_cb, snapd, NULL);
+    snapd->dir_path = g_dir_make_tmp ("mock-snapd-XXXXXX", &error);
+    if (snapd->dir_path == NULL)
+        g_warning ("Failed to make temporary directory: %s", error->message);
+    g_clear_error (&error);
+    snapd->socket_path = g_build_filename (snapd->dir_path, "snapd.socket", NULL);
+    snapd->socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
+                                  G_SOCKET_TYPE_STREAM,
+                                  G_SOCKET_PROTOCOL_DEFAULT,
+                                  &error);
+    if (snapd->socket == NULL)
+        g_warning ("Failed to make socket: %s", error->message);
+    g_clear_error (&error);
+    address = g_unix_socket_address_new (snapd->socket_path);
+    if (!g_socket_bind (snapd->socket, address, TRUE, &error))
+        g_warning ("Failed to bind: %s", error->message);
+    g_clear_error (&error);
+    if (!g_socket_listen (snapd->socket, &error))
+        g_warning ("Failed to listen: %s", error->message);
+    g_clear_error (&error);
+
+    snapd->read_source = g_socket_create_source (snapd->socket, G_IO_IN, NULL);
+    g_source_set_callback (snapd->read_source, (GSourceFunc) accept_cb, snapd, NULL);
     g_source_attach (snapd->read_source, snapd->context);
 
     snapd->thread = g_thread_new ("mock_snapd_thread",
