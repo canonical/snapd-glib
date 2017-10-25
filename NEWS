@@ -1,3 +1,34 @@
+Overview of changes in snapd-glib 1.24
+
+    * New API:
+      - snapd_client_get_socket_path
+      - snapd_client_set_socket_path
+      - snapd_snap_get_channels
+      - snapd_snap_get_tracks
+      - snapd_snap_match_channel
+      - snapd_channel_get_confinement
+      - snapd_channel_get_epoch
+      - snapd_channel_get_name
+      - snapd_channel_get_revision
+      - snapd_channel_get_size
+      - snapd_channel_get_type
+      - snapd_channel_get_version
+    * Deprecated API:
+      - snapd_client_connect_async
+      - snapd_client_connect_finish
+      - snapd_client_connect_sync
+    * Fix QSnapd::install() not working async.
+    * Move Qt enums to an enum class and rename to avoid collisions (API break).
+    * Fix multiple async operations not working at the same time.
+    * When async requests are cancelled abort change in snapd.
+    * Connect to snapd on demand.
+    * Add ability to set snapd socket to connect to.
+    * Add support for channels.
+    * Fix runtime assertion when snapd socket is NULL.
+    * Fix sudoer flag not being correctly set for create-user.
+    * Make clients using provided sockets non-blocking.
+    * Don't install snapd-qt.pc if not compiling snapd-qt.
+
 Overview of changes in snapd-glib 1.23
 
     * Fix snapd-login-service crash
