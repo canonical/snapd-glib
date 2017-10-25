@@ -39,10 +39,7 @@ JsonObject           *snapd_json_get_object             (JsonObject         *obj
 GDateTime            *snapd_json_get_date_time          (JsonObject         *object,
                                                          const gchar        *name);
 
-JsonObject           *snapd_json_parse_response         (guint               code,
-                                                         SoupMessageHeaders *headers,
-                                                         const gchar        *content,
-                                                         gsize               content_length,
+JsonObject           *snapd_json_parse_response         (SoupMessage        *message,
                                                          GError            **error);
 
 JsonObject           *snapd_json_get_sync_result_o      (JsonObject         *response,

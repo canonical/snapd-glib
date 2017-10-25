@@ -259,15 +259,16 @@ parse_error_response (JsonObject *root, GError **error)
 }
 
 JsonObject *
-snapd_json_parse_response (guint code, SoupMessageHeaders *headers, const gchar *content, gsize content_length, GError **error)
+snapd_json_parse_response (SoupMessage *message, GError **error)
 {
     const gchar *content_type;
     g_autoptr(JsonParser) parser = NULL;
+    g_autoptr(SoupBuffer) buffer = NULL;
     g_autoptr(GError) error_local = NULL;
     JsonObject *root;
     JsonNode *type_node;
 
-    content_type = soup_message_headers_get_content_type (headers, NULL);
+    content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
     if (content_type == NULL) {
         g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_RESPONSE, "snapd returned no content type");
         return NULL;
@@ -278,7 +279,8 @@ snapd_json_parse_response (guint code, SoupMessageHeaders *headers, const gchar 
     }
 
     parser = json_parser_new ();
-    if (!json_parser_load_from_data (parser, content, content_length, &error_local)) {
+    buffer = soup_message_body_flatten (message->response_body);
+    if (!json_parser_load_from_data (parser, buffer->data, buffer->length, &error_local)) {
         g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_RESPONSE, "Unable to parse snapd response: %s", error_local->message);
         return NULL;
     }
