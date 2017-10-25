@@ -41,7 +41,6 @@ source_c = \
 	snapd-connection.c \
 	snapd-error.c \
 	snapd-icon.c \
-	snapd-json.c \
 	snapd-login.c \
 	snapd-plug.c \
 	snapd-price.c \
@@ -51,6 +50,9 @@ source_c = \
 	snapd-system-information.c \
 	snapd-task.c \
 	snapd-user-information.c
+
+source_private_c = \
+	snapd-json.c
 
 # glib-mkenums rules
 glib_enum_h = snapd-enum-types.h
@@ -68,9 +70,9 @@ libsnapd_glib_la_CPPFLAGS = \
 	-I$(top_builddir) \
 	$(SNAPD_DEBUG_CFLAGS)
 libsnapd_glib_la_CFLAGS = $(SNAPD_CFLAGS) $(WARN_CFLAGS)
-libsnapd_glib_la_LDFLAGS = -version-info 1:0:0
+libsnapd_glib_la_LDFLAGS = -version-info 1:0:0 -export-symbols-regex \^snapd_.*
 libsnapd_glib_la_LIBADD = $(SNAPD_LIBS)
-libsnapd_glib_la_SOURCES = $(source_c) $(source_private_h) $(source_h)
+libsnapd_glib_la_SOURCES = $(source_private_c) $(source_c) $(source_private_h) $(source_h)
 nodist_libsnapd_glib_la_SOURCES = $(BUILT_SOURCES)
 
 snapdincludedir = $(includedir)/snapd-glib/snapd-glib

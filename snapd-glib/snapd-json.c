@@ -17,7 +17,7 @@
 #include "snapd-screenshot.h"
 
 gboolean
-snapd_json_get_bool (JsonObject *object, const gchar *name, gboolean default_value)
+_snapd_json_get_bool (JsonObject *object, const gchar *name, gboolean default_value)
 {
     JsonNode *node = json_object_get_member (object, name);
     if (node != NULL && json_node_get_value_type (node) == G_TYPE_BOOLEAN)
@@ -27,7 +27,7 @@ snapd_json_get_bool (JsonObject *object, const gchar *name, gboolean default_val
 }
 
 gint64
-snapd_json_get_int (JsonObject *object, const gchar *name, gint64 default_value)
+_snapd_json_get_int (JsonObject *object, const gchar *name, gint64 default_value)
 {
     JsonNode *node = json_object_get_member (object, name);
     if (node != NULL && json_node_get_value_type (node) == G_TYPE_INT64)
@@ -37,7 +37,7 @@ snapd_json_get_int (JsonObject *object, const gchar *name, gint64 default_value)
 }
 
 const gchar *
-snapd_json_get_string (JsonObject *object, const gchar *name, const gchar *default_value)
+_snapd_json_get_string (JsonObject *object, const gchar *name, const gchar *default_value)
 {
     JsonNode *node = json_object_get_member (object, name);
     if (node != NULL && json_node_get_value_type (node) == G_TYPE_STRING)
@@ -47,7 +47,7 @@ snapd_json_get_string (JsonObject *object, const gchar *name, const gchar *defau
 }
 
 JsonArray *
-snapd_json_get_array (JsonObject *object, const gchar *name)
+_snapd_json_get_array (JsonObject *object, const gchar *name)
 {
     JsonNode *node = json_object_get_member (object, name);
     if (node != NULL && json_node_get_value_type (node) == JSON_TYPE_ARRAY)
@@ -57,7 +57,7 @@ snapd_json_get_array (JsonObject *object, const gchar *name)
 }
 
 JsonObject *
-snapd_json_get_object (JsonObject *object, const gchar *name)
+_snapd_json_get_object (JsonObject *object, const gchar *name)
 {
     JsonNode *node = json_object_get_member (object, name);
     if (node != NULL && json_node_get_value_type (node) == JSON_TYPE_OBJECT)
@@ -125,7 +125,7 @@ is_timezone_prefix (gchar c)
 }
 
 GDateTime *
-snapd_json_get_date_time (JsonObject *object, const gchar *name)
+_snapd_json_get_date_time (JsonObject *object, const gchar *name)
 {
     const gchar *value;
     g_auto(GStrv) tokens = NULL;
@@ -133,7 +133,7 @@ snapd_json_get_date_time (JsonObject *object, const gchar *name)
     gint year = 0, month = 0, day = 0, hour = 0, minute = 0;
     gdouble seconds = 0.0;
 
-    value = snapd_json_get_string (object, name, NULL);
+    value = _snapd_json_get_string (object, name, NULL);
     if (value == NULL)
         return NULL;
 
@@ -171,10 +171,10 @@ parse_error_response (JsonObject *root, GError **error)
     gint64 status_code;
     JsonObject *result;
 
-    result = snapd_json_get_object (root, "result");
-    status_code = snapd_json_get_int (root, "status-code", 0);
-    kind = result != NULL ? snapd_json_get_string (result, "kind", NULL) : NULL;
-    message = result != NULL ? snapd_json_get_string (result, "message", NULL) : NULL;
+    result = _snapd_json_get_object (root, "result");
+    status_code = _snapd_json_get_int (root, "status-code", 0);
+    kind = result != NULL ? _snapd_json_get_string (result, "kind", NULL) : NULL;
+    message = result != NULL ? _snapd_json_get_string (result, "message", NULL) : NULL;
 
     if (g_strcmp0 (kind, "login-required") == 0)
         g_set_error_literal (error,
@@ -259,7 +259,7 @@ parse_error_response (JsonObject *root, GError **error)
 }
 
 JsonObject *
-snapd_json_parse_response (SoupMessage *message, GError **error)
+_snapd_json_parse_response (SoupMessage *message, GError **error)
 {
     const gchar *content_type;
     g_autoptr(JsonParser) parser = NULL;
@@ -325,7 +325,7 @@ parse_sync_response (JsonObject *response, GError **error)
 }
 
 JsonObject *
-snapd_json_get_sync_result_o (JsonObject *response, GError **error)
+_snapd_json_get_sync_result_o (JsonObject *response, GError **error)
 {
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
     /*g_autoptr(JsonNode) result = parse_sync_response (response, error);*/
@@ -346,7 +346,7 @@ snapd_json_get_sync_result_o (JsonObject *response, GError **error)
 }
 
 JsonArray *
-snapd_json_get_sync_result_a (JsonObject *response, GError **error)
+_snapd_json_get_sync_result_a (JsonObject *response, GError **error)
 {
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
     /*g_autoptr(JsonNode) result = parse_sync_response (response, error);*/
@@ -367,7 +367,7 @@ snapd_json_get_sync_result_a (JsonObject *response, GError **error)
 }
 
 gchar *
-snapd_json_get_async_result (JsonObject *response, GError **error)
+_snapd_json_get_async_result (JsonObject *response, GError **error)
 {
     const gchar *type;
     JsonNode *change_node;
@@ -401,7 +401,7 @@ parse_confinement (const gchar *value)
 }
 
 SnapdSnap *
-snapd_json_parse_snap (JsonObject *object, GError **error)
+_snapd_json_parse_snap (JsonObject *object, GError **error)
 {
     SnapdConfinement confinement;
     const gchar *snap_type_string;
@@ -421,9 +421,9 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
     g_autoptr(GPtrArray) track_array = NULL;
     guint i;
 
-    confinement = parse_confinement (snapd_json_get_string (object, "confinement", ""));
+    confinement = parse_confinement (_snapd_json_get_string (object, "confinement", ""));
 
-    snap_type_string = snapd_json_get_string (object, "type", "");
+    snap_type_string = _snapd_json_get_string (object, "type", "");
     if (strcmp (snap_type_string, "app") == 0)
         snap_type = SNAPD_SNAP_TYPE_APP;
     else if (strcmp (snap_type_string, "kernel") == 0)
@@ -433,7 +433,7 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
     else if (strcmp (snap_type_string, "os") == 0)
         snap_type = SNAPD_SNAP_TYPE_OS;
 
-    snap_status_string = snapd_json_get_string (object, "status", "");
+    snap_status_string = _snapd_json_get_string (object, "status", "");
     if (strcmp (snap_status_string, "available") == 0)
         snap_status = SNAPD_SNAP_STATUS_AVAILABLE;
     else if (strcmp (snap_status_string, "priced") == 0)
@@ -443,7 +443,7 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
     else if (strcmp (snap_status_string, "active") == 0)
         snap_status = SNAPD_SNAP_STATUS_ACTIVE;
 
-    apps = snapd_json_get_array (object, "apps");
+    apps = _snapd_json_get_array (object, "apps");
     apps_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (apps); i++) {
         JsonNode *node = json_array_get_element (apps, i);
@@ -462,7 +462,7 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
 
         a = json_node_get_object (node);
 
-        aliases = snapd_json_get_array (a, "aliases");
+        aliases = _snapd_json_get_array (a, "aliases");
         aliases_array = g_ptr_array_new ();
         for (j = 0; j < json_array_get_length (aliases); j++) {
             JsonNode *node = json_array_get_element (aliases, j);
@@ -476,7 +476,7 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
         }
         g_ptr_array_add (aliases_array, NULL);
 
-        daemon = snapd_json_get_string (a, "daemon", NULL);
+        daemon = _snapd_json_get_string (a, "daemon", NULL);
         if (daemon == NULL)
             daemon_type = SNAPD_DAEMON_TYPE_NONE;
         else if (strcmp (daemon, "simple") == 0)
@@ -493,15 +493,15 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
             daemon_type = SNAPD_DAEMON_TYPE_UNKNOWN;
 
         app = g_object_new (SNAPD_TYPE_APP,
-                            "name", snapd_json_get_string (a, "name", NULL),
+                            "name", _snapd_json_get_string (a, "name", NULL),
                             "aliases", (gchar **) aliases_array->pdata,
                             "daemon-type", daemon_type,
-                            "desktop-file", snapd_json_get_string (a, "desktop-file", NULL),
+                            "desktop-file", _snapd_json_get_string (a, "desktop-file", NULL),
                             NULL);
         g_ptr_array_add (apps_array, g_steal_pointer (&app));
     }
 
-    channels = snapd_json_get_object (object, "channels");
+    channels = _snapd_json_get_object (object, "channels");
     channels_array = g_ptr_array_new_with_free_func (g_object_unref);
     if (channels != NULL) {
         JsonObjectIter iter;
@@ -520,23 +520,23 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
             }
             c = json_node_get_object (channel_node);
 
-            confinement = parse_confinement (snapd_json_get_string (c, "confinement", ""));
+            confinement = parse_confinement (_snapd_json_get_string (c, "confinement", ""));
 
             channel = g_object_new (SNAPD_TYPE_CHANNEL,
                                     "confinement", confinement,
-                                    "epoch", snapd_json_get_string (c, "epoch", NULL),
-                                    "name", snapd_json_get_string (c, "channel", NULL),
-                                    "revision", snapd_json_get_string (c, "revision", NULL),
-                                    "size", snapd_json_get_int (c, "size", 0),
-                                    "version", snapd_json_get_string (c, "version", NULL),
+                                    "epoch", _snapd_json_get_string (c, "epoch", NULL),
+                                    "name", _snapd_json_get_string (c, "channel", NULL),
+                                    "revision", _snapd_json_get_string (c, "revision", NULL),
+                                    "size", _snapd_json_get_int (c, "size", 0),
+                                    "version", _snapd_json_get_string (c, "version", NULL),
                                     NULL);
             g_ptr_array_add (channels_array, g_steal_pointer (&channel));
         }
     }
 
-    install_date = snapd_json_get_date_time (object, "install-date");
+    install_date = _snapd_json_get_date_time (object, "install-date");
 
-    prices = snapd_json_get_object (object, "prices");
+    prices = _snapd_json_get_object (object, "prices");
     prices_array = g_ptr_array_new_with_free_func (g_object_unref);
     if (prices != NULL) {
         JsonObjectIter iter;
@@ -560,7 +560,7 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
         }
     }
 
-    screenshots = snapd_json_get_array (object, "screenshots");
+    screenshots = _snapd_json_get_array (object, "screenshots");
     screenshots_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (screenshots); i++) {
         JsonNode *node = json_array_get_element (screenshots, i);
@@ -574,14 +574,14 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
 
         s = json_node_get_object (node);
         screenshot = g_object_new (SNAPD_TYPE_SCREENSHOT,
-                                   "url", snapd_json_get_string (s, "url", NULL),
-                                   "width", (guint) snapd_json_get_int (s, "width", 0),
-                                   "height", (guint) snapd_json_get_int (s, "height", 0),
+                                   "url", _snapd_json_get_string (s, "url", NULL),
+                                   "width", (guint) _snapd_json_get_int (s, "width", 0),
+                                   "height", (guint) _snapd_json_get_int (s, "height", 0),
                                    NULL);
         g_ptr_array_add (screenshots_array, g_steal_pointer (&screenshot));
     }
 
-    tracks = snapd_json_get_array (object, "tracks");
+    tracks = _snapd_json_get_array (object, "tracks");
     track_array = g_ptr_array_new ();
     for (i = 0; i < json_array_get_length (tracks); i++) {
         JsonNode *node = json_array_get_element (tracks, i);
@@ -597,38 +597,38 @@ snapd_json_parse_snap (JsonObject *object, GError **error)
 
     return g_object_new (SNAPD_TYPE_SNAP,
                          "apps", apps_array,
-                         "channel", snapd_json_get_string (object, "channel", NULL),
+                         "channel", _snapd_json_get_string (object, "channel", NULL),
                          "channels", channels_array,
                          "confinement", confinement,
-                         "contact", snapd_json_get_string (object, "contact", NULL),
-                         "description", snapd_json_get_string (object, "description", NULL),
-                         "developer", snapd_json_get_string (object, "developer", NULL),
-                         "devmode", snapd_json_get_bool (object, "devmode", FALSE),
-                         "download-size", snapd_json_get_int (object, "download-size", 0),
-                         "icon", snapd_json_get_string (object, "icon", NULL),
-                         "id", snapd_json_get_string (object, "id", NULL),
+                         "contact", _snapd_json_get_string (object, "contact", NULL),
+                         "description", _snapd_json_get_string (object, "description", NULL),
+                         "developer", _snapd_json_get_string (object, "developer", NULL),
+                         "devmode", _snapd_json_get_bool (object, "devmode", FALSE),
+                         "download-size", _snapd_json_get_int (object, "download-size", 0),
+                         "icon", _snapd_json_get_string (object, "icon", NULL),
+                         "id", _snapd_json_get_string (object, "id", NULL),
                          "install-date", install_date,
-                         "installed-size", snapd_json_get_int (object, "installed-size", 0),
-                         "jailmode", snapd_json_get_bool (object, "jailmode", FALSE),
-                         "license", snapd_json_get_string (object, "license", NULL),
-                         "name", snapd_json_get_string (object, "name", NULL),
+                         "installed-size", _snapd_json_get_int (object, "installed-size", 0),
+                         "jailmode", _snapd_json_get_bool (object, "jailmode", FALSE),
+                         "license", _snapd_json_get_string (object, "license", NULL),
+                         "name", _snapd_json_get_string (object, "name", NULL),
                          "prices", prices_array,
-                         "private", snapd_json_get_bool (object, "private", FALSE),
-                         "revision", snapd_json_get_string (object, "revision", NULL),
+                         "private", _snapd_json_get_bool (object, "private", FALSE),
+                         "revision", _snapd_json_get_string (object, "revision", NULL),
                          "screenshots", screenshots_array,
                          "snap-type", snap_type,
                          "status", snap_status,
-                         "summary", snapd_json_get_string (object, "summary", NULL),
-                         "title", snapd_json_get_string (object, "title", NULL),
-                         "tracking-channel", snapd_json_get_string (object, "tracking-channel", NULL),
+                         "summary", _snapd_json_get_string (object, "summary", NULL),
+                         "title", _snapd_json_get_string (object, "title", NULL),
+                         "tracking-channel", _snapd_json_get_string (object, "tracking-channel", NULL),
                          "tracks", (gchar **) track_array->pdata,
-                         "trymode", snapd_json_get_bool (object, "trymode", FALSE),
-                         "version", snapd_json_get_string (object, "version", NULL),
+                         "trymode", _snapd_json_get_bool (object, "trymode", FALSE),
+                         "version", _snapd_json_get_string (object, "version", NULL),
                          NULL);
 }
 
 GPtrArray *
-snapd_json_parse_snap_array (JsonArray *array, GError **error)
+_snapd_json_parse_snap_array (JsonArray *array, GError **error)
 {
     g_autoptr(GPtrArray) snaps = NULL;
     guint i;
@@ -643,7 +643,7 @@ snapd_json_parse_snap_array (JsonArray *array, GError **error)
             return NULL;
         }
 
-        snap = snapd_json_parse_snap (json_node_get_object (node), error);
+        snap = _snapd_json_parse_snap (json_node_get_object (node), error);
         if (snap == NULL)
             return NULL;
         g_ptr_array_add (snaps, snap);
@@ -653,13 +653,13 @@ snapd_json_parse_snap_array (JsonArray *array, GError **error)
 }
 
 SnapdUserInformation *
-snapd_json_parse_user_information (JsonObject *object, GError **error)
+_snapd_json_parse_user_information (JsonObject *object, GError **error)
 {
     g_autoptr(JsonArray) ssh_keys = NULL;
     g_autoptr(GPtrArray) ssh_key_array = NULL;
     guint i;
 
-    ssh_keys = snapd_json_get_array (object, "ssh-keys");
+    ssh_keys = _snapd_json_get_array (object, "ssh-keys");
     ssh_key_array = g_ptr_array_new ();
     for (i = 0; i < json_array_get_length (ssh_keys); i++) {
         JsonNode *node = json_array_get_element (ssh_keys, i);
@@ -674,7 +674,7 @@ snapd_json_parse_user_information (JsonObject *object, GError **error)
     g_ptr_array_add (ssh_key_array, NULL);
 
     return g_object_new (SNAPD_TYPE_USER_INFORMATION,
-                         "username", snapd_json_get_string (object, "username", NULL),
+                         "username", _snapd_json_get_string (object, "username", NULL),
                          "ssh-keys", (gchar **) ssh_key_array->pdata,
                          NULL);
 }

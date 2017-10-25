@@ -18,47 +18,47 @@
 
 G_BEGIN_DECLS
 
-gboolean              snapd_json_get_bool               (JsonObject         *object,
-                                                         const gchar        *name,
-                                                         gboolean            default_value);
+gboolean              _snapd_json_get_bool               (JsonObject         *object,
+                                                          const gchar        *name,
+                                                          gboolean            default_value);
 
-gint64                snapd_json_get_int                (JsonObject         *object,
-                                                         const gchar        *name,
-                                                         gint64              default_value);
+gint64                _snapd_json_get_int                (JsonObject         *object,
+                                                          const gchar        *name,
+                                                          gint64              default_value);
 
-const gchar          *snapd_json_get_string             (JsonObject         *object,
-                                                         const gchar        *name,
-                                                         const gchar        *default_value);
+const gchar          *_snapd_json_get_string             (JsonObject         *object,
+                                                          const gchar        *name,
+                                                          const gchar        *default_value);
 
-JsonArray            *snapd_json_get_array              (JsonObject         *object,
-                                                         const gchar        *name);
+JsonArray            *_snapd_json_get_array              (JsonObject         *object,
+                                                          const gchar        *name);
 
-JsonObject           *snapd_json_get_object             (JsonObject         *object,
-                                                         const gchar        *name);
+JsonObject           *_snapd_json_get_object             (JsonObject         *object,
+                                                          const gchar        *name);
 
-GDateTime            *snapd_json_get_date_time          (JsonObject         *object,
-                                                         const gchar        *name);
+GDateTime            *_snapd_json_get_date_time          (JsonObject         *object,
+                                                          const gchar        *name);
 
-JsonObject           *snapd_json_parse_response         (SoupMessage        *message,
-                                                         GError            **error);
+JsonObject           *_snapd_json_parse_response         (SoupMessage        *message,
+                                                          GError            **error);
 
-JsonObject           *snapd_json_get_sync_result_o      (JsonObject         *response,
-                                                         GError            **error);
+JsonObject           *_snapd_json_get_sync_result_o      (JsonObject         *response,
+                                                          GError            **error);
 
-JsonArray            *snapd_json_get_sync_result_a      (JsonObject         *response,
-                                                         GError            **error);
+JsonArray            *_snapd_json_get_sync_result_a      (JsonObject         *response,
+                                                          GError            **error);
 
-gchar                *snapd_json_get_async_result       (JsonObject         *response,
-                                                         GError            **error);
+gchar                *_snapd_json_get_async_result       (JsonObject         *response,
+                                                          GError            **error);
 
-SnapdSnap            *snapd_json_parse_snap             (JsonObject         *object,
-                                                         GError            **error);
+SnapdSnap            *_snapd_json_parse_snap             (JsonObject         *object,
+                                                          GError            **error);
 
-GPtrArray            *snapd_json_parse_snap_array       (JsonArray          *array,
-                                                         GError            **error);
+GPtrArray            *_snapd_json_parse_snap_array       (JsonArray          *array,
+                                                          GError            **error);
 
-SnapdUserInformation *snapd_json_parse_user_information (JsonObject         *object,
-                                                         GError            **error);
+SnapdUserInformation *_snapd_json_parse_user_information (JsonObject         *object,
+                                                          GError            **error);
 
 G_END_DECLS
 
