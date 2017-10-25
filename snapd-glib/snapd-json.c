@@ -310,7 +310,7 @@ parse_sync_response (JsonObject *response, GError **error)
 
     type = json_object_get_string_member (response, "type");
     if (strcmp (type, "sync") != 0) {
-        g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected response returned for sync request");
+        g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected response '%s' returned for sync request", type);
         return NULL;
     }
 
@@ -372,7 +372,7 @@ snapd_json_get_async_result (JsonObject *response, GError **error)
 
     type = json_object_get_string_member (response, "type");
     if (strcmp (type, "async") != 0) {
-        g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected response returned for sync request");
+        g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected response '%s' returned for async request", type);
         return NULL;
     }
 
