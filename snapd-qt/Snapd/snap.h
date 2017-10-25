@@ -59,7 +59,7 @@ public:
     QString channel () const;
     int channelCount () const;
     Q_INVOKABLE QSnapdChannel *channel (int) const;
-    Q_INVOKABLE QSnapdChannel *matchChannel (QString) const;
+    Q_INVOKABLE QSnapdChannel *matchChannel (const QString&) const;
     QSnapdEnums::SnapConfinement confinement () const;
     QString contact () const;
     QString description () const;

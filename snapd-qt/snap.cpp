@@ -54,7 +54,7 @@ QSnapdChannel *QSnapdSnap::channel (int n) const
     return new QSnapdChannel (channels->pdata[n]);
 }
 
-QSnapdChannel *QSnapdSnap::matchChannel (QString name) const
+QSnapdChannel *QSnapdSnap::matchChannel (const QString& name) const
 {
     return new QSnapdChannel (snapd_snap_match_channel (SNAPD_SNAP (wrapped_object), name.toStdString ().c_str ()));
 }
