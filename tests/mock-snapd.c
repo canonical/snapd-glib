@@ -597,6 +597,13 @@ mock_app_set_desktop_file (MockApp *app, const gchar *desktop_file)
 }
 
 void
+mock_snap_set_broken (MockSnap *snap, const gchar *broken)
+{
+    g_free (snap->broken);
+    snap->broken = g_strdup (broken);
+}
+
+void
 mock_snap_set_channel (MockSnap *snap, const gchar *channel)
 {
     g_free (snap->channel);
@@ -1514,6 +1521,10 @@ make_snap_node (MockSnap *snap)
             json_builder_end_object (builder);
         }
         json_builder_end_array (builder);
+    }
+    if (snap->broken) {
+        json_builder_set_member_name (builder, "broken");
+        json_builder_add_string_value (builder, snap->broken);
     }
     if (snap->channel) {
         json_builder_set_member_name (builder, "channel");

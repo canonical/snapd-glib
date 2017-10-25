@@ -35,6 +35,7 @@ struct _SnapdSnap
     GObject parent_instance;
 
     GPtrArray *apps;
+    gchar *broken;
     gchar *channel;
     GPtrArray *channels;
     SnapdConfinement confinement;
@@ -94,6 +95,7 @@ enum
     PROP_LICENSE,
     PROP_CHANNELS,
     PROP_TRACKS,
+    PROP_BROKEN,
     PROP_LAST
 };
 
@@ -114,6 +116,23 @@ snapd_snap_get_apps (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
     return snap->apps;
+}
+
+/**
+ * snapd_snap_get_broken:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the reason this snap is broken.
+ *
+ * Returns: an error string or %NULL if not broken.
+ *
+ * Since: 1.25
+ */
+const gchar *
+snapd_snap_get_broken (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->broken;
 }
 
 /**
@@ -711,6 +730,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         if (g_value_get_boxed (value) != NULL)
             snap->apps = g_ptr_array_ref (g_value_get_boxed (value));
         break;
+    case PROP_BROKEN:
+        g_free (snap->broken);
+        snap->broken = g_strdup (g_value_get_string (value));
+        break;
     case PROP_CHANNEL:
         g_free (snap->channel);
         snap->channel = g_strdup (g_value_get_string (value));
@@ -829,6 +852,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_APPS:
         g_value_set_boxed (value, snap->apps);
         break;
+    case PROP_BROKEN:
+        g_value_set_string (value, snap->broken);
+        break;
     case PROP_CHANNEL:
         g_value_set_string (value, snap->channel);
         break;
@@ -922,6 +948,7 @@ snapd_snap_finalize (GObject *object)
     SnapdSnap *snap = SNAPD_SNAP (object);
 
     g_clear_pointer (&snap->apps, g_ptr_array_unref);
+    g_clear_pointer (&snap->broken, g_free);
     g_clear_pointer (&snap->channel, g_free);
     g_clear_pointer (&snap->channels, g_ptr_array_unref);
     g_clear_pointer (&snap->contact, g_free);
@@ -958,6 +985,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          "Apps this snap contains",
                                                          G_TYPE_PTR_ARRAY,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_BROKEN,
+                                     g_param_spec_string ("broken",
+                                                          "broken",
+                                                          "Error string if snap is broken",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_CHANNEL,
                                      g_param_spec_string ("channel",

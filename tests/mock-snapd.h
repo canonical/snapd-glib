@@ -40,6 +40,7 @@ typedef struct
 typedef struct
 {
     GList *apps;
+    gchar *broken;
     gchar *channel;
     gchar *confinement;
     gchar *contact;
@@ -214,6 +215,9 @@ void            mock_app_set_daemon               (MockApp       *app,
 
 void            mock_app_set_desktop_file         (MockApp       *app,
                                                    const gchar   *desktop_file);
+
+void            mock_snap_set_broken              (MockSnap      *snap,
+                                                   const gchar   *broken);
 
 void            mock_snap_set_channel             (MockSnap      *snap,
                                                    const gchar   *channel);

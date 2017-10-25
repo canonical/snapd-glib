@@ -618,6 +618,7 @@ list_one_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_no_error (error);
     g_assert (snap != NULL);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
+    g_assert_cmpstr (snapd_snap_get_broken (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
@@ -686,6 +687,7 @@ test_list_one_optional_fields (void)
     mock_app_add_alias (a, "app2");
     mock_app_add_alias (a, "app3");
     mock_app_set_desktop_file (a, "/var/lib/snapd/desktop/applications/app.desktop");
+    mock_snap_set_broken (s, "BROKEN");
     mock_snap_set_confinement (s, "classic");
     s->devmode = TRUE;
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
@@ -715,6 +717,7 @@ test_list_one_optional_fields (void)
     g_assert_cmpstr (aliases[0], ==, "app2");
     g_assert_cmpstr (aliases[1], ==, "app3");
     g_assert_cmpstr (snapd_app_get_desktop_file (app), ==, "/var/lib/snapd/desktop/applications/app.desktop");
+    g_assert_cmpstr (snapd_snap_get_broken (snap), ==, "BROKEN");
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_CLASSIC);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, "CONTACT");

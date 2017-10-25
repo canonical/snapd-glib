@@ -262,6 +262,7 @@ SNAPD_GLIB_VERSION_1_21
 SNAPD_GLIB_VERSION_1_22
 SNAPD_GLIB_VERSION_1_23
 SNAPD_GLIB_VERSION_1_24
+SNAPD_GLIB_VERSION_1_25
 </SECTION>
 
 <SECTION>
@@ -365,6 +366,7 @@ SnapdConfinement
 SnapdSnapType
 SnapdSnapStatus
 snapd_snap_get_apps
+snapd_snap_get_broken
 snapd_snap_get_channel
 snapd_snap_get_channels
 snapd_snap_match_channel

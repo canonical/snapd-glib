@@ -31,6 +31,11 @@ QSnapdApp *QSnapdSnap::app (int n) const
     return new QSnapdApp (apps->pdata[n]);
 }
 
+QString QSnapdSnap::broken () const
+{
+    return snapd_snap_get_broken (SNAPD_SNAP (wrapped_object));
+}
+
 QString QSnapdSnap::channel () const
 {
     return snapd_snap_get_channel (SNAPD_SNAP (wrapped_object));
