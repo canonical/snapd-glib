@@ -482,29 +482,17 @@ QSnapdConnectRequest::QSnapdConnectRequest (void *snapd_client, QObject *parent)
 
 void QSnapdConnectRequest::runSync ()
 {
-    g_autoptr(GError) error = NULL;
-    snapd_client_connect_sync (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), &error);
-    finish (error);
+    finish (NULL);
 }
 
 void QSnapdConnectRequest::handleResult (void *object, void *result)
 {
-    g_autoptr(GError) error = NULL;
-
-    snapd_client_connect_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
-
-    finish (error);
-}
-
-static void connect_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
-{
-    QSnapdGetSystemInformationRequest *request = static_cast<QSnapdGetSystemInformationRequest*>(data);
-    request->handleResult (object, result);
+    finish (NULL);
 }
 
 void QSnapdConnectRequest::runAsync ()
 {
-    snapd_client_connect_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), connect_ready_cb, (gpointer) this);
+    handleResult (NULL, NULL);
 }
 
 QSnapdLoginRequest::QSnapdLoginRequest (void *snapd_client, const QString& username, const QString& password, const QString& otp, QObject *parent) :

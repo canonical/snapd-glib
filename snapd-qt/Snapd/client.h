@@ -565,7 +565,7 @@ public:
     explicit QSnapdClient (QObject* parent=0);
     explicit QSnapdClient (int fd, QObject* parent=0);
     virtual ~QSnapdClient ();
-    Q_INVOKABLE QSnapdConnectRequest *connect ();
+    Q_INVOKABLE Q_DECL_DEPRECATED QSnapdConnectRequest *connect ();
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password);
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& username, const QString& password, const QString& otp);
     Q_INVOKABLE void setSocketPath (const QString &socketPath);
