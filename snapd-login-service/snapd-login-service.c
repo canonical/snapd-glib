@@ -146,11 +146,6 @@ auth_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_debug ("Requesting login from snapd...");
 
     request->client = snapd_client_new ();
-    if (!snapd_client_connect_sync (request->client, NULL, &error)) {
-        return_error (request, error);
-        return;
-    }
-
     snapd_client_login_async (request->client,
                               request->username, request->password, request->otp, NULL,
                               login_result_cb, request);

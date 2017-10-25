@@ -24,15 +24,12 @@ test_socket_closed_before_request ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     mock_snapd_stop (snapd);
 
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
-    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::WriteFailed);
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::ConnectionFailed);
 }
 
 static void
@@ -44,9 +41,6 @@ test_socket_closed_after_request (void)
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
@@ -61,9 +55,6 @@ test_user_agent_default ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (client.userAgent () == "snapd-glib/" VERSION);
 
@@ -81,9 +72,6 @@ test_user_agent_custom ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     client.setUserAgent ("Foo/1.0");
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
@@ -100,9 +88,6 @@ test_user_agent_null ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     client.setUserAgent (NULL);
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
@@ -124,9 +109,6 @@ test_accept_language (void)
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
@@ -147,9 +129,6 @@ test_accept_language_empty (void)
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
@@ -165,9 +144,6 @@ test_allow_interaction ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     /* By default, interaction is allowed */
     g_assert (client.allowInteraction());
@@ -197,9 +173,6 @@ test_get_system_information ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
@@ -250,9 +223,6 @@ test_get_system_information_async ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     GetSystemInformationHandler infoHandler (loop, client.getSystemInformation ());
     QObject::connect (infoHandler.request, &QSnapdGetSystemInformationRequest::complete, &infoHandler, &GetSystemInformationHandler::onComplete);
@@ -270,9 +240,6 @@ test_get_system_information_store ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
@@ -290,13 +257,10 @@ test_get_system_information_confinement_strict ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
     g_assert_cmpint (systemInformation->confinement (), ==, QSnapdEnums::SystemConfinementStrict);
 }
@@ -310,13 +274,10 @@ test_get_system_information_confinement_none ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
     g_assert_cmpint (systemInformation->confinement (), ==, QSnapdEnums::SystemConfinementPartial);
 }
@@ -330,13 +291,10 @@ test_get_system_information_confinement_unknown ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
     infoRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
     g_assert_cmpint (systemInformation->confinement (), ==, QSnapdEnums::SystemConfinementUnknown);
 }
@@ -350,9 +308,6 @@ test_login ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -372,9 +327,6 @@ test_login_invalid_email ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("not-an-email", "secret"));
     loginRequest->runSync ();
@@ -390,9 +342,6 @@ test_login_invalid_password ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "invalid"));
     loginRequest->runSync ();
@@ -408,9 +357,6 @@ test_login_otp_missing ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -426,9 +372,6 @@ test_login_otp_invalid ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret", "0000"));
     loginRequest->runSync ();
@@ -446,9 +389,6 @@ test_list ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdListRequest> listRequest (client.list ());
     listRequest->runSync ();
@@ -490,9 +430,6 @@ test_list_async ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     ListHandler listHandler (loop, client.list ());
     QObject::connect (listHandler.request, &QSnapdListRequest::complete, &listHandler, &ListHandler::onComplete);
@@ -510,9 +447,6 @@ test_list_one ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
     listOneRequest->runSync ();
@@ -591,9 +525,6 @@ test_list_one_async ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     ListOneHandler listOneHandler (loop, client.listOne ("snap"));
     QObject::connect (listOneHandler.request, &QSnapdListOneRequest::complete, &listOneHandler, &ListOneHandler::onComplete);
@@ -627,9 +558,6 @@ test_list_one_optional_fields ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
     listOneRequest->runSync ();
@@ -678,9 +606,6 @@ test_list_one_not_installed ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
     listOneRequest->runSync ();
@@ -697,9 +622,6 @@ test_list_one_classic_confinement ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
     listOneRequest->runSync ();
@@ -718,9 +640,6 @@ test_list_one_devmode_confinement ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
     listOneRequest->runSync ();
@@ -750,9 +669,6 @@ test_list_one_daemons ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
     listOneRequest->runSync ();
@@ -784,9 +700,6 @@ test_icon ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetIconRequest> getIconRequest (client.getIcon ("snap"));
     getIconRequest->runSync ();
@@ -822,9 +735,6 @@ test_icon_async ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     GetIconHandler getIconHandler (loop, client.getIcon ("snap"));
     QObject::connect (getIconHandler.request, &QSnapdGetIconRequest::complete, &getIconHandler, &GetIconHandler::onComplete);
@@ -841,9 +751,6 @@ test_icon_not_installed ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetIconRequest> getIconRequest (client.getIcon ("snap"));
     getIconRequest->runSync ();
@@ -865,9 +772,6 @@ test_icon_large ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetIconRequest> getIconRequest (client.getIcon ("snap"));
     getIconRequest->runSync ();
@@ -894,9 +798,6 @@ test_get_assertions ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetAssertionsRequest> getAssertionsRequest (client.getAssertions ("account"));
     getAssertionsRequest->runSync ();
@@ -926,9 +827,6 @@ test_get_assertions_body ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetAssertionsRequest> getAssertionsRequest (client.getAssertions ("account"));
     getAssertionsRequest->runSync ();
@@ -965,9 +863,6 @@ test_get_assertions_multiple ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetAssertionsRequest> getAssertionsRequest (client.getAssertions ("account"));
     getAssertionsRequest->runSync ();
@@ -995,9 +890,6 @@ test_get_assertions_invalid ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetAssertionsRequest> getAssertionsRequest (client.getAssertions ("account"));
     getAssertionsRequest->runSync ();
@@ -1012,9 +904,6 @@ test_add_assertions ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_get_assertions (snapd) == NULL);
     QScopedPointer<QSnapdAddAssertionsRequest> addAssertionsRequest (client.addAssertions (QStringList () << "type: account\n\nSIGNATURE"));
@@ -1074,9 +963,6 @@ test_get_interfaces ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetInterfacesRequest> getInterfacesRequest (client.getInterfaces ());
     getInterfacesRequest->runSync ();
@@ -1122,9 +1008,6 @@ test_get_interfaces_no_snaps ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetInterfacesRequest> getInterfacesRequest (client.getInterfaces ());
     getInterfacesRequest->runSync ();
@@ -1145,9 +1028,6 @@ test_connect_interface ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdConnectInterfaceRequest> connectInterfaceRequest (client.connectInterface ("snap2", "plug", "snap1", "slot"));
     connectInterfaceRequest->runSync ();
@@ -1167,9 +1047,6 @@ test_connect_interface_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdConnectInterfaceRequest> connectInterfaceRequest (client.connectInterface ("snap2", "plug", "snap1", "slot"));
     ProgressCounter counter;
@@ -1188,9 +1065,6 @@ test_connect_interface_invalid ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdConnectInterfaceRequest> connectInterfaceRequest (client.connectInterface ("snap2", "plug", "snap1", "slot"));
     connectInterfaceRequest->runSync ();
@@ -1210,9 +1084,6 @@ test_disconnect_interface ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdDisconnectInterfaceRequest> disconnectInterfaceRequest (client.disconnectInterface ("snap2", "plug", "snap1", "slot"));
     disconnectInterfaceRequest->runSync ();
@@ -1233,9 +1104,6 @@ test_disconnect_interface_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdDisconnectInterfaceRequest> disconnectInterfaceRequest (client.disconnectInterface ("snap2", "plug", "snap1", "slot"));
     ProgressCounter counter;
@@ -1254,9 +1122,6 @@ test_disconnect_interface_invalid ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdDisconnectInterfaceRequest> disconnectInterfaceRequest (client.disconnectInterface ("snap2", "plug", "snap1", "slot"));
     disconnectInterfaceRequest->runSync ();
@@ -1286,9 +1151,6 @@ test_find_query ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::None, "carrot"));
     findRequest->runSync ();
@@ -1353,9 +1215,6 @@ test_find_query_private ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -1380,9 +1239,6 @@ test_find_query_private_not_logged_in ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::SelectPrivate, "snap"));
     findRequest->runSync ();
@@ -1400,9 +1256,6 @@ test_find_name ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::MatchName, "snap"));
     findRequest->runSync ();
@@ -1422,9 +1275,6 @@ test_find_name_private ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -1449,9 +1299,6 @@ test_find_name_private_not_logged_in ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::MatchName | QSnapdClient::SelectPrivate, "snap"));
     findRequest->runSync ();
@@ -1475,9 +1322,6 @@ test_find_channels ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::MatchName, "snap"));
     findRequest->runSync ();
@@ -1531,9 +1375,6 @@ test_find_cancel ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     /* Use a special query that never responds */
     FindHandler findHandler (loop, client.find (QSnapdClient::None, "do-not-respond"));
@@ -1559,9 +1400,6 @@ test_find_section ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.findSection (QSnapdClient::None, "section", NULL));
     findRequest->runSync ();
@@ -1588,9 +1426,6 @@ test_find_section_query ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.findSection (QSnapdClient::None, "section", "carrot"));
     findRequest->runSync ();
@@ -1616,9 +1451,6 @@ test_find_section_name ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRequest> findRequest (client.findSection (QSnapdClient::MatchName, "section", "carrot1"));
     findRequest->runSync ();
@@ -1646,9 +1478,6 @@ test_find_refreshable ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRefreshableRequest> findRefreshableRequest (client.findRefreshable ());
     findRefreshableRequest->runSync ();
@@ -1670,9 +1499,6 @@ test_find_refreshable_no_updates ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdFindRefreshableRequest> findRefreshableRequest (client.findRefreshable ());
     findRefreshableRequest->runSync ();
@@ -1689,9 +1515,6 @@ test_install ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
@@ -1715,9 +1538,6 @@ test_install_multiple ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     QScopedPointer<QSnapdInstallRequest> installRequest1 (client.install ("snap1"));
@@ -1758,9 +1578,6 @@ test_install_async ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     InstallHandler installHandler (loop, snapd, client.install ("snap"));
@@ -1800,9 +1617,6 @@ test_install_async_multiple ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap1") == NULL);
     g_assert (mock_snapd_find_snap (snapd, "snap2") == NULL);
@@ -1844,9 +1658,6 @@ test_install_async_failure ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     InstallErrorHandler installHandler (loop, snapd, client.install ("snap"));
@@ -1883,9 +1694,6 @@ test_install_async_cancel ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     InstallCancelHandler installHandler (loop, snapd, client.install ("snap"));
@@ -1934,9 +1742,6 @@ test_install_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
     InstallProgressCounter counter (installRequest.data ());
@@ -1960,9 +1765,6 @@ test_install_needs_classic ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
@@ -1981,9 +1783,6 @@ test_install_classic ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Classic, "snap"));
@@ -2003,9 +1802,6 @@ test_install_needs_classic_system ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Classic, "snap"));
@@ -2023,9 +1819,6 @@ test_install_needs_devmode ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
@@ -2043,9 +1836,6 @@ test_install_devmode ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Devmode, "snap"));
@@ -2064,9 +1854,6 @@ test_install_dangerous ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Dangerous, "snap"));
@@ -2085,9 +1872,6 @@ test_install_jailmode ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Jailmode, "snap"));
@@ -2109,9 +1893,6 @@ test_install_channel ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap", "channel2"));
     installRequest->runSync ();
@@ -2132,9 +1913,6 @@ test_install_revision ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap", NULL, "1.1"));
     installRequest->runSync ();
@@ -2151,13 +1929,48 @@ test_install_not_available ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
     installRequest->runSync ();
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::BadRequest);
+}
+
+static void
+test_install_snapd_restart ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    s->restart_required = TRUE;
+    g_assert (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
+}
+
+static void
+test_install_async_snapd_restart ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    s->restart_required = TRUE;
+    g_assert (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert (mock_snapd_find_snap (snapd, "snap") == NULL);
+    InstallHandler installHandler (loop, snapd, client.install ("snap"));
+    QObject::connect (installHandler.request, &QSnapdInstallRequest::complete, &installHandler, &InstallHandler::onComplete);
+    installHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
 }
 
 static void
@@ -2169,9 +1982,6 @@ test_install_stream ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
     QBuffer buffer;
@@ -2199,9 +2009,6 @@ test_install_stream_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
     QBuffer buffer;
@@ -2228,9 +2035,6 @@ test_install_stream_classic ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
     QBuffer buffer;
@@ -2258,9 +2062,6 @@ test_install_stream_dangerous ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
     QBuffer buffer;
@@ -2288,9 +2089,6 @@ test_install_stream_devmode ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
     QBuffer buffer;
@@ -2318,9 +2116,6 @@ test_install_stream_jailmode ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "sideload") == NULL);
     QBuffer buffer;
@@ -2347,9 +2142,6 @@ test_try ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdTryRequest> tryRequest (client.trySnap ("/path/to/snap"));
     tryRequest->runSync ();
@@ -2367,9 +2159,6 @@ test_try_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdTryRequest> tryRequest (client.trySnap ("/path/to/snap"));
     ProgressCounter counter;
@@ -2394,9 +2183,6 @@ test_refresh ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRefreshRequest> refreshRequest (client.refresh ("snap"));
     refreshRequest->runSync ();
@@ -2415,9 +2201,6 @@ test_refresh_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRefreshRequest> refreshRequest (client.refresh ("snap"));
     ProgressCounter counter;
@@ -2443,9 +2226,6 @@ test_refresh_channel ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRefreshRequest> refreshRequest (client.refresh ("snap", "channel2"));
     refreshRequest->runSync ();
@@ -2465,9 +2245,6 @@ test_refresh_no_updates ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRefreshRequest> refreshRequest (client.refresh ("snap"));
     refreshRequest->runSync ();
@@ -2482,9 +2259,6 @@ test_refresh_not_installed ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRefreshRequest> refreshRequest (client.refresh ("snap"));
     refreshRequest->runSync ();
@@ -2511,9 +2285,6 @@ test_refresh_all ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRefreshAllRequest> refreshAllRequest (client.refreshAll ());
     refreshAllRequest->runSync ();
@@ -2541,9 +2312,6 @@ test_refresh_all_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRefreshAllRequest> refreshAllRequest (client.refreshAll ());
     ProgressCounter counter;
@@ -2564,9 +2332,6 @@ test_refresh_all_no_updates ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRefreshAllRequest> refreshAllRequest (client.refreshAll ());
     refreshAllRequest->runSync ();
@@ -2583,9 +2348,6 @@ test_remove ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
     QScopedPointer<QSnapdRemoveRequest> removeRequest (client.remove ("snap"));
@@ -2614,9 +2376,6 @@ test_remove_async ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
     RemoveHandler removeHandler (loop, snapd, client.remove ("snap"));
@@ -2648,9 +2407,6 @@ test_remove_async_failure ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
     RemoveErrorHandler removeHandler (loop, snapd, client.remove ("snap"));
@@ -2687,9 +2443,6 @@ test_remove_async_cancel ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
     RemoveCancelHandler removeHandler (loop, snapd, client.remove ("snap"));
@@ -2709,9 +2462,6 @@ test_remove_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     g_assert (mock_snapd_find_snap (snapd, "snap") != NULL);
     QScopedPointer<QSnapdRemoveRequest> removeRequest (client.remove ("snap"));
@@ -2731,9 +2481,6 @@ test_remove_not_installed ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRemoveRequest> removeRequest (client.remove ("snap"));
     removeRequest->runSync ();
@@ -2750,9 +2497,6 @@ test_enable ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdEnableRequest> enableRequest (client.enable ("snap"));
     enableRequest->runSync ();
@@ -2770,9 +2514,6 @@ test_enable_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdEnableRequest> enableRequest (client.enable ("snap"));
     ProgressCounter counter;
@@ -2793,9 +2534,6 @@ test_enable_already_enabled ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdEnableRequest> enableRequest (client.enable ("snap"));
     enableRequest->runSync ();
@@ -2810,9 +2548,6 @@ test_enable_not_installed ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdEnableRequest> enableRequest (client.enable ("snap"));
     enableRequest->runSync ();
@@ -2831,9 +2566,6 @@ test_disable ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdDisableRequest> disableRequest (client.disable ("snap"));
     disableRequest->runSync ();
@@ -2851,9 +2583,6 @@ test_disable_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdDisableRequest> disableRequest (client.disable ("snap"));
     ProgressCounter counter;
@@ -2874,9 +2603,6 @@ test_disable_already_disabled ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdDisableRequest> disableRequest (client.disable ("snap"));
     disableRequest->runSync ();
@@ -2891,9 +2617,6 @@ test_disable_not_installed ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdDisableRequest> disableRequest (client.disable ("snap"));
     disableRequest->runSync ();
@@ -2913,9 +2636,6 @@ test_check_buy ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -2939,9 +2659,6 @@ test_check_buy_terms_not_accepted ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -2965,9 +2682,6 @@ test_check_buy_no_payment_methods ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -2988,9 +2702,6 @@ test_check_buy_not_logged_in ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdCheckBuyRequest> checkBuyRequest (client.checkBuy ());
     checkBuyRequest->runSync ();
@@ -3011,9 +2722,6 @@ test_buy ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -3037,9 +2745,6 @@ test_buy_not_logged_in ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
     buyRequest->runSync ();
@@ -3057,9 +2762,6 @@ test_buy_not_available ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -3086,9 +2788,6 @@ test_buy_terms_not_accepted ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -3115,9 +2814,6 @@ test_buy_no_payment_methods ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -3144,9 +2840,6 @@ test_buy_invalid_price ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
@@ -3169,9 +2862,6 @@ test_get_sections ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetSectionsRequest> getSectionsRequest (client.getSections ());
     getSectionsRequest->runSync ();
@@ -3199,9 +2889,6 @@ test_get_aliases ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetAliasesRequest> getAliasesRequest (client.getAliases ());
     getAliasesRequest->runSync ();
@@ -3232,9 +2919,6 @@ test_get_aliases_empty ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdGetAliasesRequest> getAliasesRequest (client.getAliases ());
     getAliasesRequest->runSync ();
@@ -3253,9 +2937,6 @@ test_enable_aliases ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdEnableAliasesRequest> enableAliasesRequest (client.enableAliases ("snap1", QStringList () << "alias1"));
     enableAliasesRequest->runSync ();
@@ -3276,9 +2957,6 @@ test_enable_aliases_multiple ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdEnableAliasesRequest> enableAliasesRequest (client.enableAliases ("snap1", QStringList () << "alias1" << "alias2"));
     enableAliasesRequest->runSync ();
@@ -3298,9 +2976,6 @@ test_enable_aliases_progress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdEnableAliasesRequest> enableAliasesRequest (client.enableAliases ("snap1", QStringList () << "alias1"));
     ProgressCounter counter;
@@ -3322,9 +2997,6 @@ test_disable_aliases ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdDisableAliasesRequest> disableAliasesRequest (client.disableAliases ("snap1", QStringList () << "alias1"));
     disableAliasesRequest->runSync ();
@@ -3344,9 +3016,6 @@ test_reset_aliases ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdResetAliasesRequest> resetAliasesRequest (client.resetAliases ("snap1", QStringList () << "alias1"));
     resetAliasesRequest->runSync ();
@@ -3362,9 +3031,6 @@ test_run_snapctl ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     QScopedPointer<QSnapdRunSnapCtlRequest> runSnapCtlRequest (client.runSnapCtl ("ABC", QStringList () << "arg1" << "arg2"));
     runSnapCtlRequest->runSync ();
@@ -3383,9 +3049,6 @@ test_stress ()
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
-    QScopedPointer<QSnapdConnectRequest> connectRequest (client.connect ());
-    connectRequest->runSync ();
-    g_assert_cmpint (connectRequest->error (), ==, QSnapdRequest::NoError);
 
     for (int i = 0; i < 10000; i++) {
         QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
@@ -3478,6 +3141,8 @@ main (int argc, char **argv)
     g_test_add_func ("/install/channel", test_install_channel);
     g_test_add_func ("/install/revision", test_install_revision);
     g_test_add_func ("/install/not-available", test_install_not_available);
+    g_test_add_func ("/install/snapd-restart", test_install_snapd_restart);
+    g_test_add_func ("/install/async-snapd-restart", test_install_async_snapd_restart);
     g_test_add_func ("/install-stream/basic", test_install_stream);
     g_test_add_func ("/install-stream/progress", test_install_stream_progress);
     g_test_add_func ("/install-stream/classic", test_install_stream_classic);

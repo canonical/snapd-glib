@@ -1922,6 +1922,8 @@ handle_snap (MockClient *client, const gchar *method, const gchar *name, SoupMes
             }
 
             change = add_change_with_error (client->snapd, snap->error);
+            if (snap->restart_required)
+                add_task (change, "restart");
             task = add_task (change, "install");
             task->snap = mock_snap_new (name);
             mock_snap_set_confinement (task->snap, snap->confinement);
@@ -2392,6 +2394,11 @@ handle_changes (MockClient *client, const gchar *method, const gchar *change_id,
                         else if (strcmp (task->kind, "remove") == 0) {
                             client->snapd->snaps = g_list_remove (client->snapd->snaps, task->snap);
                             g_clear_pointer (&task->snap, mock_snap_free);
+                        }
+                        else if (strcmp (task->kind, "restart") == 0) {
+                            g_socket_close (client->socket, NULL);
+                            g_source_destroy (client->read_source);
+                            return;
                         }
                     }
                     break;

@@ -58,7 +58,7 @@ sync_cb (GObject *object, GAsyncResult *result, gpointer user_data)
  * @cancellable: (allow-none): a #GCancellable or %NULL
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Connect to snapd.
+ * This method is no longer required and does nothing, snapd-glib now connects on demand.
  *
  * Returns: %TRUE if successfully connected to snapd.
  *
@@ -68,15 +68,7 @@ gboolean
 snapd_client_connect_sync (SnapdClient *client,
                            GCancellable *cancellable, GError **error)
 {
-    g_auto(SyncData) data = { 0 };
-
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-
-    start_sync (&data);
-    snapd_client_connect_async (client, cancellable, sync_cb, &data);
-    end_sync (&data);
-
-    return snapd_client_connect_finish (client, data.result, error);
+    return TRUE;
 }
 
 /**

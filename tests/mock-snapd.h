@@ -76,6 +76,7 @@ typedef struct
     gchar *snap_data;
     gchar *snap_path;
     gchar *error;
+    gboolean restart_required;
 } MockSnap;
 
 typedef struct

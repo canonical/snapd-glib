@@ -129,16 +129,16 @@ SnapdClient            *snapd_client_new_from_socket               (GSocket     
 
 gboolean                snapd_client_connect_sync                  (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED;
 
 void                    snapd_client_connect_async                 (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED;
 
 gboolean                snapd_client_connect_finish                (SnapdClient          *client,
                                                                     GAsyncResult         *result,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED;
 
 void                    snapd_client_set_socket_path               (SnapdClient          *client,
                                                                     const gchar          *socket_path);
