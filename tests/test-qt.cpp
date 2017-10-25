@@ -164,7 +164,7 @@ test_allow_interaction ()
 }
 
 static void
-test_get_system_information ()
+test_get_system_information_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
@@ -300,7 +300,7 @@ test_get_system_information_confinement_unknown ()
 }
 
 static void
-test_login ()
+test_login_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
@@ -379,7 +379,7 @@ test_login_otp_invalid ()
 }
 
 static void
-test_list ()
+test_list_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap1");
@@ -439,7 +439,7 @@ test_list_async ()
 }
 
 static void
-test_list_one ()
+test_list_one_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
@@ -693,7 +693,7 @@ test_list_one_daemons ()
 }
 
 static void
-test_icon ()
+test_icon_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
@@ -786,7 +786,7 @@ test_icon_large ()
 }
 
 static void
-test_get_assertions ()
+test_get_assertions_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_assertion (snapd,
@@ -900,7 +900,7 @@ test_get_assertions_invalid ()
 }
 
 static void
-test_add_assertions ()
+test_add_assertions_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     g_assert (mock_snapd_start (snapd, NULL));
@@ -917,7 +917,7 @@ test_add_assertions ()
 }
 
 static void
-test_assertions ()
+test_assertions_sync ()
 {
     QSnapdAssertion assertion ("type: account\n"
                                "authority-id: canonical\n"
@@ -953,7 +953,7 @@ test_assertions_body ()
 }
 
 static void
-test_get_interfaces ()
+test_get_interfaces_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
@@ -1020,7 +1020,7 @@ test_get_interfaces_no_snaps ()
 }
 
 static void
-test_connect_interface ()
+test_connect_interface_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
@@ -1075,7 +1075,7 @@ test_connect_interface_invalid ()
 }
 
 static void
-test_disconnect_interface ()
+test_disconnect_interface_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
@@ -1464,7 +1464,7 @@ test_find_section_name ()
 }
 
 static void
-test_find_refreshable ()
+test_find_refreshable_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
@@ -1510,7 +1510,7 @@ test_find_refreshable_no_updates ()
 }
 
 static void
-test_install ()
+test_install_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
@@ -1977,7 +1977,7 @@ test_install_async_snapd_restart ()
 }
 
 static void
-test_install_stream ()
+test_install_stream_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
@@ -2138,7 +2138,7 @@ test_install_stream_jailmode ()
 }
 
 static void
-test_try ()
+test_try_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     g_assert (mock_snapd_start (snapd, NULL));
@@ -2175,7 +2175,7 @@ test_try_progress ()
 }
 
 static void
-test_refresh ()
+test_refresh_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
@@ -2271,7 +2271,7 @@ test_refresh_not_installed ()
 }
 
 static void
-test_refresh_all ()
+test_refresh_all_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
@@ -2343,7 +2343,7 @@ test_refresh_all_no_updates ()
 }
 
 static void
-test_remove ()
+test_remove_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
@@ -2491,7 +2491,7 @@ test_remove_not_installed ()
 }
 
 static void
-test_enable ()
+test_enable_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
@@ -2560,7 +2560,7 @@ test_enable_not_installed ()
 }
 
 static void
-test_disable ()
+test_disable_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
@@ -2629,7 +2629,7 @@ test_disable_not_installed ()
 }
 
 static void
-test_check_buy ()
+test_check_buy_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
@@ -2712,7 +2712,7 @@ test_check_buy_not_logged_in ()
 }
 
 static void
-test_buy ()
+test_buy_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
@@ -2856,7 +2856,7 @@ test_buy_invalid_price ()
 }
 
 static void
-test_get_sections ()
+test_get_sections_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_section (snapd, "SECTION1");
@@ -2875,7 +2875,7 @@ test_get_sections ()
 }
 
 static void
-test_get_aliases ()
+test_get_aliases_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
@@ -2930,7 +2930,7 @@ test_get_aliases_empty ()
 }
 
 static void
-test_enable_aliases ()
+test_enable_aliases_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
@@ -2990,7 +2990,7 @@ test_enable_aliases_progress ()
 }
 
 static void
-test_disable_aliases ()
+test_disable_aliases_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
@@ -3008,7 +3008,7 @@ test_disable_aliases ()
 }
 
 static void
-test_reset_aliases ()
+test_reset_aliases_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
@@ -3027,7 +3027,7 @@ test_reset_aliases ()
 }
 
 static void
-test_run_snapctl ()
+test_run_snapctl_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     g_assert (mock_snapd_start (snapd, NULL));
@@ -3075,43 +3075,43 @@ main (int argc, char **argv)
     g_test_add_func ("/accept-language/basic", test_accept_language);
     g_test_add_func ("/accept-language/empty", test_accept_language_empty);
     g_test_add_func ("/allow-interaction/basic", test_allow_interaction);
-    g_test_add_func ("/get-system-information/basic", test_get_system_information);
+    g_test_add_func ("/get-system-information/sync", test_get_system_information_sync);
     g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);
     g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);
     g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);
     g_test_add_func ("/get-system-information/confinement_unknown", test_get_system_information_confinement_unknown);
-    g_test_add_func ("/login/basic", test_login);
+    g_test_add_func ("/login/sync", test_login_sync);
     g_test_add_func ("/login/invalid-email", test_login_invalid_email);
     g_test_add_func ("/login/invalid-password", test_login_invalid_password);
     g_test_add_func ("/login/otp-missing", test_login_otp_missing);
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
-    g_test_add_func ("/list/basic", test_list);
+    g_test_add_func ("/list/sync", test_list_sync);
     g_test_add_func ("/list/async", test_list_async);
-    g_test_add_func ("/list-one/basic", test_list_one);
+    g_test_add_func ("/list-one/sync", test_list_one_sync);
     g_test_add_func ("/list-one/async", test_list_one_async);
     g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
     g_test_add_func ("/list-one/daemons", test_list_one_daemons);
-    g_test_add_func ("/icon/basic", test_icon);
+    g_test_add_func ("/icon/sync", test_icon_sync);
     g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
     g_test_add_func ("/icon/large", test_icon_large);
-    g_test_add_func ("/get-assertions/basic", test_get_assertions);
+    g_test_add_func ("/get-assertions/sync", test_get_assertions_sync);
     g_test_add_func ("/get-assertions/body", test_get_assertions_body);
     g_test_add_func ("/get-assertions/multiple", test_get_assertions_multiple);
     g_test_add_func ("/get-assertions/invalid", test_get_assertions_invalid);
-    g_test_add_func ("/add-assertions/basic", test_add_assertions);
-    g_test_add_func ("/assertions/basic", test_assertions);
+    g_test_add_func ("/add-assertions/sync", test_add_assertions_sync);
+    g_test_add_func ("/assertions/sync", test_assertions_sync);
     g_test_add_func ("/assertions/body", test_assertions_body);
-    g_test_add_func ("/get-interfaces/basic", test_get_interfaces);
+    g_test_add_func ("/get-interfaces/sync", test_get_interfaces_sync);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
-    g_test_add_func ("/connect-interface/basic", test_connect_interface);
+    g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
     g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);
     g_test_add_func ("/connect-interface/invalid", test_connect_interface_invalid);
-    g_test_add_func ("/disconnect-interface/basic", test_disconnect_interface);
+    g_test_add_func ("/disconnect-interface/sync", test_disconnect_interface_sync);
     g_test_add_func ("/disconnect-interface/progress", test_disconnect_interface_progress);
     g_test_add_func ("/disconnect-interface/invalid", test_disconnect_interface_invalid);
     g_test_add_func ("/find/query", test_find_query);
@@ -3125,9 +3125,9 @@ main (int argc, char **argv)
     g_test_add_func ("/find/section", test_find_section);
     g_test_add_func ("/find/section_query", test_find_section_query);
     g_test_add_func ("/find/section_name", test_find_section_name);
-    g_test_add_func ("/find-refreshable/basic", test_find_refreshable);
+    g_test_add_func ("/find-refreshable/sync", test_find_refreshable_sync);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
-    g_test_add_func ("/install/basic", test_install);
+    g_test_add_func ("/install/sync", test_install_sync);
     g_test_add_func ("/install/multiple", test_install_multiple);
     g_test_add_func ("/install/async", test_install_async);
     g_test_add_func ("/install/async-multiple", test_install_async_multiple);
@@ -3146,57 +3146,57 @@ main (int argc, char **argv)
     g_test_add_func ("/install/not-available", test_install_not_available);
     g_test_add_func ("/install/snapd-restart", test_install_snapd_restart);
     g_test_add_func ("/install/async-snapd-restart", test_install_async_snapd_restart);
-    g_test_add_func ("/install-stream/basic", test_install_stream);
+    g_test_add_func ("/install-stream/sync", test_install_stream_sync);
     g_test_add_func ("/install-stream/progress", test_install_stream_progress);
     g_test_add_func ("/install-stream/classic", test_install_stream_classic);
     g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous);
     g_test_add_func ("/install-stream/devmode", test_install_stream_devmode);
     g_test_add_func ("/install-stream/jailmode", test_install_stream_jailmode);
-    g_test_add_func ("/try/basic", test_try);
+    g_test_add_func ("/try/sync", test_try_sync);
     g_test_add_func ("/try/progress", test_try_progress);
-    g_test_add_func ("/refresh/basic", test_refresh);
+    g_test_add_func ("/refresh/sync", test_refresh_sync);
     g_test_add_func ("/refresh/progress", test_refresh_progress);
     g_test_add_func ("/refresh/channel", test_refresh_channel);
     g_test_add_func ("/refresh/no-updates", test_refresh_no_updates);
     g_test_add_func ("/refresh/not-installed", test_refresh_not_installed);
-    g_test_add_func ("/refresh-all/basic", test_refresh_all);
+    g_test_add_func ("/refresh-all/sync", test_refresh_all_sync);
     g_test_add_func ("/refresh-all/progress", test_refresh_all_progress);
     g_test_add_func ("/refresh-all/no-updates", test_refresh_all_no_updates);
-    g_test_add_func ("/remove/basic", test_remove);
+    g_test_add_func ("/remove/sync", test_remove_sync);
     g_test_add_func ("/remove/async", test_remove_async);
     g_test_add_func ("/remove/async-failure", test_remove_async_failure);
     g_test_add_func ("/remove/async-cancel", test_remove_async_cancel);
     g_test_add_func ("/remove/progress", test_remove_progress);
     g_test_add_func ("/remove/not-installed", test_remove_not_installed);
-    g_test_add_func ("/enable/basic", test_enable);
+    g_test_add_func ("/enable/sync", test_enable_sync);
     g_test_add_func ("/enable/progress", test_enable_progress);
     g_test_add_func ("/enable/already-enabled", test_enable_already_enabled);
     g_test_add_func ("/enable/not-installed", test_enable_not_installed);
-    g_test_add_func ("/disable/basic", test_disable);
+    g_test_add_func ("/disable/sync", test_disable_sync);
     g_test_add_func ("/disable/progress", test_disable_progress);
     g_test_add_func ("/disable/already-disabled", test_disable_already_disabled);
     g_test_add_func ("/disable/not-installed", test_disable_not_installed);
-    g_test_add_func ("/check-buy/basic", test_check_buy);
+    g_test_add_func ("/check-buy/sync", test_check_buy_sync);
     g_test_add_func ("/check-buy/no-terms-not-accepted", test_check_buy_terms_not_accepted);
     g_test_add_func ("/check-buy/no-payment-methods", test_check_buy_no_payment_methods);
     g_test_add_func ("/check-buy/not-logged-in", test_check_buy_not_logged_in);
-    g_test_add_func ("/buy/basic", test_buy);
+    g_test_add_func ("/buy/sync", test_buy_sync);
     g_test_add_func ("/buy/not-logged-in", test_buy_not_logged_in);
     g_test_add_func ("/buy/not-available", test_buy_not_available);
     g_test_add_func ("/buy/terms-not-accepted", test_buy_terms_not_accepted);
     g_test_add_func ("/buy/no-payment-methods", test_buy_no_payment_methods);
     g_test_add_func ("/buy/invalid-price", test_buy_invalid_price);
-    //FIXMEg_test_add_func ("/create-user/basic", test_create_user);
-    //FIXMEg_test_add_func ("/create-users/basic", test_create_user);
-    g_test_add_func ("/get-sections/basic", test_get_sections);
-    g_test_add_func ("/get-aliases/basic", test_get_aliases);
+    //FIXMEg_test_add_func ("/create-user/sync", test_create_user_sync);
+    //FIXMEg_test_add_func ("/create-users/sync", test_create_user_sync);
+    g_test_add_func ("/get-sections/sync", test_get_sections_sync);
+    g_test_add_func ("/get-aliases/sync", test_get_aliases_sync);
     g_test_add_func ("/get-aliases/empty", test_get_aliases_empty);
-    g_test_add_func ("/enable-aliases/basic", test_enable_aliases);
+    g_test_add_func ("/enable-aliases/sync", test_enable_aliases_sync);
     g_test_add_func ("/enable-aliases/multiple", test_enable_aliases_multiple);
     g_test_add_func ("/enable-aliases/progress", test_enable_aliases_progress);
-    g_test_add_func ("/disable-aliases/basic", test_disable_aliases);
-    g_test_add_func ("/reset-aliases/basic", test_reset_aliases);
-    g_test_add_func ("/run-snapctl/basic", test_run_snapctl);
+    g_test_add_func ("/disable-aliases/sync", test_disable_aliases_sync);
+    g_test_add_func ("/reset-aliases/sync", test_reset_aliases_sync);
+    g_test_add_func ("/run-snapctl/sync", test_run_snapctl_sync);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();
