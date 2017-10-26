@@ -1,0 +1,149 @@
+Source: snapd-glib
+Section: libs
+Priority: optional
+Maintainer: Ayatana Packagers <pkg-ayatana-devel@lists.alioth.debian.org>
+Uploaders:
+ Jeremy Bicha <jbicha@debian.org>,
+ Mike Gabriel <sunweaver@debian.org>
+Build-Depends: debhelper (>= 10),
+               gnome-common,
+               gobject-introspection,
+               gtk-doc-tools (>= 1.20),
+               intltool (>= 0.35.0),
+               libgirepository1.0-dev,
+               libglib2.0-dev (>= 2.46),
+               libjson-glib-dev (>= 1.2),
+               libpolkit-gobject-1-dev,
+               libsoup2.4-dev (>= 2.32),
+               qtbase5-dev,
+               qtdeclarative5-dev,
+               valac
+Standards-Version: 4.1.1
+Homepage: https://github.com/snapcore/snapd-glib
+Vcs-Git: https://anonscm.debian.org/git/pkg-ayatana/snapd-glib.git
+Vcs-Browser: https://anonscm.debian.org/git/pkg-ayatana/snapd-glib.git
+
+Package: libsnapd-glib1
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: snapd,
+            snapd-login-service,
+Description: GLib snapd library
+ snapd-glib is a library to allow GLib based applications access to snapd,
+ the daemon that controls Snaps.
+ .
+ Snaps are 'universal' packages that work across many different Linux
+ systems, enabling secure distribution of the latest apps and utilities
+ for cloud, servers, desktops and the internet of things.
+
+Package: gir1.2-snapd-1
+Section: introspection
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends},
+         ${gir:Depends},
+         libsnapd-glib1 (= ${binary:Version})
+Description: Typelib file for libsnapd-glib1
+ snapd-glib is a library to allow GLib based applications access to snapd,
+ the daemon that controls Snaps.
+ .
+ Snaps are 'universal' packages that work across many different Linux
+ systems, enabling secure distribution of the latest apps and utilities
+ for cloud, servers, desktops and the internet of things.
+ .
+ This package contains introspection data.
+ .
+ It can be used by packages using the GIRepository format to generate
+ dynamic bindings.
+
+Package: libsnapd-glib-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends},
+         libsnapd-glib1 (= ${binary:Version}),
+         gir1.2-snapd-1 (= ${binary:Version}),
+         libglib2.0-dev,
+         libsoup2.4-dev,
+         libjson-glib-dev
+Description: GLib snapd library (development files)
+ snapd-glib is a library to allow GLib based applications access to snapd,
+ the daemon that controls Snaps.
+ .
+ Snaps are 'universal' packages that work across many different Linux
+ systems, enabling secure distribution of the latest apps and utilities
+ for cloud, servers, desktops and the internet of things.
+ .
+ This package contains header files and development information, which
+ is useful for building applications that need to communicate with snapd.
+
+Package: libsnapd-qt1
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: snapd,
+            snapd-login-service,
+Description: Qt snapd library
+ snapd-glib is a library to allow GLib based applications access to snapd,
+ the daemon that controls Snaps.
+ .
+ Snaps are 'universal' packages that work across many different Linux
+ systems, enabling secure distribution of the latest apps and utilities
+ for cloud, servers, desktops and the internet of things.
+ .
+ snapd-qt is a wrapper library for snapd-glib for Qt applications.
+
+Package: qml-module-snapd
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+Recommends: snapd,
+            snapd-login-service,
+Description: Snapd QML module
+ snapd-glib is a library to allow GLib based applications access to snapd,
+ the daemon that controls Snaps.
+ .
+ Snaps are 'universal' packages that work across many different Linux
+ systems, enabling secure distribution of the latest apps and utilities
+ for cloud, servers, desktops and the internet of things.
+ .
+ This is a QML module for Qt applications to access snapd.
+
+Package: libsnapd-qt-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: ${misc:Depends},
+         libsnapd-qt1 (= ${binary:Version}),
+         qtbase5-dev,
+Description: Qt snapd library (development files)
+ snapd-glib is a library to allow GLib based applications access to snapd,
+ the daemon that controls Snaps.
+ .
+ Snaps are 'universal' packages that work across many different Linux
+ systems, enabling secure distribution of the latest apps and utilities
+ for cloud, servers, desktops and the internet of things.
+ .
+ snapd-qt is a wrapper library for snapd-glib for Qt applications.
+ .
+ This package contains the development files.
+
+Package: snapd-login-service
+Section: admin
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Recommends: policykit-1
+Description: Daemon to allow non-root access to snapd
+ snapd-glib is a library to allow GLib based applications access to snapd,
+ the daemon that controls Snaps.
+ .
+ Snaps are 'universal' packages that work across many different Linux
+ systems, enabling secure distribution of the latest apps and utilities
+ for cloud, servers, desktops and the internet of things.
+ .
+ Snapd Login Service is a daemon that allows users to request authorization from
+ snapd. It uses Polkit to check for permissions.

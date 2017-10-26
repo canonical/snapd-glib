@@ -1,0 +1,250 @@
+libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
+ (c++|regex)"^.*::metaObject\(\) const@Base$" 0
+ (c++|regex)"^QMetaTypeIdQObject<.*@Base$" 0
+ (c++|regex)"^.*::qt_metacall\(QMetaObject::Call, int, void[*][*]\)@Base$" 0
+ (c++|regex)"^.*::qt_metacast\(char const[*]\)@Base$" 0
+ (c++|regex)"^QtMetaTypePrivate::.*@Base$" 0
+ (c++|regex)"^.*Request::handleResult\(void[*], void[*]\)@Base$" 0
+ (c++|regex)"^.*Request::.*Request\(.*\)@Base$" 0
+ (c++|regex)"^.*Request::runAsync\(\)@Base$" 0
+ (c++|regex)"^.*Request::runSync\(\)@Base$" 0
+ (c++|regex)"^.*::staticMetaObject@Base$" 0
+ (c++|regex)"^typeinfo for .*@Base$" 0
+ (c++|regex)"^typeinfo name for .*@Base$" 0 
+ (c++|regex)"^vtable for .*$" 0
+ (c++)"login(QString const&, QString const&)@Base" 1.8
+ (c++)"login(QString const&, QString const&, QString const&)@Base" 0
+ (c++|optional)"QByteArray::~QByteArray()@Base" 0
+ (c++|optional)"QList<QString>::append(QString const&)@Base" 0
+ (c++|optional)"QList<QString>::detach_helper_grow(int, int)@Base" 0
+ (c++|optional)"QList<QString>::~QList()@Base" 0
+ (c++|optional)"QList<QString>::QList(QList<QString> const&)@Base" 0
+ (c++|optional)"QSnapdInstallRequestPrivate::~QSnapdInstallRequestPrivate()@Base" 1.9
+ (c++|optional)"QSnapdRequest::finish(void*)@Base" 1.5
+ (c++|optional)"QSnapdRequest::handleProgress(void*)@Base" 1.5
+ (c++|optional)"QString::~QString()@Base" 0
+ (c++|optional)"QString::toStdString[abi:cxx11]() const@Base" 0
+ (optional)stream_wrapper_get_type@Base 1.9
+ (c++)"QSnapdAlias::app() const@Base" 1.8
+ (c++)"QSnapdAlias::name() const@Base" 1.8
+ (c++)"QSnapdAlias::~QSnapdAlias()@Base" 1.8
+ (c++)"QSnapdAlias::QSnapdAlias(void*, QObject*)@Base" 1.8
+ (c++)"QSnapdAlias::snap() const@Base" 1.8
+ (c++)"QSnapdAlias::status() const@Base" 1.8
+ (c++)"QSnapdApp::aliases() const@Base" 1.7
+ (c++)"QSnapdApp::daemonType() const@Base" 1.9
+ (c++)"QSnapdApp::desktopFile() const@Base" 1.14 
+ (c++)"QSnapdApp::name() const@Base" 1.5
+ (c++)"QSnapdApp::~QSnapdApp()@Base" 1.5
+ (c++)"QSnapdApp::QSnapdApp(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdAssertion::body() const@Base" 1.8
+ (c++)"QSnapdAssertion::header(QString const&) const@Base" 1.8
+ (c++)"QSnapdAssertion::headers() const@Base" 1.8
+ (c++)"QSnapdAssertion::~QSnapdAssertion()@Base" 1.8
+ (c++)"QSnapdAssertion::QSnapdAssertion(QString const&, QObject*)@Base" 1.8
+ (c++)"QSnapdAssertion::signature() const@Base" 1.8
+ (c++)"QSnapdAuthData::discharges() const@Base" 1.5
+ (c++)"QSnapdAuthData::macaroon() const@Base" 1.5
+ (c++)"QSnapdAuthData::~QSnapdAuthData()@Base" 1.5
+ (c++)"QSnapdAuthData::QSnapdAuthData(QString const&, QStringList const&, QObject*)@Base" 1.5
+ (c++)"QSnapdAuthData::QSnapdAuthData(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdChange::id() const@Base" 1.5
+ (c++)"QSnapdChange::kind() const@Base" 1.5
+ (c++)"QSnapdChange::~QSnapdChange()@Base" 1.5
+ (c++)"QSnapdChange::QSnapdChange(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdChange::ready() const@Base" 1.5
+ (c++)"QSnapdChange::readyTime() const@Base" 1.5
+ (c++)"QSnapdChange::spawnTime() const@Base" 1.5
+ (c++)"QSnapdChange::status() const@Base" 1.5
+ (c++)"QSnapdChange::summary() const@Base" 1.5
+ (c++)"QSnapdChange::taskCount() const@Base" 1.8
+ (c++)"QSnapdChange::task(int) const@Base" 1.8
+ (c++)"QSnapdChannel::confinement() const@Base" 1.24
+ (c++)"QSnapdChannel::epoch() const@Base" 1.24
+ (c++)"QSnapdChannel::name() const@Base" 1.24
+ (c++)"QSnapdChannel::~QSnapdChannel()@Base" 1.24
+ (c++)"QSnapdChannel::~QSnapdChannel()@Base" 1.24
+ (c++)"QSnapdChannel::~QSnapdChannel()@Base" 1.24
+ (c++)"QSnapdChannel::QSnapdChannel(void*, QObject*)@Base" 1.24
+ (c++)"QSnapdChannel::QSnapdChannel(void*, QObject*)@Base" 1.24
+ (c++)"QSnapdChannel::revision() const@Base" 1.24
+ (c++)"QSnapdChannel::size() const@Base" 1.24
+ (c++)"QSnapdChannel::version() const@Base" 1.24
+ (c++)"QSnapdCheckBuyRequest::canBuy() const@Base" 1.5
+ (c++)"QSnapdClient::addAssertions(QStringList const&)@Base" 1.8
+ (c++)"QSnapdClient::allowInteraction() const@Base" 1.19 
+ (c++)"QSnapdClient::authData()@Base" 1.8
+ (c++)"QSnapdClient::buy(QString const&, double, QString const&)@Base" 1.5
+ (c++)"QSnapdClient::checkBuy()@Base" 1.5
+ (c++)"QSnapdClient::connect()@Base" 1.5
+ (c++)"QSnapdClient::connectInterface(QString const&, QString const&, QString const&, QString const&)@Base" 1.5
+ (c++)"QSnapdClient::disableAliases(QString, QStringList const&)@Base" 1.8
+ (c++)"QSnapdClient::disable(QString const&)@Base" 1.5
+ (c++)"QSnapdClient::disconnectInterface(QString const&, QString const&, QString const&, QString const&)@Base" 1.5
+ (c++)"QSnapdClient::enableAliases(QString, QStringList const&)@Base" 1.8
+ (c++)"QSnapdClient::enable(QString const&)@Base" 1.5
+ (c++)"QSnapdClient::find(QFlags<QSnapdClient::FindFlag>)@Base" 1.8
+ (c++)"QSnapdClient::find(QFlags<QSnapdClient::FindFlag>, QString const&)@Base" 1.5
+ (c++)"QSnapdClient::findRefreshable()@Base" 1.5
+ (c++)"QSnapdClient::findSection(QFlags<QSnapdClient::FindFlag>, QString const&, QString const&)@Base" 1.7
+ (c++)"QSnapdClient::getAliases()@Base" 1.8
+ (c++)"QSnapdClient::getAssertions(QString const&)@Base" 1.8
+ (c++)"QSnapdClient::getIcon(QString const&)@Base" 1.5
+ (c++)"QSnapdClient::getInterfaces()@Base" 1.5
+ (c++)"QSnapdClient::getSections()@Base" 1.8
+ (c++)"QSnapdClient::getSystemInformation()@Base" 1.5
+ (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QIODevice*)@Base" 1.9
+ (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QString const&)@Base" 1.12
+ (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QString const&, QString const&)@Base" 1.12
+ (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QString const&, QString const&, QString const&)@Base" 1.12
+ (c++)"QSnapdClient::install(QIODevice*)@Base" 1.9
+ (c++)"QSnapdClient::install(QString const&)@Base" 1.8
+ (c++)"QSnapdClient::install(QString const&, QString const&)@Base" 1.5
+ (c++)"QSnapdClient::install(QString const&, QString const&, QString const&)@Base" 1.12 
+ (c++)"QSnapdClient::list()@Base" 1.5
+ (c++)"QSnapdClient::listOne(QString const&)@Base" 1.5
+ (c++)"QSnapdClient::login(QString const&, QString const&)@Base" 1.8
+ (c++)"QSnapdClient::login(QString const&, QString const&, QString const&)@Base" 1.5
+ (c++)"QSnapdClient::~QSnapdClient()@Base" 1.5
+ (c++)"QSnapdClient::QSnapdClient(int, QObject*)@Base" 1.8
+ (c++)"QSnapdClient::QSnapdClient(QObject*)@Base" 1.5
+ (c++)"QSnapdClient::refreshAll()@Base" 1.5
+ (c++)"QSnapdClient::refresh(QString const&)@Base" 1.8
+ (c++)"QSnapdClient::refresh(QString const&, QString const&)@Base" 1.5
+ (c++)"QSnapdClient::remove(QString const&)@Base" 1.5
+ (c++)"QSnapdClient::resetAliases(QString, QStringList const&)@Base" 1.8
+ (c++)"QSnapdClient::runSnapCtl(QString, QStringList const&)@Base" 1.8
+ (c++)"QSnapdClient::setAllowInteraction(bool)@Base" 1.19
+ (c++)"QSnapdClient::setAuthData(QSnapdAuthData*)@Base" 1.8 
+ (c++)"QSnapdClient::setSocketPath(QString const&)@Base" 1.24
+ (c++)"QSnapdClient::setUserAgent(QString const&)@Base" 1.16
+ (c++)"QSnapdClient::socketPath() const@Base" 1.24
+ (c++)"QSnapdClient::trySnap(QString const&)@Base" 1.9
+ (c++)"QSnapdClient::userAgent() const@Base" 1.16
+ (c++)"QSnapdConnection::name() const@Base" 1.5
+ (c++)"QSnapdConnection::~QSnapdConnection()@Base" 1.5
+ (c++)"QSnapdConnection::QSnapdConnection(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdConnection::snap() const@Base" 1.5
+ (c++)"QSnapdEnums::~QSnapdEnums()@Base" 1.24
+ (c++)"QSnapdEnums::~QSnapdEnums()@Base" 1.24
+ (c++)"QSnapdEnums::~QSnapdEnums()@Base" 1.24
+ (c++)"QSnapdFindRefreshableRequest::snapCount() const@Base" 1.8
+ (c++)"QSnapdFindRefreshableRequest::snap(int) const@Base" 1.8
+ (c++)"QSnapdFindRequest::snapCount() const@Base" 1.5
+ (c++)"QSnapdFindRequest::snap(int) const@Base" 1.5
+ (c++)"QSnapdFindRequest::suggestedCurrency() const@Base" 1.5
+ (c++)"QSnapdGetAliasesRequest::aliasCount() const@Base" 1.8
+ (c++)"QSnapdGetAliasesRequest::alias(int) const@Base" 1.8
+ (c++)"QSnapdGetAssertionsRequest::assertions() const@Base" 1.8
+ (c++)"QSnapdGetIconRequest::icon() const@Base" 1.5
+ (c++)"QSnapdGetInterfacesRequest::plugCount() const@Base" 1.5
+ (c++)"QSnapdGetInterfacesRequest::plug(int) const@Base" 1.5
+ (c++)"QSnapdGetInterfacesRequest::slotCount() const@Base" 1.5
+ (c++)"QSnapdGetInterfacesRequest::slot(int) const@Base" 1.5
+ (c++)"QSnapdGetSectionsRequest::sections() const@Base" 1.7
+ (c++)"QSnapdGetSystemInformationRequest::systemInformation()@Base" 1.5
+ (c++)"QSnapdIcon::data() const@Base" 1.5
+ (c++)"QSnapdIcon::mimeType() const@Base" 1.5
+ (c++)"QSnapdIcon::~QSnapdIcon()@Base" 1.5
+ (c++)"QSnapdIcon::QSnapdIcon(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdListOneRequest::snap() const@Base" 1.5
+ (c++)"QSnapdListRequest::snapCount() const@Base" 1.5
+ (c++)"QSnapdListRequest::snap(int) const@Base" 1.5
+ (c++)"QSnapdLoginRequest::authData()@Base" 1.8
+ (c++)"QSnapdPlug::connectionCount() const@Base" 1.8
+ (c++)"QSnapdPlug::connection(int) const@Base" 1.8
+ (c++)"QSnapdPlug::interface() const@Base" 1.8
+ (c++)"QSnapdPlug::label() const@Base" 1.8
+ (c++)"QSnapdPlug::name() const@Base" 1.8
+ (c++)"QSnapdPlug::~QSnapdPlug()@Base" 1.8
+ (c++)"QSnapdPlug::QSnapdPlug(void*, QObject*)@Base" 1.8
+ (c++)"QSnapdPlug::snap() const@Base" 1.8
+ (c++)"QSnapdPrice::amount() const@Base" 1.5
+ (c++)"QSnapdPrice::currency() const@Base" 1.5
+ (c++)"QSnapdPrice::~QSnapdPrice()@Base" 1.5
+ (c++)"QSnapdPrice::QSnapdPrice(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdRefreshAllRequest::snapNames() const@Base" 1.8
+ (c++)"QSnapdRequest::cancel()@Base" 1.5
+ (c++)"QSnapdRequest::change() const@Base" 1.5
+ (c++)"QSnapdRequest::complete()@Base" 1.5
+ (c++)"QSnapdRequest::error() const@Base" 1.5
+ (c++)"QSnapdRequest::errorString() const@Base" 1.5
+ (c++)"QSnapdRequest::getCancellable() const@Base" 1.5
+ (c++)"QSnapdRequest::getClient() const@Base" 1.5
+ (c++)"QSnapdRequest::isFinished() const@Base" 1.5
+ (c++)"QSnapdRequest::progress()@Base" 1.5
+ (c++)"QSnapdRunSnapCtlRequest::stderr() const@Base" 1.8
+ (c++)"QSnapdRunSnapCtlRequest::stdout() const@Base" 1.8
+ (c++)"QSnapdScreenshot::height() const@Base" 1.8
+ (c++)"QSnapdScreenshot::~QSnapdScreenshot()@Base" 1.8
+ (c++)"QSnapdScreenshot::QSnapdScreenshot(void*, QObject*)@Base" 1.8
+ (c++)"QSnapdScreenshot::url() const@Base" 1.8
+ (c++)"QSnapdScreenshot::width() const@Base" 1.8
+ (c++)"QSnapdSlot::connectionCount() const@Base" 1.8
+ (c++)"QSnapdSlot::connection(int) const@Base" 1.8
+ (c++)"QSnapdSlot::interface() const@Base" 1.8
+ (c++)"QSnapdSlot::label() const@Base" 1.8
+ (c++)"QSnapdSlot::name() const@Base" 1.8
+ (c++)"QSnapdSlot::~QSnapdSlot()@Base" 1.8
+ (c++)"QSnapdSlot::QSnapdSlot(void*, QObject*)@Base" 1.8
+ (c++)"QSnapdSlot::snap() const@Base" 1.8
+ (c++)"QSnapdSnap::appCount() const@Base" 1.5
+ (c++)"QSnapdSnap::app(int) const@Base" 1.5
+ (c++)"QSnapdSnap::channel() const@Base" 1.5
+ (c++)"QSnapdSnap::channelCount() const@Base" 1.24
+ (c++)"QSnapdSnap::channel(int) const@Base" 1.24
+ (c++)"QSnapdSnap::confinement() const@Base" 1.5
+ (c++)"QSnapdSnap::contact() const@Base" 1.13
+ (c++)"QSnapdSnap::description() const@Base" 1.5
+ (c++)"QSnapdSnap::developer() const@Base" 1.5
+ (c++)"QSnapdSnap::devmode() const@Base" 1.5
+ (c++)"QSnapdSnap::downloadSize() const@Base" 1.5
+ (c++)"QSnapdSnap::icon() const@Base" 1.5
+ (c++)"QSnapdSnap::id() const@Base" 1.5
+ (c++)"QSnapdSnap::installDate() const@Base" 1.5
+ (c++)"QSnapdSnap::installedSize() const@Base" 1.5
+ (c++)"QSnapdSnap::isPrivate() const@Base" 1.5
+ (c++)"QSnapdSnap::jailmode() const@Base" 1.8
+ (c++)"QSnapdSnap::license() const@Base" 1.19
+ (c++)"QSnapdSnap::matchChannel(QString const&) const@Base" 1.24
+ (c++)"QSnapdSnap::name() const@Base" 1.5
+ (c++)"QSnapdSnap::priceCount() const@Base" 1.5
+ (c++)"QSnapdSnap::price(int) const@Base" 1.5
+ (c++)"QSnapdSnap::~QSnapdSnap()@Base" 1.5
+ (c++)"QSnapdSnap::QSnapdSnap(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdSnap::revision() const@Base" 1.5
+ (c++)"QSnapdSnap::screenshotCount() const@Base" 1.8
+ (c++)"QSnapdSnap::screenshot(int) const@Base" 1.8
+ (c++)"QSnapdSnap::snapType() const@Base" 1.5
+ (c++)"QSnapdSnap::status() const@Base" 1.5
+ (c++)"QSnapdSnap::summary() const@Base" 1.5
+ (c++)"QSnapdSnap::title() const@Base" 1.14
+ (c++)"QSnapdSnap::trackingChannel() const@Base" 1.7
+ (c++)"QSnapdSnap::tracks() const@Base" 1.24
+ (c++)"QSnapdSnap::trymode() const@Base" 1.5
+ (c++)"QSnapdSnap::version() const@Base" 1.5
+ (c++)"QSnapdSystemInformation::binariesDirectory() const@Base" 1.11
+ (c++)"QSnapdSystemInformation::confinement() const@Base" 1.14 
+ (c++)"QSnapdSystemInformation::kernelVersion() const@Base" 1.11 
+ (c++)"QSnapdSystemInformation::managed() const@Base" 1.7
+ (c++)"QSnapdSystemInformation::mountDirectory() const@Base" 1.11 
+ (c++)"QSnapdSystemInformation::onClassic() const@Base" 1.5
+ (c++)"QSnapdSystemInformation::osId() const@Base" 1.5
+ (c++)"QSnapdSystemInformation::osVersion() const@Base" 1.5
+ (c++)"QSnapdSystemInformation::~QSnapdSystemInformation()@Base" 1.5
+ (c++)"QSnapdSystemInformation::QSnapdSystemInformation(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdSystemInformation::series() const@Base" 1.5
+ (c++)"QSnapdSystemInformation::store() const@Base" 1.7
+ (c++)"QSnapdSystemInformation::version() const@Base" 1.5
+ (c++)"QSnapdTask::id() const@Base" 1.5
+ (c++)"QSnapdTask::kind() const@Base" 1.5
+ (c++)"QSnapdTask::progressDone() const@Base" 1.5
+ (c++)"QSnapdTask::progressLabel() const@Base" 1.5
+ (c++)"QSnapdTask::progressTotal() const@Base" 1.5
+ (c++)"QSnapdTask::~QSnapdTask()@Base" 1.5
+ (c++)"QSnapdTask::QSnapdTask(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdTask::readyTime() const@Base" 1.5
+ (c++)"QSnapdTask::spawnTime() const@Base" 1.5
+ (c++)"QSnapdTask::status() const@Base" 1.5
+ (c++)"QSnapdTask::summary() const@Base" 1.5
+ (c++)"QSnapdWrappedObject::~QSnapdWrappedObject()@Base" 1.5

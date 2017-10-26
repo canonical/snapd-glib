@@ -1,0 +1,3 @@
+usr/include/snapd-qt
+usr/lib/*/cmake
+usr/lib/*/libsnapd-qt*.so

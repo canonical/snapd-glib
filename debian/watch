@@ -1,0 +1,2 @@
+version=4
+https://github.com/snapcore/snapd-glib/releases .*/snapd-glib-([0-9.]+)\.tar\.xz
