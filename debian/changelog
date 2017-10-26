@@ -1,5 +1,5 @@
 snapd-glib (1.24-1) UNRELEASED; urgency=medium
 
-  * Initial release. (Closes: #)
+  * Initial release. (Closes: #879894)
 
  -- Jeremy Bicha <jbicha@debian.org>  Thu, 26 Oct 2017 15:38:11 -0400
