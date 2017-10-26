@@ -1159,7 +1159,7 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          "tracks",
                                                          "Track names",
                                                          G_TYPE_STRV,
-                                                         G_PARAM_READWRITE));
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_TRYMODE,
                                      g_param_spec_boolean ("trymode",
