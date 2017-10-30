@@ -2167,6 +2167,162 @@ test_install_async_cancel (void)
     g_main_loop_run (loop);
 }
 
+static void
+complete_async_multiple_cancel_first (AsyncData *data)
+{
+    data->counter--;
+    if (data->counter == 0) {
+        g_assert (mock_snapd_find_snap (data->snapd, "snap1") == NULL);
+        g_assert (mock_snapd_find_snap (data->snapd, "snap2") != NULL);
+        g_assert (mock_snapd_find_snap (data->snapd, "snap3") != NULL);
+
+        g_main_loop_quit (data->loop);
+
+        async_data_free (data);
+    }
+}
+
+static void
+install_multiple_cancel_first_snap1_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    gboolean r;
+    AsyncData *data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+    g_assert (!r);
+    g_assert (mock_snapd_find_snap (data->snapd, "snap1") == NULL);
+
+    complete_async_multiple_cancel_first (data);
+}
+
+static void
+install_multiple_cancel_first_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    gboolean r;
+    AsyncData *data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert (r);
+
+    complete_async_multiple_cancel_first (data);
+}
+
+static void
+test_install_async_multiple_cancel_first (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GCancellable) cancellable = NULL;
+    AsyncData *data;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snapd_add_store_snap (snapd, "snap3");
+    g_assert (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_assert (mock_snapd_find_snap (snapd, "snap1") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap2") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap3") == NULL);
+    cancellable = g_cancellable_new ();
+    data = async_data_new (loop, snapd);
+    data->counter = 3;
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL, NULL, NULL, NULL, cancellable, install_multiple_cancel_first_snap1_cb, data);
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap2", NULL, NULL, NULL, NULL, NULL, install_multiple_cancel_first_cb, data);
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap3", NULL, NULL, NULL, NULL, NULL, install_multiple_cancel_first_cb, data);
+    g_idle_add (cancel_cb, cancellable);
+    g_main_loop_run (loop);
+}
+
+static void
+complete_async_multiple_cancel_last (AsyncData *data)
+{
+    data->counter--;
+    if (data->counter == 0) {
+        g_assert (mock_snapd_find_snap (data->snapd, "snap1") != NULL);
+        g_assert (mock_snapd_find_snap (data->snapd, "snap2") != NULL);
+        g_assert (mock_snapd_find_snap (data->snapd, "snap3") == NULL);
+
+        g_main_loop_quit (data->loop);
+
+        async_data_free (data);
+    }
+}
+
+static void
+install_multiple_cancel_last_snap3_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    gboolean r;
+    AsyncData *data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+    g_assert (!r);
+    g_assert (mock_snapd_find_snap (data->snapd, "snap3") == NULL);
+
+    complete_async_multiple_cancel_last (data);
+}
+
+static void
+install_multiple_cancel_last_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    gboolean r;
+    AsyncData *data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert (r);
+
+    complete_async_multiple_cancel_last (data);
+}
+
+static void
+test_install_async_multiple_cancel_last (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GCancellable) cancellable = NULL;
+    AsyncData *data;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snapd_add_store_snap (snapd, "snap3");
+    g_assert (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_assert (mock_snapd_find_snap (snapd, "snap1") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap2") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap3") == NULL);
+    cancellable = g_cancellable_new ();
+    data = async_data_new (loop, snapd);
+    data->counter = 3;
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL, NULL, NULL, NULL, NULL, install_multiple_cancel_last_cb, data);
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap2", NULL, NULL, NULL, NULL, NULL, install_multiple_cancel_last_cb, data);
+    snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap3", NULL, NULL, NULL, NULL, cancellable, install_multiple_cancel_last_snap3_cb, data);
+    g_idle_add (cancel_cb, cancellable);
+    g_main_loop_run (loop);
+}
+
 typedef struct
 {
     int progress_done;
@@ -4091,6 +4247,8 @@ main (int argc, char **argv)
     g_test_add_func ("/install/async-multiple", test_install_async_multiple);
     g_test_add_func ("/install/async-failure", test_install_async_failure);
     g_test_add_func ("/install/async-cancel", test_install_async_cancel);
+    g_test_add_func ("/install/async-multiple-cancel-first", test_install_async_multiple_cancel_first);
+    g_test_add_func ("/install/async-multiple-cancel-last", test_install_async_multiple_cancel_last);
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/needs-classic", test_install_needs_classic);
     g_test_add_func ("/install/classic", test_install_classic);

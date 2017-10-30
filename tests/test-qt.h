@@ -202,6 +202,58 @@ public slots:
     void onComplete ();
 };
 
+class InstallMultipleCancelFirstHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    InstallMultipleCancelFirstHandler (GMainLoop *loop, MockSnapd *snapd, QList<QSnapdInstallRequest*> requests) : loop (loop), snapd (snapd), requests (requests) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    int counter = 0;
+    QList<QSnapdInstallRequest*> requests;
+    ~InstallMultipleCancelFirstHandler ()
+    {
+        QSnapdInstallRequest *request;
+        foreach (request, requests)
+            delete request;
+    }
+
+private:
+    void checkComplete ();
+
+public slots:
+    void onCompleteSnap1 ();
+    void onCompleteSnap2 ();
+    void onCompleteSnap3 ();
+};
+
+class InstallMultipleCancelLastHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    InstallMultipleCancelLastHandler (GMainLoop *loop, MockSnapd *snapd, QList<QSnapdInstallRequest*> requests) : loop (loop), snapd (snapd), requests (requests) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    int counter = 0;
+    QList<QSnapdInstallRequest*> requests;
+    ~InstallMultipleCancelLastHandler ()
+    {
+        QSnapdInstallRequest *request;
+        foreach (request, requests)
+            delete request;
+    }
+
+private:
+    void checkComplete ();
+
+public slots:
+    void onCompleteSnap1 ();
+    void onCompleteSnap2 ();
+    void onCompleteSnap3 ();
+};
+
 class RemoveHandler: public QObject
 {
     Q_OBJECT

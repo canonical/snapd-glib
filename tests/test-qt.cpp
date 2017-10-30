@@ -1707,6 +1707,142 @@ test_install_async_cancel ()
     g_main_loop_run (loop);
 }
 
+void
+InstallMultipleCancelFirstHandler::checkComplete ()
+{
+    counter++;
+    if (counter == requests.size ()) {
+        g_assert (mock_snapd_find_snap (snapd, "snap1") == NULL);
+        g_assert (mock_snapd_find_snap (snapd, "snap2") != NULL);
+        g_assert (mock_snapd_find_snap (snapd, "snap3") != NULL);
+
+        g_main_loop_quit (loop);
+    }
+}
+
+void
+InstallMultipleCancelFirstHandler::onCompleteSnap1 ()
+{
+    g_assert_cmpint (requests[0]->error (), ==, QSnapdRequest::Cancelled);
+    checkComplete ();
+}
+
+void
+InstallMultipleCancelFirstHandler::onCompleteSnap2 ()
+{
+    g_assert_cmpint (requests[1]->error (), ==, QSnapdRequest::NoError);
+    checkComplete ();
+}
+
+void
+InstallMultipleCancelFirstHandler::onCompleteSnap3 ()
+{
+    g_assert_cmpint (requests[2]->error (), ==, QSnapdRequest::NoError);
+    checkComplete ();
+}
+
+static void
+test_install_async_multiple_cancel_first ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snapd_add_store_snap (snapd, "snap3");
+    g_assert (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert (mock_snapd_find_snap (snapd, "snap1") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap2") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap3") == NULL);
+
+    QList<QSnapdInstallRequest*> requests;
+    requests.append (client.install ("snap1"));
+    requests.append (client.install ("snap2"));
+    requests.append (client.install ("snap3"));
+    InstallMultipleCancelFirstHandler installHandler (loop, snapd, requests);
+    QObject::connect (requests[0], &QSnapdInstallRequest::complete, &installHandler, &InstallMultipleCancelFirstHandler::onCompleteSnap1);
+    requests[0]->runAsync ();
+    QObject::connect (requests[1], &QSnapdInstallRequest::complete, &installHandler, &InstallMultipleCancelFirstHandler::onCompleteSnap2);
+    requests[1]->runAsync ();
+    QObject::connect (requests[2], &QSnapdInstallRequest::complete, &installHandler, &InstallMultipleCancelFirstHandler::onCompleteSnap3);
+    requests[2]->runAsync ();
+    g_idle_add ((GSourceFunc) install_cancel_cb, requests[0]);
+
+    g_main_loop_run (loop);
+}
+
+void
+InstallMultipleCancelLastHandler::checkComplete ()
+{
+    counter++;
+    if (counter == requests.size ()) {
+        g_assert (mock_snapd_find_snap (snapd, "snap1") != NULL);
+        g_assert (mock_snapd_find_snap (snapd, "snap2") != NULL);
+        g_assert (mock_snapd_find_snap (snapd, "snap3") == NULL);
+
+        g_main_loop_quit (loop);
+    }
+}
+
+void
+InstallMultipleCancelLastHandler::onCompleteSnap1 ()
+{
+    g_assert_cmpint (requests[0]->error (), ==, QSnapdRequest::NoError);
+    checkComplete ();
+}
+
+void
+InstallMultipleCancelLastHandler::onCompleteSnap2 ()
+{
+    g_assert_cmpint (requests[1]->error (), ==, QSnapdRequest::NoError);
+    checkComplete ();
+}
+
+void
+InstallMultipleCancelLastHandler::onCompleteSnap3 ()
+{
+    g_assert_cmpint (requests[2]->error (), ==, QSnapdRequest::Cancelled);
+    checkComplete ();
+}
+
+static void
+test_install_async_multiple_cancel_last ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snapd_add_store_snap (snapd, "snap3");
+    g_assert (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert (mock_snapd_find_snap (snapd, "snap1") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap2") == NULL);
+    g_assert (mock_snapd_find_snap (snapd, "snap3") == NULL);
+
+    QList<QSnapdInstallRequest*> requests;
+    requests.append (client.install ("snap1"));
+    requests.append (client.install ("snap2"));
+    requests.append (client.install ("snap3"));
+    InstallMultipleCancelLastHandler installHandler (loop, snapd, requests);
+    QObject::connect (requests[0], &QSnapdInstallRequest::complete, &installHandler, &InstallMultipleCancelLastHandler::onCompleteSnap1);
+    requests[0]->runAsync ();
+    QObject::connect (requests[1], &QSnapdInstallRequest::complete, &installHandler, &InstallMultipleCancelLastHandler::onCompleteSnap2);
+    requests[1]->runAsync ();
+    QObject::connect (requests[2], &QSnapdInstallRequest::complete, &installHandler, &InstallMultipleCancelLastHandler::onCompleteSnap3);
+    requests[2]->runAsync ();
+    g_idle_add ((GSourceFunc) install_cancel_cb, requests[2]);
+
+    g_main_loop_run (loop);
+}
+
 void InstallProgressCounter::progress ()
 {
     progressDone++;
@@ -3133,6 +3269,8 @@ main (int argc, char **argv)
     g_test_add_func ("/install/async-multiple", test_install_async_multiple);
     g_test_add_func ("/install/async-failure", test_install_async_failure);
     g_test_add_func ("/install/async-cancel", test_install_async_cancel);
+    g_test_add_func ("/install/async-multiple-cancel-first", test_install_async_multiple_cancel_first);
+    g_test_add_func ("/install/async-multiple-cancel-last", test_install_async_multiple_cancel_last);
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/needs-classic", test_install_needs_classic);
     g_test_add_func ("/install/classic", test_install_classic);
