@@ -1959,7 +1959,7 @@ test_install_sync (void)
 }
 
 static void
-test_install_multiple (void)
+test_install_sync_multiple (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
@@ -4086,7 +4086,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find-refreshable/sync", test_find_refreshable_sync);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/sync", test_install_sync);
-    g_test_add_func ("/install/multiple", test_install_multiple);
+    g_test_add_func ("/install/sync-multiple", test_install_sync_multiple);
     g_test_add_func ("/install/async", test_install_async);
     g_test_add_func ("/install/async-multiple", test_install_async_multiple);
     g_test_add_func ("/install/async-failure", test_install_async_failure);
