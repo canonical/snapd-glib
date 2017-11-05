@@ -65,6 +65,7 @@ struct _MockSnapd
     gchar *socket_path;
     gboolean close_on_request;
     GList *accounts;
+    GList *users;
     GList *snaps;
     gchar *confinement;
     gchar *store;
@@ -186,6 +187,15 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->snap_path);
     g_free (snap->error);
     g_slice_free (MockSnap, snap);
+}
+
+static void
+mock_user_free (MockUser *user)
+{
+    g_free (user->email);
+    g_free (user->username);
+    g_strfreev (user->ssh_keys);
+    g_slice_free (MockUser, user);
 }
 
 MockSnapd *
@@ -311,6 +321,41 @@ mock_snapd_add_account (MockSnapd *snapd, const gchar *username, const gchar *pa
     snapd->accounts = g_list_append (snapd->accounts, account);
 
     return account;
+}
+
+static MockUser *
+add_user (MockSnapd *snapd, const gchar *email, const gchar *username, gboolean sudoer, gboolean known, gchar **ssh_keys)
+{
+    MockUser *user;
+
+    user = g_slice_new0 (MockUser);
+    user->email = g_strdup (email);
+    user->username = g_strdup (username);
+    user->sudoer = sudoer;
+    user->known = known;
+    user->ssh_keys = g_strdupv (ssh_keys);
+    snapd->users = g_list_append (snapd->users, user);
+
+    return user;
+}
+
+MockUser *
+mock_snapd_find_user (MockSnapd *snapd, const gchar *username)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+    GList *link;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+
+    for (link = snapd->users; link; link = link->next) {
+        MockUser *user = link->data;
+        if (strcmp (user->username, username) == 0)
+            return user;
+    }
+
+    return NULL;
 }
 
 static MockSnap *
@@ -2843,6 +2888,95 @@ handle_snapctl (MockSnapd *snapd, SoupMessage *message)
 }
 
 static void
+add_user_response (JsonBuilder *builder, MockUser *user)
+{
+    int i;
+
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "username");
+    json_builder_add_string_value (builder, user->username);
+    json_builder_set_member_name (builder, "ssh-keys");
+    json_builder_begin_array (builder);
+    for (i = 0; user->ssh_keys[i] != NULL; i++)
+        json_builder_add_string_value (builder, user->ssh_keys[i]);
+    json_builder_end_array (builder);
+    json_builder_end_object (builder);
+}
+
+static void
+handle_create_user (MockSnapd *snapd, SoupMessage *message)
+{
+    g_autoptr(JsonNode) request = NULL;
+    JsonObject *o;
+
+    if (strcmp (message->method, "POST") != 0) {
+        send_error_method_not_allowed (message, "method not allowed");
+        return;
+    }
+
+    request = get_json (message);
+    if (request == NULL) {
+        send_error_bad_request (message, "unknown content type", NULL);
+        return;
+    }
+
+    o = json_node_get_object (request);
+    if (json_object_has_member (o, "email")) {
+        g_autoptr(JsonBuilder) builder = NULL;
+        const gchar *email;
+        g_auto(GStrv) email_keys = NULL;
+        const gchar *username;
+        gboolean sudoer = FALSE, known = FALSE;
+        g_auto(GStrv) ssh_keys = NULL;
+        MockUser *u;
+
+        builder = json_builder_new ();
+
+        email = json_object_get_string_member (o, "email");
+        if (json_object_has_member (o, "sudoer"))
+            sudoer = json_object_get_boolean_member (o, "sudoer");
+        if (json_object_has_member (o, "known"))
+            known = json_object_get_boolean_member (o, "known");
+        email_keys = g_strsplit (email, "@", 2);
+        username = email_keys[0];
+        ssh_keys = g_strsplit ("KEY1;KEY2", ";", -1);
+        u = add_user (snapd, email, username, sudoer, known, ssh_keys);
+
+        add_user_response (builder, u);
+
+        send_sync_response (message, 200, json_builder_get_root (builder), NULL);
+        return;
+    }
+    else {
+        if (json_object_has_member (o, "known") && json_object_get_boolean_member (o, "known")) {
+            g_autoptr(JsonBuilder) builder = NULL;
+            g_auto(GStrv) ssh_keys = NULL;
+            MockUser *u;
+
+            builder = json_builder_new ();
+            json_builder_begin_array (builder);
+
+            ssh_keys = g_strsplit ("KEY1;KEY2", ";", -1);
+            u = add_user (snapd, "admin@example.com", "admin", TRUE, TRUE, ssh_keys);
+            add_user_response (builder, u);
+            u = add_user (snapd, "alice@example.com", "alice", FALSE, TRUE, ssh_keys);
+            add_user_response (builder, u);
+            u = add_user (snapd, "bob@example.com", "bob", FALSE, TRUE, ssh_keys);
+            add_user_response (builder, u);
+
+            json_builder_end_array (builder);
+
+            send_sync_response (message, 200, json_builder_get_root (builder), NULL);
+            return;
+        }
+        else {
+            send_error_bad_request (message, "cannot create user", NULL);
+            return;
+        }
+    }
+}
+
+static void
 handle_request (SoupServer        *server,
                 SoupMessage       *message,
                 const char        *path,
@@ -2896,6 +3030,8 @@ handle_request (SoupServer        *server,
         handle_aliases (snapd, message);
     else if (strcmp (path, "/v2/snapctl") == 0)
         handle_snapctl (snapd, message);
+    else if (strcmp (path, "/v2/create-user") == 0)
+        handle_create_user (snapd, message);
     else
         send_error_not_found (message, "not found");
 }
@@ -2927,6 +3063,8 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->socket_path, g_free);
     g_list_free_full (snapd->accounts, (GDestroyNotify) mock_account_free);
     snapd->accounts = NULL;
+    g_list_free_full (snapd->users, (GDestroyNotify) mock_user_free);
+    snapd->users = NULL;
     g_list_free_full (snapd->snaps, (GDestroyNotify) mock_snap_free);
     snapd->snaps = NULL;
     g_free (snapd->confinement);

@@ -33,7 +33,7 @@ test_socket_closed_before_request ()
 }
 
 static void
-test_socket_closed_after_request (void)
+test_socket_closed_after_request ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_close_on_request (snapd, TRUE);
@@ -97,7 +97,7 @@ test_user_agent_null ()
 }
 
 static void
-test_accept_language (void)
+test_accept_language ()
 {
     g_setenv ("LANG", "en_US.UTF-8", TRUE);
     g_setenv ("LANGUAGE", "en_US:fr", TRUE);
@@ -117,7 +117,7 @@ test_accept_language (void)
 }
 
 static void
-test_accept_language_empty (void)
+test_accept_language_empty ()
 {
     g_setenv ("LANG", "", TRUE);
     g_setenv ("LANGUAGE", "", TRUE);
@@ -2992,6 +2992,93 @@ test_buy_invalid_price ()
 }
 
 static void
+test_create_user_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert_null (mock_snapd_find_user (snapd, "user"));
+    QScopedPointer<QSnapdCreateUserRequest> createRequest (client.createUser ("user@example.com"));
+    createRequest->runSync ();
+    g_assert_cmpint (createRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdUserInformation> userInformation (createRequest->userInformation ());
+    g_assert (userInformation->username () == "user");
+    g_assert_cmpint (userInformation->sshKeys ().count (), ==, 2);
+    g_assert (userInformation->sshKeys ()[0] == "KEY1");
+    g_assert (userInformation->sshKeys ()[1] == "KEY2");
+    MockUser *user = mock_snapd_find_user (snapd, "user");
+    g_assert_nonnull (user);
+    g_assert (!user->sudoer);
+    g_assert (!user->known);
+}
+
+static void
+test_create_user_sudo ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert_null (mock_snapd_find_user (snapd, "user"));
+    QScopedPointer<QSnapdCreateUserRequest> createRequest (client.createUser ("user@example.com", QSnapdClient::Sudo));
+    createRequest->runSync ();
+    g_assert_cmpint (createRequest->error (), ==, QSnapdRequest::NoError);
+    MockUser *user = mock_snapd_find_user (snapd, "user");
+    g_assert_nonnull (user);
+    g_assert (user->sudoer);
+}
+
+static void
+test_create_user_known ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert_null (mock_snapd_find_user (snapd, "user"));
+    QScopedPointer<QSnapdCreateUserRequest> createRequest (client.createUser ("user@example.com", QSnapdClient::Known));
+    createRequest->runSync ();
+    g_assert_cmpint (createRequest->error (), ==, QSnapdRequest::NoError);
+    MockUser *user = mock_snapd_find_user (snapd, "user");
+    g_assert_nonnull (user);
+    g_assert (user->known);
+}
+
+static void
+test_create_users_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdCreateUsersRequest> createRequest (client.createUsers ());
+    createRequest->runSync ();
+    g_assert_cmpint (createRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (createRequest->userInformationCount (), ==, 3);
+    QScopedPointer<QSnapdUserInformation> userInformation0 (createRequest->userInformation (0));
+    g_assert (userInformation0->username () == "admin");
+    g_assert_cmpint (userInformation0->sshKeys ().count (), ==, 2);
+    g_assert (userInformation0->sshKeys ()[0] == "KEY1");
+    g_assert (userInformation0->sshKeys ()[1] == "KEY2");
+    QScopedPointer<QSnapdUserInformation> userInformation1 (createRequest->userInformation (1));
+    g_assert (userInformation1->username () == "alice");
+    QScopedPointer<QSnapdUserInformation> userInformation2 (createRequest->userInformation (2));
+    g_assert (userInformation2->username () == "bob");
+    g_assert_nonnull (mock_snapd_find_user (snapd, "admin"));
+    g_assert_nonnull (mock_snapd_find_user (snapd, "alice"));
+    g_assert_nonnull (mock_snapd_find_user (snapd, "bob"));
+}
+
+static void
 test_get_sections_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -3301,8 +3388,10 @@ main (int argc, char **argv)
     g_test_add_func ("/buy/terms-not-accepted", test_buy_terms_not_accepted);
     g_test_add_func ("/buy/no-payment-methods", test_buy_no_payment_methods);
     g_test_add_func ("/buy/invalid-price", test_buy_invalid_price);
-    //FIXMEg_test_add_func ("/create-user/sync", test_create_user_sync);
-    //FIXMEg_test_add_func ("/create-users/sync", test_create_user_sync);
+    g_test_add_func ("/create-user/sync", test_create_user_sync);
+    g_test_add_func ("/create-user/sudo", test_create_user_sudo);
+    g_test_add_func ("/create-user/known", test_create_user_known);
+    g_test_add_func ("/create-users/sync", test_create_users_sync);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);

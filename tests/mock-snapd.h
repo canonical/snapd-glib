@@ -126,6 +126,15 @@ typedef struct
     int height;
 } MockScreenshot;
 
+typedef struct
+{
+    gchar *email;
+    gchar *username;
+    gboolean sudoer;
+    gboolean known;
+    gchar **ssh_keys;
+} MockUser;
+
 typedef struct _MockSlot MockSlot;
 
 typedef struct
@@ -187,6 +196,9 @@ MockAccount    *mock_snapd_add_account            (MockSnapd     *snapd,
                                                    const gchar   *username,
                                                    const gchar   *password,
                                                    const gchar   *otp);
+
+MockUser       *mock_snapd_find_user              (MockSnapd     *snapd,
+                                                   const gchar   *username);
 
 MockSnap       *mock_account_add_private_snap     (MockAccount   *account,
                                                    const gchar   *name);
