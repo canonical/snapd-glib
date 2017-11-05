@@ -4086,7 +4086,7 @@ snapd_client_create_user_finish (SnapdClient *client, GAsyncResult *result, GErr
 
     if (snapd_request_set_error (request, error))
         return NULL;
-    return request->user_information;
+    return g_steal_pointer (&request->user_information);
 }
 
 /**
@@ -4110,7 +4110,7 @@ snapd_client_create_users_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_CREATE_USER, "POST", "/v2/create-user", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, SNAPD_REQUEST_CREATE_USERS, "POST", "/v2/create-user", NULL, NULL, cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -4144,11 +4144,11 @@ snapd_client_create_users_finish (SnapdClient *client, GAsyncResult *result, GEr
     g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
 
     request = SNAPD_REQUEST (result);
-    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CREATE_USER, NULL);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_CREATE_USERS, NULL);
 
     if (snapd_request_set_error (request, error))
         return NULL;
-    return request->users_information;
+    return g_steal_pointer (&request->users_information);
 }
 
 /**
