@@ -3178,8 +3178,8 @@ mock_snapd_start (MockSnapd *snapd, GError **dest_error)
         }
     }
 
-    g_assert (snapd->loop != NULL);
-    g_assert (snapd->context != NULL);
+    g_assert_nonnull (snapd->loop);
+    g_assert_nonnull (snapd->context);
 
     return error == NULL;
 }
@@ -3195,8 +3195,8 @@ mock_snapd_stop (MockSnapd *snapd)
     g_main_context_invoke (snapd->context, mock_snapd_thread_quit, snapd);
     g_thread_join (snapd->thread);
     snapd->thread = NULL;
-    g_assert (snapd->loop == NULL);
-    g_assert (snapd->context == NULL);
+    g_assert_null (snapd->loop);
+    g_assert_null (snapd->context);
 }
 
 static void
