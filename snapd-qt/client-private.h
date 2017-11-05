@@ -271,6 +271,32 @@ public:
     QString currency;
 };
 
+class QSnapdCreateUserRequestPrivate
+{
+public:
+    QSnapdCreateUserRequestPrivate (const QString& email, int flags) :
+      email(email), flags(flags) {}
+    ~QSnapdCreateUserRequestPrivate ()
+    {
+        if (info != NULL)
+            g_object_unref (info);
+    }
+    QString email;
+    int flags;
+    SnapdUserInformation *info = NULL;
+};
+
+class QSnapdCreateUsersRequestPrivate
+{
+public:
+    ~QSnapdCreateUsersRequestPrivate ()
+    {
+        if (info != NULL)
+            g_ptr_array_unref (info);
+    }
+    GPtrArray *info = NULL;
+};
+
 class QSnapdGetSectionsRequestPrivate
 {
 public:

@@ -22,6 +22,7 @@
 #include <Snapd/Slot>
 #include <Snapd/Snap>
 #include <Snapd/SystemInformation>
+#include <Snapd/UserInformation>
 
 class QSnapdConnectRequestPrivate;
 class Q_DECL_EXPORT QSnapdConnectRequest : public QSnapdRequest
@@ -425,6 +426,44 @@ private:
     Q_DECLARE_PRIVATE(QSnapdBuyRequest)
 };
 
+class QSnapdCreateUserRequestPrivate;
+class Q_DECL_EXPORT QSnapdCreateUserRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdCreateUserRequest (const QString& email, int flags, void *snapd_client, QObject *parent = 0);
+    ~QSnapdCreateUserRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE QSnapdUserInformation *userInformation () const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdCreateUserRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdCreateUserRequest)
+};
+
+class QSnapdCreateUsersRequestPrivate;
+class Q_DECL_EXPORT QSnapdCreateUsersRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int userInformationCount READ userInformationCount)
+
+public:
+    explicit QSnapdCreateUsersRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdCreateUsersRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int userInformationCount () const;
+    Q_INVOKABLE QSnapdUserInformation *userInformation (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdCreateUsersRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdCreateUsersRequest)
+};
+
 class QSnapdGetSectionsRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetSectionsRequest : public QSnapdRequest
 {
@@ -613,6 +652,12 @@ public:
         Jailmode       = 1 << 3
     };
     Q_DECLARE_FLAGS(InstallFlags, InstallFlag);
+    enum CreateUserFlag
+    {
+        Sudo           = 1 << 0,
+        Known          = 1 << 1
+    };
+    Q_DECLARE_FLAGS(CreateUserFlags, CreateUserFlag);
     explicit QSnapdClient (QObject* parent=0);
     explicit QSnapdClient (int fd, QObject* parent=0);
     virtual ~QSnapdClient ();
@@ -657,6 +702,9 @@ public:
     Q_INVOKABLE QSnapdDisableRequest *disable (const QString &name);
     Q_INVOKABLE QSnapdCheckBuyRequest *checkBuy ();
     Q_INVOKABLE QSnapdBuyRequest *buy (const QString& id, double amount, const QString& currency);
+    Q_INVOKABLE QSnapdCreateUserRequest *createUser (const QString& email);
+    Q_INVOKABLE QSnapdCreateUserRequest *createUser (const QString& email, CreateUserFlags flags);
+    Q_INVOKABLE QSnapdCreateUsersRequest *createUsers ();
     Q_INVOKABLE QSnapdGetSectionsRequest *getSections ();
     Q_INVOKABLE QSnapdGetAliasesRequest *getAliases ();
     Q_INVOKABLE QSnapdAliasRequest *alias (const QString &snap, const QString &app, const QString &alias);
@@ -675,5 +723,6 @@ private:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::FindFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::InstallFlags)
+Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::CreateUserFlags)
 
 #endif

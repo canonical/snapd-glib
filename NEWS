@@ -26,6 +26,7 @@ Overview of changes in snapd-glib 1.25
       - snapd_client_reset_aliases_sync
     * Implement v2 alias API
     * Fix memory handling in create user methods
+    * Implement user creation in snapd-qt
 
 Overview of changes in snapd-glib 1.24
 

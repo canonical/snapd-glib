@@ -410,6 +410,34 @@ QSnapdBuyRequest *QSnapdClient::buy (const QString& id, double amount, const QSt
     return new QSnapdBuyRequest (id, amount, currency, d->client);
 }
 
+QSnapdCreateUserRequest::~QSnapdCreateUserRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdCreateUserRequest *QSnapdClient::createUser (const QString& email)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdCreateUserRequest (email, 0, d->client);
+}
+
+QSnapdCreateUserRequest *QSnapdClient::createUser (const QString& email, CreateUserFlags flags)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdCreateUserRequest (email, flags, d->client);
+}
+
+QSnapdCreateUsersRequest::~QSnapdCreateUsersRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdCreateUsersRequest *QSnapdClient::createUsers ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdCreateUsersRequest (d->client);
+}
+
 QSnapdGetSectionsRequest::~QSnapdGetSectionsRequest ()
 {
     delete d_ptr;
@@ -1534,6 +1562,111 @@ void QSnapdBuyRequest::runAsync ()
     snapd_client_buy_async (SNAPD_CLIENT (getClient ()),
                             d->id.toStdString ().c_str (), d->amount, d->currency.toStdString ().c_str (),
                             G_CANCELLABLE (getCancellable ()), buy_ready_cb, (gpointer) this);
+}
+
+static SnapdCreateUserFlags convertCreateUserFlags (int flags)
+{
+    int result = SNAPD_CREATE_USER_FLAGS_NONE;
+
+    if ((flags & QSnapdClient::CreateUserFlag::Sudo) != 0)
+        result |= SNAPD_CREATE_USER_FLAGS_SUDO;
+    if ((flags & QSnapdClient::CreateUserFlag::Known) != 0)
+        result |= SNAPD_CREATE_USER_FLAGS_KNOWN;
+
+    return (SnapdCreateUserFlags) result;
+}
+
+QSnapdCreateUserRequest::QSnapdCreateUserRequest (const QString& email, int flags, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdCreateUserRequestPrivate (email, flags)) {}
+
+void QSnapdCreateUserRequest::runSync ()
+{
+    Q_D(QSnapdCreateUserRequest);
+    g_autoptr(GError) error = NULL;
+    d->info = snapd_client_create_user_sync (SNAPD_CLIENT (getClient ()),
+                                             d->email.toStdString ().c_str (), convertCreateUserFlags (d->flags),
+                                             G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdCreateUserRequest::handleResult (void *object, void *result)
+{
+    Q_D(QSnapdCreateUserRequest);
+    g_autoptr(GError) error = NULL;
+
+    d->info = snapd_client_create_user_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    finish (error);
+}
+
+static void create_user_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdCreateUserRequest *request = static_cast<QSnapdCreateUserRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdCreateUserRequest::runAsync ()
+{
+    Q_D(QSnapdCreateUserRequest);
+    snapd_client_create_user_async (SNAPD_CLIENT (getClient ()),
+                                    d->email.toStdString ().c_str (), convertCreateUserFlags (d->flags),
+                                    G_CANCELLABLE (getCancellable ()), create_user_ready_cb, (gpointer) this);
+}
+
+QSnapdUserInformation *QSnapdCreateUserRequest::userInformation () const
+{
+    Q_D(const QSnapdCreateUserRequest);
+    return new QSnapdUserInformation (d->info);
+}
+
+QSnapdCreateUsersRequest::QSnapdCreateUsersRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdCreateUsersRequestPrivate ()) {}
+
+void QSnapdCreateUsersRequest::runSync ()
+{
+    Q_D(QSnapdCreateUsersRequest);
+    g_autoptr(GError) error = NULL;
+    d->info = snapd_client_create_users_sync (SNAPD_CLIENT (getClient ()),
+                                              G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdCreateUsersRequest::handleResult (void *object, void *result)
+{
+    Q_D(QSnapdCreateUsersRequest);
+    g_autoptr(GError) error = NULL;
+
+    d->info = snapd_client_create_users_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    finish (error);
+}
+
+static void create_users_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdCreateUsersRequest *request = static_cast<QSnapdCreateUsersRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdCreateUsersRequest::runAsync ()
+{
+    snapd_client_create_users_async (SNAPD_CLIENT (getClient ()),
+                                     G_CANCELLABLE (getCancellable ()), create_users_ready_cb, (gpointer) this);
+}
+
+int QSnapdCreateUsersRequest::userInformationCount () const
+{
+    Q_D(const QSnapdCreateUsersRequest);
+    return d->info != NULL ? d->info->len : 0;
+}
+
+QSnapdUserInformation *QSnapdCreateUsersRequest::userInformation (int n) const
+{
+    Q_D(const QSnapdCreateUsersRequest);
+    if (d->info == NULL || n < 0 || (guint) n >= d->info->len)
+        return NULL;
+    return new QSnapdUserInformation (d->info->pdata[n]);
 }
 
 QSnapdGetSectionsRequest::QSnapdGetSectionsRequest (void *snapd_client, QObject *parent) :
