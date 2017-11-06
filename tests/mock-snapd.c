@@ -1478,16 +1478,6 @@ make_snap_node (MockSnap *snap)
                 json_builder_set_member_name (builder, "name");
                 json_builder_add_string_value (builder, app->name);
             }
-            if (app->aliases != NULL) {
-                GList *link2;
-                json_builder_set_member_name (builder, "aliases");
-                json_builder_begin_array (builder);
-                for (link2 = app->aliases; link2; link2 = link2->next) {
-                    MockAlias *alias = link2->data;
-                    json_builder_add_string_value (builder, alias->name);
-                }
-                json_builder_end_array (builder);
-            }
             if (app->daemon != NULL) {
                 json_builder_set_member_name (builder, "daemon");
                 json_builder_add_string_value (builder, app->daemon);

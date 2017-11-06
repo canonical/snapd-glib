@@ -679,7 +679,6 @@ test_list_one_optional_fields (void)
     g_autoptr(GError) error = NULL;
     g_autoptr(GDateTime) date = NULL;
     SnapdApp *app;
-    gchar **aliases;
 
     snapd = mock_snapd_new ();
     s = mock_snapd_add_snap (snapd, "snap");
@@ -712,10 +711,6 @@ test_list_one_optional_fields (void)
     app = snapd_snap_get_apps (snap)->pdata[0];
     g_assert_cmpstr (snapd_app_get_name (app), ==, "app");
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
-    aliases = snapd_app_get_aliases (app);
-    g_assert_cmpint (g_strv_length (aliases), ==, 2);
-    g_assert_cmpstr (aliases[0], ==, "app2");
-    g_assert_cmpstr (aliases[1], ==, "app3");
     g_assert_cmpstr (snapd_app_get_desktop_file (app), ==, "/var/lib/snapd/desktop/applications/app.desktop");
     g_assert_cmpstr (snapd_snap_get_broken (snap), ==, "BROKEN");
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");

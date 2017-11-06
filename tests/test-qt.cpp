@@ -569,9 +569,6 @@ test_list_one_optional_fields ()
     QScopedPointer<QSnapdApp> app (snap->app (0));
     g_assert (app->name () == "app");
     g_assert_cmpint (app->daemonType (), ==, QSnapdEnums::DaemonTypeNone);
-    g_assert_cmpint (app->aliases ().count (), ==, 2);
-    g_assert (app->aliases ()[0] == "app2");
-    g_assert (app->aliases ()[1] == "app3");
     g_assert (app->desktopFile () == "/var/lib/snapd/desktop/applications/app.desktop");
     g_assert (snap->broken () == "BROKEN");
     g_assert (snap->channel () == "CHANNEL");

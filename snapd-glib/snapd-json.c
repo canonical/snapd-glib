@@ -471,9 +471,6 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
     for (i = 0; i < json_array_get_length (apps); i++) {
         JsonNode *node = json_array_get_element (apps, i);
         JsonObject *a;
-        g_autoptr(JsonArray) aliases = NULL;
-        g_autoptr(GPtrArray) aliases_array = NULL;
-        int j;
         const gchar *daemon;
         g_autoptr(SnapdApp) app = NULL;
         SnapdDaemonType daemon_type = SNAPD_DAEMON_TYPE_NONE;
@@ -484,20 +481,6 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
         }
 
         a = json_node_get_object (node);
-
-        aliases = _snapd_json_get_array (a, "aliases");
-        aliases_array = g_ptr_array_new ();
-        for (j = 0; j < json_array_get_length (aliases); j++) {
-            JsonNode *node = json_array_get_element (aliases, j);
-
-            if (json_node_get_value_type (node) != G_TYPE_STRING) {
-                g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected alias type");
-                return NULL;
-            }
-
-            g_ptr_array_add (aliases_array, (gpointer) json_node_get_string (node));
-        }
-        g_ptr_array_add (aliases_array, NULL);
 
         daemon = _snapd_json_get_string (a, "daemon", NULL);
         if (daemon == NULL)
@@ -517,7 +500,6 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
 
         app = g_object_new (SNAPD_TYPE_APP,
                             "name", _snapd_json_get_string (a, "name", NULL),
-                            "aliases", (gchar **) aliases_array->pdata,
                             "daemon-type", daemon_type,
                             "desktop-file", _snapd_json_get_string (a, "desktop-file", NULL),
                             NULL);
