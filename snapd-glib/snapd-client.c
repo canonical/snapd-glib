@@ -2094,7 +2094,7 @@ gboolean
 snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (G_IS_TASK (result), FALSE);
+    g_return_val_if_fail (g_task_is_valid (result, client), FALSE);
 
     return g_task_propagate_boolean (G_TASK (result), error);
 }
@@ -4607,7 +4607,7 @@ gboolean
 snapd_client_enable_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (G_IS_TASK (result), FALSE);
+    g_return_val_if_fail (g_task_is_valid (result, client), FALSE);
 
     return g_task_propagate_boolean (G_TASK (result), error);
 }
@@ -4662,7 +4662,7 @@ gboolean
 snapd_client_disable_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (G_IS_TASK (result), FALSE);
+    g_return_val_if_fail (g_task_is_valid (result, client), FALSE);
 
     return g_task_propagate_boolean (G_TASK (result), error);
 }
@@ -4717,7 +4717,7 @@ gboolean
 snapd_client_reset_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (G_IS_TASK (result), FALSE);
+    g_return_val_if_fail (g_task_is_valid (result, client), FALSE);
 
     return g_task_propagate_boolean (G_TASK (result), error);
 }
