@@ -117,6 +117,26 @@ private:
     Q_DECLARE_PRIVATE(QSnapdListOneRequest)
 };
 
+class QSnapdGetAppsRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetAppsRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int appCount READ appCount)
+
+public:
+    explicit QSnapdGetAppsRequest (int flags, void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetAppsRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int appCount () const;
+    Q_INVOKABLE QSnapdApp *app (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetAppsRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetAppsRequest)
+};
+
 class QSnapdGetIconRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetIconRequest : public QSnapdRequest
 {
@@ -637,6 +657,11 @@ class Q_DECL_EXPORT QSnapdClient : public QObject
     Q_FLAGS(FindFlags)
 
 public:
+    enum GetAppsFlag
+    {
+        SelectServices = 1 << 0
+    };
+    Q_DECLARE_FLAGS(GetAppsFlags, GetAppsFlag);
     enum FindFlag
     {
         None          = 0,
@@ -675,6 +700,8 @@ public:
     Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();
     Q_INVOKABLE QSnapdListRequest *list ();
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
+    Q_INVOKABLE QSnapdGetAppsRequest *getApps ();
+    Q_INVOKABLE QSnapdGetAppsRequest *getApps (GetAppsFlags flags);
     Q_INVOKABLE QSnapdGetIconRequest *getIcon (const QString &name);
     Q_INVOKABLE QSnapdGetAssertionsRequest *getAssertions (const QString &type);
     Q_INVOKABLE QSnapdAddAssertionsRequest *addAssertions (const QStringList &assertions);
@@ -721,6 +748,7 @@ private:
     Q_DECLARE_PRIVATE(QSnapdClient)
 };
 
+Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::GetAppsFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::FindFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::InstallFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::CreateUserFlags)

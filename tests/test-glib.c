@@ -711,6 +711,9 @@ test_list_one_optional_fields (void)
     app = snapd_snap_get_apps (snap)->pdata[0];
     g_assert_cmpstr (snapd_app_get_name (app), ==, "app");
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
+    g_assert_cmpstr (snapd_app_get_snap (app), ==, "snap");
+    g_assert_false (snapd_app_get_active (app));
+    g_assert_false (snapd_app_get_enabled (app));
     g_assert_cmpstr (snapd_app_get_desktop_file (app), ==, "/var/lib/snapd/desktop/applications/app.desktop");
     g_assert_cmpstr (snapd_snap_get_broken (snap), ==, "BROKEN");
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
@@ -851,6 +854,82 @@ test_list_one_daemons (void)
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_DBUS);
     app = snapd_snap_get_apps (snap)->pdata[5];
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_UNKNOWN);
+}
+
+static void
+test_get_apps_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    MockSnap *s;
+    MockApp *a;
+    g_autoptr(GPtrArray) apps = NULL;
+    SnapdApp *app;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    a = mock_snap_add_app (s, "app1");
+    a = mock_snap_add_app (s, "app2");
+    mock_app_set_desktop_file (a, "foo.desktop");
+    a = mock_snap_add_app (s, "app3");
+    mock_app_set_daemon (a, "simple");
+    a->active = TRUE;
+    a->enabled = TRUE;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    apps = snapd_client_get_apps_sync (client, SNAPD_GET_APPS_FLAGS_NONE, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (apps);
+    g_assert_cmpint (apps->len, ==, 3);
+    app = apps->pdata[0];
+    g_assert_cmpstr (snapd_app_get_name (app), ==, "app1");
+    g_assert_cmpstr (snapd_app_get_snap (app), ==, "snap");
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
+    g_assert_false (snapd_app_get_active (app));
+    g_assert_false (snapd_app_get_enabled (app));
+    app = apps->pdata[1];
+    g_assert_cmpstr (snapd_app_get_name (app), ==, "app2");
+    g_assert_cmpstr (snapd_app_get_snap (app), ==, "snap");
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
+    g_assert_false (snapd_app_get_active (app));
+    g_assert_false (snapd_app_get_enabled (app));
+    app = apps->pdata[2];
+    g_assert_cmpstr (snapd_app_get_name (app), ==, "app3");
+    g_assert_cmpstr (snapd_app_get_snap (app), ==, "snap");
+    g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_SIMPLE);
+    g_assert_true (snapd_app_get_active (app));
+    g_assert_true (snapd_app_get_enabled (app));
+}
+
+static void
+test_get_apps_services (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    MockSnap *s;
+    MockApp *a;
+    g_autoptr(GPtrArray) apps = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_add_app (s, "app1");
+    a = mock_snap_add_app (s, "app2");
+    mock_app_set_daemon (a, "simple");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    apps = snapd_client_get_apps_sync (client, SNAPD_GET_APPS_FLAGS_SELECT_SERVICES, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (apps);
+    g_assert_cmpint (apps->len, ==, 1);
+    g_assert_cmpstr (snapd_app_get_name (apps->pdata[0]), ==, "app2");
 }
 
 static void
@@ -4264,6 +4343,8 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
     g_test_add_func ("/list-one/daemons", test_list_one_daemons);
+    g_test_add_func ("/get-apps/sync", test_get_apps_sync);
+    g_test_add_func ("/get-apps/services", test_get_apps_services);
     g_test_add_func ("/icon/sync", test_icon_sync);
     g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);

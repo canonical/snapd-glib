@@ -168,6 +168,23 @@ QSnapdListOneRequest *QSnapdClient::listOne (const QString& name)
     return new QSnapdListOneRequest (name, d->client);
 }
 
+QSnapdGetAppsRequest::~QSnapdGetAppsRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdGetAppsRequest *QSnapdClient::getApps ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetAppsRequest (0, d->client);
+}
+
+QSnapdGetAppsRequest *QSnapdClient::getApps (GetAppsFlags flags)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetAppsRequest (flags, d->client);
+}
+
 QSnapdGetIconRequest::~QSnapdGetIconRequest ()
 {
     delete d_ptr;
@@ -742,6 +759,66 @@ QSnapdSnap *QSnapdListOneRequest::snap () const
 {
     Q_D(const QSnapdListOneRequest);
     return new QSnapdSnap (d->snap);
+}
+
+static SnapdGetAppsFlags convertGetAppsFlags (int flags)
+{
+    int result = SNAPD_GET_APPS_FLAGS_NONE;
+
+    if ((flags & QSnapdClient::GetAppsFlag::SelectServices) != 0)
+        result |= SNAPD_GET_APPS_FLAGS_SELECT_SERVICES;
+
+    return (SnapdGetAppsFlags) result;
+}
+
+QSnapdGetAppsRequest::QSnapdGetAppsRequest (int flags, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetAppsRequestPrivate (flags)) {}
+
+void QSnapdGetAppsRequest::runSync ()
+{
+    Q_D(QSnapdGetAppsRequest);
+    g_autoptr(GError) error = NULL;
+    d->apps = snapd_client_get_apps_sync (SNAPD_CLIENT (getClient ()), convertGetAppsFlags (d->flags), G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetAppsRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GPtrArray) apps = NULL;
+    g_autoptr(GError) error = NULL;
+
+    apps = snapd_client_get_apps_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    Q_D(QSnapdGetAppsRequest);
+    d->apps = (GPtrArray*) g_steal_pointer (&apps);
+    finish (error);
+}
+
+static void get_apps_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetAppsRequest *request = static_cast<QSnapdGetAppsRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetAppsRequest::runAsync ()
+{
+    Q_D(QSnapdGetAppsRequest);
+    snapd_client_get_apps_async (SNAPD_CLIENT (getClient ()), convertGetAppsFlags (d->flags), G_CANCELLABLE (getCancellable ()), get_apps_ready_cb, (gpointer) this);
+}
+
+int QSnapdGetAppsRequest::appCount () const
+{
+    Q_D(const QSnapdGetAppsRequest);
+    return d->apps != NULL ? d->apps->len : 0;
+}
+
+QSnapdApp *QSnapdGetAppsRequest::app (int n) const
+{
+    Q_D(const QSnapdGetAppsRequest);
+    if (d->apps == NULL || n < 0 || (guint) n >= d->apps->len)
+        return NULL;
+    return new QSnapdApp (d->apps->pdata[n]);
 }
 
 QSnapdGetIconRequest::QSnapdGetIconRequest (const QString& name, void *snapd_client, QObject *parent) :

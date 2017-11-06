@@ -568,7 +568,10 @@ test_list_one_optional_fields ()
     g_assert_cmpint (snap->appCount (), ==, 1);
     QScopedPointer<QSnapdApp> app (snap->app (0));
     g_assert (app->name () == "app");
+    g_assert (app->snap () == "snap");
     g_assert_cmpint (app->daemonType (), ==, QSnapdEnums::DaemonTypeNone);
+    g_assert_false (app->enabled ());
+    g_assert_false (app->active ());
     g_assert (app->desktopFile () == "/var/lib/snapd/desktop/applications/app.desktop");
     g_assert (snap->broken () == "BROKEN");
     g_assert (snap->channel () == "CHANNEL");
@@ -687,6 +690,64 @@ test_list_one_daemons ()
     g_assert_cmpint (app5->daemonType (), ==, QSnapdEnums::DaemonTypeDbus);
     QScopedPointer<QSnapdApp> app6 (snap->app (5));
     g_assert_cmpint (app6->daemonType (), ==, QSnapdEnums::DaemonTypeUnknown);
+}
+
+static void
+test_get_apps_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app1");
+    a = mock_snap_add_app (s, "app2");
+    mock_app_set_desktop_file (a, "foo.desktop");
+    a = mock_snap_add_app (s, "app3");
+    mock_app_set_daemon (a, "simple");
+    a->active = TRUE;
+    a->enabled = TRUE;
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetAppsRequest> appsRequest (client.getApps ());
+    appsRequest->runSync ();
+    g_assert_cmpint (appsRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (appsRequest->appCount (), ==, 3);
+    g_assert (appsRequest->app (0)->name () == "app1");
+    g_assert (appsRequest->app (0)->snap () == "snap");
+    g_assert_cmpint (appsRequest->app (0)->daemonType (), ==, QSnapdEnums::DaemonTypeNone);
+    g_assert_false (appsRequest->app (0)->active ());
+    g_assert_false (appsRequest->app (0)->enabled ());
+    g_assert (appsRequest->app (1)->name () == "app2");
+    g_assert (appsRequest->app (1)->snap () == "snap");
+    g_assert_cmpint (appsRequest->app (1)->daemonType (), ==, QSnapdEnums::DaemonTypeNone);
+    g_assert_false (appsRequest->app (1)->active ());
+    g_assert_false (appsRequest->app (1)->enabled ());
+    g_assert (appsRequest->app (2)->name () == "app3");
+    g_assert (appsRequest->app (2)->snap () == "snap");
+    g_assert_cmpint (appsRequest->app (2)->daemonType (), ==, QSnapdEnums::DaemonTypeSimple);
+    g_assert_true (appsRequest->app (2)->active ());
+    g_assert_true (appsRequest->app (2)->enabled ());
+}
+
+static void
+test_get_apps_services ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_add_app (s, "app1");
+    MockApp *a = mock_snap_add_app (s, "app2");
+    mock_app_set_daemon (a, "simple");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetAppsRequest> appsRequest (client.getApps (QSnapdClient::SelectServices));
+    appsRequest->runSync ();
+    g_assert_cmpint (appsRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (appsRequest->appCount (), ==, 1);
+    g_assert (appsRequest->app (0)->name () == "app2");
 }
 
 static void
@@ -3292,6 +3353,8 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
     g_test_add_func ("/list-one/daemons", test_list_one_daemons);
+    g_test_add_func ("/get-apps/sync", test_get_apps_sync);
+    g_test_add_func ("/get-apps/services", test_get_apps_services);
     g_test_add_func ("/icon/sync", test_icon_sync);
     g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);

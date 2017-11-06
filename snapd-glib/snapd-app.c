@@ -32,14 +32,16 @@
  *
  * Since: 1.0
  */
-
 struct _SnapdApp
 {
     GObject parent_instance;
 
     SnapdDaemonType daemon_type;
     gchar *name;
+    gchar *snap;
     gchar *desktop_file;
+    gboolean enabled;
+    gboolean active;
 };
 
 enum
@@ -48,6 +50,9 @@ enum
     PROP_ALIASES,
     PROP_DAEMON_TYPE,
     PROP_DESKTOP_FILE,
+    PROP_SNAP,
+    PROP_ACTIVE,
+    PROP_ENABLED,
     PROP_LAST
 };
 
@@ -68,6 +73,23 @@ snapd_app_get_name (SnapdApp *app)
 {
     g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
     return app->name;
+}
+
+/**
+ * snapd_app_get_active:
+ * @app: a #SnapdApp.
+ *
+ * Get if this service is active.
+ *
+ * Returns: %TRUE if active.
+ *
+ * Since: 1.25
+ */
+gboolean
+snapd_app_get_active (SnapdApp *app)
+{
+    g_return_val_if_fail (SNAPD_IS_APP (app), FALSE);
+    return app->active;
 }
 
 /**
@@ -122,6 +144,40 @@ snapd_app_get_desktop_file (SnapdApp *app)
     return app->desktop_file;
 }
 
+/**
+ * snapd_app_get_enabled:
+ * @app: a #SnapdApp.
+ *
+ * Get if this service is enabled.
+ *
+ * Returns: %TRUE if enabled.
+ *
+ * Since: 1.25
+ */
+gboolean
+snapd_app_get_enabled (SnapdApp *app)
+{
+    g_return_val_if_fail (SNAPD_IS_APP (app), FALSE);
+    return app->enabled;
+}
+
+/**
+ * snapd_app_get_snap:
+ * @app: a #SnapdApp.
+ *
+ * Get the snap this app is associated with.
+ *
+ * Returns: a snap name.
+ *
+ * Since: 1.25
+ */
+const gchar *
+snapd_app_get_snap (SnapdApp *app)
+{
+    g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
+    return app->snap;
+}
+
 static void
 snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
@@ -140,6 +196,16 @@ snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GPa
     case PROP_DESKTOP_FILE:
         g_free (app->desktop_file);
         app->desktop_file = g_strdup (g_value_get_string (value));
+        break;
+    case PROP_SNAP:
+        g_free (app->snap);
+        app->snap = g_strdup (g_value_get_string (value));
+        break;
+    case PROP_ACTIVE:
+        app->active = g_value_get_boolean (value);
+        break;
+    case PROP_ENABLED:
+        app->enabled = g_value_get_boolean (value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -165,6 +231,15 @@ snapd_app_get_property (GObject *object, guint prop_id, GValue *value, GParamSpe
     case PROP_DESKTOP_FILE:
         g_value_set_string (value, app->desktop_file);
         break;
+    case PROP_SNAP:
+        g_value_set_string (value, app->snap);
+        break;
+    case PROP_ACTIVE:
+        g_value_set_boolean (value, app->active);
+        break;
+    case PROP_ENABLED:
+        g_value_set_boolean (value, app->enabled);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -178,6 +253,7 @@ snapd_app_finalize (GObject *object)
 
     g_clear_pointer (&app->name, g_free);
     g_clear_pointer (&app->desktop_file, g_free);
+    g_clear_pointer (&app->snap, g_free);
 }
 
 static void
@@ -217,6 +293,27 @@ snapd_app_class_init (SnapdAppClass *klass)
                                                           "App desktop file path",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_SNAP,
+                                     g_param_spec_string ("snap",
+                                                          "snap",
+                                                          "Snap name",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_ACTIVE,
+                                     g_param_spec_boolean ("active",
+                                                           "active",
+                                                           "TRUE if active",
+                                                           FALSE,
+                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_ENABLED,
+                                     g_param_spec_boolean ("enabled",
+                                                           "enabled",
+                                                           "TRUE if enabled",
+                                                           FALSE,
+                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void

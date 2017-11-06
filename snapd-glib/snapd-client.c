@@ -120,6 +120,7 @@ typedef enum
     SNAPD_REQUEST_GET_ICON,
     SNAPD_REQUEST_LIST,
     SNAPD_REQUEST_LIST_ONE,
+    SNAPD_REQUEST_GET_APPS,
     SNAPD_REQUEST_GET_ASSERTIONS,
     SNAPD_REQUEST_ADD_ASSERTIONS,
     SNAPD_REQUEST_GET_INTERFACES,
@@ -185,6 +186,7 @@ struct _SnapdRequest
     gboolean result;
     SnapdSystemInformation *system_information;
     GPtrArray *snaps;
+    GPtrArray *apps;
     gchar *suggested_currency;
     SnapdSnap *snap;
     SnapdIcon *icon;
@@ -381,6 +383,7 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->error, g_error_free);
     g_clear_object (&request->system_information);
     g_clear_pointer (&request->snaps, g_ptr_array_unref);
+    g_clear_pointer (&request->apps, g_ptr_array_unref);
     g_free (request->suggested_currency);
     g_clear_object (&request->snap);
     g_clear_object (&request->icon);
@@ -667,6 +670,35 @@ parse_list_one_response (SnapdRequest *request)
     }
 
     request->snap = g_steal_pointer (&snap);
+    snapd_request_complete (request, NULL);
+}
+
+static void
+parse_get_apps_response (SnapdRequest *request)
+{
+    g_autoptr(JsonObject) response = NULL;
+    g_autoptr(JsonArray) result = NULL;
+    GPtrArray *apps;
+    GError *error = NULL;
+
+    response = _snapd_json_parse_response (request->message, &error);
+    if (response == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+    result = _snapd_json_get_sync_result_a (response, &error);
+    if (result == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    apps = _snapd_json_parse_app_array (result, &error);
+    if (apps == NULL) {
+        snapd_request_complete (request, error);
+        return;
+    }
+
+    request->apps = g_steal_pointer (&apps);
     snapd_request_complete (request, NULL);
 }
 
@@ -1691,6 +1723,9 @@ parse_response (SnapdRequest *request)
     case SNAPD_REQUEST_LIST_ONE:
         parse_list_one_response (request);
         break;
+    case SNAPD_REQUEST_GET_APPS:
+        parse_get_apps_response (request);
+        break;
     case SNAPD_REQUEST_GET_ASSERTIONS:
         parse_get_assertions_response (request);
         break;
@@ -2500,6 +2535,66 @@ snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError 
     if (snapd_request_set_error (request, error))
         return NULL;
     return request->snap != NULL ? g_object_ref (request->snap) : NULL;
+}
+
+/**
+ * snapd_client_get_apps_async:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdGetAppsFlags to control what results are returned.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get information on installed apps.
+ * See snapd_client_get_apps_sync() for more information.
+ *
+ * Since: 1.25
+ */
+void
+snapd_client_get_apps_async (SnapdClient *client,
+                             SnapdGetAppsFlags flags,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_autofree gchar *path = NULL;
+    SnapdRequest *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    if ((flags & SNAPD_GET_APPS_FLAGS_SELECT_SERVICES) != 0)
+        path = g_strdup ("/v2/apps?select=service");
+    else
+        path = g_strdup ("/v2/apps");
+    request = make_request (client, SNAPD_REQUEST_GET_APPS, "GET", path, NULL, NULL, cancellable, callback, user_data);
+    send_request (request);
+}
+
+/**
+ * snapd_client_get_apps_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_apps_async().
+ * See snapd_client_get_apps_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdApp): an array of #SnapdApp or %NULL on error.
+ *
+ * Since: 1.25
+ */
+GPtrArray *
+snapd_client_get_apps_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdRequest *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST (result), NULL);
+
+    request = SNAPD_REQUEST (result);
+    g_return_val_if_fail (request->request_type == SNAPD_REQUEST_GET_APPS, NULL);
+
+    if (snapd_request_set_error (request, error))
+        return NULL;
+    return g_steal_pointer (&request->apps);
 }
 
 /**

@@ -423,50 +423,12 @@ parse_confinement (const gchar *value)
         return SNAPD_CONFINEMENT_UNKNOWN;
 }
 
-SnapdSnap *
-_snapd_json_parse_snap (JsonObject *object, GError **error)
+static GPtrArray *
+_snapd_json_parse_apps (const gchar *snap_name, JsonArray *apps, GError **error)
 {
-    SnapdConfinement confinement;
-    const gchar *snap_type_string;
-    SnapdSnapType snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
-    const gchar *snap_status_string;
-    SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;
-    g_autoptr(JsonArray) apps = NULL;
-    JsonObject *channels;
-    g_autoptr(GDateTime) install_date = NULL;
-    JsonObject *prices;
     g_autoptr(GPtrArray) apps_array = NULL;
-    g_autoptr(GPtrArray) channels_array = NULL;
-    g_autoptr(GPtrArray) prices_array = NULL;
-    g_autoptr(JsonArray) screenshots = NULL;
-    g_autoptr(GPtrArray) screenshots_array = NULL;
-    g_autoptr(JsonArray) tracks = NULL;
-    g_autoptr(GPtrArray) track_array = NULL;
     guint i;
 
-    confinement = parse_confinement (_snapd_json_get_string (object, "confinement", ""));
-
-    snap_type_string = _snapd_json_get_string (object, "type", "");
-    if (strcmp (snap_type_string, "app") == 0)
-        snap_type = SNAPD_SNAP_TYPE_APP;
-    else if (strcmp (snap_type_string, "kernel") == 0)
-        snap_type = SNAPD_SNAP_TYPE_KERNEL;
-    else if (strcmp (snap_type_string, "gadget") == 0)
-        snap_type = SNAPD_SNAP_TYPE_GADGET;
-    else if (strcmp (snap_type_string, "os") == 0)
-        snap_type = SNAPD_SNAP_TYPE_OS;
-
-    snap_status_string = _snapd_json_get_string (object, "status", "");
-    if (strcmp (snap_status_string, "available") == 0)
-        snap_status = SNAPD_SNAP_STATUS_AVAILABLE;
-    else if (strcmp (snap_status_string, "priced") == 0)
-        snap_status = SNAPD_SNAP_STATUS_PRICED;
-    else if (strcmp (snap_status_string, "installed") == 0)
-        snap_status = SNAPD_SNAP_STATUS_INSTALLED;
-    else if (strcmp (snap_status_string, "active") == 0)
-        snap_status = SNAPD_SNAP_STATUS_ACTIVE;
-
-    apps = _snapd_json_get_array (object, "apps");
     apps_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (apps); i++) {
         JsonNode *node = json_array_get_element (apps, i);
@@ -474,6 +436,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
         const gchar *daemon;
         g_autoptr(SnapdApp) app = NULL;
         SnapdDaemonType daemon_type = SNAPD_DAEMON_TYPE_NONE;
+        const gchar *app_snap_name;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected app type");
@@ -498,13 +461,71 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
         else
             daemon_type = SNAPD_DAEMON_TYPE_UNKNOWN;
 
+        app_snap_name = _snapd_json_get_string (a, "snap", NULL);
         app = g_object_new (SNAPD_TYPE_APP,
                             "name", _snapd_json_get_string (a, "name", NULL),
+                            "active", _snapd_json_get_bool (a, "active", FALSE),
                             "daemon-type", daemon_type,
                             "desktop-file", _snapd_json_get_string (a, "desktop-file", NULL),
+                            "enabled", _snapd_json_get_bool (a, "enabled", FALSE),
+                            "snap", app_snap_name != NULL ? app_snap_name : snap_name,
                             NULL);
         g_ptr_array_add (apps_array, g_steal_pointer (&app));
     }
+
+    return g_steal_pointer (&apps_array);
+}
+
+SnapdSnap *
+_snapd_json_parse_snap (JsonObject *object, GError **error)
+{
+    const gchar *name;
+    SnapdConfinement confinement;
+    const gchar *snap_type_string;
+    SnapdSnapType snap_type = SNAPD_SNAP_TYPE_UNKNOWN;
+    const gchar *snap_status_string;
+    SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;
+    g_autoptr(JsonArray) apps = NULL;
+    JsonObject *channels;
+    g_autoptr(GDateTime) install_date = NULL;
+    JsonObject *prices;
+    g_autoptr(GPtrArray) apps_array = NULL;
+    g_autoptr(GPtrArray) channels_array = NULL;
+    g_autoptr(GPtrArray) prices_array = NULL;
+    g_autoptr(JsonArray) screenshots = NULL;
+    g_autoptr(GPtrArray) screenshots_array = NULL;
+    g_autoptr(JsonArray) tracks = NULL;
+    g_autoptr(GPtrArray) track_array = NULL;
+    guint i;
+
+    name = _snapd_json_get_string (object, "name", NULL);
+
+    confinement = parse_confinement (_snapd_json_get_string (object, "confinement", ""));
+
+    snap_type_string = _snapd_json_get_string (object, "type", "");
+    if (strcmp (snap_type_string, "app") == 0)
+        snap_type = SNAPD_SNAP_TYPE_APP;
+    else if (strcmp (snap_type_string, "kernel") == 0)
+        snap_type = SNAPD_SNAP_TYPE_KERNEL;
+    else if (strcmp (snap_type_string, "gadget") == 0)
+        snap_type = SNAPD_SNAP_TYPE_GADGET;
+    else if (strcmp (snap_type_string, "os") == 0)
+        snap_type = SNAPD_SNAP_TYPE_OS;
+
+    snap_status_string = _snapd_json_get_string (object, "status", "");
+    if (strcmp (snap_status_string, "available") == 0)
+        snap_status = SNAPD_SNAP_STATUS_AVAILABLE;
+    else if (strcmp (snap_status_string, "priced") == 0)
+        snap_status = SNAPD_SNAP_STATUS_PRICED;
+    else if (strcmp (snap_status_string, "installed") == 0)
+        snap_status = SNAPD_SNAP_STATUS_INSTALLED;
+    else if (strcmp (snap_status_string, "active") == 0)
+        snap_status = SNAPD_SNAP_STATUS_ACTIVE;
+
+    apps = _snapd_json_get_array (object, "apps");
+    apps_array = _snapd_json_parse_apps (name, apps, error);
+    if (apps_array == NULL)
+        return NULL;
 
     channels = _snapd_json_get_object (object, "channels");
     channels_array = g_ptr_array_new_with_free_func (g_object_unref);
@@ -617,7 +638,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                          "installed-size", _snapd_json_get_int (object, "installed-size", 0),
                          "jailmode", _snapd_json_get_bool (object, "jailmode", FALSE),
                          "license", _snapd_json_get_string (object, "license", NULL),
-                         "name", _snapd_json_get_string (object, "name", NULL),
+                         "name", name,
                          "prices", prices_array,
                          "private", _snapd_json_get_bool (object, "private", FALSE),
                          "revision", _snapd_json_get_string (object, "revision", NULL),
@@ -656,6 +677,12 @@ _snapd_json_parse_snap_array (JsonArray *array, GError **error)
     }
 
     return g_steal_pointer (&snaps);
+}
+
+GPtrArray *
+_snapd_json_parse_app_array (JsonArray *array, GError **error)
+{
+    return _snapd_json_parse_apps (NULL, array, error);
 }
 
 SnapdUserInformation *

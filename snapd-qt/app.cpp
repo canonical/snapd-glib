@@ -18,6 +18,11 @@ QString QSnapdApp::name () const
     return snapd_app_get_name (SNAPD_APP (wrapped_object));
 }
 
+bool QSnapdApp::active () const
+{
+    return snapd_app_get_active (SNAPD_APP (wrapped_object));
+}
+
 QStringList QSnapdApp::aliases () const
 {
     return QStringList ();
@@ -48,4 +53,14 @@ QSnapdEnums::DaemonType QSnapdApp::daemonType () const
 QString QSnapdApp::desktopFile () const
 {
     return snapd_app_get_desktop_file (SNAPD_APP (wrapped_object));
+}
+
+bool QSnapdApp::enabled () const
+{
+    return snapd_app_get_enabled (SNAPD_APP (wrapped_object));
+}
+
+QString QSnapdApp::snap () const
+{
+    return snapd_app_get_snap (SNAPD_APP (wrapped_object));
 }

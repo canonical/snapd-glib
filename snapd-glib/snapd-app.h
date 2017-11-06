@@ -50,11 +50,17 @@ typedef enum
 
 const gchar    *snapd_app_get_name         (SnapdApp *app);
 
+gboolean        snapd_app_get_active       (SnapdApp *app);
+
 gchar         **snapd_app_get_aliases      (SnapdApp *app) G_DEPRECATED;
 
 SnapdDaemonType snapd_app_get_daemon_type  (SnapdApp *app);
 
 const gchar    *snapd_app_get_desktop_file (SnapdApp *app);
+
+gboolean        snapd_app_get_enabled      (SnapdApp *app);
+
+const gchar    *snapd_app_get_snap         (SnapdApp *app);
 
 G_END_DECLS
 

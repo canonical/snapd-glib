@@ -1459,6 +1459,42 @@ handle_login (MockSnapd *snapd, SoupMessage *message)
 }
 
 static JsonNode *
+make_app_node (MockApp *app, const gchar *snap_name)
+{
+    g_autoptr(JsonBuilder) builder = NULL;
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    if (snap_name != NULL) {
+        json_builder_set_member_name (builder, "snap");
+        json_builder_add_string_value (builder, snap_name);
+    }
+    if (app->name != NULL) {
+        json_builder_set_member_name (builder, "name");
+        json_builder_add_string_value (builder, app->name);
+    }
+    if (app->daemon != NULL) {
+        json_builder_set_member_name (builder, "daemon");
+        json_builder_add_string_value (builder, app->daemon);
+    }
+    if (app->desktop_file != NULL) {
+        json_builder_set_member_name (builder, "desktop-file");
+        json_builder_add_string_value (builder, app->desktop_file);
+    }
+    if (app->active) {
+        json_builder_set_member_name (builder, "active");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+    if (app->enabled) {
+        json_builder_set_member_name (builder, "enabled");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+    json_builder_end_object (builder);
+
+    return json_builder_get_root (builder);
+}
+
+static JsonNode *
 make_snap_node (MockSnap *snap)
 {
     g_autoptr(JsonBuilder) builder = NULL;
@@ -1473,20 +1509,7 @@ make_snap_node (MockSnap *snap)
         json_builder_begin_array (builder);
         for (link = snap->apps; link; link = link->next) {
             MockApp *app = link->data;
-            json_builder_begin_object (builder);
-            if (snap->name) {
-                json_builder_set_member_name (builder, "name");
-                json_builder_add_string_value (builder, app->name);
-            }
-            if (app->daemon != NULL) {
-                json_builder_set_member_name (builder, "daemon");
-                json_builder_add_string_value (builder, app->daemon);
-            }
-            if (app->desktop_file != NULL) {
-                json_builder_set_member_name (builder, "desktop-file");
-                json_builder_add_string_value (builder, app->desktop_file);
-            }
-            json_builder_end_object (builder);
+            json_builder_add_value (builder, make_app_node (app, NULL));
         }
         json_builder_end_array (builder);
     }
@@ -2003,6 +2026,40 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
     }
     else
         send_error_method_not_allowed (message, "method not allowed");
+}
+
+
+static void
+handle_apps (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
+{
+    const gchar *select_param = NULL;
+    g_autoptr(JsonBuilder) builder = NULL;
+    GList *link;
+
+    if (strcmp (message->method, "GET") != 0) {
+        send_error_method_not_allowed (message, "method not allowed");
+        return;
+    }
+
+    if (query != NULL)
+        select_param = g_hash_table_lookup (query, "select");
+
+    builder = json_builder_new ();
+    json_builder_begin_array (builder);
+    for (link = snapd->snaps; link; link = link->next) {
+        MockSnap *snap = link->data;
+        GList *app_link;
+
+        for (app_link = snap->apps; app_link; app_link = app_link->next) {
+            MockApp *app = app_link->data;
+
+            if (g_strcmp0 (select_param, "service") != 0 || app->daemon != NULL)
+                json_builder_add_value (builder, make_app_node (app, snap->name));
+        }
+    }
+    json_builder_end_array (builder);
+
+    send_sync_response (message, 200, json_builder_get_root (builder), NULL);
 }
 
 static void
@@ -2998,6 +3055,8 @@ handle_request (SoupServer        *server,
         handle_snaps (snapd, message);
     else if (g_str_has_prefix (path, "/v2/snaps/"))
         handle_snap (snapd, message, path + strlen ("/v2/snaps/"));
+    else if (strcmp (path, "/v2/apps") == 0)
+        handle_apps (snapd, message, query);
     else if (g_str_has_prefix (path, "/v2/icons/"))
         handle_icon (snapd, message, path + strlen ("/v2/icons/"));
     else if (strcmp (path, "/v2/assertions") == 0)

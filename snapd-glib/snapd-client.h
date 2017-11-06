@@ -44,6 +44,21 @@ struct _SnapdClientClass
 };
 
 /**
+ * SnapdGetAppsFlags:
+ * @SNAPD_GET_APPS_FLAGS_NONE: No flags, default behaviour.
+ * @SNAPD_GET_APPS_FLAGS_SELECT_SERVICES: Select services only.
+ *
+ * Flag to change which apps are returned.
+ *
+ * Since: 1.25
+ */
+typedef enum
+{
+    SNAPD_GET_APPS_FLAGS_NONE            = 0,
+    SNAPD_GET_APPS_FLAGS_SELECT_SERVICES = 1 << 0,
+} SnapdGetAppsFlags;
+
+/**
  * SnapdFindFlags:
  * @SNAPD_FIND_FLAGS_NONE: No flags, default behaviour
  * @SNAPD_FIND_FLAGS_MATCH_NAME: Search for snaps whose name matches the given
@@ -208,6 +223,19 @@ void                    snapd_client_list_one_async                (SnapdClient 
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 SnapdSnap              *snapd_client_list_one_finish               (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+GPtrArray              *snapd_client_get_apps_sync                 (SnapdClient          *client,
+                                                                    SnapdGetAppsFlags     flags,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_apps_async                (SnapdClient          *client,
+                                                                    SnapdGetAppsFlags     flags,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_get_apps_finish               (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

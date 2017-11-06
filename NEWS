@@ -10,9 +10,15 @@ Overview of changes in snapd-glib 1.25
       - snapd_client_prefer_async
       - snapd_client_prefer_finish
       - snapd_client_prefer_sync
+      - snapd_client_get_apps_sync
+      - snapd_client_get_apps_finish
+      - snapd_client_get_apps_async
       - snapd_alias_get_app_auto
       - snapd_alias_get_command
       - snapd_alias_get_app_manual
+      - snapd_app_get_active
+      - snapd_app_get_enabled
+      - snapd_app_get_snap
       - snapd_snap_get_broken
     * Deprecated API:
       - snapd_client_enable_aliases_async
@@ -26,6 +32,7 @@ Overview of changes in snapd-glib 1.25
       - snapd_client_reset_aliases_sync
       - snapd_app_get_aliases
     * Implement v2 alias API
+    * Implement snapd_client_get_apps
     * Fix memory handling in create user methods
     * Implement user creation in snapd-qt
 

@@ -19,17 +19,23 @@ class Q_DECL_EXPORT QSnapdApp : public QSnapdWrappedObject
     Q_OBJECT
 
     Q_PROPERTY(QString name READ name)
+    Q_PROPERTY(bool active READ active)
     Q_PROPERTY(QStringList aliases READ aliases)
     Q_PROPERTY(QSnapdEnums::DaemonType daemonType READ daemonType)
     Q_PROPERTY(QString desktopFile READ desktopFile)
+    Q_PROPERTY(bool enabled READ enabled)
+    Q_PROPERTY(QString snap READ snap)
 
 public:
     explicit QSnapdApp (void* snapd_object, QObject* parent = 0);
 
     QString name () const;
+    bool active () const;
     QStringList aliases () const;
     QSnapdEnums::DaemonType daemonType () const;
     QString desktopFile () const;
+    bool enabled () const;
+    QString snap () const;
 };
 
 #endif

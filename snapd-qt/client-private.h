@@ -73,6 +73,20 @@ public:
     SnapdSnap *snap = NULL;
 };
 
+class QSnapdGetAppsRequestPrivate
+{
+public:
+    QSnapdGetAppsRequestPrivate (int flags) :
+        flags(flags) {}
+    ~QSnapdGetAppsRequestPrivate ()
+    {
+        if (apps != NULL)
+            g_ptr_array_unref (apps);
+    }
+    int flags;
+    GPtrArray *apps = NULL;
+};
+
 class QSnapdGetIconRequestPrivate
 {
 public:

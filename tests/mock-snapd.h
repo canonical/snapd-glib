@@ -93,6 +93,8 @@ typedef struct
     gchar *name;
     gchar *daemon;
     gchar *desktop_file;
+    gboolean enabled;
+    gboolean active;
     GList *aliases;
 } MockApp;
 

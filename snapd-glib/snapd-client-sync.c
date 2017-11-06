@@ -163,6 +163,34 @@ snapd_client_list_one_sync (SnapdClient *client,
 }
 
 /**
+ * snapd_client_get_apps_sync:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdGetAppsFlags to control what results are returned.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get information on installed apps.
+ *
+ * Returns: (transfer container) (element-type SnapdApp): an array of #SnapdApp or %NULL on error.
+ *
+ * Since: 1.25
+ */
+GPtrArray *
+snapd_client_get_apps_sync (SnapdClient *client,
+                            SnapdGetAppsFlags flags,
+                            GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    start_sync (&data);
+    snapd_client_get_apps_async (client, flags, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_apps_finish (client, data.result, error);
+}
+
+/**
  * snapd_client_get_icon_sync:
  * @client: a #SnapdClient.
  * @name: name of snap to get icon for.

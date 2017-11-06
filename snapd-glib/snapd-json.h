@@ -57,6 +57,9 @@ SnapdSnap            *_snapd_json_parse_snap             (JsonObject         *ob
 GPtrArray            *_snapd_json_parse_snap_array       (JsonArray          *array,
                                                           GError            **error);
 
+GPtrArray            *_snapd_json_parse_app_array        (JsonArray          *array,
+                                                          GError            **error);
+
 SnapdUserInformation *_snapd_json_parse_user_information (JsonObject         *object,
                                                           GError            **error);
 
