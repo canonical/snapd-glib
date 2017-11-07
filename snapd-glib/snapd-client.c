@@ -111,48 +111,17 @@ G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 /* Number of milliseconds to poll for status in asynchronous operations */
 #define ASYNC_POLL_TIME 100
 
-typedef enum
+G_DECLARE_DERIVABLE_TYPE (SnapdRequest, snapd_request, SNAPD, REQUEST, GObject)
+
+struct _SnapdRequestClass
 {
-    SNAPD_REQUEST_GET_CHANGE,
-    SNAPD_REQUEST_ABORT_CHANGE,
-    SNAPD_REQUEST_GET_SYSTEM_INFORMATION,
-    SNAPD_REQUEST_LOGIN,
-    SNAPD_REQUEST_GET_ICON,
-    SNAPD_REQUEST_LIST,
-    SNAPD_REQUEST_LIST_ONE,
-    SNAPD_REQUEST_GET_APPS,
-    SNAPD_REQUEST_GET_ASSERTIONS,
-    SNAPD_REQUEST_ADD_ASSERTIONS,
-    SNAPD_REQUEST_GET_INTERFACES,
-    SNAPD_REQUEST_CONNECT_INTERFACE,
-    SNAPD_REQUEST_DISCONNECT_INTERFACE,
-    SNAPD_REQUEST_FIND,
-    SNAPD_REQUEST_FIND_REFRESHABLE,
-    SNAPD_REQUEST_SIDELOAD_SNAP, // FIXME
-    SNAPD_REQUEST_CHECK_BUY,
-    SNAPD_REQUEST_BUY,
-    SNAPD_REQUEST_INSTALL,
-    SNAPD_REQUEST_INSTALL_STREAM,
-    SNAPD_REQUEST_TRY,
-    SNAPD_REQUEST_REFRESH,
-    SNAPD_REQUEST_REFRESH_ALL,
-    SNAPD_REQUEST_REMOVE,
-    SNAPD_REQUEST_ENABLE,
-    SNAPD_REQUEST_DISABLE,
-    SNAPD_REQUEST_CREATE_USER,
-    SNAPD_REQUEST_CREATE_USERS,
-    SNAPD_REQUEST_GET_SECTIONS,
-    SNAPD_REQUEST_GET_ALIASES,
-    SNAPD_REQUEST_ALIASES,
-    SNAPD_REQUEST_RUN_SNAPCTL
-} RequestType;
+    GObjectClass parent_class;
 
-G_DECLARE_FINAL_TYPE (SnapdRequest, snapd_request, SNAPD, REQUEST, GObject)
+    void (*parse_response)(SnapdRequest *request);
+};
 
-struct _SnapdRequest
+typedef struct
 {
-    GObject parent_instance;
-
     GMainContext *context;
 
     SnapdClient *client;
@@ -161,83 +130,247 @@ struct _SnapdRequest
 
     GSource *read_source;
 
-    RequestType request_type;
-
     GCancellable *cancellable;
     gulong cancelled_id;
+
+    gboolean responded;
     GAsyncReadyCallback ready_callback;
     gpointer ready_callback_data;
-    gboolean sent_cancel;
 
-    SnapdProgressCallback progress_callback;
-    gpointer progress_callback_data;
+    GError *error;
+} SnapdRequestPrivate;
 
-    gchar *requested_change_id;
+static void snapd_request_async_result_init (GAsyncResultIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (SnapdRequest, snapd_request, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_RESULT, snapd_request_async_result_init)
+                         G_ADD_PRIVATE (SnapdRequest))
+
+struct _SnapdRequestGetChange
+{
+    SnapdRequest parent_instance;
+    gchar *change_id;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetChange, snapd_request_get_change, SNAPD, REQUEST_GET_CHANGE, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetChange, snapd_request_get_change, snapd_request_get_type ())
+
+struct _SnapdRequestPostChange
+{
+    SnapdRequest parent_instance;
+    gchar *change_id;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostChange, snapd_request_post_change, SNAPD, REQUEST_POST_CHANGE, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestPostChange, snapd_request_post_change, snapd_request_get_type ())
+
+struct _SnapdRequestGetSystemInformation
+{
+    SnapdRequest parent_instance;
+    SnapdSystemInformation *system_information;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetSystemInformation, snapd_request_get_system_information, SNAPD, REQUEST_GET_SYSTEM_INFORMATION, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetSystemInformation, snapd_request_get_system_information, snapd_request_get_type ())
+
+struct _SnapdRequestPostLogin
+{
+    SnapdRequest parent_instance;
+    SnapdAuthData *auth_data;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostLogin, snapd_request_post_login, SNAPD, REQUEST_POST_LOGIN, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestPostLogin, snapd_request_post_login, snapd_request_get_type ())
+
+struct _SnapdRequestGetSnaps
+{
+    SnapdRequest parent_instance;
+    GPtrArray *snaps;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetSnaps, snapd_request_get_snaps, SNAPD, REQUEST_GET_SNAPS, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetSnaps, snapd_request_get_snaps, snapd_request_get_type ())
+
+struct _SnapdRequestGetSnap
+{
+    SnapdRequest parent_instance;
+    SnapdSnap *snap;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetSnap, snapd_request_get_snap, SNAPD, REQUEST_GET_SNAP, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetSnap, snapd_request_get_snap, snapd_request_get_type ())
+
+struct _SnapdRequestGetIcon
+{
+    SnapdRequest parent_instance;
+    SnapdIcon *icon;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetIcon, snapd_request_get_icon, SNAPD, REQUEST_GET_ICON, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetIcon, snapd_request_get_icon, snapd_request_get_type ())
+
+struct _SnapdRequestGetApps
+{
+    SnapdRequest parent_instance;
+    GPtrArray *apps;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetApps, snapd_request_get_apps, SNAPD, REQUEST_GET_APPS, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetApps, snapd_request_get_apps, snapd_request_get_type ())
+
+struct _SnapdRequestGetSections
+{
+    SnapdRequest parent_instance;
+    gchar **sections;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetSections, snapd_request_get_sections, SNAPD, REQUEST_GET_SECTIONS, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetSections, snapd_request_get_sections, snapd_request_get_type ())
+
+struct _SnapdRequestGetFind
+{
+    SnapdRequest parent_instance;
+    gchar *suggested_currency;
+    GPtrArray *snaps;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetFind, snapd_request_get_find, SNAPD, REQUEST_GET_FIND, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetFind, snapd_request_get_find, snapd_request_get_type ())
+
+struct _SnapdRequestGetBuyReady
+{
+    SnapdRequest parent_instance;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetBuyReady, snapd_request_get_buy_ready, SNAPD, REQUEST_GET_BUY_READY, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetBuyReady, snapd_request_get_buy_ready, snapd_request_get_type ())
+
+struct _SnapdRequestPostBuy
+{
+    SnapdRequest parent_instance;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostBuy, snapd_request_post_buy, SNAPD, REQUEST_POST_BUY, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestPostBuy, snapd_request_post_buy, snapd_request_get_type ())
+
+struct _SnapdRequestAsync
+{
+    SnapdRequest parent_instance;
     gchar *change_id;
     GSource *poll_source;
     SnapdChange *change;
+    gboolean sent_cancel;
+    SnapdProgressCallback progress_callback;
+    gpointer progress_callback_data;
+    JsonNode *async_data;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestAsync, snapd_request_async, SNAPD, REQUEST_ASYNC, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestAsync, snapd_request_async, snapd_request_get_type ())
 
+struct _SnapdRequestPostSnap
+{
+    SnapdRequestAsync parent_instance;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostSnap, snapd_request_post_snap, SNAPD, REQUEST_POST_SNAP, SnapdRequestAsync)
+G_DEFINE_TYPE (SnapdRequestPostSnap, snapd_request_post_snap, snapd_request_async_get_type ())
+
+struct _SnapdRequestPostSnaps
+{
+    SnapdRequestAsync parent_instance;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostSnaps, snapd_request_post_snaps, SNAPD, REQUEST_POST_SNAPS, SnapdRequestAsync)
+G_DEFINE_TYPE (SnapdRequestPostSnaps, snapd_request_post_snaps, snapd_request_async_get_type ())
+
+struct _SnapdRequestPostSnapStream
+{
+    SnapdRequestAsync parent_instance;
     SnapdInstallFlags install_flags;
     GInputStream *snap_stream;
     GByteArray *snap_contents;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostSnapStream, snapd_request_post_snap_stream, SNAPD, REQUEST_POST_SNAP_STREAM, SnapdRequestAsync)
+G_DEFINE_TYPE (SnapdRequestPostSnapStream, snapd_request_post_snap_stream, snapd_request_async_get_type ())
 
-    GError *error;
-    SnapdSystemInformation *system_information;
-    GPtrArray *snaps;
-    GPtrArray *apps;
-    gchar *suggested_currency;
-    SnapdSnap *snap;
-    SnapdIcon *icon;
-    SnapdAuthData *received_auth_data;
-    gchar **assertions;
+struct _SnapdRequestPostSnapTry
+{
+    SnapdRequestAsync parent_instance;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostSnapTry, snapd_request_post_snap_try, SNAPD, REQUEST_POST_SNAP_TRY, SnapdRequestAsync)
+G_DEFINE_TYPE (SnapdRequestPostSnapTry, snapd_request_post_snap_try, snapd_request_async_get_type ())
+
+struct _SnapdRequestGetAliases
+{
+    SnapdRequest parent_instance;
+    GPtrArray *aliases;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetAliases, snapd_request_get_aliases, SNAPD, REQUEST_GET_ALIASES, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetAliases, snapd_request_get_aliases, snapd_request_get_type ())
+
+struct _SnapdRequestPostAliases
+{
+    SnapdRequestAsync parent_instance;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostAliases, snapd_request_post_aliases, SNAPD, REQUEST_POST_ALIASES, SnapdRequestAsync)
+G_DEFINE_TYPE (SnapdRequestPostAliases, snapd_request_post_aliases, snapd_request_async_get_type ())
+
+struct _SnapdRequestGetInterfaces
+{
+    SnapdRequest parent_instance;
     GPtrArray *plugs;
     GPtrArray *slots;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetInterfaces, snapd_request_get_interfaces, SNAPD, REQUEST_GET_INTERFACES, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetInterfaces, snapd_request_get_interfaces, snapd_request_get_type ())
+
+struct _SnapdRequestPostInterfaces
+{
+    SnapdRequestAsync parent_instance;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostInterfaces, snapd_request_post_interfaces, SNAPD, REQUEST_POST_INTERFACES, SnapdRequestAsync)
+G_DEFINE_TYPE (SnapdRequestPostInterfaces, snapd_request_post_interfaces, snapd_request_async_get_type ())
+
+struct _SnapdRequestGetAssertions
+{
+    SnapdRequest parent_instance;
+    gchar **assertions;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestGetAssertions, snapd_request_get_assertions, SNAPD, REQUEST_GET_ASSERTIONS, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestGetAssertions, snapd_request_get_assertions, snapd_request_get_type ())
+
+struct _SnapdRequestPostAssertions
+{
+    SnapdRequest parent_instance;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostAssertions, snapd_request_post_assertions, SNAPD, REQUEST_POST_ASSERTIONS, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestPostAssertions, snapd_request_post_assertions, snapd_request_get_type ())
+
+struct _SnapdRequestPostCreateUser
+{
+    SnapdRequest parent_instance;
     SnapdUserInformation *user_information;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostCreateUser, snapd_request_post_create_user, SNAPD, REQUEST_POST_CREATE_USER, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestPostCreateUser, snapd_request_post_create_user, snapd_request_get_type ())
+
+struct _SnapdRequestPostCreateUsers
+{
+    SnapdRequest parent_instance;
     GPtrArray *users_information;
-    gchar **sections;
-    GPtrArray *aliases;
+};
+G_DECLARE_FINAL_TYPE (SnapdRequestPostCreateUsers, snapd_request_post_create_users, SNAPD, REQUEST_POST_CREATE_USERS, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestPostCreateUsers, snapd_request_post_create_users, snapd_request_get_type ())
+
+struct _SnapdRequestPostSnapctl
+{
+    SnapdRequest parent_instance;
     gchar *stdout_output;
     gchar *stderr_output;
-    gboolean responded;
-    JsonNode *async_data;
 };
+G_DECLARE_FINAL_TYPE (SnapdRequestPostSnapctl, snapd_request_post_snapctl, SNAPD, REQUEST_POST_SNAPCTL, SnapdRequest)
+G_DEFINE_TYPE (SnapdRequestPostSnapctl, snapd_request_post_snapctl, snapd_request_get_type ())
 
 static SnapdRequest *
-make_request (SnapdClient *client, RequestType request_type,
+make_request (SnapdClient *client, GType type,
               const gchar *method, const gchar *path,
-              SnapdProgressCallback progress_callback, gpointer progress_callback_data,
               GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
 static void send_request (SnapdRequest *request);
-
-static gboolean
-request_is_async (SnapdRequest *request)
-{
-    switch (request->request_type)
-    {
-    case SNAPD_REQUEST_CONNECT_INTERFACE:
-    case SNAPD_REQUEST_DISCONNECT_INTERFACE:
-    case SNAPD_REQUEST_INSTALL:
-    case SNAPD_REQUEST_INSTALL_STREAM:
-    case SNAPD_REQUEST_TRY:
-    case SNAPD_REQUEST_REFRESH:
-    case SNAPD_REQUEST_REFRESH_ALL:
-    case SNAPD_REQUEST_REMOVE:
-    case SNAPD_REQUEST_ENABLE:
-    case SNAPD_REQUEST_DISABLE:
-    case SNAPD_REQUEST_ALIASES:
-        return TRUE;
-    default:
-        return FALSE;
-    }
-}
 
 static gboolean
 respond_cb (gpointer user_data)
 {
     SnapdRequest *request = user_data;
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
 
-    if (request->ready_callback != NULL)
-        request->ready_callback (G_OBJECT (request->client), G_ASYNC_RESULT (request), request->ready_callback_data);
+    if (priv->ready_callback != NULL)
+        priv->ready_callback (G_OBJECT (priv->client), G_ASYNC_RESULT (request), priv->ready_callback_data);
 
     return G_SOURCE_REMOVE;
 }
@@ -246,63 +379,68 @@ static void
 snapd_request_respond (SnapdRequest *request, GError *error)
 {
     g_autoptr(GSource) source = NULL;
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
 
-    if (request->responded)
+    if (priv->responded)
         return;
-    request->responded = TRUE;
-    request->error = error;
+    priv->responded = TRUE;
+    priv->error = error;
 
     source = g_idle_source_new ();
     g_source_set_callback (source, respond_cb, g_object_ref (request), g_object_unref);
-    g_source_attach (source, request->context);
+    g_source_attach (source, priv->context);
 }
 
 static void
 snapd_request_complete_unlocked (SnapdRequest *request, GError *error)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdClientPrivate *client_priv = snapd_client_get_instance_private (priv->client);
 
-    if (request->read_source != NULL)
-        g_source_destroy (request->read_source);
-    g_clear_pointer (&request->read_source, g_source_unref);
+    if (priv->read_source != NULL)
+        g_source_destroy (priv->read_source);
+    g_clear_pointer (&priv->read_source, g_source_unref);
 
     snapd_request_respond (request, error);
-    priv->requests = g_list_remove (priv->requests, request);
+    client_priv->requests = g_list_remove (client_priv->requests, request);
     g_object_unref (request);
 }
 
 static void
 snapd_request_complete (SnapdRequest *request, GError *error)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
-    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->requests_mutex);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdClientPrivate *client_priv = snapd_client_get_instance_private (priv->client);
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&client_priv->requests_mutex);
     snapd_request_complete_unlocked (request, error);
 }
 
 static gboolean
 async_poll_cb (gpointer data)
 {
-    SnapdRequest *request = data;
+    SnapdRequestAsync *request = data;
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (request));
     g_autofree gchar *path = NULL;
-    SnapdRequest *change_request;
+    SnapdRequestGetChange *change_request;
 
     path = g_strdup_printf ("/v2/changes/%s", request->change_id);
-    change_request = make_request (request->client, SNAPD_REQUEST_GET_CHANGE, "GET", path, NULL, NULL, NULL, NULL, NULL);
-    change_request->requested_change_id = g_strdup (request->change_id);
-    send_request (change_request);
+    change_request = SNAPD_REQUEST_GET_CHANGE (make_request (priv->client, snapd_request_get_change_get_type (), "GET", path, NULL, NULL, NULL));
+    change_request->change_id = g_strdup (request->change_id);
+    send_request (SNAPD_REQUEST (change_request));
 
     request->poll_source = NULL;
     return G_SOURCE_REMOVE;
 }
 
 static void
-schedule_poll (SnapdRequest *request)
+schedule_poll (SnapdRequestAsync *request)
 {
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (request));
     if (request->poll_source != NULL)
         g_source_destroy (request->poll_source);
     request->poll_source = g_timeout_source_new (ASYNC_POLL_TIME);
     g_source_set_callback (request->poll_source, async_poll_cb, request, NULL);
-    g_source_attach (request->poll_source, request->context);
+    g_source_attach (request->poll_source, priv->context);
 }
 
 static void
@@ -323,33 +461,26 @@ complete_all_requests (SnapdClient *client, GError *error)
     for (link = requests; link; link = link->next) {
         SnapdRequest *request = link->data;
 
-        if (request_is_async (request))
-            schedule_poll (request);
+        if (SNAPD_IS_REQUEST_ASYNC (request))
+            schedule_poll (SNAPD_REQUEST_ASYNC (request));
         else
             snapd_request_complete_unlocked (request, g_error_copy (error));
     }
 }
 
 static gboolean
-snapd_request_is_valid (GAsyncResult *result, RequestType request_type)
-{
-    if (!SNAPD_IS_REQUEST (result))
-        return FALSE;
-
-    return SNAPD_REQUEST (result)->request_type == request_type;
-}
-
-static gboolean
 snapd_request_return_error (SnapdRequest *request, GError **error)
 {
-    if (request->error != NULL) {
-        g_propagate_error (error, request->error);
-        request->error = NULL;
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+
+    if (priv->error != NULL) {
+        g_propagate_error (error, priv->error);
+        priv->error = NULL;
         return FALSE;
     }
 
     /* If no error provided from snapd, use a generic cancelled error */
-    if (g_cancellable_set_error_if_cancelled (request->cancellable, error))
+    if (g_cancellable_set_error_if_cancelled (priv->cancellable, error))
         return FALSE;
 
     return TRUE;
@@ -358,7 +489,8 @@ snapd_request_return_error (SnapdRequest *request, GError **error)
 static GObject *
 snapd_request_get_source_object (GAsyncResult *result)
 {
-    return g_object_ref (SNAPD_REQUEST (result)->client);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (result));
+    return g_object_ref (priv->client);
 }
 
 static void
@@ -367,45 +499,20 @@ snapd_request_async_result_init (GAsyncResultIface *iface)
     iface->get_source_object = snapd_request_get_source_object;
 }
 
-G_DEFINE_TYPE_WITH_CODE (SnapdRequest, snapd_request, G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_ASYNC_RESULT, snapd_request_async_result_init))
-
 static void
 snapd_request_finalize (GObject *object)
 {
     SnapdRequest *request = SNAPD_REQUEST (object);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
 
-    g_clear_object (&request->message);
-    if (request->read_source != NULL)
-        g_source_destroy (request->read_source);
-    g_clear_pointer (&request->read_source, g_source_unref);
-    g_cancellable_disconnect (request->cancellable, request->cancelled_id);
-    g_clear_object (&request->cancellable);
-    g_free (request->requested_change_id);
-    g_free (request->change_id);
-    g_clear_pointer (&request->poll_source, g_source_destroy);
-    g_clear_object (&request->change);
-    g_clear_object (&request->snap_stream);
-    g_clear_pointer (&request->snap_contents, g_byte_array_unref);
-    g_clear_pointer (&request->error, g_error_free);
-    g_clear_object (&request->system_information);
-    g_clear_pointer (&request->snaps, g_ptr_array_unref);
-    g_clear_pointer (&request->apps, g_ptr_array_unref);
-    g_free (request->suggested_currency);
-    g_clear_object (&request->snap);
-    g_clear_object (&request->icon);
-    g_clear_object (&request->received_auth_data);
-    g_clear_pointer (&request->assertions, g_strfreev);
-    g_clear_pointer (&request->plugs, g_ptr_array_unref);
-    g_clear_pointer (&request->slots, g_ptr_array_unref);
-    g_clear_object (&request->user_information);
-    g_clear_pointer (&request->users_information, g_ptr_array_unref);
-    g_clear_pointer (&request->sections, g_strfreev);
-    g_clear_pointer (&request->aliases, g_ptr_array_unref);
-    g_clear_pointer (&request->stdout_output, g_free);
-    g_clear_pointer (&request->stderr_output, g_free);
-    g_clear_pointer (&request->async_data, json_node_unref);
-    g_clear_pointer (&request->context, g_main_context_unref);
+    g_clear_object (&priv->message);
+    if (priv->read_source != NULL)
+        g_source_destroy (priv->read_source);
+    g_clear_pointer (&priv->read_source, g_source_unref);
+    g_cancellable_disconnect (priv->cancellable, priv->cancelled_id);
+    g_clear_object (&priv->cancellable);
+    g_clear_pointer (&priv->error, g_error_free);
+    g_clear_pointer (&priv->context, g_main_context_unref);
 
     G_OBJECT_CLASS (snapd_request_parent_class)->finalize (object);
 }
@@ -505,6 +612,7 @@ get_accept_languages (void)
 static void
 set_json_body (SnapdRequest *request, JsonBuilder *builder)
 {
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
     g_autoptr(JsonNode) json_root = NULL;
     g_autoptr(JsonGenerator) json_generator = NULL;
     g_autofree gchar *data = NULL;
@@ -516,21 +624,30 @@ set_json_body (SnapdRequest *request, JsonBuilder *builder)
     json_generator_set_root (json_generator, json_root);
     data = json_generator_to_data (json_generator, &data_length);
 
-    soup_message_headers_set_content_type (request->message->request_headers, "application/json", NULL);
-    soup_message_body_append_take (request->message->request_body, g_steal_pointer (&data), data_length);
-    soup_message_headers_set_content_length (request->message->request_headers, request->message->request_body->length);
+    soup_message_headers_set_content_type (priv->message->request_headers, "application/json", NULL);
+    soup_message_body_append_take (priv->message->request_body, g_steal_pointer (&data), data_length);
+    soup_message_headers_set_content_length (priv->message->request_headers, priv->message->request_body->length);
 }
 
 static void
 set_multipart_body (SnapdRequest *request, SoupMultipart *multipart)
 {
-    soup_multipart_to_message (multipart, request->message->request_headers, request->message->request_body);
-    soup_message_headers_set_content_length (request->message->request_headers, request->message->request_body->length);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    soup_multipart_to_message (multipart, priv->message->request_headers, priv->message->request_body);
+    soup_message_headers_set_content_length (priv->message->request_headers, priv->message->request_body->length);
+}
+
+static JsonObject *
+snapd_request_parse_json_response (SnapdRequest *request, GError **error)
+{
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    return _snapd_json_parse_response (priv->message, error);
 }
 
 static void
 parse_get_system_information_response (SnapdRequest *request)
 {
+    SnapdRequestGetSystemInformation *r = SNAPD_REQUEST_GET_SYSTEM_INFORMATION (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdSystemInformation) system_information = NULL;
@@ -539,7 +656,7 @@ parse_get_system_information_response (SnapdRequest *request)
     JsonObject *os_release, *locations;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -570,25 +687,27 @@ parse_get_system_information_response (SnapdRequest *request)
                                        "store", _snapd_json_get_string (result, "store", NULL),
                                        "version", _snapd_json_get_string (result, "version", NULL),
                                        NULL);
-    request->system_information = g_steal_pointer (&system_information);
+    r->system_information = g_steal_pointer (&system_information);
     snapd_request_complete (request, NULL);
 }
 
 static void
 parse_get_icon_response (SnapdRequest *request)
 {
+    SnapdRequestGetIcon *r = SNAPD_REQUEST_GET_ICON (request);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
     const gchar *content_type;
     g_autoptr(SoupBuffer) buffer = NULL;
     g_autoptr(GBytes) data = NULL;
     g_autoptr(SnapdIcon) icon = NULL;
 
-    content_type = soup_message_headers_get_content_type (request->message->response_headers, NULL);
+    content_type = soup_message_headers_get_content_type (priv->message->response_headers, NULL);
     if (g_strcmp0 (content_type, "application/json") == 0) {
         g_autoptr(JsonObject) response = NULL;
         g_autoptr(JsonObject) result = NULL;
         GError *error = NULL;
 
-        response = _snapd_json_parse_response (request->message, &error);
+        response = snapd_request_parse_json_response (request, &error);
         if (response == NULL) {
             snapd_request_complete (request, error);
             return;
@@ -606,33 +725,34 @@ parse_get_icon_response (SnapdRequest *request)
         return;
     }
 
-    if (request->message->status_code != SOUP_STATUS_OK) {
+    if (priv->message->status_code != SOUP_STATUS_OK) {
         GError *error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_READ_FAILED,
-                                     "Got response %u retrieving icon", request->message->status_code);
+                                     "Got response %u retrieving icon", priv->message->status_code);
         snapd_request_complete (request, error);
     }
 
-    buffer = soup_message_body_flatten (request->message->response_body);
+    buffer = soup_message_body_flatten (priv->message->response_body);
     data = soup_buffer_get_as_bytes (buffer);
     icon = g_object_new (SNAPD_TYPE_ICON,
                          "mime-type", content_type,
                          "data", data,
                          NULL);
 
-    request->icon = g_steal_pointer (&icon);
+    r->icon = g_steal_pointer (&icon);
     snapd_request_complete (request, NULL);
 }
 
 static void
-parse_list_response (SnapdRequest *request)
+parse_get_snaps_response (SnapdRequest *request)
 {
+    SnapdRequestGetSnaps *r = SNAPD_REQUEST_GET_SNAPS (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     GPtrArray *snaps;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -649,19 +769,20 @@ parse_list_response (SnapdRequest *request)
         return;
     }
 
-    request->snaps = g_steal_pointer (&snaps);
+    r->snaps = g_steal_pointer (&snaps);
     snapd_request_complete (request, NULL);
 }
 
 static void
-parse_list_one_response (SnapdRequest *request)
+parse_get_snap_response (SnapdRequest *request)
 {
+    SnapdRequestGetSnap *r = SNAPD_REQUEST_GET_SNAP (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdSnap) snap = NULL;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -678,19 +799,20 @@ parse_list_one_response (SnapdRequest *request)
         return;
     }
 
-    request->snap = g_steal_pointer (&snap);
+    r->snap = g_steal_pointer (&snap);
     snapd_request_complete (request, NULL);
 }
 
 static void
 parse_get_apps_response (SnapdRequest *request)
 {
+    SnapdRequestGetApps *r = SNAPD_REQUEST_GET_APPS (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     GPtrArray *apps;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -707,7 +829,7 @@ parse_get_apps_response (SnapdRequest *request)
         return;
     }
 
-    request->apps = g_steal_pointer (&apps);
+    r->apps = g_steal_pointer (&apps);
     snapd_request_complete (request, NULL);
 }
 
@@ -906,18 +1028,20 @@ get_attributes (JsonObject *object, const gchar *name, GError **error)
 static void
 parse_get_assertions_response (SnapdRequest *request)
 {
+    SnapdRequestGetAssertions *r = SNAPD_REQUEST_GET_ASSERTIONS (request);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
     const gchar *content_type;
     g_autoptr(GPtrArray) assertions = NULL;
     g_autoptr(SoupBuffer) buffer = NULL;
     gsize offset = 0;
 
-    content_type = soup_message_headers_get_content_type (request->message->response_headers, NULL);
+    content_type = soup_message_headers_get_content_type (priv->message->response_headers, NULL);
     if (g_strcmp0 (content_type, "application/json") == 0) {
         g_autoptr(JsonObject) response = NULL;
         g_autoptr(JsonObject) result = NULL;
         GError *error = NULL;
 
-        response = _snapd_json_parse_response (request->message, &error);
+        response = snapd_request_parse_json_response (request, &error);
         if (response == NULL) {
             snapd_request_complete (request, error);
             return;
@@ -935,10 +1059,10 @@ parse_get_assertions_response (SnapdRequest *request)
         return;
     }
 
-    if (request->message->status_code != SOUP_STATUS_OK) {
+    if (priv->message->status_code != SOUP_STATUS_OK) {
         GError *error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_READ_FAILED,
-                                     "Got response %u retrieving assertions", request->message->status_code);
+                                     "Got response %u retrieving assertions", priv->message->status_code);
         snapd_request_complete (request, error);
         return;
     }
@@ -952,7 +1076,7 @@ parse_get_assertions_response (SnapdRequest *request)
     }
 
     assertions = g_ptr_array_new ();
-    buffer = soup_message_body_flatten (request->message->response_body);
+    buffer = soup_message_body_flatten (priv->message->response_body);
     while (offset < buffer->length) {
         gsize assertion_start, assertion_end, body_length = 0;
         g_autofree gchar *body_length_header = NULL;
@@ -984,17 +1108,17 @@ parse_get_assertions_response (SnapdRequest *request)
     }
     g_ptr_array_add (assertions, NULL);
 
-    request->assertions = g_steal_pointer (&assertions->pdata);
+    r->assertions = g_steal_pointer (&assertions->pdata);
     snapd_request_complete (request, NULL);
 }
 
 static void
-parse_add_assertions_response (SnapdRequest *request)
+parse_post_assertions_response (SnapdRequest *request)
 {
     g_autoptr(JsonObject) response = NULL;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1006,6 +1130,7 @@ parse_add_assertions_response (SnapdRequest *request)
 static void
 parse_get_interfaces_response (SnapdRequest *request)
 {
+    SnapdRequestGetInterfaces *r = SNAPD_REQUEST_GET_INTERFACES (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(GPtrArray) plug_array = NULL;
@@ -1015,7 +1140,7 @@ parse_get_interfaces_response (SnapdRequest *request)
     guint i;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1099,8 +1224,8 @@ parse_get_interfaces_response (SnapdRequest *request)
         g_ptr_array_add (slot_array, g_steal_pointer (&slot));
     }
 
-    request->plugs = g_steal_pointer (&plug_array);
-    request->slots = g_steal_pointer (&slot_array);
+    r->plugs = g_steal_pointer (&plug_array);
+    r->slots = g_steal_pointer (&slot_array);
     snapd_request_complete (request, NULL);
 }
 
@@ -1164,10 +1289,11 @@ changes_equal (SnapdChange *change1, SnapdChange *change2)
 }
 
 static void
-send_cancel (SnapdRequest *request)
+send_cancel (SnapdRequestAsync *request)
 {
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (request));
     g_autofree gchar *path = NULL;
-    SnapdRequest *change_request;
+    SnapdRequestPostChange *change_request;
     g_autoptr(JsonBuilder) builder = NULL;
 
     if (request->sent_cancel)
@@ -1175,27 +1301,29 @@ send_cancel (SnapdRequest *request)
     request->sent_cancel = TRUE;
 
     path = g_strdup_printf ("/v2/changes/%s", request->change_id);
-    change_request = make_request (request->client, SNAPD_REQUEST_ABORT_CHANGE, "POST", path, NULL, NULL, NULL, NULL, NULL);
-    change_request->requested_change_id = g_strdup (request->change_id);
+    change_request = SNAPD_REQUEST_POST_CHANGE (make_request (priv->client, snapd_request_post_change_get_type (), "POST", path, NULL, NULL, NULL));
+    change_request->change_id = g_strdup (request->change_id);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "action");
     json_builder_add_string_value (builder, "abort");
     json_builder_end_object (builder);
-    set_json_body (change_request, builder);
+    set_json_body (SNAPD_REQUEST (change_request), builder);
 
-    send_request (change_request);
+    send_request (SNAPD_REQUEST (change_request));
 }
 
 static void
 parse_async_response (SnapdRequest *request)
 {
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (request);
     g_autoptr(JsonObject) response = NULL;
     gchar *change_id = NULL;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1206,19 +1334,19 @@ parse_async_response (SnapdRequest *request)
         return;
     }
 
-    request->change_id = g_strdup (change_id);
+    r->change_id = g_strdup (change_id);
 
     /* Immediately cancel if requested */
-    if (g_cancellable_is_cancelled (request->cancellable)) {
-        send_cancel (request);
+    if (g_cancellable_is_cancelled (priv->cancellable)) {
+        send_cancel (r);
         return;
     }
 
     /* Poll for updates */
-    schedule_poll (request);
+    schedule_poll (r);
 }
 
-static SnapdRequest *
+static SnapdRequestAsync *
 find_change_request (SnapdClient *client, const gchar *change_id)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
@@ -1228,43 +1356,46 @@ find_change_request (SnapdClient *client, const gchar *change_id)
     for (link = priv->requests; link; link = link->next) {
         SnapdRequest *request = link->data;
 
-        if (request_is_async (request) &&
-            strcmp (request->change_id, change_id) == 0)
-            return request;
+        if (SNAPD_IS_REQUEST_ASYNC (request) &&
+            strcmp (SNAPD_REQUEST_ASYNC (request)->change_id, change_id) == 0)
+            return SNAPD_REQUEST_ASYNC (request);
     }
 
     return NULL;
 }
 
 static void
-parse_change_response (SnapdRequest *request)
+parse_change_response (SnapdRequest *request, const gchar *change_id)
 {
-    SnapdRequest *parent;
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdRequestAsync *parent;
+    SnapdRequestPrivate *parent_priv;
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     gboolean ready;
     GError *error = NULL;
 
-    parent = find_change_request (request->client, request->requested_change_id);
+    parent = find_change_request (priv->client, change_id);
+    parent_priv = snapd_request_get_instance_private (SNAPD_REQUEST (parent));
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
-        snapd_request_complete (parent, error);
+        snapd_request_complete (SNAPD_REQUEST (parent), error);
         snapd_request_complete (request, NULL);
         return;
     }
     result = _snapd_json_get_sync_result_o (response, &error);
     if (result == NULL) {
-        snapd_request_complete (parent, error);
+        snapd_request_complete (SNAPD_REQUEST (parent), error);
         snapd_request_complete (request, NULL);
         return;
     }
 
-    if (g_strcmp0 (request->requested_change_id, _snapd_json_get_string (result, "id", NULL)) != 0) {
+    if (g_strcmp0 (change_id, _snapd_json_get_string (result, "id", NULL)) != 0) {
         error = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
                              "Unexpected change ID returned");
-        snapd_request_complete (parent, error);
+        snapd_request_complete (SNAPD_REQUEST (parent), error);
         snapd_request_complete (request, NULL);
         return;
     }
@@ -1291,7 +1422,7 @@ parse_change_response (SnapdRequest *request)
                 error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_READ_FAILED,
                                      "Unexpected task type");
-                snapd_request_complete (parent, error);
+                snapd_request_complete (SNAPD_REQUEST (parent), error);
                 snapd_request_complete (request, NULL);
                 return;
             }
@@ -1332,7 +1463,7 @@ parse_change_response (SnapdRequest *request)
             parent->change = g_steal_pointer (&change);
             // NOTE: tasks is passed for ABI compatibility - this field is
             // deprecated and can be accessed with snapd_change_get_tasks ()
-            parent->progress_callback (parent->client, parent->change, tasks, parent->progress_callback_data);
+            parent->progress_callback (parent_priv->client, parent->change, tasks, parent->progress_callback_data);
         }
     }
 
@@ -1342,12 +1473,12 @@ parse_change_response (SnapdRequest *request)
 
         if (json_object_has_member (result, "data"))
             parent->async_data = json_node_ref (json_object_get_member (result, "data"));
-        if (!g_cancellable_set_error_if_cancelled (parent->cancellable, &error) &&
+        if (!g_cancellable_set_error_if_cancelled (parent_priv->cancellable, &error) &&
             json_object_has_member (result, "err"))
             error = g_error_new_literal (SNAPD_ERROR,
                                          SNAPD_ERROR_FAILED,
                                          _snapd_json_get_string (result, "err", "Unknown error"));
-        snapd_request_complete (parent, error);
+        snapd_request_complete (SNAPD_REQUEST (parent), error);
         snapd_request_complete (request, NULL);
         return;
     }
@@ -1359,8 +1490,23 @@ parse_change_response (SnapdRequest *request)
 }
 
 static void
-parse_login_response (SnapdRequest *request)
+parse_get_change_response (SnapdRequest *request)
 {
+    SnapdRequestGetChange *r = SNAPD_REQUEST_GET_CHANGE (request);
+    parse_change_response (request, r->change_id);
+}
+
+static void
+parse_post_change_response (SnapdRequest *request)
+{
+    SnapdRequestPostChange *r = SNAPD_REQUEST_POST_CHANGE (request);
+    parse_change_response (request, r->change_id);
+}
+
+static void
+parse_post_login_response (SnapdRequest *request)
+{
+    SnapdRequestPostLogin *r = SNAPD_REQUEST_POST_LOGIN (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(JsonArray) discharges = NULL;
@@ -1368,7 +1514,7 @@ parse_login_response (SnapdRequest *request)
     guint i;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1395,19 +1541,20 @@ parse_login_response (SnapdRequest *request)
         g_ptr_array_add (discharge_array, (gpointer) json_node_get_string (node));
     }
     g_ptr_array_add (discharge_array, NULL);
-    request->received_auth_data = snapd_auth_data_new (_snapd_json_get_string (result, "macaroon", NULL), (gchar **) discharge_array->pdata);
+    r->auth_data = snapd_auth_data_new (_snapd_json_get_string (result, "macaroon", NULL), (gchar **) discharge_array->pdata);
     snapd_request_complete (request, NULL);
 }
 
 static void
-parse_find_response (SnapdRequest *request)
+parse_get_find_response (SnapdRequest *request)
 {
+    SnapdRequestGetFind *r = SNAPD_REQUEST_GET_FIND (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1424,48 +1571,19 @@ parse_find_response (SnapdRequest *request)
         return;
     }
 
-    request->suggested_currency = g_strdup (_snapd_json_get_string (response, "suggested-currency", NULL));
+    r->suggested_currency = g_strdup (_snapd_json_get_string (response, "suggested-currency", NULL));
 
-    request->snaps = g_steal_pointer (&snaps);
+    r->snaps = g_steal_pointer (&snaps);
     snapd_request_complete (request, NULL);
 }
 
 static void
-parse_find_refreshable_response (SnapdRequest *request)
-{
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) result = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    GError *error = NULL;
-
-    response = _snapd_json_parse_response (request->message, &error);
-    if (response == NULL) {
-        snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_a (response, &error);
-    if (result == NULL) {
-        snapd_request_complete (request, error);
-        return;
-    }
-
-    snaps = _snapd_json_parse_snap_array (result, &error);
-    if (snaps == NULL) {
-        snapd_request_complete (request, error);
-        return;
-    }
-
-    request->snaps = g_steal_pointer (&snaps);
-    snapd_request_complete (request, NULL);
-}
-
-static void
-parse_check_buy_response (SnapdRequest *request)
+parse_get_buy_ready_response (SnapdRequest *request)
 {
     g_autoptr(JsonObject) response = NULL;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1475,12 +1593,12 @@ parse_check_buy_response (SnapdRequest *request)
 }
 
 static void
-parse_buy_response (SnapdRequest *request)
+parse_post_buy_response (SnapdRequest *request)
 {
     g_autoptr(JsonObject) response = NULL;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1490,14 +1608,15 @@ parse_buy_response (SnapdRequest *request)
 }
 
 static void
-parse_create_user_response (SnapdRequest *request)
+parse_post_create_user_response (SnapdRequest *request)
 {
+    SnapdRequestPostCreateUser *r = SNAPD_REQUEST_POST_CREATE_USER (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdUserInformation) user_information = NULL;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1514,20 +1633,21 @@ parse_create_user_response (SnapdRequest *request)
         return;
     }
 
-    request->user_information = g_steal_pointer (&user_information);
+    r->user_information = g_steal_pointer (&user_information);
     snapd_request_complete (request, NULL);
 }
 
 static void
-parse_create_users_response (SnapdRequest *request)
+parse_post_create_users_response (SnapdRequest *request)
 {
+    SnapdRequestPostCreateUsers *r = SNAPD_REQUEST_POST_CREATE_USERS (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) users_information = NULL;
     guint i;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1560,20 +1680,21 @@ parse_create_users_response (SnapdRequest *request)
         g_ptr_array_add (users_information, user_information);
     }
 
-    request->users_information = g_steal_pointer (&users_information);
+    r->users_information = g_steal_pointer (&users_information);
     snapd_request_complete (request, NULL);
 }
 
 static void
 parse_get_sections_response (SnapdRequest *request)
 {
+    SnapdRequestGetSections *r = SNAPD_REQUEST_GET_SECTIONS (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) sections = NULL;
     guint i;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1599,7 +1720,7 @@ parse_get_sections_response (SnapdRequest *request)
     }
     g_ptr_array_add (sections, NULL);
 
-    request->sections = g_steal_pointer (&sections->pdata);
+    r->sections = g_steal_pointer (&sections->pdata);
 
     snapd_request_complete (request, NULL);
 }
@@ -1607,6 +1728,7 @@ parse_get_sections_response (SnapdRequest *request)
 static void
 parse_get_aliases_response (SnapdRequest *request)
 {
+    SnapdRequestGetAliases *r = SNAPD_REQUEST_GET_ALIASES (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(GPtrArray) aliases = NULL;
@@ -1615,7 +1737,7 @@ parse_get_aliases_response (SnapdRequest *request)
     JsonNode *snap_node;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1677,19 +1799,20 @@ parse_get_aliases_response (SnapdRequest *request)
         }
     }
 
-    request->aliases = g_steal_pointer (&aliases);
+    r->aliases = g_steal_pointer (&aliases);
 
     snapd_request_complete (request, NULL);
 }
 
 static void
-parse_run_snapctl_response (SnapdRequest *request)
+parse_post_snapctl_response (SnapdRequest *request)
 {
+    SnapdRequestPostSnapctl *r = SNAPD_REQUEST_POST_SNAPCTL (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     GError *error = NULL;
 
-    response = _snapd_json_parse_response (request->message, &error);
+    response = snapd_request_parse_json_response (request, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1700,8 +1823,8 @@ parse_run_snapctl_response (SnapdRequest *request)
         return;
     }
 
-    request->stdout_output = g_strdup (_snapd_json_get_string (result, "stdout", NULL));
-    request->stderr_output = g_strdup (_snapd_json_get_string (result, "stderr", NULL));
+    r->stdout_output = g_strdup (_snapd_json_get_string (result, "stdout", NULL));
+    r->stderr_output = g_strdup (_snapd_json_get_string (result, "stderr", NULL));
 
     snapd_request_complete (request, NULL);
 }
@@ -1716,8 +1839,12 @@ get_first_request (SnapdClient *client)
     for (link = priv->requests; link; link = link->next) {
         SnapdRequest *request = link->data;
 
-        /* Return first non-async request */
-        if (request->change_id == NULL)
+        /* Return first non-async request or async request without change id */
+        if (SNAPD_IS_REQUEST_ASYNC (request)) {
+            if (SNAPD_REQUEST_ASYNC (request)->change_id == NULL)
+                return request;
+        }
+        else
             return request;
     }
 
@@ -1729,86 +1856,15 @@ parse_response (SnapdRequest *request)
 {
     GError *error = NULL;
 
-    switch (request->request_type)
-    {
-    case SNAPD_REQUEST_GET_CHANGE:
-    case SNAPD_REQUEST_ABORT_CHANGE:
-        parse_change_response (request);
-        break;
-    case SNAPD_REQUEST_GET_SYSTEM_INFORMATION:
-        parse_get_system_information_response (request);
-        break;
-    case SNAPD_REQUEST_GET_ICON:
-        parse_get_icon_response (request);
-        break;
-    case SNAPD_REQUEST_LIST:
-        parse_list_response (request);
-        break;
-    case SNAPD_REQUEST_LIST_ONE:
-        parse_list_one_response (request);
-        break;
-    case SNAPD_REQUEST_GET_APPS:
-        parse_get_apps_response (request);
-        break;
-    case SNAPD_REQUEST_GET_ASSERTIONS:
-        parse_get_assertions_response (request);
-        break;
-    case SNAPD_REQUEST_ADD_ASSERTIONS:
-        parse_add_assertions_response (request);
-        break;
-    case SNAPD_REQUEST_GET_INTERFACES:
-        parse_get_interfaces_response (request);
-        break;
-    case SNAPD_REQUEST_LOGIN:
-        parse_login_response (request);
-        break;
-    case SNAPD_REQUEST_FIND:
-        parse_find_response (request);
-        break;
-    case SNAPD_REQUEST_FIND_REFRESHABLE:
-        parse_find_refreshable_response (request);
-        break;
-    case SNAPD_REQUEST_CHECK_BUY:
-        parse_check_buy_response (request);
-        break;
-    case SNAPD_REQUEST_BUY:
-        parse_buy_response (request);
-        break;
-    case SNAPD_REQUEST_CREATE_USER:
-        parse_create_user_response (request);
-        break;
-    case SNAPD_REQUEST_CREATE_USERS:
-        parse_create_users_response (request);
-        break;
-    case SNAPD_REQUEST_GET_SECTIONS:
-        parse_get_sections_response (request);
-        break;
-    case SNAPD_REQUEST_GET_ALIASES:
-        parse_get_aliases_response (request);
-        break;
-    case SNAPD_REQUEST_RUN_SNAPCTL:
-        parse_run_snapctl_response (request);
-        break;
-    case SNAPD_REQUEST_CONNECT_INTERFACE:
-    case SNAPD_REQUEST_DISCONNECT_INTERFACE:
-    case SNAPD_REQUEST_INSTALL:
-    case SNAPD_REQUEST_INSTALL_STREAM:
-    case SNAPD_REQUEST_TRY:
-    case SNAPD_REQUEST_REFRESH:
-    case SNAPD_REQUEST_REFRESH_ALL:
-    case SNAPD_REQUEST_REMOVE:
-    case SNAPD_REQUEST_ENABLE:
-    case SNAPD_REQUEST_DISABLE:
-    case SNAPD_REQUEST_ALIASES:
-        parse_async_response (request);
-        break;
-    default:
+    if (SNAPD_REQUEST_GET_CLASS (request)->parse_response == NULL) {
         error = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_FAILED,
                              "Unknown request");
         snapd_request_complete (request, error);
-        break;
+        return;
     }
+
+    SNAPD_REQUEST_GET_CLASS (request)->parse_response (request);
 }
 
 /* Check if we have all HTTP chunks */
@@ -1871,7 +1927,8 @@ compress_chunks (gchar *body, gsize body_length, gchar **combined_start, gsize *
 static gboolean
 read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *r)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (r->client);
+    SnapdRequestPrivate *r_priv = snapd_request_get_instance_private (r);
+    SnapdClientPrivate *client_priv = snapd_client_get_instance_private (r_priv->client);
     gssize n_read;
     gchar *body;
     gsize header_length;
@@ -1879,12 +1936,12 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *r)
     gchar *combined_start;
     gsize content_length, combined_length;
     g_autoptr(GError) error = NULL;
-    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->buffer_mutex);
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&client_priv->buffer_mutex);
 
-    if (priv->n_read + READ_SIZE > priv->buffer->len)
-        g_byte_array_set_size (priv->buffer, priv->n_read + READ_SIZE);
+    if (client_priv->n_read + READ_SIZE > client_priv->buffer->len)
+        g_byte_array_set_size (client_priv->buffer, client_priv->n_read + READ_SIZE);
     n_read = g_socket_receive (socket,
-                               (gchar *) (priv->buffer->data + priv->n_read),
+                               (gchar *) (client_priv->buffer->data + client_priv->n_read),
                                READ_SIZE,
                                NULL,
                                &error);
@@ -1895,9 +1952,9 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *r)
         e = g_error_new (SNAPD_ERROR,
                          SNAPD_ERROR_READ_FAILED,
                          "snapd connection closed");
-        complete_all_requests (r->client, e);
+        complete_all_requests (r_priv->client, e);
 
-        r->read_source = NULL;
+        r_priv->read_source = NULL;
         return G_SOURCE_REMOVE;
     }
 
@@ -1911,70 +1968,72 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *r)
                          SNAPD_ERROR_READ_FAILED,
                          "Failed to read from snapd: %s",
                          error->message);
-        complete_all_requests (r->client, e);
+        complete_all_requests (r_priv->client, e);
 
-        r->read_source = NULL;
+        r_priv->read_source = NULL;
         return G_SOURCE_REMOVE;
     }
 
-    priv->n_read += n_read;
+    client_priv->n_read += n_read;
 
     while (TRUE) {
         SnapdRequest *request;
+        SnapdRequestPrivate *priv;
         g_autoptr(GError) e = NULL;
 
         /* Look for header divider */
-        body = g_strstr_len ((gchar *) priv->buffer->data, priv->n_read, "\r\n\r\n");
+        body = g_strstr_len ((gchar *) client_priv->buffer->data, client_priv->n_read, "\r\n\r\n");
         if (body == NULL)
             return G_SOURCE_CONTINUE;
         body += 4;
-        header_length = body - (gchar *) priv->buffer->data;
+        header_length = body - (gchar *) client_priv->buffer->data;
 
         /* Match this response to the next uncompleted request */
-        request = get_first_request (r->client);
+        request = get_first_request (r_priv->client);
         if (request == NULL) {
             g_warning ("Ignoring unexpected response");
             return G_SOURCE_REMOVE;
         }
+        priv = snapd_request_get_instance_private (request);
 
         /* Parse headers */
-        if (!soup_headers_parse_response ((gchar *) priv->buffer->data, header_length, request->message->response_headers,
-                                          NULL, &request->message->status_code, &request->message->reason_phrase)) {
+        if (!soup_headers_parse_response ((gchar *) client_priv->buffer->data, header_length, priv->message->response_headers,
+                                          NULL, &priv->message->status_code, &priv->message->reason_phrase)) {
             e = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
                              "Failed to parse headers from snapd");
-            complete_all_requests (request->client, e);
-            request->read_source = NULL;
+            complete_all_requests (priv->client, e);
+            priv->read_source = NULL;
             return G_SOURCE_REMOVE;
         }
 
         /* Read content and process content */
-        switch (soup_message_headers_get_encoding (request->message->response_headers)) {
+        switch (soup_message_headers_get_encoding (priv->message->response_headers)) {
         case SOUP_ENCODING_EOF:
-            if (!g_socket_is_closed (priv->snapd_socket))
+            if (!g_socket_is_closed (client_priv->snapd_socket))
                 return G_SOURCE_CONTINUE;
 
-            content_length = priv->n_read - header_length;
-            soup_message_body_append (request->message->response_body, SOUP_MEMORY_COPY, body, content_length);
+            content_length = client_priv->n_read - header_length;
+            soup_message_body_append (priv->message->response_body, SOUP_MEMORY_COPY, body, content_length);
             parse_response (request);
             break;
 
         case SOUP_ENCODING_CHUNKED:
             // FIXME: Find a way to abort on error
-            if (!have_chunked_body (body, priv->n_read - header_length))
+            if (!have_chunked_body (body, client_priv->n_read - header_length))
                 return G_SOURCE_CONTINUE;
 
-            compress_chunks (body, priv->n_read - header_length, &combined_start, &combined_length, &content_length);
-            soup_message_body_append (request->message->response_body, SOUP_MEMORY_COPY, combined_start, combined_length);
+            compress_chunks (body, client_priv->n_read - header_length, &combined_start, &combined_length, &content_length);
+            soup_message_body_append (priv->message->response_body, SOUP_MEMORY_COPY, combined_start, combined_length);
             parse_response (request);
             break;
 
         case SOUP_ENCODING_CONTENT_LENGTH:
-            content_length = soup_message_headers_get_content_length (request->message->response_headers);
-            if (priv->n_read < header_length + content_length)
+            content_length = soup_message_headers_get_content_length (priv->message->response_headers);
+            if (client_priv->n_read < header_length + content_length)
                 return G_SOURCE_CONTINUE;
 
-            soup_message_body_append (request->message->response_body, SOUP_MEMORY_COPY, body, content_length);
+            soup_message_body_append (priv->message->response_body, SOUP_MEMORY_COPY, body, content_length);
             parse_response (request);
             break;
 
@@ -1982,21 +2041,22 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *r)
             e = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
                              "Unable to determine header encoding");
-            complete_all_requests (request->client, e);
-            request->read_source = NULL;
+            complete_all_requests (priv->client, e);
+            priv->read_source = NULL;
             return G_SOURCE_REMOVE;
         }
 
         /* Move remaining data to the start of the buffer */
-        g_byte_array_remove_range (priv->buffer, 0, header_length + content_length);
-        priv->n_read -= header_length + content_length;
+        g_byte_array_remove_range (client_priv->buffer, 0, header_length + content_length);
+        client_priv->n_read -= header_length + content_length;
     }
 }
 
 static void
 send_request (SnapdRequest *request)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (request->client);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdClientPrivate *client_priv = snapd_client_get_instance_private (priv->client);
     g_autoptr(GByteArray) request_data = NULL;
     SoupURI *uri;
     SoupMessageHeadersIter iter;
@@ -2009,16 +2069,16 @@ send_request (SnapdRequest *request)
     // https://bugzilla.gnome.org/show_bug.cgi?id=727563
 
     request_data = g_byte_array_new ();
-    append_string (request_data, request->message->method);
+    append_string (request_data, priv->message->method);
     append_string (request_data, " ");
-    uri = soup_message_get_uri (request->message);
+    uri = soup_message_get_uri (priv->message);
     append_string (request_data, uri->path);
     if (uri->query != NULL) {
         append_string (request_data, "?");
         append_string (request_data, uri->query);
     }
     append_string (request_data, " HTTP/1.1\r\n");
-    soup_message_headers_iter_init (&iter, request->message->request_headers);
+    soup_message_headers_iter_init (&iter, priv->message->request_headers);
     while (soup_message_headers_iter_next (&iter, &name, &value)) {
         append_string (request_data, name);
         append_string (request_data, ": ");
@@ -2027,18 +2087,18 @@ send_request (SnapdRequest *request)
     }
     append_string (request_data, "\r\n");
 
-    buffer = soup_message_body_flatten (request->message->request_body);
+    buffer = soup_message_body_flatten (priv->message->request_body);
     g_byte_array_append (request_data, (const guint8 *) buffer->data, buffer->length);
 
-    if (priv->snapd_socket == NULL) {
+    if (client_priv->snapd_socket == NULL) {
         g_autoptr(GSocketAddress) address = NULL;
         g_autoptr(GError) error_local = NULL;
 
-        priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
-                                           G_SOCKET_TYPE_STREAM,
-                                           G_SOCKET_PROTOCOL_DEFAULT,
-                                           &error_local);
-        if (priv->snapd_socket == NULL) {
+        client_priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
+                                                  G_SOCKET_TYPE_STREAM,
+                                                  G_SOCKET_PROTOCOL_DEFAULT,
+                                                  &error_local);
+        if (client_priv->snapd_socket == NULL) {
             GError *error = g_error_new (SNAPD_ERROR,
                                          SNAPD_ERROR_CONNECTION_FAILED,
                                          "Unable to create snapd socket: %s",
@@ -2046,10 +2106,10 @@ send_request (SnapdRequest *request)
             snapd_request_complete (request, error);
             return;
         }
-        g_socket_set_blocking (priv->snapd_socket, FALSE);
-        address = g_unix_socket_address_new (priv->socket_path);
-        if (!g_socket_connect (priv->snapd_socket, address, request->cancellable, &error_local)) {
-            g_clear_object (&priv->snapd_socket);
+        g_socket_set_blocking (client_priv->snapd_socket, FALSE);
+        address = g_unix_socket_address_new (client_priv->socket_path);
+        if (!g_socket_connect (client_priv->snapd_socket, address, priv->cancellable, &error_local)) {
+            g_clear_object (&client_priv->snapd_socket);
             GError *error = g_error_new (SNAPD_ERROR,
                                          SNAPD_ERROR_CONNECTION_FAILED,
                                          "Unable to connect snapd socket: %s",
@@ -2059,14 +2119,14 @@ send_request (SnapdRequest *request)
         }
     }
 
-    request->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
-    g_source_set_name (request->read_source, "snapd-glib-read-source");
-    g_source_set_callback (request->read_source, (GSourceFunc) read_cb, request, NULL);
-    g_source_attach (request->read_source, request->context);
+    priv->read_source = g_socket_create_source (client_priv->snapd_socket, G_IO_IN, NULL);
+    g_source_set_name (priv->read_source, "snapd-glib-read-source");
+    g_source_set_callback (priv->read_source, (GSourceFunc) read_cb, request, NULL);
+    g_source_attach (priv->read_source, priv->context);
 
     /* send HTTP request */
     // FIXME: Check for short writes
-    n_written = g_socket_send (priv->snapd_socket, (const gchar *) request_data->data, request_data->len, request->cancellable, &local_error);
+    n_written = g_socket_send (client_priv->snapd_socket, (const gchar *) request_data->data, request_data->len, priv->cancellable, &local_error);
     if (n_written < 0) {
         GError *error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_WRITE_FAILED,
@@ -2258,70 +2318,70 @@ snapd_client_get_allow_interaction (SnapdClient *client)
 static void
 request_cancelled_cb (GCancellable *cancellable, SnapdRequest *request)
 {
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+
     /* Asynchronous requests require asking snapd to stop them */
-    if (request_is_async (request))
-    {
+    if (SNAPD_IS_REQUEST_ASYNC (request)) {
+        SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (request);
+
         /* Cancel if we have got a response from snapd */
-        if (request->change_id != NULL)
-            send_cancel (request);
+        if (r->change_id != NULL)
+            send_cancel (r);
     }
-    else
-    {
+    else {
         GError *error = NULL;
-        g_cancellable_set_error_if_cancelled (request->cancellable, &error);
+        g_cancellable_set_error_if_cancelled (priv->cancellable, &error);
         snapd_request_respond (request, error);
     }
 }
 
 static SnapdRequest *
-make_request (SnapdClient *client, RequestType request_type,
+make_request (SnapdClient *client, GType type,
               const gchar *method, const gchar *path,
-              SnapdProgressCallback progress_callback, gpointer progress_callback_data,
               GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    SnapdClientPrivate *client_priv = snapd_client_get_instance_private (client);
+    SnapdRequestPrivate *priv;
     SnapdRequest *request;
     g_autofree gchar *uri = NULL;
     g_autofree gchar *accept_languages = NULL;
-    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->requests_mutex);
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&client_priv->requests_mutex);
 
-    request = g_object_new (snapd_request_get_type (), NULL);
-    request->context = g_main_context_ref_thread_default ();
-    request->client = client;
+    request = g_object_new (type, NULL);
+    priv = snapd_request_get_instance_private (request);
+    priv->context = g_main_context_ref_thread_default ();
+    priv->client = client;
     uri = g_strdup_printf ("http://snapd%s", path);
-    request->message = soup_message_new (method, uri);
-    soup_message_headers_append (request->message->request_headers, "Host", "");
-    soup_message_headers_append (request->message->request_headers, "Connection", "keep-alive");
-    if (priv->user_agent != NULL)
-        soup_message_headers_append (request->message->request_headers, "User-Agent", priv->user_agent);
-    if (priv->allow_interaction)
-        soup_message_headers_append (request->message->request_headers, "X-Allow-Interaction", "true");
+    priv->message = soup_message_new (method, uri);
+    soup_message_headers_append (priv->message->request_headers, "Host", "");
+    soup_message_headers_append (priv->message->request_headers, "Connection", "keep-alive");
+    if (client_priv->user_agent != NULL)
+        soup_message_headers_append (priv->message->request_headers, "User-Agent", client_priv->user_agent);
+    if (client_priv->allow_interaction)
+        soup_message_headers_append (priv->message->request_headers, "X-Allow-Interaction", "true");
 
     accept_languages = get_accept_languages ();
-    soup_message_headers_append (request->message->request_headers, "Accept-Language", accept_languages);
+    soup_message_headers_append (priv->message->request_headers, "Accept-Language", accept_languages);
 
-    if (priv->auth_data != NULL) {
+    if (client_priv->auth_data != NULL) {
         g_autoptr(GString) authorization = NULL;
         gchar **discharges;
         gsize i;
 
         authorization = g_string_new ("");
-        g_string_append_printf (authorization, "Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (priv->auth_data));
-        discharges = snapd_auth_data_get_discharges (priv->auth_data);
+        g_string_append_printf (authorization, "Macaroon root=\"%s\"", snapd_auth_data_get_macaroon (client_priv->auth_data));
+        discharges = snapd_auth_data_get_discharges (client_priv->auth_data);
         if (discharges != NULL)
             for (i = 0; discharges[i] != NULL; i++)
                 g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
-        soup_message_headers_append (request->message->request_headers, "Authorization", authorization->str);
+        soup_message_headers_append (priv->message->request_headers, "Authorization", authorization->str);
     }
-    request->request_type = request_type;
-    request->ready_callback = callback;
-    request->ready_callback_data = user_data;
-    request->progress_callback = progress_callback;
-    request->progress_callback_data = progress_callback_data;
-    priv->requests = g_list_append (priv->requests, request);
+    priv->ready_callback = callback;
+    priv->ready_callback_data = user_data;
+    client_priv->requests = g_list_append (client_priv->requests, request);
     if (cancellable != NULL) {
-        request->cancellable = g_object_ref (cancellable);
-        request->cancelled_id = g_cancellable_connect (cancellable, G_CALLBACK (request_cancelled_cb), request, NULL);
+        priv->cancellable = g_object_ref (cancellable);
+        priv->cancelled_id = g_cancellable_connect (cancellable, G_CALLBACK (request_cancelled_cb), request, NULL);
     }
 
     return request;
@@ -2352,7 +2412,7 @@ snapd_client_login_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_LOGIN, "POST", "/v2/login", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_login_get_type (), "POST", "/v2/login", cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -2386,16 +2446,16 @@ snapd_client_login_async (SnapdClient *client,
 SnapdAuthData *
 snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestPostLogin *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_LOGIN), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_LOGIN (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_POST_LOGIN (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
-    return g_steal_pointer (&request->received_auth_data);
+    return g_steal_pointer (&request->auth_data);
 }
 
 /**
@@ -2468,7 +2528,7 @@ snapd_client_get_system_information_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_GET_SYSTEM_INFORMATION, "GET", "/v2/system-info", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_system_information_get_type (), "GET", "/v2/system-info", cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -2488,16 +2548,16 @@ snapd_client_get_system_information_async (SnapdClient *client,
 SnapdSystemInformation *
 snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetSystemInformation *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_GET_SYSTEM_INFORMATION), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_SYSTEM_INFORMATION (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_SYSTEM_INFORMATION (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
-    return request->system_information != NULL ? g_object_ref (request->system_information) : NULL;
+    return g_steal_pointer (&request->system_information);
 }
 
 /**
@@ -2525,7 +2585,7 @@ snapd_client_list_one_async (SnapdClient *client,
 
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    request = make_request (client, SNAPD_REQUEST_LIST_ONE, "GET", path, NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_snap_get_type (), "GET", path, cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -2545,16 +2605,16 @@ snapd_client_list_one_async (SnapdClient *client,
 SnapdSnap *
 snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetSnap *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_LIST_ONE), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_SNAP (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_SNAP (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
-    return request->snap != NULL ? g_object_ref (request->snap) : NULL;
+    return g_steal_pointer (&request->snap);
 }
 
 /**
@@ -2584,7 +2644,7 @@ snapd_client_get_apps_async (SnapdClient *client,
         path = g_strdup ("/v2/apps?select=service");
     else
         path = g_strdup ("/v2/apps");
-    request = make_request (client, SNAPD_REQUEST_GET_APPS, "GET", path, NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_apps_get_type (), "GET", path, cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -2604,14 +2664,14 @@ snapd_client_get_apps_async (SnapdClient *client,
 GPtrArray *
 snapd_client_get_apps_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetApps *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_GET_APPS), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_APPS (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_APPS (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_steal_pointer (&request->apps);
 }
@@ -2641,7 +2701,7 @@ snapd_client_get_icon_async (SnapdClient *client,
 
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/icons/%s/icon", escaped);
-    request = make_request (client, SNAPD_REQUEST_GET_ICON, "GET", path, NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_icon_get_type (), "GET", path, cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -2661,16 +2721,16 @@ snapd_client_get_icon_async (SnapdClient *client,
 SnapdIcon *
 snapd_client_get_icon_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetIcon *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_GET_ICON), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_ICON (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_ICON (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
-    return request->icon != NULL ? g_object_ref (request->icon) : NULL;
+    return g_steal_pointer (&request->icon);
 }
 
 /**
@@ -2693,7 +2753,7 @@ snapd_client_list_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_LIST, "GET", "/v2/snaps", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_snaps_get_type (), "GET", "/v2/snaps", cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -2713,14 +2773,14 @@ snapd_client_list_async (SnapdClient *client,
 GPtrArray *
 snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetSnaps *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_LIST), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_SNAPS (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_SNAPS (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_steal_pointer (&request->snaps);
 }
@@ -2750,7 +2810,7 @@ snapd_client_get_assertions_async (SnapdClient *client,
 
     escaped = soup_uri_encode (type, NULL);
     path = g_strdup_printf ("/v2/assertions/%s", escaped);
-    request = make_request (client, SNAPD_REQUEST_GET_ASSERTIONS, "GET", path, NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_assertions_get_type (), "GET", path, cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -2770,14 +2830,14 @@ snapd_client_get_assertions_async (SnapdClient *client,
 gchar **
 snapd_client_get_assertions_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetAssertions *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_GET_ASSERTIONS), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_ASSERTIONS (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_ASSERTIONS (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_steal_pointer (&request->assertions);
 }
@@ -2801,20 +2861,22 @@ snapd_client_add_assertions_async (SnapdClient *client,
                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdRequest *request;
+    SnapdRequestPrivate *priv;
     int i;
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (assertions != NULL);
 
-    request = make_request (client, SNAPD_REQUEST_ADD_ASSERTIONS, "POST", "/v2/assertions", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_assertions_get_type (), "POST", "/v2/assertions", cancellable, callback, user_data);
+    priv = snapd_request_get_instance_private (request);
 
-    soup_message_headers_set_content_type (request->message->request_headers, "application/x.ubuntu.assertion", NULL); //FIXME
+    soup_message_headers_set_content_type (priv->message->request_headers, "application/x.ubuntu.assertion", NULL); //FIXME
     for (i = 0; assertions[i]; i++) {
         if (i != 0)
-            soup_message_body_append (request->message->request_body, SOUP_MEMORY_TEMPORARY, "\n\n", 2);
-        soup_message_body_append (request->message->request_body, SOUP_MEMORY_TEMPORARY, assertions[i], strlen (assertions[i]));
+            soup_message_body_append (priv->message->request_body, SOUP_MEMORY_TEMPORARY, "\n\n", 2);
+        soup_message_body_append (priv->message->request_body, SOUP_MEMORY_TEMPORARY, assertions[i], strlen (assertions[i]));
     }
-    soup_message_headers_set_content_length (request->message->request_headers, request->message->request_body->length);
+    soup_message_headers_set_content_length (priv->message->request_headers, priv->message->request_body->length);
     send_request (request);
 }
 
@@ -2835,7 +2897,7 @@ gboolean
 snapd_client_add_assertions_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_ADD_ASSERTIONS), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_ASSERTIONS (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -2860,7 +2922,7 @@ snapd_client_get_interfaces_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_GET_INTERFACES, "GET", "/v2/interfaces", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_interfaces_get_type (), "GET", "/v2/interfaces", cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -2884,14 +2946,14 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
                                     GPtrArray **plugs, GPtrArray **slots,
                                     GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetInterfaces *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_GET_INTERFACES), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_INTERFACES (result), FALSE);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_INTERFACES (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return FALSE;
     if (plugs)
        *plugs = request->plugs != NULL ? g_ptr_array_ref (request->plugs) : NULL;
@@ -2902,7 +2964,6 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
 
 static void
 send_interface_request (SnapdClient *client,
-                        RequestType request_type,
                         const gchar *action,
                         const gchar *plug_snap, const gchar *plug_name,
                         const gchar *slot_snap, const gchar *slot_name,
@@ -2912,7 +2973,9 @@ send_interface_request (SnapdClient *client,
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
 
-    request = make_request (client, request_type, "POST", "/v2/interfaces", progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_interfaces_get_type (), "POST", "/v2/interfaces", cancellable, callback, user_data);
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -2969,7 +3032,7 @@ snapd_client_connect_interface_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    send_interface_request (client, SNAPD_REQUEST_CONNECT_INTERFACE,
+    send_interface_request (client,
                             "connect",
                             plug_snap, plug_name,
                             slot_snap, slot_name,
@@ -2995,7 +3058,7 @@ snapd_client_connect_interface_finish (SnapdClient *client,
                                        GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_CONNECT_INTERFACE), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_INTERFACES (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -3027,7 +3090,7 @@ snapd_client_disconnect_interface_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    send_interface_request (client, SNAPD_REQUEST_DISCONNECT_INTERFACE,
+    send_interface_request (client,
                             "disconnect",
                             plug_snap, plug_name,
                             slot_snap, slot_name,
@@ -3053,7 +3116,7 @@ snapd_client_disconnect_interface_finish (SnapdClient *client,
                                           GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_DISCONNECT_INTERFACE), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_INTERFACES (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -3159,7 +3222,7 @@ snapd_client_find_section_async (SnapdClient *client,
         }
     }
 
-    request = make_request (client, SNAPD_REQUEST_FIND, "GET", path->str, NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_find_get_type (), "GET", path->str, cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -3180,14 +3243,14 @@ snapd_client_find_section_async (SnapdClient *client,
 GPtrArray *
 snapd_client_find_section_finish (SnapdClient *client, GAsyncResult *result, gchar **suggested_currency, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetFind *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_FIND), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_FIND (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_FIND (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
 
     if (suggested_currency != NULL)
@@ -3215,7 +3278,7 @@ snapd_client_find_refreshable_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_FIND_REFRESHABLE, "GET", "/v2/find?select=refresh", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_find_get_type (), "GET", "/v2/find?select=refresh", cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -3235,14 +3298,14 @@ snapd_client_find_refreshable_async (SnapdClient *client,
 GPtrArray *
 snapd_client_find_refreshable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetFind *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_FIND_REFRESHABLE), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_FIND (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_FIND (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
 
     return g_steal_pointer (&request->snaps);
@@ -3328,7 +3391,9 @@ snapd_client_install2_async (SnapdClient *client,
 
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    request = make_request (client, SNAPD_REQUEST_INSTALL, "POST", path, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_snap_get_type (), "POST", path, cancellable, callback, user_data);
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -3381,7 +3446,7 @@ gboolean
 snapd_client_install2_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_INSTALL), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_SNAP (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -3402,8 +3467,9 @@ append_multipart_value (SoupMultipart *multipart, const gchar *name, const gchar
 }
 
 static void
-send_install_stream_request (SnapdRequest *request)
+send_install_stream_request (SnapdRequestPostSnapStream *request)
 {
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (request));
     g_autoptr(GHashTable) params = NULL;
     g_autoptr(SoupBuffer) buffer = NULL;
     g_autoptr(SoupMultipart) multipart = NULL;
@@ -3421,32 +3487,33 @@ send_install_stream_request (SnapdRequest *request)
     params = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_hash_table_insert (params, g_strdup ("name"), g_strdup ("snap"));
     g_hash_table_insert (params, g_strdup ("filename"), g_strdup ("x"));
-    soup_message_headers_set_content_disposition (request->message->request_headers, "form-data", params);
-    soup_message_headers_set_content_type (request->message->request_headers, "application/vnd.snap", NULL);
+    soup_message_headers_set_content_disposition (priv->message->request_headers, "form-data", params);
+    soup_message_headers_set_content_type (priv->message->request_headers, "application/vnd.snap", NULL);
     buffer = soup_buffer_new (SOUP_MEMORY_TEMPORARY, request->snap_contents->data, request->snap_contents->len);
-    soup_multipart_append_part (multipart, request->message->request_headers, buffer);
-    set_multipart_body (request, multipart);
+    soup_multipart_append_part (multipart, priv->message->request_headers, buffer);
+    set_multipart_body (SNAPD_REQUEST (request), multipart);
 
-    send_request (request);
+    send_request (SNAPD_REQUEST (request));
 }
 
 static void
 stream_read_cb (GObject *source_object, GAsyncResult *result, gpointer user_data)
 {
     GInputStream *stream = G_INPUT_STREAM (source_object);
-    SnapdRequest *request = user_data;
+    SnapdRequestPostSnapStream *request = user_data;
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (request));
     g_autoptr(GBytes) data = NULL;
     g_autoptr(GError) error = NULL;
 
     data = g_input_stream_read_bytes_finish (stream, result, &error);
-    if (!snapd_request_return_error (request, &error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), &error))
         return;
 
     if (g_bytes_get_size (data) == 0)
         send_install_stream_request (request);
     else {
         g_byte_array_append (request->snap_contents, g_bytes_get_data (data, NULL), g_bytes_get_size (data));
-        g_input_stream_read_bytes_async (stream, 65535, G_PRIORITY_DEFAULT, request->cancellable, stream_read_cb, request);
+        g_input_stream_read_bytes_async (stream, 65535, G_PRIORITY_DEFAULT, priv->cancellable, stream_read_cb, request);
     }
 }
 
@@ -3473,12 +3540,14 @@ snapd_client_install_stream_async (SnapdClient *client,
                                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdRequest *request;
+    SnapdRequestPostSnapStream *request;
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (G_IS_INPUT_STREAM (stream));
 
-    request = make_request (client, SNAPD_REQUEST_INSTALL_STREAM, "POST", "/v2/snaps", progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = SNAPD_REQUEST_POST_SNAP_STREAM (make_request (client, snapd_request_post_snap_stream_get_type (), "POST", "/v2/snaps", cancellable, callback, user_data));
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
     request->install_flags = flags;
     request->snap_stream = g_object_ref (stream);
     request->snap_contents = g_byte_array_new ();
@@ -3502,7 +3571,7 @@ gboolean
 snapd_client_install_stream_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_INSTALL_STREAM), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_SNAP_STREAM (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -3534,7 +3603,9 @@ snapd_client_try_async (SnapdClient *client,
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (path != NULL);
 
-    request = make_request (client, SNAPD_REQUEST_TRY, "POST", "/v2/snaps", progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_snap_try_get_type (), "POST", "/v2/snaps", cancellable, callback, user_data);
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
 
     multipart = soup_multipart_new ("multipart/form-data");
     append_multipart_value (multipart, "action", "try");
@@ -3561,7 +3632,7 @@ gboolean
 snapd_client_try_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_TRY), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_SNAP_TRY (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -3597,7 +3668,9 @@ snapd_client_refresh_async (SnapdClient *client,
 
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    request = make_request (client, SNAPD_REQUEST_REFRESH, "POST", path, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_snap_get_type (), "POST", path, cancellable, callback, user_data);
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -3630,7 +3703,7 @@ gboolean
 snapd_client_refresh_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_REFRESH), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_SNAP (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -3659,7 +3732,9 @@ snapd_client_refresh_all_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_REFRESH_ALL, "POST", "/v2/snaps", progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_snaps_get_type (), "POST", "/v2/snaps", cancellable, callback, user_data);
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -3694,21 +3769,21 @@ snapd_client_refresh_all_finish (SnapdClient *client, GAsyncResult *result, GErr
     guint i;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_REFRESH_ALL), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_SNAPS (result), FALSE);
 
     request = SNAPD_REQUEST (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
 
-    if (request->async_data == NULL || json_node_get_value_type (request->async_data) != JSON_TYPE_OBJECT) {
+    if (SNAPD_REQUEST_ASYNC (request)->async_data == NULL || json_node_get_value_type (SNAPD_REQUEST_ASYNC (request)->async_data) != JSON_TYPE_OBJECT) {
         g_set_error_literal (error,
                              SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
                              "Unexpected result type");
         return NULL;
     }
-    o = json_node_get_object (request->async_data);
+    o = json_node_get_object (SNAPD_REQUEST_ASYNC (request)->async_data);
     if (o == NULL) {
         g_set_error_literal (error,
                              SNAPD_ERROR,
@@ -3765,7 +3840,9 @@ snapd_client_remove_async (SnapdClient *client,
 
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    request = make_request (client, SNAPD_REQUEST_REMOVE, "POST", path, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_snap_get_type (), "POST", path, cancellable, callback, user_data);
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -3794,7 +3871,7 @@ gboolean
 snapd_client_remove_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_REMOVE), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_SNAP (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -3829,7 +3906,9 @@ snapd_client_enable_async (SnapdClient *client,
 
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    request = make_request (client, SNAPD_REQUEST_ENABLE, "POST", path, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_snap_get_type (), "POST", path, cancellable, callback, user_data);
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -3858,7 +3937,7 @@ gboolean
 snapd_client_enable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_ENABLE), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_SNAP (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -3893,7 +3972,9 @@ snapd_client_disable_async (SnapdClient *client,
 
     escaped = soup_uri_encode (name, NULL);
     path = g_strdup_printf ("/v2/snaps/%s", escaped);
-    request = make_request (client, SNAPD_REQUEST_DISABLE, "POST", path, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_snap_get_type (), "POST", path, cancellable, callback, user_data);
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -3922,7 +4003,7 @@ gboolean
 snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_DISABLE), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_SNAP (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -3947,7 +4028,7 @@ snapd_client_check_buy_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_CHECK_BUY, "GET", "/v2/buy/ready", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_buy_ready_get_type (), "GET", "/v2/buy/ready", cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -3968,7 +4049,7 @@ gboolean
 snapd_client_check_buy_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_CHECK_BUY), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_BUY_READY (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -4000,7 +4081,7 @@ snapd_client_buy_async (SnapdClient *client,
     g_return_if_fail (id != NULL);
     g_return_if_fail (currency != NULL);
 
-    request = make_request (client, SNAPD_REQUEST_BUY, "POST", "/v2/buy", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_buy_get_type (), "POST", "/v2/buy", cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -4033,7 +4114,7 @@ gboolean
 snapd_client_buy_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_BUY), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_BUY (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -4063,7 +4144,7 @@ snapd_client_create_user_async (SnapdClient *client,
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (email != NULL);
 
-    request = make_request (client, SNAPD_REQUEST_CREATE_USER, "POST", "/v2/create-user", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_create_user_get_type (), "POST", "/v2/create-user", cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -4099,14 +4180,14 @@ snapd_client_create_user_async (SnapdClient *client,
 SnapdUserInformation *
 snapd_client_create_user_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestPostCreateUser *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_CREATE_USER), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_CREATE_USER (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_POST_CREATE_USER (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_steal_pointer (&request->user_information);
 }
@@ -4132,7 +4213,7 @@ snapd_client_create_users_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_CREATE_USERS, "POST", "/v2/create-user", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_create_users_get_type (), "POST", "/v2/create-user", cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -4160,14 +4241,14 @@ snapd_client_create_users_async (SnapdClient *client,
 GPtrArray *
 snapd_client_create_users_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestPostCreateUsers *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_CREATE_USERS), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_CREATE_USERS (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_POST_CREATE_USERS (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_steal_pointer (&request->users_information);
 }
@@ -4192,7 +4273,7 @@ snapd_client_get_sections_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_GET_SECTIONS, "GET", "/v2/sections", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_sections_get_type (), "GET", "/v2/sections", cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -4212,14 +4293,14 @@ snapd_client_get_sections_async (SnapdClient *client,
 gchar **
 snapd_client_get_sections_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetSections *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_GET_SECTIONS), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_SECTIONS (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_SECTIONS (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_steal_pointer (&request->sections);
 }
@@ -4244,7 +4325,7 @@ snapd_client_get_aliases_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = make_request (client, SNAPD_REQUEST_GET_ALIASES, "GET", "/v2/aliases", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_get_aliases_get_type (), "GET", "/v2/aliases", cancellable, callback, user_data);
     send_request (request);
 }
 
@@ -4264,21 +4345,20 @@ snapd_client_get_aliases_async (SnapdClient *client,
 GPtrArray *
 snapd_client_get_aliases_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestGetAliases *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_GET_ALIASES), NULL);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_GET_ALIASES (result), NULL);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_GET_ALIASES (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_steal_pointer (&request->aliases);
 }
 
 static void
 send_change_aliases_request (SnapdClient *client,
-                             RequestType request_type,
                              const gchar *action,
                              const gchar *snap, const gchar *app, const gchar *alias,
                              SnapdProgressCallback progress_callback, gpointer progress_callback_data,
@@ -4287,7 +4367,9 @@ send_change_aliases_request (SnapdClient *client,
     SnapdRequest *request;
     g_autoptr(JsonBuilder) builder = NULL;
 
-    request = make_request (client, request_type, "POST", "/v2/aliases", progress_callback, progress_callback_data, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_aliases_get_type (), "POST", "/v2/aliases", cancellable, callback, user_data);
+    SNAPD_REQUEST_ASYNC (request)->progress_callback = progress_callback;
+    SNAPD_REQUEST_ASYNC (request)->progress_callback_data = progress_callback_data;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -4338,7 +4420,7 @@ snapd_client_alias_async (SnapdClient *client,
     g_return_if_fail (snap != NULL);
     g_return_if_fail (app != NULL);
     g_return_if_fail (alias != NULL);
-    send_change_aliases_request (client, SNAPD_REQUEST_ALIASES, "alias", snap, app, alias, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    send_change_aliases_request (client, "alias", snap, app, alias, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
 /**
@@ -4358,7 +4440,7 @@ gboolean
 snapd_client_alias_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_ALIASES), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_ALIASES (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -4387,7 +4469,7 @@ snapd_client_unalias_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (alias != NULL);
-    send_change_aliases_request (client, SNAPD_REQUEST_ALIASES, "unalias", snap, NULL, alias, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    send_change_aliases_request (client, "unalias", snap, NULL, alias, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
 /**
@@ -4407,7 +4489,7 @@ gboolean
 snapd_client_unalias_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_ALIASES), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_ALIASES (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -4435,7 +4517,7 @@ snapd_client_prefer_async (SnapdClient *client,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (snap != NULL);
-    send_change_aliases_request (client, SNAPD_REQUEST_ALIASES, "prefer", snap, NULL, NULL, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    send_change_aliases_request (client, "prefer", snap, NULL, NULL, progress_callback, progress_callback_data, cancellable, callback, user_data);
 }
 
 /**
@@ -4455,7 +4537,7 @@ gboolean
 snapd_client_prefer_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_ALIASES), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_ALIASES (result), FALSE);
 
     return snapd_request_return_error (SNAPD_REQUEST (result), error);
 }
@@ -4652,7 +4734,7 @@ snapd_client_run_snapctl_async (SnapdClient *client,
     g_return_if_fail (context_id != NULL);
     g_return_if_fail (args != NULL);
 
-    request = make_request (client, SNAPD_REQUEST_RUN_SNAPCTL, "POST", "/v2/snapctl", NULL, NULL, cancellable, callback, user_data);
+    request = make_request (client, snapd_request_post_snapctl_get_type (), "POST", "/v2/snapctl", cancellable, callback, user_data);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -4689,14 +4771,14 @@ snapd_client_run_snapctl_finish (SnapdClient *client, GAsyncResult *result,
                                  gchar **stdout_output, gchar **stderr_output,
                                  GError **error)
 {
-    SnapdRequest *request;
+    SnapdRequestPostSnapctl *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-    g_return_val_if_fail (snapd_request_is_valid (result, SNAPD_REQUEST_RUN_SNAPCTL), FALSE);
+    g_return_val_if_fail (SNAPD_IS_REQUEST_POST_SNAPCTL (result), FALSE);
 
-    request = SNAPD_REQUEST (result);
+    request = SNAPD_REQUEST_POST_SNAPCTL (result);
 
-    if (!snapd_request_return_error (request, error))
+    if (!snapd_request_return_error (SNAPD_REQUEST (request), error))
         return FALSE;
 
     if (stdout_output)
@@ -4785,4 +4867,617 @@ snapd_client_init (SnapdClient *client)
     priv->buffer = g_byte_array_new ();
     g_mutex_init (&priv->requests_mutex);
     g_mutex_init (&priv->buffer_mutex);
+}
+
+static void
+snapd_request_get_change_finalize (GObject *object)
+{
+    SnapdRequestGetChange *request = SNAPD_REQUEST_GET_CHANGE (object);
+
+    g_clear_pointer (&request->change_id, g_free);
+
+    G_OBJECT_CLASS (snapd_request_get_change_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_change_class_init (SnapdRequestGetChangeClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_change_response;
+   gobject_class->finalize = snapd_request_get_change_finalize;
+}
+
+static void
+snapd_request_get_change_init (SnapdRequestGetChange *request)
+{
+}
+
+static void
+snapd_request_post_change_finalize (GObject *object)
+{
+    SnapdRequestPostChange *request = SNAPD_REQUEST_POST_CHANGE (object);
+
+    g_clear_pointer (&request->change_id, g_free);
+
+    G_OBJECT_CLASS (snapd_request_post_change_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_change_class_init (SnapdRequestPostChangeClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_post_change_response;
+   gobject_class->finalize = snapd_request_post_change_finalize;
+}
+
+static void
+snapd_request_post_change_init (SnapdRequestPostChange *request)
+{
+}
+
+static void
+snapd_request_get_system_information_finalize (GObject *object)
+{
+    SnapdRequestGetSystemInformation *request = SNAPD_REQUEST_GET_SYSTEM_INFORMATION (object);
+
+    g_clear_object (&request->system_information);
+
+    G_OBJECT_CLASS (snapd_request_get_system_information_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_system_information_class_init (SnapdRequestGetSystemInformationClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_system_information_response;
+   gobject_class->finalize = snapd_request_get_system_information_finalize;
+}
+
+static void
+snapd_request_get_system_information_init (SnapdRequestGetSystemInformation *request)
+{
+}
+
+static void
+snapd_request_post_login_finalize (GObject *object)
+{
+    SnapdRequestPostLogin *request = SNAPD_REQUEST_POST_LOGIN (object);
+
+    g_clear_object (&request->auth_data);
+
+    G_OBJECT_CLASS (snapd_request_post_login_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_login_class_init (SnapdRequestPostLoginClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_post_login_response;
+   gobject_class->finalize = snapd_request_post_login_finalize;
+}
+
+static void
+snapd_request_post_login_init (SnapdRequestPostLogin *request)
+{
+}
+
+static void
+snapd_request_get_snaps_finalize (GObject *object)
+{
+    SnapdRequestGetSnaps *request = SNAPD_REQUEST_GET_SNAPS (object);
+
+    g_clear_pointer (&request->snaps, g_ptr_array_unref);
+
+    G_OBJECT_CLASS (snapd_request_get_snaps_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_snaps_class_init (SnapdRequestGetSnapsClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_snaps_response;
+   gobject_class->finalize = snapd_request_get_snaps_finalize;
+}
+
+static void
+snapd_request_get_snaps_init (SnapdRequestGetSnaps *request)
+{
+}
+
+static void
+snapd_request_get_snap_finalize (GObject *object)
+{
+    SnapdRequestGetSnap *request = SNAPD_REQUEST_GET_SNAP (object);
+
+    g_clear_object (&request->snap);
+
+    G_OBJECT_CLASS (snapd_request_get_snap_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_snap_class_init (SnapdRequestGetSnapClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_snap_response;
+   gobject_class->finalize = snapd_request_get_snap_finalize;
+}
+
+static void
+snapd_request_get_snap_init (SnapdRequestGetSnap *request)
+{
+}
+
+static void
+snapd_request_get_icon_finalize (GObject *object)
+{
+    SnapdRequestGetIcon *request = SNAPD_REQUEST_GET_ICON (object);
+
+    g_clear_object (&request->icon);
+
+    G_OBJECT_CLASS (snapd_request_get_icon_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_icon_class_init (SnapdRequestGetIconClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_icon_response;
+   gobject_class->finalize = snapd_request_get_icon_finalize;
+}
+
+static void
+snapd_request_get_icon_init (SnapdRequestGetIcon *request)
+{
+}
+
+static void
+snapd_request_get_apps_finalize (GObject *object)
+{
+    SnapdRequestGetApps *request = SNAPD_REQUEST_GET_APPS (object);
+
+    g_clear_pointer (&request->apps, g_ptr_array_unref);
+
+    G_OBJECT_CLASS (snapd_request_get_apps_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_apps_class_init (SnapdRequestGetAppsClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_apps_response;
+   gobject_class->finalize = snapd_request_get_apps_finalize;
+}
+
+static void
+snapd_request_get_apps_init (SnapdRequestGetApps *request)
+{
+}
+
+static void
+snapd_request_get_sections_finalize (GObject *object)
+{
+    SnapdRequestGetSections *request = SNAPD_REQUEST_GET_SECTIONS (object);
+
+    g_clear_pointer (&request->sections, g_strfreev);
+
+    G_OBJECT_CLASS (snapd_request_get_sections_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_sections_class_init (SnapdRequestGetSectionsClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_sections_response;
+   gobject_class->finalize = snapd_request_get_sections_finalize;
+}
+
+static void
+snapd_request_get_sections_init (SnapdRequestGetSections *request)
+{
+}
+
+static void
+snapd_request_get_buy_ready_finalize (GObject *object)
+{
+    G_OBJECT_CLASS (snapd_request_get_buy_ready_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_buy_ready_class_init (SnapdRequestGetBuyReadyClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_buy_ready_response;
+   gobject_class->finalize = snapd_request_get_buy_ready_finalize;
+}
+
+static void
+snapd_request_get_buy_ready_init (SnapdRequestGetBuyReady *request)
+{
+}
+
+static void
+snapd_request_post_buy_finalize (GObject *object)
+{
+    G_OBJECT_CLASS (snapd_request_post_buy_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_buy_class_init (SnapdRequestPostBuyClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_post_buy_response;
+   gobject_class->finalize = snapd_request_post_buy_finalize;
+}
+
+static void
+snapd_request_post_buy_init (SnapdRequestPostBuy *request)
+{
+}
+
+static void
+snapd_request_get_find_finalize (GObject *object)
+{
+    SnapdRequestGetFind *request = SNAPD_REQUEST_GET_FIND (object);
+
+    g_free (request->suggested_currency);
+    g_clear_pointer (&request->snaps, g_ptr_array_unref);
+
+    G_OBJECT_CLASS (snapd_request_get_find_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_find_class_init (SnapdRequestGetFindClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_find_response;
+   gobject_class->finalize = snapd_request_get_find_finalize;
+}
+
+static void
+snapd_request_get_find_init (SnapdRequestGetFind *request)
+{
+}
+
+static void
+snapd_request_async_finalize (GObject *object)
+{
+    SnapdRequestAsync *request = SNAPD_REQUEST_ASYNC (object);
+
+    g_clear_pointer (&request->change_id, g_free);
+    g_clear_pointer (&request->poll_source, g_source_destroy);
+    g_clear_object (&request->change);
+    g_clear_pointer (&request->async_data, json_node_unref);
+
+    G_OBJECT_CLASS (snapd_request_async_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_async_class_init (SnapdRequestAsyncClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_async_response;
+   gobject_class->finalize = snapd_request_async_finalize;
+}
+
+static void
+snapd_request_async_init (SnapdRequestAsync *request)
+{
+}
+
+static void
+snapd_request_post_snap_finalize (GObject *object)
+{
+    G_OBJECT_CLASS (snapd_request_post_snap_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_snap_class_init (SnapdRequestPostSnapClass *klass)
+{
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   gobject_class->finalize = snapd_request_post_snap_finalize;
+}
+
+static void
+snapd_request_post_snap_init (SnapdRequestPostSnap *request)
+{
+}
+
+static void
+snapd_request_post_snaps_finalize (GObject *object)
+{
+    G_OBJECT_CLASS (snapd_request_post_snaps_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_snaps_class_init (SnapdRequestPostSnapsClass *klass)
+{
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   gobject_class->finalize = snapd_request_post_snaps_finalize;
+}
+
+static void
+snapd_request_post_snaps_init (SnapdRequestPostSnaps *request)
+{
+}
+
+static void
+snapd_request_post_snap_stream_finalize (GObject *object)
+{
+    SnapdRequestPostSnapStream *request = SNAPD_REQUEST_POST_SNAP_STREAM (object);
+
+    g_clear_object (&request->snap_stream);
+    g_clear_pointer (&request->snap_contents, g_byte_array_unref);
+
+    G_OBJECT_CLASS (snapd_request_post_snap_stream_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_snap_stream_class_init (SnapdRequestPostSnapStreamClass *klass)
+{
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   gobject_class->finalize = snapd_request_post_snap_stream_finalize;
+}
+
+static void
+snapd_request_post_snap_stream_init (SnapdRequestPostSnapStream *request)
+{
+}
+
+static void
+snapd_request_post_snap_try_finalize (GObject *object)
+{
+    G_OBJECT_CLASS (snapd_request_post_snap_try_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_snap_try_class_init (SnapdRequestPostSnapTryClass *klass)
+{
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   gobject_class->finalize = snapd_request_post_snap_try_finalize;
+}
+
+static void
+snapd_request_post_snap_try_init (SnapdRequestPostSnapTry *request)
+{
+}
+
+static void
+snapd_request_get_aliases_finalize (GObject *object)
+{
+    SnapdRequestGetAliases *request = SNAPD_REQUEST_GET_ALIASES (object);
+
+    g_clear_pointer (&request->aliases, g_ptr_array_unref);
+
+    G_OBJECT_CLASS (snapd_request_get_aliases_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_aliases_class_init (SnapdRequestGetAliasesClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_aliases_response;
+   gobject_class->finalize = snapd_request_get_aliases_finalize;
+}
+
+static void
+snapd_request_get_aliases_init (SnapdRequestGetAliases *request)
+{
+}
+
+static void
+snapd_request_post_aliases_finalize (GObject *object)
+{
+    G_OBJECT_CLASS (snapd_request_post_aliases_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_aliases_class_init (SnapdRequestPostAliasesClass *klass)
+{
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   gobject_class->finalize = snapd_request_post_aliases_finalize;
+}
+
+static void
+snapd_request_post_aliases_init (SnapdRequestPostAliases *request)
+{
+}
+
+static void
+snapd_request_get_interfaces_finalize (GObject *object)
+{
+    SnapdRequestGetInterfaces *request = SNAPD_REQUEST_GET_INTERFACES (object);
+
+    g_clear_pointer (&request->plugs, g_ptr_array_unref);
+    g_clear_pointer (&request->slots, g_ptr_array_unref);
+
+    G_OBJECT_CLASS (snapd_request_get_interfaces_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_interfaces_class_init (SnapdRequestGetInterfacesClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_interfaces_response;
+   gobject_class->finalize = snapd_request_get_interfaces_finalize;
+}
+
+static void
+snapd_request_get_interfaces_init (SnapdRequestGetInterfaces *request)
+{
+}
+
+static void
+snapd_request_post_interfaces_finalize (GObject *object)
+{
+    G_OBJECT_CLASS (snapd_request_post_interfaces_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_interfaces_class_init (SnapdRequestPostInterfacesClass *klass)
+{
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   gobject_class->finalize = snapd_request_post_interfaces_finalize;
+}
+
+static void
+snapd_request_post_interfaces_init (SnapdRequestPostInterfaces *request)
+{
+}
+
+static void
+snapd_request_get_assertions_finalize (GObject *object)
+{
+    SnapdRequestGetAssertions *request = SNAPD_REQUEST_GET_ASSERTIONS (object);
+
+    g_clear_pointer (&request->assertions, g_strfreev);
+
+    G_OBJECT_CLASS (snapd_request_get_assertions_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_get_assertions_class_init (SnapdRequestGetAssertionsClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_get_assertions_response;
+   gobject_class->finalize = snapd_request_get_assertions_finalize;
+}
+
+static void
+snapd_request_get_assertions_init (SnapdRequestGetAssertions *request)
+{
+}
+
+static void
+snapd_request_post_assertions_finalize (GObject *object)
+{
+    G_OBJECT_CLASS (snapd_request_post_assertions_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_assertions_class_init (SnapdRequestPostAssertionsClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_post_assertions_response;
+   gobject_class->finalize = snapd_request_post_assertions_finalize;
+}
+
+static void
+snapd_request_post_assertions_init (SnapdRequestPostAssertions *request)
+{
+}
+
+static void
+snapd_request_post_create_user_finalize (GObject *object)
+{
+    SnapdRequestPostCreateUser *request = SNAPD_REQUEST_POST_CREATE_USER (object);
+
+    g_clear_object (&request->user_information);
+
+    G_OBJECT_CLASS (snapd_request_post_create_user_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_create_user_class_init (SnapdRequestPostCreateUserClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_post_create_user_response;
+   gobject_class->finalize = snapd_request_post_create_user_finalize;
+}
+
+static void
+snapd_request_post_create_user_init (SnapdRequestPostCreateUser *request)
+{
+}
+
+static void
+snapd_request_post_create_users_finalize (GObject *object)
+{
+    SnapdRequestPostCreateUsers *request = SNAPD_REQUEST_POST_CREATE_USERS (object);
+
+    g_clear_pointer (&request->users_information, g_ptr_array_unref);
+
+    G_OBJECT_CLASS (snapd_request_post_create_users_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_create_users_class_init (SnapdRequestPostCreateUsersClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_post_create_users_response;
+   gobject_class->finalize = snapd_request_post_create_users_finalize;
+}
+
+static void
+snapd_request_post_create_users_init (SnapdRequestPostCreateUsers *request)
+{
+}
+
+static void
+snapd_request_post_snapctl_finalize (GObject *object)
+{
+    SnapdRequestPostSnapctl *request = SNAPD_REQUEST_POST_SNAPCTL (object);
+
+    g_clear_pointer (&request->stdout_output, g_free);
+    g_clear_pointer (&request->stderr_output, g_free);
+
+    G_OBJECT_CLASS (snapd_request_post_snapctl_parent_class)->finalize (object);
+}
+
+static void
+snapd_request_post_snapctl_class_init (SnapdRequestPostSnapctlClass *klass)
+{
+   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+   request_class->parse_response = parse_post_snapctl_response;
+   gobject_class->finalize = snapd_request_post_snapctl_finalize;
+}
+
+static void
+snapd_request_post_snapctl_init (SnapdRequestPostSnapctl *request)
+{
 }
