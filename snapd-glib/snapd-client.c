@@ -163,8 +163,6 @@ struct _SnapdRequest
 
     RequestType request_type;
 
-    SnapdRequest *parent;
-
     GCancellable *cancellable;
     gulong cancelled_id;
     GAsyncReadyCallback ready_callback;
@@ -174,6 +172,7 @@ struct _SnapdRequest
     SnapdProgressCallback progress_callback;
     gpointer progress_callback_data;
 
+    gchar *requested_change_id;
     gchar *change_id;
     GSource *poll_source;
     SnapdChange *change;
@@ -289,7 +288,7 @@ async_poll_cb (gpointer data)
 
     path = g_strdup_printf ("/v2/changes/%s", request->change_id);
     change_request = make_request (request->client, SNAPD_REQUEST_GET_CHANGE, "GET", path, NULL, NULL, NULL, NULL, NULL);
-    change_request->parent = g_object_ref (request);
+    change_request->requested_change_id = g_strdup (request->change_id);
     send_request (change_request);
 
     request->poll_source = NULL;
@@ -380,9 +379,9 @@ snapd_request_finalize (GObject *object)
     if (request->read_source != NULL)
         g_source_destroy (request->read_source);
     g_clear_pointer (&request->read_source, g_source_unref);
-    g_clear_object (&request->parent);
     g_cancellable_disconnect (request->cancellable, request->cancelled_id);
     g_clear_object (&request->cancellable);
+    g_free (request->requested_change_id);
     g_free (request->change_id);
     g_clear_pointer (&request->poll_source, g_source_destroy);
     g_clear_object (&request->change);
@@ -1177,7 +1176,7 @@ send_cancel (SnapdRequest *request)
 
     path = g_strdup_printf ("/v2/changes/%s", request->change_id);
     change_request = make_request (request->client, SNAPD_REQUEST_ABORT_CHANGE, "POST", path, NULL, NULL, NULL, NULL, NULL);
-    change_request->parent = g_object_ref (request);
+    change_request->requested_change_id = g_strdup (request->change_id);
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -1219,38 +1218,59 @@ parse_async_response (SnapdRequest *request)
     schedule_poll (request);
 }
 
+static SnapdRequest *
+find_change_request (SnapdClient *client, const gchar *change_id)
+{
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    GList *link;
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->requests_mutex);
+
+    for (link = priv->requests; link; link = link->next) {
+        SnapdRequest *request = link->data;
+
+        if (request_is_async (request) &&
+            strcmp (request->change_id, change_id) == 0)
+            return request;
+    }
+
+    return NULL;
+}
+
 static void
 parse_change_response (SnapdRequest *request)
 {
+    SnapdRequest *parent;
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     gboolean ready;
     GError *error = NULL;
 
+    parent = find_change_request (request->client, request->requested_change_id);
+
     response = _snapd_json_parse_response (request->message, &error);
     if (response == NULL) {
-        snapd_request_complete (request->parent, error);
+        snapd_request_complete (parent, error);
         snapd_request_complete (request, NULL);
         return;
     }
     result = _snapd_json_get_sync_result_o (response, &error);
     if (result == NULL) {
-        snapd_request_complete (request->parent, error);
+        snapd_request_complete (parent, error);
         snapd_request_complete (request, NULL);
         return;
     }
 
-    if (g_strcmp0 (request->parent->change_id, _snapd_json_get_string (result, "id", NULL)) != 0) {
+    if (g_strcmp0 (request->requested_change_id, _snapd_json_get_string (result, "id", NULL)) != 0) {
         error = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
                              "Unexpected change ID returned");
-        snapd_request_complete (request->parent, error);
+        snapd_request_complete (parent, error);
         snapd_request_complete (request, NULL);
         return;
     }
 
     /* Update caller with progress */
-    if (request->parent->progress_callback != NULL) {
+    if (parent->progress_callback != NULL) {
         g_autoptr(JsonArray) array = NULL;
         guint i;
         g_autoptr(GPtrArray) tasks = NULL;
@@ -1271,7 +1291,7 @@ parse_change_response (SnapdRequest *request)
                 error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_READ_FAILED,
                                      "Unexpected task type");
-                snapd_request_complete (request->parent, error);
+                snapd_request_complete (parent, error);
                 snapd_request_complete (request, NULL);
                 return;
             }
@@ -1307,12 +1327,12 @@ parse_change_response (SnapdRequest *request)
                                "ready-time", main_ready_time,
                                NULL);
 
-        if (!changes_equal (request->parent->change, change)) {
-            g_clear_object (&request->parent->change);
-            request->parent->change = g_steal_pointer (&change);
+        if (!changes_equal (parent->change, change)) {
+            g_clear_object (&parent->change);
+            parent->change = g_steal_pointer (&change);
             // NOTE: tasks is passed for ABI compatibility - this field is
             // deprecated and can be accessed with snapd_change_get_tasks ()
-            request->parent->progress_callback (request->parent->client, request->parent->change, tasks, request->parent->progress_callback_data);
+            parent->progress_callback (parent->client, parent->change, tasks, parent->progress_callback_data);
         }
     }
 
@@ -1321,19 +1341,19 @@ parse_change_response (SnapdRequest *request)
         GError *error = NULL;
 
         if (json_object_has_member (result, "data"))
-            request->parent->async_data = json_node_ref (json_object_get_member (result, "data"));
-        if (!g_cancellable_set_error_if_cancelled (request->parent->cancellable, &error) &&
+            parent->async_data = json_node_ref (json_object_get_member (result, "data"));
+        if (!g_cancellable_set_error_if_cancelled (parent->cancellable, &error) &&
             json_object_has_member (result, "err"))
             error = g_error_new_literal (SNAPD_ERROR,
                                          SNAPD_ERROR_FAILED,
                                          _snapd_json_get_string (result, "err", "Unknown error"));
-        snapd_request_complete (request->parent, error);
+        snapd_request_complete (parent, error);
         snapd_request_complete (request, NULL);
         return;
     }
 
     /* Poll for updates */
-    schedule_poll (request->parent);
+    schedule_poll (parent);
 
     snapd_request_complete (request, NULL);
 }
