@@ -118,7 +118,7 @@ struct _SnapdRequestClass
     GObjectClass parent_class;
 
     SoupMessage *(*generate_request)(SnapdRequest *request);
-    void (*parse_response)(SnapdRequest *request);
+    void (*parse_response)(SnapdRequest *request, SoupMessage *message);
 };
 
 typedef struct
@@ -673,13 +673,6 @@ set_json_body (SoupMessage *message, JsonBuilder *builder)
     soup_message_headers_set_content_length (message->request_headers, message->request_body->length);
 }
 
-static JsonObject *
-snapd_request_parse_json_response (SnapdRequest *request, GError **error)
-{
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
-    return _snapd_json_parse_response (priv->message, error);
-}
-
 static SoupMessage *
 generate (SnapdRequest *request, const gchar *method, const gchar *path)
 {
@@ -696,7 +689,7 @@ generate_get_system_info_request (SnapdRequest *request)
 }
 
 static void
-parse_get_system_info_response (SnapdRequest *request)
+parse_get_system_info_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetSystemInfo *r = SNAPD_REQUEST_GET_SYSTEM_INFO (request);
     g_autoptr(JsonObject) response = NULL;
@@ -707,7 +700,7 @@ parse_get_system_info_response (SnapdRequest *request)
     JsonObject *os_release, *locations;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -755,22 +748,21 @@ generate_get_icon_request (SnapdRequest *request)
 }
 
 static void
-parse_get_icon_response (SnapdRequest *request)
+parse_get_icon_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetIcon *r = SNAPD_REQUEST_GET_ICON (request);
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
     const gchar *content_type;
     g_autoptr(SoupBuffer) buffer = NULL;
     g_autoptr(GBytes) data = NULL;
     g_autoptr(SnapdIcon) icon = NULL;
 
-    content_type = soup_message_headers_get_content_type (priv->message->response_headers, NULL);
+    content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
     if (g_strcmp0 (content_type, "application/json") == 0) {
         g_autoptr(JsonObject) response = NULL;
         g_autoptr(JsonObject) result = NULL;
         GError *error = NULL;
 
-        response = snapd_request_parse_json_response (request, &error);
+        response = _snapd_json_parse_response (message, &error);
         if (response == NULL) {
             snapd_request_complete (request, error);
             return;
@@ -788,14 +780,14 @@ parse_get_icon_response (SnapdRequest *request)
         return;
     }
 
-    if (priv->message->status_code != SOUP_STATUS_OK) {
+    if (message->status_code != SOUP_STATUS_OK) {
         GError *error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_READ_FAILED,
-                                     "Got response %u retrieving icon", priv->message->status_code);
+                                     "Got response %u retrieving icon", message->status_code);
         snapd_request_complete (request, error);
     }
 
-    buffer = soup_message_body_flatten (priv->message->response_body);
+    buffer = soup_message_body_flatten (message->response_body);
     data = soup_buffer_get_as_bytes (buffer);
     icon = g_object_new (SNAPD_TYPE_ICON,
                          "mime-type", content_type,
@@ -813,7 +805,7 @@ generate_get_snaps_request (SnapdRequest *request)
 }
 
 static void
-parse_get_snaps_response (SnapdRequest *request)
+parse_get_snaps_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetSnaps *r = SNAPD_REQUEST_GET_SNAPS (request);
     g_autoptr(JsonObject) response = NULL;
@@ -821,7 +813,7 @@ parse_get_snaps_response (SnapdRequest *request)
     GPtrArray *snaps;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -855,7 +847,7 @@ generate_get_snap_request (SnapdRequest *request)
 }
 
 static void
-parse_get_snap_response (SnapdRequest *request)
+parse_get_snap_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetSnap *r = SNAPD_REQUEST_GET_SNAP (request);
     g_autoptr(JsonObject) response = NULL;
@@ -863,7 +855,7 @@ parse_get_snap_response (SnapdRequest *request)
     g_autoptr(SnapdSnap) snap = NULL;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -895,7 +887,7 @@ generate_get_apps_request (SnapdRequest *request)
 }
 
 static void
-parse_get_apps_response (SnapdRequest *request)
+parse_get_apps_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetApps *r = SNAPD_REQUEST_GET_APPS (request);
     g_autoptr(JsonObject) response = NULL;
@@ -903,7 +895,7 @@ parse_get_apps_response (SnapdRequest *request)
     GPtrArray *apps;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1203,22 +1195,21 @@ get_attributes (JsonObject *object, const gchar *name, GError **error)
 }
 
 static void
-parse_get_assertions_response (SnapdRequest *request)
+parse_get_assertions_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetAssertions *r = SNAPD_REQUEST_GET_ASSERTIONS (request);
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
     const gchar *content_type;
     g_autoptr(GPtrArray) assertions = NULL;
     g_autoptr(SoupBuffer) buffer = NULL;
     gsize offset = 0;
 
-    content_type = soup_message_headers_get_content_type (priv->message->response_headers, NULL);
+    content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
     if (g_strcmp0 (content_type, "application/json") == 0) {
         g_autoptr(JsonObject) response = NULL;
         g_autoptr(JsonObject) result = NULL;
         GError *error = NULL;
 
-        response = snapd_request_parse_json_response (request, &error);
+        response = _snapd_json_parse_response (message, &error);
         if (response == NULL) {
             snapd_request_complete (request, error);
             return;
@@ -1236,10 +1227,10 @@ parse_get_assertions_response (SnapdRequest *request)
         return;
     }
 
-    if (priv->message->status_code != SOUP_STATUS_OK) {
+    if (message->status_code != SOUP_STATUS_OK) {
         GError *error = g_error_new (SNAPD_ERROR,
                                      SNAPD_ERROR_READ_FAILED,
-                                     "Got response %u retrieving assertions", priv->message->status_code);
+                                     "Got response %u retrieving assertions", message->status_code);
         snapd_request_complete (request, error);
         return;
     }
@@ -1253,7 +1244,7 @@ parse_get_assertions_response (SnapdRequest *request)
     }
 
     assertions = g_ptr_array_new ();
-    buffer = soup_message_body_flatten (priv->message->response_body);
+    buffer = soup_message_body_flatten (message->response_body);
     while (offset < buffer->length) {
         gsize assertion_start, assertion_end, body_length = 0;
         g_autofree gchar *body_length_header = NULL;
@@ -1310,12 +1301,12 @@ generate_post_assertions_request (SnapdRequest *request)
 }
 
 static void
-parse_post_assertions_response (SnapdRequest *request)
+parse_post_assertions_response (SnapdRequest *request, SoupMessage *message)
 {
     g_autoptr(JsonObject) response = NULL;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1325,7 +1316,7 @@ parse_post_assertions_response (SnapdRequest *request)
 }
 
 static void
-parse_get_interfaces_response (SnapdRequest *request)
+parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetInterfaces *r = SNAPD_REQUEST_GET_INTERFACES (request);
     g_autoptr(JsonObject) response = NULL;
@@ -1337,7 +1328,7 @@ parse_get_interfaces_response (SnapdRequest *request)
     guint i;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1505,7 +1496,7 @@ send_cancel (SnapdRequestAsync *request)
 }
 
 static void
-parse_async_response (SnapdRequest *request)
+parse_async_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
     SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (request);
@@ -1513,7 +1504,7 @@ parse_async_response (SnapdRequest *request)
     gchar *change_id = NULL;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1555,7 +1546,7 @@ find_change_request (SnapdClient *client, const gchar *change_id)
 }
 
 static void
-parse_change_response (SnapdRequest *request, const gchar *change_id)
+parse_change_response (SnapdRequest *request, SoupMessage *message, const gchar *change_id)
 {
     SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
     SnapdRequestAsync *parent;
@@ -1568,7 +1559,7 @@ parse_change_response (SnapdRequest *request, const gchar *change_id)
     parent = find_change_request (priv->client, change_id);
     parent_priv = snapd_request_get_instance_private (SNAPD_REQUEST (parent));
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (SNAPD_REQUEST (parent), error);
         snapd_request_complete (request, NULL);
@@ -1690,10 +1681,10 @@ generate_get_change_request (SnapdRequest *request)
 }
 
 static void
-parse_get_change_response (SnapdRequest *request)
+parse_get_change_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetChange *r = SNAPD_REQUEST_GET_CHANGE (request);
-    parse_change_response (request, r->change_id);
+    parse_change_response (request, message, r->change_id);
 }
 
 static SoupMessage *
@@ -1718,10 +1709,10 @@ generate_post_change_request (SnapdRequest *request)
 }
 
 static void
-parse_post_change_response (SnapdRequest *request)
+parse_post_change_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestPostChange *r = SNAPD_REQUEST_POST_CHANGE (request);
-    parse_change_response (request, r->change_id);
+    parse_change_response (request, message, r->change_id);
 }
 
 static SoupMessage *
@@ -1750,7 +1741,7 @@ generate_post_login_request (SnapdRequest *request)
 }
 
 static void
-parse_post_login_response (SnapdRequest *request)
+parse_post_login_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestPostLogin *r = SNAPD_REQUEST_POST_LOGIN (request);
     g_autoptr(JsonObject) response = NULL;
@@ -1760,7 +1751,7 @@ parse_post_login_response (SnapdRequest *request)
     guint i;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -1833,7 +1824,7 @@ generate_get_find_request (SnapdRequest *request)
 }
 
 static void
-parse_get_find_response (SnapdRequest *request)
+parse_get_find_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetFind *r = SNAPD_REQUEST_GET_FIND (request);
     g_autoptr(JsonObject) response = NULL;
@@ -1841,7 +1832,7 @@ parse_get_find_response (SnapdRequest *request)
     g_autoptr(GPtrArray) snaps = NULL;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2003,12 +1994,12 @@ generate_get_buy_ready_request (SnapdRequest *request)
 }
 
 static void
-parse_get_buy_ready_response (SnapdRequest *request)
+parse_get_buy_ready_response (SnapdRequest *request, SoupMessage *message)
 {
     g_autoptr(JsonObject) response = NULL;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2041,12 +2032,12 @@ generate_post_buy_request (SnapdRequest *request)
 }
 
 static void
-parse_post_buy_response (SnapdRequest *request)
+parse_post_buy_response (SnapdRequest *request, SoupMessage *message)
 {
     g_autoptr(JsonObject) response = NULL;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2083,7 +2074,7 @@ generate_post_create_user_request (SnapdRequest *request)
 }
 
 static void
-parse_post_create_user_response (SnapdRequest *request)
+parse_post_create_user_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestPostCreateUser *r = SNAPD_REQUEST_POST_CREATE_USER (request);
     g_autoptr(JsonObject) response = NULL;
@@ -2091,7 +2082,7 @@ parse_post_create_user_response (SnapdRequest *request)
     g_autoptr(SnapdUserInformation) user_information = NULL;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2131,7 +2122,7 @@ generate_post_create_users_request (SnapdRequest *request)
 }
 
 static void
-parse_post_create_users_response (SnapdRequest *request)
+parse_post_create_users_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestPostCreateUsers *r = SNAPD_REQUEST_POST_CREATE_USERS (request);
     g_autoptr(JsonObject) response = NULL;
@@ -2140,7 +2131,7 @@ parse_post_create_users_response (SnapdRequest *request)
     guint i;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2184,7 +2175,7 @@ generate_get_sections_request (SnapdRequest *request)
 }
 
 static void
-parse_get_sections_response (SnapdRequest *request)
+parse_get_sections_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetSections *r = SNAPD_REQUEST_GET_SECTIONS (request);
     g_autoptr(JsonObject) response = NULL;
@@ -2193,7 +2184,7 @@ parse_get_sections_response (SnapdRequest *request)
     guint i;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2231,7 +2222,7 @@ generate_get_aliases_request (SnapdRequest *request)
 }
 
 static void
-parse_get_aliases_response (SnapdRequest *request)
+parse_get_aliases_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestGetAliases *r = SNAPD_REQUEST_GET_ALIASES (request);
     g_autoptr(JsonObject) response = NULL;
@@ -2242,7 +2233,7 @@ parse_get_aliases_response (SnapdRequest *request)
     JsonNode *snap_node;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2335,14 +2326,14 @@ generate_post_snapctl_request (SnapdRequest *request)
 }
 
 static void
-parse_post_snapctl_response (SnapdRequest *request)
+parse_post_snapctl_response (SnapdRequest *request, SoupMessage *message)
 {
     SnapdRequestPostSnapctl *r = SNAPD_REQUEST_POST_SNAPCTL (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     GError *error = NULL;
 
-    response = snapd_request_parse_json_response (request, &error);
+    response = _snapd_json_parse_response (message, &error);
     if (response == NULL) {
         snapd_request_complete (request, error);
         return;
@@ -2379,22 +2370,6 @@ get_first_request (SnapdClient *client)
     }
 
     return NULL;
-}
-
-static void
-parse_response (SnapdRequest *request)
-{
-    GError *error = NULL;
-
-    if (SNAPD_REQUEST_GET_CLASS (request)->parse_response == NULL) {
-        error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_FAILED,
-                             "Unknown request");
-        snapd_request_complete (request, error);
-        return;
-    }
-
-    SNAPD_REQUEST_GET_CLASS (request)->parse_response (request);
 }
 
 /* Check if we have all HTTP chunks */
@@ -2545,7 +2520,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *r)
 
             content_length = client_priv->n_read - header_length;
             soup_message_body_append (priv->message->response_body, SOUP_MEMORY_COPY, body, content_length);
-            parse_response (request);
+            SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, priv->message);
             break;
 
         case SOUP_ENCODING_CHUNKED:
@@ -2555,7 +2530,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *r)
 
             compress_chunks (body, client_priv->n_read - header_length, &combined_start, &combined_length, &content_length);
             soup_message_body_append (priv->message->response_body, SOUP_MEMORY_COPY, combined_start, combined_length);
-            parse_response (request);
+            SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, priv->message);
             break;
 
         case SOUP_ENCODING_CONTENT_LENGTH:
@@ -2564,7 +2539,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdRequest *r)
                 return G_SOURCE_CONTINUE;
 
             soup_message_body_append (priv->message->response_body, SOUP_MEMORY_COPY, body, content_length);
-            parse_response (request);
+            SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, priv->message);
             break;
 
         default:
