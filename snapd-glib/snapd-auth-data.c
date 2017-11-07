@@ -152,6 +152,8 @@ snapd_auth_data_finalize (GObject *object)
 
     g_clear_pointer (&auth_data->macaroon, g_free);
     g_clear_pointer (&auth_data->discharges, g_strfreev);
+
+    G_OBJECT_CLASS (snapd_auth_data_parent_class)->finalize (object);
 }
 
 static void

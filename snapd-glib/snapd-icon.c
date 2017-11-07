@@ -127,6 +127,8 @@ snapd_icon_finalize (GObject *object)
 
     g_clear_pointer (&icon->mime_type, g_free);
     g_clear_pointer (&icon->data, g_bytes_unref);
+
+    G_OBJECT_CLASS (snapd_icon_parent_class)->finalize (object);
 }
 
 static void

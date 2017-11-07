@@ -153,6 +153,8 @@ snapd_screenshot_finalize (GObject *object)
     SnapdScreenshot *screenshot = SNAPD_SCREENSHOT (object);
 
     g_clear_pointer (&screenshot->url, g_free);
+
+    G_OBJECT_CLASS (snapd_screenshot_parent_class)->finalize (object);
 }
 
 static void

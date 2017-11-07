@@ -967,6 +967,8 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->tracking_channel, g_free);
     g_clear_pointer (&snap->tracks, g_strfreev);
     g_clear_pointer (&snap->version, g_free);
+
+    G_OBJECT_CLASS (snapd_snap_parent_class)->finalize (object);
 }
 
 static void

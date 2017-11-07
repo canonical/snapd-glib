@@ -244,6 +244,8 @@ snapd_channel_finalize (GObject *object)
     g_clear_pointer (&channel->name, g_free);
     g_clear_pointer (&channel->revision, g_free);
     g_clear_pointer (&channel->version, g_free);
+
+    G_OBJECT_CLASS (snapd_channel_parent_class)->finalize (object);
 }
 
 static void

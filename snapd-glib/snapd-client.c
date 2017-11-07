@@ -407,6 +407,8 @@ snapd_request_finalize (GObject *object)
     g_clear_pointer (&request->stderr_output, g_free);
     g_clear_pointer (&request->async_data, json_node_unref);
     g_clear_pointer (&request->context, g_main_context_unref);
+
+    G_OBJECT_CLASS (snapd_request_parent_class)->finalize (object);
 }
 
 static void
@@ -4740,6 +4742,8 @@ snapd_client_finalize (GObject *object)
         g_socket_close (priv->snapd_socket, NULL);
     g_clear_object (&priv->snapd_socket);
     g_clear_pointer (&priv->buffer, g_byte_array_unref);
+
+    G_OBJECT_CLASS (snapd_client_parent_class)->finalize (object);
 }
 
 static void

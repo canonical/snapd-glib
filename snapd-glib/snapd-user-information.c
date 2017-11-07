@@ -126,6 +126,8 @@ snapd_user_information_finalize (GObject *object)
 
     g_clear_pointer (&user_information->username, g_free);
     g_clear_pointer (&user_information->ssh_keys, g_strfreev);
+
+    G_OBJECT_CLASS (snapd_user_information_parent_class)->finalize (object);
 }
 
 static void

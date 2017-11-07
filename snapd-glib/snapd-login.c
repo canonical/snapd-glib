@@ -66,6 +66,8 @@ snapd_login_request_finalize (GObject *object)
     g_free (request->otp);
     g_clear_object (&request->auth_data);
     g_clear_object (&request->error);
+
+    G_OBJECT_CLASS (snapd_login_request_parent_class)->finalize (object);
 }
 
 static void

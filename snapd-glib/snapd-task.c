@@ -378,6 +378,8 @@ snapd_task_finalize (GObject *object)
     g_clear_pointer (&task->progress_label, g_free);
     g_clear_pointer (&task->spawn_time, g_date_time_unref);
     g_clear_pointer (&task->ready_time, g_date_time_unref);
+
+    G_OBJECT_CLASS (snapd_task_parent_class)->finalize (object);
 }
 
 static void

@@ -362,6 +362,8 @@ snapd_system_information_finalize (GObject *object)
     g_clear_pointer (&system_information->series, g_free);
     g_clear_pointer (&system_information->store, g_free);
     g_clear_pointer (&system_information->version, g_free);
+
+    G_OBJECT_CLASS (snapd_system_information_parent_class)->finalize (object);
 }
 
 static void

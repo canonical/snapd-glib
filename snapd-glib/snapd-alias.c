@@ -255,6 +255,8 @@ snapd_alias_finalize (GObject *object)
     g_clear_pointer (&alias->command, g_free);
     g_clear_pointer (&alias->name, g_free);
     g_clear_pointer (&alias->snap, g_free);
+
+    G_OBJECT_CLASS (snapd_alias_parent_class)->finalize (object);
 }
 
 static void

@@ -298,6 +298,8 @@ snapd_assertion_finalize (GObject *object)
     SnapdAssertion *assertion = SNAPD_ASSERTION (object);
 
     g_clear_pointer (&assertion->content, g_free);
+
+    G_OBJECT_CLASS (snapd_assertion_parent_class)->finalize (object);
 }
 
 static void

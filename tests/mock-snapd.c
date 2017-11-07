@@ -3139,6 +3139,8 @@ mock_snapd_finalize (GObject *object)
 
     g_cond_clear (&snapd->condition);
     g_mutex_clear (&snapd->mutex);
+
+    G_OBJECT_CLASS (mock_snapd_parent_class)->finalize (object);
 }
 
 gpointer

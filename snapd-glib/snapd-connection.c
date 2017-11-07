@@ -127,6 +127,8 @@ snapd_connection_finalize (GObject *object)
 
     g_clear_pointer (&connection->name, g_free);
     g_clear_pointer (&connection->snap, g_free);
+
+    G_OBJECT_CLASS (snapd_connection_parent_class)->finalize (object);
 }
 
 static void

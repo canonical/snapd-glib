@@ -123,6 +123,8 @@ snapd_price_finalize (GObject *object)
     SnapdPrice *price = SNAPD_PRICE (object);
 
     g_clear_pointer (&price->currency, g_free);
+
+    G_OBJECT_CLASS (snapd_price_parent_class)->finalize (object);
 }
 
 static void

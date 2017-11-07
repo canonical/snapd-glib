@@ -254,6 +254,8 @@ snapd_app_finalize (GObject *object)
     g_clear_pointer (&app->name, g_free);
     g_clear_pointer (&app->desktop_file, g_free);
     g_clear_pointer (&app->snap, g_free);
+
+    G_OBJECT_CLASS (snapd_app_parent_class)->finalize (object);
 }
 
 static void

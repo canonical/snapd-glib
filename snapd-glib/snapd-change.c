@@ -289,6 +289,8 @@ snapd_change_finalize (GObject *object)
     g_clear_pointer (&change->tasks, g_ptr_array_unref);
     g_clear_pointer (&change->spawn_time, g_date_time_unref);
     g_clear_pointer (&change->ready_time, g_date_time_unref);
+
+    G_OBJECT_CLASS (snapd_change_parent_class)->finalize (object);
 }
 
 static void

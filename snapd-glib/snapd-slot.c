@@ -291,6 +291,8 @@ snapd_slot_finalize (GObject *object)
     g_clear_pointer (&slot->attributes, g_hash_table_unref);
     g_clear_pointer (&slot->label, g_free);
     g_clear_pointer (&slot->connections, g_ptr_array_unref);
+
+    G_OBJECT_CLASS (snapd_slot_parent_class)->finalize (object);
 }
 
 static void
