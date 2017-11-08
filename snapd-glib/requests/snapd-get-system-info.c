@@ -43,8 +43,8 @@ generate_get_system_info_request (SnapdRequest *request)
     return soup_message_new ("GET", "http://snapd/v2/system-info");
 }
 
-static void
-parse_get_system_info_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdGetSystemInfo *r = SNAPD_GET_SYSTEM_INFO (request);
     g_autoptr(JsonObject) response = NULL;
@@ -53,18 +53,13 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message)
     const gchar *confinement_string;
     SnapdSystemConfinement confinement = SNAPD_SYSTEM_CONFINEMENT_UNKNOWN;
     JsonObject *os_release, *locations;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_o (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_o (response, error);
+    if (result == NULL)
+        return FALSE;
 
     confinement_string = _snapd_json_get_string (result, "confinement", "");
     if (strcmp (confinement_string, "strict") == 0)
@@ -87,7 +82,8 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message)
                                        "version", _snapd_json_get_string (result, "version", NULL),
                                        NULL);
     r->system_information = g_steal_pointer (&system_information);
-    _snapd_request_complete (request, NULL);
+
+    return TRUE;
 }
 
 static void

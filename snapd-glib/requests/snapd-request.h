@@ -22,10 +22,8 @@ struct _SnapdRequestClass
     GObjectClass parent_class;
 
     SoupMessage *(*generate_request)(SnapdRequest *request);
-    void (*parse_response)(SnapdRequest *request, SoupMessage *message);
+    gboolean (*parse_response)(SnapdRequest *request, SoupMessage *message, GError **error);
 };
-
-void _snapd_request_complete (SnapdRequest *request, GError *error);
 
 G_END_DECLS
 

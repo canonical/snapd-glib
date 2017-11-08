@@ -32,6 +32,7 @@ source_private_h = \
 	requests/snapd-get-apps.h \
 	requests/snapd-get-assertions.h \
 	requests/snapd-get-buy-ready.h \
+	requests/snapd-get-change.h \
 	requests/snapd-get-find.h \
 	requests/snapd-get-icon.h \
 	requests/snapd-get-interfaces.h \
@@ -41,6 +42,7 @@ source_private_h = \
 	requests/snapd-get-system-info.h \
 	requests/snapd-post-assertions.h \
 	requests/snapd-post-buy.h \
+	requests/snapd-post-change.h \
 	requests/snapd-post-create-user.h \
 	requests/snapd-post-create-users.h \
 	requests/snapd-post-login.h \
@@ -75,6 +77,7 @@ source_private_c = \
 	requests/snapd-get-apps.c \
 	requests/snapd-get-assertions.c \
 	requests/snapd-get-buy-ready.c \
+	requests/snapd-get-change.c \
 	requests/snapd-get-find.c \
 	requests/snapd-get-icon.c \
 	requests/snapd-get-interfaces.c \
@@ -84,6 +87,7 @@ source_private_c = \
 	requests/snapd-get-system-info.c \
 	requests/snapd-post-assertions.c \
 	requests/snapd-post-buy.c \
+	requests/snapd-post-change.c \
 	requests/snapd-post-create-user.c \
 	requests/snapd-post-create-users.c \
 	requests/snapd-post-login.c \

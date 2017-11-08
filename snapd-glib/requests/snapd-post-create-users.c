@@ -54,26 +54,21 @@ generate_post_create_users_request (SnapdRequest *request)
     return message;
 }
 
-static void
-parse_post_create_users_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_post_create_users_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdPostCreateUsers *r = SNAPD_POST_CREATE_USERS (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) users_information = NULL;
     guint i;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_a (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_a (response, error);
+    if (result == NULL)
+        return FALSE;
 
     users_information = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (result); i++) {
@@ -81,24 +76,22 @@ parse_post_create_users_response (SnapdRequest *request, SoupMessage *message)
         SnapdUserInformation *user_information;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected user information type");
-            _snapd_request_complete (request, error);
-            return;
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected user information type");
+            return FALSE;
         }
 
-        user_information = _snapd_json_parse_user_information (json_node_get_object (node), &error);
+        user_information = _snapd_json_parse_user_information (json_node_get_object (node), error);
         if (user_information == NULL)
-        {
-            _snapd_request_complete (request, error);
-            return;
-        }
+            return FALSE;
         g_ptr_array_add (users_information, user_information);
     }
 
     r->users_information = g_steal_pointer (&users_information);
-    _snapd_request_complete (request, NULL);
+
+    return TRUE;
 }
 
 static void

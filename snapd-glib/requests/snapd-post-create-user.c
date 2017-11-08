@@ -72,34 +72,28 @@ generate_post_create_user_request (SnapdRequest *request)
     return message;
 }
 
-static void
-parse_post_create_user_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_post_create_user_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdPostCreateUser *r = SNAPD_POST_CREATE_USER (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdUserInformation) user_information = NULL;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_o (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_o (response, error);
+    if (result == NULL)
+        return FALSE;
 
-    user_information = _snapd_json_parse_user_information (result, &error);
-    if (user_information == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    user_information = _snapd_json_parse_user_information (result, error);
+    if (user_information == NULL)
+        return FALSE;
 
     r->user_information = g_steal_pointer (&user_information);
-    _snapd_request_complete (request, NULL);
+
+    return TRUE;
 }
 
 static void

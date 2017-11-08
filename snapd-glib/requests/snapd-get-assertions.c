@@ -57,8 +57,8 @@ generate_get_assertions_request (SnapdRequest *request)
     return soup_message_new ("GET", path);
 }
 
-static void
-parse_get_assertions_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdGetAssertions *r = SNAPD_GET_ASSERTIONS (request);
     const gchar *content_type;
@@ -70,40 +70,35 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message)
     if (g_strcmp0 (content_type, "application/json") == 0) {
         g_autoptr(JsonObject) response = NULL;
         g_autoptr(JsonObject) result = NULL;
-        GError *error = NULL;
 
-        response = _snapd_json_parse_response (message, &error);
-        if (response == NULL) {
-            _snapd_request_complete (request, error);
-            return;
-        }
-        result = _snapd_json_get_sync_result_o (response, &error);
-        if (result == NULL) {
-            _snapd_request_complete (request, error);
-            return;
-        }
+        response = _snapd_json_parse_response (message, error);
+        if (response == NULL)
+            return FALSE;
+        result = _snapd_json_get_sync_result_o (response, error);
+        if (result == NULL)
+            return FALSE;
 
-        error = g_error_new (SNAPD_ERROR,
-                             SNAPD_ERROR_READ_FAILED,
-                             "Unknown response");
-        _snapd_request_complete (request, error);
-        return;
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unknown response");
+        return FALSE;
     }
 
     if (message->status_code != SOUP_STATUS_OK) {
-        GError *error = g_error_new (SNAPD_ERROR,
-                                     SNAPD_ERROR_READ_FAILED,
-                                     "Got response %u retrieving assertions", message->status_code);
-        _snapd_request_complete (request, error);
-        return;
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Got response %u retrieving assertions", message->status_code);
+        return FALSE;
     }
 
     if (g_strcmp0 (content_type, "application/x.ubuntu.assertion") != 0) {
-        GError *error = g_error_new (SNAPD_ERROR,
-                                     SNAPD_ERROR_READ_FAILED,
-                                     "Got unknown content type '%s' retrieving assertions", content_type);
-        _snapd_request_complete (request, error);
-        return;
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Got unknown content type '%s' retrieving assertions", content_type);
+        return FALSE;
     }
 
     assertions = g_ptr_array_new ();
@@ -140,7 +135,8 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message)
     g_ptr_array_add (assertions, NULL);
 
     r->assertions = g_steal_pointer (&assertions->pdata);
-    _snapd_request_complete (request, NULL);
+
+    return TRUE;
 }
 
 static void

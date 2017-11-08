@@ -42,36 +42,31 @@ generate_get_sections_request (SnapdRequest *request)
     return soup_message_new ("GET", "http://snapd/v2/sections");
 }
 
-static void
-parse_get_sections_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_get_sections_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdGetSections *r = SNAPD_GET_SECTIONS (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) sections = NULL;
     guint i;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_a (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_a (response, error);
+    if (result == NULL)
+        return FALSE;
 
     sections = g_ptr_array_new ();
     for (i = 0; i < json_array_get_length (result); i++) {
         JsonNode *node = json_array_get_element (result, i);
         if (json_node_get_value_type (node) != G_TYPE_STRING) {
-            error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected snap name type");
-            _snapd_request_complete (request, error);
-            return;
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected snap name type");
+            return FALSE;
         }
 
         g_ptr_array_add (sections, g_strdup (json_node_get_string (node)));
@@ -80,7 +75,7 @@ parse_get_sections_response (SnapdRequest *request, SoupMessage *message)
 
     r->sections = g_steal_pointer (&sections->pdata);
 
-    _snapd_request_complete (request, NULL);
+    return TRUE;
 }
 
 static void

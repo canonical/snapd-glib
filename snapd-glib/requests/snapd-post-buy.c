@@ -63,19 +63,16 @@ generate_post_buy_request (SnapdRequest *request)
     return message;
 }
 
-static void
-parse_post_buy_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_post_buy_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     g_autoptr(JsonObject) response = NULL;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
 
-    _snapd_request_complete (request, NULL);
+    return TRUE;
 }
 
 static void

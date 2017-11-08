@@ -13,6 +13,7 @@
 #include <libsoup/soup.h>
 #include <json-glib/json-glib.h>
 
+#include "snapd-change.h"
 #include "snapd-snap.h"
 #include "snapd-user-information.h"
 
@@ -39,9 +40,6 @@ JsonArray            *_snapd_json_get_array              (JsonObject         *ob
 JsonObject           *_snapd_json_get_object             (JsonObject         *object,
                                                           const gchar        *name);
 
-GDateTime            *_snapd_json_get_date_time          (JsonObject         *object,
-                                                          const gchar        *name);
-
 JsonObject           *_snapd_json_parse_response         (SoupMessage        *message,
                                                           GError            **error);
 
@@ -52,6 +50,9 @@ JsonArray            *_snapd_json_get_sync_result_a      (JsonObject         *re
                                                           GError            **error);
 
 gchar                *_snapd_json_get_async_result       (JsonObject         *response,
+                                                          GError            **error);
+
+SnapdChange          *_snapd_json_parse_change           (JsonObject         *object,
                                                           GError            **error);
 
 SnapdSnap            *_snapd_json_parse_snap             (JsonObject         *object,

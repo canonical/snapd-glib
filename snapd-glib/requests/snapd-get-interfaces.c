@@ -66,10 +66,10 @@ get_connections (JsonObject *object, const gchar *name, GError **error)
         SnapdConnection *connection;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected connection type");
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected connection type");
             return NULL;
         }
 
@@ -243,8 +243,8 @@ get_attributes (JsonObject *object, const gchar *name, GError **error)
     return attributes;
 }
 
-static void
-parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdGetInterfaces *r = SNAPD_GET_INTERFACES (request);
     g_autoptr(JsonObject) response = NULL;
@@ -254,18 +254,13 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message)
     g_autoptr(JsonArray) plugs = NULL;
     g_autoptr(JsonArray) slots = NULL;
     guint i;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_o (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_o (response, error);
+    if (result == NULL)
+        return FALSE;
 
     plugs = _snapd_json_get_array (result, "plugs");
     plug_array = g_ptr_array_new_with_free_func (g_object_unref);
@@ -277,20 +272,20 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message)
         g_autoptr(SnapdPlug) plug = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected plug type");
-            _snapd_request_complete (request, error);
-            return;
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected plug type");
+            return FALSE;
         }
         object = json_node_get_object (node);
 
-        connections = get_connections (object, "slot", &error);
-        if (connections == NULL) {
-            _snapd_request_complete (request, error);
-            return;
-        }
-        attributes = get_attributes (object, "slot", &error);
+        connections = get_connections (object, "slot", error);
+        if (connections == NULL)
+            return FALSE;
+        attributes = get_attributes (object, "slot", error);
+        if (attributes == NULL)
+            return FALSE;
 
         plug = g_object_new (SNAPD_TYPE_PLUG,
                              "name", _snapd_json_get_string (object, "plug", NULL),
@@ -313,20 +308,20 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message)
         g_autoptr(SnapdSlot) slot = NULL;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected slot type");
-            _snapd_request_complete (request, error);
-            return;
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected slot type");
+            return FALSE;
         }
         object = json_node_get_object (node);
 
-        connections = get_connections (object, "plug", &error);
-        if (connections == NULL) {
-            _snapd_request_complete (request, error);
-            return;
-        }
-        attributes = get_attributes (object, "plug", &error);
+        connections = get_connections (object, "plug", error);
+        if (connections == NULL)
+            return FALSE;
+        attributes = get_attributes (object, "plug", error);
+        if (attributes == NULL)
+            return FALSE;
 
         slot = g_object_new (SNAPD_TYPE_SLOT,
                              "name", _snapd_json_get_string (object, "slot", NULL),
@@ -342,7 +337,8 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message)
 
     r->plugs = g_steal_pointer (&plug_array);
     r->slots = g_steal_pointer (&slot_array);
-    _snapd_request_complete (request, NULL);
+
+    return TRUE;
 }
 
 static void

@@ -72,8 +72,8 @@ generate_post_login_request (SnapdRequest *request)
     return message;
 }
 
-static void
-parse_post_login_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_post_login_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdPostLogin *r = SNAPD_POST_LOGIN (request);
     g_autoptr(JsonObject) response = NULL;
@@ -81,18 +81,13 @@ parse_post_login_response (SnapdRequest *request, SoupMessage *message)
     g_autoptr(JsonArray) discharges = NULL;
     g_autoptr(GPtrArray) discharge_array = NULL;
     guint i;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_o (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_o (response, error);
+    if (result == NULL)
+        return FALSE;
 
     discharges = _snapd_json_get_array (result, "discharges");
     discharge_array = g_ptr_array_new ();
@@ -100,18 +95,19 @@ parse_post_login_response (SnapdRequest *request, SoupMessage *message)
         JsonNode *node = json_array_get_element (discharges, i);
 
         if (json_node_get_value_type (node) != G_TYPE_STRING) {
-            error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected discharge type");
-            _snapd_request_complete (request, error);
-            return;
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected discharge type");
+            return FALSE;
         }
 
         g_ptr_array_add (discharge_array, (gpointer) json_node_get_string (node));
     }
     g_ptr_array_add (discharge_array, NULL);
     r->auth_data = snapd_auth_data_new (_snapd_json_get_string (result, "macaroon", NULL), (gchar **) discharge_array->pdata);
-    _snapd_request_complete (request, NULL);
+
+    return TRUE;
 }
 
 static void

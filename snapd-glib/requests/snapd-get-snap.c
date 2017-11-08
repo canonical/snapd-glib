@@ -53,34 +53,28 @@ generate_get_snap_request (SnapdRequest *request)
     return soup_message_new ("GET", path);
 }
 
-static void
-parse_get_snap_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_get_snap_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdGetSnap *r = SNAPD_GET_SNAP (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdSnap) snap = NULL;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_o (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_o (response, error);
+    if (result == NULL)
+        return FALSE;
 
-    snap = _snapd_json_parse_snap (result, &error);
-    if (snap == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    snap = _snapd_json_parse_snap (result, error);
+    if (snap == NULL)
+        return FALSE;
 
     r->snap = g_steal_pointer (&snap);
-    _snapd_request_complete (request, NULL);
+
+    return TRUE;
 }
 
 static void

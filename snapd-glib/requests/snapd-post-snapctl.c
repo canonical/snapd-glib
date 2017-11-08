@@ -75,29 +75,24 @@ generate_post_snapctl_request (SnapdRequest *request)
     return message;
 }
 
-static void
-parse_post_snapctl_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_post_snapctl_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdPostSnapctl *r = SNAPD_POST_SNAPCTL (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_o (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_o (response, error);
+    if (result == NULL)
+        return FALSE;
 
     r->stdout_output = g_strdup (_snapd_json_get_string (result, "stdout", NULL));
     r->stderr_output = g_strdup (_snapd_json_get_string (result, "stderr", NULL));
 
-    _snapd_request_complete (request, NULL);
+    return TRUE;
 }
 
 static void

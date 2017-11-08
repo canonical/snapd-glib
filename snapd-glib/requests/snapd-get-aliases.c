@@ -45,8 +45,8 @@ generate_get_aliases_request (SnapdRequest *request)
     return soup_message_new ("GET", "http://snapd/v2/aliases");
 }
 
-static void
-parse_get_aliases_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdGetAliases *r = SNAPD_GET_ALIASES (request);
     g_autoptr(JsonObject) response = NULL;
@@ -55,18 +55,13 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessage *message)
     JsonObjectIter snap_iter;
     const gchar *snap;
     JsonNode *snap_node;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_o (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_o (response, error);
+    if (result == NULL)
+        return FALSE;
 
     aliases = g_ptr_array_new_with_free_func (g_object_unref);
     json_object_iter_init (&snap_iter, result);
@@ -76,10 +71,11 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessage *message)
         JsonNode *alias_node;
 
         if (json_node_get_value_type (snap_node) != JSON_TYPE_OBJECT) {
-            error = g_error_new (SNAPD_ERROR,
-                                 SNAPD_ERROR_READ_FAILED,
-                                 "Unexpected alias type");
-            _snapd_request_complete (request, error);
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected alias type");
+            return FALSE;
         }
 
         json_object_iter_init (&alias_iter, json_node_get_object (snap_node));
@@ -90,10 +86,11 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessage *message)
             g_autoptr(SnapdAlias) alias = NULL;
 
             if (json_node_get_value_type (alias_node) != JSON_TYPE_OBJECT) {
-                error = g_error_new (SNAPD_ERROR,
-                                     SNAPD_ERROR_READ_FAILED,
-                                     "Unexpected alias type");
-                _snapd_request_complete (request, error);
+                g_set_error (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "Unexpected alias type");
+                return FALSE;
             }
 
             o = json_node_get_object (alias_node);
@@ -121,7 +118,7 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessage *message)
 
     r->aliases = g_steal_pointer (&aliases);
 
-    _snapd_request_complete (request, NULL);
+    return TRUE;
 }
 
 static void

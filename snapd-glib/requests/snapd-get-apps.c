@@ -51,34 +51,28 @@ generate_get_apps_request (SnapdRequest *request)
         return soup_message_new ("GET", "http://snapd/v2/apps");
 }
 
-static void
-parse_get_apps_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_get_apps_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdGetApps *r = SNAPD_GET_APPS (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     GPtrArray *apps;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_a (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_a (response, error);
+    if (result == NULL)
+        return FALSE;
 
-    apps = _snapd_json_parse_app_array (result, &error);
-    if (apps == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    apps = _snapd_json_parse_app_array (result, error);
+    if (apps == NULL)
+        return FALSE;
 
     r->apps = g_steal_pointer (&apps);
-    _snapd_request_complete (request, NULL);
+
+    return TRUE;
 }
 
 static void

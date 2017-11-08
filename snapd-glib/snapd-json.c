@@ -15,6 +15,7 @@
 #include "snapd-error.h"
 #include "snapd-app.h"
 #include "snapd-screenshot.h"
+#include "snapd-task.h"
 
 void
 _snapd_json_set_body (SoupMessage *message, JsonBuilder *builder)
@@ -143,8 +144,8 @@ is_timezone_prefix (gchar c)
     return c == '+' || c == '-' || c == 'Z';
 }
 
-GDateTime *
-_snapd_json_get_date_time (JsonObject *object, const gchar *name)
+static GDateTime *
+parse_date_time (JsonObject *object, const gchar *name)
 {
     const gchar *value;
     g_auto(GStrv) tokens = NULL;
@@ -429,6 +430,65 @@ _snapd_json_get_async_result (JsonObject *response, GError **error)
     return g_strdup (json_node_get_string (change_node));
 }
 
+SnapdChange *
+_snapd_json_parse_change (JsonObject *object, GError **error)
+{
+    g_autoptr(JsonArray) array = NULL;
+    guint i;
+    g_autoptr(GPtrArray) tasks = NULL;
+    g_autoptr(GDateTime) main_spawn_time = NULL;
+    g_autoptr(GDateTime) main_ready_time = NULL;
+
+    array = _snapd_json_get_array (object, "tasks");
+    tasks = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (array); i++) {
+        JsonNode *node = json_array_get_element (array, i);
+        JsonObject *object, *progress;
+        g_autoptr(GDateTime) spawn_time = NULL;
+        g_autoptr(GDateTime) ready_time = NULL;
+        g_autoptr(SnapdTask) t = NULL;
+
+        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected task type");
+            return NULL;
+        }
+        object = json_node_get_object (node);
+        progress = _snapd_json_get_object (object, "progress");
+        spawn_time = parse_date_time (object, "spawn-time");
+        ready_time = parse_date_time (object, "ready-time");
+
+        t = g_object_new (SNAPD_TYPE_TASK,
+                          "id", _snapd_json_get_string (object, "id", NULL),
+                          "kind", _snapd_json_get_string (object, "kind", NULL),
+                          "summary", _snapd_json_get_string (object, "summary", NULL),
+                          "status", _snapd_json_get_string (object, "status", NULL),
+                          "progress-label", progress != NULL ? _snapd_json_get_string (progress, "label", NULL) : NULL,
+                          "progress-done", progress != NULL ? _snapd_json_get_int (progress, "done", 0) : 0,
+                          "progress-total", progress != NULL ? _snapd_json_get_int (progress, "total", 0) : 0,
+                          "spawn-time", spawn_time,
+                          "ready-time", ready_time,
+                          NULL);
+        g_ptr_array_add (tasks, g_steal_pointer (&t));
+    }
+
+    main_spawn_time = parse_date_time (object, "spawn-time");
+    main_ready_time = parse_date_time (object, "ready-time");
+
+    return g_object_new (SNAPD_TYPE_CHANGE,
+                         "id", _snapd_json_get_string (object, "id", NULL),
+                         "kind", _snapd_json_get_string (object, "kind", NULL),
+                         "summary", _snapd_json_get_string (object, "summary", NULL),
+                         "status", _snapd_json_get_string (object, "status", NULL),
+                         "tasks", tasks,
+                         "ready", _snapd_json_get_bool (object, "ready", FALSE),
+                         "spawn-time", main_spawn_time,
+                         "ready-time", main_ready_time,
+                         NULL);
+}
+
 static SnapdConfinement
 parse_confinement (const gchar *value)
 {
@@ -579,7 +639,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
         }
     }
 
-    install_date = _snapd_json_get_date_time (object, "install-date");
+    install_date = parse_date_time (object, "install-date");
 
     prices = _snapd_json_get_object (object, "prices");
     prices_array = g_ptr_array_new_with_free_func (g_object_unref);

@@ -94,36 +94,29 @@ generate_get_find_request (SnapdRequest *request)
     return soup_message_new ("GET", path->str);
 }
 
-static void
-parse_get_find_response (SnapdRequest *request, SoupMessage *message)
+static gboolean
+parse_get_find_response (SnapdRequest *request, SoupMessage *message, GError **error)
 {
     SnapdGetFind *r = SNAPD_GET_FIND (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
-    GError *error = NULL;
 
-    response = _snapd_json_parse_response (message, &error);
-    if (response == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-    result = _snapd_json_get_sync_result_a (response, &error);
-    if (result == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
+    response = _snapd_json_parse_response (message, error);
+    if (response == NULL)
+        return FALSE;
+    result = _snapd_json_get_sync_result_a (response, error);
+    if (result == NULL)
+        return FALSE;
 
-    snaps = _snapd_json_parse_snap_array (result, &error);
-    if (snaps == NULL) {
-        _snapd_request_complete (request, error);
-        return;
-    }
-
-    r->suggested_currency = g_strdup (_snapd_json_get_string (response, "suggested-currency", NULL));
+    snaps = _snapd_json_parse_snap_array (result, error);
+    if (snaps == NULL)
+        return FALSE;
 
     r->snaps = g_steal_pointer (&snaps);
-    _snapd_request_complete (request, NULL);
+    r->suggested_currency = g_strdup (_snapd_json_get_string (response, "suggested-currency", NULL));
+
+    return TRUE;
 }
 
 static void
