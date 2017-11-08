@@ -15,8 +15,9 @@
 struct _SnapdGetFind
 {
     SnapdRequest parent_instance;
-    SnapdFindFlags flags;
     gchar *query;
+    gchar *name;
+    gchar *select;
     gchar *section;
     gchar *suggested_currency;
     GPtrArray *snaps;
@@ -25,7 +26,7 @@ struct _SnapdGetFind
 G_DEFINE_TYPE (SnapdGetFind, snapd_get_find, snapd_request_get_type ())
 
 SnapdGetFind *
-_snapd_get_find_new (SnapdFindFlags flags, const gchar *section, const gchar *query, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_get_find_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdGetFind *request;
 
@@ -34,11 +35,36 @@ _snapd_get_find_new (SnapdFindFlags flags, const gchar *section, const gchar *qu
                                             "ready-callback", callback,
                                             "ready-callback-data", user_data,
                                             NULL));
-    request->flags = flags;
-    request->section = g_strdup (section);
-    request->query = g_strdup (query);
 
     return request;
+}
+
+void
+_snapd_get_find_set_query (SnapdGetFind *request, const gchar *query)
+{
+    g_free (request->query);
+    request->query = g_strdup (query);
+}
+
+void
+_snapd_get_find_set_name (SnapdGetFind *request, const gchar *name)
+{
+    g_free (request->name);
+    request->name = g_strdup (name);
+}
+
+void
+_snapd_get_find_set_select (SnapdGetFind *request, const gchar *select)
+{
+    g_free (request->select);
+    request->select = g_strdup (select);
+}
+
+void
+_snapd_get_find_set_section (SnapdGetFind *request, const gchar *section)
+{
+    g_free (request->section);
+    request->section = g_strdup (section);
 }
 
 GPtrArray *
@@ -63,17 +89,16 @@ generate_get_find_request (SnapdRequest *request)
     query_attributes = g_ptr_array_new_with_free_func (g_free);
     if (r->query != NULL) {
         g_autofree gchar *escaped = soup_uri_encode (r->query, NULL);
-        if ((r->flags & SNAPD_FIND_FLAGS_MATCH_NAME) != 0)
-            g_ptr_array_add (query_attributes, g_strdup_printf ("name=%s", escaped));
-        else
-            g_ptr_array_add (query_attributes, g_strdup_printf ("q=%s", escaped));
+        g_ptr_array_add (query_attributes, g_strdup_printf ("q=%s", escaped));
     }
-
-    if ((r->flags & SNAPD_FIND_FLAGS_SELECT_PRIVATE) != 0)
-        g_ptr_array_add (query_attributes, g_strdup_printf ("select=private"));
-    else if ((r->flags & SNAPD_FIND_FLAGS_SELECT_REFRESH) != 0)
-        g_ptr_array_add (query_attributes, g_strdup_printf ("select=refresh"));
-
+    if (r->name != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (r->name, NULL);
+        g_ptr_array_add (query_attributes, g_strdup_printf ("name=%s", escaped));
+    }
+    if (r->select != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (r->select, NULL);
+        g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", escaped));
+    }
     if (r->section != NULL) {
         g_autofree gchar *escaped = soup_uri_encode (r->section, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("section=%s", escaped));
@@ -125,6 +150,8 @@ snapd_get_find_finalize (GObject *object)
     SnapdGetFind *request = SNAPD_GET_FIND (object);
 
     g_free (request->query);
+    g_free (request->name);
+    g_free (request->select);
     g_free (request->section);
     g_free (request->suggested_currency);
     g_clear_pointer (&request->snaps, g_ptr_array_unref);

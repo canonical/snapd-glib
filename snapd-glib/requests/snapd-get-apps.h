@@ -12,18 +12,18 @@
 
 #include "snapd-request.h"
 
-#include "snapd-client.h"
-
 G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdGetApps, snapd_get_apps, SNAPD, GET_APPS, SnapdRequest)
 
-SnapdGetApps *_snapd_get_apps_new      (SnapdGetAppsFlags    flags,
-                                        GCancellable        *cancellable,
-                                        GAsyncReadyCallback  callback,
-                                        gpointer             user_data);
+SnapdGetApps *_snapd_get_apps_new        (GCancellable        *cancellable,
+                                          GAsyncReadyCallback  callback,
+                                          gpointer             user_data);
 
-GPtrArray    *_snapd_get_apps_get_apps (SnapdGetApps *request);
+void          _snapd_get_apps_set_select (SnapdGetApps        *request,
+                                          const gchar         *select);
+
+GPtrArray    *_snapd_get_apps_get_apps   (SnapdGetApps        *request);
 
 G_END_DECLS
 

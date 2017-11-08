@@ -16,14 +16,15 @@ struct _SnapdPostCreateUser
 {
     SnapdRequest parent_instance;
     gchar *email;
-    SnapdCreateUserFlags flags;
+    gboolean sudoer;
+    gboolean known;
     SnapdUserInformation *user_information;
 };
 
 G_DEFINE_TYPE (SnapdPostCreateUser, snapd_post_create_user, snapd_request_get_type ())
 
 SnapdPostCreateUser *
-_snapd_post_create_user_new (const gchar *email, SnapdCreateUserFlags flags,
+_snapd_post_create_user_new (const gchar *email,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdPostCreateUser *request;
@@ -34,9 +35,20 @@ _snapd_post_create_user_new (const gchar *email, SnapdCreateUserFlags flags,
                                                     "ready-callback-data", user_data,
                                                     NULL));
     request->email = g_strdup (email);
-    request->flags = flags;
 
     return request;
+}
+
+void
+_snapd_post_create_user_set_sudoer (SnapdPostCreateUser *request, gboolean sudoer)
+{
+    request->sudoer = sudoer;
+}
+
+void
+_snapd_post_create_user_set_known (SnapdPostCreateUser *request, gboolean known)
+{
+    request->known = known;
 }
 
 SnapdUserInformation *
@@ -58,11 +70,11 @@ generate_post_create_user_request (SnapdRequest *request)
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "email");
     json_builder_add_string_value (builder, r->email);
-    if ((r->flags & SNAPD_CREATE_USER_FLAGS_SUDO) != 0) {
+    if (r->sudoer) {
         json_builder_set_member_name (builder, "sudoer");
         json_builder_add_boolean_value (builder, TRUE);
     }
-    if ((r->flags & SNAPD_CREATE_USER_FLAGS_KNOWN) != 0) {
+    if (r->known) {
         json_builder_set_member_name (builder, "known");
         json_builder_add_boolean_value (builder, TRUE);
     }

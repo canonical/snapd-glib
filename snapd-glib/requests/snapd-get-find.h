@@ -12,22 +12,29 @@
 
 #include "snapd-request.h"
 
-#include "snapd-client.h"
-
 G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdGetFind, snapd_get_find, SNAPD, GET_FIND, SnapdRequest)
 
-SnapdGetFind *_snapd_get_find_new                    (SnapdFindFlags       flags,
-                                                      const gchar         *section,
-                                                      const gchar         *query,
-                                                      GCancellable        *cancellable,
+SnapdGetFind *_snapd_get_find_new                    (GCancellable        *cancellable,
                                                       GAsyncReadyCallback  callback,
                                                       gpointer             user_data);
 
-GPtrArray    *_snapd_get_find_get_snaps              (SnapdGetFind *request);
+void          _snapd_get_find_set_query              (SnapdGetFind        *request,
+                                                      const gchar         *query);
 
-const gchar  *_snapd_get_find_get_suggested_currency (SnapdGetFind *request);
+void          _snapd_get_find_set_name               (SnapdGetFind        *request,
+                                                      const gchar         *name);
+
+void          _snapd_get_find_set_select             (SnapdGetFind        *request,
+                                                      const gchar         *select);
+
+void          _snapd_get_find_set_section            (SnapdGetFind        *request,
+                                                      const gchar         *section);
+
+GPtrArray    *_snapd_get_find_get_snaps              (SnapdGetFind        *request);
+
+const gchar  *_snapd_get_find_get_suggested_currency (SnapdGetFind        *request);
 
 G_END_DECLS
 

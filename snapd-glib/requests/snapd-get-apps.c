@@ -14,14 +14,14 @@
 struct _SnapdGetApps
 {
     SnapdRequest parent_instance;
-    SnapdGetAppsFlags flags;
+    gchar *select;
     GPtrArray *apps;
 };
 
 G_DEFINE_TYPE (SnapdGetApps, snapd_get_apps, snapd_request_get_type ())
 
 SnapdGetApps *
-_snapd_get_apps_new (SnapdGetAppsFlags flags, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_get_apps_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdGetApps *request;
 
@@ -30,9 +30,15 @@ _snapd_get_apps_new (SnapdGetAppsFlags flags, GCancellable *cancellable, GAsyncR
                                             "ready-callback", callback,
                                             "ready-callback-data", user_data,
                                             NULL));
-    request->flags = flags;
 
     return request;
+}
+
+void
+_snapd_get_apps_set_select (SnapdGetApps *request, const gchar *select)
+{
+    g_free (request->select);
+    request->select = g_strdup (select);
 }
 
 GPtrArray *
@@ -45,10 +51,16 @@ static SoupMessage *
 generate_get_apps_request (SnapdRequest *request)
 {
     SnapdGetApps *r = SNAPD_GET_APPS (request);
-    if ((r->flags & SNAPD_GET_APPS_FLAGS_SELECT_SERVICES) != 0)
-        return soup_message_new ("GET", "http://snapd/v2/apps?select=service");
+    g_autofree gchar *uri = NULL;
+
+    if (r->select != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (r->select, NULL);
+        uri = g_strdup_printf ("http://snapd/v2/apps?select=%s", escaped);
+    }
     else
-        return soup_message_new ("GET", "http://snapd/v2/apps");
+        uri = g_strdup ("http://snapd/v2/apps");
+
+    return soup_message_new ("GET", uri);
 }
 
 static gboolean
@@ -80,6 +92,7 @@ snapd_get_apps_finalize (GObject *object)
 {
     SnapdGetApps *request = SNAPD_GET_APPS (object);
 
+    g_clear_pointer (&request->select, g_free);
     g_clear_pointer (&request->apps, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_apps_parent_class)->finalize (object);

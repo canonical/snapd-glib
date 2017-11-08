@@ -1698,7 +1698,9 @@ snapd_client_get_apps_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = _snapd_get_apps_new (flags, cancellable, callback, user_data);
+    request = _snapd_get_apps_new (cancellable, callback, user_data);
+    if ((flags & SNAPD_GET_APPS_FLAGS_SELECT_SERVICES) != 0)
+        _snapd_get_apps_set_select (request, "service");
     send_request (client, SNAPD_REQUEST (request));
 }
 
@@ -2210,7 +2212,16 @@ snapd_client_find_section_async (SnapdClient *client,
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (section != NULL || query != NULL);
 
-    request = _snapd_get_find_new (flags, section, query, cancellable, callback, user_data);
+    request = _snapd_get_find_new (cancellable, callback, user_data);
+    if ((flags & SNAPD_FIND_FLAGS_MATCH_NAME) != 0)
+        _snapd_get_find_set_name (request, query);
+    else
+        _snapd_get_find_set_query (request, query);
+    if ((flags & SNAPD_FIND_FLAGS_SELECT_PRIVATE) != 0)
+        _snapd_get_find_set_select (request, "private");
+    else if ((flags & SNAPD_FIND_FLAGS_SELECT_REFRESH) != 0)
+        _snapd_get_find_set_select (request, "refresh");
+    _snapd_get_find_set_section (request, section);
     send_request (client, SNAPD_REQUEST (request));
 }
 
@@ -2266,7 +2277,8 @@ snapd_client_find_refreshable_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = _snapd_get_find_new (SNAPD_FIND_FLAGS_SELECT_REFRESH, NULL, NULL, cancellable, callback, user_data);
+    request = _snapd_get_find_new (cancellable, callback, user_data);
+    _snapd_get_find_set_select (request, "refresh");
     send_request (client, SNAPD_REQUEST (request));
 }
 
@@ -3058,7 +3070,11 @@ snapd_client_create_user_async (SnapdClient *client,
     g_return_if_fail (SNAPD_IS_CLIENT (client));
     g_return_if_fail (email != NULL);
 
-    request = _snapd_post_create_user_new (email, flags, cancellable, callback, user_data);
+    request = _snapd_post_create_user_new (email, cancellable, callback, user_data);
+    if ((flags & SNAPD_CREATE_USER_FLAGS_SUDO) != 0)
+        _snapd_post_create_user_set_sudoer (request, TRUE);
+    if ((flags & SNAPD_CREATE_USER_FLAGS_KNOWN) != 0)
+        _snapd_post_create_user_set_known (request, TRUE);
     send_request (client, SNAPD_REQUEST (request));
 }
 
