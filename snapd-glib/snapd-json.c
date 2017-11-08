@@ -16,6 +16,25 @@
 #include "snapd-app.h"
 #include "snapd-screenshot.h"
 
+void
+_snapd_json_set_body (SoupMessage *message, JsonBuilder *builder)
+{
+    g_autoptr(JsonNode) json_root = NULL;
+    g_autoptr(JsonGenerator) json_generator = NULL;
+    g_autofree gchar *data = NULL;
+    gsize data_length;
+
+    json_root = json_builder_get_root (builder);
+    json_generator = json_generator_new ();
+    json_generator_set_pretty (json_generator, TRUE);
+    json_generator_set_root (json_generator, json_root);
+    data = json_generator_to_data (json_generator, &data_length);
+
+    soup_message_headers_set_content_type (message->request_headers, "application/json", NULL);
+    soup_message_body_append_take (message->request_body, g_steal_pointer (&data), data_length);
+    soup_message_headers_set_content_length (message->request_headers, message->request_body->length);
+}
+
 gboolean
 _snapd_json_get_bool (JsonObject *object, const gchar *name, gboolean default_value)
 {

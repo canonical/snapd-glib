@@ -27,7 +27,25 @@ source_h = \
 
 source_private_h = \
 	snapd-json.h \
-	snapd-login-private.h
+	snapd-login-private.h \
+	requests/snapd-get-aliases.h \
+	requests/snapd-get-apps.h \
+	requests/snapd-get-assertions.h \
+	requests/snapd-get-buy-ready.h \
+	requests/snapd-get-find.h \
+	requests/snapd-get-icon.h \
+	requests/snapd-get-interfaces.h \
+	requests/snapd-get-sections.h \
+	requests/snapd-get-snap.h \
+	requests/snapd-get-snaps.h \
+	requests/snapd-get-system-info.h \
+	requests/snapd-post-assertions.h \
+	requests/snapd-post-buy.h \
+	requests/snapd-post-create-user.h \
+	requests/snapd-post-create-users.h \
+	requests/snapd-post-login.h \
+	requests/snapd-post-snapctl.h \
+	requests/snapd-request.h
 
 source_c = \
 	snapd-alias.c \
@@ -52,7 +70,24 @@ source_c = \
 	snapd-user-information.c
 
 source_private_c = \
-	snapd-json.c
+	snapd-json.c \
+	requests/snapd-get-aliases.c \
+	requests/snapd-get-apps.c \
+	requests/snapd-get-assertions.c \
+	requests/snapd-get-buy-ready.c \
+	requests/snapd-get-find.c \
+	requests/snapd-get-icon.c \
+	requests/snapd-get-interfaces.c \
+	requests/snapd-get-sections.c \
+	requests/snapd-get-snap.c \
+	requests/snapd-get-snaps.c \
+	requests/snapd-get-system-info.c \
+	requests/snapd-post-assertions.c \
+	requests/snapd-post-buy.c \
+	requests/snapd-post-create-user.c \
+	requests/snapd-post-create-users.c \
+	requests/snapd-post-login.c \
+	requests/snapd-post-snapctl.c
 
 # glib-mkenums rules
 glib_enum_h = snapd-enum-types.h

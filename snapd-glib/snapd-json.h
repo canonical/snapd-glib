@@ -18,6 +18,9 @@
 
 G_BEGIN_DECLS
 
+void                  _snapd_json_set_body               (SoupMessage        *message,
+                                                          JsonBuilder        *builder);
+
 gboolean              _snapd_json_get_bool               (JsonObject         *object,
                                                           const gchar        *name,
                                                           gboolean            default_value);

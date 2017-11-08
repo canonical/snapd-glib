@@ -1,0 +1,32 @@
+/*
+ * Copyright (C) 2017 Canonical Ltd.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2 or version 3 of the License.
+ * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
+ */
+
+#ifndef __SNAPD_REQUEST_H__
+#define __SNAPD_REQUEST_H__
+
+#include <glib-object.h>
+#include <libsoup/soup.h>
+
+G_BEGIN_DECLS
+
+G_DECLARE_DERIVABLE_TYPE (SnapdRequest, snapd_request, SNAPD, REQUEST, GObject)
+
+struct _SnapdRequestClass
+{
+    GObjectClass parent_class;
+
+    SoupMessage *(*generate_request)(SnapdRequest *request);
+    void (*parse_response)(SnapdRequest *request, SoupMessage *message);
+};
+
+void _snapd_request_complete (SnapdRequest *request, GError *error);
+
+G_END_DECLS
+
+#endif /* __SNAPD_REQUEST_H__ */
