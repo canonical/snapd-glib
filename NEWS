@@ -36,6 +36,7 @@ Overview of changes in snapd-glib 1.25
     * Fix memory handling in create user methods
     * Implement user creation in snapd-qt
     * Fix memory leaks due to missing destructor chain
+    * Refactor internal message code
 
 Overview of changes in snapd-glib 1.24
 
