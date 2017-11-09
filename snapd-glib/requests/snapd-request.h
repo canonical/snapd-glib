@@ -25,9 +25,22 @@ struct _SnapdRequestClass
     gboolean (*parse_response)(SnapdRequest *request, SoupMessage *message, GError **error);
 };
 
-GMainContext *_snapd_request_get_context     (SnapdRequest *request);
+void          _snapd_request_set_source_object (SnapdRequest *request,
+                                                GObject      *object);
 
-GCancellable *_snapd_request_get_cancellable (SnapdRequest *request);
+GMainContext *_snapd_request_get_context       (SnapdRequest *request);
+
+GCancellable *_snapd_request_get_cancellable   (SnapdRequest *request);
+
+void          _snapd_request_generate          (SnapdRequest *request);
+
+SoupMessage  *_snapd_request_get_message       (SnapdRequest *request);
+
+void          _snapd_request_return            (SnapdRequest *request,
+                                                GError       *error);
+
+gboolean      _snapd_request_propagate_error   (SnapdRequest *request,
+                                                GError      **error);
 
 G_END_DECLS
 

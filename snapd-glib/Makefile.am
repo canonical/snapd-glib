@@ -105,6 +105,7 @@ source_private_c = \
 	requests/snapd-post-snap-try.c \
 	requests/snapd-post-snaps.c \
 	requests/snapd-post-snapctl.c \
+	requests/snapd-request.c \
 	requests/snapd-request-async.c
 
 # glib-mkenums rules
