@@ -189,13 +189,13 @@ snapd_request_async_class_init (SnapdRequestAsyncClass *klass)
                                     PROP_PROGRESS_CALLBACK,
                                     g_param_spec_pointer ("progress-callback",
                                                           "progress-callback",
-                                                          "",
+                                                          "Progress callback",
                                                           G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
    g_object_class_install_property (gobject_class,
                                     PROP_PROGRESS_CALLBACK_DATA,
                                     g_param_spec_pointer ("progress-callback-data",
                                                           "progress-callback-data",
-                                                          "",
+                                                          "Data for progress callback",
                                                           G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 }
 

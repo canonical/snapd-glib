@@ -187,27 +187,27 @@ snapd_request_class_init (SnapdRequestClass *klass)
                                     PROP_SOURCE_OBJECT,
                                     g_param_spec_object ("source-object",
                                                          "source-object",
-                                                         "",
+                                                         "Source object",
                                                          G_TYPE_OBJECT,
                                                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
    g_object_class_install_property (gobject_class,
                                     PROP_CANCELLABLE,
                                     g_param_spec_object ("cancellable",
                                                          "cancellable",
-                                                         "",
+                                                         "Cancellable",
                                                          G_TYPE_CANCELLABLE,
                                                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
    g_object_class_install_property (gobject_class,
                                     PROP_READY_CALLBACK,
                                     g_param_spec_pointer ("ready-callback",
                                                           "ready-callback",
-                                                          "",
+                                                          "Ready callback",
                                                           G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
    g_object_class_install_property (gobject_class,
                                     PROP_READY_CALLBACK_DATA,
                                     g_param_spec_pointer ("ready-callback-data",
                                                           "ready-callback-data",
-                                                          "",
+                                                          "Ready callback data",
                                                           G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 }
 
