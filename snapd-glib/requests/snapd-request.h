@@ -25,6 +25,10 @@ struct _SnapdRequestClass
     gboolean (*parse_response)(SnapdRequest *request, SoupMessage *message, GError **error);
 };
 
+GMainContext *_snapd_request_get_context     (SnapdRequest *request);
+
+GCancellable *_snapd_request_get_cancellable (SnapdRequest *request);
+
 G_END_DECLS
 
 #endif /* __SNAPD_REQUEST_H__ */
