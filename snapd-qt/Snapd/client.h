@@ -410,6 +410,23 @@ private:
     Q_DECLARE_PRIVATE(QSnapdDisableRequest)
 };
 
+class QSnapdSwitchChannelRequestPrivate;
+class Q_DECL_EXPORT QSnapdSwitchChannelRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdSwitchChannelRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent = 0);
+    ~QSnapdSwitchChannelRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdSwitchChannelRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdSwitchChannelRequest)
+};
+
 class QSnapdCheckBuyRequestPrivate;
 class Q_DECL_EXPORT QSnapdCheckBuyRequest : public QSnapdRequest
 {
@@ -727,6 +744,7 @@ public:
     Q_INVOKABLE QSnapdRemoveRequest *remove (const QString &name);
     Q_INVOKABLE QSnapdEnableRequest *enable (const QString &name);
     Q_INVOKABLE QSnapdDisableRequest *disable (const QString &name);
+    Q_INVOKABLE QSnapdSwitchChannelRequest *switchChannel (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdCheckBuyRequest *checkBuy ();
     Q_INVOKABLE QSnapdBuyRequest *buy (const QString& id, double amount, const QString& currency);
     Q_INVOKABLE QSnapdCreateUserRequest *createUser (const QString& email);

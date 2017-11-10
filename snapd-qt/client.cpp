@@ -405,6 +405,17 @@ QSnapdDisableRequest *QSnapdClient::disable (const QString& name)
     return new QSnapdDisableRequest (name, d->client);
 }
 
+QSnapdSwitchChannelRequest::~QSnapdSwitchChannelRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdSwitchChannelRequest *QSnapdClient::switchChannel (const QString& name, const QString& channel)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdSwitchChannelRequest (name, channel, d->client);
+}
+
 QSnapdCheckBuyRequest::~QSnapdCheckBuyRequest ()
 {
     delete d_ptr;
@@ -1559,6 +1570,47 @@ void QSnapdDisableRequest::runAsync ()
                                 d->name.toStdString ().c_str (),
                                 progress_cb, this,
                                 G_CANCELLABLE (getCancellable ()), disable_ready_cb, (gpointer) this);
+}
+
+QSnapdSwitchChannelRequest::QSnapdSwitchChannelRequest (const QString& name, const QString& channel, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdSwitchChannelRequestPrivate (name, channel)) {}
+
+void QSnapdSwitchChannelRequest::runSync ()
+{
+    Q_D(QSnapdSwitchChannelRequest);
+    g_autoptr(GError) error = NULL;
+    snapd_client_switch_sync (SNAPD_CLIENT (getClient ()),
+                              d->name.toStdString ().c_str (),
+                              d->channel.toStdString ().c_str (),
+                              progress_cb, this,
+                              G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdSwitchChannelRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GError) error = NULL;
+
+    snapd_client_switch_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    finish (error);
+}
+
+static void switch_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdSwitchChannelRequest *request = static_cast<QSnapdSwitchChannelRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdSwitchChannelRequest::runAsync ()
+{
+    Q_D(QSnapdSwitchChannelRequest);
+    snapd_client_switch_async (SNAPD_CLIENT (getClient ()),
+                               d->name.toStdString ().c_str (),
+                               d->channel.toStdString ().c_str (),
+                               progress_cb, this,
+                               G_CANCELLABLE (getCancellable ()), switch_ready_cb, (gpointer) this);
 }
 
 QSnapdCheckBuyRequest::QSnapdCheckBuyRequest (void *snapd_client, QObject *parent):

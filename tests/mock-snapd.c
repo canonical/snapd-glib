@@ -2021,6 +2021,23 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
             else
                 send_error_bad_request (message, "cannot disable: cannot find snap", NULL);
         }
+        else if (strcmp (action, "switch") == 0) {
+            MockSnap *snap;
+
+            snap = find_snap (snapd, name);
+            if (snap != NULL)
+            {
+                MockChange *change;
+
+                mock_snap_set_tracking_channel (snap, channel);
+
+                change = add_change (snapd);
+                add_task (change, "switch");
+                send_async_response (message, 202, change->id);
+            }
+            else
+                send_error_bad_request (message, "cannot switch: cannot find snap", NULL);
+        }
         else
             send_error_bad_request (message, "unknown action", NULL);
     }

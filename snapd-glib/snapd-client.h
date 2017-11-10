@@ -549,6 +549,25 @@ gboolean                snapd_client_disable_finish                (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+gboolean                snapd_client_switch_sync                   (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    const gchar          *channel,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_switch_async                  (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    const gchar          *channel,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_switch_finish                 (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 gboolean                snapd_client_check_buy_sync                (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);

@@ -2356,6 +2356,60 @@ snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError *
 }
 
 /**
+ * snapd_client_switch_async:
+ * @client: a #SnapdClient.
+ * @name: name of snap to switch channel.
+ * @channel: channel to track.
+ * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously set the tracking channel on an installed snap.
+ * See snapd_client_switch_sync() for more information.
+ *
+ * Since: 1.0
+ */
+void
+snapd_client_switch_async (SnapdClient *client,
+                           const gchar *name, const gchar *channel,
+                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdPostSnap *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (name != NULL);
+
+    request = _snapd_post_snap_new (name, "switch", progress_callback, progress_callback_data, cancellable, callback, user_data);
+    _snapd_post_snap_set_channel (request, channel);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_switch_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_switch_async().
+ * See snapd_client_switch_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.0
+ */
+gboolean
+snapd_client_switch_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_POST_SNAP (result), FALSE);
+
+    return _snapd_request_propagate_error (SNAPD_REQUEST (result), error);
+}
+
+/**
  * snapd_client_check_buy_async:
  * @client: a #SnapdClient.
  * @cancellable: (allow-none): a #GCancellable or %NULL.

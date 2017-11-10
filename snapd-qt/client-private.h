@@ -269,6 +269,15 @@ public:
     QString name;
 };
 
+class QSnapdSwitchChannelRequestPrivate
+{
+public:
+    QSnapdSwitchChannelRequestPrivate (const QString& name, const QString& channel) :
+        name(name), channel(channel) {}
+    QString name;
+    QString channel;
+};
+
 class QSnapdCheckBuyRequestPrivate
 {
 public:

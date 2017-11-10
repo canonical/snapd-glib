@@ -2823,6 +2823,59 @@ test_disable_not_installed ()
 }
 
 static void
+test_switch_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_tracking_channel (s, "stable");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdSwitchChannelRequest> switchRequest (client.switchChannel ("snap", "beta"));
+    switchRequest->runSync ();
+    g_assert_cmpint (switchRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->tracking_channel, ==, "beta");
+}
+
+static void
+test_switch_progress ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_tracking_channel (s, "stable");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdSwitchChannelRequest> switchRequest (client.switchChannel ("snap", "beta"));
+    ProgressCounter counter;
+    QObject::connect (switchRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    switchRequest->runSync ();
+    g_assert_cmpint (switchRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->tracking_channel, ==, "beta");
+    g_assert_cmpint (counter.progressDone, >, 0);
+}
+
+static void
+test_switch_not_installed ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdSwitchChannelRequest> switchRequest (client.switchChannel ("snap", "beta"));
+    switchRequest->runSync ();
+    // FIXME: Should be a not installed error, see https://bugs.launchpad.net/bugs/1659106
+    //g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
+    g_assert_cmpint (switchRequest->error (), ==, QSnapdRequest::BadRequest);
+}
+
+static void
 test_check_buy_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -3438,6 +3491,9 @@ main (int argc, char **argv)
     g_test_add_func ("/disable/progress", test_disable_progress);
     g_test_add_func ("/disable/already-disabled", test_disable_already_disabled);
     g_test_add_func ("/disable/not-installed", test_disable_not_installed);
+    g_test_add_func ("/switch/sync", test_switch_sync);
+    g_test_add_func ("/switch/progress", test_switch_progress);
+    g_test_add_func ("/switch/not-installed", test_switch_not_installed);
     g_test_add_func ("/check-buy/sync", test_check_buy_sync);
     g_test_add_func ("/check-buy/no-terms-not-accepted", test_check_buy_terms_not_accepted);
     g_test_add_func ("/check-buy/no-payment-methods", test_check_buy_no_payment_methods);

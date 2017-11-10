@@ -785,6 +785,39 @@ snapd_client_disable_sync (SnapdClient *client,
 }
 
 /**
+ * snapd_client_switch_sync:
+ * @client: a #SnapdClient.
+ * @name: name of snap to switch channel.
+ * @channel: channel to track.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Set the tracking channel on an installed snap.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.26
+ */
+gboolean
+snapd_client_switch_sync (SnapdClient *client,
+                          const gchar *name, const gchar *channel,
+                          SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                          GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (name != NULL, FALSE);
+
+    start_sync (&data);
+    snapd_client_switch_async (client, name, channel, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_switch_finish (client, data.result, error);
+}
+
+/**
  * snapd_client_check_buy_sync:
  * @client: a #SnapdClient.
  * @cancellable: (allow-none): a #GCancellable or %NULL.

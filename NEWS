@@ -1,3 +1,11 @@
+Overview of changes in snapd-glib 1.26
+
+    * New API:
+      - snapd_client_switch_async
+      - snapd_client_switch_finish
+      - snapd_client_switch_sync
+    * Implement snapd_client_switch
+
 Overview of changes in snapd-glib 1.25
 
     * New API:

@@ -179,6 +179,9 @@ snapd_client_enable_finish
 snapd_client_disable_sync
 snapd_client_disable_async
 snapd_client_disable_finish
+snapd_client_switch_sync
+snapd_client_switch_async
+snapd_client_switch_finish
 snapd_client_check_buy_sync
 snapd_client_check_buy_async
 snapd_client_check_buy_finish
