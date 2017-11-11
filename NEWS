@@ -1,10 +1,18 @@
 Overview of changes in snapd-glib 1.26
 
     * New API:
+      - snapd_client_login2_async
+      - snapd_client_login2_finish
+      - snapd_client_login2_sync
       - snapd_client_switch_async
       - snapd_client_switch_finish
       - snapd_client_switch_sync
+    * Deprecated API:
+      - snapd_client_login_async
+      - snapd_client_login_finish
+      - snapd_client_login_sync
     * Implement snapd_client_switch
+    * Implement new login API
 
 Overview of changes in snapd-glib 1.25
 

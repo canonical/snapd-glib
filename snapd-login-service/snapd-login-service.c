@@ -105,15 +105,17 @@ static void
 login_result_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(LoginRequest) request = user_data;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
+    SnapdAuthData *auth_data;
     g_autoptr(GError) error = NULL;
 
-    auth_data = snapd_client_login_finish (request->client, result, &error);
-    if (auth_data == NULL) {
+    user_information = snapd_client_login2_finish (request->client, result, &error);
+    if (user_information == NULL) {
         return_error (request, error);
         return;
     }
 
+    auth_data = snapd_user_information_get_auth_data (user_information);
     io_snapcraft_snapd_login_service_complete_login (service, request->invocation,
                                                      snapd_auth_data_get_macaroon (auth_data),
                                                      (const gchar *const *) snapd_auth_data_get_discharges (auth_data));
@@ -146,9 +148,9 @@ auth_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_debug ("Requesting login from snapd...");
 
     request->client = snapd_client_new ();
-    snapd_client_login_async (request->client,
-                              request->username, request->password, request->otp, NULL,
-                              login_result_cb, request);
+    snapd_client_login2_async (request->client,
+                               request->username, request->password, request->otp, NULL,
+                               login_result_cb, request);
     g_steal_pointer (&request);
 }
 

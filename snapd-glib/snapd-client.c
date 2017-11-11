@@ -1004,18 +1004,14 @@ snapd_client_get_allow_interaction (SnapdClient *client)
  * See snapd_client_login_sync() for more information.
  *
  * Since: 1.0
+ * Deprecated: 1.26: Use snapd_client_login2_async()
  */
 void
 snapd_client_login_async (SnapdClient *client,
                           const gchar *username, const gchar *password, const gchar *otp,
                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostLogin *request;
-
-    g_return_if_fail (SNAPD_IS_CLIENT (client));
-
-    request = _snapd_post_login_new (username, password, otp, cancellable, callback, user_data);
-    send_request (client, SNAPD_REQUEST (request));
+    snapd_client_login2_async (client, username, password, otp, cancellable, callback, user_data);
 }
 
 /**
@@ -1030,9 +1026,63 @@ snapd_client_login_async (SnapdClient *client,
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
  *
  * Since: 1.0
+ * Deprecated: 1.26: Use snapd_client_login2_finish()
  */
 SnapdAuthData *
 snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_autoptr(SnapdUserInformation) user_information = NULL;
+
+    user_information = snapd_client_login2_finish (client, result, error);
+    if (user_information == NULL)
+        return NULL;
+
+    return g_object_ref (snapd_user_information_get_auth_data (user_information));
+}
+
+/**
+ * snapd_client_login2_async:
+ * @client: a #SnapdClient.
+ * @username: usename to log in with.
+ * @password: password to log in with.
+ * @otp: (allow-none): response to one-time password challenge.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get authorization to install/remove snaps.
+ * See snapd_client_login2_sync() for more information.
+ *
+ * Since: 1.26
+ */
+void
+snapd_client_login2_async (SnapdClient *client,
+                          const gchar *username, const gchar *password, const gchar *otp,
+                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdPostLogin *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    request = _snapd_post_login_new (username, password, otp, cancellable, callback, user_data);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_login2_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_login2_async().
+ * See snapd_client_login2_sync() for more information.
+ *
+ * Returns: (transfer full): a #SnapdUserInformation or %NULL on error.
+ *
+ * Since: 1.26
+ */
+SnapdUserInformation *
+snapd_client_login2_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdPostLogin *request;
 
@@ -1043,7 +1093,7 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
 
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
         return NULL;
-    return g_object_ref (_snapd_post_login_get_auth_data (request));
+    return g_object_ref (_snapd_post_login_get_user_information (request));
 }
 
 /**

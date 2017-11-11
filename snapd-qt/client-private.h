@@ -28,12 +28,15 @@ public:
         username(username), password(password), otp(otp) {}
     ~QSnapdLoginRequestPrivate ()
     {
+        if (user_information != NULL)
+            g_object_unref (user_information);
         if (auth_data != NULL)
             g_object_unref (auth_data);
     }
     QString username;
     QString password;
     QString otp;
+    SnapdUserInformation *user_information = NULL;
     SnapdAuthData *auth_data = NULL;
 };
 

@@ -303,7 +303,9 @@ static void
 test_login_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_auto(GStrv) keys = g_strsplit ("KEY1;KEY2", ";", -1);
+    mock_account_set_ssh_keys (a, keys);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -312,11 +314,17 @@ test_login_sync ()
     QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
     loginRequest->runSync ();
     g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
-    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
-    g_assert (authData->macaroon () == a->macaroon);
-    g_assert_cmpint (authData->discharges ().count (), ==, g_strv_length (a->discharges));
+    QScopedPointer<QSnapdUserInformation> userInformation (loginRequest->userInformation ());
+    g_assert_cmpint (userInformation->id (), ==, 1);
+    g_assert (userInformation->email () == "test@example.com");
+    g_assert (userInformation->username () == "test");
+    g_assert_cmpint (userInformation->sshKeys ().count (), ==, 2);
+    g_assert (userInformation->sshKeys ()[0] == "KEY1");
+    g_assert (userInformation->sshKeys ()[1] == "KEY2");
+    g_assert (userInformation->authData ()->macaroon () == a->macaroon);
+    g_assert_cmpint (userInformation->authData ()->discharges ().count (), ==, g_strv_length (a->discharges));
     for (int i = 0; a->discharges[i]; i++)
-        g_assert (authData->discharges ()[i] == a->discharges[i]);
+        g_assert (userInformation->authData ()->discharges ()[i] == a->discharges[i]);
 }
 
 static void
@@ -337,7 +345,7 @@ static void
 test_login_invalid_password ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -352,7 +360,8 @@ static void
 test_login_otp_missing ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_account (snapd, "test@example.com", "secret", "1234");
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    mock_account_set_otp (a, "1234");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -367,7 +376,8 @@ static void
 test_login_otp_invalid ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_account (snapd, "test@example.com", "secret", "1234");
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    mock_account_set_otp (a, "1234");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -1269,7 +1279,7 @@ static void
 test_find_query_private ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_account_add_private_snap (a, "snap2");
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -1330,7 +1340,7 @@ static void
 test_find_name_private ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_add_private_snap (a, "snap");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -2879,7 +2889,7 @@ static void
 test_check_buy_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -2902,7 +2912,7 @@ static void
 test_check_buy_terms_not_accepted ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = FALSE;
     a->has_payment_methods = TRUE;
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -2925,7 +2935,7 @@ static void
 test_check_buy_no_payment_methods ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = FALSE;
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -2962,7 +2972,7 @@ static void
 test_buy_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
@@ -3005,7 +3015,7 @@ static void
 test_buy_not_available ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -3028,7 +3038,7 @@ static void
 test_buy_terms_not_accepted ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = FALSE;
     a->has_payment_methods = FALSE;
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
@@ -3054,7 +3064,7 @@ static void
 test_buy_no_payment_methods ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = FALSE;
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
@@ -3080,7 +3090,7 @@ static void
 test_buy_invalid_price ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
@@ -3111,7 +3121,7 @@ test_create_user_sync ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    g_assert_null (mock_snapd_find_user (snapd, "user"));
+    g_assert_null (mock_snapd_find_account_by_username (snapd, "user"));
     QScopedPointer<QSnapdCreateUserRequest> createRequest (client.createUser ("user@example.com"));
     createRequest->runSync ();
     g_assert_cmpint (createRequest->error (), ==, QSnapdRequest::NoError);
@@ -3120,10 +3130,10 @@ test_create_user_sync ()
     g_assert_cmpint (userInformation->sshKeys ().count (), ==, 2);
     g_assert (userInformation->sshKeys ()[0] == "KEY1");
     g_assert (userInformation->sshKeys ()[1] == "KEY2");
-    MockUser *user = mock_snapd_find_user (snapd, "user");
-    g_assert_nonnull (user);
-    g_assert_false (user->sudoer);
-    g_assert_false (user->known);
+    MockAccount *account = mock_snapd_find_account_by_username (snapd, "user");
+    g_assert_nonnull (account);
+    g_assert_false (account->sudoer);
+    g_assert_false (account->known);
 }
 
 static void
@@ -3135,13 +3145,13 @@ test_create_user_sudo ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    g_assert_null (mock_snapd_find_user (snapd, "user"));
+    g_assert_null (mock_snapd_find_account_by_username (snapd, "user"));
     QScopedPointer<QSnapdCreateUserRequest> createRequest (client.createUser ("user@example.com", QSnapdClient::Sudo));
     createRequest->runSync ();
     g_assert_cmpint (createRequest->error (), ==, QSnapdRequest::NoError);
-    MockUser *user = mock_snapd_find_user (snapd, "user");
-    g_assert_nonnull (user);
-    g_assert_true (user->sudoer);
+    MockAccount *account = mock_snapd_find_account_by_username (snapd, "user");
+    g_assert_nonnull (account);
+    g_assert_true (account->sudoer);
 }
 
 static void
@@ -3153,13 +3163,13 @@ test_create_user_known ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    g_assert_null (mock_snapd_find_user (snapd, "user"));
+    g_assert_null (mock_snapd_find_account_by_username (snapd, "user"));
     QScopedPointer<QSnapdCreateUserRequest> createRequest (client.createUser ("user@example.com", QSnapdClient::Known));
     createRequest->runSync ();
     g_assert_cmpint (createRequest->error (), ==, QSnapdRequest::NoError);
-    MockUser *user = mock_snapd_find_user (snapd, "user");
-    g_assert_nonnull (user);
-    g_assert_true (user->known);
+    MockAccount *account = mock_snapd_find_account_by_username (snapd, "user");
+    g_assert_nonnull (account);
+    g_assert_true (account->known);
 }
 
 static void
@@ -3184,9 +3194,9 @@ test_create_users_sync ()
     g_assert (userInformation1->username () == "alice");
     QScopedPointer<QSnapdUserInformation> userInformation2 (createRequest->userInformation (2));
     g_assert (userInformation2->username () == "bob");
-    g_assert_nonnull (mock_snapd_find_user (snapd, "admin"));
-    g_assert_nonnull (mock_snapd_find_user (snapd, "alice"));
-    g_assert_nonnull (mock_snapd_find_user (snapd, "bob"));
+    g_assert_nonnull (mock_snapd_find_account_by_username (snapd, "admin"));
+    g_assert_nonnull (mock_snapd_find_account_by_username (snapd, "alice"));
+    g_assert_nonnull (mock_snapd_find_account_by_username (snapd, "bob"));
 }
 
 static void

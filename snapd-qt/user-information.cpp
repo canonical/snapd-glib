@@ -13,9 +13,19 @@
 
 QSnapdUserInformation::QSnapdUserInformation (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
+int QSnapdUserInformation::id () const
+{
+    return snapd_user_information_get_id (SNAPD_USER_INFORMATION (wrapped_object));
+}
+
 QString QSnapdUserInformation::username () const
 {
     return snapd_user_information_get_username (SNAPD_USER_INFORMATION (wrapped_object));
+}
+
+QString QSnapdUserInformation::email () const
+{
+    return snapd_user_information_get_email (SNAPD_USER_INFORMATION (wrapped_object));
 }
 
 QStringList QSnapdUserInformation::sshKeys () const
@@ -25,4 +35,9 @@ QStringList QSnapdUserInformation::sshKeys () const
     for (int i = 0; ssh_keys[i] != NULL; i++)
         result.append (ssh_keys[i]);
     return result;
+}
+
+QSnapdAuthData *QSnapdUserInformation::authData () const
+{
+    return new QSnapdAuthData (snapd_user_information_get_auth_data (SNAPD_USER_INFORMATION (wrapped_object)));
 }

@@ -109,6 +109,9 @@ snapd_client_connect_finish
 snapd_client_login_sync
 snapd_client_login_async
 snapd_client_login_finish
+snapd_client_login2_sync
+snapd_client_login2_async
+snapd_client_login2_finish
 snapd_client_set_user_agent
 snapd_client_get_user_agent
 snapd_client_set_auth_data
@@ -509,8 +512,11 @@ SNAPD_TYPE_TASK
 <SECTION>
 <FILE>snapd-user-information</FILE>
 <TITLE>SnapdUserInformation</TITLE>
+snapd_user_information_get_id
 snapd_user_information_get_username
+snapd_user_information_get_email
 snapd_user_information_get_ssh_keys
+snapd_user_information_get_auth_data
 SnapdUserInformation
 
 <SUBSECTION Private>

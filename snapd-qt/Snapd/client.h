@@ -45,6 +45,7 @@ class QSnapdLoginRequestPrivate;
 class Q_DECL_EXPORT QSnapdLoginRequest : public QSnapdRequest
 {
     Q_OBJECT
+    Q_PROPERTY (QSnapdUserInformation* userInformation READ userInformation)
     Q_PROPERTY (QSnapdAuthData* authData READ authData)
 
 public:
@@ -52,6 +53,7 @@ public:
     ~QSnapdLoginRequest ();
     virtual void runSync ();
     virtual void runAsync ();
+    Q_INVOKABLE QSnapdUserInformation *userInformation ();
     Q_INVOKABLE QSnapdAuthData *authData ();
     void handleResult (void *, void *);
 

@@ -175,15 +175,32 @@ SnapdAuthData          *snapd_client_login_sync                    (SnapdClient 
                                                                     const gchar          *password,
                                                                     const gchar          *otp,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_login2_sync);
 void                    snapd_client_login_async                   (SnapdClient          *client,
                                                                     const gchar          *username,
                                                                     const gchar          *password,
                                                                     const gchar          *otp,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_login2_async);
 SnapdAuthData          *snapd_client_login_finish                  (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_login2_finish);
+
+SnapdUserInformation   *snapd_client_login2_sync                   (SnapdClient          *client,
+                                                                    const gchar          *username,
+                                                                    const gchar          *password,
+                                                                    const gchar          *otp,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_login2_async                  (SnapdClient          *client,
+                                                                    const gchar          *username,
+                                                                    const gchar          *password,
+                                                                    const gchar          *otp,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+SnapdUserInformation   *snapd_client_login2_finish                 (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

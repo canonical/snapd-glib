@@ -12,20 +12,20 @@
 
 #include "snapd-request.h"
 
-#include "snapd-auth-data.h"
+#include "snapd-user-information.h"
 
 G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdPostLogin, snapd_post_login, SNAPD, POST_LOGIN, SnapdRequest)
 
-SnapdPostLogin *_snapd_post_login_new           (const gchar         *username,
-                                                 const gchar         *password,
-                                                 const gchar         *otp,
-                                                 GCancellable        *cancellable,
-                                                 GAsyncReadyCallback  callback,
-                                                 gpointer             user_data);
+SnapdPostLogin       *_snapd_post_login_new                  (const gchar         *username,
+                                                              const gchar         *password,
+                                                              const gchar         *otp,
+                                                              GCancellable        *cancellable,
+                                                              GAsyncReadyCallback  callback,
+                                                              gpointer             user_data);
 
-SnapdAuthData  *_snapd_post_login_get_auth_data (SnapdPostLogin *request);
+SnapdUserInformation *_snapd_post_login_get_user_information (SnapdPostLogin *request);
 
 G_END_DECLS
 

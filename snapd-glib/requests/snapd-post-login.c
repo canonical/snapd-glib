@@ -18,7 +18,7 @@ struct _SnapdPostLogin
     gchar *username;
     gchar *password;
     gchar *otp;
-    SnapdAuthData *auth_data;
+    SnapdUserInformation *user_information;
 };
 
 G_DEFINE_TYPE (SnapdPostLogin, snapd_post_login, snapd_request_get_type ())
@@ -41,10 +41,10 @@ _snapd_post_login_new (const gchar *username, const gchar *password, const gchar
     return request;
 }
 
-SnapdAuthData *
-_snapd_post_login_get_auth_data (SnapdPostLogin *request)
+SnapdUserInformation *
+_snapd_post_login_get_user_information (SnapdPostLogin *request)
 {
-    return request->auth_data;
+    return request->user_information;
 }
 
 static SoupMessage *
@@ -78,9 +78,6 @@ parse_post_login_response (SnapdRequest *request, SoupMessage *message, GError *
     SnapdPostLogin *r = SNAPD_POST_LOGIN (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
-    g_autoptr(JsonArray) discharges = NULL;
-    g_autoptr(GPtrArray) discharge_array = NULL;
-    guint i;
 
     response = _snapd_json_parse_response (message, error);
     if (response == NULL)
@@ -89,23 +86,9 @@ parse_post_login_response (SnapdRequest *request, SoupMessage *message, GError *
     if (result == NULL)
         return FALSE;
 
-    discharges = _snapd_json_get_array (result, "discharges");
-    discharge_array = g_ptr_array_new ();
-    for (i = 0; i < json_array_get_length (discharges); i++) {
-        JsonNode *node = json_array_get_element (discharges, i);
-
-        if (json_node_get_value_type (node) != G_TYPE_STRING) {
-            g_set_error (error,
-                         SNAPD_ERROR,
-                         SNAPD_ERROR_READ_FAILED,
-                         "Unexpected discharge type");
-            return FALSE;
-        }
-
-        g_ptr_array_add (discharge_array, (gpointer) json_node_get_string (node));
-    }
-    g_ptr_array_add (discharge_array, NULL);
-    r->auth_data = snapd_auth_data_new (_snapd_json_get_string (result, "macaroon", NULL), (gchar **) discharge_array->pdata);
+    r->user_information = _snapd_json_parse_user_information (result, error);
+    if (r->user_information == NULL)
+        return FALSE;
 
     return TRUE;
 }
@@ -118,7 +101,7 @@ snapd_post_login_finalize (GObject *object)
     g_clear_pointer (&request->username, g_free);
     g_clear_pointer (&request->password, g_free);
     g_clear_pointer (&request->otp, g_free);
-    g_clear_object (&request->auth_data);
+    g_clear_object (&request->user_information);
 
     G_OBJECT_CLASS (snapd_post_login_parent_class)->finalize (object);
 }

@@ -394,20 +394,35 @@ test_login_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     MockAccount *a;
+    g_auto(GStrv) keys = NULL;
+    gchar **ssh_keys = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
+    SnapdAuthData *auth_data;
     int i;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    keys = g_strsplit ("KEY1;KEY2", ";", -1);
+    mock_account_set_ssh_keys (a, keys);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
+    g_assert_nonnull (user_information);
+    g_assert_cmpint (snapd_user_information_get_id (user_information), ==, 1);
+    g_assert_cmpstr (snapd_user_information_get_email (user_information), ==, "test@example.com");
+    g_assert_cmpstr (snapd_user_information_get_username (user_information), ==, "test");
+    ssh_keys = snapd_user_information_get_ssh_keys (user_information);
+    g_assert_nonnull (ssh_keys);
+    g_assert_cmpint (g_strv_length (ssh_keys), ==, 2);
+    g_assert_cmpstr (ssh_keys[0], ==, "KEY1");
+    g_assert_cmpstr (ssh_keys[1], ==, "KEY2");
+    auth_data = snapd_user_information_get_auth_data (user_information);
     g_assert_nonnull (auth_data);
     g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, a->macaroon);
     g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (a->discharges));
@@ -420,7 +435,7 @@ test_login_invalid_email (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -429,9 +444,9 @@ test_login_invalid_email (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "not-an-email", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "not-an-email", "secret", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_INVALID);
-    g_assert_null (auth_data);
+    g_assert_null (user_information);
 }
 
 static void
@@ -439,59 +454,91 @@ test_login_invalid_password (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "invalid", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "invalid", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_REQUIRED);
-    g_assert_null (auth_data);
+    g_assert_null (user_information);
 }
 
 static void
 test_login_otp_missing (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
+    MockAccount *a;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    mock_snapd_add_account (snapd, "test@example.com", "secret", "1234");
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    mock_account_set_otp (a, "1234");
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_REQUIRED);
-    g_assert_null (auth_data);
+    g_assert_null (user_information);
 }
 
 static void
 test_login_otp_invalid (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
+    MockAccount *a;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    mock_snapd_add_account (snapd, "test@example.com", "secret", "1234");
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    mock_account_set_otp (a, "1234");
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", "0000", NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", "0000", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_INVALID);
-    g_assert_null (auth_data);
+    g_assert_null (user_information);
+}
+
+static void
+test_login_legacy (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockAccount *a;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdAuthData) auth_data = NULL;
+    int i;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    g_assert_no_error (error);
+    g_assert_nonnull (auth_data);
+    g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, a->macaroon);
+    g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (a->discharges));
+    for (i = 0; a->discharges[i]; i++)
+        g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, a->discharges[i]);
 }
 
 static void
@@ -1632,12 +1679,12 @@ test_find_query_private (void)
     g_autoptr(MockSnapd) snapd = NULL;
     MockAccount *a;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_account_add_private_snap (a, "snap2");
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -1645,10 +1692,10 @@ test_find_query_private (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
     g_assert_no_error (error);
@@ -1663,7 +1710,7 @@ test_find_query_private_not_logged_in (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(GError) error = NULL;
 
@@ -1708,22 +1755,22 @@ test_find_name_private (void)
     g_autoptr(MockSnapd) snapd = NULL;
     MockAccount *a;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_add_private_snap (a, "snap");
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME | SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
     g_assert_no_error (error);
@@ -1738,7 +1785,7 @@ test_find_name_private_not_logged_in (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(GError) error = NULL;
 
@@ -3747,12 +3794,12 @@ test_check_buy_sync (void)
     g_autoptr(MockSnapd) snapd = NULL;
     MockAccount *a;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -3760,10 +3807,10 @@ test_check_buy_sync (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     result = snapd_client_check_buy_sync (client, NULL, &error);
     g_assert_no_error (error);
@@ -3776,12 +3823,12 @@ test_check_buy_terms_not_accepted (void)
     g_autoptr(MockSnapd) snapd = NULL;
     MockAccount *a;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = FALSE;
     a->has_payment_methods = TRUE;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -3789,10 +3836,10 @@ test_check_buy_terms_not_accepted (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     result = snapd_client_check_buy_sync (client, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_TERMS_NOT_ACCEPTED);
@@ -3805,12 +3852,12 @@ test_check_buy_no_payment_methods (void)
     g_autoptr(MockSnapd) snapd = NULL;
     MockAccount *a;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = FALSE;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -3818,10 +3865,10 @@ test_check_buy_no_payment_methods (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     result = snapd_client_check_buy_sync (client, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_PAYMENT_NOT_SETUP);
@@ -3854,12 +3901,12 @@ test_buy_sync (void)
     MockAccount *a;
     MockSnap *s;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
     s = mock_snapd_add_store_snap (snapd, "snap");
@@ -3870,10 +3917,10 @@ test_buy_sync (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_no_error (error);
@@ -3886,7 +3933,7 @@ test_buy_not_logged_in (void)
     g_autoptr(MockSnapd) snapd = NULL;
     MockSnap *s;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
@@ -3910,12 +3957,12 @@ test_buy_not_available (void)
     g_autoptr(MockSnapd) snapd = NULL;
     MockAccount *a;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -3923,10 +3970,10 @@ test_buy_not_available (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
@@ -3940,12 +3987,12 @@ test_buy_terms_not_accepted (void)
     MockAccount *a;
     MockSnap *s;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = FALSE;
     a->has_payment_methods = FALSE;
     s = mock_snapd_add_store_snap (snapd, "snap");
@@ -3956,10 +4003,10 @@ test_buy_terms_not_accepted (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_TERMS_NOT_ACCEPTED);
@@ -3973,12 +4020,12 @@ test_buy_no_payment_methods (void)
     MockAccount *a;
     MockSnap *s;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = FALSE;
     s = mock_snapd_add_store_snap (snapd, "snap");
@@ -3989,10 +4036,10 @@ test_buy_no_payment_methods (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_PAYMENT_NOT_SETUP);
@@ -4006,12 +4053,12 @@ test_buy_invalid_price (void)
     MockAccount *a;
     MockSnap *s;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
     gboolean result;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "secret", NULL);
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     a->terms_accepted = TRUE;
     a->has_payment_methods = TRUE;
     s = mock_snapd_add_store_snap (snapd, "snap");
@@ -4022,10 +4069,10 @@ test_buy_invalid_price (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (auth_data);
-    snapd_client_set_auth_data (client, auth_data);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     result = snapd_client_buy_sync (client, "ABCDEF", 0.6, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_PAYMENT_DECLINED);
@@ -4039,7 +4086,7 @@ test_create_user_sync (void)
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(SnapdUserInformation) info = NULL;
     gchar **ssh_keys;
-    MockUser *user;
+    MockAccount *account;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -4048,7 +4095,7 @@ test_create_user_sync (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    g_assert_null (mock_snapd_find_user (snapd, "user"));
+    g_assert_null (mock_snapd_find_account_by_username (snapd, "user"));
     info = snapd_client_create_user_sync (client, "user@example.com", SNAPD_CREATE_USER_FLAGS_NONE, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
@@ -4058,10 +4105,10 @@ test_create_user_sync (void)
     g_assert_cmpint (g_strv_length (ssh_keys), ==, 2);
     g_assert_cmpstr (ssh_keys[0], ==, "KEY1");
     g_assert_cmpstr (ssh_keys[1], ==, "KEY2");
-    user = mock_snapd_find_user (snapd, "user");
-    g_assert_nonnull (user);
-    g_assert_false (user->sudoer);
-    g_assert_false (user->known);
+    account = mock_snapd_find_account_by_username (snapd, "user");
+    g_assert_nonnull (account);
+    g_assert_false (account->sudoer);
+    g_assert_false (account->known);
 }
 
 static void
@@ -4070,7 +4117,7 @@ test_create_user_sudo (void)
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(SnapdUserInformation) info = NULL;
-    MockUser *user;
+    MockAccount *account;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -4079,13 +4126,13 @@ test_create_user_sudo (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    g_assert_null (mock_snapd_find_user (snapd, "user"));
+    g_assert_null (mock_snapd_find_account_by_username (snapd, "user"));
     info = snapd_client_create_user_sync (client, "user@example.com", SNAPD_CREATE_USER_FLAGS_SUDO, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
-    user = mock_snapd_find_user (snapd, "user");
-    g_assert_nonnull (user);
-    g_assert_true (user->sudoer);
+    account = mock_snapd_find_account_by_username (snapd, "user");
+    g_assert_nonnull (account);
+    g_assert_true (account->sudoer);
 }
 
 static void
@@ -4094,7 +4141,7 @@ test_create_user_known (void)
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(SnapdUserInformation) info = NULL;
-    MockUser *user;
+    MockAccount *account;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -4103,13 +4150,13 @@ test_create_user_known (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    g_assert_null (mock_snapd_find_user (snapd, "user"));
+    g_assert_null (mock_snapd_find_account_by_username (snapd, "user"));
     info = snapd_client_create_user_sync (client, "user@example.com", SNAPD_CREATE_USER_FLAGS_KNOWN, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
-    user = mock_snapd_find_user (snapd, "user");
-    g_assert_nonnull (user);
-    g_assert_true (user->known);
+    account = mock_snapd_find_account_by_username (snapd, "user");
+    g_assert_nonnull (account);
+    g_assert_true (account->known);
 }
 
 static void
@@ -4143,9 +4190,9 @@ test_create_users_sync (void)
     g_assert_cmpstr (snapd_user_information_get_username (info), ==, "alice");
     info = users_info->pdata[2];
     g_assert_cmpstr (snapd_user_information_get_username (info), ==, "bob");
-    g_assert_nonnull (mock_snapd_find_user (snapd, "admin"));
-    g_assert_nonnull (mock_snapd_find_user (snapd, "alice"));
-    g_assert_nonnull (mock_snapd_find_user (snapd, "bob"));
+    g_assert_nonnull (mock_snapd_find_account_by_username (snapd, "admin"));
+    g_assert_nonnull (mock_snapd_find_account_by_username (snapd, "alice"));
+    g_assert_nonnull (mock_snapd_find_account_by_username (snapd, "bob"));
 }
 
 static void
@@ -4416,6 +4463,7 @@ main (int argc, char **argv)
     g_test_add_func ("/login/invalid-password", test_login_invalid_password);
     g_test_add_func ("/login/otp-missing", test_login_otp_missing);
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
+    g_test_add_func ("/login/legacy", test_login_legacy);
     g_test_add_func ("/list/sync", test_list_sync);
     g_test_add_func ("/list/async", test_list_async);
     g_test_add_func ("/list-one/sync", test_list_one_sync);

@@ -27,11 +27,16 @@ struct _MockSnapdClass
 
 typedef struct
 {
+    int id;
+    gchar *email;
     gchar *username;
     gchar *password;
     gchar *otp;
+    gchar **ssh_keys;
     gchar *macaroon;
     gchar **discharges;
+    gboolean sudoer;
+    gboolean known;
     gboolean terms_accepted;
     gboolean has_payment_methods;
     GList *private_snaps;
@@ -128,15 +133,6 @@ typedef struct
     int height;
 } MockScreenshot;
 
-typedef struct
-{
-    gchar *email;
-    gchar *username;
-    gboolean sudoer;
-    gboolean known;
-    gchar **ssh_keys;
-} MockUser;
-
 typedef struct _MockSlot MockSlot;
 
 typedef struct
@@ -195,12 +191,21 @@ void            mock_snapd_set_ready_time         (MockSnapd     *snapd,
                                                    const gchar   *ready_time);
 
 MockAccount    *mock_snapd_add_account            (MockSnapd     *snapd,
+                                                   const gchar   *email,
                                                    const gchar   *username,
-                                                   const gchar   *password,
+                                                   const gchar   *password);
+
+void            mock_account_set_otp              (MockAccount   *account,
                                                    const gchar   *otp);
 
-MockUser       *mock_snapd_find_user              (MockSnapd     *snapd,
-                                                   const gchar   *username);
+void            mock_account_set_ssh_keys         (MockAccount   *account,
+                                                   gchar        **ssh_keys);
+
+MockAccount    *mock_snapd_find_account_by_username (MockSnapd     *snapd,
+                                                     const gchar   *username);
+
+MockAccount    *mock_snapd_find_account_by_email  (MockSnapd     *snapd,
+                                                   const gchar   *email);
 
 MockSnap       *mock_account_add_private_snap     (MockAccount   *account,
                                                    const gchar   *name);

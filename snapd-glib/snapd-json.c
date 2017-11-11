@@ -769,6 +769,7 @@ _snapd_json_parse_user_information (JsonObject *object, GError **error)
 {
     g_autoptr(JsonArray) ssh_keys = NULL;
     g_autoptr(GPtrArray) ssh_key_array = NULL;
+    g_autoptr(SnapdAuthData) auth_data = NULL;
     guint i;
 
     ssh_keys = _snapd_json_get_array (object, "ssh-keys");
@@ -783,10 +784,37 @@ _snapd_json_parse_user_information (JsonObject *object, GError **error)
 
         g_ptr_array_add (ssh_key_array, (gpointer) json_node_get_string (node));
     }
+
     g_ptr_array_add (ssh_key_array, NULL);
 
+    if (json_object_has_member (object, "macaroon")) {
+        g_autoptr(JsonArray) discharges = NULL;
+        g_autoptr(GPtrArray) discharge_array = NULL;
+
+        discharges = _snapd_json_get_array (object, "discharges");
+        discharge_array = g_ptr_array_new ();
+        for (i = 0; i < json_array_get_length (discharges); i++) {
+            JsonNode *node = json_array_get_element (discharges, i);
+
+            if (json_node_get_value_type (node) != G_TYPE_STRING) {
+                g_set_error (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "Unexpected discharge type");
+                return FALSE;
+            }
+
+            g_ptr_array_add (discharge_array, (gpointer) json_node_get_string (node));
+        }
+        g_ptr_array_add (discharge_array, NULL);
+        auth_data = snapd_auth_data_new (_snapd_json_get_string (object, "macaroon", NULL), (gchar **) discharge_array->pdata);
+    }
+
     return g_object_new (SNAPD_TYPE_USER_INFORMATION,
+                         "id", _snapd_json_get_int (object, "id", -1),
                          "username", _snapd_json_get_string (object, "username", NULL),
+                         "email", _snapd_json_get_string (object, "email", NULL),
                          "ssh-keys", (gchar **) ssh_key_array->pdata,
+                         "auth-data", auth_data,
                          NULL);
 }
