@@ -612,7 +612,10 @@ void QSnapdLoginRequest::handleResult (void *object, void *result)
     g_autoptr(SnapdAuthData) auth_data = NULL;
     g_autoptr(GError) error = NULL;
 
-    auth_data = snapd_client_login_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    if (getClient () != NULL)
+        auth_data = snapd_client_login_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    else
+        auth_data = snapd_login_finish (G_ASYNC_RESULT (result), &error);
 
     Q_D(QSnapdLoginRequest);
     d->auth_data = (SnapdAuthData*) g_steal_pointer (&auth_data);
