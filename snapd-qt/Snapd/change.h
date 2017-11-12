@@ -31,15 +31,15 @@ class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject
 public:
     explicit QSnapdChange (void* snapd_object, QObject* parent = 0);
 
-    Q_INVOKABLE QString id () const;
-    Q_INVOKABLE QString kind () const;
-    Q_INVOKABLE QString summary () const;
-    Q_INVOKABLE QString status () const;
-    Q_INVOKABLE bool ready () const;
-    Q_INVOKABLE int taskCount () const;
+    QString id () const;
+    QString kind () const;
+    QString summary () const;
+    QString status () const;
+    bool ready () const;
+    int taskCount () const;
     Q_INVOKABLE QSnapdTask *task (int) const;
-    Q_INVOKABLE QDateTime spawnTime () const;
-    Q_INVOKABLE QDateTime readyTime () const;
+    QDateTime spawnTime () const;
+    QDateTime readyTime () const;
 };
 
 #endif

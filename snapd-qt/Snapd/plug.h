@@ -31,7 +31,7 @@ public:
     QString snap () const;
     QString interface () const;
     QString label () const;
-    Q_INVOKABLE int connectionCount () const;
+    int connectionCount () const;
     Q_INVOKABLE QSnapdConnection *connection (int) const;
 };
 

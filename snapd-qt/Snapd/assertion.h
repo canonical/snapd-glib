@@ -24,7 +24,7 @@ class Q_DECL_EXPORT QSnapdAssertion : public QSnapdWrappedObject
 public:
     explicit QSnapdAssertion (const QString& content, QObject* parent = 0);
 
-    QString header (const QString& name) const;
+    Q_INVOKABLE QString header (const QString& name) const;
     QStringList headers () const;
     QString body () const;
     QString signature () const;
