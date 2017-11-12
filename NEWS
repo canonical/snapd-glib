@@ -17,6 +17,7 @@ Overview of changes in snapd-glib 1.26
     * Implement snapd_client_switch
     * Implement snapd_client_get_users
     * Implement new login API
+    * Mark deprecated Qt API
 
 Overview of changes in snapd-glib 1.25
 

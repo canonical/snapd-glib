@@ -29,7 +29,7 @@ class Q_DECL_EXPORT QSnapdAlias : public QSnapdWrappedObject
 public:
     explicit QSnapdAlias (void* snapd_object, QObject* parent = 0);
 
-    QString app () const;
+    Q_DECL_DEPRECATED QString app () const;
     QString appAuto () const;
     QString command () const;
     QString appManual () const;

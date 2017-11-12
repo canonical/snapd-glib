@@ -779,9 +779,9 @@ public:
     Q_INVOKABLE QSnapdUnaliasRequest *unalias (const QString &snap, const QString &alias);
     Q_INVOKABLE QSnapdUnaliasRequest *unalias (const QString &alias);
     Q_INVOKABLE QSnapdPreferRequest *prefer (const QString &snap);
-    Q_INVOKABLE QSnapdEnableAliasesRequest *enableAliases (const QString snap, const QStringList &aliases);
-    Q_INVOKABLE QSnapdDisableAliasesRequest *disableAliases (const QString snap, const QStringList &aliases);
-    Q_INVOKABLE QSnapdResetAliasesRequest *resetAliases (const QString snap, const QStringList &aliases);
+    Q_INVOKABLE Q_DECL_DEPRECATED QSnapdEnableAliasesRequest *enableAliases (const QString snap, const QStringList &aliases);
+    Q_INVOKABLE Q_DECL_DEPRECATED QSnapdDisableAliasesRequest *disableAliases (const QString snap, const QStringList &aliases);
+    Q_INVOKABLE Q_DECL_DEPRECATED QSnapdResetAliasesRequest *resetAliases (const QString snap, const QStringList &aliases);
     Q_INVOKABLE QSnapdRunSnapCtlRequest *runSnapCtl (const QString contextId, const QStringList &args);
 
 private:

@@ -31,7 +31,7 @@ public:
 
     QString name () const;
     bool active () const;
-    QStringList aliases () const;
+    Q_DECL_DEPRECATED QStringList aliases () const;
     QSnapdEnums::DaemonType daemonType () const;
     QString desktopFile () const;
     bool enabled () const;
