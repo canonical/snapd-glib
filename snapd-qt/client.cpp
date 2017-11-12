@@ -466,6 +466,17 @@ QSnapdCreateUsersRequest *QSnapdClient::createUsers ()
     return new QSnapdCreateUsersRequest (d->client);
 }
 
+QSnapdGetUsersRequest::~QSnapdGetUsersRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdGetUsersRequest *QSnapdClient::getUsers ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetUsersRequest (d->client);
+}
+
 QSnapdGetSectionsRequest::~QSnapdGetSectionsRequest ()
 {
     delete d_ptr;
@@ -1803,6 +1814,55 @@ int QSnapdCreateUsersRequest::userInformationCount () const
 QSnapdUserInformation *QSnapdCreateUsersRequest::userInformation (int n) const
 {
     Q_D(const QSnapdCreateUsersRequest);
+    if (d->info == NULL || n < 0 || (guint) n >= d->info->len)
+        return NULL;
+    return new QSnapdUserInformation (d->info->pdata[n]);
+}
+
+QSnapdGetUsersRequest::QSnapdGetUsersRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetUsersRequestPrivate ()) {}
+
+void QSnapdGetUsersRequest::runSync ()
+{
+    Q_D(QSnapdGetUsersRequest);
+    g_autoptr(GError) error = NULL;
+    d->info = snapd_client_get_users_sync (SNAPD_CLIENT (getClient ()),
+                                           G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetUsersRequest::handleResult (void *object, void *result)
+{
+    Q_D(QSnapdGetUsersRequest);
+    g_autoptr(GError) error = NULL;
+
+    d->info = snapd_client_get_users_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    finish (error);
+}
+
+static void get_users_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetUsersRequest *request = static_cast<QSnapdGetUsersRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetUsersRequest::runAsync ()
+{
+    snapd_client_get_users_async (SNAPD_CLIENT (getClient ()),
+                                  G_CANCELLABLE (getCancellable ()), get_users_ready_cb, (gpointer) this);
+}
+
+int QSnapdGetUsersRequest::userInformationCount () const
+{
+    Q_D(const QSnapdGetUsersRequest);
+    return d->info != NULL ? d->info->len : 0;
+}
+
+QSnapdUserInformation *QSnapdGetUsersRequest::userInformation (int n) const
+{
+    Q_D(const QSnapdGetUsersRequest);
     if (d->info == NULL || n < 0 || (guint) n >= d->info->len)
         return NULL;
     return new QSnapdUserInformation (d->info->pdata[n]);

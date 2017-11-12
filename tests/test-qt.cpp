@@ -318,9 +318,7 @@ test_login_sync ()
     g_assert_cmpint (userInformation->id (), ==, 1);
     g_assert (userInformation->email () == "test@example.com");
     g_assert (userInformation->username () == "test");
-    g_assert_cmpint (userInformation->sshKeys ().count (), ==, 2);
-    g_assert (userInformation->sshKeys ()[0] == "KEY1");
-    g_assert (userInformation->sshKeys ()[1] == "KEY2");
+    g_assert_cmpint (userInformation->sshKeys ().count (), ==, 0);
     g_assert (userInformation->authData ()->macaroon () == a->macaroon);
     g_assert_cmpint (userInformation->authData ()->discharges ().count (), ==, g_strv_length (a->discharges));
     for (int i = 0; a->discharges[i]; i++)
@@ -3200,6 +3198,29 @@ test_create_users_sync ()
 }
 
 static void
+test_get_users_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_account (snapd, "alice@example.com", "alice", "secret");
+    mock_snapd_add_account (snapd, "bob@example.com", "bob", "secret");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetUsersRequest> getUsersRequest (client.getUsers ());
+    getUsersRequest->runSync ();
+    g_assert_cmpint (getUsersRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getUsersRequest->userInformationCount (), ==, 2);
+    g_assert_cmpint (getUsersRequest->userInformation (0)->id (), ==, 1);
+    g_assert (getUsersRequest->userInformation (0)->username () == "alice");
+    g_assert (getUsersRequest->userInformation (0)->email () == "alice@example.com");
+    g_assert_cmpint (getUsersRequest->userInformation (1)->id (), ==, 2);
+    g_assert (getUsersRequest->userInformation (1)->username () == "bob");
+    g_assert (getUsersRequest->userInformation (1)->email () == "bob@example.com");
+}
+
+static void
 test_get_sections_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -3518,6 +3539,7 @@ main (int argc, char **argv)
     g_test_add_func ("/create-user/sudo", test_create_user_sudo);
     g_test_add_func ("/create-user/known", test_create_user_known);
     g_test_add_func ("/create-users/sync", test_create_users_sync);
+    g_test_add_func ("/get-users/sync", test_get_users_sync);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);

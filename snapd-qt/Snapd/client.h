@@ -503,6 +503,26 @@ private:
     Q_DECLARE_PRIVATE(QSnapdCreateUsersRequest)
 };
 
+class QSnapdGetUsersRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetUsersRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int userInformationCount READ userInformationCount)
+
+public:
+    explicit QSnapdGetUsersRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetUsersRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int userInformationCount () const;
+    Q_INVOKABLE QSnapdUserInformation *userInformation (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetUsersRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetUsersRequest)
+};
+
 class QSnapdGetSectionsRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetSectionsRequest : public QSnapdRequest
 {
@@ -752,6 +772,7 @@ public:
     Q_INVOKABLE QSnapdCreateUserRequest *createUser (const QString& email);
     Q_INVOKABLE QSnapdCreateUserRequest *createUser (const QString& email, CreateUserFlags flags);
     Q_INVOKABLE QSnapdCreateUsersRequest *createUsers ();
+    Q_INVOKABLE QSnapdGetUsersRequest *getUsers ();
     Q_INVOKABLE QSnapdGetSectionsRequest *getSections ();
     Q_INVOKABLE QSnapdGetAliasesRequest *getAliases ();
     Q_INVOKABLE QSnapdAliasRequest *alias (const QString &snap, const QString &app, const QString &alias);

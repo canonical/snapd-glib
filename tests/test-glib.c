@@ -419,9 +419,7 @@ test_login_sync (void)
     g_assert_cmpstr (snapd_user_information_get_username (user_information), ==, "test");
     ssh_keys = snapd_user_information_get_ssh_keys (user_information);
     g_assert_nonnull (ssh_keys);
-    g_assert_cmpint (g_strv_length (ssh_keys), ==, 2);
-    g_assert_cmpstr (ssh_keys[0], ==, "KEY1");
-    g_assert_cmpstr (ssh_keys[1], ==, "KEY2");
+    g_assert_cmpint (g_strv_length (ssh_keys), ==, 0);
     auth_data = snapd_user_information_get_auth_data (user_information);
     g_assert_nonnull (auth_data);
     g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, a->macaroon);
@@ -4196,6 +4194,37 @@ test_create_users_sync (void)
 }
 
 static void
+test_get_users_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) users_info = NULL;
+    SnapdUserInformation *info;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_account (snapd, "alice@example.com", "alice", "secret");
+    mock_snapd_add_account (snapd, "bob@example.com", "bob", "secret");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    users_info = snapd_client_get_users_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (users_info);
+    g_assert_cmpint (users_info->len, ==, 2);
+    info = users_info->pdata[0];
+    g_assert_cmpint (snapd_user_information_get_id (info), ==, 1);
+    g_assert_cmpstr (snapd_user_information_get_username (info), ==, "alice");
+    g_assert_cmpstr (snapd_user_information_get_email (info), ==, "alice@example.com");
+    info = users_info->pdata[1];
+    g_assert_cmpint (snapd_user_information_get_id (info), ==, 2);
+    g_assert_cmpstr (snapd_user_information_get_username (info), ==, "bob");
+    g_assert_cmpstr (snapd_user_information_get_email (info), ==, "bob@example.com");
+}
+
+static void
 test_get_sections_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -4575,6 +4604,7 @@ main (int argc, char **argv)
     g_test_add_func ("/create-user/sudo", test_create_user_sudo);
     g_test_add_func ("/create-user/known", test_create_user_known);
     g_test_add_func ("/create-users/sync", test_create_users_sync);
+    g_test_add_func ("/get-users/sync", test_get_users_sync);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);

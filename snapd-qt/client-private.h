@@ -323,6 +323,17 @@ public:
     GPtrArray *info = NULL;
 };
 
+class QSnapdGetUsersRequestPrivate
+{
+public:
+    ~QSnapdGetUsersRequestPrivate ()
+    {
+        if (info != NULL)
+            g_ptr_array_unref (info);
+    }
+    GPtrArray *info = NULL;
+};
+
 class QSnapdGetSectionsRequestPrivate
 {
 public:

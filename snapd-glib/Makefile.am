@@ -40,6 +40,7 @@ source_private_h = \
 	requests/snapd-get-snap.h \
 	requests/snapd-get-snaps.h \
 	requests/snapd-get-system-info.h \
+	requests/snapd-get-users.h \
 	requests/snapd-post-aliases.h \
 	requests/snapd-post-assertions.h \
 	requests/snapd-post-buy.h \
@@ -92,6 +93,7 @@ source_private_c = \
 	requests/snapd-get-snap.c \
 	requests/snapd-get-snaps.c \
 	requests/snapd-get-system-info.c \
+	requests/snapd-get-users.c \
 	requests/snapd-post-aliases.c \
 	requests/snapd-post-assertions.c \
 	requests/snapd-post-buy.c \

@@ -639,6 +639,17 @@ GPtrArray              *snapd_client_create_users_finish           (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+GPtrArray              *snapd_client_get_users_sync                (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_users_async               (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_get_users_finish              (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 gchar                 **snapd_client_get_sections_sync             (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);

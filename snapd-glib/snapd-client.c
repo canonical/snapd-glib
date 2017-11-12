@@ -29,6 +29,7 @@
 #include "requests/snapd-get-snap.h"
 #include "requests/snapd-get-snaps.h"
 #include "requests/snapd-get-system-info.h"
+#include "requests/snapd-get-users.h"
 #include "requests/snapd-post-aliases.h"
 #include "requests/snapd-post-assertions.h"
 #include "requests/snapd-post-buy.h"
@@ -2667,6 +2668,58 @@ snapd_client_create_users_finish (SnapdClient *client, GAsyncResult *result, GEr
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_ptr_array_ref (_snapd_post_create_users_get_users_information (request));
+}
+
+/**
+ * snapd_client_get_users_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get user accounts that are valid for this device.
+ * See snapd_client_get_users_sync() for more information.
+ *
+ * Since: 1.26
+ */
+void
+snapd_client_get_users_async (SnapdClient *client,
+                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdGetUsers *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    request = _snapd_get_users_new (cancellable, callback, user_data);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_users_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_users_async().
+ * See snapd_client_get_users_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdUserInformation): an array of #SnapdUserInformation or %NULL on error.
+ *
+ * Since: 1.26
+ */
+GPtrArray *
+snapd_client_get_users_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdGetUsers *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_USERS (result), NULL);
+
+    request = SNAPD_GET_USERS (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_ptr_array_ref (_snapd_get_users_get_users_information (request));
 }
 
 /**

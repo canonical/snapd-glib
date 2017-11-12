@@ -976,6 +976,33 @@ snapd_client_create_users_sync (SnapdClient *client,
 }
 
 /**
+ * snapd_client_get_users_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Gget user accounts that are valid for this device.
+ *
+ * Returns: (transfer container) (element-type SnapdUserInformation): an array of #SnapdUserInformation or %NULL on error.
+ *
+ * Since: 1.26
+ */
+GPtrArray *
+snapd_client_get_users_sync (SnapdClient *client,
+                             GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    start_sync (&data);
+    snapd_client_get_users_async (client, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_users_finish (client, data.result, error);
+}
+
+/**
  * snapd_client_get_sections_sync:
  * @client: a #SnapdClient.
  * @cancellable: (allow-none): a #GCancellable or %NULL.

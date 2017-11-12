@@ -1403,25 +1403,27 @@ get_json (SoupMessage *message)
 }
 
 static void
-add_user_response (JsonBuilder *builder, MockAccount *account)
+add_user_response (JsonBuilder *builder, MockAccount *account, gboolean send_macaroon, gboolean send_ssh_keys, gboolean send_email)
 {
     int i;
 
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "id");
     json_builder_add_int_value (builder, account->id);
-    json_builder_set_member_name (builder, "email");
-    json_builder_add_string_value (builder, account->email);
+    if (send_email && account->email != NULL) {
+        json_builder_set_member_name (builder, "email");
+        json_builder_add_string_value (builder, account->email);
+    }
     json_builder_set_member_name (builder, "username");
     json_builder_add_string_value (builder, account->username);
-    if (account->ssh_keys != NULL) {
+    if (send_ssh_keys && account->ssh_keys != NULL) {
         json_builder_set_member_name (builder, "ssh-keys");
         json_builder_begin_array (builder);
         for (i = 0; account->ssh_keys[i] != NULL; i++)
             json_builder_add_string_value (builder, account->ssh_keys[i]);
         json_builder_end_array (builder);
     }
-    if (account->macaroon != NULL) {
+    if (send_macaroon && account->macaroon != NULL) {
         json_builder_set_member_name (builder, "macaroon");
         json_builder_add_string_value (builder, account->macaroon);
         json_builder_set_member_name (builder, "discharges");
@@ -1489,7 +1491,7 @@ handle_login (MockSnapd *snapd, SoupMessage *message)
     }
 
     builder = json_builder_new ();
-    add_user_response (builder, account);
+    add_user_response (builder, account, TRUE, FALSE, TRUE);
     send_sync_response (message, 200, json_builder_get_root (builder), NULL);
 }
 
@@ -3028,7 +3030,7 @@ handle_create_user (MockSnapd *snapd, SoupMessage *message)
         a->known = known;
         mock_account_set_ssh_keys (a, ssh_keys);
 
-        add_user_response (builder, a);
+        add_user_response (builder, a, FALSE, TRUE, FALSE);
         send_sync_response (message, 200, json_builder_get_root (builder), NULL);
         return;
     }
@@ -3046,15 +3048,15 @@ handle_create_user (MockSnapd *snapd, SoupMessage *message)
             a->sudoer = TRUE;
             a->known = TRUE;
             mock_account_set_ssh_keys (a, ssh_keys);
-            add_user_response (builder, a);
+            add_user_response (builder, a, FALSE, TRUE, FALSE);
             a = add_account (snapd, "alice@example.com", "alice", "password");
             a->known = TRUE;
             mock_account_set_ssh_keys (a, ssh_keys);
-            add_user_response (builder, a);
+            add_user_response (builder, a, FALSE, TRUE, FALSE);
             a = add_account (snapd, "bob@example.com", "bob", "password");
             a->known = TRUE;
             mock_account_set_ssh_keys (a, ssh_keys);
-            add_user_response (builder, a);
+            add_user_response (builder, a, FALSE, TRUE, FALSE);
 
             json_builder_end_array (builder);
 
@@ -3066,6 +3068,27 @@ handle_create_user (MockSnapd *snapd, SoupMessage *message)
             return;
         }
     }
+}
+
+static void
+handle_users (MockSnapd *snapd, SoupMessage *message)
+{
+    g_autoptr(JsonBuilder) builder = NULL;
+    GList *link;
+
+    if (strcmp (message->method, "GET") != 0) {
+        send_error_method_not_allowed (message, "method not allowed");
+        return;
+    }
+
+    builder = json_builder_new ();
+    json_builder_begin_array (builder);
+    for (link = snapd->accounts; link; link = link->next) {
+        MockAccount *a = link->data;
+        add_user_response (builder, a, FALSE, FALSE, TRUE);
+    }
+    json_builder_end_array (builder);
+    send_sync_response (message, 200, json_builder_get_root (builder), NULL);
 }
 
 static void
@@ -3126,6 +3149,8 @@ handle_request (SoupServer        *server,
         handle_snapctl (snapd, message);
     else if (strcmp (path, "/v2/create-user") == 0)
         handle_create_user (snapd, message);
+    else if (strcmp (path, "/v2/users") == 0)
+        handle_users (snapd, message);
     else
         send_error_not_found (message, "not found");
 }
