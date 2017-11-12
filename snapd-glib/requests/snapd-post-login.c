@@ -15,7 +15,7 @@
 struct _SnapdPostLogin
 {
     SnapdRequest parent_instance;
-    gchar *username;
+    gchar *email;
     gchar *password;
     gchar *otp;
     SnapdUserInformation *user_information;
@@ -24,7 +24,7 @@ struct _SnapdPostLogin
 G_DEFINE_TYPE (SnapdPostLogin, snapd_post_login, snapd_request_get_type ())
 
 SnapdPostLogin *
-_snapd_post_login_new (const gchar *username, const gchar *password, const gchar *otp,
+_snapd_post_login_new (const gchar *email, const gchar *password, const gchar *otp,
                        GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdPostLogin *request;
@@ -34,7 +34,7 @@ _snapd_post_login_new (const gchar *username, const gchar *password, const gchar
                                               "ready-callback", callback,
                                               "ready-callback-data", user_data,
                                               NULL));
-    request->username = g_strdup (username);
+    request->email = g_strdup (email);
     request->password = g_strdup (password);
     request->otp = g_strdup (otp);
 
@@ -58,8 +58,11 @@ generate_post_login_request (SnapdRequest *request)
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "email");
+    json_builder_add_string_value (builder, r->email);
+    /* Send legacy username field for snapd < 2.16 */
     json_builder_set_member_name (builder, "username");
-    json_builder_add_string_value (builder, r->username);
+    json_builder_add_string_value (builder, r->email);
     json_builder_set_member_name (builder, "password");
     json_builder_add_string_value (builder, r->password);
     if (r->otp != NULL) {
@@ -98,7 +101,7 @@ snapd_post_login_finalize (GObject *object)
 {
     SnapdPostLogin *request = SNAPD_POST_LOGIN (object);
 
-    g_clear_pointer (&request->username, g_free);
+    g_clear_pointer (&request->email, g_free);
     g_clear_pointer (&request->password, g_free);
     g_clear_pointer (&request->otp, g_free);
     g_clear_object (&request->user_information);

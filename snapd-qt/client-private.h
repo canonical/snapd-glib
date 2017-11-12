@@ -24,8 +24,8 @@ class QSnapdConnectRequestPrivate
 class QSnapdLoginRequestPrivate
 {
 public:
-    QSnapdLoginRequestPrivate (const QString& username, const QString& password, const QString& otp) :
-        username(username), password(password), otp(otp) {}
+    QSnapdLoginRequestPrivate (const QString& email, const QString& password, const QString& otp) :
+        email(email), password(password), otp(otp) {}
     ~QSnapdLoginRequestPrivate ()
     {
         if (user_information != NULL)
@@ -33,7 +33,7 @@ public:
         if (auth_data != NULL)
             g_object_unref (auth_data);
     }
-    QString username;
+    QString email;
     QString password;
     QString otp;
     SnapdUserInformation *user_information = NULL;

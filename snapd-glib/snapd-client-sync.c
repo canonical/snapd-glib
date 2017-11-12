@@ -75,7 +75,7 @@ snapd_client_connect_sync (SnapdClient *client,
 /**
  * snapd_client_login_sync:
  * @client: a #SnapdClient.
- * @username: usename to log in with.
+ * @email: email address to log in with.
  * @password: password to log in with.
  * @otp: (allow-none): response to one-time password challenge.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
@@ -91,18 +91,18 @@ snapd_client_connect_sync (SnapdClient *client,
  */
 SnapdAuthData *
 snapd_client_login_sync (SnapdClient *client,
-                         const gchar *username, const gchar *password, const gchar *otp,
+                         const gchar *email, const gchar *password, const gchar *otp,
                          GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (username != NULL, NULL);
+    g_return_val_if_fail (email != NULL, NULL);
     g_return_val_if_fail (password != NULL, NULL);
 
     start_sync (&data);
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    snapd_client_login_async (client, username, password, otp, cancellable, sync_cb, &data);
+    snapd_client_login_async (client, email, password, otp, cancellable, sync_cb, &data);
 G_GNUC_END_IGNORE_DEPRECATIONS
     end_sync (&data);
 
@@ -114,7 +114,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 /**
  * snapd_client_login2_sync:
  * @client: a #SnapdClient.
- * @username: usename to log in with.
+ * @email: email address to log in with.
  * @password: password to log in with.
  * @otp: (allow-none): response to one-time password challenge.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
@@ -129,17 +129,17 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  */
 SnapdUserInformation *
 snapd_client_login2_sync (SnapdClient *client,
-                         const gchar *username, const gchar *password, const gchar *otp,
+                         const gchar *email, const gchar *password, const gchar *otp,
                          GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-    g_return_val_if_fail (username != NULL, NULL);
+    g_return_val_if_fail (email != NULL, NULL);
     g_return_val_if_fail (password != NULL, NULL);
 
     start_sync (&data);
-    snapd_client_login2_async (client, username, password, otp, cancellable, sync_cb, &data);
+    snapd_client_login2_async (client, email, password, otp, cancellable, sync_cb, &data);
     end_sync (&data);
 
     return snapd_client_login2_finish (client, data.result, error);

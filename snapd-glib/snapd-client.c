@@ -993,7 +993,7 @@ snapd_client_get_allow_interaction (SnapdClient *client)
 /**
  * snapd_client_login_async:
  * @client: a #SnapdClient.
- * @username: usename to log in with.
+ * @email: email address to log in with.
  * @password: password to log in with.
  * @otp: (allow-none): response to one-time password challenge.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
@@ -1008,10 +1008,10 @@ snapd_client_get_allow_interaction (SnapdClient *client)
  */
 void
 snapd_client_login_async (SnapdClient *client,
-                          const gchar *username, const gchar *password, const gchar *otp,
+                          const gchar *email, const gchar *password, const gchar *otp,
                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    snapd_client_login2_async (client, username, password, otp, cancellable, callback, user_data);
+    snapd_client_login2_async (client, email, password, otp, cancellable, callback, user_data);
 }
 
 /**
@@ -1043,7 +1043,7 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
 /**
  * snapd_client_login2_async:
  * @client: a #SnapdClient.
- * @username: usename to log in with.
+ * @email: email address to log in with.
  * @password: password to log in with.
  * @otp: (allow-none): response to one-time password challenge.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
@@ -1057,14 +1057,14 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
  */
 void
 snapd_client_login2_async (SnapdClient *client,
-                          const gchar *username, const gchar *password, const gchar *otp,
+                          const gchar *email, const gchar *password, const gchar *otp,
                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdPostLogin *request;
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = _snapd_post_login_new (username, password, otp, cancellable, callback, user_data);
+    request = _snapd_post_login_new (email, password, otp, cancellable, callback, user_data);
     send_request (client, SNAPD_REQUEST (request));
 }
 

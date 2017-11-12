@@ -1438,7 +1438,7 @@ handle_login (MockSnapd *snapd, SoupMessage *message)
 {
     g_autoptr(JsonNode) request = NULL;
     JsonObject *o;
-    const gchar *username, *password, *otp = NULL;
+    const gchar *email, *password, *otp = NULL;
     MockAccount *account;
     g_autoptr(JsonBuilder) builder = NULL;
 
@@ -1454,17 +1454,19 @@ handle_login (MockSnapd *snapd, SoupMessage *message)
     }
 
     o = json_node_get_object (request);
-    username = json_object_get_string_member (o, "username");
+    email = json_object_get_string_member (o, "email");
+    if (email == NULL)
+        email = json_object_get_string_member (o, "username");
     password = json_object_get_string_member (o, "password");
     if (json_object_has_member (o, "otp"))
         otp = json_object_get_string_member (o, "otp");
 
-    if (strstr (username, "@") == NULL) {
+    if (strstr (email, "@") == NULL) {
         send_error_bad_request (message, "please use a valid email address.", "invalid-auth-data");
         return;
     }
 
-    account = find_account_by_email (snapd, username);
+    account = find_account_by_email (snapd, email);
     if (account == NULL) {
         send_error_unauthorized (message, "cannot authenticate to snap store: Provided email/password is not correct.", "login-required");
         return;

@@ -18,7 +18,7 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdPostLogin, snapd_post_login, SNAPD, POST_LOGIN, SnapdRequest)
 
-SnapdPostLogin       *_snapd_post_login_new                  (const gchar         *username,
+SnapdPostLogin       *_snapd_post_login_new                  (const gchar         *email,
                                                               const gchar         *password,
                                                               const gchar         *otp,
                                                               GCancellable        *cancellable,
