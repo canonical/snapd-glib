@@ -2676,7 +2676,7 @@ snapd_client_create_users_finish (SnapdClient *client, GAsyncResult *result, GEr
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
  *
- * Asynchronously create a local user account.
+ * Asynchronously get the store sections.
  * See snapd_client_get_sections_sync() for more information.
  *
  * Since: 1.7
