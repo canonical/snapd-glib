@@ -152,8 +152,12 @@ request_data_new (SnapdClient *client, SnapdRequest *request)
 static void
 request_data_free (RequestData *data)
 {
-    g_clear_pointer (&data->read_source, g_source_destroy);
-    g_clear_pointer (&data->poll_source, g_source_destroy);
+    if (data->read_source != NULL)
+        g_source_destroy (data->read_source);
+    g_clear_pointer (&data->read_source, g_source_unref);
+    if (data->poll_source != NULL)
+        g_source_destroy (data->poll_source);
+    g_clear_pointer (&data->poll_source, g_source_unref);
     if (data->cancelled_id != 0)
         g_cancellable_disconnect (_snapd_request_get_cancellable (data->request), data->cancelled_id);
     data->cancelled_id = 0;
@@ -200,7 +204,9 @@ async_poll_cb (gpointer data)
     change_request = _snapd_get_change_new (_snapd_request_async_get_change_id (SNAPD_REQUEST_ASYNC (d->request)), NULL, NULL, NULL);
     send_request (d->client, SNAPD_REQUEST (change_request));
 
-    g_clear_pointer (&d->poll_source, g_source_destroy);
+    if (d->poll_source != NULL)
+        g_source_destroy (d->poll_source);
+    g_clear_pointer (&d->poll_source, g_source_unref);
     return G_SOURCE_REMOVE;
 }
 
@@ -211,7 +217,9 @@ schedule_poll (SnapdClient *client, SnapdRequestAsync *request)
     RequestData *data;
 
     data = g_hash_table_lookup (priv->request_data, request);
-    g_clear_pointer (&data->poll_source, g_source_destroy);
+    if (data->poll_source != NULL)
+        g_source_destroy (data->poll_source);
+    g_clear_pointer (&data->poll_source, g_source_unref);
     data->poll_source = g_timeout_source_new (ASYNC_POLL_TIME);
     g_source_set_callback (data->poll_source, async_poll_cb, data, NULL);
     g_source_attach (data->poll_source, _snapd_request_get_context (SNAPD_REQUEST (request)));
