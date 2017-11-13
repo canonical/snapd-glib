@@ -623,6 +623,7 @@ read_cb (GSocket *socket, GIOCondition condition, RequestData *data)
         message = _snapd_request_get_message (request);
 
         /* Parse headers */
+        g_clear_pointer (&message->reason_phrase, g_free);
         if (!soup_headers_parse_response ((gchar *) priv->buffer->data, header_length, message->response_headers,
                                           NULL, &message->status_code, &message->reason_phrase)) {
             e = g_error_new (SNAPD_ERROR,
