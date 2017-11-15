@@ -106,7 +106,8 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, GErr
     while (offset < buffer->length) {
         gsize assertion_start, assertion_end, body_length = 0;
         g_autofree gchar *body_length_header = NULL;
-        SnapdAssertion *assertion;
+        g_autofree gchar *content = NULL;
+        g_autoptr(SnapdAssertion) assertion = NULL;
 
         /* Headers terminated by double newline */
         assertion_start = offset;
@@ -115,9 +116,9 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, GErr
         offset += 2;
 
         /* Make a temporary assertion object to decode body length header */
-        assertion = snapd_assertion_new (g_strndup (buffer->data + assertion_start, offset - assertion_start));
+        content = g_strndup (buffer->data + assertion_start, offset - assertion_start);
+        assertion = snapd_assertion_new (content);
         body_length_header = snapd_assertion_get_header (assertion, "body-length");
-        g_object_unref (assertion);
 
         /* Skip over body */
         body_length = body_length_header != NULL ? strtoul (body_length_header, NULL, 10) : 0;
