@@ -551,9 +551,9 @@ parse_response (SnapdClient *client, SnapdRequest *request, SoupMessage *message
 }
 
 static gboolean
-read_cb (GSocket *socket, GIOCondition condition, RequestData *data)
+read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
 {
-    SnapdClientPrivate *priv = snapd_client_get_instance_private (data->client);
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     gssize n_read;
     gchar *body;
     gsize header_length;
@@ -577,9 +577,7 @@ read_cb (GSocket *socket, GIOCondition condition, RequestData *data)
         e = g_error_new (SNAPD_ERROR,
                          SNAPD_ERROR_READ_FAILED,
                          "snapd connection closed");
-        complete_all_requests (data->client, e);
-
-        data->read_source = NULL;
+        complete_all_requests (client, e);
         return G_SOURCE_REMOVE;
     }
 
@@ -593,9 +591,7 @@ read_cb (GSocket *socket, GIOCondition condition, RequestData *data)
                          SNAPD_ERROR_READ_FAILED,
                          "Failed to read from snapd: %s",
                          error->message);
-        complete_all_requests (data->client, e);
-
-        data->read_source = NULL;
+        complete_all_requests (client, e);
         return G_SOURCE_REMOVE;
     }
 
@@ -614,7 +610,7 @@ read_cb (GSocket *socket, GIOCondition condition, RequestData *data)
         header_length = body - (gchar *) priv->buffer->data;
 
         /* Match this response to the next uncompleted request */
-        request = get_first_request (data->client);
+        request = get_first_request (client);
         if (request == NULL) {
             g_warning ("Ignoring unexpected response");
             return G_SOURCE_REMOVE;
@@ -629,8 +625,7 @@ read_cb (GSocket *socket, GIOCondition condition, RequestData *data)
             e = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
                              "Failed to parse headers from snapd");
-            complete_all_requests (data->client, e);
-            data->read_source = NULL;
+            complete_all_requests (client, e);
             return G_SOURCE_REMOVE;
         }
 
@@ -642,7 +637,7 @@ read_cb (GSocket *socket, GIOCondition condition, RequestData *data)
 
             content_length = priv->n_read - header_length;
             soup_message_body_append (message->response_body, SOUP_MEMORY_COPY, body, content_length);
-            parse_response (data->client, request, message);
+            parse_response (client, request, message);
             break;
 
         case SOUP_ENCODING_CHUNKED:
@@ -652,7 +647,7 @@ read_cb (GSocket *socket, GIOCondition condition, RequestData *data)
 
             compress_chunks (body, priv->n_read - header_length, &combined_start, &combined_length, &content_length);
             soup_message_body_append (message->response_body, SOUP_MEMORY_COPY, combined_start, combined_length);
-            parse_response (data->client, request, message);
+            parse_response (client, request, message);
             break;
 
         case SOUP_ENCODING_CONTENT_LENGTH:
@@ -661,15 +656,14 @@ read_cb (GSocket *socket, GIOCondition condition, RequestData *data)
                 return G_SOURCE_CONTINUE;
 
             soup_message_body_append (message->response_body, SOUP_MEMORY_COPY, body, content_length);
-            parse_response (data->client, request, message);
+            parse_response (client, request, message);
             break;
 
         default:
             e = g_error_new (SNAPD_ERROR,
                              SNAPD_ERROR_READ_FAILED,
                              "Unable to determine header encoding");
-            complete_all_requests (data->client, e);
-            data->read_source = NULL;
+            complete_all_requests (client, e);
             return G_SOURCE_REMOVE;
         }
 
@@ -806,7 +800,7 @@ send_request (SnapdClient *client, SnapdRequest *request)
 
     data->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
     g_source_set_name (data->read_source, "snapd-glib-read-source");
-    g_source_set_callback (data->read_source, (GSourceFunc) read_cb, data, NULL);
+    g_source_set_callback (data->read_source, (GSourceFunc) read_cb, client, NULL);
     g_source_attach (data->read_source, _snapd_request_get_context (request));
 
     /* send HTTP request */
