@@ -96,7 +96,8 @@ _snapd_request_return (SnapdRequest *request, GError *error)
     if (priv->responded)
         return;
     priv->responded = TRUE;
-    priv->error = error;
+    if (error != NULL)
+        priv->error = g_error_copy (error);
 
     source = g_idle_source_new ();
     g_source_set_callback (source, respond_cb, g_object_ref (request), g_object_unref);
