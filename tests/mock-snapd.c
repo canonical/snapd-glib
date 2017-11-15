@@ -1120,7 +1120,7 @@ mock_change_free (MockChange *change)
     g_free (change->spawn_time);
     g_free (change->ready_time);
     g_list_free_full (change->tasks, (GDestroyNotify) mock_task_free);
-    if (change->data)
+    if (change->data != NULL)
         json_node_unref (change->data);
     g_free (change->error);
     g_slice_free (MockChange, change);
