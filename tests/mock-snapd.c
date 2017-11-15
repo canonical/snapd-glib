@@ -47,6 +47,7 @@ typedef struct
     gchar *spawn_time;
     gchar *ready_time;
     MockSnap *snap;
+    gchar *snap_name;
 } MockTask;
 
 struct _MockSnapd
@@ -120,6 +121,7 @@ mock_track_free (MockTrack *track)
 {
     g_free (track->name);
     g_list_free_full (track->channels, (GDestroyNotify) mock_channel_free);
+    g_slice_free (MockTrack, track);
 }
 
 static void
@@ -158,6 +160,7 @@ static void
 mock_snap_free (MockSnap *snap)
 {
     g_list_free_full (snap->apps, (GDestroyNotify) mock_app_free);
+    g_free (snap->broken);
     g_free (snap->channel);
     g_free (snap->confinement);
     g_free (snap->contact);
@@ -455,6 +458,7 @@ find_account_by_macaroon (MockSnapd *snapd, const gchar *macaroon, gchar **disch
 static void
 mock_account_free (MockAccount *account)
 {
+    g_free (account->email);
     g_free (account->username);
     g_free (account->password);
     g_free (account->otp);
@@ -1100,6 +1104,9 @@ mock_task_free (MockTask *task)
     g_free (task->progress_label);
     g_free (task->spawn_time);
     g_free (task->ready_time);
+    if (task->snap != NULL)
+        mock_snap_free (task->snap);
+    g_free (task->snap_name);
     g_slice_free (MockTask, task);
 }
 
@@ -2008,7 +2015,7 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
 
                 change = add_change_with_error (snapd, snap->error);
                 task = add_task (change, "remove");
-                task->snap = snap;
+                task->snap_name = g_strdup (name);
 
                 send_async_response (message, 202, change->id);
 
@@ -2176,7 +2183,10 @@ handle_assertions (MockSnapd *snapd, SoupMessage *message, const gchar *type)
         send_response (message, 200, "application/x.ubuntu.assertion; bundle=y", (guint8*) response_content->str, response_content->len);
     }
     else if (strcmp (message->method, "POST") == 0) {
-        add_assertion (snapd, g_strndup (message->request_body->data, message->request_body->length));
+        g_autofree gchar *assertion = NULL;
+
+        assertion = g_strndup (message->request_body->data, message->request_body->length);
+        add_assertion (snapd, assertion);
         send_sync_response (message, 200, NULL, NULL);
     }
     else {
@@ -2443,7 +2453,7 @@ change_to_result (MockChange *change)
     }
     if (is_ready && change->data != NULL) {
         json_builder_set_member_name (builder, "data");
-        json_builder_add_value (builder, json_node_ref (change->data));
+        json_builder_add_value (builder, change->data);
     }
     if (is_ready && change->error != NULL) {
         json_builder_set_member_name (builder, "err");
@@ -2478,10 +2488,12 @@ handle_changes (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
                     /* Complete task */
                     if (task->progress_done >= task->progress_total) {
                         if (strcmp (task->kind, "install") == 0 || strcmp (task->kind, "try") == 0)
-                            snapd->snaps = g_list_append (snapd->snaps, task->snap);
+                            snapd->snaps = g_list_append (snapd->snaps, g_steal_pointer (&task->snap));
                         else if (strcmp (task->kind, "remove") == 0) {
-                            snapd->snaps = g_list_remove (snapd->snaps, task->snap);
-                            g_clear_pointer (&task->snap, mock_snap_free);
+                            MockSnap *snap;
+                            snap = find_snap (snapd, task->snap_name);
+                            snapd->snaps = g_list_remove (snapd->snaps, snap);
+                            mock_snap_free (snap);
                         }
                     }
                     break;
@@ -2804,8 +2816,10 @@ unalias (MockSnapd *snapd, const gchar *name)
             if (alias != NULL) {
                 if (alias->automatic)
                     alias->enabled = FALSE;
-                else
+                else {
                     app->aliases = g_list_remove (app->aliases, alias);
+                    mock_alias_free (alias);
+                }
                 return;
             }
         }
