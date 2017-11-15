@@ -1268,6 +1268,11 @@ test_assertions_sync (void)
 {
     g_autoptr(SnapdAssertion) assertion = NULL;
     g_auto(GStrv) headers = NULL;
+    g_autofree gchar *type = NULL;
+    g_autofree gchar *authority_id = NULL;
+    g_autofree gchar *invalid_header = NULL;
+    g_autofree gchar *body = NULL;
+    g_autofree gchar *signature = NULL;
 
     assertion = snapd_assertion_new ("type: account\n"
                                      "authority-id: canonical\n"
@@ -1276,12 +1281,17 @@ test_assertions_sync (void)
     headers = snapd_assertion_get_headers (assertion);
     g_assert_cmpint (g_strv_length (headers), ==, 2);
     g_assert_cmpstr (headers[0], ==, "type");
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "type"), ==, "account");
+    type = snapd_assertion_get_header (assertion, "type");
+    g_assert_cmpstr (type, ==, "account");
     g_assert_cmpstr (headers[1], ==, "authority-id");
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "authority-id"), ==, "canonical");
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "invalid"), ==, NULL);
-    g_assert_cmpstr (snapd_assertion_get_body (assertion), ==, NULL);
-    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE");
+    authority_id = snapd_assertion_get_header (assertion, "authority-id");
+    g_assert_cmpstr (authority_id, ==, "canonical");
+    invalid_header = snapd_assertion_get_header (assertion, "invalid");
+    g_assert_cmpstr (invalid_header, ==, NULL);
+    body = snapd_assertion_get_body (assertion);
+    g_assert_cmpstr (body, ==, NULL);
+    signature = snapd_assertion_get_signature (assertion);
+    g_assert_cmpstr (signature, ==, "SIGNATURE");
 }
 
 static void
@@ -1289,6 +1299,11 @@ test_assertions_body (void)
 {
     g_autoptr(SnapdAssertion) assertion = NULL;
     g_auto(GStrv) headers = NULL;
+    g_autofree gchar *type = NULL;
+    g_autofree gchar *body_length = NULL;
+    g_autofree gchar *invalid_header = NULL;
+    g_autofree gchar *body = NULL;
+    g_autofree gchar *signature = NULL;
 
     assertion = snapd_assertion_new ("type: account\n"
                                      "body-length: 4\n"
@@ -1299,12 +1314,17 @@ test_assertions_body (void)
     headers = snapd_assertion_get_headers (assertion);
     g_assert_cmpint (g_strv_length (headers), ==, 2);
     g_assert_cmpstr (headers[0], ==, "type");
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "type"), ==, "account");
+    type = snapd_assertion_get_header (assertion, "type");
+    g_assert_cmpstr (type, ==, "account");
     g_assert_cmpstr (headers[1], ==, "body-length");
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "body-length"), ==, "4");
-    g_assert_cmpstr (snapd_assertion_get_header (assertion, "invalid"), ==, NULL);
-    g_assert_cmpstr (snapd_assertion_get_body (assertion), ==, "BODY");
-    g_assert_cmpstr (snapd_assertion_get_signature (assertion), ==, "SIGNATURE");
+    body_length = snapd_assertion_get_header (assertion, "body-length");
+    g_assert_cmpstr (body_length, ==, "4");
+    invalid_header = snapd_assertion_get_header (assertion, "invalid");
+    g_assert_cmpstr (invalid_header, ==, NULL);
+    body = snapd_assertion_get_body (assertion);
+    g_assert_cmpstr (body, ==, "BODY");
+    signature = snapd_assertion_get_signature (assertion);
+    g_assert_cmpstr (signature, ==, "SIGNATURE");
 }
 
 static void
