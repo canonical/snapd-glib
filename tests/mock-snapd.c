@@ -87,6 +87,133 @@ struct _MockSnapd
 
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
 
+struct _MockAccount
+{
+    int id;
+    gchar *email;
+    gchar *username;
+    gchar *password;
+    gchar *otp;
+    gchar **ssh_keys;
+    gchar *macaroon;
+    gchar **discharges;
+    gboolean sudoer;
+    gboolean known;
+    gboolean terms_accepted;
+    gboolean has_payment_methods;
+    GList *private_snaps;
+};
+
+struct _MockAlias
+{
+    gchar *name;
+    gboolean automatic;
+    gboolean enabled;
+};
+
+struct _MockApp
+{
+    gchar *name;
+    gchar *daemon;
+    gchar *desktop_file;
+    gboolean enabled;
+    gboolean active;
+    GList *aliases;
+};
+
+struct _MockChannel
+{
+    gchar *risk;
+    gchar *branch;
+    gchar *confinement;
+    gchar *epoch;
+    gchar *revision;
+    int size;
+    gchar *version;
+};
+
+struct _MockPrice
+{
+    gdouble amount;
+    gchar *currency;
+};
+
+struct _MockScreenshot
+{
+    gchar *url;
+    int width;
+    int height;
+};
+
+struct _MockPlug
+{
+    MockSnap *snap;
+    gchar *name;
+    gchar *interface;
+    // FIXME: Attributes
+    gchar *label;
+    MockSlot *connection;
+};
+
+struct _MockSlot
+{
+    MockSnap *snap;
+    gchar *name;
+    gchar *interface;
+    // FIXME: Attributes
+    gchar *label;
+};
+
+struct _MockSnap
+{
+    GList *apps;
+    gchar *broken;
+    gchar *channel;
+    gchar *confinement;
+    gchar *contact;
+    gchar *description;
+    gchar *developer;
+    gboolean devmode;
+    int download_size;
+    gchar *icon;
+    gchar *icon_mime_type;
+    GBytes *icon_data;
+    gchar *id;
+    gchar *install_date;
+    int installed_size;
+    gboolean jailmode;
+    gchar *license;
+    gchar *name;
+    GList *prices;
+    gboolean is_private;
+    gchar *revision;
+    GList *screenshots;
+    gchar *status;
+    gchar *summary;
+    gchar *title;
+    gchar *tracking_channel;
+    GList *tracks;
+    gboolean trymode;
+    gchar *type;
+    gchar *version;
+    GList *store_sections;
+    GList *plugs;
+    GList *slots_;
+    gboolean disabled;
+    gboolean dangerous;
+    gchar *snap_data;
+    gchar *snap_path;
+    gchar *error;
+    gboolean restart_required;
+    gboolean preferred;
+};
+
+struct _MockTrack
+{
+    gchar *name;
+    GList *channels;
+};
+
 static void
 mock_alias_free (MockAlias *alias)
 {
@@ -325,6 +452,42 @@ mock_snapd_add_account (MockSnapd *snapd, const gchar *email, const gchar *usern
     locker = g_mutex_locker_new (&snapd->mutex);
 
     return add_account (snapd, email, username, password);
+}
+
+void
+mock_account_set_terms_accepted (MockAccount *account, gboolean terms_accepted)
+{
+    account->terms_accepted = terms_accepted;
+}
+
+void
+mock_account_set_has_payment_methods (MockAccount *account, gboolean has_payment_methods)
+{
+    account->has_payment_methods = has_payment_methods;
+}
+
+const gchar *
+mock_account_get_macaroon (MockAccount *account)
+{
+    return account->macaroon;
+}
+
+gchar **
+mock_account_get_discharges (MockAccount *account)
+{
+    return account->discharges;
+}
+
+gboolean
+mock_account_get_sudoer (MockAccount *account)
+{
+    return account->sudoer;
+}
+
+gboolean
+mock_account_get_known (MockAccount *account)
+{
+    return account->known;
 }
 
 void
@@ -587,6 +750,18 @@ mock_snap_add_app (MockSnap *snap, const gchar *name)
 }
 
 void
+mock_app_set_active (MockApp *app, gboolean active)
+{
+    app->active = active;
+}
+
+void
+mock_app_set_enabled (MockApp *app, gboolean enabled)
+{
+    app->enabled = enabled;
+}
+
+void
 mock_app_set_daemon (MockApp *app, const gchar *daemon)
 {
     g_free (app->daemon);
@@ -658,6 +833,12 @@ mock_snap_set_channel (MockSnap *snap, const gchar *channel)
     snap->channel = g_strdup (channel);
 }
 
+const gchar *
+mock_snap_get_channel (MockSnap *snap)
+{
+    return snap->channel;
+}
+
 MockTrack *
 mock_snap_add_track (MockSnap *snap, const gchar *name)
 {
@@ -716,6 +897,18 @@ mock_channel_set_revision (MockChannel *channel, const gchar *revision)
     channel->revision = g_strdup (revision);
 }
 
+const gchar *
+mock_snap_get_revision (MockSnap *snap)
+{
+    return snap->revision;
+}
+
+void
+mock_channel_set_size (MockChannel *channel, int size)
+{
+    channel->size = size;
+}
+
 void
 mock_channel_set_version (MockChannel *channel, const gchar *version)
 {
@@ -730,11 +923,29 @@ mock_snap_set_confinement (MockSnap *snap, const gchar *confinement)
     snap->confinement = g_strdup (confinement);
 }
 
+const gchar *
+mock_snap_get_confinement (MockSnap *snap)
+{
+    return snap->confinement;
+}
+
 void
 mock_snap_set_contact (MockSnap *snap, const gchar *contact)
 {
     g_free (snap->contact);
     snap->contact = g_strdup (contact);
+}
+
+gboolean
+mock_snap_get_dangerous (MockSnap *snap)
+{
+    return snap->dangerous;
+}
+
+const gchar *
+mock_snap_get_data (MockSnap *snap)
+{
+    return snap->snap_data;
 }
 
 void
@@ -749,6 +960,36 @@ mock_snap_set_developer (MockSnap *snap, const gchar *developer)
 {
     g_free (snap->developer);
     snap->developer = g_strdup (developer);
+}
+
+void
+mock_snap_set_devmode (MockSnap *snap, gboolean devmode)
+{
+    snap->devmode = devmode;
+}
+
+gboolean
+mock_snap_get_devmode (MockSnap *snap)
+{
+    return snap->devmode;
+}
+
+void
+mock_snap_set_disabled (MockSnap *snap, gboolean disabled)
+{
+    snap->disabled = disabled;
+}
+
+gboolean
+mock_snap_get_disabled (MockSnap *snap)
+{
+    return snap->disabled;
+}
+
+void
+mock_snap_set_download_size (MockSnap *snap, int download_size)
+{
+    snap->download_size = download_size;
 }
 
 void
@@ -789,10 +1030,40 @@ mock_snap_set_install_date (MockSnap *snap, const gchar *install_date)
 }
 
 void
+mock_snap_set_installed_size (MockSnap *snap, int installed_size)
+{
+    snap->installed_size = installed_size;
+}
+
+void
+mock_snap_set_jailmode (MockSnap *snap, gboolean jailmode)
+{
+    snap->jailmode = jailmode;
+}
+
+gboolean
+mock_snap_get_jailmode (MockSnap *snap)
+{
+    return snap->jailmode;
+}
+
+void
 mock_snap_set_license (MockSnap *snap, const gchar *license)
 {
     g_free (snap->license);
     snap->license = g_strdup (license);
+}
+
+const gchar *
+mock_snap_get_path (MockSnap *snap)
+{
+    return snap->snap_path;
+}
+
+gboolean
+mock_snap_get_preferred (MockSnap *snap)
+{
+    return snap->preferred;
 }
 
 MockPrice *
@@ -820,6 +1091,12 @@ mock_snap_find_price (MockSnap *snap, const gchar *currency)
     }
 
     return 0.0;
+}
+
+void
+mock_snap_set_restart_required (MockSnap *snap, gboolean restart_required)
+{
+    snap->restart_required = restart_required;
 }
 
 void
@@ -869,6 +1146,18 @@ mock_snap_set_tracking_channel (MockSnap *snap, const gchar *channel)
 {
     g_free (snap->tracking_channel);
     snap->tracking_channel = g_strdup (channel);
+}
+
+const gchar *
+mock_snap_get_tracking_channel (MockSnap *snap)
+{
+    return snap->tracking_channel;
+}
+
+void
+mock_snap_set_trymode (MockSnap *snap, gboolean trymode)
+{
+    snap->trymode = trymode;
 }
 
 void
@@ -933,6 +1222,18 @@ mock_snap_add_slot (MockSnap *snap, const gchar *name)
     snap->slots_ = g_list_append (snap->slots_, slot);
 
     return slot;
+}
+
+void
+mock_plug_set_connection (MockPlug *plug, MockSlot *slot)
+{
+    plug->connection = slot;
+}
+
+MockSlot *
+mock_plug_get_connection (MockPlug *plug)
+{
+    return plug->connection;
 }
 
 static MockSlot *

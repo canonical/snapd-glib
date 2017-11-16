@@ -319,10 +319,10 @@ test_login_sync ()
     g_assert (userInformation->email () == "test@example.com");
     g_assert (userInformation->username () == "test");
     g_assert_cmpint (userInformation->sshKeys ().count (), ==, 0);
-    g_assert (userInformation->authData ()->macaroon () == a->macaroon);
-    g_assert_cmpint (userInformation->authData ()->discharges ().count (), ==, g_strv_length (a->discharges));
-    for (int i = 0; a->discharges[i]; i++)
-        g_assert (userInformation->authData ()->discharges ()[i] == a->discharges[i]);
+    g_assert (userInformation->authData ()->macaroon () == mock_account_get_macaroon (a));
+    g_assert_cmpint (userInformation->authData ()->discharges ().count (), ==, g_strv_length (mock_account_get_discharges (a)));
+    for (int i = 0; mock_account_get_discharges (a)[i]; i++)
+        g_assert (userInformation->authData ()->discharges ()[i] == mock_account_get_discharges (a)[i]);
 }
 
 static void
@@ -553,11 +553,11 @@ test_list_one_optional_fields ()
     mock_app_set_desktop_file (a, "/var/lib/snapd/desktop/applications/app.desktop");
     mock_snap_set_broken (s, "BROKEN");
     mock_snap_set_confinement (s, "classic");
-    s->devmode = TRUE;
+    mock_snap_set_devmode (s, TRUE);
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
-    s->installed_size = 1024;
-    s->jailmode = TRUE;
-    s->trymode = TRUE;
+    mock_snap_set_installed_size (s, 1024);
+    mock_snap_set_jailmode (s, TRUE);
+    mock_snap_set_trymode (s, TRUE);
     mock_snap_set_contact (s, "CONTACT");
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_description (s, "DESCRIPTION");
@@ -710,8 +710,8 @@ test_get_apps_sync ()
     mock_app_set_desktop_file (a, "foo.desktop");
     a = mock_snap_add_app (s, "app3");
     mock_app_set_daemon (a, "simple");
-    a->active = TRUE;
-    a->enabled = TRUE;
+    mock_app_set_active (a, TRUE);
+    mock_app_set_enabled (a, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -1027,7 +1027,7 @@ test_get_interfaces_sync ()
     mock_snap_add_slot (s, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *p = mock_snap_add_plug (s, "plug1");
-    p->connection = sl;
+    mock_plug_set_connection (p, sl);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -1101,7 +1101,7 @@ test_connect_interface_sync ()
     QScopedPointer<QSnapdConnectInterfaceRequest> connectInterfaceRequest (client.connectInterface ("snap2", "plug", "snap1", "slot"));
     connectInterfaceRequest->runSync ();
     g_assert_cmpint (connectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (plug->connection == slot);
+    g_assert (mock_plug_get_connection (plug) == slot);
 }
 
 static void
@@ -1122,7 +1122,7 @@ test_connect_interface_progress ()
     QObject::connect (connectInterfaceRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
     connectInterfaceRequest->runSync ();
     g_assert_cmpint (connectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (plug->connection == slot);
+    g_assert (mock_plug_get_connection (plug) == slot);
     g_assert_cmpint (counter.progressDone, >, 0);
 }
 
@@ -1148,7 +1148,7 @@ test_disconnect_interface_sync ()
     MockSlot *slot = mock_snap_add_slot (s, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *plug = mock_snap_add_plug (s, "plug");
-    plug->connection = slot;
+    mock_plug_set_connection (plug, slot);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -1157,7 +1157,7 @@ test_disconnect_interface_sync ()
     QScopedPointer<QSnapdDisconnectInterfaceRequest> disconnectInterfaceRequest (client.disconnectInterface ("snap2", "plug", "snap1", "slot"));
     disconnectInterfaceRequest->runSync ();
     g_assert_cmpint (disconnectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_null (plug->connection);
+    g_assert_null (mock_plug_get_connection (plug));
 }
 
 static void
@@ -1168,7 +1168,7 @@ test_disconnect_interface_progress ()
     MockSlot *slot = mock_snap_add_slot (s, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *plug = mock_snap_add_plug (s, "plug");
-    plug->connection = slot;
+    mock_plug_set_connection (plug, slot);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -1179,7 +1179,7 @@ test_disconnect_interface_progress ()
     QObject::connect (disconnectInterfaceRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
     disconnectInterfaceRequest->runSync ();
     g_assert_cmpint (disconnectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_null (plug->connection);
+    g_assert_null (mock_plug_get_connection (plug));
     g_assert_cmpint (counter.progressDone, >, 0);
 }
 
@@ -1210,12 +1210,12 @@ test_find_query ()
     mock_snap_set_contact (s, "CONTACT");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_summary (s, "SUMMARY");
-    s->download_size = 1024;
+    mock_snap_set_download_size (s, 1024);
     mock_snap_add_price (s, 1.20, "NZD");
     mock_snap_add_price (s, 0.87, "USD");
     mock_snap_add_screenshot (s, "screenshot0.png", 0, 0);
     mock_snap_add_screenshot (s, "screenshot1.png", 1024, 1024);
-    s->trymode = TRUE;
+    mock_snap_set_trymode (s, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -1385,7 +1385,7 @@ test_find_channels ()
     mock_channel_set_version (c, "BETA-VERSION");
     mock_channel_set_epoch (c, "1");
     mock_channel_set_confinement (c, "classic");
-    c->size = 10000;
+    mock_channel_set_size (c, 10000);
     mock_snap_add_track (s, "TRACK");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -1590,10 +1590,10 @@ test_install_sync ()
     installRequest->runSync ();
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->confinement, ==, "strict");
-    g_assert_false (mock_snapd_find_snap (snapd, "snap")->devmode);
-    g_assert_false (mock_snapd_find_snap (snapd, "snap")->dangerous);
-    g_assert_false (mock_snapd_find_snap (snapd, "snap")->jailmode);
+    g_assert_cmpstr (mock_snap_get_confinement (mock_snapd_find_snap (snapd, "snap")), ==, "strict");
+    g_assert_false (mock_snap_get_devmode (mock_snapd_find_snap (snapd, "snap")));
+    g_assert_false (mock_snap_get_dangerous (mock_snapd_find_snap (snapd, "snap")));
+    g_assert_false (mock_snap_get_jailmode (mock_snapd_find_snap (snapd, "snap")));
 }
 
 static void
@@ -1628,10 +1628,10 @@ InstallHandler::onComplete ()
 {
     g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->confinement, ==, "strict");
-    g_assert_false (mock_snapd_find_snap (snapd, "snap")->devmode);
-    g_assert_false (mock_snapd_find_snap (snapd, "snap")->dangerous);
-    g_assert_false (mock_snapd_find_snap (snapd, "snap")->jailmode);
+    g_assert_cmpstr (mock_snap_get_confinement (mock_snapd_find_snap (snapd, "snap")), ==, "strict");
+    g_assert_false (mock_snap_get_devmode (mock_snapd_find_snap (snapd, "snap")));
+    g_assert_false (mock_snap_get_dangerous (mock_snapd_find_snap (snapd, "snap")));
+    g_assert_false (mock_snap_get_jailmode (mock_snapd_find_snap (snapd, "snap")));
 
     g_main_loop_quit (loop);
 }
@@ -1994,7 +1994,7 @@ test_install_classic ()
     installRequest->runSync ();
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->confinement, ==, "classic");
+    g_assert_cmpstr (mock_snap_get_confinement (mock_snapd_find_snap (snapd, "snap")), ==, "classic");
 }
 
 static void
@@ -2047,7 +2047,7 @@ test_install_devmode ()
     installRequest->runSync ();
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    g_assert (mock_snapd_find_snap (snapd, "snap")->devmode);
+    g_assert (mock_snap_get_devmode (mock_snapd_find_snap (snapd, "snap")));
 }
 
 static void
@@ -2065,7 +2065,7 @@ test_install_dangerous ()
     installRequest->runSync ();
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    g_assert (mock_snapd_find_snap (snapd, "snap")->dangerous);
+    g_assert (mock_snap_get_dangerous (mock_snapd_find_snap (snapd, "snap")));
 }
 
 static void
@@ -2083,7 +2083,7 @@ test_install_jailmode ()
     installRequest->runSync ();
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    g_assert (mock_snapd_find_snap (snapd, "snap")->jailmode);
+    g_assert (mock_snap_get_jailmode (mock_snapd_find_snap (snapd, "snap")));
 }
 
 static void
@@ -2103,7 +2103,7 @@ test_install_channel ()
     installRequest->runSync ();
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->channel, ==, "channel2");
+    g_assert_cmpstr (mock_snap_get_channel (mock_snapd_find_snap (snapd, "snap")), ==, "channel2");
 }
 
 static void
@@ -2123,7 +2123,7 @@ test_install_revision ()
     installRequest->runSync ();
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->revision, ==, "1.1");
+    g_assert_cmpstr (mock_snap_get_revision (mock_snapd_find_snap (snapd, "snap")), ==, "1.1");
 }
 
 static void
@@ -2145,7 +2145,7 @@ test_install_snapd_restart ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
-    s->restart_required = TRUE;
+    mock_snap_set_restart_required (s, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2164,7 +2164,7 @@ test_install_async_snapd_restart ()
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
-    s->restart_required = TRUE;
+    mock_snap_set_restart_required (s, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2198,11 +2198,11 @@ test_install_stream_sync ()
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
-    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
-    g_assert_cmpstr (snap->confinement, ==, "strict");
-    g_assert_false (snap->dangerous);
-    g_assert_false (snap->devmode);
-    g_assert_false (snap->jailmode);
+    g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
+    g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
+    g_assert_false (mock_snap_get_dangerous (snap));
+    g_assert_false (mock_snap_get_devmode (snap));
+    g_assert_false (mock_snap_get_jailmode (snap));
 }
 
 static void
@@ -2227,7 +2227,7 @@ test_install_stream_progress ()
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
-    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
+    g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
     g_assert_cmpint (counter.progressDone, >, 0);
 }
 
@@ -2251,11 +2251,11 @@ test_install_stream_classic ()
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
-    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
-    g_assert_cmpstr (snap->confinement, ==, "classic");
-    g_assert_false (snap->dangerous);
-    g_assert_false (snap->devmode);
-    g_assert_false (snap->jailmode);
+    g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
+    g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "classic");
+    g_assert_false (mock_snap_get_dangerous (snap));
+    g_assert_false (mock_snap_get_devmode (snap));
+    g_assert_false (mock_snap_get_jailmode (snap));
 }
 
 static void
@@ -2278,11 +2278,11 @@ test_install_stream_dangerous ()
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
-    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
-    g_assert_cmpstr (snap->confinement, ==, "strict");
-    g_assert_true (snap->dangerous);
-    g_assert_false (snap->devmode);
-    g_assert_false (snap->jailmode);
+    g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
+    g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
+    g_assert_true (mock_snap_get_dangerous (snap));
+    g_assert_false (mock_snap_get_devmode (snap));
+    g_assert_false (mock_snap_get_jailmode (snap));
 }
 
 static void
@@ -2305,11 +2305,11 @@ test_install_stream_devmode ()
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
-    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
-    g_assert_cmpstr (snap->confinement, ==, "strict");
-    g_assert_false (snap->dangerous);
-    g_assert_true (snap->devmode);
-    g_assert_false (snap->jailmode);
+    g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
+    g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
+    g_assert_false (mock_snap_get_dangerous (snap));
+    g_assert_true (mock_snap_get_devmode (snap));
+    g_assert_false (mock_snap_get_jailmode (snap));
 }
 
 static void
@@ -2332,11 +2332,11 @@ test_install_stream_jailmode ()
     g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NoError);
     MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
-    g_assert_cmpstr (snap->snap_data, ==, "SNAP");
-    g_assert_cmpstr (snap->confinement, ==, "strict");
-    g_assert_false (snap->dangerous);
-    g_assert_false (snap->devmode);
-    g_assert_true (snap->jailmode);
+    g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
+    g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
+    g_assert_false (mock_snap_get_dangerous (snap));
+    g_assert_false (mock_snap_get_devmode (snap));
+    g_assert_true (mock_snap_get_jailmode (snap));
 }
 
 static void
@@ -2353,7 +2353,7 @@ test_try_sync ()
     g_assert_cmpint (tryRequest->error (), ==, QSnapdRequest::NoError);
     MockSnap *snap = mock_snapd_find_snap (snapd, "try");
     g_assert_nonnull (snap);
-    g_assert_cmpstr (snap->snap_path, ==, "/path/to/snap");
+    g_assert_cmpstr (mock_snap_get_path (snap), ==, "/path/to/snap");
 }
 
 static void
@@ -2372,7 +2372,7 @@ test_try_progress ()
     g_assert_cmpint (tryRequest->error (), ==, QSnapdRequest::NoError);
     MockSnap *snap = mock_snapd_find_snap (snapd, "try");
     g_assert_nonnull (snap);
-    g_assert_cmpstr (snap->snap_path, ==, "/path/to/snap");
+    g_assert_cmpstr (mock_snap_get_path (snap), ==, "/path/to/snap");
     g_assert_cmpint (counter.progressDone, >, 0);
 }
 
@@ -2435,7 +2435,7 @@ test_refresh_channel ()
     QScopedPointer<QSnapdRefreshRequest> refreshRequest (client.refresh ("snap", "channel2"));
     refreshRequest->runSync ();
     g_assert_cmpint (refreshRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->channel, ==, "channel2");
+    g_assert_cmpstr (mock_snap_get_channel (mock_snapd_find_snap (snapd, "snap")), ==, "channel2");
 }
 
 static void
@@ -2697,7 +2697,7 @@ test_enable_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
-    s->disabled = TRUE;
+    mock_snap_set_disabled (s, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2706,7 +2706,7 @@ test_enable_sync ()
     QScopedPointer<QSnapdEnableRequest> enableRequest (client.enable ("snap"));
     enableRequest->runSync ();
     g_assert_cmpint (enableRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_false (mock_snapd_find_snap (snapd, "snap")->disabled);
+    g_assert_false (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
 }
 
 static void
@@ -2714,7 +2714,7 @@ test_enable_progress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
-    s->disabled = TRUE;
+    mock_snap_set_disabled (s, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2725,7 +2725,7 @@ test_enable_progress ()
     QObject::connect (enableRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
     enableRequest->runSync ();
     g_assert_cmpint (enableRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_false (mock_snapd_find_snap (snapd, "snap")->disabled);
+    g_assert_false (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
     g_assert_cmpint (counter.progressDone, >, 0);
 }
 
@@ -2734,7 +2734,7 @@ test_enable_already_enabled ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
-    s->disabled = FALSE;
+    mock_snap_set_disabled (s, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2766,7 +2766,7 @@ test_disable_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
-    s->disabled = FALSE;
+    mock_snap_set_disabled (s, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2775,7 +2775,7 @@ test_disable_sync ()
     QScopedPointer<QSnapdDisableRequest> disableRequest (client.disable ("snap"));
     disableRequest->runSync ();
     g_assert_cmpint (disableRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (mock_snapd_find_snap (snapd, "snap")->disabled);
+    g_assert (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
 }
 
 static void
@@ -2783,7 +2783,7 @@ test_disable_progress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
-    s->disabled = FALSE;
+    mock_snap_set_disabled (s, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2794,7 +2794,7 @@ test_disable_progress ()
     QObject::connect (disableRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
     disableRequest->runSync ();
     g_assert_cmpint (disableRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (mock_snapd_find_snap (snapd, "snap")->disabled);
+    g_assert (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
     g_assert_cmpint (counter.progressDone, >, 0);
 }
 
@@ -2803,7 +2803,7 @@ test_disable_already_disabled ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
-    s->disabled = TRUE;
+    mock_snap_set_disabled (s, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2844,7 +2844,7 @@ test_switch_sync ()
     QScopedPointer<QSnapdSwitchChannelRequest> switchRequest (client.switchChannel ("snap", "beta"));
     switchRequest->runSync ();
     g_assert_cmpint (switchRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->tracking_channel, ==, "beta");
+    g_assert_cmpstr (mock_snap_get_tracking_channel (mock_snapd_find_snap (snapd, "snap")), ==, "beta");
 }
 
 static void
@@ -2863,7 +2863,7 @@ test_switch_progress ()
     QObject::connect (switchRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
     switchRequest->runSync ();
     g_assert_cmpint (switchRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpstr (mock_snapd_find_snap (snapd, "snap")->tracking_channel, ==, "beta");
+    g_assert_cmpstr (mock_snap_get_tracking_channel (mock_snapd_find_snap (snapd, "snap")), ==, "beta");
     g_assert_cmpint (counter.progressDone, >, 0);
 }
 
@@ -2888,8 +2888,8 @@ test_check_buy_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    a->terms_accepted = TRUE;
-    a->has_payment_methods = TRUE;
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2911,8 +2911,8 @@ test_check_buy_terms_not_accepted ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    a->terms_accepted = FALSE;
-    a->has_payment_methods = TRUE;
+    mock_account_set_terms_accepted (a, FALSE);
+    mock_account_set_has_payment_methods (a, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2934,8 +2934,8 @@ test_check_buy_no_payment_methods ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    a->terms_accepted = TRUE;
-    a->has_payment_methods = FALSE;
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2971,8 +2971,8 @@ test_buy_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    a->terms_accepted = TRUE;
-    a->has_payment_methods = TRUE;
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, TRUE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
@@ -3014,8 +3014,8 @@ test_buy_not_available ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    a->terms_accepted = TRUE;
-    a->has_payment_methods = TRUE;
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -3037,8 +3037,8 @@ test_buy_terms_not_accepted ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    a->terms_accepted = FALSE;
-    a->has_payment_methods = FALSE;
+    mock_account_set_terms_accepted (a, FALSE);
+    mock_account_set_has_payment_methods (a, FALSE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
@@ -3063,8 +3063,8 @@ test_buy_no_payment_methods ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    a->terms_accepted = TRUE;
-    a->has_payment_methods = FALSE;
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, FALSE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
@@ -3089,8 +3089,8 @@ test_buy_invalid_price ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    a->terms_accepted = TRUE;
-    a->has_payment_methods = TRUE;
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, TRUE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
@@ -3130,8 +3130,8 @@ test_create_user_sync ()
     g_assert (userInformation->sshKeys ()[1] == "KEY2");
     MockAccount *account = mock_snapd_find_account_by_username (snapd, "user");
     g_assert_nonnull (account);
-    g_assert_false (account->sudoer);
-    g_assert_false (account->known);
+    g_assert_false (mock_account_get_sudoer (account));
+    g_assert_false (mock_account_get_known (account));
 }
 
 static void
@@ -3149,7 +3149,7 @@ test_create_user_sudo ()
     g_assert_cmpint (createRequest->error (), ==, QSnapdRequest::NoError);
     MockAccount *account = mock_snapd_find_account_by_username (snapd, "user");
     g_assert_nonnull (account);
-    g_assert_true (account->sudoer);
+    g_assert_true (mock_account_get_sudoer (account));
 }
 
 static void
@@ -3167,7 +3167,7 @@ test_create_user_known ()
     g_assert_cmpint (createRequest->error (), ==, QSnapdRequest::NoError);
     MockAccount *account = mock_snapd_find_account_by_username (snapd, "user");
     g_assert_nonnull (account);
-    g_assert_true (account->known);
+    g_assert_true (mock_account_get_known (account));
 }
 
 static void
@@ -3361,11 +3361,11 @@ test_aliases_prefer_sync ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    g_assert_false (s->preferred);
+    g_assert_false (mock_snap_get_preferred (s));
     QScopedPointer<QSnapdPreferRequest> preferRequest (client.prefer ("snap"));
     preferRequest->runSync ();
     g_assert_cmpint (preferRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_true (s->preferred);
+    g_assert_true (mock_snap_get_preferred (s));
 }
 
 static void

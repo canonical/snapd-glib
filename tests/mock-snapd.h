@@ -25,134 +25,16 @@ struct _MockSnapdClass
     GObjectClass parent_class;
 };
 
-typedef struct
-{
-    int id;
-    gchar *email;
-    gchar *username;
-    gchar *password;
-    gchar *otp;
-    gchar **ssh_keys;
-    gchar *macaroon;
-    gchar **discharges;
-    gboolean sudoer;
-    gboolean known;
-    gboolean terms_accepted;
-    gboolean has_payment_methods;
-    GList *private_snaps;
-} MockAccount;
-
-typedef struct
-{
-    gchar *name;
-    gboolean automatic;
-    gboolean enabled;
-} MockAlias;
-
-typedef struct
-{
-    GList *apps;
-    gchar *broken;
-    gchar *channel;
-    gchar *confinement;
-    gchar *contact;
-    gchar *description;
-    gchar *developer;
-    gboolean devmode;
-    int download_size;
-    gchar *icon;
-    gchar *icon_mime_type;
-    GBytes *icon_data;
-    gchar *id;
-    gchar *install_date;
-    int installed_size;
-    gboolean jailmode;
-    gchar *license;
-    gchar *name;
-    GList *prices;
-    gboolean is_private;
-    gchar *revision;
-    GList *screenshots;
-    gchar *status;
-    gchar *summary;
-    gchar *title;
-    gchar *tracking_channel;
-    GList *tracks;
-    gboolean trymode;
-    gchar *type;
-    gchar *version;
-    GList *store_sections;
-    GList *plugs;
-    GList *slots_;
-    gboolean disabled;
-    gboolean dangerous;
-    gchar *snap_data;
-    gchar *snap_path;
-    gchar *error;
-    gboolean restart_required;
-    gboolean preferred;
-} MockSnap;
-
-typedef struct
-{
-    gchar *name;
-    gchar *daemon;
-    gchar *desktop_file;
-    gboolean enabled;
-    gboolean active;
-    GList *aliases;
-} MockApp;
-
-typedef struct
-{
-    gchar *name;
-    GList *channels;
-} MockTrack;
-
-typedef struct
-{
-    gchar *risk;
-    gchar *branch;
-    gchar *confinement;
-    gchar *epoch;
-    gchar *revision;
-    int size;
-    gchar *version;
-} MockChannel;
-
-typedef struct
-{
-    gdouble amount;
-    gchar *currency;
-} MockPrice;
-
-typedef struct
-{
-    gchar *url;
-    int width;
-    int height;
-} MockScreenshot;
-
+typedef struct _MockAccount MockAccount;
+typedef struct _MockAlias MockAlias;
+typedef struct _MockApp MockApp;
+typedef struct _MockChannel MockChannel;
+typedef struct _MockPlug MockPlug;
+typedef struct _MockPrice MockPrice;
+typedef struct _MockScreenshot MockScreenshot;
 typedef struct _MockSlot MockSlot;
-
-typedef struct
-{
-    MockSnap *snap;
-    gchar *name;
-    gchar *interface;
-    // FIXME: Attributes
-    gchar *label;
-    MockSlot *connection;
-} MockPlug;
-
-struct _MockSlot
-{
-    MockSnap *snap;
-    gchar *name;
-    gchar *interface;
-    // FIXME: Attributes
-    gchar *label;
-};
+typedef struct _MockSnap MockSnap;
+typedef struct _MockTrack MockTrack;
 
 MockSnapd      *mock_snapd_new                    (void);
 
@@ -195,6 +77,20 @@ MockAccount    *mock_snapd_add_account            (MockSnapd     *snapd,
                                                    const gchar   *username,
                                                    const gchar   *password);
 
+void            mock_account_set_terms_accepted   (MockAccount   *account,
+                                                   gboolean       terms_accepted);
+
+void            mock_account_set_has_payment_methods (MockAccount   *account,
+                                                      gboolean       has_payment_methods);
+
+const gchar    *mock_account_get_macaroon         (MockAccount   *account);
+
+gchar         **mock_account_get_discharges       (MockAccount   *account);
+
+gboolean        mock_account_get_sudoer           (MockAccount   *account);
+
+gboolean        mock_account_get_known            (MockAccount   *account);
+
 void            mock_account_set_otp              (MockAccount   *account,
                                                    const gchar   *otp);
 
@@ -225,6 +121,12 @@ MockSnap       *mock_snapd_add_store_snap         (MockSnapd     *snapd,
 MockApp        *mock_snap_add_app                 (MockSnap      *snap,
                                                    const gchar   *name);
 
+void            mock_app_set_active               (MockApp       *app,
+                                                   gboolean       active);
+
+void            mock_app_set_enabled              (MockApp       *app,
+                                                   gboolean       enabled);
+
 void            mock_app_set_daemon               (MockApp       *app,
                                                    const gchar   *daemon);
 
@@ -247,6 +149,8 @@ void            mock_snap_set_broken              (MockSnap      *snap,
 void            mock_snap_set_channel             (MockSnap      *snap,
                                                    const gchar   *channel);
 
+const gchar    *mock_snap_get_channel             (MockSnap      *snap);
+
 MockTrack      *mock_snap_add_track               (MockSnap      *snap,
                                                    const gchar   *name);
 
@@ -263,20 +167,42 @@ void            mock_channel_set_epoch            (MockChannel  *channel,
 void            mock_channel_set_revision         (MockChannel  *channel,
                                                    const gchar   *revision);
 
+void            mock_channel_set_size             (MockChannel  *channel,
+                                                   int           size);
+
 void            mock_channel_set_version          (MockChannel  *channel,
                                                    const gchar   *version);
 
 void            mock_snap_set_confinement         (MockSnap      *snap,
                                                    const gchar   *confinement);
 
+const gchar    *mock_snap_get_confinement         (MockSnap      *snap);
+
 void            mock_snap_set_contact             (MockSnap      *snap,
                                                    const gchar   *contact);
+
+gboolean        mock_snap_get_dangerous           (MockSnap      *snap);
+
+const gchar    *mock_snap_get_data                (MockSnap      *snap);
 
 void            mock_snap_set_description         (MockSnap      *snap,
                                                    const gchar   *description);
 
 void            mock_snap_set_developer           (MockSnap      *snap,
                                                    const gchar   *developer);
+
+void            mock_snap_set_devmode             (MockSnap      *snap,
+                                                   gboolean       devmode);
+
+gboolean        mock_snap_get_devmode             (MockSnap      *snap);
+
+void            mock_snap_set_disabled            (MockSnap      *snap,
+                                                   gboolean       disabled);
+
+gboolean        mock_snap_get_disabled            (MockSnap      *snap);
+
+void            mock_snap_set_download_size       (MockSnap      *snap,
+                                                   int           download_size);
 
 void            mock_snap_set_error               (MockSnap      *snap,
                                                    const gchar   *error);
@@ -294,15 +220,32 @@ void            mock_snap_set_id                  (MockSnap      *snap,
 void            mock_snap_set_install_date        (MockSnap      *snap,
                                                    const gchar   *install_date);
 
+void            mock_snap_set_installed_size      (MockSnap      *snap,
+                                                   int           installed_size);
+
+void            mock_snap_set_jailmode            (MockSnap      *snap,
+                                                   gboolean       jailmode);
+
+gboolean        mock_snap_get_jailmode            (MockSnap      *snap);
+
 void            mock_snap_set_license             (MockSnap      *snap,
                                                    const gchar   *license);
+
+const gchar    *mock_snap_get_path                (MockSnap      *snap);
+
+gboolean        mock_snap_get_preferred           (MockSnap      *snap);
 
 MockPrice      *mock_snap_add_price               (MockSnap      *snap,
                                                    gdouble        amount,
                                                    const gchar   *currency);
 
+void            mock_snap_set_restart_required    (MockSnap      *snap,
+                                                   gboolean       restart_required);
+
 void            mock_snap_set_revision            (MockSnap      *snap,
                                                    const gchar   *revision);
+
+const gchar    *mock_snap_get_revision            (MockSnap      *snap);
 
 MockScreenshot *mock_snap_add_screenshot          (MockSnap      *snap,
                                                    const gchar   *url,
@@ -321,6 +264,11 @@ void            mock_snap_set_title               (MockSnap      *snap,
 void            mock_snap_set_tracking_channel    (MockSnap      *snap,
                                                    const gchar   *channel);
 
+const gchar    *mock_snap_get_tracking_channel    (MockSnap      *snap);
+
+void            mock_snap_set_trymode             (MockSnap      *snap,
+                                                   gboolean       trymode);
+
 void            mock_snap_set_type                (MockSnap      *snap,
                                                    const gchar   *type);
 
@@ -335,6 +283,11 @@ MockPlug       *mock_snap_add_plug                (MockSnap      *snap,
 
 MockSlot       *mock_snap_add_slot                (MockSnap      *snap,
                                                    const gchar   *name);
+
+void            mock_plug_set_connection          (MockPlug      *plug,
+                                                   MockSlot      *slot);
+
+MockSlot       *mock_plug_get_connection          (MockPlug      *plug);
 
 void            mock_snapd_add_assertion          (MockSnapd     *snapd,
                                                    const gchar   *assertion);
