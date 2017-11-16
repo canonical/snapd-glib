@@ -34,7 +34,7 @@ struct _SnapdUserInformation
 {
     GObject parent_instance;
 
-    int id;
+    gint64 id;
     gchar *username;
     gchar *email;
     gchar **ssh_keys;
@@ -63,7 +63,7 @@ G_DEFINE_TYPE (SnapdUserInformation, snapd_user_information, G_TYPE_OBJECT)
  *
  * Since: 1.26
  */
-int
+gint64
 snapd_user_information_get_id (SnapdUserInformation *user_information)
 {
     g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (user_information), -1);
@@ -145,7 +145,7 @@ snapd_user_information_set_property (GObject *object, guint prop_id, const GValu
 
     switch (prop_id) {
     case PROP_ID:
-        user_information->id = g_value_get_int (value);
+        user_information->id = g_value_get_int64 (value);
         break;
     case PROP_USERNAME:
         g_free (user_information->username);
@@ -176,7 +176,7 @@ snapd_user_information_get_property (GObject *object, guint prop_id, GValue *val
 
     switch (prop_id) {
     case PROP_ID:
-        g_value_set_int (value, user_information->id);
+        g_value_set_int64 (value, user_information->id);
         break;
     case PROP_USERNAME:
         g_value_set_string (value, user_information->username);
@@ -220,11 +220,11 @@ snapd_user_information_class_init (SnapdUserInformationClass *klass)
 
     g_object_class_install_property (gobject_class,
                                      PROP_ID,
-                                     g_param_spec_int ("id",
-                                                       "id",
-                                                       "Account id",
-                                                       G_MININT, G_MAXINT, -1,
-                                                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                     g_param_spec_int64 ("id",
+                                                         "id",
+                                                         "Account id",
+                                                         G_MININT64, G_MAXINT64, -1,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_USERNAME,
                                      g_param_spec_string ("username",
