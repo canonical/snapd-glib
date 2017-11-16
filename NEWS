@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.27
+
+    * Fix crash accessing freed memory
+    * Fix small memory leaks
+
 Overview of changes in snapd-glib 1.26
 
     * New API:
