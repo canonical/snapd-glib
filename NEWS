@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 1.28
+
+    * Fix crash on 32 bit architectures
+
 Overview of changes in snapd-glib 1.27
 
     * Fix crash accessing freed memory
