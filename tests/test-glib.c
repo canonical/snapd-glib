@@ -539,6 +539,223 @@ G_GNUC_END_IGNORE_DEPRECATIONS
         g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
 }
 
+static gboolean
+date_matches (GDateTime *date, int year, int month, int day, int hour, int minute, int second)
+{
+    g_autoptr(GDateTime) d = g_date_time_new_utc (year, month, day, hour, minute, second);
+    if (date == NULL)
+        return FALSE;
+    return g_date_time_compare (date, d) == 0;
+}
+
+static void
+test_get_changes_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockChange *c;
+    MockTask *t;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) changes = NULL;
+    GPtrArray *tasks;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    c = mock_snapd_add_change (snapd);
+    mock_change_set_spawn_time (c, "2017-01-02T11:00:00Z");
+    t = mock_change_add_task (c, "download");
+    mock_task_set_progress (t, 65535, 65535);
+    mock_task_set_spawn_time (t, "2017-01-02T11:00:00Z");
+    mock_task_set_ready_time (t, "2017-01-02T11:00:10Z");
+    t = mock_change_add_task (c, "install");
+    mock_task_set_progress (t, 1, 1);
+    mock_task_set_spawn_time (t, "2017-01-02T11:00:10Z");
+    mock_task_set_ready_time (t, "2017-01-02T11:00:30Z");
+    mock_change_set_ready_time (c, "2017-01-02T11:00:30Z");
+    mock_change_set_ready (c, TRUE);
+    c = mock_snapd_add_change (snapd);
+    mock_change_set_spawn_time (c, "2017-01-02T11:15:00Z");
+    t = mock_change_add_task (c, "remove");
+    mock_task_set_progress (t, 0, 1);
+    mock_task_set_spawn_time (t, "2017-01-02T11:15:00Z");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_ALL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (changes);
+    g_assert_cmpint (changes->len, ==, 2);
+
+    g_assert_cmpstr (snapd_change_get_id (changes->pdata[0]), ==, "1");
+    g_assert_cmpstr (snapd_change_get_kind (changes->pdata[0]), ==, "KIND");
+    g_assert_cmpstr (snapd_change_get_summary (changes->pdata[0]), ==, "SUMMARY");
+    g_assert_cmpstr (snapd_change_get_status (changes->pdata[0]), ==, "STATUS");
+    g_assert_true (snapd_change_get_ready (changes->pdata[0]));
+    g_assert (date_matches (snapd_change_get_spawn_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 0));
+    g_assert (date_matches (snapd_change_get_ready_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 30));
+    tasks = snapd_change_get_tasks (changes->pdata[0]);
+    g_assert_cmpint (tasks->len, ==, 2);
+
+    g_assert_cmpstr (snapd_task_get_id (tasks->pdata[0]), ==, "100");
+    g_assert_cmpstr (snapd_task_get_kind (tasks->pdata[0]), ==, "download");
+    g_assert_cmpstr (snapd_task_get_summary (tasks->pdata[0]), ==, "SUMMARY");
+    g_assert_cmpstr (snapd_task_get_status (tasks->pdata[0]), ==, "STATUS");
+    g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[0]), ==, "LABEL");
+    g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[0]), ==, 65535);
+    g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[0]), ==, 65535);
+    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 0));
+    g_assert (date_matches (snapd_task_get_ready_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 10));
+
+    g_assert_cmpstr (snapd_task_get_id (tasks->pdata[1]), ==, "101");
+    g_assert_cmpstr (snapd_task_get_kind (tasks->pdata[1]), ==, "install");
+    g_assert_cmpstr (snapd_task_get_summary (tasks->pdata[1]), ==, "SUMMARY");
+    g_assert_cmpstr (snapd_task_get_status (tasks->pdata[1]), ==, "STATUS");
+    g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[1]), ==, "LABEL");
+    g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[1]), ==, 1);
+    g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[1]), ==, 1);
+    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 10));
+    g_assert (date_matches (snapd_task_get_ready_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 30));
+
+    g_assert_cmpstr (snapd_change_get_id (changes->pdata[1]), ==, "2");
+    g_assert_cmpstr (snapd_change_get_kind (changes->pdata[1]), ==, "KIND");
+    g_assert_cmpstr (snapd_change_get_summary (changes->pdata[1]), ==, "SUMMARY");
+    g_assert_cmpstr (snapd_change_get_status (changes->pdata[1]), ==, "STATUS");
+    g_assert_false (snapd_change_get_ready (changes->pdata[1]));
+    g_assert (date_matches (snapd_change_get_spawn_time (changes->pdata[1]), 2017, 1, 2, 11, 15, 0));
+    g_assert_null (snapd_change_get_ready_time (changes->pdata[1]));
+    tasks = snapd_change_get_tasks (changes->pdata[1]);
+    g_assert_cmpint (tasks->len, ==, 1);
+
+    g_assert_cmpstr (snapd_task_get_id (tasks->pdata[0]), ==, "200");
+    g_assert_cmpstr (snapd_task_get_kind (tasks->pdata[0]), ==, "remove");
+    g_assert_cmpstr (snapd_task_get_summary (tasks->pdata[0]), ==, "SUMMARY");
+    g_assert_cmpstr (snapd_task_get_status (tasks->pdata[0]), ==, "STATUS");
+    g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[0]), ==, "LABEL");
+    g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[0]), ==, 0);
+    g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[0]), ==, 1);
+    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 15, 0));
+    g_assert_null (snapd_task_get_ready_time (tasks->pdata[0]));
+}
+
+static void
+test_get_changes_filter_in_progress (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockChange *c;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) changes = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    c = mock_snapd_add_change (snapd);
+    mock_change_set_ready (c, TRUE);
+    mock_snapd_add_change (snapd);
+    c = mock_snapd_add_change (snapd);
+    mock_change_set_ready (c, TRUE);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_IN_PROGRESS, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (changes);
+    g_assert_cmpint (changes->len, ==, 1);
+    g_assert_cmpstr (snapd_change_get_id (changes->pdata[0]), ==, "2");
+}
+
+static void
+test_get_changes_filter_ready (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockChange *c;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) changes = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_change (snapd);
+    c = mock_snapd_add_change (snapd);
+    mock_change_set_ready (c, TRUE);
+    mock_snapd_add_change (snapd);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_READY, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (changes);
+    g_assert_cmpint (changes->len, ==, 1);
+    g_assert_cmpstr (snapd_change_get_id (changes->pdata[0]), ==, "2");
+}
+
+static void
+test_get_changes_filter_snap (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockChange *c;
+    MockTask *t;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) changes = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "install");
+    mock_task_set_snap_name (t, "snap1");
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "install");
+    mock_task_set_snap_name (t, "snap2");
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "install");
+    mock_task_set_snap_name (t, "snap3");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_ALL, "snap2", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (changes);
+    g_assert_cmpint (changes->len, ==, 1);
+    g_assert_cmpstr (snapd_change_get_id (changes->pdata[0]), ==, "2");
+}
+
+static void
+test_get_changes_filter_ready_snap (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockChange *c;
+    MockTask *t;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) changes = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "install");
+    mock_task_set_snap_name (t, "snap1");
+    c = mock_snapd_add_change (snapd);
+    mock_change_set_ready (c, TRUE);
+    t = mock_change_add_task (c, "install");
+    mock_task_set_snap_name (t, "snap2");
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "install");
+    mock_task_set_snap_name (t, "snap2");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_READY, "snap2", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (changes);
+    g_assert_cmpint (changes->len, ==, 1);
+    g_assert_cmpstr (snapd_change_get_id (changes->pdata[0]), ==, "2");
+}
+
 static void
 test_list_sync (void)
 {
@@ -722,7 +939,6 @@ test_list_one_optional_fields (void)
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(SnapdSnap) snap = NULL;
     g_autoptr(GError) error = NULL;
-    g_autoptr(GDateTime) date = NULL;
     SnapdApp *app;
 
     snapd = mock_snapd_new ();
@@ -770,8 +986,7 @@ test_list_one_optional_fields (void)
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
-    date = g_date_time_new_utc (2017, 1, 2, 11, 23, 58);
-    g_assert (g_date_time_compare (snapd_snap_get_install_date (snap), date) == 0);
+    g_assert (date_matches (snapd_snap_get_install_date (snap), 2017, 1, 2, 11, 23, 58));
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 1024);
     g_assert_true (snapd_snap_get_jailmode (snap));
     g_assert_cmpstr (snapd_snap_get_license (snap), ==, "LICENSE");
@@ -4513,6 +4728,11 @@ main (int argc, char **argv)
     g_test_add_func ("/login/otp-missing", test_login_otp_missing);
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
     g_test_add_func ("/login/legacy", test_login_legacy);
+    g_test_add_func ("/get-changes/sync", test_get_changes_sync);
+    g_test_add_func ("/get-changes/filter-in-progress", test_get_changes_filter_in_progress);
+    g_test_add_func ("/get-changes/filter-ready", test_get_changes_filter_ready);
+    g_test_add_func ("/get-changes/filter-snap", test_get_changes_filter_snap);
+    g_test_add_func ("/get-changes/filter-ready-snap", test_get_changes_filter_ready_snap);
     g_test_add_func ("/list/sync", test_list_sync);
     g_test_add_func ("/list/async", test_list_async);
     g_test_add_func ("/list-one/sync", test_list_one_sync);

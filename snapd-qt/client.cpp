@@ -135,6 +135,35 @@ QSnapdAuthData *QSnapdClient::authData ()
     return new QSnapdAuthData (snapd_client_get_auth_data (d->client));
 }
 
+QSnapdGetChangesRequest::~QSnapdGetChangesRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdGetChangesRequest *QSnapdClient::getChanges ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetChangesRequest (FilterAll, NULL, d->client);
+}
+
+QSnapdGetChangesRequest *QSnapdClient::getChanges (ChangeFilter filter)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetChangesRequest (filter, NULL, d->client);
+}
+
+QSnapdGetChangesRequest *QSnapdClient::getChanges (const QString &snapName)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetChangesRequest (FilterAll, snapName, d->client);
+}
+
+QSnapdGetChangesRequest *QSnapdClient::getChanges (ChangeFilter filter, const QString &snapName)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetChangesRequest (filter, snapName, d->client);
+}
+
 QSnapdGetSystemInformationRequest::~QSnapdGetSystemInformationRequest ()
 {
     delete d_ptr;
@@ -659,6 +688,70 @@ QSnapdAuthData *QSnapdLoginRequest::authData ()
         return new QSnapdAuthData (d->auth_data);
     else
         return new QSnapdAuthData (snapd_user_information_get_auth_data (d->user_information));
+}
+
+static SnapdChangeFilter convertChangeFilter (int filter)
+{
+    switch (filter)
+    {
+    default:
+    case QSnapdClient::ChangeFilter::FilterAll:
+        return SNAPD_CHANGE_FILTER_ALL;
+    case QSnapdClient::ChangeFilter::FilterInProgress:
+        return SNAPD_CHANGE_FILTER_IN_PROGRESS;
+    case QSnapdClient::ChangeFilter::FilterReady:
+        return SNAPD_CHANGE_FILTER_READY;
+    }
+}
+
+QSnapdGetChangesRequest::QSnapdGetChangesRequest (int filter, const QString& snapName, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetChangesRequestPrivate (filter, snapName)) {}
+
+void QSnapdGetChangesRequest::runSync ()
+{
+    Q_D(QSnapdGetChangesRequest);
+    g_autoptr(GError) error = NULL;
+    d->changes = snapd_client_get_changes_sync (SNAPD_CLIENT (getClient ()), convertChangeFilter (d->filter), d->snapName.isNull () ? NULL : d->snapName.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetChangesRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GPtrArray) changes = NULL;
+    g_autoptr(GError) error = NULL;
+
+    changes = snapd_client_get_changes_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    Q_D(QSnapdGetChangesRequest);
+    d->changes = (GPtrArray*) g_steal_pointer (&changes);
+    finish (error);
+}
+
+static void changes_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetChangesRequest *request = static_cast<QSnapdGetChangesRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetChangesRequest::runAsync ()
+{
+    Q_D(QSnapdGetChangesRequest);
+    snapd_client_get_changes_async (SNAPD_CLIENT (getClient ()), convertChangeFilter (d->filter), d->snapName.isNull () ? NULL : d->snapName.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), changes_ready_cb, (gpointer) this);
+}
+
+int QSnapdGetChangesRequest::changeCount () const
+{
+    Q_D(const QSnapdGetChangesRequest);
+    return d->changes != NULL ? d->changes->len : 0;
+}
+
+QSnapdChange *QSnapdGetChangesRequest::change (int n) const
+{
+    Q_D(const QSnapdGetChangesRequest);
+    if (d->changes == NULL || n < 0 || (guint) n >= d->changes->len)
+        return NULL;
+    return new QSnapdChange (d->changes->pdata[n]);
 }
 
 QSnapdGetSystemInformationRequest::QSnapdGetSystemInformationRequest (void *snapd_client, QObject *parent) :

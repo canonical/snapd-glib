@@ -146,6 +146,36 @@ snapd_client_login2_sync (SnapdClient *client,
 }
 
 /**
+ * snapd_client_get_changes_sync:
+ * @client: a #SnapdClient.
+ * @filter: changes to filter on.
+ * @snap_name: (allow-none): name of snap to filter on or %NULL for changes for any snap.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get changes that have occurred / are occurring on the snap daemon.
+ *
+ * Returns: (transfer container) (element-type SnapdChange): an array of #SnapdChange or %NULL on error.
+ *
+ * Since: 1.29
+ */
+GPtrArray *
+snapd_client_get_changes_sync (SnapdClient *client,
+                               SnapdChangeFilter filter, const gchar *snap_name,
+                               GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    start_sync (&data);
+    snapd_client_get_changes_async (client, filter, snap_name, cancellable, sync_cb, &data);
+    end_sync (&data);
+
+    return snapd_client_get_changes_finish (client, data.result, error);
+}
+
+/**
  * snapd_client_get_system_information_sync:
  * @client: a #SnapdClient.
  * @cancellable: (allow-none): a #GCancellable or %NULL.

@@ -21,35 +21,6 @@
 
 #include "mock-snapd.h"
 
-typedef struct
-{
-    gchar *id;
-    gchar *kind;
-    gchar *summary;
-    gchar *status;
-    gchar *spawn_time;
-    gchar *ready_time;
-    int task_index;
-    GList *tasks;
-    JsonNode *data;
-    gchar *error;
-} MockChange;
-
-typedef struct
-{
-    gchar *id;
-    gchar *kind;
-    gchar *summary;
-    gchar *status;
-    gchar *progress_label;
-    int progress_done;
-    int progress_total;
-    gchar *spawn_time;
-    gchar *ready_time;
-    MockSnap *snap;
-    gchar *snap_name;
-} MockTask;
-
 struct _MockSnapd
 {
     GObject parent_instance;
@@ -119,6 +90,21 @@ struct _MockApp
     gboolean enabled;
     gboolean active;
     GList *aliases;
+};
+
+struct _MockChange
+{
+    gchar *id;
+    gchar *kind;
+    gchar *summary;
+    gchar *status;
+    gchar *spawn_time;
+    gchar *ready_time;
+    int task_index;
+    GList *tasks;
+    gboolean ready;
+    JsonNode *data;
+    gchar *error;
 };
 
 struct _MockChannel
@@ -206,6 +192,21 @@ struct _MockSnap
     gchar *error;
     gboolean restart_required;
     gboolean preferred;
+};
+
+struct _MockTask
+{
+    gchar *id;
+    gchar *kind;
+    gchar *summary;
+    gchar *status;
+    gchar *progress_label;
+    int progress_done;
+    int progress_total;
+    gchar *spawn_time;
+    gchar *ready_time;
+    MockSnap *snap;
+    gchar *snap_name;
 };
 
 struct _MockTrack
@@ -554,6 +555,101 @@ mock_snapd_find_account_by_email (MockSnapd *snapd, const gchar *email)
     locker = g_mutex_locker_new (&snapd->mutex);
 
     return find_account_by_email (snapd, email);
+}
+
+static MockChange *
+add_change (MockSnapd *snapd)
+{
+    MockChange *change;
+
+    change = g_slice_new0 (MockChange);
+    snapd->change_index++;
+    change->id = g_strdup_printf ("%d", snapd->change_index);
+    change->kind = g_strdup ("KIND");
+    change->summary = g_strdup ("SUMMARY");
+    change->status = g_strdup ("STATUS");
+    change->task_index = snapd->change_index * 100;
+    snapd->changes = g_list_append (snapd->changes, change);
+
+    return change;
+}
+
+MockChange *
+mock_snapd_add_change (MockSnapd *snapd)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+
+    return add_change (snapd);
+}
+
+MockTask *
+mock_change_add_task (MockChange *change, const gchar *kind)
+{
+    MockTask *task;
+
+    task = g_slice_new0 (MockTask);
+    task->id = g_strdup_printf ("%d", change->task_index);
+    change->task_index++;
+    task->kind = g_strdup (kind);
+    task->summary = g_strdup ("SUMMARY");
+    task->status = g_strdup ("STATUS");
+    task->progress_label = g_strdup ("LABEL");
+    task->progress_done = 0;
+    task->progress_total = 1;
+    change->tasks = g_list_append (change->tasks, task);
+
+    return task;
+}
+
+void
+mock_task_set_snap_name (MockTask *task, const gchar *snap_name)
+{
+    task->snap_name = g_strdup (snap_name);
+}
+
+void
+mock_task_set_progress (MockTask *task, int done, int total)
+{
+    task->progress_done = done;
+    task->progress_total = total;
+}
+
+void
+mock_task_set_spawn_time (MockTask *task, const gchar *spawn_time)
+{
+    g_free (task->spawn_time);
+    task->spawn_time = g_strdup (spawn_time);
+}
+
+void
+mock_task_set_ready_time (MockTask *task, const gchar *ready_time)
+{
+    g_free (task->ready_time);
+    task->ready_time = g_strdup (ready_time);
+}
+
+void
+mock_change_set_spawn_time (MockChange *change, const gchar *spawn_time)
+{
+    g_free (change->spawn_time);
+    change->spawn_time = g_strdup (spawn_time);
+}
+
+void
+mock_change_set_ready_time (MockChange *change, const gchar *ready_time)
+{
+    g_free (change->ready_time);
+    change->ready_time = g_strdup (ready_time);
+}
+
+void
+mock_change_set_ready (MockChange *change, gboolean ready)
+{
+    change->ready = ready;
 }
 
 static MockSnap *
@@ -1322,47 +1418,6 @@ mock_snapd_get_last_allow_interaction (MockSnapd *snapd)
 }
 
 static MockChange *
-add_change (MockSnapd *snapd)
-{
-    MockChange *change;
-
-    change = g_slice_new0 (MockChange);
-    snapd->change_index++;
-    change->id = g_strdup_printf ("%d", snapd->change_index);
-    change->kind = g_strdup ("KIND");
-    change->summary = g_strdup ("SUMMARY");
-    change->status = g_strdup ("STATUS");
-    change->spawn_time = g_strdup (snapd->spawn_time);
-    change->ready_time = g_strdup (snapd->ready_time);
-    change->task_index = snapd->change_index * 100;
-    snapd->changes = g_list_append (snapd->changes, change);
-
-    return change;
-}
-
-static MockChange *
-add_change_with_data (MockSnapd *snapd, JsonNode *data)
-{
-    MockChange *change;
-
-    change = add_change (snapd);
-    change->data = json_node_ref (data);
-
-    return change;
-}
-
-static MockChange *
-add_change_with_error (MockSnapd *snapd, const gchar *error)
-{
-    MockChange *change;
-
-    change = add_change (snapd);
-    change->error = g_strdup (error);
-
-    return change;
-}
-
-static MockChange *
 get_change (MockSnapd *snapd, const gchar *id)
 {
     GList *link;
@@ -1374,25 +1429,6 @@ get_change (MockSnapd *snapd, const gchar *id)
     }
 
     return NULL;
-}
-
-static MockTask *
-add_task (MockChange *change, const gchar *kind)
-{
-    MockTask *task;
-
-    task = g_slice_new0 (MockTask);
-    task->id = g_strdup_printf ("%d", change->task_index);
-    change->task_index++;
-    task->kind = g_strdup (kind);
-    task->summary = g_strdup ("SUMMARY");
-    task->status = g_strdup ("STATUS");
-    task->progress_label = g_strdup ("LABEL");
-    task->progress_done = 0;
-    task->progress_total = 1;
-    change->tasks = g_list_append (change->tasks, task);
-
-    return task;
 }
 
 static void
@@ -2100,7 +2136,9 @@ handle_snaps (MockSnapd *snapd, SoupMessage *message)
             json_builder_end_array (builder);
             json_builder_end_object (builder);
 
-            change = add_change_with_data (snapd, json_builder_get_root (builder));
+            change = add_change (snapd);
+            change->data = json_node_ref (json_builder_get_root (builder));
+            change->ready = TRUE;
             send_async_response (message, 202, change->id);
         }
         else {
@@ -2163,7 +2201,9 @@ handle_snaps (MockSnapd *snapd, SoupMessage *message)
             }
 
             change = add_change (snapd);
-            task = add_task (change, "try");
+            mock_change_set_spawn_time (change, snapd->spawn_time);
+            mock_change_set_ready_time (change, snapd->ready_time);
+            task = mock_change_add_task (change, "try");
             task->snap = mock_snap_new ("try");
             task->snap->trymode = TRUE;
             task->snap->snap_path = g_steal_pointer (&snap_path);
@@ -2180,7 +2220,9 @@ handle_snaps (MockSnapd *snapd, SoupMessage *message)
             }
 
             change = add_change (snapd);
-            task = add_task (change, "install");
+            mock_change_set_spawn_time (change, snapd->spawn_time);
+            mock_change_set_ready_time (change, snapd->ready_time);
+            task = mock_change_add_task (change, "install");
             task->snap = mock_snap_new ("sideload");
             if (classic)
                 mock_snap_set_confinement (task->snap, "classic");
@@ -2268,8 +2310,14 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 return;
             }
 
-            change = add_change_with_error (snapd, snap->error);
-            task = add_task (change, "install");
+            change = add_change (snapd);
+            mock_change_set_spawn_time (change, snapd->spawn_time);
+            mock_change_set_ready_time (change, snapd->ready_time);
+            if (snap->error != NULL) {
+                change->error = g_strdup (snap->error);
+                change->ready = TRUE;
+            }
+            task = mock_change_add_task (change, "install");
             task->snap = mock_snap_new (name);
             mock_snap_set_confinement (task->snap, snap->confinement);
             mock_snap_set_channel (task->snap, snap->channel);
@@ -2296,7 +2344,9 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                     mock_snap_set_channel (snap, channel);
 
                     change = add_change (snapd);
-                    add_task (change, "refresh");
+                    mock_change_set_spawn_time (change, snapd->spawn_time);
+                    mock_change_set_ready_time (change, snapd->ready_time);
+                    mock_change_add_task (change, "refresh");
                     send_async_response (message, 202, change->id);
                 }
                 else
@@ -2314,9 +2364,15 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 MockChange *change;
                 MockTask *task;
 
-                change = add_change_with_error (snapd, snap->error);
-                task = add_task (change, "remove");
-                task->snap_name = g_strdup (name);
+                change = add_change (snapd);
+                mock_change_set_spawn_time (change, snapd->spawn_time);
+                mock_change_set_ready_time (change, snapd->ready_time);
+                if (snap->error != NULL) {
+                    change->error = g_strdup (snap->error);
+                    change->ready = TRUE;
+                }
+                task = mock_change_add_task (change, "remove");
+                mock_task_set_snap_name (task, name);
 
                 send_async_response (message, 202, change->id);
 
@@ -2339,7 +2395,7 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 snap->disabled = FALSE;
 
                 change = add_change (snapd);
-                add_task (change, "enable");
+                mock_change_add_task (change, "enable");
                 send_async_response (message, 202, change->id);
             }
             else
@@ -2360,7 +2416,9 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 snap->disabled = TRUE;
 
                 change = add_change (snapd);
-                add_task (change, "disable");
+                mock_change_set_spawn_time (change, snapd->spawn_time);
+                mock_change_set_ready_time (change, snapd->ready_time);
+                mock_change_add_task (change, "disable");
                 send_async_response (message, 202, change->id);
             }
             else
@@ -2377,7 +2435,9 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 mock_snap_set_tracking_channel (snap, channel);
 
                 change = add_change (snapd);
-                add_task (change, "switch");
+                mock_change_set_spawn_time (change, snapd->spawn_time);
+                mock_change_set_ready_time (change, snapd->ready_time);
+                mock_change_add_task (change, "switch");
                 send_async_response (message, 202, change->id);
             }
             else
@@ -2658,7 +2718,9 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
             }
 
             change = add_change (snapd);
-            add_task (change, "connect-snap");
+            mock_change_set_spawn_time (change, snapd->spawn_time);
+            mock_change_set_ready_time (change, snapd->ready_time);
+            mock_change_add_task (change, "connect-snap");
             send_async_response (message, 202, change->id);
         }
         else if (strcmp (action, "disconnect") == 0) {
@@ -2676,7 +2738,9 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
             }
 
             change = add_change (snapd);
-            add_task (change, "disconnect");
+            mock_change_set_spawn_time (change, snapd->spawn_time);
+            mock_change_set_ready_time (change, snapd->ready_time);
+            mock_change_add_task (change, "disconnect");
             send_async_response (message, 202, change->id);
         }
         else
@@ -2687,10 +2751,9 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
 }
 
 static JsonNode *
-change_to_result (MockChange *change)
+make_change_node (MockChange *change)
 {
     int progress_total, progress_done;
-    gboolean is_ready;
     g_autoptr(JsonBuilder) builder = NULL;
     GList *link;
 
@@ -2699,7 +2762,6 @@ change_to_result (MockChange *change)
         progress_done += task->progress_done;
         progress_total += task->progress_total;
     }
-    is_ready = progress_done >= progress_total || change->error != NULL;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -2737,7 +2799,7 @@ change_to_result (MockChange *change)
             json_builder_set_member_name (builder, "spawn-time");
             json_builder_add_string_value (builder, task->spawn_time);
         }
-        if (is_ready && task->ready_time != NULL) {
+        if (task->progress_done >= task->progress_total && task->ready_time != NULL) {
             json_builder_set_member_name (builder, "ready-time");
             json_builder_add_string_value (builder, task->ready_time);
         }
@@ -2745,18 +2807,18 @@ change_to_result (MockChange *change)
     }
     json_builder_end_array (builder);
     json_builder_set_member_name (builder, "ready");
-    json_builder_add_boolean_value (builder, is_ready);
+    json_builder_add_boolean_value (builder, change->ready);
     json_builder_set_member_name (builder, "spawn-time");
     json_builder_add_string_value (builder, change->spawn_time);
-    if (is_ready && change->ready_time != NULL) {
+    if (change->ready && change->ready_time != NULL) {
         json_builder_set_member_name (builder, "ready-time");
         json_builder_add_string_value (builder, change->ready_time);
     }
-    if (is_ready && change->data != NULL) {
+    if (change->ready && change->data != NULL) {
         json_builder_set_member_name (builder, "data");
         json_builder_add_value (builder, change->data);
     }
-    if (is_ready && change->error != NULL) {
+    if (change->ready && change->error != NULL) {
         json_builder_set_member_name (builder, "err");
         json_builder_add_string_value (builder, change->error);
     }
@@ -2765,12 +2827,105 @@ change_to_result (MockChange *change)
     return json_node_ref (json_builder_get_root (builder));
 }
 
+static gboolean
+change_relates_to_snap (MockChange *change, const gchar *snap_name)
+{
+    GList *link;
+
+    for (link = change->tasks; link; link = link->next) {
+        MockTask *task = link->data;
+
+        if (g_strcmp0 (snap_name, task->snap_name) == 0)
+            return TRUE;
+        if (task->snap != NULL && g_strcmp0 (snap_name, task->snap->name) == 0)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 static void
-handle_changes (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
+handle_changes (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
+{
+    const gchar *select_param;
+    const gchar *for_param;
+    g_autoptr(JsonBuilder) builder = NULL;
+    GList *link;
+
+    if (strcmp (message->method, "GET") != 0) {
+        send_error_method_not_allowed (message, "method not allowed");
+        return;
+    }
+
+    select_param = g_hash_table_lookup (query, "select");
+    if (select_param == NULL)
+        select_param = "in-progress";
+    for_param = g_hash_table_lookup (query, "for");
+
+    builder = json_builder_new ();
+    json_builder_begin_array (builder);
+    for (link = snapd->changes; link; link = link->next) {
+        MockChange *change = link->data;
+
+        if (g_strcmp0 (select_param, "in-progress") == 0 && change->ready)
+            continue;
+        if (g_strcmp0 (select_param, "ready") == 0 && !change->ready)
+            continue;
+        if (for_param != NULL && !change_relates_to_snap (change, for_param))
+            continue;
+
+        json_builder_add_value (builder, make_change_node (change));
+    }
+    json_builder_end_array (builder);
+
+    send_sync_response (message, 200, json_builder_get_root (builder), NULL);
+}
+
+static void
+mock_task_complete (MockSnapd *snapd, MockTask *task)
+{
+    if (strcmp (task->kind, "install") == 0 || strcmp (task->kind, "try") == 0)
+        snapd->snaps = g_list_append (snapd->snaps, g_steal_pointer (&task->snap));
+    else if (strcmp (task->kind, "remove") == 0) {
+        MockSnap *snap;
+        snap = find_snap (snapd, task->snap_name);
+        snapd->snaps = g_list_remove (snapd->snaps, snap);
+        mock_snap_free (snap);
+    }
+}
+
+static void
+mock_change_progress (MockSnapd *snapd, MockChange *change)
+{
+    GList *link;
+
+    if (change->ready)
+        return;
+
+    for (link = change->tasks; link; link = link->next) {
+        MockTask *task = link->data;
+
+        if (task->progress_done < task->progress_total) {
+            task->progress_done++;
+            if (task->progress_done == task->progress_total)
+                mock_task_complete (snapd, task);
+            break;
+        }
+    }
+
+    for (link = change->tasks; link; link = link->next) {
+        MockTask *task = link->data;
+        if (task->progress_done < task->progress_total)
+            return;
+    }
+    change->ready = TRUE;
+}
+
+static void
+handle_change (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
 {
     if (strcmp (message->method, "GET") == 0) {
         MockChange *change;
-        GList *link;
         g_autoptr(JsonNode) result = NULL;
 
         change = get_change (snapd, change_id);
@@ -2778,31 +2933,9 @@ handle_changes (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
             send_error_not_found (message, "cannot find change");
             return;
         }
+        mock_change_progress (snapd, change);
 
-        /* Make progress... */
-        if (change->error == NULL) {
-            for (link = change->tasks; link; link = link->next) {
-                MockTask *task = link->data;
-                if (task->progress_done < task->progress_total) {
-                    task->progress_done++;
-
-                    /* Complete task */
-                    if (task->progress_done >= task->progress_total) {
-                        if (strcmp (task->kind, "install") == 0 || strcmp (task->kind, "try") == 0)
-                            snapd->snaps = g_list_append (snapd->snaps, g_steal_pointer (&task->snap));
-                        else if (strcmp (task->kind, "remove") == 0) {
-                            MockSnap *snap;
-                            snap = find_snap (snapd, task->snap_name);
-                            snapd->snaps = g_list_remove (snapd->snaps, snap);
-                            mock_snap_free (snap);
-                        }
-                    }
-                    break;
-                }
-            }
-        }
-
-        result = change_to_result (change);
+        result = make_change_node (change);
         send_sync_response (message, 200, result, NULL);
     }
     else if (strcmp (message->method, "POST") == 0) {
@@ -2831,7 +2964,8 @@ handle_changes (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
             g_free (change->status);
             change->status = g_strdup ("Error");
             change->error = g_strdup ("cancelled");
-            result = change_to_result (change);
+            change->ready = TRUE;
+            result = make_change_node (change);
             send_sync_response (message, 200, result, NULL);
         }
         else {
@@ -3250,7 +3384,9 @@ handle_aliases (MockSnapd *snapd, SoupMessage *message)
         }
 
         change = add_change (snapd);
-        add_task (change, action);
+        mock_change_set_spawn_time (change, snapd->spawn_time);
+        mock_change_set_ready_time (change, snapd->ready_time);
+        mock_change_add_task (change, action);
         send_async_response (message, 202, change->id);
     }
     else {
@@ -3448,8 +3584,10 @@ handle_request (SoupServer        *server,
         handle_assertions (snapd, message, path + strlen ("/v2/assertions/"));
     else if (strcmp (path, "/v2/interfaces") == 0)
         handle_interfaces (snapd, message);
+    else if (strcmp (path, "/v2/changes") == 0)
+        handle_changes (snapd, message, query);
     else if (g_str_has_prefix (path, "/v2/changes/"))
-        handle_changes (snapd, message, path + strlen ("/v2/changes/"));
+        handle_change (snapd, message, path + strlen ("/v2/changes/"));
     else if (strcmp (path, "/v2/find") == 0)
         handle_find (snapd, message, query);
     else if (strcmp (path, "/v2/buy/ready") == 0)

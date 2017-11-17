@@ -28,12 +28,14 @@ struct _MockSnapdClass
 typedef struct _MockAccount MockAccount;
 typedef struct _MockAlias MockAlias;
 typedef struct _MockApp MockApp;
+typedef struct _MockChange MockChange;
 typedef struct _MockChannel MockChannel;
 typedef struct _MockPlug MockPlug;
 typedef struct _MockPrice MockPrice;
 typedef struct _MockScreenshot MockScreenshot;
 typedef struct _MockSlot MockSlot;
 typedef struct _MockSnap MockSnap;
+typedef struct _MockTask MockTask;
 typedef struct _MockTrack MockTrack;
 
 MockSnapd      *mock_snapd_new                    (void);
@@ -102,6 +104,33 @@ MockAccount    *mock_snapd_find_account_by_username (MockSnapd     *snapd,
 
 MockAccount    *mock_snapd_find_account_by_email  (MockSnapd     *snapd,
                                                    const gchar   *email);
+
+MockChange     *mock_snapd_add_change             (MockSnapd     *snapd);
+
+MockTask       *mock_change_add_task              (MockChange    *change,
+                                                   const gchar   *kind);
+
+void            mock_task_set_snap_name           (MockTask      *task,
+                                                   const gchar   *snap_name);
+
+void            mock_task_set_progress            (MockTask      *task,
+                                                   int            done,
+                                                   int            total);
+
+void            mock_task_set_spawn_time          (MockTask      *task,
+                                                   const gchar   *spawn_time);
+
+void            mock_task_set_ready_time          (MockTask      *task,
+                                                   const gchar   *ready_time);
+
+void            mock_change_set_spawn_time        (MockChange    *change,
+                                                   const gchar   *spawn_time);
+
+void            mock_change_set_ready             (MockChange    *change,
+                                                   gboolean       ready);
+
+void            mock_change_set_ready_time        (MockChange    *change,
+                                                   const gchar   *ready_time);
 
 MockSnap       *mock_account_add_private_snap     (MockAccount   *account,
                                                    const gchar   *name);

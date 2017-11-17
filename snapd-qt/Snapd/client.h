@@ -62,6 +62,26 @@ private:
     Q_DECLARE_PRIVATE(QSnapdLoginRequest)
 };
 
+class QSnapdGetChangesRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetChangesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int changeCount READ changeCount)
+
+public:
+    explicit QSnapdGetChangesRequest (int filter, const QString& snapName, void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetChangesRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int changeCount () const;
+    Q_INVOKABLE QSnapdChange *change (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetChangesRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetChangesRequest)
+};
+
 class QSnapdGetSystemInformationRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetSystemInformationRequest : public QSnapdRequest
 {
@@ -696,6 +716,13 @@ class Q_DECL_EXPORT QSnapdClient : public QObject
     Q_FLAGS(FindFlags)
 
 public:
+    enum ChangeFilter
+    {
+        FilterAll,
+        FilterInProgress,
+        FilterReady
+    };
+    Q_ENUM(ChangeFilter)
     enum GetAppsFlag
     {
         SelectServices = 1 << 0
@@ -736,6 +763,10 @@ public:
     Q_INVOKABLE bool allowInteraction () const;
     Q_INVOKABLE void setAuthData (QSnapdAuthData *authData);
     Q_INVOKABLE QSnapdAuthData *authData ();
+    Q_INVOKABLE QSnapdGetChangesRequest *getChanges ();
+    Q_INVOKABLE QSnapdGetChangesRequest *getChanges (ChangeFilter filter);
+    Q_INVOKABLE QSnapdGetChangesRequest *getChanges (const QString &snapName);
+    Q_INVOKABLE QSnapdGetChangesRequest *getChanges (ChangeFilter filter, const QString &snapName);
     Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();
     Q_INVOKABLE QSnapdListRequest *list ();
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);

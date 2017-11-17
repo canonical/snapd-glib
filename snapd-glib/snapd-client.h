@@ -44,6 +44,23 @@ struct _SnapdClientClass
 };
 
 /**
+ * SnapdChangeFilter:
+ * @SNAPD_CHANGE_FILTER_ALL: Return all changes.
+ * @SNAPD_CHANGE_FILTER_READY: Return only changes that are ready.
+ * @SNAPD_CHANGE_FILTER_IN_PROGRESS: Return only changes that are in-progress.
+ *
+ * Filter to apply to changes.
+ *
+ * Since: 1.29
+ */
+typedef enum
+{
+    SNAPD_CHANGE_FILTER_ALL,
+    SNAPD_CHANGE_FILTER_IN_PROGRESS,
+    SNAPD_CHANGE_FILTER_READY
+} SnapdChangeFilter;
+
+/**
  * SnapdGetAppsFlags:
  * @SNAPD_GET_APPS_FLAGS_NONE: No flags, default behaviour.
  * @SNAPD_GET_APPS_FLAGS_SELECT_SERVICES: Select services only.
@@ -207,6 +224,23 @@ SnapdUserInformation   *snapd_client_login2_finish                 (SnapdClient 
 void                    snapd_client_set_auth_data                 (SnapdClient          *client,
                                                                     SnapdAuthData        *auth_data);
 SnapdAuthData          *snapd_client_get_auth_data                 (SnapdClient          *client);
+
+GPtrArray              *snapd_client_get_changes_sync              (SnapdClient          *client,
+                                                                    SnapdChangeFilter     filter,
+                                                                    const gchar          *snap_name,
+                                                                    GCancellable         *cancellable,
+                                                                    GError             **error);
+
+void                    snapd_client_get_changes_async             (SnapdClient          *client,
+                                                                    SnapdChangeFilter     filter,
+                                                                    const gchar          *snap_name,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+
+GPtrArray              *snapd_client_get_changes_finish            (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
 
 SnapdSystemInformation *snapd_client_get_system_information_sync   (SnapdClient          *client,
                                                                     GCancellable         *cancellable,

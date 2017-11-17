@@ -40,6 +40,21 @@ public:
     SnapdAuthData *auth_data = NULL;
 };
 
+class QSnapdGetChangesRequestPrivate
+{
+public:
+    QSnapdGetChangesRequestPrivate (int filter, const QString& snapName) :
+        filter(filter), snapName(snapName) {}
+    ~QSnapdGetChangesRequestPrivate ()
+    {
+        if (changes != NULL)
+            g_ptr_array_unref (changes);
+    }
+    int filter;
+    QString snapName;
+    GPtrArray *changes = NULL;
+};
+
 class QSnapdGetSystemInformationRequestPrivate
 {
 public:

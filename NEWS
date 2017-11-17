@@ -1,3 +1,11 @@
+Overview of changes in snapd-glib 1.29
+
+    * New API:
+      - snapd_client_get_changes_async
+      - snapd_client_get_changes_finish
+      - snapd_client_get_changes_sync
+    * Implement snapd_client_get_changes
+
 Overview of changes in snapd-glib 1.28
 
     * Fix crash on 32 bit architectures

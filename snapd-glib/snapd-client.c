@@ -22,6 +22,7 @@
 #include "requests/snapd-get-assertions.h"
 #include "requests/snapd-get-buy-ready.h"
 #include "requests/snapd-get-change.h"
+#include "requests/snapd-get-changes.h"
 #include "requests/snapd-get-find.h"
 #include "requests/snapd-get-icon.h"
 #include "requests/snapd-get-interfaces.h"
@@ -1148,6 +1149,75 @@ snapd_client_get_auth_data (SnapdClient *client)
     priv = snapd_client_get_instance_private (client);
 
     return priv->auth_data;
+}
+
+/**
+ * snapd_client_get_changes_async:
+ * @client: a #SnapdClient.
+ * @filter: changes to filter on.
+ * @snap_name: (allow-none): name of snap to filter on or %NULL for changes for any snap.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get changes that have occurred / are occurring on the snap daemon.
+ * See snapd_client_get_changes_sync() for more information.
+ *
+ * Since: 1.29
+ */
+void
+snapd_client_get_changes_async (SnapdClient *client,
+                                SnapdChangeFilter filter, const gchar *snap_name,
+                                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdGetChanges *request;
+    const gchar *select = NULL;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    switch (filter)
+    {
+    case SNAPD_CHANGE_FILTER_ALL:
+        select = "all";
+        break;
+    case SNAPD_CHANGE_FILTER_IN_PROGRESS:
+        select = "in-progress";
+        break;
+    case SNAPD_CHANGE_FILTER_READY:
+        select = "ready";
+        break;
+    }
+
+    request = _snapd_get_changes_new (select, snap_name, cancellable, callback, user_data);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_changes_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_changes_async().
+ * See snapd_client_get_changes_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdChange): an array of #SnapdChange or %NULL on error.
+ *
+ * Since: 1.29
+ */
+GPtrArray *
+snapd_client_get_changes_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdGetChanges *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_CHANGES (result), NULL);
+
+    request = SNAPD_GET_CHANGES (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_ptr_array_ref (_snapd_get_changes_get_changes (request));
 }
 
 /**
