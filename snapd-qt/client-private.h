@@ -55,6 +55,20 @@ public:
     GPtrArray *changes = NULL;
 };
 
+class QSnapdGetChangeRequestPrivate
+{
+public:
+    QSnapdGetChangeRequestPrivate (const QString& id) :
+        id(id) {}
+    ~QSnapdGetChangeRequestPrivate ()
+    {
+        if (change != NULL)
+            g_object_unref (change);
+    }
+    QString id;
+    SnapdChange *change = NULL;
+};
+
 class QSnapdGetSystemInformationRequestPrivate
 {
 public:

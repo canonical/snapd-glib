@@ -164,6 +164,17 @@ QSnapdGetChangesRequest *QSnapdClient::getChanges (ChangeFilter filter, const QS
     return new QSnapdGetChangesRequest (filter, snapName, d->client);
 }
 
+QSnapdGetChangeRequest::~QSnapdGetChangeRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdGetChangeRequest *QSnapdClient::getChange (const QString& id)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetChangeRequest (id, d->client);
+}
+
 QSnapdGetSystemInformationRequest::~QSnapdGetSystemInformationRequest ()
 {
     delete d_ptr;
@@ -752,6 +763,48 @@ QSnapdChange *QSnapdGetChangesRequest::change (int n) const
     if (d->changes == NULL || n < 0 || (guint) n >= d->changes->len)
         return NULL;
     return new QSnapdChange (d->changes->pdata[n]);
+}
+
+QSnapdGetChangeRequest::QSnapdGetChangeRequest (const QString& id, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetChangeRequestPrivate (id)) {}
+
+void QSnapdGetChangeRequest::runSync ()
+{
+    Q_D(QSnapdGetChangeRequest);
+    g_autoptr(GError) error = NULL;
+    d->change = snapd_client_get_change_sync (SNAPD_CLIENT (getClient ()), d->id.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetChangeRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(SnapdChange) change = NULL;
+    g_autoptr(GError) error = NULL;
+
+    change = snapd_client_get_change_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    Q_D(QSnapdGetChangeRequest);
+    d->change = (SnapdChange*) g_steal_pointer (&change);
+    finish (error);
+}
+
+static void change_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetChangeRequest *request = static_cast<QSnapdGetChangeRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetChangeRequest::runAsync ()
+{
+    Q_D(QSnapdGetChangeRequest);
+    snapd_client_get_change_async (SNAPD_CLIENT (getClient ()), d->id.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), change_ready_cb, (gpointer) this);
+}
+
+QSnapdChange *QSnapdGetChangeRequest::change () const
+{
+    Q_D(const QSnapdGetChangeRequest);
+    return new QSnapdChange (d->change);
 }
 
 QSnapdGetSystemInformationRequest::QSnapdGetSystemInformationRequest (void *snapd_client, QObject *parent) :

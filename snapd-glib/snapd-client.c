@@ -1221,6 +1221,61 @@ snapd_client_get_changes_finish (SnapdClient *client, GAsyncResult *result, GErr
 }
 
 /**
+ * snapd_client_get_change_async:
+ * @client: a #SnapdClient.
+ * @id: a change ID to get information on.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get information on a change.
+ * See snapd_client_get_change_sync() for more information.
+ *
+ * Since: 1.29
+ */
+void
+snapd_client_get_change_async (SnapdClient *client,
+                               const gchar *id,
+                               GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdGetChange *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (id != NULL);
+
+    request = _snapd_get_change_new (id, cancellable, callback, user_data);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_change_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_change_async().
+ * See snapd_client_get_change_sync() for more information.
+ *
+ * Returns: (transfer full): a #SnapdChange or %NULL on error.
+ *
+ * Since: 1.29
+ */
+SnapdChange *
+snapd_client_get_change_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdGetChange *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_CHANGE (result), NULL);
+
+    request = SNAPD_GET_CHANGE (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_object_ref (_snapd_get_change_get_change (request));
+}
+
+/**
  * snapd_client_get_system_information_async:
  * @client: a #SnapdClient.
  * @cancellable: (allow-none): a #GCancellable or %NULL.

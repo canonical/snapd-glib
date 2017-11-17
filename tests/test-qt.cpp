@@ -389,9 +389,6 @@ test_login_otp_invalid ()
 static void
 test_get_changes_sync ()
 {
-    g_autoptr(GPtrArray) changes = NULL;
-    g_autoptr(GPtrArray) tasks = NULL;
-
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockChange *c = mock_snapd_add_change (snapd);
     mock_change_set_spawn_time (c, "2017-01-02T11:00:00Z");
@@ -420,49 +417,49 @@ test_get_changes_sync ()
     g_assert_cmpint (changesRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (changesRequest->changeCount (), ==, 2);
 
-    QSnapdChange *change = changesRequest->change (0);
-    g_assert (change->id () == "1");
-    g_assert (change->kind () == "KIND");
-    g_assert (change->summary () == "SUMMARY");
-    g_assert (change->status () == "STATUS");
-    g_assert_true (change->ready ());
-    g_assert (change->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
-    g_assert (change->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
-    g_assert_cmpint (change->taskCount (), ==, 2);
+    QScopedPointer<QSnapdChange> change0 (changesRequest->change (0));
+    g_assert (change0->id () == "1");
+    g_assert (change0->kind () == "KIND");
+    g_assert (change0->summary () == "SUMMARY");
+    g_assert (change0->status () == "STATUS");
+    g_assert_true (change0->ready ());
+    g_assert (change0->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
+    g_assert (change0->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
+    g_assert_cmpint (change0->taskCount (), ==, 2);
 
-    QSnapdTask *task = change->task (0);
-    g_assert (task->id () == "100");
-    g_assert (task->kind () == "download");
-    g_assert (task->summary () == "SUMMARY");
-    g_assert (task->status () == "STATUS");
-    g_assert (task->progressLabel () == "LABEL");
-    g_assert_cmpint (task->progressDone (), ==, 65535);
-    g_assert_cmpint (task->progressTotal (), ==, 65535);
-    g_assert (task->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
-    g_assert (task->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 10), Qt::UTC));
+    QScopedPointer<QSnapdTask> task0 (change0->task (0));
+    g_assert (task0->id () == "100");
+    g_assert (task0->kind () == "download");
+    g_assert (task0->summary () == "SUMMARY");
+    g_assert (task0->status () == "STATUS");
+    g_assert (task0->progressLabel () == "LABEL");
+    g_assert_cmpint (task0->progressDone (), ==, 65535);
+    g_assert_cmpint (task0->progressTotal (), ==, 65535);
+    g_assert (task0->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
+    g_assert (task0->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 10), Qt::UTC));
 
-    task = change->task (1);
-    g_assert (task->id () == "101");
-    g_assert (task->kind () == "install");
-    g_assert (task->summary () == "SUMMARY");
-    g_assert (task->status () == "STATUS");
-    g_assert (task->progressLabel () == "LABEL");
-    g_assert_cmpint (task->progressDone (), ==, 1);
-    g_assert_cmpint (task->progressTotal (), ==, 1);
-    g_assert (task->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 10), Qt::UTC));
-    g_assert (task->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
+    QScopedPointer<QSnapdTask> task1 (change0->task (1));
+    g_assert (task1->id () == "101");
+    g_assert (task1->kind () == "install");
+    g_assert (task1->summary () == "SUMMARY");
+    g_assert (task1->status () == "STATUS");
+    g_assert (task1->progressLabel () == "LABEL");
+    g_assert_cmpint (task1->progressDone (), ==, 1);
+    g_assert_cmpint (task1->progressTotal (), ==, 1);
+    g_assert (task1->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 10), Qt::UTC));
+    g_assert (task1->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
 
-    change = changesRequest->change (1);
-    g_assert (change->id () == "2");
-    g_assert (change->kind () == "KIND");
-    g_assert (change->summary () == "SUMMARY");
-    g_assert (change->status () == "STATUS");
-    g_assert_false (change->ready ());
-    g_assert (change->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 15, 0), Qt::UTC));
-    g_assert_false (change->readyTime ().isValid ());
-    g_assert_cmpint (change->taskCount (), ==, 1);
+    QScopedPointer<QSnapdChange> change1 (changesRequest->change (1));
+    g_assert (change1->id () == "2");
+    g_assert (change1->kind () == "KIND");
+    g_assert (change1->summary () == "SUMMARY");
+    g_assert (change1->status () == "STATUS");
+    g_assert_false (change1->ready ());
+    g_assert (change1->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 15, 0), Qt::UTC));
+    g_assert_false (change1->readyTime ().isValid ());
+    g_assert_cmpint (change1->taskCount (), ==, 1);
 
-    task = change->task (0);
+    QScopedPointer<QSnapdTask> task (change1->task (0));
     g_assert (task->id () == "200");
     g_assert (task->kind () == "remove");
     g_assert (task->summary () == "SUMMARY");
@@ -564,6 +561,69 @@ test_get_changes_filter_ready_snap ()
     g_assert_cmpint (changesRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (changesRequest->changeCount (), ==, 1);
     g_assert (changesRequest->change (0)->id () == "2");
+}
+
+static void
+test_get_change_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockChange *c = mock_snapd_add_change (snapd);
+    mock_change_set_spawn_time (c, "2017-01-02T11:00:00Z");
+    MockTask *t = mock_change_add_task (c, "download");
+    mock_task_set_progress (t, 65535, 65535);
+    mock_task_set_spawn_time (t, "2017-01-02T11:00:00Z");
+    mock_task_set_ready_time (t, "2017-01-02T11:00:10Z");
+    t = mock_change_add_task (c, "install");
+    mock_task_set_progress (t, 1, 1);
+    mock_task_set_spawn_time (t, "2017-01-02T11:00:10Z");
+    mock_task_set_ready_time (t, "2017-01-02T11:00:30Z");
+    mock_change_set_ready_time (c, "2017-01-02T11:00:30Z");
+    mock_change_set_ready (c, TRUE);
+    c = mock_snapd_add_change (snapd);
+    mock_change_set_spawn_time (c, "2017-01-02T11:15:00Z");
+    t = mock_change_add_task (c, "remove");
+    mock_task_set_progress (t, 0, 1);
+    mock_task_set_spawn_time (t, "2017-01-02T11:15:00Z");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetChangeRequest> changeRequest (client.getChange ("1"));
+    changeRequest->runSync ();
+    g_assert_cmpint (changeRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdChange> change (changeRequest->change ());
+    g_assert (change->id () == "1");
+    g_assert (change->kind () == "KIND");
+    g_assert (change->summary () == "SUMMARY");
+    g_assert (change->status () == "STATUS");
+    g_assert_true (change->ready ());
+    g_assert (change->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
+    g_assert (change->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
+    g_assert_cmpint (change->taskCount (), ==, 2);
+
+    QScopedPointer<QSnapdTask> task0 (change->task (0));
+    g_assert (task0->id () == "100");
+    g_assert (task0->kind () == "download");
+    g_assert (task0->summary () == "SUMMARY");
+    g_assert (task0->status () == "STATUS");
+    g_assert (task0->progressLabel () == "LABEL");
+    g_assert_cmpint (task0->progressDone (), ==, 65535);
+    g_assert_cmpint (task0->progressTotal (), ==, 65535);
+    g_assert (task0->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
+    g_assert (task0->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 10), Qt::UTC));
+
+    QScopedPointer<QSnapdTask> task1 (change->task (1));
+    g_assert (task1->id () == "101");
+    g_assert (task1->kind () == "install");
+    g_assert (task1->summary () == "SUMMARY");
+    g_assert (task1->status () == "STATUS");
+    g_assert (task1->progressLabel () == "LABEL");
+    g_assert_cmpint (task1->progressDone (), ==, 1);
+    g_assert_cmpint (task1->progressTotal (), ==, 1);
+    g_assert (task1->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 10), Qt::UTC));
+    g_assert (task1->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
 }
 
 static void
@@ -3613,6 +3673,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-changes/filter-ready", test_get_changes_filter_ready);
     g_test_add_func ("/get-changes/filter-snap", test_get_changes_filter_snap);
     g_test_add_func ("/get-changes/filter-ready-snap", test_get_changes_filter_ready_snap);
+    g_test_add_func ("/get-change/sync", test_get_change_sync);
     g_test_add_func ("/list/sync", test_list_sync);
     g_test_add_func ("/list/async", test_list_async);
     g_test_add_func ("/list-one/sync", test_list_one_sync);

@@ -176,6 +176,36 @@ snapd_client_get_changes_sync (SnapdClient *client,
 }
 
 /**
+ * snapd_client_get_change_sync:
+ * @client: a #SnapdClient.
+ * @id: a change ID to get information on.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get information on a change.
+ *
+ * Returns: (transfer full): a #SnapdChange or %NULL on error.
+ *
+ * Since: 1.29
+ */
+SnapdChange *
+snapd_client_get_change_sync (SnapdClient *client,
+                              const gchar *id,
+                              GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (id != NULL, NULL);
+
+    start_sync (&data);
+    snapd_client_get_change_async (client, id, cancellable, sync_cb, &data);
+    end_sync (&data);
+
+    return snapd_client_get_change_finish (client, data.result, error);
+}
+
+/**
  * snapd_client_get_system_information_sync:
  * @client: a #SnapdClient.
  * @cancellable: (allow-none): a #GCancellable or %NULL.

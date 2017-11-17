@@ -4,7 +4,10 @@ Overview of changes in snapd-glib 1.29
       - snapd_client_get_changes_async
       - snapd_client_get_changes_finish
       - snapd_client_get_changes_sync
-    * Implement snapd_client_get_changes
+      - snapd_client_get_change_async
+      - snapd_client_get_change_finish
+      - snapd_client_get_change_sync
+    * Implement snapd_client_get_changes, snapd_client_get_change
 
 Overview of changes in snapd-glib 1.28
 

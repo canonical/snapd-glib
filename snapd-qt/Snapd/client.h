@@ -82,6 +82,24 @@ private:
     Q_DECLARE_PRIVATE(QSnapdGetChangesRequest)
 };
 
+class QSnapdGetChangeRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetChangeRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdGetChangeRequest (const QString& id, void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetChangeRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE QSnapdChange *change () const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetChangeRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetChangeRequest)
+};
+
 class QSnapdGetSystemInformationRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetSystemInformationRequest : public QSnapdRequest
 {
@@ -767,6 +785,7 @@ public:
     Q_INVOKABLE QSnapdGetChangesRequest *getChanges (ChangeFilter filter);
     Q_INVOKABLE QSnapdGetChangesRequest *getChanges (const QString &snapName);
     Q_INVOKABLE QSnapdGetChangesRequest *getChanges (ChangeFilter filter, const QString &snapName);
+    Q_INVOKABLE QSnapdGetChangeRequest *getChange (const QString &id);
     Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();
     Q_INVOKABLE QSnapdListRequest *list ();
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
