@@ -2,7 +2,7 @@ m4_define([glib_req_version], [2.37.6])
 
 AC_PREREQ([2.63])
 
-AC_INIT([snapd-glib], [1.28])
+AC_INIT([snapd-glib], [1.29])
 
 AC_CONFIG_MACRO_DIR([m4])
 
