@@ -50,6 +50,9 @@ qint64 QSnapdTask::progressTotal () const
 
 static QDateTime convertDateTime (GDateTime *datetime)
 {
+    if (datetime == NULL)
+        return QDateTime ();
+
     QDate date (g_date_time_get_year (datetime),
                 g_date_time_get_month (datetime),
                 g_date_time_get_day_of_month (datetime));
