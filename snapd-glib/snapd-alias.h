@@ -45,19 +45,19 @@ typedef enum
     SNAPD_ALIAS_STATUS_MANUAL
 } SnapdAliasStatus;
 
-const gchar      *snapd_alias_get_app           (SnapdAlias *alias) G_DEPRECATED;
+const gchar      *snapd_alias_get_app        (SnapdAlias *alias) G_DEPRECATED;
 
 const gchar      *snapd_alias_get_app_auto   (SnapdAlias *alias);
 
-const gchar      *snapd_alias_get_command       (SnapdAlias *alias);
+const gchar      *snapd_alias_get_command    (SnapdAlias *alias);
 
 const gchar      *snapd_alias_get_app_manual (SnapdAlias *alias);
 
-const gchar      *snapd_alias_get_name          (SnapdAlias *alias);
+const gchar      *snapd_alias_get_name       (SnapdAlias *alias);
 
-const gchar      *snapd_alias_get_snap          (SnapdAlias *alias);
+const gchar      *snapd_alias_get_snap       (SnapdAlias *alias);
 
-SnapdAliasStatus  snapd_alias_get_status        (SnapdAlias *alias);
+SnapdAliasStatus  snapd_alias_get_status     (SnapdAlias *alias);
 
 G_END_DECLS
 
