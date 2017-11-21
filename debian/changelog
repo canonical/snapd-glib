@@ -1,3 +1,9 @@
+snapd-glib (1.29-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+
+ -- Jeremy Bicha <jbicha@debian.org>  Tue, 21 Nov 2017 15:49:51 -0500
+
 snapd-glib (1.24-1) unstable; urgency=medium
 
   * Initial release. (Closes: #879894)
