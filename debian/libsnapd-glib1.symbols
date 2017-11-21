@@ -1,14 +1,20 @@
 libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_alias_get_app@Base 1.8
+ snapd_alias_get_app_auto@Base 1.25
+ snapd_alias_get_app_manual@Base 1.25
+ snapd_alias_get_command@Base 1.25
  snapd_alias_get_name@Base 1.8
  snapd_alias_get_snap@Base 1.8
  snapd_alias_get_status@Base 1.8
  snapd_alias_get_type@Base 1.8
  snapd_alias_status_get_type@Base 1.8
+ snapd_app_get_active@Base 1.25
  snapd_app_get_aliases@Base 1.7
  snapd_app_get_daemon_type@Base 1.9
  snapd_app_get_desktop_file@Base 1.14
+ snapd_app_get_enabled@Base 1.25
  snapd_app_get_name@Base 0.1
+ snapd_app_get_snap@Base 1.25
  snapd_app_get_type@Base 0.1
  snapd_assertion_get_body@Base 1.8
  snapd_assertion_get_header@Base 1.8
@@ -20,6 +26,7 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_auth_data_get_macaroon@Base 0.1
  snapd_auth_data_get_type@Base 0.1
  snapd_auth_data_new@Base 0.1
+ snapd_change_filter_get_type@Base 1.29
  snapd_change_get_id@Base 1.5
  snapd_change_get_kind@Base 1.5
  snapd_change_get_ready@Base 1.5
@@ -39,6 +46,9 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_client_add_assertions_async@Base 1.8
  snapd_client_add_assertions_finish@Base 1.8
  snapd_client_add_assertions_sync@Base 1.8
+ snapd_client_alias_async@Base 1.25
+ snapd_client_alias_finish@Base 1.25
+ snapd_client_alias_sync@Base 1.25
  snapd_client_buy_async@Base 0.1
  snapd_client_buy_finish@Base 0.1
  snapd_client_buy_sync@Base 0.1
@@ -85,10 +95,19 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_client_get_aliases_finish@Base 1.8
  snapd_client_get_aliases_sync@Base 1.8
  snapd_client_get_allow_interaction@Base 1.19
+ snapd_client_get_apps_async@Base 1.25
+ snapd_client_get_apps_finish@Base 1.25
+ snapd_client_get_apps_sync@Base 1.25
  snapd_client_get_assertions_async@Base 1.8
  snapd_client_get_assertions_finish@Base 1.8
  snapd_client_get_assertions_sync@Base 1.8
  snapd_client_get_auth_data@Base 0.8
+ snapd_client_get_change_async@Base 1.29
+ snapd_client_get_change_finish@Base 1.29
+ snapd_client_get_change_sync@Base 1.29
+ snapd_client_get_changes_async@Base 1.29
+ snapd_client_get_changes_finish@Base 1.29
+ snapd_client_get_changes_sync@Base 1.29
  snapd_client_get_icon_async@Base 0.1
  snapd_client_get_icon_finish@Base 0.1
  snapd_client_get_icon_sync@Base 0.1
@@ -104,6 +123,9 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_client_get_system_information_sync@Base 0.1
  snapd_client_get_type@Base 0.1
  snapd_client_get_user_agent@Base 1.16
+ snapd_client_get_users_async@Base 1.26
+ snapd_client_get_users_finish@Base 1.26
+ snapd_client_get_users_sync@Base 1.26
  snapd_client_install2_async@Base 1.12
  snapd_client_install2_finish@Base 1.12
  snapd_client_install2_sync@Base 1.12
@@ -119,11 +141,17 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_client_list_one_finish@Base 0.1
  snapd_client_list_one_sync@Base 0.1
  snapd_client_list_sync@Base 0.1
+ snapd_client_login2_async@Base 1.26
+ snapd_client_login2_finish@Base 1.26
+ snapd_client_login2_sync@Base 1.26
  snapd_client_login_async@Base 0.1
  snapd_client_login_finish@Base 0.1
  snapd_client_login_sync@Base 0.1
  snapd_client_new@Base 0.1
  snapd_client_new_from_socket@Base 1.5
+ snapd_client_prefer_async@Base 1.25
+ snapd_client_prefer_finish@Base 1.25
+ snapd_client_prefer_sync@Base 1.25
  snapd_client_refresh_all_async@Base 1.5
  snapd_client_refresh_all_finish@Base 1.5
  snapd_client_refresh_all_sync@Base 1.5
@@ -143,9 +171,15 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_client_set_auth_data@Base 0.8
  snapd_client_set_socket_path@Base 1.24
  snapd_client_set_user_agent@Base 1.16
+ snapd_client_switch_async@Base 1.26
+ snapd_client_switch_finish@Base 1.26
+ snapd_client_switch_sync@Base 1.26
  snapd_client_try_async@Base 1.9
  snapd_client_try_finish@Base 1.9
  snapd_client_try_sync@Base 1.9
+ snapd_client_unalias_async@Base 1.25
+ snapd_client_unalias_finish@Base 1.25
+ snapd_client_unalias_sync@Base 1.25
  snapd_confinement_get_type@Base 0.1
  snapd_connection_get_name@Base 0.1
  snapd_connection_get_snap@Base 0.1
@@ -155,6 +189,21 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_error_get_type@Base 0.9
  snapd_error_quark@Base 0.9
  snapd_find_flags_get_type@Base 0.1
+ snapd_get_aliases_get_type@Base 1.25
+ snapd_get_apps_flags_get_type@Base 1.25
+ snapd_get_apps_get_type@Base 1.25
+ snapd_get_assertions_get_type@Base 1.25
+ snapd_get_buy_ready_get_type@Base 1.25
+ snapd_get_change_get_type@Base 1.25
+ snapd_get_changes_get_type@Base 1.29
+ snapd_get_find_get_type@Base 1.25
+ snapd_get_icon_get_type@Base 1.25
+ snapd_get_interfaces_get_type@Base 1.25
+ snapd_get_sections_get_type@Base 1.25
+ snapd_get_snap_get_type@Base 1.25
+ snapd_get_snaps_get_type@Base 1.25
+ snapd_get_system_info_get_type@Base 1.25
+ snapd_get_users_get_type@Base 1.26
  snapd_icon_get_data@Base 0.1
  snapd_icon_get_mime_type@Base 0.1
  snapd_icon_get_type@Base 0.1
@@ -172,9 +221,23 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_plug_get_snap@Base 0.1
  snapd_plug_get_type@Base 0.1
  snapd_plug_has_attribute@Base 1.3
+ snapd_post_aliases_get_type@Base 1.25
+ snapd_post_assertions_get_type@Base 1.25
+ snapd_post_buy_get_type@Base 1.25
+ snapd_post_change_get_type@Base 1.25
+ snapd_post_create_user_get_type@Base 1.25
+ snapd_post_create_users_get_type@Base 1.25
+ snapd_post_interfaces_get_type@Base 1.25
+ snapd_post_login_get_type@Base 1.25
+ snapd_post_snap_get_type@Base 1.25
+ snapd_post_snap_stream_get_type@Base 1.25
+ snapd_post_snap_try_get_type@Base 1.25
+ snapd_post_snapctl_get_type@Base 1.25
+ snapd_post_snaps_get_type@Base 1.25
  snapd_price_get_amount@Base 0.1
  snapd_price_get_currency@Base 0.1
  snapd_price_get_type@Base 0.1
+ snapd_request_async_get_type@Base 1.25
  snapd_request_get_type@Base 0.7
  snapd_screenshot_get_height@Base 1.0
  snapd_screenshot_get_type@Base 1.0
@@ -191,6 +254,7 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_slot_get_type@Base 0.1
  snapd_slot_has_attribute@Base 1.3
  snapd_snap_get_apps@Base 0.1
+ snapd_snap_get_broken@Base 1.25
  snapd_snap_get_channel@Base 0.1
  snapd_snap_get_channels@Base 1.24
  snapd_snap_get_confinement@Base 0.1
@@ -246,6 +310,9 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_task_get_status@Base 0.4
  snapd_task_get_summary@Base 0.4
  snapd_task_get_type@Base 0.4
+ snapd_user_information_get_auth_data@Base 1.26
+ snapd_user_information_get_email@Base 1.26
+ snapd_user_information_get_id@Base 1.26
  snapd_user_information_get_ssh_keys@Base 1.3
  snapd_user_information_get_type@Base 1.3
  snapd_user_information_get_username@Base 1.3

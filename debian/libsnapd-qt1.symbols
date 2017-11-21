@@ -1,17 +1,17 @@
 libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++|regex)"^.*::metaObject\(\) const@Base$" 0
- (c++|regex)"^QMetaTypeIdQObject<.*@Base$" 0
  (c++|regex)"^.*::qt_metacall\(QMetaObject::Call, int, void[*][*]\)@Base$" 0
  (c++|regex)"^.*::qt_metacast\(char const[*]\)@Base$" 0
- (c++|regex)"^QtMetaTypePrivate::.*@Base$" 0
  (c++|regex)"^.*Request::handleResult\(void[*], void[*]\)@Base$" 0
  (c++|regex)"^.*Request::.*Request\(.*\)@Base$" 0
  (c++|regex)"^.*Request::runAsync\(\)@Base$" 0
  (c++|regex)"^.*Request::runSync\(\)@Base$" 0
  (c++|regex)"^.*::staticMetaObject@Base$" 0
  (c++|regex)"^typeinfo for .*@Base$" 0
- (c++|regex)"^typeinfo name for .*@Base$" 0 
+ (c++|regex)"^typeinfo name for .*@Base$" 0
  (c++|regex)"^vtable for .*$" 0
+ (c++|regex)"^QtMetaTypePrivate::.*@Base$" 0
+ (c++|regex)"^QMetaTypeIdQObject<.*@Base$" 0
  (c++)"login(QString const&, QString const&)@Base" 1.8
  (c++)"login(QString const&, QString const&, QString const&)@Base" 0
  (c++|optional)"QByteArray::~QByteArray()@Base" 0
@@ -19,22 +19,29 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++|optional)"QList<QString>::detach_helper_grow(int, int)@Base" 0
  (c++|optional)"QList<QString>::~QList()@Base" 0
  (c++|optional)"QList<QString>::QList(QList<QString> const&)@Base" 0
- (c++|optional)"QSnapdInstallRequestPrivate::~QSnapdInstallRequestPrivate()@Base" 1.9
  (c++|optional)"QSnapdRequest::finish(void*)@Base" 1.5
  (c++|optional)"QSnapdRequest::handleProgress(void*)@Base" 1.5
+ (c++|optional)"QSnapdInstallRequestPrivate::~QSnapdInstallRequestPrivate()@Base" 1.9
+ (c++|optional)"QString::QString(QString const&)@Base" 0
  (c++|optional)"QString::~QString()@Base" 0
  (c++|optional)"QString::toStdString[abi:cxx11]() const@Base" 0
  (optional)stream_wrapper_get_type@Base 1.9
  (c++)"QSnapdAlias::app() const@Base" 1.8
+ (c++)"QSnapdAlias::appAuto() const@Base" 1.25
+ (c++)"QSnapdAlias::appManual() const@Base" 1.25
+ (c++)"QSnapdAlias::command() const@Base" 1.25
  (c++)"QSnapdAlias::name() const@Base" 1.8
  (c++)"QSnapdAlias::~QSnapdAlias()@Base" 1.8
  (c++)"QSnapdAlias::QSnapdAlias(void*, QObject*)@Base" 1.8
  (c++)"QSnapdAlias::snap() const@Base" 1.8
  (c++)"QSnapdAlias::status() const@Base" 1.8
+ (c++)"QSnapdApp::active() const@Base" 1.25
  (c++)"QSnapdApp::aliases() const@Base" 1.7
  (c++)"QSnapdApp::daemonType() const@Base" 1.9
- (c++)"QSnapdApp::desktopFile() const@Base" 1.14 
+ (c++)"QSnapdApp::desktopFile() const@Base" 1.14
+ (c++)"QSnapdApp::enabled() const@Base" 1.25
  (c++)"QSnapdApp::name() const@Base" 1.5
+ (c++)"QSnapdApp::snap() const@Base" 1.25
  (c++)"QSnapdApp::~QSnapdApp()@Base" 1.5
  (c++)"QSnapdApp::QSnapdApp(void*, QObject*)@Base" 1.5
  (c++)"QSnapdAssertion::body() const@Base" 1.8
@@ -59,23 +66,24 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdChange::summary() const@Base" 1.5
  (c++)"QSnapdChange::taskCount() const@Base" 1.8
  (c++)"QSnapdChange::task(int) const@Base" 1.8
+ (c++)"QSnapdChannel::~QSnapdChannel()@Base" 1.24
+ (c++)"QSnapdChannel::QSnapdChannel(void*, QObject*)@Base" 1.24
  (c++)"QSnapdChannel::confinement() const@Base" 1.24
  (c++)"QSnapdChannel::epoch() const@Base" 1.24
  (c++)"QSnapdChannel::name() const@Base" 1.24
- (c++)"QSnapdChannel::~QSnapdChannel()@Base" 1.24
- (c++)"QSnapdChannel::~QSnapdChannel()@Base" 1.24
- (c++)"QSnapdChannel::~QSnapdChannel()@Base" 1.24
- (c++)"QSnapdChannel::QSnapdChannel(void*, QObject*)@Base" 1.24
- (c++)"QSnapdChannel::QSnapdChannel(void*, QObject*)@Base" 1.24
  (c++)"QSnapdChannel::revision() const@Base" 1.24
  (c++)"QSnapdChannel::size() const@Base" 1.24
  (c++)"QSnapdChannel::version() const@Base" 1.24
  (c++)"QSnapdCheckBuyRequest::canBuy() const@Base" 1.5
  (c++)"QSnapdClient::addAssertions(QStringList const&)@Base" 1.8
- (c++)"QSnapdClient::allowInteraction() const@Base" 1.19 
+ (c++)"QSnapdClient::alias(QString const&, QString const&, QString const&)@Base" 1.25
+ (c++)"QSnapdClient::allowInteraction() const@Base" 1.19
  (c++)"QSnapdClient::authData()@Base" 1.8
  (c++)"QSnapdClient::buy(QString const&, double, QString const&)@Base" 1.5
  (c++)"QSnapdClient::checkBuy()@Base" 1.5
+ (c++)"QSnapdClient::createUser(QString const&, QFlags<QSnapdClient::CreateUserFlag>)@Base" 1.25
+ (c++)"QSnapdClient::createUser(QString const&)@Base" 1.25
+ (c++)"QSnapdClient::createUsers()@Base" 1.25
  (c++)"QSnapdClient::connect()@Base" 1.5
  (c++)"QSnapdClient::connectInterface(QString const&, QString const&, QString const&, QString const&)@Base" 1.5
  (c++)"QSnapdClient::disableAliases(QString, QStringList const&)@Base" 1.8
@@ -87,24 +95,37 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdClient::find(QFlags<QSnapdClient::FindFlag>, QString const&)@Base" 1.5
  (c++)"QSnapdClient::findRefreshable()@Base" 1.5
  (c++)"QSnapdClient::findSection(QFlags<QSnapdClient::FindFlag>, QString const&, QString const&)@Base" 1.7
+ (c++)"QSnapdClient::getChange(QString const&)@Base" 1.29
+ (c++)"QSnapdClient::getChanges(QSnapdClient::ChangeFilter)@Base" 1.29
+ (c++)"QSnapdClient::getChanges(QSnapdClient::ChangeFilter, QString const&)@Base" 1.29
+ (c++)"QSnapdClient::getChanges(QString const&)@Base" 1.29
+ (c++)"QSnapdClient::getChanges()@Base" 1.29
  (c++)"QSnapdClient::getAliases()@Base" 1.8
+ (c++)"QSnapdClient::getApps(QFlags<QSnapdClient::GetAppsFlag>)@Base" 1.25
+ (c++)"QSnapdClient::getApps()@Base" 1.25
  (c++)"QSnapdClient::getAssertions(QString const&)@Base" 1.8
  (c++)"QSnapdClient::getIcon(QString const&)@Base" 1.5
  (c++)"QSnapdClient::getInterfaces()@Base" 1.5
  (c++)"QSnapdClient::getSections()@Base" 1.8
  (c++)"QSnapdClient::getSystemInformation()@Base" 1.5
+ (c++)"QSnapdClient::getUsers()@Base" 1.26
  (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QIODevice*)@Base" 1.9
- (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QString const&)@Base" 1.12
- (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QString const&, QString const&)@Base" 1.12
- (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QString const&, QString const&, QString const&)@Base" 1.12
  (c++)"QSnapdClient::install(QIODevice*)@Base" 1.9
  (c++)"QSnapdClient::install(QString const&)@Base" 1.8
  (c++)"QSnapdClient::install(QString const&, QString const&)@Base" 1.5
- (c++)"QSnapdClient::install(QString const&, QString const&, QString const&)@Base" 1.12 
+ (c++)"QSnapdClient::install(QString const&, QString const&, QString const&)@Base" 1.12
+ (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QString const&)@Base" 1.12
+ (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QString const&, QString const&)@Base" 1.12
+ (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QString const&, QString const&, QString const&)@Base" 1.12
  (c++)"QSnapdClient::list()@Base" 1.5
  (c++)"QSnapdClient::listOne(QString const&)@Base" 1.5
  (c++)"QSnapdClient::login(QString const&, QString const&)@Base" 1.8
  (c++)"QSnapdClient::login(QString const&, QString const&, QString const&)@Base" 1.5
+ (c++)"QSnapdClient::prefer(QString const&)@Base" 1.25
+ (c++)"QSnapdClient::trySnap(QString const&)@Base" 1.9
+ (c++)"QSnapdClient::unalias(QString const&)@Base" 1.25
+ (c++)"QSnapdClient::unalias(QString const&, QString const&)@Base" 1.25
+ (c++)"QSnapdClient::userAgent() const@Base" 1.16
  (c++)"QSnapdClient::~QSnapdClient()@Base" 1.5
  (c++)"QSnapdClient::QSnapdClient(int, QObject*)@Base" 1.8
  (c++)"QSnapdClient::QSnapdClient(QObject*)@Base" 1.5
@@ -115,18 +136,18 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdClient::resetAliases(QString, QStringList const&)@Base" 1.8
  (c++)"QSnapdClient::runSnapCtl(QString, QStringList const&)@Base" 1.8
  (c++)"QSnapdClient::setAllowInteraction(bool)@Base" 1.19
- (c++)"QSnapdClient::setAuthData(QSnapdAuthData*)@Base" 1.8 
- (c++)"QSnapdClient::setSocketPath(QString const&)@Base" 1.24
+ (c++)"QSnapdClient::setAuthData(QSnapdAuthData*)@Base" 1.8
  (c++)"QSnapdClient::setUserAgent(QString const&)@Base" 1.16
+ (c++)"QSnapdClient::setSocketPath(QString const&)@Base" 1.24
  (c++)"QSnapdClient::socketPath() const@Base" 1.24
- (c++)"QSnapdClient::trySnap(QString const&)@Base" 1.9
- (c++)"QSnapdClient::userAgent() const@Base" 1.16
+ (c++)"QSnapdClient::switchChannel(QString const&, QString const&)@Base" 1.26
  (c++)"QSnapdConnection::name() const@Base" 1.5
  (c++)"QSnapdConnection::~QSnapdConnection()@Base" 1.5
  (c++)"QSnapdConnection::QSnapdConnection(void*, QObject*)@Base" 1.5
  (c++)"QSnapdConnection::snap() const@Base" 1.5
- (c++)"QSnapdEnums::~QSnapdEnums()@Base" 1.24
- (c++)"QSnapdEnums::~QSnapdEnums()@Base" 1.24
+ (c++)"QSnapdCreateUserRequest::userInformation() const@Base" 1.25
+ (c++)"QSnapdCreateUsersRequest::userInformation(int) const@Base" 1.25
+ (c++)"QSnapdCreateUsersRequest::userInformationCount() const@Base" 1.25
  (c++)"QSnapdEnums::~QSnapdEnums()@Base" 1.24
  (c++)"QSnapdFindRefreshableRequest::snapCount() const@Base" 1.8
  (c++)"QSnapdFindRefreshableRequest::snap(int) const@Base" 1.8
@@ -135,7 +156,12 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdFindRequest::suggestedCurrency() const@Base" 1.5
  (c++)"QSnapdGetAliasesRequest::aliasCount() const@Base" 1.8
  (c++)"QSnapdGetAliasesRequest::alias(int) const@Base" 1.8
+ (c++)"QSnapdGetAppsRequest::app(int) const@Base" 1.25
+ (c++)"QSnapdGetAppsRequest::appCount() const@Base" 1.25
  (c++)"QSnapdGetAssertionsRequest::assertions() const@Base" 1.8
+ (c++)"QSnapdGetChangeRequest::change() const@Base" 1.29
+ (c++)"QSnapdGetChangesRequest::changeCount() const@Base" 1.29
+ (c++)"QSnapdGetChangesRequest::change(int) const@Base" 1.29
  (c++)"QSnapdGetIconRequest::icon() const@Base" 1.5
  (c++)"QSnapdGetInterfacesRequest::plugCount() const@Base" 1.5
  (c++)"QSnapdGetInterfacesRequest::plug(int) const@Base" 1.5
@@ -143,6 +169,8 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdGetInterfacesRequest::slot(int) const@Base" 1.5
  (c++)"QSnapdGetSectionsRequest::sections() const@Base" 1.7
  (c++)"QSnapdGetSystemInformationRequest::systemInformation()@Base" 1.5
+ (c++)"QSnapdGetUsersRequest::userInformation(int) const@Base" 1.26
+ (c++)"QSnapdGetUsersRequest::userInformationCount() const@Base" 1.26
  (c++)"QSnapdIcon::data() const@Base" 1.5
  (c++)"QSnapdIcon::mimeType() const@Base" 1.5
  (c++)"QSnapdIcon::~QSnapdIcon()@Base" 1.5
@@ -151,6 +179,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdListRequest::snapCount() const@Base" 1.5
  (c++)"QSnapdListRequest::snap(int) const@Base" 1.5
  (c++)"QSnapdLoginRequest::authData()@Base" 1.8
+ (c++)"QSnapdLoginRequest::userInformation()@Base" 1.26
  (c++)"QSnapdPlug::connectionCount() const@Base" 1.8
  (c++)"QSnapdPlug::connection(int) const@Base" 1.8
  (c++)"QSnapdPlug::interface() const@Base" 1.8
@@ -190,6 +219,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdSlot::snap() const@Base" 1.8
  (c++)"QSnapdSnap::appCount() const@Base" 1.5
  (c++)"QSnapdSnap::app(int) const@Base" 1.5
+ (c++)"QSnapdSnap::broken() const@Base" 1.25
  (c++)"QSnapdSnap::channel() const@Base" 1.5
  (c++)"QSnapdSnap::channelCount() const@Base" 1.24
  (c++)"QSnapdSnap::channel(int) const@Base" 1.24
@@ -224,10 +254,10 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdSnap::trymode() const@Base" 1.5
  (c++)"QSnapdSnap::version() const@Base" 1.5
  (c++)"QSnapdSystemInformation::binariesDirectory() const@Base" 1.11
- (c++)"QSnapdSystemInformation::confinement() const@Base" 1.14 
- (c++)"QSnapdSystemInformation::kernelVersion() const@Base" 1.11 
+ (c++)"QSnapdSystemInformation::confinement() const@Base" 1.14
+ (c++)"QSnapdSystemInformation::kernelVersion() const@Base" 1.11
  (c++)"QSnapdSystemInformation::managed() const@Base" 1.7
- (c++)"QSnapdSystemInformation::mountDirectory() const@Base" 1.11 
+ (c++)"QSnapdSystemInformation::mountDirectory() const@Base" 1.11
  (c++)"QSnapdSystemInformation::onClassic() const@Base" 1.5
  (c++)"QSnapdSystemInformation::osId() const@Base" 1.5
  (c++)"QSnapdSystemInformation::osVersion() const@Base" 1.5
@@ -247,4 +277,11 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdTask::spawnTime() const@Base" 1.5
  (c++)"QSnapdTask::status() const@Base" 1.5
  (c++)"QSnapdTask::summary() const@Base" 1.5
+ (c++)"QSnapdUserInformation::authData() const@Base" 1.26
+ (c++)"QSnapdUserInformation::email() const@Base" 1.26
+ (c++)"QSnapdUserInformation::id() const@Base" 1.26
+ (c++)"QSnapdUserInformation::sshKeys() const@Base" 1.25
+ (c++)"QSnapdUserInformation::username() const@Base" 1.25
+ (c++)"QSnapdUserInformation::QSnapdUserInformation(void*, QObject*)@Base" 1.25
+ (c++)"QSnapdUserInformation::~QSnapdUserInformation()@Base" 1.25
  (c++)"QSnapdWrappedObject::~QSnapdWrappedObject()@Base" 1.5

@@ -1,6 +1,7 @@
 snapd-glib (1.29-1) UNRELEASED; urgency=medium
 
   * New upstream release
+  * Update symbols
 
  -- Jeremy Bicha <jbicha@debian.org>  Tue, 21 Nov 2017 15:49:51 -0500
 
