@@ -2548,7 +2548,7 @@ snapd_client_disable_finish (SnapdClient *client, GAsyncResult *result, GError *
  * Asynchronously set the tracking channel on an installed snap.
  * See snapd_client_switch_sync() for more information.
  *
- * Since: 1.0
+ * Since: 1.26
  */
 void
 snapd_client_switch_async (SnapdClient *client,
@@ -2577,7 +2577,7 @@ snapd_client_switch_async (SnapdClient *client,
  *
  * Returns: %TRUE on success or %FALSE on error.
  *
- * Since: 1.0
+ * Since: 1.26
  */
 gboolean
 snapd_client_switch_finish (SnapdClient *client, GAsyncResult *result, GError **error)
