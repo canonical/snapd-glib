@@ -361,7 +361,7 @@ snapd_snap_get_developer (SnapdSnap *snap)
  * snapd_snap_get_devmode:
  * @snap: a #SnapdSnap.
  *
- * Get if this snap is running in developmer mode.
+ * Get if this snap is running in developer mode.
  *
  * Returns: %TRUE if this snap is running in devmode.
  *
@@ -672,7 +672,7 @@ snapd_snap_get_tracking_channel (SnapdSnap *snap)
  *
  * Get the tracks that are available.
  *
- * Returns: (transfer none) (array zero-terminated=1): an orderered array of track names.
+ * Returns: (transfer none) (array zero-terminated=1): an ordered array of track names.
  *
  * Since: 1.22
  */

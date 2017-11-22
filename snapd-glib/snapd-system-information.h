@@ -28,7 +28,7 @@ G_DECLARE_FINAL_TYPE (SnapdSystemInformation, snapd_system_information, SNAPD, S
  * @SNAPD_SYSTEM_CONFINEMENT_STRICT: the system supports strict confinement.
  * @SNAPD_SYSTEM_CONFINEMENT_PARTIAL: the system supports partial confinement.
  *
- * Confinment used by a snap.
+ * Confinement used by a snap.
  *
  * Since: 1.15
  */

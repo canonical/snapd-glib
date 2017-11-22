@@ -17,7 +17,7 @@
  * @short_description: Snap channel metadata
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdChannel contains the metadata for a given snap chanel as returned
+ * A #SnapdChannel contains the metadata for a given snap channel as returned
  * using snapd_snap_get_channels().
  */
 
@@ -78,7 +78,7 @@ snapd_channel_get_confinement (SnapdChannel *channel)
  *
  * Get the epoch used on this channel, e.g. "1".
  *
- * Returns: an apoch.
+ * Returns: an epoch.
  *
  * Since: 1.22
  */

@@ -21,7 +21,7 @@
  * @include: snapd-glib/snapd-glib.h
  *
  * To allow non-root users to authorize with snapd as D-Bus service called
- * snapd-login-service is provided. This service uses Polkit to allow privileded
+ * snapd-login-service is provided. This service uses Polkit to allow privileged
  * users to install and remove snaps. snapd_login_sync() calls this service to
  * get a #SnapdAuthData that can be passed to a snapd client with
  * snapd_client_set_auth_data().
@@ -124,7 +124,7 @@ convert_dbus_error (GError *dbus_error)
 
 /**
  * snapd_login_sync:
- * @username: usename to log in with.
+ * @username: username to log in with.
  * @password: password to log in with.
  * @otp: (allow-none): response to one-time password challenge.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
@@ -247,7 +247,7 @@ bus_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
 /**
  * snapd_login_async:
- * @username: usename to log in with.
+ * @username: username to log in with.
  * @password: password to log in with.
  * @otp: (allow-none): response to one-time password challenge.
  * @cancellable: (allow-none): a #GCancellable or %NULL.

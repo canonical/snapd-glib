@@ -152,7 +152,7 @@ snapd_task_get_status (SnapdTask *task)
  *
  * Get if this task is completed.
  *
- * Depcrecated: 1.5: Use snapd_change_get_ready() instead.
+ * Deprecated: 1.5: Use snapd_change_get_ready() instead.
  *
  * Returns: %TRUE if this task is complete.
  *

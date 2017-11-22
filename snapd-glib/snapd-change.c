@@ -182,7 +182,7 @@ snapd_change_get_spawn_time (SnapdChange *change)
  * snapd_change_get_ready_time:
  * @change: a #SnapdChange.
  *
- * Get the time this taksk completed or %NULL if not yet completed.
+ * Get the time this task completed or %NULL if not yet completed.
  *
  * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
  *

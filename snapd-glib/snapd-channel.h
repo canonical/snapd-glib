@@ -29,7 +29,7 @@ G_DECLARE_FINAL_TYPE (SnapdChannel, snapd_channel, SNAPD, CHANNEL, GObject)
  * @SNAPD_CONFINEMENT_DEVMODE: the snap is in dev mode (i.e. unconfined).
  * @SNAPD_CONFINEMENT_CLASSIC: the snap is using classic confinement.
  *
- * Confinment used by a snap.
+ * Confinement used by a snap.
  *
  * Since: 1.0
  */

@@ -55,7 +55,7 @@ G_DEFINE_TYPE (SnapdAuthData, snapd_auth_data, G_TYPE_OBJECT)
 
 /**
  * snapd_auth_data_new:
- * @macaroon: serialzied macaroon used to authorize access to snapd.
+ * @macaroon: serialized macaroon used to authorize access to snapd.
  * @discharges: (array zero-terminated=1): serialized discharges.
  *
  * Create some authorization data.

@@ -1042,7 +1042,7 @@ snapd_client_create_users_sync (SnapdClient *client,
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
  *     to ignore.
  *
- * Gget user accounts that are valid for this device.
+ * Get user accounts that are valid for this device.
  *
  * Returns: (transfer container) (element-type SnapdUserInformation): an array of #SnapdUserInformation or %NULL on error.
  *

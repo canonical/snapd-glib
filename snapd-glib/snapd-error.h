@@ -22,7 +22,7 @@ G_BEGIN_DECLS
  * SnapdError:
  * @SNAPD_ERROR_CONNECTION_FAILED: not able to connect to snapd.
  * @SNAPD_ERROR_WRITE_FAILED: an error occurred while writing to snapd.
- * @SNAPD_ERROR_READ_FAILED: an error occured while reading from snapd.
+ * @SNAPD_ERROR_READ_FAILED: an error occurred while reading from snapd.
  * @SNAPD_ERROR_BAD_REQUEST: snapd did not understand the request that was sent.
  * @SNAPD_ERROR_BAD_RESPONSE: the response received from snapd was not
  *     understood.
