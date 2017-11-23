@@ -97,14 +97,11 @@ struct _MockChange
     gchar *id;
     gchar *kind;
     gchar *summary;
-    gchar *status;
     gchar *spawn_time;
     gchar *ready_time;
     int task_index;
     GList *tasks;
-    gboolean ready;
     JsonNode *data;
-    gchar *error;
 };
 
 struct _MockChannel
@@ -207,6 +204,7 @@ struct _MockTask
     gchar *ready_time;
     MockSnap *snap;
     gchar *snap_name;
+    gchar *error;
 };
 
 struct _MockTrack
@@ -567,7 +565,6 @@ add_change (MockSnapd *snapd)
     change->id = g_strdup_printf ("%d", snapd->change_index);
     change->kind = g_strdup ("KIND");
     change->summary = g_strdup ("SUMMARY");
-    change->status = g_strdup ("STATUS");
     change->task_index = snapd->change_index * 100;
     snapd->changes = g_list_append (snapd->changes, change);
 
@@ -596,7 +593,7 @@ mock_change_add_task (MockChange *change, const gchar *kind)
     change->task_index++;
     task->kind = g_strdup (kind);
     task->summary = g_strdup ("SUMMARY");
-    task->status = g_strdup ("STATUS");
+    task->status = g_strdup ("Do");
     task->progress_label = g_strdup ("LABEL");
     task->progress_done = 0;
     task->progress_total = 1;
@@ -609,6 +606,13 @@ void
 mock_task_set_snap_name (MockTask *task, const gchar *snap_name)
 {
     task->snap_name = g_strdup (snap_name);
+}
+
+void
+mock_task_set_status (MockTask *task, const gchar *status)
+{
+    g_free (task->status);
+    task->status = g_strdup (status);
 }
 
 void
@@ -644,12 +648,6 @@ mock_change_set_ready_time (MockChange *change, const gchar *ready_time)
 {
     g_free (change->ready_time);
     change->ready_time = g_strdup (ready_time);
-}
-
-void
-mock_change_set_ready (MockChange *change, gboolean ready)
-{
-    change->ready = ready;
 }
 
 static MockSnap *
@@ -1444,6 +1442,7 @@ mock_task_free (MockTask *task)
     if (task->snap != NULL)
         mock_snap_free (task->snap);
     g_free (task->snap_name);
+    g_free (task->error);
     g_slice_free (MockTask, task);
 }
 
@@ -1453,13 +1452,11 @@ mock_change_free (MockChange *change)
     g_free (change->id);
     g_free (change->kind);
     g_free (change->summary);
-    g_free (change->status);
     g_free (change->spawn_time);
     g_free (change->ready_time);
     g_list_free_full (change->tasks, (GDestroyNotify) mock_task_free);
     if (change->data != NULL)
         json_node_unref (change->data);
-    g_free (change->error);
     g_slice_free (MockChange, change);
 }
 
@@ -2138,7 +2135,7 @@ handle_snaps (MockSnapd *snapd, SoupMessage *message)
 
             change = add_change (snapd);
             change->data = json_node_ref (json_builder_get_root (builder));
-            change->ready = TRUE;
+            mock_change_add_task (change, "refresh");
             send_async_response (message, 202, change->id);
         }
         else {
@@ -2313,10 +2310,6 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
             change = add_change (snapd);
             mock_change_set_spawn_time (change, snapd->spawn_time);
             mock_change_set_ready_time (change, snapd->ready_time);
-            if (snap->error != NULL) {
-                change->error = g_strdup (snap->error);
-                change->ready = TRUE;
-            }
             task = mock_change_add_task (change, "install");
             task->snap = mock_snap_new (name);
             mock_snap_set_confinement (task->snap, snap->confinement);
@@ -2325,6 +2318,8 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
             task->snap->devmode = devmode;
             task->snap->jailmode = jailmode;
             task->snap->dangerous = dangerous;
+            if (snap->error != NULL)
+                task->error = g_strdup (snap->error);
 
             send_async_response (message, 202, change->id);
         }
@@ -2367,12 +2362,10 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 change = add_change (snapd);
                 mock_change_set_spawn_time (change, snapd->spawn_time);
                 mock_change_set_ready_time (change, snapd->ready_time);
-                if (snap->error != NULL) {
-                    change->error = g_strdup (snap->error);
-                    change->ready = TRUE;
-                }
                 task = mock_change_add_task (change, "remove");
                 mock_task_set_snap_name (task, name);
+                if (snap->error != NULL)
+                    task->error = g_strdup (snap->error);
 
                 send_async_response (message, 202, change->id);
 
@@ -2750,10 +2743,33 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
         send_error_method_not_allowed (message, "method not allowed");
 }
 
+static MockTask *
+get_current_task (MockChange *change)
+{
+    GList *link;
+
+    for (link = change->tasks; link; link = link->next) {
+        MockTask *task = link->data;
+        if (strcmp (task->status, "Done") != 0)
+            return task;
+    }
+
+    return NULL;
+}
+
+static gboolean
+change_get_ready (MockChange *change)
+{
+    MockTask *task = get_current_task (change);
+    return task == NULL || strcmp (task->status, "Error") == 0;
+}
+
 static JsonNode *
 make_change_node (MockChange *change)
 {
     int progress_total, progress_done;
+    MockTask *task;
+    const gchar *status, *error;
     g_autoptr(JsonBuilder) builder = NULL;
     GList *link;
 
@@ -2762,6 +2778,10 @@ make_change_node (MockChange *change)
         progress_done += task->progress_done;
         progress_total += task->progress_total;
     }
+
+    task = get_current_task (change);
+    status = task != NULL ? task->status : "Done";
+    error = task != NULL && strcmp (task->status, "Error") == 0 ? task->error : NULL;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -2772,7 +2792,7 @@ make_change_node (MockChange *change)
     json_builder_set_member_name (builder, "summary");
     json_builder_add_string_value (builder, change->summary);
     json_builder_set_member_name (builder, "status");
-    json_builder_add_string_value (builder, change->status);
+    json_builder_add_string_value (builder, status);
     json_builder_set_member_name (builder, "tasks");
     json_builder_begin_array (builder);
     for (link = change->tasks; link; link = link->next) {
@@ -2807,20 +2827,20 @@ make_change_node (MockChange *change)
     }
     json_builder_end_array (builder);
     json_builder_set_member_name (builder, "ready");
-    json_builder_add_boolean_value (builder, change->ready);
+    json_builder_add_boolean_value (builder, change_get_ready (change));
     json_builder_set_member_name (builder, "spawn-time");
     json_builder_add_string_value (builder, change->spawn_time);
-    if (change->ready && change->ready_time != NULL) {
+    if (change_get_ready (change) && change->ready_time != NULL) {
         json_builder_set_member_name (builder, "ready-time");
         json_builder_add_string_value (builder, change->ready_time);
     }
-    if (change->ready && change->data != NULL) {
+    if (change_get_ready (change) && change->data != NULL) {
         json_builder_set_member_name (builder, "data");
         json_builder_add_value (builder, change->data);
     }
-    if (change->ready && change->error != NULL) {
+    if (error != NULL) {
         json_builder_set_member_name (builder, "err");
-        json_builder_add_string_value (builder, change->error);
+        json_builder_add_string_value (builder, error);
     }
     json_builder_end_object (builder);
 
@@ -2867,9 +2887,9 @@ handle_changes (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
     for (link = snapd->changes; link; link = link->next) {
         MockChange *change = link->data;
 
-        if (g_strcmp0 (select_param, "in-progress") == 0 && change->ready)
+        if (g_strcmp0 (select_param, "in-progress") == 0 && change_get_ready (change))
             continue;
-        if (g_strcmp0 (select_param, "ready") == 0 && !change->ready)
+        if (g_strcmp0 (select_param, "ready") == 0 && !change_get_ready (change))
             continue;
         if (for_param != NULL && !change_relates_to_snap (change, for_param))
             continue;
@@ -2892,6 +2912,7 @@ mock_task_complete (MockSnapd *snapd, MockTask *task)
         snapd->snaps = g_list_remove (snapd->snaps, snap);
         mock_snap_free (snap);
     }
+    mock_task_set_status (task, "Done");
 }
 
 static void
@@ -2899,26 +2920,22 @@ mock_change_progress (MockSnapd *snapd, MockChange *change)
 {
     GList *link;
 
-    if (change->ready)
-        return;
-
     for (link = change->tasks; link; link = link->next) {
         MockTask *task = link->data;
 
+        if (task->error != NULL) {
+            mock_task_set_status (task, "Error");
+            return;
+        }
+
         if (task->progress_done < task->progress_total) {
+            mock_task_set_status (task, "Doing");
             task->progress_done++;
             if (task->progress_done == task->progress_total)
                 mock_task_complete (snapd, task);
-            break;
+            return;
         }
     }
-
-    for (link = change->tasks; link; link = link->next) {
-        MockTask *task = link->data;
-        if (task->progress_done < task->progress_total)
-            return;
-    }
-    change->ready = TRUE;
 }
 
 static void
@@ -2959,12 +2976,16 @@ handle_change (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
         o = json_node_get_object (request);
         action = json_object_get_string_member (o, "action");
         if (strcmp (action, "abort") == 0) {
+            MockTask *task;
             g_autoptr(JsonNode) result = NULL;
 
-            g_free (change->status);
-            change->status = g_strdup ("Error");
-            change->error = g_strdup ("cancelled");
-            change->ready = TRUE;
+            task = get_current_task (change);
+            if (task == NULL) {
+                send_error_bad_request (message, "task not in progress", NULL);
+                return;
+            }
+            mock_task_set_status (task, "Error");
+            task->error = g_strdup ("cancelled");
             result = make_change_node (change);
             send_sync_response (message, 200, result, NULL);
         }

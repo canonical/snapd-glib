@@ -390,23 +390,27 @@ static void
 test_get_changes_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
     MockChange *c = mock_snapd_add_change (snapd);
     mock_change_set_spawn_time (c, "2017-01-02T11:00:00Z");
     MockTask *t = mock_change_add_task (c, "download");
     mock_task_set_progress (t, 65535, 65535);
+    mock_task_set_status (t, "Done");
     mock_task_set_spawn_time (t, "2017-01-02T11:00:00Z");
     mock_task_set_ready_time (t, "2017-01-02T11:00:10Z");
     t = mock_change_add_task (c, "install");
     mock_task_set_progress (t, 1, 1);
+    mock_task_set_status (t, "Done");
     mock_task_set_spawn_time (t, "2017-01-02T11:00:10Z");
     mock_task_set_ready_time (t, "2017-01-02T11:00:30Z");
     mock_change_set_ready_time (c, "2017-01-02T11:00:30Z");
-    mock_change_set_ready (c, TRUE);
+
     c = mock_snapd_add_change (snapd);
     mock_change_set_spawn_time (c, "2017-01-02T11:15:00Z");
     t = mock_change_add_task (c, "remove");
     mock_task_set_progress (t, 0, 1);
     mock_task_set_spawn_time (t, "2017-01-02T11:15:00Z");
+
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -421,7 +425,7 @@ test_get_changes_sync ()
     g_assert (change0->id () == "1");
     g_assert (change0->kind () == "KIND");
     g_assert (change0->summary () == "SUMMARY");
-    g_assert (change0->status () == "STATUS");
+    g_assert (change0->status () == "Done");
     g_assert_true (change0->ready ());
     g_assert (change0->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
     g_assert (change0->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
@@ -431,7 +435,7 @@ test_get_changes_sync ()
     g_assert (task0->id () == "100");
     g_assert (task0->kind () == "download");
     g_assert (task0->summary () == "SUMMARY");
-    g_assert (task0->status () == "STATUS");
+    g_assert (task0->status () == "Done");
     g_assert (task0->progressLabel () == "LABEL");
     g_assert_cmpint (task0->progressDone (), ==, 65535);
     g_assert_cmpint (task0->progressTotal (), ==, 65535);
@@ -442,7 +446,7 @@ test_get_changes_sync ()
     g_assert (task1->id () == "101");
     g_assert (task1->kind () == "install");
     g_assert (task1->summary () == "SUMMARY");
-    g_assert (task1->status () == "STATUS");
+    g_assert (task1->status () == "Done");
     g_assert (task1->progressLabel () == "LABEL");
     g_assert_cmpint (task1->progressDone (), ==, 1);
     g_assert_cmpint (task1->progressTotal (), ==, 1);
@@ -453,7 +457,7 @@ test_get_changes_sync ()
     g_assert (change1->id () == "2");
     g_assert (change1->kind () == "KIND");
     g_assert (change1->summary () == "SUMMARY");
-    g_assert (change1->status () == "STATUS");
+    g_assert (change1->status () == "Do");
     g_assert_false (change1->ready ());
     g_assert (change1->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 15, 0), Qt::UTC));
     g_assert_false (change1->readyTime ().isValid ());
@@ -463,7 +467,7 @@ test_get_changes_sync ()
     g_assert (task->id () == "200");
     g_assert (task->kind () == "remove");
     g_assert (task->summary () == "SUMMARY");
-    g_assert (task->status () == "STATUS");
+    g_assert (task->status () == "Do");
     g_assert (task->progressLabel () == "LABEL");
     g_assert_cmpint (task->progressDone (), ==, 0);
     g_assert_cmpint (task->progressTotal (), ==, 1);
@@ -475,11 +479,18 @@ static void
 test_get_changes_filter_in_progress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
     MockChange *c = mock_snapd_add_change (snapd);
-    mock_change_set_ready (c, TRUE);
-    mock_snapd_add_change (snapd);
+    MockTask *t = mock_change_add_task (c, "foo");
+    mock_task_set_status (t, "Done");
+
     c = mock_snapd_add_change (snapd);
-    mock_change_set_ready (c, TRUE);
+    t = mock_change_add_task (c, "foo");
+
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "foo");
+    mock_task_set_status (t, "Done");
+
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -496,10 +507,17 @@ static void
 test_get_changes_filter_ready ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_change (snapd);
+
     MockChange *c = mock_snapd_add_change (snapd);
-    mock_change_set_ready (c, TRUE);
-    mock_snapd_add_change (snapd);
+    MockTask *t = mock_change_add_task (c, "foo");
+
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "foo");
+    mock_task_set_status (t, "Done");
+
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "foo");
+
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -516,15 +534,19 @@ static void
 test_get_changes_filter_snap ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
     MockChange *c = mock_snapd_add_change (snapd);
     MockTask *t = mock_change_add_task (c, "install");
     mock_task_set_snap_name (t, "snap1");
+
     c = mock_snapd_add_change (snapd);
     t = mock_change_add_task (c, "install");
     mock_task_set_snap_name (t, "snap2");
+
     c = mock_snapd_add_change (snapd);
     t = mock_change_add_task (c, "install");
     mock_task_set_snap_name (t, "snap3");
+
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -541,16 +563,20 @@ static void
 test_get_changes_filter_ready_snap ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
     MockChange *c = mock_snapd_add_change (snapd);
     MockTask *t = mock_change_add_task (c, "install");
     mock_task_set_snap_name (t, "snap1");
-    c = mock_snapd_add_change (snapd);
-    mock_change_set_ready (c, TRUE);
-    t = mock_change_add_task (c, "install");
-    mock_task_set_snap_name (t, "snap2");
+
     c = mock_snapd_add_change (snapd);
     t = mock_change_add_task (c, "install");
     mock_task_set_snap_name (t, "snap2");
+    mock_task_set_status (t, "Done");
+
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "install");
+    mock_task_set_snap_name (t, "snap2");
+
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -567,23 +593,27 @@ static void
 test_get_change_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
     MockChange *c = mock_snapd_add_change (snapd);
     mock_change_set_spawn_time (c, "2017-01-02T11:00:00Z");
     MockTask *t = mock_change_add_task (c, "download");
     mock_task_set_progress (t, 65535, 65535);
+    mock_task_set_status (t, "Done");
     mock_task_set_spawn_time (t, "2017-01-02T11:00:00Z");
     mock_task_set_ready_time (t, "2017-01-02T11:00:10Z");
     t = mock_change_add_task (c, "install");
     mock_task_set_progress (t, 1, 1);
+    mock_task_set_status (t, "Done");
     mock_task_set_spawn_time (t, "2017-01-02T11:00:10Z");
     mock_task_set_ready_time (t, "2017-01-02T11:00:30Z");
     mock_change_set_ready_time (c, "2017-01-02T11:00:30Z");
-    mock_change_set_ready (c, TRUE);
+
     c = mock_snapd_add_change (snapd);
     mock_change_set_spawn_time (c, "2017-01-02T11:15:00Z");
     t = mock_change_add_task (c, "remove");
     mock_task_set_progress (t, 0, 1);
     mock_task_set_spawn_time (t, "2017-01-02T11:15:00Z");
+
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -597,7 +627,7 @@ test_get_change_sync ()
     g_assert (change->id () == "1");
     g_assert (change->kind () == "KIND");
     g_assert (change->summary () == "SUMMARY");
-    g_assert (change->status () == "STATUS");
+    g_assert (change->status () == "Done");
     g_assert_true (change->ready ());
     g_assert (change->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
     g_assert (change->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
@@ -607,7 +637,7 @@ test_get_change_sync ()
     g_assert (task0->id () == "100");
     g_assert (task0->kind () == "download");
     g_assert (task0->summary () == "SUMMARY");
-    g_assert (task0->status () == "STATUS");
+    g_assert (task0->status () == "Done");
     g_assert (task0->progressLabel () == "LABEL");
     g_assert_cmpint (task0->progressDone (), ==, 65535);
     g_assert_cmpint (task0->progressTotal (), ==, 65535);
@@ -618,7 +648,7 @@ test_get_change_sync ()
     g_assert (task1->id () == "101");
     g_assert (task1->kind () == "install");
     g_assert (task1->summary () == "SUMMARY");
-    g_assert (task1->status () == "STATUS");
+    g_assert (task1->status () == "Done");
     g_assert (task1->progressLabel () == "LABEL");
     g_assert_cmpint (task1->progressDone (), ==, 1);
     g_assert_cmpint (task1->progressTotal (), ==, 1);
@@ -2166,11 +2196,14 @@ void InstallProgressCounter::progress ()
 
     g_assert (change->kind () == "KIND");
     g_assert (change->summary () == "SUMMARY");
-    g_assert (change->status () == "STATUS");
-    if (progressDone == total)
+    if (progressDone == total) {
+        g_assert (change->status () == "Done");
         g_assert_true (change->ready ());
-    else
+    }
+    else {
+        g_assert (change->status () == "Do");
         g_assert_false (change->ready ());
+    }
     g_assert (change->spawnTime () == spawnTime);
     if (change->ready ())
         g_assert (readyTime == readyTime);

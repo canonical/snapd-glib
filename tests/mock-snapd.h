@@ -113,6 +113,9 @@ MockTask       *mock_change_add_task              (MockChange    *change,
 void            mock_task_set_snap_name           (MockTask      *task,
                                                    const gchar   *snap_name);
 
+void            mock_task_set_status              (MockTask      *task,
+                                                   const gchar   *status);
+
 void            mock_task_set_progress            (MockTask      *task,
                                                    int            done,
                                                    int            total);
@@ -125,9 +128,6 @@ void            mock_task_set_ready_time          (MockTask      *task,
 
 void            mock_change_set_spawn_time        (MockChange    *change,
                                                    const gchar   *spawn_time);
-
-void            mock_change_set_ready             (MockChange    *change,
-                                                   gboolean       ready);
 
 void            mock_change_set_ready_time        (MockChange    *change,
                                                    const gchar   *ready_time);
