@@ -469,7 +469,7 @@ complete_change (SnapdClient *client, const gchar *change_id, GError *error)
 }
 
 static void
-update_changes (SnapdClient *client, SnapdChange *change, JsonNode *data, const gchar *err)
+update_changes (SnapdClient *client, SnapdChange *change, JsonNode *data)
 {
     SnapdRequestAsync *request;
 
@@ -493,11 +493,11 @@ update_changes (SnapdClient *client, SnapdChange *change, JsonNode *data, const 
             return;
         }
 
-        if (err != NULL) {
+        if (snapd_change_get_error (change) != NULL) {
             g_set_error_literal (&error,
                                  SNAPD_ERROR,
                                  SNAPD_ERROR_FAILED,
-                                 err);
+                                 snapd_change_get_error (change));
             snapd_request_complete (client, SNAPD_REQUEST (request), error);
             return;
         }
@@ -532,13 +532,11 @@ parse_response (SnapdClient *client, SnapdRequest *request, SoupMessage *message
     if (SNAPD_IS_GET_CHANGE (request))
         update_changes (client,
                         _snapd_get_change_get_change (SNAPD_GET_CHANGE (request)),
-                        _snapd_get_change_get_data (SNAPD_GET_CHANGE (request)),
-                        _snapd_get_change_get_err (SNAPD_GET_CHANGE (request)));
+                        _snapd_get_change_get_data (SNAPD_GET_CHANGE (request)));
     else if (SNAPD_IS_POST_CHANGE (request))
         update_changes (client,
                         _snapd_post_change_get_change (SNAPD_POST_CHANGE (request)),
-                        _snapd_post_change_get_data (SNAPD_POST_CHANGE (request)),
-                        _snapd_post_change_get_err (SNAPD_POST_CHANGE (request)));
+                        _snapd_post_change_get_data (SNAPD_POST_CHANGE (request)));
 
     if (SNAPD_IS_REQUEST_ASYNC (request)) {
         /* Immediately cancel if requested, otherwise poll for updates */
@@ -1273,6 +1271,61 @@ snapd_client_get_change_finish (SnapdClient *client, GAsyncResult *result, GErro
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_object_ref (_snapd_get_change_get_change (request));
+}
+
+/**
+ * snapd_client_abort_change_async:
+ * @client: a #SnapdClient.
+ * @id: a change ID to abort.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously abort a change.
+ * See snapd_client_abort_change_sync() for more information.
+ *
+ * Since: 1.30
+ */
+void
+snapd_client_abort_change_async (SnapdClient *client,
+                                 const gchar *id,
+                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdPostChange *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (id != NULL);
+
+    request = _snapd_post_change_new (id, "abort", cancellable, callback, user_data);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_abort_change_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_abort_change_async().
+ * See snapd_client_abort_change_sync() for more information.
+ *
+ * Returns: (transfer full): a #SnapdChange or %NULL on error.
+ *
+ * Since: 1.30
+ */
+SnapdChange *
+snapd_client_abort_change_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdPostChange *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_POST_CHANGE (result), NULL);
+
+    request = SNAPD_POST_CHANGE (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_object_ref (_snapd_post_change_get_change (request));
 }
 
 /**

@@ -64,6 +64,7 @@ snapd_change_get_tasks
 snapd_change_get_ready
 snapd_change_get_spawn_time
 snapd_change_get_ready_time
+snapd_change_get_error
 SnapdChange
 
 <SUBSECTION Private>
@@ -123,6 +124,9 @@ snapd_client_get_changes_finish
 snapd_client_get_change_sync
 snapd_client_get_change_async
 snapd_client_get_change_finish
+snapd_client_abort_change_sync
+snapd_client_abort_change_async
+snapd_client_abort_change_finish
 snapd_client_get_system_information_sync
 snapd_client_get_system_information_async
 snapd_client_get_system_information_finish
@@ -337,6 +341,7 @@ SNAPD_GLIB_VERSION_1_26
 SNAPD_GLIB_VERSION_1_27
 SNAPD_GLIB_VERSION_1_28
 SNAPD_GLIB_VERSION_1_29
+SNAPD_GLIB_VERSION_1_30
 </SECTION>
 
 <SECTION>

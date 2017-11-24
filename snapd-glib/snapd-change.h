@@ -38,6 +38,8 @@ GDateTime   *snapd_change_get_spawn_time (SnapdChange *change);
 
 GDateTime   *snapd_change_get_ready_time (SnapdChange *change);
 
+const gchar *snapd_change_get_error      (SnapdChange *change);
+
 G_END_DECLS
 
 #endif /* __SNAPD_CHANGE_H__ */

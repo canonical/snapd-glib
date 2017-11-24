@@ -429,6 +429,7 @@ test_get_changes_sync ()
     g_assert_true (change0->ready ());
     g_assert (change0->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
     g_assert (change0->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
+    g_assert_null (change0->error ());
     g_assert_cmpint (change0->taskCount (), ==, 2);
 
     QScopedPointer<QSnapdTask> task0 (change0->task (0));
@@ -461,6 +462,7 @@ test_get_changes_sync ()
     g_assert_false (change1->ready ());
     g_assert (change1->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 15, 0), Qt::UTC));
     g_assert_false (change1->readyTime ().isValid ());
+    g_assert_null (change1->error ());
     g_assert_cmpint (change1->taskCount (), ==, 1);
 
     QScopedPointer<QSnapdTask> task (change1->task (0));
@@ -631,6 +633,7 @@ test_get_change_sync ()
     g_assert_true (change->ready ());
     g_assert (change->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 0), Qt::UTC));
     g_assert (change->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
+    g_assert_null (change->error ());
     g_assert_cmpint (change->taskCount (), ==, 2);
 
     QScopedPointer<QSnapdTask> task0 (change->task (0));
@@ -654,6 +657,33 @@ test_get_change_sync ()
     g_assert_cmpint (task1->progressTotal (), ==, 1);
     g_assert (task1->spawnTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 10), Qt::UTC));
     g_assert (task1->readyTime () == QDateTime (QDate (2017, 1, 2), QTime (11, 0, 30), Qt::UTC));
+}
+
+static void
+test_abort_change_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    MockChange *c = mock_snapd_add_change (snapd);
+    mock_change_add_task (c, "foo");
+
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdAbortChangeRequest> abortRequest (client.abortChange ("1"));
+    abortRequest->runSync ();
+    g_assert_cmpint (abortRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdChange> change (abortRequest->change ());
+    g_assert_true (change->ready ());
+    g_assert (change->status () == "Error");
+    g_assert (change->error () == "cancelled");
+    g_assert_cmpint (change->taskCount (), ==, 1);
+
+    QScopedPointer<QSnapdTask> task0 (change->task (0));
+    g_assert (task0->status () == "Error");
 }
 
 static void
@@ -3706,6 +3736,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-changes/filter-ready", test_get_changes_filter_ready);
     g_test_add_func ("/get-changes/filter-snap", test_get_changes_filter_snap);
     g_test_add_func ("/get-changes/filter-ready-snap", test_get_changes_filter_ready_snap);
+    g_test_add_func ("/abort-change/sync", test_abort_change_sync);
     g_test_add_func ("/get-change/sync", test_get_change_sync);
     g_test_add_func ("/list/sync", test_list_sync);
     g_test_add_func ("/list/async", test_list_async);

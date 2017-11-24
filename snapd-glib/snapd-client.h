@@ -257,6 +257,21 @@ SnapdChange            *snapd_client_get_change_finish             (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+SnapdChange            *snapd_client_abort_change_sync             (SnapdClient          *client,
+                                                                    const gchar          *id,
+                                                                    GCancellable         *cancellable,
+                                                                    GError             **error);
+
+void                    snapd_client_abort_change_async            (SnapdClient          *client,
+                                                                    const gchar          *id,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+
+SnapdChange            *snapd_client_abort_change_finish           (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 SnapdSystemInformation *snapd_client_get_system_information_sync   (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);

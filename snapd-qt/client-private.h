@@ -69,6 +69,20 @@ public:
     SnapdChange *change = NULL;
 };
 
+class QSnapdAbortChangeRequestPrivate
+{
+public:
+    QSnapdAbortChangeRequestPrivate (const QString& id) :
+        id(id) {}
+    ~QSnapdAbortChangeRequestPrivate ()
+    {
+        if (change != NULL)
+            g_object_unref (change);
+    }
+    QString id;
+    SnapdChange *change = NULL;
+};
+
 class QSnapdGetSystemInformationRequestPrivate
 {
 public:

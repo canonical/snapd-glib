@@ -486,6 +486,7 @@ _snapd_json_parse_change (JsonObject *object, GError **error)
                          "ready", _snapd_json_get_bool (object, "ready", FALSE),
                          "spawn-time", main_spawn_time,
                          "ready-time", main_ready_time,
+                         "error", _snapd_json_get_string (object, "err", NULL),
                          NULL);
 }
 

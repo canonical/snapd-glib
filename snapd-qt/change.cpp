@@ -80,3 +80,8 @@ QDateTime QSnapdChange::readyTime () const
 {
     return convertDateTime (snapd_change_get_ready_time (SNAPD_CHANGE (wrapped_object)));
 }
+
+QString QSnapdChange::error () const
+{
+    return snapd_change_get_error (SNAPD_CHANGE (wrapped_object));
+}

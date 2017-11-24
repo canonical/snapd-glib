@@ -175,6 +175,17 @@ QSnapdGetChangeRequest *QSnapdClient::getChange (const QString& id)
     return new QSnapdGetChangeRequest (id, d->client);
 }
 
+QSnapdAbortChangeRequest::~QSnapdAbortChangeRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdAbortChangeRequest *QSnapdClient::abortChange (const QString& id)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdAbortChangeRequest (id, d->client);
+}
+
 QSnapdGetSystemInformationRequest::~QSnapdGetSystemInformationRequest ()
 {
     delete d_ptr;
@@ -804,6 +815,48 @@ void QSnapdGetChangeRequest::runAsync ()
 QSnapdChange *QSnapdGetChangeRequest::change () const
 {
     Q_D(const QSnapdGetChangeRequest);
+    return new QSnapdChange (d->change);
+}
+
+QSnapdAbortChangeRequest::QSnapdAbortChangeRequest (const QString& id, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdAbortChangeRequestPrivate (id)) {}
+
+void QSnapdAbortChangeRequest::runSync ()
+{
+    Q_D(QSnapdAbortChangeRequest);
+    g_autoptr(GError) error = NULL;
+    d->change = snapd_client_abort_change_sync (SNAPD_CLIENT (getClient ()), d->id.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdAbortChangeRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(SnapdChange) change = NULL;
+    g_autoptr(GError) error = NULL;
+
+    change = snapd_client_abort_change_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    Q_D(QSnapdAbortChangeRequest);
+    d->change = (SnapdChange*) g_steal_pointer (&change);
+    finish (error);
+}
+
+static void abort_change_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdAbortChangeRequest *request = static_cast<QSnapdAbortChangeRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdAbortChangeRequest::runAsync ()
+{
+    Q_D(QSnapdAbortChangeRequest);
+    snapd_client_abort_change_async (SNAPD_CLIENT (getClient ()), d->id.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), abort_change_ready_cb, (gpointer) this);
+}
+
+QSnapdChange *QSnapdAbortChangeRequest::change () const
+{
+    Q_D(const QSnapdAbortChangeRequest);
     return new QSnapdChange (d->change);
 }
 

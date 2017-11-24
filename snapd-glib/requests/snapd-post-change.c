@@ -19,7 +19,6 @@ struct _SnapdPostChange
     gchar *action;
     SnapdChange *change;
     JsonNode *data;
-    gchar *err;
 };
 
 G_DEFINE_TYPE (SnapdPostChange, snapd_post_change, snapd_request_get_type ())
@@ -56,12 +55,6 @@ JsonNode *
 _snapd_post_change_get_data (SnapdPostChange *request)
 {
     return request->data;
-}
-
-const gchar *
-_snapd_post_change_get_err (SnapdPostChange *request)
-{
-    return request->err;
 }
 
 static SoupMessage *
@@ -113,8 +106,6 @@ parse_post_change_response (SnapdRequest *request, SoupMessage *message, GError 
 
     if (json_object_has_member (result, "data"))
         r->data = json_node_ref (json_object_get_member (result, "data"));
-    if (json_object_has_member (result, "err"))
-        r->err = g_strdup (_snapd_json_get_string (result, "err", NULL));
 
     return TRUE;
 }
@@ -128,7 +119,6 @@ snapd_post_change_finalize (GObject *object)
     g_clear_pointer (&request->action, g_free);
     g_clear_object (&request->change);
     g_clear_pointer (&request->data, json_node_unref);
-    g_clear_pointer (&request->err, g_free);
 
     G_OBJECT_CLASS (snapd_post_change_parent_class)->finalize (object);
 }

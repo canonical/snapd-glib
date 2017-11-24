@@ -30,8 +30,6 @@ SnapdChange    *_snapd_get_change_get_change    (SnapdGetChange *request);
 
 JsonNode       *_snapd_get_change_get_data      (SnapdGetChange *request);
 
-const gchar    *_snapd_get_change_get_err       (SnapdGetChange *request);
-
 G_END_DECLS
 
 #endif /* __SNAPD_GET_CHANGE_H__ */

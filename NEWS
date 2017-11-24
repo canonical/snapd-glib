@@ -1,3 +1,12 @@
+Overview of changes in snapd-glib 1.30
+
+    * New API:
+      - snapd_client_abort_change_async
+      - snapd_client_abort_change_finish
+      - snapd_client_abort_change_sync
+      - snapd_change_get_error
+    * Implement snapd_client_abort_change
+
 Overview of changes in snapd-glib 1.29
 
     * New API:

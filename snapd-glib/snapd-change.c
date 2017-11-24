@@ -42,6 +42,7 @@ struct _SnapdChange
     gboolean ready;
     GDateTime *spawn_time;
     GDateTime *ready_time;
+    gchar *error;
 };
 
 enum
@@ -54,6 +55,7 @@ enum
     PROP_READY,
     PROP_SPAWN_TIME,
     PROP_READY_TIME,
+    PROP_ERROR,
     PROP_LAST
 };
 
@@ -195,6 +197,23 @@ snapd_change_get_ready_time (SnapdChange *change)
     return change->ready_time;
 }
 
+/**
+ * snapd_change_get_error:
+ * @change: a #SnapdChange.
+ *
+ * Gets the error string associated with this change.
+ *
+ * Returns: an error string or %NULL.
+ *
+ * Since: 1.30
+ */
+const gchar *
+snapd_change_get_error (SnapdChange *change)
+{
+    g_return_val_if_fail (SNAPD_IS_CHANGE (change), NULL);
+    return change->error;
+}
+
 static void
 snapd_change_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
@@ -235,6 +254,10 @@ snapd_change_set_property (GObject *object, guint prop_id, const GValue *value, 
         if (g_value_get_boxed (value) != NULL)
             change->ready_time = g_date_time_ref (g_value_get_boxed (value));
         break;
+    case PROP_ERROR:
+        g_free (change->error);
+        change->error = g_strdup (g_value_get_string (value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -271,6 +294,9 @@ snapd_change_get_property (GObject *object, guint prop_id, GValue *value, GParam
     case PROP_READY_TIME:
         g_value_set_boxed (value, change->ready_time);
         break;
+    case PROP_ERROR:
+        g_value_set_string (value, change->error);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -289,6 +315,7 @@ snapd_change_finalize (GObject *object)
     g_clear_pointer (&change->tasks, g_ptr_array_unref);
     g_clear_pointer (&change->spawn_time, g_date_time_unref);
     g_clear_pointer (&change->ready_time, g_date_time_unref);
+    g_clear_pointer (&change->error, g_free);
 
     G_OBJECT_CLASS (snapd_change_parent_class)->finalize (object);
 }
@@ -358,6 +385,13 @@ snapd_change_class_init (SnapdChangeClass *klass)
                                                          "Time this change completed",
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_ERROR,
+                                     g_param_spec_string ("error",
+                                                          "error",
+                                                          "Error associated with change",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void
