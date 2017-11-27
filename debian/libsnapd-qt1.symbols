@@ -26,6 +26,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++|optional)"QString::~QString()@Base" 0
  (c++|optional)"QString::toStdString[abi:cxx11]() const@Base" 0
  (optional)stream_wrapper_get_type@Base 1.9
+ (c++)"QSnapdAbortChangeRequest::change() const@Base" 1.30
  (c++)"QSnapdAlias::app() const@Base" 1.8
  (c++)"QSnapdAlias::appAuto() const@Base" 1.25
  (c++)"QSnapdAlias::appManual() const@Base" 1.25
@@ -55,6 +56,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdAuthData::~QSnapdAuthData()@Base" 1.5
  (c++)"QSnapdAuthData::QSnapdAuthData(QString const&, QStringList const&, QObject*)@Base" 1.5
  (c++)"QSnapdAuthData::QSnapdAuthData(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdChange::error() const@Base" 1.30
  (c++)"QSnapdChange::id() const@Base" 1.5
  (c++)"QSnapdChange::kind() const@Base" 1.5
  (c++)"QSnapdChange::~QSnapdChange()@Base" 1.5
@@ -75,6 +77,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdChannel::size() const@Base" 1.24
  (c++)"QSnapdChannel::version() const@Base" 1.24
  (c++)"QSnapdCheckBuyRequest::canBuy() const@Base" 1.5
+ (c++)"QSnapdClient::abortChange(QString const&)@Base" 1.30
  (c++)"QSnapdClient::addAssertions(QStringList const&)@Base" 1.8
  (c++)"QSnapdClient::alias(QString const&, QString const&, QString const&)@Base" 1.25
  (c++)"QSnapdClient::allowInteraction() const@Base" 1.19

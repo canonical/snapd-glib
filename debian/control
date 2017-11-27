@@ -4,7 +4,8 @@ Priority: optional
 Maintainer: Ayatana Packagers <pkg-ayatana-devel@lists.alioth.debian.org>
 Uploaders:
  Jeremy Bicha <jbicha@debian.org>,
- Mike Gabriel <sunweaver@debian.org>
+ Mike Gabriel <sunweaver@debian.org>,
+ Robert Ancell <robert.ancell@canonical.com>
 Build-Depends: debhelper (>= 10),
                gnome-common,
                gobject-introspection,

@@ -27,6 +27,7 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_auth_data_get_type@Base 0.1
  snapd_auth_data_new@Base 0.1
  snapd_change_filter_get_type@Base 1.29
+ snapd_change_get_error@Base 1.30
  snapd_change_get_id@Base 1.5
  snapd_change_get_kind@Base 1.5
  snapd_change_get_ready@Base 1.5
@@ -43,6 +44,9 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_channel_get_size@Base 1.24
  snapd_channel_get_type@Base 1.24
  snapd_channel_get_version@Base 1.24
+ snapd_client_abort_change_async@Base 1.30
+ snapd_client_abort_change_finish@Base 1.30
+ snapd_client_abort_change_sync@Base 1.30
  snapd_client_add_assertions_async@Base 1.8
  snapd_client_add_assertions_finish@Base 1.8
  snapd_client_add_assertions_sync@Base 1.8
