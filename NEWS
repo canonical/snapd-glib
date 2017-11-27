@@ -6,6 +6,7 @@ Overview of changes in snapd-glib 1.30
       - snapd_client_abort_change_sync
       - snapd_change_get_error
     * Implement snapd_client_abort_change
+    * Handle incorrectly named tracks field
 
 Overview of changes in snapd-glib 1.29
 

@@ -687,7 +687,11 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
         g_ptr_array_add (screenshots_array, g_steal_pointer (&screenshot));
     }
 
-    tracks = _snapd_json_get_array (object, "tracks");
+    /* The tracks field was originally incorrectly named, fixed in snapd 61ad9ed (2.29.5) */
+    if (json_object_has_member (object, "Tracks"))
+        tracks = _snapd_json_get_array (object, "Tracks");
+    else
+        tracks = _snapd_json_get_array (object, "tracks");
     track_array = g_ptr_array_new ();
     for (i = 0; i < json_array_get_length (tracks); i++) {
         JsonNode *node = json_array_get_element (tracks, i);
