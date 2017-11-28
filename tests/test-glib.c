@@ -2175,6 +2175,7 @@ test_find_channels (void)
 
     snapd = mock_snapd_new ();
     s = mock_snapd_add_store_snap (snapd, "snap");
+
     t = mock_snap_add_track (s, "latest");
     c = mock_track_add_channel (t, "beta", NULL);
     mock_channel_set_revision (c, "BETA-REVISION");
@@ -2182,7 +2183,9 @@ test_find_channels (void)
     mock_channel_set_epoch (c, "1");
     mock_channel_set_confinement (c, "classic");
     mock_channel_set_size (c, 10000);
+    c = mock_track_add_channel (t, "stable", "branch");
     mock_snap_add_track (s, "TRACK");
+
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -2199,10 +2202,13 @@ test_find_channels (void)
     g_assert_cmpstr (tracks[0], ==, "latest");
     g_assert_cmpstr (tracks[1], ==, "TRACK");
     channels = snapd_snap_get_channels (snap);
-    g_assert_cmpint (channels->len, ==, 2);
+    g_assert_cmpint (channels->len, ==, 3);
     channel = snapd_snap_match_channel (snap, "stable");
     g_assert_nonnull (channel);
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable");
+    g_assert_cmpstr (snapd_channel_get_track (channel), ==, "latest");
+    g_assert_cmpstr (snapd_channel_get_risk (channel), ==, "stable");
+    g_assert_null (snapd_channel_get_branch (channel));
     g_assert_cmpstr (snapd_channel_get_revision (channel), ==, "REVISION");
     g_assert_cmpstr (snapd_channel_get_version (channel), ==, "VERSION");
     g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "0");
@@ -2211,11 +2217,20 @@ test_find_channels (void)
     channel = snapd_snap_match_channel (snap, "beta");
     g_assert_nonnull (channel);
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "beta");
+    g_assert_cmpstr (snapd_channel_get_track (channel), ==, "latest");
+    g_assert_cmpstr (snapd_channel_get_risk (channel), ==, "beta");
+    g_assert_null (snapd_channel_get_branch (channel));
     g_assert_cmpstr (snapd_channel_get_revision (channel), ==, "BETA-REVISION");
     g_assert_cmpstr (snapd_channel_get_version (channel), ==, "BETA-VERSION");
     g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "1");
     g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_CLASSIC);
     g_assert_cmpint (snapd_channel_get_size (channel), ==, 10000);
+    channel = snapd_snap_match_channel (snap, "stable/branch");
+    g_assert_nonnull (channel);
+    g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable/branch");
+    g_assert_cmpstr (snapd_channel_get_track (channel), ==, "latest");
+    g_assert_cmpstr (snapd_channel_get_risk (channel), ==, "stable");
+    g_assert_cmpstr (snapd_channel_get_branch (channel), ==, "branch");
 }
 
 static gboolean

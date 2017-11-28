@@ -41,6 +41,8 @@ typedef enum
     SNAPD_CONFINEMENT_CLASSIC
 } SnapdConfinement;
 
+const gchar      *snapd_channel_get_branch      (SnapdChannel *channel);
+
 SnapdConfinement  snapd_channel_get_confinement (SnapdChannel *channel);
 
 const gchar      *snapd_channel_get_epoch       (SnapdChannel *channel);
@@ -49,7 +51,11 @@ const gchar      *snapd_channel_get_name        (SnapdChannel *channel);
 
 const gchar      *snapd_channel_get_revision    (SnapdChannel *channel);
 
+const gchar      *snapd_channel_get_risk        (SnapdChannel *channel);
+
 gint64            snapd_channel_get_size        (SnapdChannel *channel);
+
+const gchar      *snapd_channel_get_track       (SnapdChannel *channel);
 
 const gchar      *snapd_channel_get_version     (SnapdChannel *channel);
 

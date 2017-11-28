@@ -1686,6 +1686,7 @@ test_find_channels ()
     mock_channel_set_epoch (c, "1");
     mock_channel_set_confinement (c, "classic");
     mock_channel_set_size (c, 10000);
+    c = mock_track_add_channel (t, "stable", "branch");
     mock_snap_add_track (s, "TRACK");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -1701,10 +1702,13 @@ test_find_channels ()
     g_assert_cmpint (snap->tracks ().count (), ==, 2);
     g_assert (snap->tracks ()[0] == "latest");
     g_assert (snap->tracks ()[1] == "TRACK");
-    g_assert_cmpint (snap->channelCount (), ==, 2);
+    g_assert_cmpint (snap->channelCount (), ==, 3);
     QScopedPointer<QSnapdChannel> channel1 (snap->matchChannel ("stable"));
     g_assert_nonnull (channel1);
     g_assert (channel1->name () == "stable");
+    g_assert (channel1->track () == "latest");
+    g_assert (channel1->risk () == "stable");
+    g_assert (channel1->branch () == NULL);
     g_assert (channel1->revision () == "REVISION");
     g_assert (channel1->version () == "VERSION");
     g_assert (channel1->epoch () == "0");
@@ -1713,11 +1717,19 @@ test_find_channels ()
     QScopedPointer<QSnapdChannel> channel2 (snap->matchChannel ("beta"));
     g_assert_nonnull (channel2);
     g_assert (channel2->name () == "beta");
+    g_assert (channel2->track () == "latest");
+    g_assert (channel2->risk () == "beta");
+    g_assert (channel2->branch () == NULL);
     g_assert (channel2->revision () == "BETA-REVISION");
     g_assert (channel2->version () == "BETA-VERSION");
     g_assert (channel2->epoch () == "1");
     g_assert_cmpint (channel2->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
     g_assert_cmpint (channel2->size (), ==, 10000);
+    QScopedPointer<QSnapdChannel> channel3 (snap->matchChannel ("stable/branch"));
+    g_assert (channel3->name () == "stable/branch");
+    g_assert (channel3->track () == "latest");
+    g_assert (channel3->risk () == "stable");
+    g_assert (channel3->branch () == "branch");
 }
 
 static gboolean

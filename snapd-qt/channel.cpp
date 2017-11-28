@@ -13,6 +13,11 @@
 
 QSnapdChannel::QSnapdChannel (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
+QString QSnapdChannel::branch () const
+{
+    return snapd_channel_get_branch (SNAPD_CHANNEL (wrapped_object));
+}
+
 QSnapdEnums::SnapConfinement QSnapdChannel::confinement () const
 {
     switch (snapd_channel_get_confinement (SNAPD_CHANNEL (wrapped_object)))
@@ -44,9 +49,19 @@ QString QSnapdChannel::revision () const
     return snapd_channel_get_revision (SNAPD_CHANNEL (wrapped_object));
 }
 
+QString QSnapdChannel::risk () const
+{
+    return snapd_channel_get_risk (SNAPD_CHANNEL (wrapped_object));
+}
+
 qint64 QSnapdChannel::size () const
 {
     return snapd_channel_get_size (SNAPD_CHANNEL (wrapped_object));
+}
+
+QString QSnapdChannel::track () const
+{
+    return snapd_channel_get_track (SNAPD_CHANNEL (wrapped_object));
 }
 
 QString QSnapdChannel::version () const

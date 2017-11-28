@@ -184,58 +184,6 @@ parse_risk (const gchar *risk)
         return -1;
 }
 
-static gboolean
-parse_channel_name (const gchar *name, gchar **track, int *risk, gchar **branch)
-{
-    g_auto(GStrv) tokens = NULL;
-    const gchar *t = NULL, *b = NULL;
-    int r;
-
-    tokens = g_strsplit (name, "/", -1);
-    switch (g_strv_length (tokens)) {
-    case 1:
-        r = parse_risk (tokens[0]);
-        if (r >= 0) {
-            t = "latest";
-        }
-        else {
-            t = tokens[0];
-            r = parse_risk ("stable");
-        }
-        break;
-    case 2:
-        r = parse_risk (tokens[0]);
-        if (r >= 0) {
-            t = "latest";
-            b = tokens[1];
-        }
-        else {
-            r = parse_risk (tokens[1]);
-            if (r < 0)
-                return FALSE;
-            t = tokens[0];
-        }
-    case 3:
-        t = tokens[0];
-        r = parse_risk (tokens[1]);
-        if (r < 0)
-            return FALSE;
-        b = tokens[2];
-        break;
-    default:
-        return FALSE;
-    }
-
-    if (track)
-        *track = g_strdup (t);
-    if (risk)
-        *risk = r;
-    if (branch)
-        *branch = g_strdup (b);
-
-    return TRUE;
-}
-
 /**
  * snapd_snap_match_channel:
  * @snap: a #SnapdSnap.
@@ -251,32 +199,28 @@ parse_channel_name (const gchar *name, gchar **track, int *risk, gchar **branch)
 SnapdChannel *
 snapd_snap_match_channel (SnapdSnap *snap, const gchar *name)
 {
-    g_autofree gchar *track = NULL;
-    int risk;
-    g_autofree gchar *branch = NULL;
+    g_autoptr(SnapdChannel) c = NULL;
     guint i;
     SnapdChannel *matched_channel = NULL;
     int matched_risk = -1;
 
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
 
-    if (!parse_channel_name (name, &track, &risk, &branch))
-        return FALSE;
+    c = g_object_new (SNAPD_TYPE_CHANNEL,
+                      "name", name,
+                      NULL);
     for (i = 0; i < snap->channels->len; i++) {
         SnapdChannel *channel = snap->channels->pdata[i];
-        g_autofree gchar *t = NULL;
         int r;
-        g_autofree gchar *b = NULL;
-
-        if (!parse_channel_name (snapd_channel_get_name (channel), &t, &r, &b))
-            continue;
 
         /* Must be same track and branch */
-        if (g_strcmp0 (track, t) != 0 || g_strcmp0 (branch, b) != 0)
+        if (g_strcmp0 (snapd_channel_get_track (channel), snapd_channel_get_track (c)) != 0 ||
+            g_strcmp0 (snapd_channel_get_branch (channel), snapd_channel_get_branch (c)) != 0)
             continue;
 
         /* Must be no riskier than requested */
-        if (r > risk)
+        r = parse_risk (snapd_channel_get_risk (channel));
+        if (r > parse_risk (snapd_channel_get_risk (c)))
             continue;
 
         /* Use this if unmatched or a better risk match */

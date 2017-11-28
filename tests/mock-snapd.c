@@ -971,6 +971,13 @@ mock_track_add_channel (MockTrack *track, const gchar *risk, const gchar *branch
 }
 
 void
+mock_channel_set_branch (MockChannel *channel, const gchar *branch)
+{
+    g_free (channel->branch);
+    channel->branch = g_strdup (branch);
+}
+
+void
 mock_channel_set_confinement (MockChannel *channel, const gchar *confinement)
 {
     g_free (channel->confinement);

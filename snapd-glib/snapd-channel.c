@@ -35,10 +35,13 @@ struct _SnapdChannel
     GObject parent_instance;
 
     SnapdConfinement confinement;
+    gchar *branch;
     gchar *epoch;
     gchar *name;
     gchar *revision;
+    gchar *risk;
     gint64 size;
+    gchar *track;
     gchar *version;
 };
 
@@ -54,6 +57,23 @@ enum
 };
 
 G_DEFINE_TYPE (SnapdChannel, snapd_channel, G_TYPE_OBJECT)
+
+/**
+ * snapd_channel_get_branch:
+ * @channel: a #SnapdChannel.
+ *
+ * Get the branch this channel is tracking.
+ *
+ * Returns: (allow-none): a branch name or %NULL if not a branch.
+ *
+ * Since: 1.31
+ */
+const gchar *
+snapd_channel_get_branch (SnapdChannel *channel)
+{
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
+    return channel->branch;
+}
 
 /**
  * snapd_channel_get_confinement:
@@ -137,6 +157,23 @@ snapd_channel_get_revision (SnapdChannel *channel)
 }
 
 /**
+ * snapd_channel_get_risk:
+ * @channel: a #SnapdChannel.
+ *
+ * Get the risk this channel is on, one of `stable`, `candidate`, `beta` or `edge`.
+ *
+ * Returns: a risk name.
+ *
+ * Since: 1.31
+ */
+const gchar *
+snapd_channel_get_risk (SnapdChannel *channel)
+{
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
+    return channel->risk;
+}
+
+/**
  * snapd_channel_get_size:
  * @channel: a #SnapdChannel.
  *
@@ -151,6 +188,23 @@ snapd_channel_get_size (SnapdChannel *channel)
 {
     g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), 0);
     return channel->size;
+}
+
+/**
+ * snapd_channel_get_track:
+ * @channel: a #SnapdChannel.
+ *
+ * Get the track this channel is on.
+ *
+ * Returns: a track name.
+ *
+ * Since: 1.31
+ */
+const gchar *
+snapd_channel_get_track (SnapdChannel *channel)
+{
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
+    return channel->track;
 }
 
 /**
@@ -171,6 +225,57 @@ snapd_channel_get_version (SnapdChannel *channel)
     return channel->version;
 }
 
+static gboolean
+is_risk (const gchar *risk)
+{
+    return g_strcmp0 (risk, "stable") == 0 || g_strcmp0 (risk, "candidate") == 0 || g_strcmp0 (risk, "beta") == 0 || g_strcmp0 (risk, "edge") == 0;
+}
+
+static void
+set_name (SnapdChannel *channel, const gchar *name)
+{
+    g_auto(GStrv) tokens = NULL;
+
+    g_free (channel->name);
+    channel->name = g_strdup (name);
+
+    g_clear_pointer (&channel->track, g_free);
+    g_clear_pointer (&channel->risk, g_free);
+    g_clear_pointer (&channel->branch, g_free);
+
+    tokens = g_strsplit (name, "/", -1);
+    switch (g_strv_length (tokens)) {
+    case 1:
+        if (is_risk (tokens[0])) {
+            channel->track = g_strdup ("latest");
+            channel->risk = g_strdup (tokens[0]);
+        }
+        else {
+            channel->track = g_strdup (tokens[0]);
+            channel->risk = g_strdup ("stable");
+        }
+        break;
+    case 2:
+        if (is_risk (tokens[0])) {
+            channel->track = g_strdup ("latest");
+            channel->risk = g_strdup (tokens[0]);
+            channel->branch = g_strdup (tokens[1]);
+        }
+        else {
+            channel->track = g_strdup (tokens[0]);
+            channel->risk = g_strdup (tokens[1]);
+        }
+        break;
+    case 3:
+        channel->track = g_strdup (tokens[0]);
+        channel->risk = g_strdup (tokens[1]);
+        channel->branch = g_strdup (tokens[2]);
+        break;
+    default:
+        break;
+    }
+}
+
 static void
 snapd_channel_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
@@ -185,8 +290,7 @@ snapd_channel_set_property (GObject *object, guint prop_id, const GValue *value,
         channel->epoch = g_strdup (g_value_get_string (value));
         break;
     case PROP_NAME:
-        g_free (channel->name);
-        channel->name = g_strdup (g_value_get_string (value));
+        set_name (channel, g_value_get_string (value));
         break;
     case PROP_REVISION:
         g_free (channel->revision);
@@ -240,9 +344,12 @@ snapd_channel_finalize (GObject *object)
 {
     SnapdChannel *channel = SNAPD_CHANNEL (object);
 
+    g_clear_pointer (&channel->branch, g_free);
     g_clear_pointer (&channel->epoch, g_free);
     g_clear_pointer (&channel->name, g_free);
     g_clear_pointer (&channel->revision, g_free);
+    g_clear_pointer (&channel->risk, g_free);
+    g_clear_pointer (&channel->track, g_free);
     g_clear_pointer (&channel->version, g_free);
 
     G_OBJECT_CLASS (snapd_channel_parent_class)->finalize (object);

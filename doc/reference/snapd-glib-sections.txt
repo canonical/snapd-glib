@@ -75,11 +75,14 @@ SNAPD_TYPE_CHANGE
 <SECTION>
 <FILE>snapd-channel</FILE>
 <TITLE>SnapdChannel</TITLE>
+snapd_channel_get_branch
 snapd_channel_get_confinement
 snapd_channel_get_epoch
 snapd_channel_get_name
 snapd_channel_get_revision
+snapd_channel_get_risk
 snapd_channel_get_size
+snapd_channel_get_track
 snapd_channel_get_version
 SnapdChannel
 
@@ -342,6 +345,7 @@ SNAPD_GLIB_VERSION_1_27
 SNAPD_GLIB_VERSION_1_28
 SNAPD_GLIB_VERSION_1_29
 SNAPD_GLIB_VERSION_1_30
+SNAPD_GLIB_VERSION_1_31
 </SECTION>
 
 <SECTION>

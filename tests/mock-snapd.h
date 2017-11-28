@@ -190,6 +190,9 @@ MockChannel    *mock_track_add_channel            (MockTrack     *track,
 void            mock_channel_set_confinement      (MockChannel  *channel,
                                                    const gchar   *confinement);
 
+void            mock_channel_set_branch           (MockChannel  *channel,
+                                                   const gchar   *branch);
+
 void            mock_channel_set_epoch            (MockChannel  *channel,
                                                    const gchar   *epoch);
 
