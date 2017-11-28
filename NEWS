@@ -1,3 +1,11 @@
+Overview of changes in snapd-glib 1.31
+
+    * New API:
+      - snapd_channel_get_branch
+      - snapd_channel_get_risk
+      - snapd_channel_get_track
+    * Add methods to extrack track/risk/branch from channel names
+
 Overview of changes in snapd-glib 1.30
 
     * New API:
