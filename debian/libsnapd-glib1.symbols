@@ -37,11 +37,14 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_change_get_summary@Base 1.5
  snapd_change_get_tasks@Base 1.5
  snapd_change_get_type@Base 1.5
+ snapd_channel_get_branch@Base 1.31
  snapd_channel_get_confinement@Base 1.24
  snapd_channel_get_epoch@Base 1.24
  snapd_channel_get_name@Base 1.24
  snapd_channel_get_revision@Base 1.24
+ snapd_channel_get_risk@Base 1.31
  snapd_channel_get_size@Base 1.24
+ snapd_channel_get_track@Base 1.31
  snapd_channel_get_type@Base 1.24
  snapd_channel_get_version@Base 1.24
  snapd_client_abort_change_async@Base 1.30

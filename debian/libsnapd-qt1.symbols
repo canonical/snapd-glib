@@ -71,10 +71,13 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdChannel::~QSnapdChannel()@Base" 1.24
  (c++)"QSnapdChannel::QSnapdChannel(void*, QObject*)@Base" 1.24
  (c++)"QSnapdChannel::confinement() const@Base" 1.24
+ (c++)"QSnapdChannel::branch() const@Base" 1.31
  (c++)"QSnapdChannel::epoch() const@Base" 1.24
  (c++)"QSnapdChannel::name() const@Base" 1.24
  (c++)"QSnapdChannel::revision() const@Base" 1.24
+ (c++)"QSnapdChannel::risk() const@Base" 1.31
  (c++)"QSnapdChannel::size() const@Base" 1.24
+ (c++)"QSnapdChannel::track() const@Base" 1.31
  (c++)"QSnapdChannel::version() const@Base" 1.24
  (c++)"QSnapdCheckBuyRequest::canBuy() const@Base" 1.5
  (c++)"QSnapdClient::abortChange(QString const&)@Base" 1.30
