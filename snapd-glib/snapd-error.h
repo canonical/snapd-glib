@@ -52,6 +52,7 @@ G_BEGIN_DECLS
  * @SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM: a classic system is required to install
  *    this snap.
  * @SNAPD_ERROR_BAD_QUERY: a bad query was provided.
+ * @SNAPD_ERROR_NETWORK_TIMEOUT: A timeout occurred during the request.
  *
  * Error codes returned by snapd operations.
  *
@@ -80,7 +81,8 @@ typedef enum
     SNAPD_ERROR_NEEDS_DEVMODE,
     SNAPD_ERROR_NEEDS_CLASSIC,
     SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM,
-    SNAPD_ERROR_BAD_QUERY
+    SNAPD_ERROR_BAD_QUERY,
+    SNAPD_ERROR_NETWORK_TIMEOUT
 } SnapdError;
 
 /**

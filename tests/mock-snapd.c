@@ -3098,6 +3098,13 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
     if (g_strcmp0 (query_param, "do-not-respond") == 0)
         return;
 
+    /* Make a special query that simulates a network timeout */
+    if (g_strcmp0 (query_param, "network-timeout") == 0)
+    {
+        send_error_bad_request (message, "unable to contact snap store", "network-timeout");
+        return;
+    }
+
     /* Certain characters not allowed in queries */
     if (query_param != NULL) {
         int i;

@@ -2103,6 +2103,25 @@ test_find_bad_query (void)
 }
 
 static void
+test_find_network_timeout (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) snaps = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "network-timeout", NULL, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NETWORK_TIMEOUT);
+    g_assert_null (snaps);
+}
+
+static void
 test_find_name (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -4931,6 +4950,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/query-private", test_find_query_private);
     g_test_add_func ("/find/query-private/not-logged-in", test_find_query_private_not_logged_in);
     g_test_add_func ("/find/bad-query", test_find_bad_query);
+    g_test_add_func ("/find/network-timeout", test_find_network_timeout);
     g_test_add_func ("/find/name", test_find_name);
     g_test_add_func ("/find/name-private", test_find_name_private);
     g_test_add_func ("/find/name-private/not-logged-in", test_find_name_private_not_logged_in);

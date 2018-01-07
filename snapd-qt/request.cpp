@@ -138,6 +138,9 @@ void QSnapdRequest::finish (void *error)
             case SNAPD_ERROR_BAD_QUERY:
                 d->error = QSnapdRequest::QSnapdError::BadQuery;
                 break;
+            case SNAPD_ERROR_NETWORK_TIMEOUT:
+                d->error = QSnapdRequest::QSnapdError::NetworkTimeout;
+                break;
             default:
                 /* This indicates we should add a new entry here... */
                 d->error = QSnapdRequest::QSnapdError::UnknownError;

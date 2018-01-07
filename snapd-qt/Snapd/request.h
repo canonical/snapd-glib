@@ -51,7 +51,8 @@ public:
         NeedsClassic,
         NeedsClassicSystem,
         Cancelled,
-        BadQuery
+        BadQuery,
+        NetworkTimeout
     };
     Q_ENUM(QSnapdError)
 
