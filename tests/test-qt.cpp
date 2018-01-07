@@ -1521,7 +1521,7 @@ test_find_query ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::None, "carrot"));
+    QScopedPointer<QSnapdFindRequest> findRequest (client.find ("carrot"));
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 2);
@@ -1624,7 +1624,7 @@ test_find_bad_query ()
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
     // '?' is not allowed in queries
-    QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::None, "snap?"));
+    QScopedPointer<QSnapdFindRequest> findRequest (client.find ("snap?"));
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::BadQuery);
 }
@@ -1773,7 +1773,7 @@ test_find_cancel ()
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
     /* Use a special query that never responds */
-    FindHandler findHandler (loop, client.find (QSnapdClient::None, "do-not-respond"));
+    FindHandler findHandler (loop, client.find ("do-not-respond"));
     QObject::connect (findHandler.request, &QSnapdFindRequest::complete, &findHandler, &FindHandler::onComplete);
     findHandler.request->runAsync ();
     g_idle_add ((GSourceFunc) find_cancel_cb, findHandler.request);
@@ -1797,7 +1797,7 @@ test_find_section ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdFindRequest> findRequest (client.findSection (QSnapdClient::None, "section", NULL));
+    QScopedPointer<QSnapdFindRequest> findRequest (client.findSection ("section", NULL));
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 2);
@@ -1823,7 +1823,7 @@ test_find_section_query ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdFindRequest> findRequest (client.findSection (QSnapdClient::None, "section", "carrot"));
+    QScopedPointer<QSnapdFindRequest> findRequest (client.findSection ("section", "carrot"));
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 1);

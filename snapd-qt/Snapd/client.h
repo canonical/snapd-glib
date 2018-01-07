@@ -816,8 +816,10 @@ public:
     Q_INVOKABLE QSnapdGetInterfacesRequest *getInterfaces ();
     Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
+    Q_INVOKABLE QSnapdFindRequest *find (const QString &query);
     Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags);
     Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags, const QString &query);
+    Q_INVOKABLE QSnapdFindRequest *findSection (const QString &section, const QString &query);
     Q_INVOKABLE QSnapdFindRequest *findSection (FindFlags flags, const QString &section, const QString &query);
     Q_INVOKABLE QSnapdFindRefreshableRequest *findRefreshable ();
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name);

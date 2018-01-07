@@ -307,6 +307,12 @@ QSnapdFindRequest::~QSnapdFindRequest ()
     delete d_ptr;
 }
 
+QSnapdFindRequest *QSnapdClient::find (const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdFindRequest (QSnapdClient::FindFlag::None, NULL, name, d->client);
+}
+
 QSnapdFindRequest *QSnapdClient::find (FindFlags flags)
 {
     Q_D(QSnapdClient);
@@ -317,6 +323,12 @@ QSnapdFindRequest *QSnapdClient::find (FindFlags flags, const QString& name)
 {
     Q_D(QSnapdClient);
     return new QSnapdFindRequest (flags, NULL, name, d->client);
+}
+
+QSnapdFindRequest *QSnapdClient::findSection (const QString &section, const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdFindRequest (QSnapdClient::FindFlag::None, section, name, d->client);
 }
 
 QSnapdFindRequest *QSnapdClient::findSection (FindFlags flags, const QString &section, const QString& name)
