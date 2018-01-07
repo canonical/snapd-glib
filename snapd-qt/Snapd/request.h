@@ -50,7 +50,8 @@ public:
         NeedsDevmode,
         NeedsClassic,
         NeedsClassicSystem,
-        Cancelled
+        Cancelled,
+        BadQuery
     };
     Q_ENUM(QSnapdError)
 

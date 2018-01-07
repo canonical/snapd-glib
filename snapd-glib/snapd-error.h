@@ -51,6 +51,7 @@ G_BEGIN_DECLS
  *     mode.
  * @SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM: a classic system is required to install
  *    this snap.
+ * @SNAPD_ERROR_BAD_QUERY: a bad query was provided.
  *
  * Error codes returned by snapd operations.
  *
@@ -78,7 +79,8 @@ typedef enum
     SNAPD_ERROR_PASSWORD_POLICY_ERROR,
     SNAPD_ERROR_NEEDS_DEVMODE,
     SNAPD_ERROR_NEEDS_CLASSIC,
-    SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM
+    SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM,
+    SNAPD_ERROR_BAD_QUERY
 } SnapdError;
 
 /**

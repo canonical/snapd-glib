@@ -3098,6 +3098,19 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
     if (g_strcmp0 (query_param, "do-not-respond") == 0)
         return;
 
+    /* Certain characters not allowed in queries */
+    if (query_param != NULL) {
+        int i;
+
+        for (i = 0; query_param[i] != '\0'; i++) {
+            const gchar *invalid_chars = "+=&|><!(){}[]^\"~*?:\\/";
+            if (strchr (invalid_chars, query_param[i]) != NULL) {
+                send_error_bad_request (message, "bad query", "bad-query");
+                return;
+            }
+        }
+    }
+
     builder = json_builder_new ();
     json_builder_begin_array (builder);
     for (link = snaps; link; link = link->next) {
