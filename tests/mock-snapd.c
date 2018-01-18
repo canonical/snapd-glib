@@ -45,6 +45,11 @@ struct _MockSnapd
     gchar *store;
     gboolean managed;
     gboolean on_classic;
+    gchar *refresh_hold;
+    gchar *refresh_last;
+    gchar *refresh_next;
+    gchar *refresh_schedule;
+    gchar *refresh_timer;
     GList *store_sections;
     GList *store_snaps;
     GList *plugs;
@@ -419,6 +424,66 @@ mock_snapd_set_on_classic (MockSnapd *snapd, gboolean on_classic)
 
     locker = g_mutex_locker_new (&snapd->mutex);
     snapd->on_classic = on_classic;
+}
+
+void
+mock_snapd_set_refresh_hold (MockSnapd *snapd, const gchar *refresh_hold)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+    g_free (snapd->refresh_hold);
+    snapd->refresh_hold = g_strdup (refresh_hold);
+}
+
+void
+mock_snapd_set_refresh_last (MockSnapd *snapd, const gchar *refresh_last)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+    g_free (snapd->refresh_last);
+    snapd->refresh_last = g_strdup (refresh_last);
+}
+
+void
+mock_snapd_set_refresh_next (MockSnapd *snapd, const gchar *refresh_next)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+    g_free (snapd->refresh_next);
+    snapd->refresh_next = g_strdup (refresh_next);
+}
+
+void
+mock_snapd_set_refresh_schedule (MockSnapd *snapd, const gchar *schedule)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+    g_free (snapd->refresh_schedule);
+    snapd->refresh_schedule = g_strdup (schedule);
+}
+
+void
+mock_snapd_set_refresh_timer (MockSnapd *snapd, const gchar *timer)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+    g_free (snapd->refresh_timer);
+    snapd->refresh_timer = g_strdup (timer);
 }
 
 void
@@ -1724,6 +1789,29 @@ handle_system_info (MockSnapd *snapd, SoupMessage *message)
         json_builder_set_member_name (builder, "store");
         json_builder_add_string_value (builder, snapd->store);
     }
+    json_builder_set_member_name (builder, "refresh");
+    json_builder_begin_object (builder);
+    if (snapd->refresh_timer) {
+        json_builder_set_member_name (builder, "timer");
+        json_builder_add_string_value (builder, snapd->refresh_timer);
+    }
+    else if (snapd->refresh_schedule) {
+        json_builder_set_member_name (builder, "schedule");
+        json_builder_add_string_value (builder, snapd->refresh_schedule);
+    }
+    if (snapd->refresh_last) {
+        json_builder_set_member_name (builder, "last");
+        json_builder_add_string_value (builder, snapd->refresh_last);
+    }
+    if (snapd->refresh_next) {
+        json_builder_set_member_name (builder, "next");
+        json_builder_add_string_value (builder, snapd->refresh_next);
+    }
+    if (snapd->refresh_hold) {
+        json_builder_set_member_name (builder, "hold");
+        json_builder_add_string_value (builder, snapd->refresh_hold);
+    }
+    json_builder_end_object (builder);
     json_builder_end_object (builder);
 
     send_sync_response (message, 200, json_builder_get_root (builder), NULL);
@@ -3830,6 +3918,11 @@ mock_snapd_finalize (GObject *object)
     g_free (snapd->confinement);
     g_clear_pointer (&snapd->sandbox_features, g_hash_table_unref);
     g_free (snapd->store);
+    g_free (snapd->refresh_hold);
+    g_free (snapd->refresh_last);
+    g_free (snapd->refresh_next);
+    g_free (snapd->refresh_schedule);
+    g_free (snapd->refresh_timer);
     g_list_free_full (snapd->store_sections, g_free);
     snapd->store_sections = NULL;
     g_list_free_full (snapd->store_snaps, (GDestroyNotify) mock_snap_free);

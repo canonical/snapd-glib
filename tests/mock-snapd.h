@@ -69,6 +69,21 @@ void            mock_snapd_set_managed            (MockSnapd     *snapd,
 void            mock_snapd_set_on_classic         (MockSnapd     *snapd,
                                                    gboolean       on_classic);
 
+void            mock_snapd_set_refresh_hold       (MockSnapd     *snapd,
+                                                   const gchar   *refresh_hold);
+
+void            mock_snapd_set_refresh_last       (MockSnapd     *snapd,
+                                                   const gchar   *refresh_last);
+
+void            mock_snapd_set_refresh_next       (MockSnapd     *snapd,
+                                                   const gchar   *refresh_next);
+
+void            mock_snapd_set_refresh_schedule   (MockSnapd     *snapd,
+                                                   const gchar   *schedule);
+
+void            mock_snapd_set_refresh_timer      (MockSnapd     *snapd,
+                                                   const gchar   *timer);
+
 void            mock_snapd_set_suggested_currency (MockSnapd     *snapd,
                                                    const gchar   *currency);
 

@@ -57,6 +57,16 @@ const gchar *snapd_system_information_get_os_id              (SnapdSystemInforma
 
 const gchar *snapd_system_information_get_os_version         (SnapdSystemInformation *system_information);
 
+GDateTime   *snapd_system_information_get_refresh_hold       (SnapdSystemInformation *system_information);
+
+GDateTime   *snapd_system_information_get_refresh_last       (SnapdSystemInformation *system_information);
+
+GDateTime   *snapd_system_information_get_refresh_next       (SnapdSystemInformation *system_information);
+
+const gchar *snapd_system_information_get_refresh_schedule   (SnapdSystemInformation *system_information);
+
+const gchar *snapd_system_information_get_refresh_timer      (SnapdSystemInformation *system_information);
+
 GHashTable  *snapd_system_information_get_sandbox_features   (SnapdSystemInformation *system_information);
 
 const gchar *snapd_system_information_get_series             (SnapdSystemInformation *system_information);

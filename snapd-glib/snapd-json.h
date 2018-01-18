@@ -40,6 +40,9 @@ JsonArray            *_snapd_json_get_array              (JsonObject         *ob
 JsonObject           *_snapd_json_get_object             (JsonObject         *object,
                                                           const gchar        *name);
 
+GDateTime            *_snapd_json_get_date_time          (JsonObject         *object,
+                                                          const gchar        *name);
+
 JsonObject           *_snapd_json_parse_response         (SoupMessage        *message,
                                                           GError            **error);
 

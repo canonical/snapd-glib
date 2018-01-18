@@ -144,8 +144,8 @@ is_timezone_prefix (gchar c)
     return c == '+' || c == '-' || c == 'Z';
 }
 
-static GDateTime *
-parse_date_time (JsonObject *object, const gchar *name)
+GDateTime *
+_snapd_json_get_date_time (JsonObject *object, const gchar *name)
 {
     const gchar *value;
     g_auto(GStrv) tokens = NULL;
@@ -477,8 +477,8 @@ _snapd_json_parse_change (JsonObject *object, GError **error)
         }
         object = json_node_get_object (node);
         progress = _snapd_json_get_object (object, "progress");
-        spawn_time = parse_date_time (object, "spawn-time");
-        ready_time = parse_date_time (object, "ready-time");
+        spawn_time = _snapd_json_get_date_time (object, "spawn-time");
+        ready_time = _snapd_json_get_date_time (object, "ready-time");
 
         t = g_object_new (SNAPD_TYPE_TASK,
                           "id", _snapd_json_get_string (object, "id", NULL),
@@ -494,8 +494,8 @@ _snapd_json_parse_change (JsonObject *object, GError **error)
         g_ptr_array_add (tasks, g_steal_pointer (&t));
     }
 
-    main_spawn_time = parse_date_time (object, "spawn-time");
-    main_ready_time = parse_date_time (object, "ready-time");
+    main_spawn_time = _snapd_json_get_date_time (object, "spawn-time");
+    main_ready_time = _snapd_json_get_date_time (object, "ready-time");
 
     return g_object_new (SNAPD_TYPE_CHANGE,
                          "id", _snapd_json_get_string (object, "id", NULL),
@@ -681,7 +681,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
     }
     g_ptr_array_add (common_ids_array, NULL);
 
-    install_date = parse_date_time (object, "install-date");
+    install_date = _snapd_json_get_date_time (object, "install-date");
 
     prices = _snapd_json_get_object (object, "prices");
     prices_array = g_ptr_array_new_with_free_func (g_object_unref);

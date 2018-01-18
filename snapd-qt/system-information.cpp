@@ -57,6 +57,46 @@ QString QSnapdSystemInformation::osVersion () const
     return snapd_system_information_get_os_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
+QString QSnapdSystemInformation::refreshSchedule () const
+{
+    return snapd_system_information_get_refresh_schedule (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+}
+
+static QDateTime convertDateTime (GDateTime *datetime)
+{
+    if (datetime == NULL)
+        return QDateTime ();
+
+    QDate date (g_date_time_get_year (datetime),
+                g_date_time_get_month (datetime),
+                g_date_time_get_day_of_month (datetime));
+    QTime time (g_date_time_get_hour (datetime),
+                g_date_time_get_minute (datetime),
+                g_date_time_get_second (datetime),
+                g_date_time_get_microsecond (datetime) / 1000);
+    return QDateTime (date, time, Qt::OffsetFromUTC, g_date_time_get_utc_offset (datetime) / 1000000);
+}
+
+QDateTime QSnapdSystemInformation::refreshHold () const
+{
+    return convertDateTime (snapd_system_information_get_refresh_hold (SNAPD_SYSTEM_INFORMATION (wrapped_object)));
+}
+
+QDateTime QSnapdSystemInformation::refreshLast () const
+{
+    return convertDateTime (snapd_system_information_get_refresh_last (SNAPD_SYSTEM_INFORMATION (wrapped_object)));
+}
+
+QDateTime QSnapdSystemInformation::refreshNext () const
+{
+    return convertDateTime (snapd_system_information_get_refresh_next (SNAPD_SYSTEM_INFORMATION (wrapped_object)));
+}
+
+QString QSnapdSystemInformation::refreshTimer () const
+{
+    return snapd_system_information_get_refresh_timer (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+}
+
 QHash<QString, QStringList> QSnapdSystemInformation::sandboxFeatures () const
 {
     QHash<QString, QStringList> sandboxFeatures;

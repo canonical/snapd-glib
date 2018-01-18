@@ -227,6 +227,15 @@ test_allow_interaction (void)
     g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, NULL);
 }
 
+static gboolean
+date_matches (GDateTime *date, int year, int month, int day, int hour, int minute, int second)
+{
+    g_autoptr(GDateTime) d = g_date_time_new_utc (year, month, day, hour, minute, second);
+    if (date == NULL)
+        return FALSE;
+    return g_date_time_compare (date, d) == 0;
+}
+
 static void
 test_get_system_information_sync (void)
 {
@@ -243,6 +252,8 @@ test_get_system_information_sync (void)
     mock_snapd_set_build_id (snapd, "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
     mock_snapd_add_sandbox_feature (snapd, "backend", "feature1");
     mock_snapd_add_sandbox_feature (snapd, "backend", "feature2");
+    mock_snapd_set_refresh_timer (snapd, "00:00~24:00/4");
+    mock_snapd_set_refresh_next (snapd, "2018-01-19T13:14:15Z");
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -262,6 +273,11 @@ test_get_system_information_sync (void)
     g_assert_true (snapd_system_information_get_on_classic (info));
     g_assert_cmpstr (snapd_system_information_get_mount_directory (info), ==, "/snap");
     g_assert_cmpstr (snapd_system_information_get_binaries_directory (info), ==, "/snap/bin");
+    g_assert_null (snapd_system_information_get_refresh_schedule (info));
+    g_assert_cmpstr (snapd_system_information_get_refresh_timer (info), ==, "00:00~24:00/4");
+    g_assert_null (snapd_system_information_get_refresh_hold (info));
+    g_assert_null (snapd_system_information_get_refresh_last (info));
+    g_assert (date_matches (snapd_system_information_get_refresh_next (info), 2018, 1, 19, 13, 14, 15));
     g_assert_null (snapd_system_information_get_store (info));
     sandbox_features = snapd_system_information_get_sandbox_features (info);
     g_assert_nonnull (sandbox_features);
@@ -338,6 +354,56 @@ test_get_system_information_store (void)
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (snapd_system_information_get_store (info), ==, "store");
+}
+
+static void
+test_get_system_information_refresh (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_refresh_timer (snapd, "00:00~24:00/4");
+    mock_snapd_set_refresh_hold (snapd, "2018-01-20T01:02:03Z");
+    mock_snapd_set_refresh_last (snapd, "2018-01-19T01:02:03Z");
+    mock_snapd_set_refresh_next (snapd, "2018-01-19T13:14:15Z");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+    g_assert_null (snapd_system_information_get_refresh_schedule (info));
+    g_assert_cmpstr (snapd_system_information_get_refresh_timer (info), ==, "00:00~24:00/4");
+    g_assert (date_matches (snapd_system_information_get_refresh_hold (info), 2018, 1, 20, 1, 2, 3));
+    g_assert (date_matches (snapd_system_information_get_refresh_last (info), 2018, 1, 19, 1, 2, 3));
+    g_assert (date_matches (snapd_system_information_get_refresh_next (info), 2018, 1, 19, 13, 14, 15));
+}
+
+static void
+test_get_system_information_refresh_schedule (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_refresh_schedule (snapd, "00:00-04:59/5:00-10:59/11:00-16:59/17:00-23:59");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+    g_assert_cmpstr (snapd_system_information_get_refresh_schedule (info), ==, "00:00-04:59/5:00-10:59/11:00-16:59/17:00-23:59");
+    g_assert_null (snapd_system_information_get_refresh_timer (info));
 }
 
 static void
@@ -608,15 +674,6 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
     for (i = 0; mock_account_get_discharges (a)[i]; i++)
         g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
-}
-
-static gboolean
-date_matches (GDateTime *date, int year, int month, int day, int hour, int minute, int second)
-{
-    g_autoptr(GDateTime) d = g_date_time_new_utc (year, month, day, hour, minute, second);
-    if (date == NULL)
-        return FALSE;
-    return g_date_time_compare (date, d) == 0;
 }
 
 static void
@@ -6696,6 +6753,8 @@ main (int argc, char **argv)
     g_test_add_func ("/get-system-information/sync", test_get_system_information_sync);
     g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);
+    g_test_add_func ("/get-system-information/refresh", test_get_system_information_refresh);
+    g_test_add_func ("/get-system-information/refresh_schedule", test_get_system_information_refresh_schedule);
     g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);
     g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);
     g_test_add_func ("/get-system-information/confinement_unknown", test_get_system_information_confinement_unknown);

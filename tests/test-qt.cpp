@@ -172,6 +172,8 @@ test_get_system_information_sync ()
     mock_snapd_set_build_id (snapd, "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
     mock_snapd_add_sandbox_feature (snapd, "backend", "feature1");
     mock_snapd_add_sandbox_feature (snapd, "backend", "feature2");
+    mock_snapd_set_refresh_timer (snapd, "00:00~24:00/4");
+    mock_snapd_set_refresh_next (snapd, "2018-01-19T13:14:15Z");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -190,6 +192,11 @@ test_get_system_information_sync ()
     g_assert (systemInformation->version () == "VERSION");
     g_assert_true (systemInformation->managed ());
     g_assert_true (systemInformation->onClassic ());
+    g_assert (systemInformation->refreshSchedule ().isNull ());
+    g_assert (systemInformation->refreshTimer () == "00:00~24:00/4");
+    g_assert (systemInformation->refreshHold ().isNull ());
+    g_assert (systemInformation->refreshLast ().isNull ());
+    g_assert (systemInformation->refreshNext () == QDateTime (QDate (2018, 1, 19), QTime (13, 14, 15), Qt::UTC));
     g_assert (systemInformation->mountDirectory () == "/snap");
     g_assert (systemInformation->binariesDirectory () == "/snap/bin");
     g_assert_null (systemInformation->store ());
@@ -254,6 +261,48 @@ test_get_system_information_store ()
     g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
     g_assert (systemInformation->store () == "store");
+}
+
+static void
+test_get_system_information_refresh ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_refresh_timer (snapd, "00:00~24:00/4");
+    mock_snapd_set_refresh_hold (snapd, "2018-01-20T01:02:03Z");
+    mock_snapd_set_refresh_last (snapd, "2018-01-19T01:02:03Z");
+    mock_snapd_set_refresh_next (snapd, "2018-01-19T13:14:15Z");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+   client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert (systemInformation->refreshSchedule ().isNull ());
+    g_assert (systemInformation->refreshTimer () == "00:00~24:00/4");
+    g_assert (systemInformation->refreshHold () == QDateTime (QDate (2018, 1, 20), QTime (1, 2, 3), Qt::UTC));
+    g_assert (systemInformation->refreshLast () == QDateTime (QDate (2018, 1, 19), QTime (1, 2, 3), Qt::UTC));
+    g_assert (systemInformation->refreshNext () == QDateTime (QDate (2018, 1, 19), QTime (13, 14, 15), Qt::UTC));
+}
+
+static void
+test_get_system_information_refresh_schedule ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_refresh_schedule (snapd, "00:00-04:59/5:00-10:59/11:00-16:59/17:00-23:59");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert (systemInformation->refreshSchedule () == "00:00-04:59/5:00-10:59/11:00-16:59/17:00-23:59");
+    g_assert (systemInformation->refreshTimer ().isNull ());
 }
 
 static void
@@ -5228,6 +5277,8 @@ main (int argc, char **argv)
     g_test_add_func ("/get-system-information/sync", test_get_system_information_sync);
     g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);
+    g_test_add_func ("/get-system-information/refresh", test_get_system_information_refresh);
+    g_test_add_func ("/get-system-information/refresh_schedule", test_get_system_information_refresh_schedule);
     g_test_add_func ("/get-system-information/confinement_strict", test_get_system_information_confinement_strict);
     g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);
     g_test_add_func ("/get-system-information/confinement_unknown", test_get_system_information_confinement_unknown);

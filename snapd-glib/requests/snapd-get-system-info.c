@@ -53,7 +53,7 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, GEr
     g_autoptr(SnapdSystemInformation) system_information = NULL;
     const gchar *confinement_string;
     SnapdSystemConfinement confinement = SNAPD_SYSTEM_CONFINEMENT_UNKNOWN;
-    JsonObject *os_release, *locations, *sandbox_features;
+    JsonObject *os_release, *locations, *refresh, *sandbox_features;
     g_autoptr(GHashTable) sandbox_features_hash = NULL;
 
     response = _snapd_json_parse_response (message, error);
@@ -70,6 +70,7 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, GEr
         confinement = SNAPD_SYSTEM_CONFINEMENT_PARTIAL;
     os_release = _snapd_json_get_object (result, "os-release");
     locations = _snapd_json_get_object (result, "locations");
+    refresh = _snapd_json_get_object (result, "refresh");
     sandbox_features = _snapd_json_get_object (result, "sandbox-features");
     sandbox_features_hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_strfreev);
     if (sandbox_features != NULL) {
@@ -121,6 +122,11 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, GEr
                                        "series", _snapd_json_get_string (result, "series", NULL),
                                        "store", _snapd_json_get_string (result, "store", NULL),
                                        "version", _snapd_json_get_string (result, "version", NULL),
+                                       "refresh-hold", _snapd_json_get_date_time (refresh, "hold"),
+                                       "refresh-last", _snapd_json_get_date_time (refresh, "last"),
+                                       "refresh-next", _snapd_json_get_date_time (refresh, "next"),
+                                       "refresh-schedule", _snapd_json_get_string (refresh, "schedule", NULL),
+                                       "refresh-timer", _snapd_json_get_string (refresh, "timer", NULL),
                                        NULL);
     r->system_information = g_steal_pointer (&system_information);
 

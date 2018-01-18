@@ -11,6 +11,7 @@
 #define SNAPD_SYSTEM_INFORMATION_H
 
 #include <QtCore/QObject>
+#include <QtCore/QDateTime>
 #include <QHash>
 #include <Snapd/WrappedObject>
 #include <Snapd/Enums>
@@ -28,6 +29,11 @@ class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
     Q_PROPERTY(bool onClassic READ onClassic)
     Q_PROPERTY(QString osId READ osId)
     Q_PROPERTY(QString osVersion READ osVersion)
+    Q_PROPERTY(QDateTime refreshHold READ refreshHold)
+    Q_PROPERTY(QDateTime refreshLast READ refreshLast)
+    Q_PROPERTY(QDateTime refreshNext READ refreshNext)
+    Q_PROPERTY(QString refreshSchedule READ refreshSchedule)
+    Q_PROPERTY(QString refreshTimer READ refreshTimer)
     Q_PROPERTY(QHash<QString, QStringList> sandboxFeatures READ sandboxFeatures)
     Q_PROPERTY(QString series READ series)
     Q_PROPERTY(QString store READ store)
@@ -45,6 +51,11 @@ public:
     bool onClassic () const;
     QString osId () const;
     QString osVersion () const;
+    QDateTime refreshHold () const;
+    QDateTime refreshLast () const;
+    QDateTime refreshNext () const;
+    QString refreshSchedule () const;
+    QString refreshTimer () const;
     QHash<QString, QStringList> sandboxFeatures () const;
     QString series () const;
     QString store () const;

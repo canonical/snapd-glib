@@ -42,6 +42,11 @@ struct _SnapdSystemInformation
     gchar *mount_directory;
     gchar *os_id;
     gchar *os_version;
+    GDateTime *refresh_hold;
+    GDateTime *refresh_last;
+    GDateTime *refresh_next;
+    gchar *refresh_schedule;
+    gchar *refresh_timer;
     GHashTable *sandbox_features;
     gchar *series;
     gchar *store;
@@ -63,6 +68,11 @@ enum
     PROP_CONFINEMENT,
     PROP_BUILD_ID,
     PROP_SANDBOX_FEATURES,
+    PROP_REFRESH_HOLD,
+    PROP_REFRESH_LAST,
+    PROP_REFRESH_NEXT,
+    PROP_REFRESH_SCHEDULE,
+    PROP_REFRESH_TIMER,
     PROP_LAST
 };
 
@@ -222,6 +232,91 @@ snapd_system_information_get_os_version (SnapdSystemInformation *system_informat
 }
 
 /**
+ * snapd_system_information_get_refresh_hold:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the time refreshes will be applied at, or %NULL if they are applied immediately.
+ *
+ * Returns: (transfer none) (allow-none): a #GDateTime.
+ *
+ * Since: 1.42
+ */
+GDateTime *
+snapd_system_information_get_refresh_hold (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->refresh_hold;
+}
+
+/**
+ * snapd_system_information_get_refresh_last:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the time the last refresh occurred, or %NULL if has not occurred.
+ *
+ * Returns: (transfer none) (allow-none): a #GDateTime.
+ *
+ * Since: 1.42
+ */
+GDateTime *
+snapd_system_information_get_refresh_last (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->refresh_last;
+}
+
+/**
+ * snapd_system_information_get_refresh_next:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the time the next refresh is scheduled for, or %NULL if none has been scheduled.
+ *
+ * Returns: (transfer none) (allow-none): a #GDateTime.
+ *
+ * Since: 1.42
+ */
+GDateTime *
+snapd_system_information_get_refresh_next (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->refresh_next;
+}
+
+/**
+ * snapd_system_information_get_refresh_schedule:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the schedule when snap refreshes will occur.
+ *
+ * Returns: (allow-none): a Snap refresh schedule string.
+ *
+ * Since: 1.42
+ */
+const gchar *
+snapd_system_information_get_refresh_schedule (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->refresh_schedule;
+}
+
+/**
+ * snapd_system_information_get_refresh_timer:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the timer that refreshes are running to.
+ *
+ * Returns: (allow-none): a Snap refresh timer string.
+ *
+ * Since: 1.42
+ */
+const gchar *
+snapd_system_information_get_refresh_timer (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->refresh_timer;
+}
+
+/**
  * snapd_system_information_get_sandbox_features:
  * @system_information: a #SnapdSystemInformation.
  *
@@ -330,6 +425,29 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
         g_free (system_information->os_version);
         system_information->os_version = g_strdup (g_value_get_string (value));
         break;
+    case PROP_REFRESH_HOLD:
+        g_clear_pointer (&system_information->refresh_hold, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL)
+            system_information->refresh_hold = g_date_time_ref (g_value_get_boxed (value));
+        break;
+    case PROP_REFRESH_LAST:
+        g_clear_pointer (&system_information->refresh_last, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL)
+            system_information->refresh_last = g_date_time_ref (g_value_get_boxed (value));
+        break;
+    case PROP_REFRESH_NEXT:
+        g_clear_pointer (&system_information->refresh_next, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL)
+            system_information->refresh_next = g_date_time_ref (g_value_get_boxed (value));
+        break;
+    case PROP_REFRESH_SCHEDULE:
+        g_free (system_information->refresh_schedule);
+        system_information->refresh_schedule = g_strdup (g_value_get_string (value));
+        break;
+    case PROP_REFRESH_TIMER:
+        g_free (system_information->refresh_timer);
+        system_information->refresh_timer = g_strdup (g_value_get_string (value));
+        break;
     case PROP_SANDBOX_FEATURES:
         g_hash_table_unref (system_information->sandbox_features);
         system_information->sandbox_features = g_hash_table_ref (g_value_get_pointer (value));
@@ -385,6 +503,21 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
     case PROP_OS_VERSION:
         g_value_set_string (value, system_information->os_version);
         break;
+    case PROP_REFRESH_HOLD:
+        g_value_set_boxed (value, system_information->refresh_hold);
+        break;
+    case PROP_REFRESH_LAST:
+        g_value_set_boxed (value, system_information->refresh_last);
+        break;
+    case PROP_REFRESH_NEXT:
+        g_value_set_boxed (value, system_information->refresh_next);
+        break;
+    case PROP_REFRESH_SCHEDULE:
+        g_value_set_string (value, system_information->refresh_schedule);
+        break;
+    case PROP_REFRESH_TIMER:
+        g_value_set_string (value, system_information->refresh_timer);
+        break;
     case PROP_SANDBOX_FEATURES:
         g_value_set_pointer (value, system_information->sandbox_features);
         break;
@@ -414,6 +547,11 @@ snapd_system_information_finalize (GObject *object)
     g_clear_pointer (&system_information->mount_directory, g_free);
     g_clear_pointer (&system_information->os_id, g_free);
     g_clear_pointer (&system_information->os_version, g_free);
+    g_clear_pointer (&system_information->refresh_hold, g_date_time_unref);
+    g_clear_pointer (&system_information->refresh_last, g_date_time_unref);
+    g_clear_pointer (&system_information->refresh_next, g_date_time_unref);
+    g_clear_pointer (&system_information->refresh_schedule, g_free);
+    g_clear_pointer (&system_information->refresh_timer, g_free);
     g_clear_pointer (&system_information->sandbox_features, g_hash_table_unref);
     g_clear_pointer (&system_information->series, g_free);
     g_clear_pointer (&system_information->store, g_free);
@@ -492,6 +630,41 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
                                      g_param_spec_string ("os-version",
                                                           "os-version",
                                                           "Operating system version",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_REFRESH_HOLD,
+                                     g_param_spec_boxed ("refresh-hold",
+                                                         "refresh-hold",
+                                                         "Time refreshes will be applied",
+                                                         G_TYPE_DATE_TIME,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_REFRESH_LAST,
+                                     g_param_spec_boxed ("refresh-last",
+                                                         "refresh-last",
+                                                         "Last time a refresh occurred",
+                                                         G_TYPE_DATE_TIME,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_REFRESH_NEXT,
+                                     g_param_spec_boxed ("refresh-next",
+                                                         "refresh-next",
+                                                         "Next time a refresh is scheduled for",
+                                                         G_TYPE_DATE_TIME,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_REFRESH_SCHEDULE,
+                                     g_param_spec_string ("refresh-schedule",
+                                                          "refresh-schedule",
+                                                          "Refresh schedule",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_REFRESH_TIMER,
+                                     g_param_spec_string ("refresh-timer",
+                                                          "refresh-timer",
+                                                          "Refresh timer",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
