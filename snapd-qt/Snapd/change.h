@@ -19,15 +19,15 @@ class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject
 {
     Q_OBJECT
 
-    Q_PROPERTY (QString id READ id)
-    Q_PROPERTY (QString kind READ kind)
-    Q_PROPERTY (QString summary READ summary)
-    Q_PROPERTY (QString status READ status)
-    Q_PROPERTY (bool ready READ ready)
-    Q_PROPERTY (int taskCount READ taskCount)
-    Q_PROPERTY (QDateTime spawnTime READ spawnTime)
-    Q_PROPERTY (QDateTime readyTime READ readyTime)
-    Q_PROPERTY (QString error READ error)
+    Q_PROPERTY(QString id READ id)
+    Q_PROPERTY(QString kind READ kind)
+    Q_PROPERTY(QString summary READ summary)
+    Q_PROPERTY(QString status READ status)
+    Q_PROPERTY(bool ready READ ready)
+    Q_PROPERTY(int taskCount READ taskCount)
+    Q_PROPERTY(QDateTime spawnTime READ spawnTime)
+    Q_PROPERTY(QDateTime readyTime READ readyTime)
+    Q_PROPERTY(QString error READ error)
 
 public:
     explicit QSnapdChange (void* snapd_object, QObject* parent = 0);

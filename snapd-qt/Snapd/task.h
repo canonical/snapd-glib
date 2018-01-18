@@ -18,15 +18,15 @@ class Q_DECL_EXPORT QSnapdTask : public QSnapdWrappedObject
 {
     Q_OBJECT
 
-    Q_PROPERTY (QString id READ id)
-    Q_PROPERTY (QString kind READ kind)
-    Q_PROPERTY (QString summary READ summary)
-    Q_PROPERTY (QString status READ status)
-    Q_PROPERTY (QString progressLabel READ progressLabel)
-    Q_PROPERTY (qint64 progressDone READ progressDone)
-    Q_PROPERTY (qint64 progressTotal READ progressTotal)
-    Q_PROPERTY (QDateTime spawnTime READ spawnTime)
-    Q_PROPERTY (QDateTime readyTime READ readyTime)
+    Q_PROPERTY(QString id READ id)
+    Q_PROPERTY(QString kind READ kind)
+    Q_PROPERTY(QString summary READ summary)
+    Q_PROPERTY(QString status READ status)
+    Q_PROPERTY(QString progressLabel READ progressLabel)
+    Q_PROPERTY(qint64 progressDone READ progressDone)
+    Q_PROPERTY(qint64 progressTotal READ progressTotal)
+    Q_PROPERTY(QDateTime spawnTime READ spawnTime)
+    Q_PROPERTY(QDateTime readyTime READ readyTime)
 
 public:
     explicit QSnapdTask (void* snapd_object, QObject* parent = 0);
