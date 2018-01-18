@@ -9,6 +9,6 @@ script:
   - docker pull ubuntu:rolling
   - cid=`docker run --tty --detach --volume $TRAVIS_BUILD_DIR:/snapd-glib --workdir /snapd-glib ubuntu:rolling`
   - docker exec $cid apt-get update
-  - docker exec $cid apt-get install -y --no-install-recommends gtk-doc-tools intltool libgirepository1.0-dev libglib2.0-dev libjson-glib-dev libpolkit-gobject-1-dev libsoup2.4-dev qtbase5-dev qtdeclarative5-dev valac
+  - docker exec $cid apt-get install -y --no-install-recommends gtk-doc-tools intltool libgirepository1.0-dev libglib2.0-dev libjson-glib-dev libpolkit-gobject-1-dev libsoup2.4-dev libtool qtbase5-dev qtdeclarative5-dev valac
   - docker exec $cid ./autogen.sh --disable-silent-rules --enable-gtk-doc
   - docker exec $cid make
