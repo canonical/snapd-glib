@@ -205,6 +205,7 @@ snapd_snap_match_channel (SnapdSnap *snap, const gchar *name)
     int matched_risk = -1;
 
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    g_return_val_if_fail (name != NULL, NULL);
 
     c = g_object_new (SNAPD_TYPE_CHANNEL,
                       "name", name,
