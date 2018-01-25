@@ -325,6 +325,45 @@ test_login_sync ()
         g_assert (userInformation->authData ()->discharges ()[i] == mock_account_get_discharges (a)[i]);
 }
 
+void
+LoginHandler::onComplete ()
+{
+    MockAccount *a = mock_snapd_find_account_by_username (snapd, "test");
+
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdUserInformation> userInformation (request->userInformation ());
+    g_assert_cmpint (userInformation->id (), ==, 1);
+    g_assert (userInformation->email () == "test@example.com");
+    g_assert (userInformation->username () == "test");
+    g_assert_cmpint (userInformation->sshKeys ().count (), ==, 0);
+    g_assert (userInformation->authData ()->macaroon () == mock_account_get_macaroon (a));
+    g_assert_cmpint (userInformation->authData ()->discharges ().count (), ==, g_strv_length (mock_account_get_discharges (a)));
+    for (int i = 0; mock_account_get_discharges (a)[i]; i++)
+        g_assert (userInformation->authData ()->discharges ()[i] == mock_account_get_discharges (a)[i]);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_login_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_auto(GStrv) keys = g_strsplit ("KEY1;KEY2", ";", -1);
+    mock_account_set_ssh_keys (a, keys);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    LoginHandler loginHandler (loop, snapd, client.login ("test@example.com", "secret"));
+    QObject::connect (loginHandler.request, &QSnapdLoginRequest::complete, &loginHandler, &LoginHandler::onComplete);
+    loginHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
 static void
 test_login_invalid_email ()
 {
@@ -3768,6 +3807,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);
     g_test_add_func ("/get-system-information/confinement_unknown", test_get_system_information_confinement_unknown);
     g_test_add_func ("/login/sync", test_login_sync);
+    g_test_add_func ("/login/async", test_login_async);
     g_test_add_func ("/login/invalid-email", test_login_invalid_email);
     g_test_add_func ("/login/invalid-password", test_login_invalid_password);
     g_test_add_func ("/login/otp-missing", test_login_otp_missing);

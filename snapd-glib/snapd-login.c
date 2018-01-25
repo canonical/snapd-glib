@@ -275,7 +275,7 @@ snapd_login_async (const gchar *username, const gchar *password, const gchar *ot
     request->cancellable = g_object_ref (cancellable);
     request->username = g_strdup (username);
     request->password = g_strdup (password);
-    request->otp = otp != NULL ? g_strdup (otp) : g_strdup("");
+    request->otp = otp != NULL ? g_strdup (otp) : g_strdup ("");
     request->error = NULL;
     request->auth_data = NULL;
 
