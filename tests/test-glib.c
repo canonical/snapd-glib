@@ -429,6 +429,63 @@ test_login_sync (void)
 }
 
 static void
+login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    MockAccount *a;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
+    gchar **ssh_keys = NULL;
+    SnapdAuthData *auth_data;
+    int i;
+    g_autoptr(GError) error = NULL;
+
+    a = mock_snapd_find_account_by_username (data->snapd, "test");
+
+    user_information = snapd_client_login2_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (user_information);
+    g_assert_cmpint (snapd_user_information_get_id (user_information), ==, 1);
+    g_assert_cmpstr (snapd_user_information_get_email (user_information), ==, "test@example.com");
+    g_assert_cmpstr (snapd_user_information_get_username (user_information), ==, "test");
+    ssh_keys = snapd_user_information_get_ssh_keys (user_information);
+    g_assert_nonnull (ssh_keys);
+    g_assert_cmpint (g_strv_length (ssh_keys), ==, 0);
+    auth_data = snapd_user_information_get_auth_data (user_information);
+    g_assert_nonnull (auth_data);
+    g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, mock_account_get_macaroon (a));
+    g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
+    for (i = 0; mock_account_get_discharges (a)[i]; i++)
+        g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_login_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockAccount *a;
+    g_auto(GStrv) keys = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    keys = g_strsplit ("KEY1;KEY2", ";", -1);
+    mock_account_set_ssh_keys (a, keys);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_login2_async (client, "test@example.com", "secret", NULL, NULL, login_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
 test_login_invalid_email (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -4904,6 +4961,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-system-information/confinement_none", test_get_system_information_confinement_none);
     g_test_add_func ("/get-system-information/confinement_unknown", test_get_system_information_confinement_unknown);
     g_test_add_func ("/login/sync", test_login_sync);
+    g_test_add_func ("/login/async", test_login_async);
     g_test_add_func ("/login/invalid-email", test_login_invalid_email);
     g_test_add_func ("/login/invalid-password", test_login_invalid_password);
     g_test_add_func ("/login/otp-missing", test_login_otp_missing);

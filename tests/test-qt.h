@@ -59,6 +59,24 @@ public slots:
     void onComplete ();
 };
 
+class LoginHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    LoginHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdLoginRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdLoginRequest *request;
+    ~LoginHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class ListHandler: public QObject
 {
     Q_OBJECT
