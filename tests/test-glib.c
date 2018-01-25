@@ -1846,6 +1846,54 @@ test_connect_interface_sync (void)
     g_assert (mock_plug_get_connection (plug) == slot);
 }
 
+static void
+connect_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    MockSnap *s;
+    MockSlot *slot;
+    MockPlug *plug;
+    gboolean r;
+    g_autoptr(GError) error = NULL;
+
+    s = mock_snapd_find_snap (data->snapd, "snap1");
+    slot = mock_snap_find_slot (s, "slot");
+    s = mock_snapd_find_snap (data->snapd, "snap2");
+    plug = mock_snap_find_plug (s, "plug");
+
+    r = snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    g_assert (mock_plug_get_connection (plug) == slot);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_connect_interface_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_slot (s, "slot");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    mock_snap_add_plug (s, "plug");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_connect_interface_async (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, connect_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
 typedef struct
 {
     int progress_done;
@@ -1933,6 +1981,54 @@ test_disconnect_interface_sync (void)
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_plug_get_connection (plug));
+}
+
+static void
+disconnect_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    MockSnap *s;
+    MockPlug *plug;
+    gboolean r;
+    g_autoptr(GError) error = NULL;
+
+    s = mock_snapd_find_snap (data->snapd, "snap2");
+    plug = mock_snap_find_plug (s, "plug");
+
+    r = snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    g_assert_null (mock_plug_get_connection (plug));
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_disconnect_interface_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    MockSlot *slot;
+    MockPlug *plug;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    slot = mock_snap_add_slot (s, "slot");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    plug = mock_snap_add_plug (s, "plug");
+    mock_plug_set_connection (plug, slot);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_disconnect_interface_async (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, disconnect_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
 }
 
 typedef struct
@@ -4289,6 +4385,50 @@ test_check_buy_sync (void)
 }
 
 static void
+check_buy_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    gboolean r;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_check_buy_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_check_buy_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockAccount *a;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, TRUE);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
+
+    snapd_client_check_buy_async (client, NULL, check_buy_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
 test_check_buy_terms_not_accepted (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -4396,6 +4536,54 @@ test_buy_sync (void)
     result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
+}
+
+static void
+buy_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    gboolean r;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_buy_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_buy_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockAccount *a;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdUserInformation) user_information = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, TRUE);
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_id (s, "ABCDEF");
+    mock_snap_add_price (s, 1.20, "NZD");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (user_information);
+    snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
+
+    snapd_client_buy_async (client, "ABCDEF", 1.20, "NZD", NULL, buy_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
 }
 
 static void
@@ -4821,6 +5009,51 @@ test_aliases_alias_sync (void)
 }
 
 static void
+alias_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    MockSnap *s;
+    MockApp *a;
+    gboolean r;
+    g_autoptr(GError) error = NULL;
+
+    s = mock_snapd_find_snap (data->snapd, "snap");
+    a = mock_snap_find_app (s, "app");
+
+    r = snapd_client_alias_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    g_assert_nonnull (mock_app_find_alias (a, "foo"));
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_aliases_alias_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    MockSnap *s;
+    MockApp *a;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    a = mock_snap_add_app (s, "app");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_assert_null (mock_app_find_alias (a, "foo"));
+    snapd_client_alias_async (client, "snap", "app", "foo", NULL, NULL, NULL, alias_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
 test_aliases_unalias_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -4843,6 +5076,49 @@ test_aliases_unalias_sync (void)
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_app_find_alias (a, "foo"));
+}
+
+static void
+unalias_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    MockSnap *s;
+    MockApp *a;
+    gboolean r;
+    g_autoptr(GError) error = NULL;
+
+    s = mock_snapd_find_snap (data->snapd, "snap");
+    a = mock_snap_find_app (s, "app");
+
+    r = snapd_client_unalias_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    g_assert_null (mock_app_find_alias (a, "foo"));
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_aliases_unalias_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    MockSnap *s;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_add_app (s, "app");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_unalias_async (client, "snap", "foo", NULL, NULL, NULL, unalias_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
 }
 
 static void
@@ -4894,6 +5170,47 @@ test_aliases_prefer_sync (void)
 }
 
 static void
+prefer_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    MockSnap *s;
+    gboolean r;
+    g_autoptr(GError) error = NULL;
+
+    s = mock_snapd_find_snap (data->snapd, "snap");
+
+    r = snapd_client_prefer_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    g_assert_true (mock_snap_get_preferred (s));
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_aliases_prefer_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    MockSnap *s;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_assert_false (mock_snap_get_preferred (s));
+    snapd_client_prefer_async (client, "snap", NULL, NULL, NULL, prefer_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
 test_run_snapctl_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -4916,6 +5233,46 @@ test_run_snapctl_sync (void)
     g_assert_true (result);
     g_assert_cmpstr (stdout_output, ==, "STDOUT:ABC:arg1:arg2");
     g_assert_cmpstr (stderr_output, ==, "STDERR");
+}
+
+static void
+snapctl_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    gboolean r;
+    g_autofree gchar *stdout_output = NULL;
+    g_autofree gchar *stderr_output = NULL;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_run_snapctl_finish (SNAPD_CLIENT (object), result, &stdout_output, &stderr_output, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    g_assert_cmpstr (stdout_output, ==, "STDOUT:ABC:arg1:arg2");
+    g_assert_cmpstr (stderr_output, ==, "STDERR");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_run_snapctl_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_auto(GStrv) args = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    args = g_strsplit ("arg1;arg2", ";", -1);
+    snapd_client_run_snapctl_async (client, "ABC", args, NULL, snapctl_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
 }
 
 static void
@@ -4968,12 +5325,15 @@ main (int argc, char **argv)
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
     g_test_add_func ("/login/legacy", test_login_legacy);
     g_test_add_func ("/get-changes/sync", test_get_changes_sync);
+    //g_test_add_func ("/get-changes/async", test_get_changes_async);
     g_test_add_func ("/get-changes/filter-in-progress", test_get_changes_filter_in_progress);
     g_test_add_func ("/get-changes/filter-ready", test_get_changes_filter_ready);
     g_test_add_func ("/get-changes/filter-snap", test_get_changes_filter_snap);
     g_test_add_func ("/get-changes/filter-ready-snap", test_get_changes_filter_ready_snap);
     g_test_add_func ("/get-change/sync", test_get_change_sync);
+    //g_test_add_func ("/get-change/async", test_get_change_async);
     g_test_add_func ("/abort-change/sync", test_abort_change_sync);
+    //g_test_add_func ("/abort-change/async", test_abort_change_async);
     g_test_add_func ("/list/sync", test_list_sync);
     g_test_add_func ("/list/async", test_list_async);
     g_test_add_func ("/list-one/sync", test_list_one_sync);
@@ -4984,24 +5344,31 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
     g_test_add_func ("/list-one/daemons", test_list_one_daemons);
     g_test_add_func ("/get-apps/sync", test_get_apps_sync);
+    //g_test_add_func ("/get-apps/async", test_get_apps_async);
     g_test_add_func ("/get-apps/services", test_get_apps_services);
     g_test_add_func ("/icon/sync", test_icon_sync);
     g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);
     g_test_add_func ("/icon/large", test_icon_large);
     g_test_add_func ("/get-assertions/sync", test_get_assertions_sync);
+    //g_test_add_func ("/get-assertions/async", test_get_assertions_async);
     g_test_add_func ("/get-assertions/body", test_get_assertions_body);
     g_test_add_func ("/get-assertions/multiple", test_get_assertions_multiple);
     g_test_add_func ("/get-assertions/invalid", test_get_assertions_invalid);
     g_test_add_func ("/add-assertions/sync", test_add_assertions_sync);
+    //g_test_add_func ("/add-assertions/async", test_add_assertions_async);
     g_test_add_func ("/assertions/sync", test_assertions_sync);
+    //g_test_add_func ("/assertions/async", test_assertions_async);
     g_test_add_func ("/assertions/body", test_assertions_body);
     g_test_add_func ("/get-interfaces/sync", test_get_interfaces_sync);
+    //g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
     g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
+    g_test_add_func ("/connect-interface/async", test_connect_interface_async);
     g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);
     g_test_add_func ("/connect-interface/invalid", test_connect_interface_invalid);
     g_test_add_func ("/disconnect-interface/sync", test_disconnect_interface_sync);
+    g_test_add_func ("/disconnect-interface/async", test_disconnect_interface_async);
     g_test_add_func ("/disconnect-interface/progress", test_disconnect_interface_progress);
     g_test_add_func ("/disconnect-interface/invalid", test_disconnect_interface_invalid);
     g_test_add_func ("/find/query", test_find_query);
@@ -5018,6 +5385,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/section_query", test_find_section_query);
     g_test_add_func ("/find/section_name", test_find_section_name);
     g_test_add_func ("/find-refreshable/sync", test_find_refreshable_sync);
+    //g_test_add_func ("/find-refreshable/async", test_find_refreshable_async);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/sync", test_install_sync);
     g_test_add_func ("/install/sync-multiple", test_install_sync_multiple);
@@ -5041,19 +5409,23 @@ main (int argc, char **argv)
     g_test_add_func ("/install/snapd-restart", test_install_snapd_restart);
     g_test_add_func ("/install/async-snapd-restart", test_install_async_snapd_restart);
     g_test_add_func ("/install-stream/sync", test_install_stream_sync);
+    //g_test_add_func ("/install-stream/async", test_install_stream_async);
     g_test_add_func ("/install-stream/progress", test_install_stream_progress);
     g_test_add_func ("/install-stream/classic", test_install_stream_classic);
     g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous);
     g_test_add_func ("/install-stream/devmode", test_install_stream_devmode);
     g_test_add_func ("/install-stream/jailmode", test_install_stream_jailmode);
     g_test_add_func ("/try/sync", test_try_sync);
+    //g_test_add_func ("/try/async", test_try_async);
     g_test_add_func ("/try/progress", test_try_progress);
     g_test_add_func ("/refresh/sync", test_refresh_sync);
+    //g_test_add_func ("/refresh/async", test_refresh_async);
     g_test_add_func ("/refresh/progress", test_refresh_progress);
     g_test_add_func ("/refresh/channel", test_refresh_channel);
     g_test_add_func ("/refresh/no-updates", test_refresh_no_updates);
     g_test_add_func ("/refresh/not-installed", test_refresh_not_installed);
     g_test_add_func ("/refresh-all/sync", test_refresh_all_sync);
+    //g_test_add_func ("/refresh-all/async", test_refresh_all_async);
     g_test_add_func ("/refresh-all/progress", test_refresh_all_progress);
     g_test_add_func ("/refresh-all/no-updates", test_refresh_all_no_updates);
     g_test_add_func ("/remove/sync", test_remove_sync);
@@ -5063,39 +5435,53 @@ main (int argc, char **argv)
     g_test_add_func ("/remove/progress", test_remove_progress);
     g_test_add_func ("/remove/not-installed", test_remove_not_installed);
     g_test_add_func ("/enable/sync", test_enable_sync);
+    //g_test_add_func ("/enable/async", test_enable_async);
     g_test_add_func ("/enable/progress", test_enable_progress);
     g_test_add_func ("/enable/already-enabled", test_enable_already_enabled);
     g_test_add_func ("/enable/not-installed", test_enable_not_installed);
     g_test_add_func ("/disable/sync", test_disable_sync);
+    //g_test_add_func ("/disable/async", test_disable_async);
     g_test_add_func ("/disable/progress", test_disable_progress);
     g_test_add_func ("/disable/already-disabled", test_disable_already_disabled);
     g_test_add_func ("/disable/not-installed", test_disable_not_installed);
     g_test_add_func ("/switch/sync", test_switch_sync);
+    //g_test_add_func ("/switch/async", test_switch_async);
     g_test_add_func ("/switch/progress", test_switch_progress);
     g_test_add_func ("/switch/not-installed", test_switch_not_installed);
     g_test_add_func ("/check-buy/sync", test_check_buy_sync);
+    g_test_add_func ("/check-buy/async", test_check_buy_async);
     g_test_add_func ("/check-buy/no-terms-not-accepted", test_check_buy_terms_not_accepted);
     g_test_add_func ("/check-buy/no-payment-methods", test_check_buy_no_payment_methods);
     g_test_add_func ("/check-buy/not-logged-in", test_check_buy_not_logged_in);
     g_test_add_func ("/buy/sync", test_buy_sync);
+    g_test_add_func ("/buy/async", test_buy_async);
     g_test_add_func ("/buy/not-logged-in", test_buy_not_logged_in);
     g_test_add_func ("/buy/not-available", test_buy_not_available);
     g_test_add_func ("/buy/terms-not-accepted", test_buy_terms_not_accepted);
     g_test_add_func ("/buy/no-payment-methods", test_buy_no_payment_methods);
     g_test_add_func ("/buy/invalid-price", test_buy_invalid_price);
     g_test_add_func ("/create-user/sync", test_create_user_sync);
+    //g_test_add_func ("/create-user/async", test_create_user_async);
     g_test_add_func ("/create-user/sudo", test_create_user_sudo);
     g_test_add_func ("/create-user/known", test_create_user_known);
     g_test_add_func ("/create-users/sync", test_create_users_sync);
+    //g_test_add_func ("/create-users/async", test_create_users_async);
     g_test_add_func ("/get-users/sync", test_get_users_sync);
+    //g_test_add_func ("/get-users/async", test_get_users_async);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
+    //g_test_add_func ("/get-sections/async", test_get_sections_async);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
+    //g_test_add_func ("/aliases/get-async", test_aliases_get_async);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);
     g_test_add_func ("/aliases/alias-sync", test_aliases_alias_sync);
+    g_test_add_func ("/aliases/alias-async", test_aliases_alias_async);
     g_test_add_func ("/aliases/unalias-sync", test_aliases_unalias_sync);
+    g_test_add_func ("/aliases/unalias-async", test_aliases_unalias_async);
     g_test_add_func ("/aliases/unalias-no-snap-sync", test_aliases_unalias_no_snap_sync);
     g_test_add_func ("/aliases/prefer-sync", test_aliases_prefer_sync);
+    g_test_add_func ("/aliases/prefer-async", test_aliases_prefer_async);
     g_test_add_func ("/run-snapctl/sync", test_run_snapctl_sync);
+    g_test_add_func ("/run-snapctl/async", test_run_snapctl_async);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();

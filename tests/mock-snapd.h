@@ -150,6 +150,9 @@ MockSnap       *mock_snapd_add_store_snap         (MockSnapd     *snapd,
 MockApp        *mock_snap_add_app                 (MockSnap      *snap,
                                                    const gchar   *name);
 
+MockApp        *mock_snap_find_app                (MockSnap      *snap,
+                                                   const gchar   *name);
+
 void            mock_app_set_active               (MockApp       *app,
                                                    gboolean       active);
 
@@ -313,7 +316,13 @@ void            mock_snap_add_store_section       (MockSnap      *snap,
 MockPlug       *mock_snap_add_plug                (MockSnap      *snap,
                                                    const gchar   *name);
 
+MockPlug       *mock_snap_find_plug               (MockSnap      *snap,
+                                                   const gchar   *name);
+
 MockSlot       *mock_snap_add_slot                (MockSnap      *snap,
+                                                   const gchar   *name);
+
+MockSlot       *mock_snap_find_slot               (MockSnap      *snap,
                                                    const gchar   *name);
 
 void            mock_plug_set_connection          (MockPlug      *plug,

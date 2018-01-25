@@ -843,6 +843,20 @@ mock_snap_add_app (MockSnap *snap, const gchar *name)
     return app;
 }
 
+MockApp *
+mock_snap_find_app (MockSnap *snap, const gchar *name)
+{
+    GList *link;
+
+    for (link = snap->apps; link; link = link->next) {
+        MockApp *app = link->data;
+        if (strcmp (app->name, name) == 0)
+            return app;
+    }
+
+    return NULL;
+}
+
 void
 mock_app_set_active (MockApp *app, gboolean active)
 {
@@ -1296,8 +1310,8 @@ mock_snap_add_plug (MockSnap *snap, const gchar *name)
     return plug;
 }
 
-static MockPlug *
-find_plug (MockSnap *snap, const gchar *name)
+MockPlug *
+mock_snap_find_plug (MockSnap *snap, const gchar *name)
 {
     GList *link;
 
@@ -1325,20 +1339,8 @@ mock_snap_add_slot (MockSnap *snap, const gchar *name)
     return slot;
 }
 
-void
-mock_plug_set_connection (MockPlug *plug, MockSlot *slot)
-{
-    plug->connection = slot;
-}
-
 MockSlot *
-mock_plug_get_connection (MockPlug *plug)
-{
-    return plug->connection;
-}
-
-static MockSlot *
-find_slot (MockSnap *snap, const gchar *name)
+mock_snap_find_slot (MockSnap *snap, const gchar *name)
 {
     GList *link;
 
@@ -1349,6 +1351,18 @@ find_slot (MockSnap *snap, const gchar *name)
     }
 
     return NULL;
+}
+
+void
+mock_plug_set_connection (MockPlug *plug, MockSlot *slot)
+{
+    plug->connection = slot;
+}
+
+MockSlot *
+mock_plug_get_connection (MockPlug *plug)
+{
+    return plug->connection;
 }
 
 static void
@@ -2676,7 +2690,7 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
                 send_error_bad_request (message, "invalid snap", NULL);
                 return;
             }
-            plug = find_plug (snap, json_object_get_string_member (po, "plug"));
+            plug = mock_snap_find_plug (snap, json_object_get_string_member (po, "plug"));
             if (plug == NULL) {
                 send_error_bad_request (message, "invalid plug", NULL);
                 return;
@@ -2695,7 +2709,7 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
                 send_error_bad_request (message, "invalid snap", NULL);
                 return;
             }
-            slot = find_slot (snap, json_object_get_string_member (so, "slot"));
+            slot = mock_snap_find_slot (snap, json_object_get_string_member (so, "slot"));
             if (slot == NULL) {
                 send_error_bad_request (message, "invalid slot", NULL);
                 return;
@@ -3268,20 +3282,6 @@ find_snap_by_alias (MockSnapd *snapd, const gchar *name)
     return NULL;
 }
 
-static MockApp *
-find_app (MockSnap *snap, const gchar *name)
-{
-    GList *link;
-
-    for (link = snap->apps; link; link = link->next) {
-        MockApp *app = link->data;
-        if (strcmp (app->name, name) == 0)
-            return app;
-    }
-
-    return NULL;
-}
-
 static void
 unalias (MockSnapd *snapd, const gchar *name)
 {
@@ -3413,7 +3413,7 @@ handle_aliases (MockSnapd *snapd, SoupMessage *message)
                 send_error_not_found (message, "No app specified");
                 return;
             }
-            app = find_app (snap, app_name);
+            app = mock_snap_find_app (snap, app_name);
             if (app == NULL) {
                 send_error_not_found (message, "App not found");
                 return;
