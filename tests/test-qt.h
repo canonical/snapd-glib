@@ -325,3 +325,93 @@ public:
 public slots:
     void onComplete ();
 };
+
+class EnableHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    EnableHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdEnableRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdEnableRequest *request;
+    ~EnableHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class DisableHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    DisableHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdDisableRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdDisableRequest *request;
+    ~DisableHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class SwitchChannelHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    SwitchChannelHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdSwitchChannelRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdSwitchChannelRequest *request;
+    ~SwitchChannelHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class CheckBuyHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    CheckBuyHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdCheckBuyRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdCheckBuyRequest *request;
+    ~CheckBuyHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class BuyHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    BuyHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdBuyRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdBuyRequest *request;
+    ~BuyHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};

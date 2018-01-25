@@ -3092,6 +3092,34 @@ test_enable_sync ()
     g_assert_false (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
 }
 
+void
+EnableHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_false (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_enable_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_disabled (s, TRUE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    EnableHandler enableHandler (loop, snapd, client.enable ("snap"));
+    QObject::connect (enableHandler.request, &QSnapdEnableRequest::complete, &enableHandler, &EnableHandler::onComplete);
+    enableHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
 static void
 test_enable_progress ()
 {
@@ -3158,7 +3186,35 @@ test_disable_sync ()
     QScopedPointer<QSnapdDisableRequest> disableRequest (client.disable ("snap"));
     disableRequest->runSync ();
     g_assert_cmpint (disableRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
+    g_assert_true (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
+}
+
+void
+DisableHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_true (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_disable_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_disabled (s, FALSE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    DisableHandler disableHandler (loop, snapd, client.disable ("snap"));
+    QObject::connect (disableHandler.request, &QSnapdDisableRequest::complete, &disableHandler, &DisableHandler::onComplete);
+    disableHandler.request->runAsync ();
+    g_main_loop_run (loop);
 }
 
 static void
@@ -3230,6 +3286,34 @@ test_switch_sync ()
     g_assert_cmpstr (mock_snap_get_tracking_channel (mock_snapd_find_snap (snapd, "snap")), ==, "beta");
 }
 
+void
+SwitchChannelHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpstr (mock_snap_get_tracking_channel (mock_snapd_find_snap (snapd, "snap")), ==, "beta");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_switch_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_tracking_channel (s, "stable");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    SwitchChannelHandler switchHandler (loop, snapd, client.switchChannel ("snap", "beta"));
+    QObject::connect (switchHandler.request, &QSnapdSwitchChannelRequest::complete, &switchHandler, &SwitchChannelHandler::onComplete);
+    switchHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
 static void
 test_switch_progress ()
 {
@@ -3287,6 +3371,40 @@ test_check_buy_sync ()
     QScopedPointer<QSnapdCheckBuyRequest> checkBuyRequest (client.checkBuy ());
     checkBuyRequest->runSync ();
     g_assert_cmpint (checkBuyRequest->error (), ==, QSnapdRequest::NoError);
+}
+
+void
+CheckBuyHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_check_buy_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, TRUE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
+    loginRequest->runSync ();
+    g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
+
+    CheckBuyHandler checkBuyHandler (loop, snapd, client.checkBuy ());
+    QObject::connect (checkBuyHandler.request, &QSnapdCheckBuyRequest::complete, &checkBuyHandler, &CheckBuyHandler::onComplete);
+    checkBuyHandler.request->runAsync ();
+    g_main_loop_run (loop);
 }
 
 static void
@@ -3373,6 +3491,43 @@ test_buy_sync ()
     QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
     buyRequest->runSync ();
     g_assert_cmpint (buyRequest->error (), ==, QSnapdRequest::NoError);
+}
+
+void
+BuyHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_buy_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    mock_account_set_terms_accepted (a, TRUE);
+    mock_account_set_has_payment_methods (a, TRUE);
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_id (s, "ABCDEF");
+    mock_snap_add_price (s, 1.20, "NZD");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdLoginRequest> loginRequest (client.login ("test@example.com", "secret"));
+    loginRequest->runSync ();
+    g_assert_cmpint (loginRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
+    client.setAuthData (authData.data ());
+
+    BuyHandler buyHandler (loop, snapd, client.buy ("ABCDEF", 1.20, "NZD"));
+    QObject::connect (buyHandler.request, &QSnapdBuyRequest::complete, &buyHandler, &BuyHandler::onComplete);
+    buyHandler.request->runAsync ();
+    g_main_loop_run (loop);
 }
 
 static void
@@ -3923,26 +4078,26 @@ main (int argc, char **argv)
     g_test_add_func ("/remove/progress", test_remove_progress);
     g_test_add_func ("/remove/not-installed", test_remove_not_installed);
     g_test_add_func ("/enable/sync", test_enable_sync);
-    //g_test_add_func ("/enable/async", test_enable_async);
+    g_test_add_func ("/enable/async", test_enable_async);
     g_test_add_func ("/enable/progress", test_enable_progress);
     g_test_add_func ("/enable/already-enabled", test_enable_already_enabled);
     g_test_add_func ("/enable/not-installed", test_enable_not_installed);
     g_test_add_func ("/disable/sync", test_disable_sync);
-    //g_test_add_func ("/disable/async", test_disable_async);
+    g_test_add_func ("/disable/async", test_disable_async);
     g_test_add_func ("/disable/progress", test_disable_progress);
     g_test_add_func ("/disable/already-disabled", test_disable_already_disabled);
     g_test_add_func ("/disable/not-installed", test_disable_not_installed);
     g_test_add_func ("/switch/sync", test_switch_sync);
-    //g_test_add_func ("/switch/async", test_switch_async);
+    g_test_add_func ("/switch/async", test_switch_async);
     g_test_add_func ("/switch/progress", test_switch_progress);
     g_test_add_func ("/switch/not-installed", test_switch_not_installed);
     g_test_add_func ("/check-buy/sync", test_check_buy_sync);
-    //g_test_add_func ("/check-buy/async", test_check_buy_async);
+    g_test_add_func ("/check-buy/async", test_check_buy_async);
     g_test_add_func ("/check-buy/no-terms-not-accepted", test_check_buy_terms_not_accepted);
     g_test_add_func ("/check-buy/no-payment-methods", test_check_buy_no_payment_methods);
     g_test_add_func ("/check-buy/not-logged-in", test_check_buy_not_logged_in);
     g_test_add_func ("/buy/sync", test_buy_sync);
-    //g_test_add_func ("/buy/async", test_buy_async);
+    g_test_add_func ("/buy/async", test_buy_async);
     g_test_add_func ("/buy/not-logged-in", test_buy_not_logged_in);
     g_test_add_func ("/buy/not-available", test_buy_not_available);
     g_test_add_func ("/buy/terms-not-accepted", test_buy_terms_not_accepted);
