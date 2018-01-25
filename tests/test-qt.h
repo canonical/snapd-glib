@@ -128,6 +128,42 @@ public slots:
     void onComplete ();
 };
 
+class ConnectInterfaceHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    ConnectInterfaceHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdConnectInterfaceRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdConnectInterfaceRequest *request;
+    ~ConnectInterfaceHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class DisconnectInterfaceHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    DisconnectInterfaceHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdDisconnectInterfaceRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdDisconnectInterfaceRequest *request;
+    ~DisconnectInterfaceHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class FindHandler: public QObject
 {
     Q_OBJECT

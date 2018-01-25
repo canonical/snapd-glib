@@ -1443,6 +1443,39 @@ test_connect_interface_sync ()
     g_assert (mock_plug_get_connection (plug) == slot);
 }
 
+void
+ConnectInterfaceHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    MockSlot *slot = mock_snap_find_slot (mock_snapd_find_snap (snapd, "snap1"), "slot");
+    MockPlug *plug = mock_snap_find_plug (mock_snapd_find_snap (snapd, "snap2"), "plug");
+    g_assert (mock_plug_get_connection (plug) == slot);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_connect_interface_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_slot (s, "slot");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    mock_snap_add_plug (s, "plug");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    ConnectInterfaceHandler connectInterfaceHandler (loop, snapd, client.connectInterface ("snap2", "plug", "snap1", "slot"));
+    QObject::connect (connectInterfaceHandler.request, &QSnapdConnectInterfaceRequest::complete, &connectInterfaceHandler, &ConnectInterfaceHandler::onComplete);
+    connectInterfaceHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
 static void
 test_connect_interface_progress ()
 {
@@ -1497,6 +1530,40 @@ test_disconnect_interface_sync ()
     disconnectInterfaceRequest->runSync ();
     g_assert_cmpint (disconnectInterfaceRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_null (mock_plug_get_connection (plug));
+}
+
+void
+DisconnectInterfaceHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    MockSnap *s = mock_snapd_find_snap (snapd, "snap2");
+    MockPlug *plug = mock_snap_find_plug (s, "plug");
+    g_assert_null (mock_plug_get_connection (plug));
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_disconnect_interface_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot = mock_snap_add_slot (s, "slot");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    MockPlug *plug = mock_snap_add_plug (s, "plug");
+    mock_plug_set_connection (plug, slot);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    DisconnectInterfaceHandler disconnectInterfaceHandler (loop, snapd, client.disconnectInterface ("snap2", "plug", "snap1", "slot"));
+    QObject::connect (disconnectInterfaceHandler.request, &QSnapdDisconnectInterfaceRequest::complete, &disconnectInterfaceHandler, &DisconnectInterfaceHandler::onComplete);
+    disconnectInterfaceHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
 }
 
 static void
@@ -4007,11 +4074,11 @@ main (int argc, char **argv)
     //g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
     g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
-    //g_test_add_func ("/connect-interface/async", test_connect_interface_async);
+    g_test_add_func ("/connect-interface/async", test_connect_interface_async);
     g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);
     g_test_add_func ("/connect-interface/invalid", test_connect_interface_invalid);
     g_test_add_func ("/disconnect-interface/sync", test_disconnect_interface_sync);
-    //g_test_add_func ("/disconnect-interface/async", test_disconnect_interface_async);
+    g_test_add_func ("/disconnect-interface/async", test_disconnect_interface_async);
     g_test_add_func ("/disconnect-interface/progress", test_disconnect_interface_progress);
     g_test_add_func ("/disconnect-interface/invalid", test_disconnect_interface_invalid);
     g_test_add_func ("/find/query", test_find_query);
