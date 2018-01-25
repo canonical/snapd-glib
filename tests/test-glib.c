@@ -5174,6 +5174,45 @@ test_get_sections_sync (void)
 }
 
 static void
+get_sections_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    g_auto(GStrv) sections = NULL;
+    g_autoptr(GError) error = NULL;
+
+    sections = snapd_client_get_sections_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (sections);
+    g_assert_cmpint (g_strv_length (sections), ==, 2);
+    g_assert_cmpstr (sections[0], ==, "SECTION1");
+    g_assert_cmpstr (sections[1], ==, "SECTION2");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_get_sections_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_section (snapd, "SECTION1");
+    mock_snapd_add_store_section (snapd, "SECTION2");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_sections_async (client, NULL, get_sections_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
 test_aliases_get_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -5733,7 +5772,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-users/sync", test_get_users_sync);
     //g_test_add_func ("/get-users/async", test_get_users_async);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
-    //g_test_add_func ("/get-sections/async", test_get_sections_async);
+    g_test_add_func ("/get-sections/async", test_get_sections_async);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
     //g_test_add_func ("/aliases/get-async", test_aliases_get_async);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);
