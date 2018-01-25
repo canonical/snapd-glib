@@ -65,7 +65,7 @@ snapd_login_request_finalize (GObject *object)
     g_free (request->password);
     g_free (request->otp);
     g_clear_object (&request->auth_data);
-    g_clear_object (&request->error);
+    g_error_free (request->error);
 
     G_OBJECT_CLASS (snapd_login_request_parent_class)->finalize (object);
 }
@@ -205,6 +205,7 @@ login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     r = g_dbus_connection_call_finish (G_DBUS_CONNECTION (object), result, &dbus_error);
     if (r == NULL) {
         request->error = convert_dbus_error (dbus_error);
+        g_idle_add (login_complete_cb, g_steal_pointer (&request));
         return;
     }
 
@@ -274,9 +275,11 @@ snapd_login_async (const gchar *username, const gchar *password, const gchar *ot
     request->cancellable = g_object_ref (cancellable);
     request->username = g_strdup (username);
     request->password = g_strdup (password);
-    request->otp = otp != NULL ? g_strdup (otp) : "";
+    request->otp = otp != NULL ? g_strdup (otp) : g_strdup ("");
+    request->error = NULL;
+    request->auth_data = NULL;
 
-    g_bus_get (G_BUS_TYPE_SYSTEM, cancellable, bus_cb, NULL);
+    g_bus_get (G_BUS_TYPE_SYSTEM, cancellable, bus_cb, request);
 }
 
 /**
