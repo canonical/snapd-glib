@@ -1,3 +1,10 @@
+Overview of changes in snapd-glib 1.32
+
+    * Fix crash when calling snapd_login_async
+    * Support new bad-query, network-timeout errors from snapd
+    * Support QSnapdClient::find/Section method without flags set
+    * Assert name parameter set in snapd_snap_match_channel
+
 Overview of changes in snapd-glib 1.31
 
     * New API:
