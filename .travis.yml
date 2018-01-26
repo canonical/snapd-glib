@@ -12,3 +12,4 @@ script:
   - docker exec $cid apt-get install -y --no-install-recommends gtk-doc-tools intltool libgirepository1.0-dev libglib2.0-dev libjson-glib-dev libpolkit-gobject-1-dev libsoup2.4-dev libtool qtbase5-dev qtdeclarative5-dev valac
   - docker exec $cid ./autogen.sh --disable-silent-rules --enable-gtk-doc
   - docker exec $cid make
+  - docker exec $cid make check
