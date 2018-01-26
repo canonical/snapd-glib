@@ -25,7 +25,7 @@ Vcs-Git: https://anonscm.debian.org/git/pkg-ayatana/snapd-glib.git
 Vcs-Browser: https://anonscm.debian.org/git/pkg-ayatana/snapd-glib.git
 
 Package: libsnapd-glib1
-Architecture: any
+Architecture: linux-any kfreebsd-any
 Multi-Arch: same
 Depends: ${misc:Depends},
          ${shlibs:Depends}
