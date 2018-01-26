@@ -3989,6 +3989,33 @@ test_run_snapctl_sync ()
     g_assert (runSnapCtlRequest->stderr () == "STDERR");
 }
 
+void
+RunSnapCtlHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert (request->stdout () == "STDOUT:ABC:arg1:arg2");
+    g_assert (request->stderr () == "STDERR");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_run_snapctl_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    RunSnapCtlHandler runSnapCtlHandler (loop, client.runSnapCtl ("ABC", QStringList () << "arg1" << "arg2"));
+    QObject::connect (runSnapCtlHandler.request, &QSnapdRunSnapCtlRequest::complete, &runSnapCtlHandler, &RunSnapCtlHandler::onComplete);
+    runSnapCtlHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
 static void
 test_stress ()
 {
@@ -4191,7 +4218,7 @@ main (int argc, char **argv)
     g_test_add_func ("/aliases/prefer-sync", test_aliases_prefer_sync);
     //rg_test_add_func ("/aliases/prefer-async", test_aliases_prefer_async);
     g_test_add_func ("/run-snapctl/sync", test_run_snapctl_sync);
-    //g_test_add_func ("/run-snapctl/async", test_run_snapctl_async);
+    g_test_add_func ("/run-snapctl/async", test_run_snapctl_async);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();

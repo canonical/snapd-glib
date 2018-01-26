@@ -451,3 +451,20 @@ public:
 public slots:
     void onComplete ();
 };
+
+class RunSnapCtlHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    RunSnapCtlHandler (GMainLoop *loop, QSnapdRunSnapCtlRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdRunSnapCtlRequest *request;
+    ~RunSnapCtlHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
