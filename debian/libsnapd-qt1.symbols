@@ -98,9 +98,11 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdClient::enableAliases(QString, QStringList const&)@Base" 1.8
  (c++)"QSnapdClient::enable(QString const&)@Base" 1.5
  (c++)"QSnapdClient::find(QFlags<QSnapdClient::FindFlag>)@Base" 1.8
+ (c++)"QSnapdClient::find(QString const&)@Base" 1.32
  (c++)"QSnapdClient::find(QFlags<QSnapdClient::FindFlag>, QString const&)@Base" 1.5
  (c++)"QSnapdClient::findRefreshable()@Base" 1.5
  (c++)"QSnapdClient::findSection(QFlags<QSnapdClient::FindFlag>, QString const&, QString const&)@Base" 1.7
+ (c++)"QSnapdClient::findSection(QString const&, QString const&)@Base" 1.32
  (c++)"QSnapdClient::getChange(QString const&)@Base" 1.29
  (c++)"QSnapdClient::getChanges(QSnapdClient::ChangeFilter)@Base" 1.29
  (c++)"QSnapdClient::getChanges(QSnapdClient::ChangeFilter, QString const&)@Base" 1.29
