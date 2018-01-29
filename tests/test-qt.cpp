@@ -1458,6 +1458,69 @@ test_get_interfaces_sync ()
     g_assert_cmpint (slot1->connectionCount (), ==, 0);
 }
 
+void
+GetInterfacesHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (request->plugCount (), ==, 1);
+
+    QScopedPointer<QSnapdPlug> plug (request->plug (0));
+    g_assert (plug->name () == "plug1");
+    g_assert (plug->snap () == "snap2");
+    g_assert (plug->interface () == "INTERFACE");
+    // FIXME: Attributes
+    g_assert (plug->label () == "LABEL");
+    g_assert_cmpint (plug->connectionCount (), ==, 1);
+    QScopedPointer<QSnapdConnection> plugConnection (plug->connection (0));
+    g_assert (plugConnection->snap () == "snap1");
+    g_assert (plugConnection->name () == "slot1");
+
+    g_assert_cmpint (request->slotCount (), ==, 2);
+
+    QScopedPointer<QSnapdSlot> slot0 (request->slot (0));
+    g_assert (slot0->name () == "slot1");
+    g_assert (slot0->snap () == "snap1");
+    g_assert (slot0->interface () == "INTERFACE");
+    // FIXME: Attributes
+    g_assert (slot0->label () == "LABEL");
+    g_assert_cmpint (slot0->connectionCount (), ==, 1);
+    QScopedPointer<QSnapdConnection> slotConnection (slot0->connection (0));
+    g_assert (slotConnection->snap () == "snap2");
+    g_assert (slotConnection->name () == "plug1");
+
+    QScopedPointer<QSnapdSlot> slot1 (request->slot (1));
+    g_assert (slot1->name () == "slot2");
+    g_assert (slot1->snap () == "snap1");
+    g_assert_cmpint (slot1->connectionCount (), ==, 0);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_interfaces_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *sl = mock_snap_add_slot (s, "slot1");
+    mock_snap_add_slot (s, "slot2");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    MockPlug *p = mock_snap_add_plug (s, "plug1");
+    mock_plug_set_connection (p, sl);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetInterfacesHandler getInterfacesHandler (loop, client.getInterfaces ());
+    QObject::connect (getInterfacesHandler.request, &QSnapdGetInterfacesRequest::complete, &getInterfacesHandler, &GetInterfacesHandler::onComplete);
+    getInterfacesHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
 static void
 test_get_interfaces_no_snaps ()
 {
@@ -4339,7 +4402,7 @@ main (int argc, char **argv)
     //g_test_add_func ("/assertions/async", test_assertions_async);
     g_test_add_func ("/assertions/body", test_assertions_body);
     g_test_add_func ("/get-interfaces/sync", test_get_interfaces_sync);
-    //g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
+    g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
     g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
     g_test_add_func ("/connect-interface/async", test_connect_interface_async);
