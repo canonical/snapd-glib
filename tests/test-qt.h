@@ -111,6 +111,23 @@ public slots:
     void onComplete ();
 };
 
+class GetAppsHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetAppsHandler (GMainLoop *loop, QSnapdGetAppsRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetAppsRequest *request;
+    ~GetAppsHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class GetIconHandler: public QObject
 {
     Q_OBJECT
@@ -191,6 +208,40 @@ public:
     MockSnapd *snapd;
     QSnapdInstallRequest *request;
     ~InstallHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class RefreshHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    RefreshHandler (GMainLoop *loop, QSnapdRefreshRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdRefreshRequest *request;
+    ~RefreshHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class RefreshAllHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    RefreshAllHandler (GMainLoop *loop, QSnapdRefreshAllRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdRefreshAllRequest *request;
+    ~RefreshAllHandler ()
     {
         delete request;
     }
@@ -444,6 +495,77 @@ public:
     MockSnapd *snapd;
     QSnapdBuyRequest *request;
     ~BuyHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class GetSectionsHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetSectionsHandler (GMainLoop *loop, QSnapdGetSectionsRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetSectionsRequest *request;
+    ~GetSectionsHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class AliasHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    AliasHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdAliasRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdAliasRequest *request;
+    ~AliasHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class UnaliasHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    UnaliasHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdUnaliasRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdUnaliasRequest *request;
+    ~UnaliasHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class PreferHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    PreferHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdPreferRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdPreferRequest *request;
+    ~PreferHandler ()
     {
         delete request;
     }

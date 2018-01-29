@@ -1077,6 +1077,56 @@ test_get_apps_sync ()
     g_assert_true (appsRequest->app (2)->enabled ());
 }
 
+void
+GetAppsHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->appCount (), ==, 3);
+    g_assert (request->app (0)->name () == "app1");
+    g_assert (request->app (0)->snap () == "snap");
+    g_assert_cmpint (request->app (0)->daemonType (), ==, QSnapdEnums::DaemonTypeNone);
+    g_assert_false (request->app (0)->active ());
+    g_assert_false (request->app (0)->enabled ());
+    g_assert (request->app (1)->name () == "app2");
+    g_assert (request->app (1)->snap () == "snap");
+    g_assert_cmpint (request->app (1)->daemonType (), ==, QSnapdEnums::DaemonTypeNone);
+    g_assert_false (request->app (1)->active ());
+    g_assert_false (request->app (1)->enabled ());
+    g_assert (request->app (2)->name () == "app3");
+    g_assert (request->app (2)->snap () == "snap");
+    g_assert_cmpint (request->app (2)->daemonType (), ==, QSnapdEnums::DaemonTypeSimple);
+    g_assert_true (request->app (2)->active ());
+    g_assert_true (request->app (2)->enabled ());
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_apps_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app1");
+    a = mock_snap_add_app (s, "app2");
+    mock_app_set_desktop_file (a, "foo.desktop");
+    a = mock_snap_add_app (s, "app3");
+    mock_app_set_daemon (a, "simple");
+    mock_app_set_active (a, TRUE);
+    mock_app_set_enabled (a, TRUE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetAppsHandler getAppsHandler (loop, client.getApps ());
+    QObject::connect (getAppsHandler.request, &QSnapdGetAppsRequest::complete, &getAppsHandler, &GetAppsHandler::onComplete);
+    getAppsHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
 static void
 test_get_apps_services ()
 {
@@ -2844,6 +2894,34 @@ test_refresh_sync ()
     g_assert_cmpint (refreshRequest->error (), ==, QSnapdRequest::NoError);
 }
 
+void
+RefreshHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_refresh_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_store_snap (snapd, "snap");
+    mock_snap_set_revision (s, "1");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    RefreshHandler refreshHandler (loop, client.refresh ("snap"));
+    QObject::connect (refreshHandler.request, &QSnapdRefreshRequest::complete, &refreshHandler, &RefreshHandler::onComplete);
+    refreshHandler.request->runAsync ();
+}
+
 static void
 test_refresh_progress ()
 {
@@ -2947,6 +3025,44 @@ test_refresh_all_sync ()
     g_assert_cmpint (refreshAllRequest->snapNames ().count (), ==, 2);
     g_assert (refreshAllRequest->snapNames ()[0] == "snap1");
     g_assert (refreshAllRequest->snapNames ()[1] == "snap3");
+}
+
+void
+RefreshAllHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->snapNames ().count (), ==, 2);
+    g_assert (request->snapNames ()[0] == "snap1");
+    g_assert (request->snapNames ()[1] == "snap3");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_refresh_all_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_snap (snapd, "snap3");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_store_snap (snapd, "snap3");
+    mock_snap_set_revision (s, "1");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    RefreshAllHandler refreshAllHandler (loop, client.refreshAll ());
+    QObject::connect (refreshAllHandler.request, &QSnapdRefreshAllRequest::complete, &refreshAllHandler, &RefreshAllHandler::onComplete);
+    refreshAllHandler.request->runAsync ();
 }
 
 static void
@@ -3844,6 +3960,37 @@ test_get_sections_sync ()
     g_assert (getSectionsRequest->sections ()[1] == "SECTION2");
 }
 
+void
+GetSectionsHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->sections ().count (), ==, 2);
+    g_assert (request->sections ()[0] == "SECTION1");
+    g_assert (request->sections ()[1] == "SECTION2");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_sections_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_section (snapd, "SECTION1");
+    mock_snapd_add_store_section (snapd, "SECTION2");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetSectionsHandler getSectionsHandler (loop, client.getSections ());
+    QObject::connect (getSectionsHandler.request, &QSnapdGetSectionsRequest::complete, &getSectionsHandler, &GetSectionsHandler::onComplete);
+    getSectionsHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
 static void
 test_aliases_get_sync ()
 {
@@ -3920,6 +4067,38 @@ test_aliases_alias_sync ()
     g_assert_nonnull (mock_app_find_alias (a, "foo"));
 }
 
+void
+AliasHandler::onComplete ()
+{
+    MockSnap *s = mock_snapd_find_snap (snapd, "snap");
+    MockApp *a = mock_snap_find_app (s, "app");
+
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_nonnull (mock_app_find_alias (a, "foo"));
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_aliases_alias_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert_null (mock_app_find_alias (a, "foo"));
+    AliasHandler aliasHandler (loop, snapd, client.alias ("snap", "app", "foo"));
+    QObject::connect (aliasHandler.request, &QSnapdAliasRequest::complete, &aliasHandler, &AliasHandler::onComplete);
+    aliasHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
 static void
 test_aliases_unalias_sync ()
 {
@@ -3936,6 +4115,38 @@ test_aliases_unalias_sync ()
     unaliasRequest->runSync ();
     g_assert_cmpint (unaliasRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_null (mock_app_find_alias (a, "foo"));
+}
+
+void
+UnaliasHandler::onComplete ()
+{
+    MockSnap *s = mock_snapd_find_snap (snapd, "snap");
+    MockApp *a = mock_snap_find_app (s, "app");
+
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_null (mock_app_find_alias (a, "foo"));
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_aliases_unalias_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
+    mock_app_add_manual_alias (a, "foo", TRUE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    UnaliasHandler unaliasHandler (loop, snapd, client.unalias ("snap", "foo"));
+    QObject::connect (unaliasHandler.request, &QSnapdUnaliasRequest::complete, &unaliasHandler, &UnaliasHandler::onComplete);
+    unaliasHandler.request->runAsync ();
+    g_main_loop_run (loop);
 }
 
 static void
@@ -3971,6 +4182,36 @@ test_aliases_prefer_sync ()
     preferRequest->runSync ();
     g_assert_cmpint (preferRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_true (mock_snap_get_preferred (s));
+}
+
+void
+PreferHandler::onComplete ()
+{
+    MockSnap *s = mock_snapd_find_snap (snapd, "snap");
+
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_true (mock_snap_get_preferred (s));
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_aliases_prefer_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert_false (mock_snap_get_preferred (s));
+    PreferHandler preferHandler (loop, snapd, client.prefer ("snap"));
+    QObject::connect (preferHandler.request, &QSnapdPreferRequest::complete, &preferHandler, &PreferHandler::onComplete);
+    preferHandler.request->runAsync ();
+    g_main_loop_run (loop);
 }
 
 static void
@@ -4081,7 +4322,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
     g_test_add_func ("/list-one/daemons", test_list_one_daemons);
     g_test_add_func ("/get-apps/sync", test_get_apps_sync);
-    //g_test_add_func ("/get-apps/async", test_get_apps_async);
+    g_test_add_func ("/get-apps/async", test_get_apps_async);
     g_test_add_func ("/get-apps/services", test_get_apps_services);
     g_test_add_func ("/icon/sync", test_icon_sync);
     g_test_add_func ("/icon/async", test_icon_async);
@@ -4156,13 +4397,13 @@ main (int argc, char **argv)
     //g_test_add_func ("/try/async", test_try_async);
     g_test_add_func ("/try/progress", test_try_progress);
     g_test_add_func ("/refresh/sync", test_refresh_sync);
-    //g_test_add_func ("/refresh/async", test_refresh_async);
+    g_test_add_func ("/refresh/async", test_refresh_async);
     g_test_add_func ("/refresh/progress", test_refresh_progress);
     g_test_add_func ("/refresh/channel", test_refresh_channel);
     g_test_add_func ("/refresh/no-updates", test_refresh_no_updates);
     g_test_add_func ("/refresh/not-installed", test_refresh_not_installed);
     g_test_add_func ("/refresh-all/sync", test_refresh_all_sync);
-    //g_test_add_func ("/refresh-all/async", test_refresh_all_async);
+    g_test_add_func ("/refresh-all/async", test_refresh_all_async);
     g_test_add_func ("/refresh-all/progress", test_refresh_all_progress);
     g_test_add_func ("/refresh-all/no-updates", test_refresh_all_no_updates);
     g_test_add_func ("/remove/sync", test_remove_sync);
@@ -4206,17 +4447,17 @@ main (int argc, char **argv)
     g_test_add_func ("/get-users/sync", test_get_users_sync);
     //g_test_add_func ("/get-users/async", test_get_users_async);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
-    //g_test_add_func ("/get-sections/async", test_get_sections_async);
+    g_test_add_func ("/get-sections/async", test_get_sections_async);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
     //g_test_add_func ("/aliases/get-async", test_aliases_get_async);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);
     g_test_add_func ("/aliases/alias-sync", test_aliases_alias_sync);
-    //g_test_add_func ("/aliases/alias-async", test_aliases_alias_async);
+    g_test_add_func ("/aliases/alias-async", test_aliases_alias_async);
     g_test_add_func ("/aliases/unalias-sync", test_aliases_unalias_sync);
-    //g_test_add_func ("/aliases/unalias-async", test_aliases_unalias_async);
+    g_test_add_func ("/aliases/unalias-async", test_aliases_unalias_async);
     g_test_add_func ("/aliases/unalias-no-snap-sync", test_aliases_unalias_no_snap_sync);
     g_test_add_func ("/aliases/prefer-sync", test_aliases_prefer_sync);
-    //rg_test_add_func ("/aliases/prefer-async", test_aliases_prefer_async);
+    g_test_add_func ("/aliases/prefer-async", test_aliases_prefer_async);
     g_test_add_func ("/run-snapctl/sync", test_run_snapctl_sync);
     g_test_add_func ("/run-snapctl/async", test_run_snapctl_async);
     g_test_add_func ("/stress/basic", test_stress);
