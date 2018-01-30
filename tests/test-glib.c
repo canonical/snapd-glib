@@ -2631,7 +2631,6 @@ test_find_section (void)
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    mock_snapd_set_suggested_currency (snapd, "NZD");
     s = mock_snapd_add_store_snap (snapd, "apple");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "banana");
@@ -2661,7 +2660,6 @@ test_find_section_query (void)
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    mock_snapd_set_suggested_currency (snapd, "NZD");
     s = mock_snapd_add_store_snap (snapd, "apple");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "banana");
@@ -2690,7 +2688,6 @@ test_find_section_name (void)
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    mock_snapd_set_suggested_currency (snapd, "NZD");
     s = mock_snapd_add_store_snap (snapd, "apple");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "banana");
@@ -2716,7 +2713,6 @@ test_find_refreshable_sync (void)
     g_autoptr(MockSnapd) snapd = NULL;
     MockSnap *s;
     g_autoptr(SnapdClient) client = NULL;
-    g_autofree gchar *suggested_currency = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(GError) error = NULL;
 
@@ -2747,11 +2743,61 @@ test_find_refreshable_sync (void)
 }
 
 static void
+find_refreshable_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    g_autoptr(GPtrArray) snaps = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snaps = snapd_client_find_refreshable_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 2);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
+    g_assert_cmpstr (snapd_snap_get_revision (snaps->pdata[0]), ==, "1");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "snap3");
+    g_assert_cmpstr (snapd_snap_get_revision (snaps->pdata[1]), ==, "1");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_find_refreshable_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_snap (snapd, "snap3");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_store_snap (snapd, "snap3");
+    mock_snap_set_revision (s, "1");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_find_refreshable_async (client, NULL, find_refreshable_cb, async_data_new (loop, snapd));
+
+    g_main_loop_run (loop);
+}
+
+static void
 test_find_refreshable_no_updates (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_autofree gchar *suggested_currency = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(GError) error = NULL;
 
@@ -5774,7 +5820,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/section_query", test_find_section_query);
     g_test_add_func ("/find/section_name", test_find_section_name);
     g_test_add_func ("/find-refreshable/sync", test_find_refreshable_sync);
-    //g_test_add_func ("/find-refreshable/async", test_find_refreshable_async);
+    g_test_add_func ("/find-refreshable/async", test_find_refreshable_async);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/sync", test_install_sync);
     g_test_add_func ("/install/sync-multiple", test_install_sync_multiple);

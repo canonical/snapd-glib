@@ -2018,7 +2018,6 @@ static void
 test_find_section ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_set_suggested_currency (snapd, "NZD");
     MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "banana");
@@ -2044,7 +2043,6 @@ static void
 test_find_section_query ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_set_suggested_currency (snapd, "NZD");
     MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "banana");
@@ -2068,7 +2066,6 @@ static void
 test_find_section_name ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_set_suggested_currency (snapd, "NZD");
     MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "banana");
@@ -2118,6 +2115,49 @@ test_find_refreshable_sync ()
     QScopedPointer<QSnapdSnap> snap1 (findRefreshableRequest->snap (1));
     g_assert (snap1->name () == "snap3");
     g_assert (snap1->revision () == "1");
+}
+
+void
+FindRefreshableHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->snapCount (), ==, 2);
+    QScopedPointer<QSnapdSnap> snap0 (request->snap (0));
+    g_assert (snap0->name () == "snap1");
+    g_assert (snap0->revision () == "1");
+    QScopedPointer<QSnapdSnap> snap1 (request->snap (1));
+    g_assert (snap1->name () == "snap3");
+    g_assert (snap1->revision () == "1");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_find_refreshable_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_snap (snapd, "snap3");
+    mock_snap_set_revision (s, "0");
+    s = mock_snapd_add_store_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_store_snap (snapd, "snap3");
+    mock_snap_set_revision (s, "1");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    FindRefreshableHandler findRefreshableHandler (loop, client.findRefreshable ());
+    QObject::connect (findRefreshableHandler.request, &QSnapdFindRefreshableRequest::complete, &findRefreshableHandler, &FindRefreshableHandler::onComplete);
+    findRefreshableHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
 }
 
 static void
@@ -4426,7 +4466,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/section_query", test_find_section_query);
     g_test_add_func ("/find/section_name", test_find_section_name);
     g_test_add_func ("/find-refreshable/sync", test_find_refreshable_sync);
-    //g_test_add_func ("/find-refreshable/async", test_find_refreshable_async);
+    g_test_add_func ("/find-refreshable/async", test_find_refreshable_async);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
     g_test_add_func ("/install/sync", test_install_sync);
     g_test_add_func ("/install/sync-multiple", test_install_sync_multiple);

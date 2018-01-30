@@ -215,6 +215,23 @@ public slots:
     void onComplete ();
 };
 
+class FindRefreshableHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    FindRefreshableHandler (GMainLoop *loop, QSnapdFindRefreshableRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdFindRefreshableRequest *request;
+    ~FindRefreshableHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class InstallHandler: public QObject
 {
     Q_OBJECT
