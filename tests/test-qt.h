@@ -608,6 +608,23 @@ public slots:
     void onComplete ();
 };
 
+class GetAliasesHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetAliasesHandler (GMainLoop *loop, QSnapdGetAliasesRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetAliasesRequest *request;
+    ~GetAliasesHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class AliasHandler: public QObject
 {
     Q_OBJECT

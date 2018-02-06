@@ -4236,6 +4236,60 @@ test_aliases_get_sync ()
     g_assert_null (alias3->appManual ());
 }
 
+void
+GetAliasesHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->aliasCount (), ==, 3);
+    QScopedPointer<QSnapdAlias> alias1 (request->alias (0));
+    g_assert (alias1->name () == "alias1");
+    g_assert (alias1->snap () == "snap");
+    g_assert_cmpint (alias1->status (), ==, QSnapdEnums::AliasStatusAuto);
+    g_assert (alias1->appAuto () == "app");
+    g_assert_null (alias1->appManual ());
+    QScopedPointer<QSnapdAlias> alias2 (request->alias (1));
+    g_assert (alias2->name () == "alias2");
+    g_assert (alias2->snap () == "snap");
+    g_assert_cmpint (alias2->status (), ==, QSnapdEnums::AliasStatusManual);
+    g_assert_null (alias2->appAuto ());
+    g_assert (alias2->appManual () == "app");
+    QScopedPointer<QSnapdAlias> alias3 (request->alias (2));
+    g_assert (alias3->name () == "alias3");
+    g_assert (alias3->snap () == "snap");
+    g_assert_cmpint (alias3->status (), ==, QSnapdEnums::AliasStatusDisabled);
+    g_assert (alias3->appAuto () == "app");
+    g_assert_null (alias3->appManual ());
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_aliases_get_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
+
+    mock_app_add_auto_alias (a, "alias1");
+
+    mock_app_add_manual_alias (a, "alias2", TRUE);
+
+    mock_app_add_auto_alias (a, "alias3");
+    mock_app_add_manual_alias (a, "alias3", FALSE);
+
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetAliasesHandler getAliasesHandler (loop, client.getAliases ());
+    QObject::connect (getAliasesHandler.request, &QSnapdGetAliasesRequest::complete, &getAliasesHandler, &GetAliasesHandler::onComplete);
+    getAliasesHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
 static void
 test_aliases_get_empty ()
 {
@@ -4651,7 +4705,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
     g_test_add_func ("/get-sections/async", test_get_sections_async);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
-    //g_test_add_func ("/aliases/get-async", test_aliases_get_async);
+    g_test_add_func ("/aliases/get-async", test_aliases_get_async);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);
     g_test_add_func ("/aliases/alias-sync", test_aliases_alias_sync);
     g_test_add_func ("/aliases/alias-async", test_aliases_alias_async);

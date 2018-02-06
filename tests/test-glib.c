@@ -5530,6 +5530,74 @@ test_aliases_get_sync (void)
 }
 
 static void
+get_aliases_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    g_autoptr(GPtrArray) aliases = NULL;
+    SnapdAlias *alias;
+    g_autoptr(GError) error = NULL;
+
+    aliases = snapd_client_get_aliases_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (aliases);
+    g_assert_cmpint (aliases->len, ==, 3);
+    alias = aliases->pdata[0];
+    g_assert_cmpstr (snapd_alias_get_name (alias), ==, "alias1");
+    g_assert_cmpstr (snapd_alias_get_snap (alias), ==, "snap");
+    g_assert_cmpstr (snapd_alias_get_command (alias), ==, "snap.app");
+    g_assert_cmpint (snapd_alias_get_status (alias), ==, SNAPD_ALIAS_STATUS_AUTO);
+    g_assert_cmpstr (snapd_alias_get_app_auto (alias), ==, "app");
+    g_assert_null (snapd_alias_get_app_manual (alias));
+    alias = aliases->pdata[1];
+    g_assert_cmpstr (snapd_alias_get_name (alias), ==, "alias2");
+    g_assert_cmpstr (snapd_alias_get_snap (alias), ==, "snap");
+    g_assert_cmpstr (snapd_alias_get_command (alias), ==, "snap.app");
+    g_assert_cmpint (snapd_alias_get_status (alias), ==, SNAPD_ALIAS_STATUS_MANUAL);
+    g_assert_null (snapd_alias_get_app_auto (alias));
+    g_assert_cmpstr (snapd_alias_get_app_manual (alias), ==, "app");
+    alias = aliases->pdata[2];
+    g_assert_cmpstr (snapd_alias_get_name (alias), ==, "alias3");
+    g_assert_cmpstr (snapd_alias_get_snap (alias), ==, "snap");
+    g_assert_cmpstr (snapd_alias_get_command (alias), ==, "snap.app");
+    g_assert_cmpint (snapd_alias_get_status (alias), ==, SNAPD_ALIAS_STATUS_DISABLED);
+    g_assert_cmpstr (snapd_alias_get_app_auto (alias), ==, "app");
+    g_assert_null (snapd_alias_get_app_manual (alias));
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_aliases_get_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    MockApp *a;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    a = mock_snap_add_app (s, "app");
+
+    mock_app_add_auto_alias (a, "alias1");
+
+    mock_app_add_manual_alias (a, "alias2", TRUE);
+
+    mock_app_add_auto_alias (a, "alias3");
+    mock_app_add_manual_alias (a, "alias3", FALSE);
+
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_aliases_async (client, NULL, get_aliases_cb, async_data_new (loop, snapd));
+}
+
+static void
 test_aliases_get_empty (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -6037,7 +6105,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
     g_test_add_func ("/get-sections/async", test_get_sections_async);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
-    //g_test_add_func ("/aliases/get-async", test_aliases_get_async);
+    g_test_add_func ("/aliases/get-async", test_aliases_get_async);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);
     g_test_add_func ("/aliases/alias-sync", test_aliases_alias_sync);
     g_test_add_func ("/aliases/alias-async", test_aliases_alias_async);
