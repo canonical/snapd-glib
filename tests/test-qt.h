@@ -250,6 +250,24 @@ public slots:
     void onComplete ();
 };
 
+class InstallStreamHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    InstallStreamHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdInstallRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdInstallRequest *request;
+    ~InstallStreamHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class TryHandler: public QObject
 {
     Q_OBJECT

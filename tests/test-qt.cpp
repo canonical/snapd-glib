@@ -2808,6 +2808,44 @@ test_install_stream_sync ()
     g_assert_false (mock_snap_get_jailmode (snap));
 }
 
+void
+InstallStreamHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
+    g_assert_nonnull (snap);
+    g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
+    g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
+    g_assert_false (mock_snap_get_dangerous (snap));
+    g_assert_false (mock_snap_get_devmode (snap));
+    g_assert_false (mock_snap_get_jailmode (snap));
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_install_stream_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert_null (mock_snapd_find_snap (snapd, "sideload"));
+    QBuffer buffer;
+    buffer.open (QBuffer::ReadWrite);
+    buffer.write ("SNAP");
+    buffer.seek (0);
+    InstallStreamHandler installHandler (loop, snapd, client.install (&buffer));
+    QObject::connect (installHandler.request, &QSnapdInstallRequest::complete, &installHandler, &InstallStreamHandler::onComplete);
+    installHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
 static void
 test_install_stream_progress ()
 {
@@ -4517,7 +4555,7 @@ main (int argc, char **argv)
     g_test_add_func ("/install/snapd-restart", test_install_snapd_restart);
     g_test_add_func ("/install/async-snapd-restart", test_install_async_snapd_restart);
     g_test_add_func ("/install-stream/sync", test_install_stream_sync);
-    //g_test_add_func ("/install-stream/async", test_install_stream_async);
+    g_test_add_func ("/install-stream/async", test_install_stream_async);
     g_test_add_func ("/install-stream/progress", test_install_stream_progress);
     g_test_add_func ("/install-stream/classic", test_install_stream_classic);
     g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous);

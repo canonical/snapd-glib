@@ -3602,6 +3602,52 @@ test_install_stream_sync (void)
     g_assert_false (mock_snap_get_jailmode (snap));
 }
 
+static void
+install_stream_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    gboolean r;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_install_stream_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    snap = mock_snapd_find_snap (data->snapd, "sideload");
+    g_assert_nonnull (snap);
+    g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
+    g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
+    g_assert_false (mock_snap_get_dangerous (snap));
+    g_assert_false (mock_snap_get_devmode (snap));
+    g_assert_false (mock_snap_get_jailmode (snap));
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_install_stream_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GInputStream) stream = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_assert_null (mock_snapd_find_snap (snapd, "sideload"));
+    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    snapd_client_install_stream_async (client, SNAPD_INSTALL_FLAGS_NONE, stream, NULL, NULL, NULL, install_stream_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
 typedef struct
 {
     int progress_done;
@@ -5883,7 +5929,7 @@ main (int argc, char **argv)
     g_test_add_func ("/install/snapd-restart", test_install_snapd_restart);
     g_test_add_func ("/install/async-snapd-restart", test_install_async_snapd_restart);
     g_test_add_func ("/install-stream/sync", test_install_stream_sync);
-    //g_test_add_func ("/install-stream/async", test_install_stream_async);
+    g_test_add_func ("/install-stream/async", test_install_stream_async);
     g_test_add_func ("/install-stream/progress", test_install_stream_progress);
     g_test_add_func ("/install-stream/classic", test_install_stream_classic);
     g_test_add_func ("/install-stream/dangerous", test_install_stream_dangerous);
