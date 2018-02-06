@@ -4109,6 +4109,40 @@ test_get_users_sync ()
     g_assert (getUsersRequest->userInformation (1)->email () == "bob@example.com");
 }
 
+void
+GetUsersHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->userInformationCount (), ==, 2);
+    g_assert_cmpint (request->userInformation (0)->id (), ==, 1);
+    g_assert (request->userInformation (0)->username () == "alice");
+    g_assert (request->userInformation (0)->email () == "alice@example.com");
+    g_assert_cmpint (request->userInformation (1)->id (), ==, 2);
+    g_assert (request->userInformation (1)->username () == "bob");
+    g_assert (request->userInformation (1)->email () == "bob@example.com");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_users_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_account (snapd, "alice@example.com", "alice", "secret");
+    mock_snapd_add_account (snapd, "bob@example.com", "bob", "secret");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetUsersHandler getUsersHandler (loop, snapd, client.getUsers ());
+    QObject::connect (getUsersHandler.request, &QSnapdGetUsersRequest::complete, &getUsersHandler, &GetUsersHandler::onComplete);
+    getUsersHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
 static void
 test_get_sections_sync ()
 {
@@ -4613,7 +4647,7 @@ main (int argc, char **argv)
     g_test_add_func ("/create-users/sync", test_create_users_sync);
     //g_test_add_func ("/create-users/async", test_create_users_async);
     g_test_add_func ("/get-users/sync", test_get_users_sync);
-    //g_test_add_func ("/get-users/async", test_get_users_async);
+    g_test_add_func ("/get-users/async", test_get_users_async);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
     g_test_add_func ("/get-sections/async", test_get_sections_async);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);

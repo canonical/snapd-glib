@@ -573,6 +573,24 @@ public slots:
     void onComplete ();
 };
 
+class GetUsersHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetUsersHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdGetUsersRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdGetUsersRequest *request;
+    ~GetUsersHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class GetSectionsHandler: public QObject
 {
     Q_OBJECT
