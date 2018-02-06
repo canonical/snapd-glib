@@ -77,6 +77,60 @@ public slots:
     void onComplete ();
 };
 
+class GetChangesHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetChangesHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdGetChangesRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdGetChangesRequest *request;
+    ~GetChangesHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class GetChangeHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetChangeHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdGetChangeRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdGetChangeRequest *request;
+    ~GetChangeHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class AbortChangeHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    AbortChangeHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdAbortChangeRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdAbortChangeRequest *request;
+    ~AbortChangeHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class ListHandler: public QObject
 {
     Q_OBJECT
