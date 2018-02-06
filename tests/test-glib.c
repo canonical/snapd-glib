@@ -3792,6 +3792,45 @@ test_try_sync (void)
     g_assert_cmpstr (mock_snap_get_path (snap), ==, "/path/to/snap");
 }
 
+static void
+try_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    gboolean r;
+    MockSnap *snap;
+    g_autoptr(GError) error = NULL;
+
+    r = snapd_client_try_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    snap = mock_snapd_find_snap (data->snapd, "try");
+    g_assert_nonnull (snap);
+    g_assert_cmpstr (mock_snap_get_path (snap), ==, "/path/to/snap");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_try_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GInputStream) stream = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_try_async (client, "/path/to/snap", NULL, NULL, NULL, try_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
 typedef struct
 {
     int progress_done;
@@ -5851,7 +5890,7 @@ main (int argc, char **argv)
     g_test_add_func ("/install-stream/devmode", test_install_stream_devmode);
     g_test_add_func ("/install-stream/jailmode", test_install_stream_jailmode);
     g_test_add_func ("/try/sync", test_try_sync);
-    //g_test_add_func ("/try/async", test_try_async);
+    g_test_add_func ("/try/async", test_try_async);
     g_test_add_func ("/try/progress", test_try_progress);
     g_test_add_func ("/refresh/sync", test_refresh_sync);
     g_test_add_func ("/refresh/async", test_refresh_async);

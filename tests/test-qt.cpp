@@ -2959,6 +2959,33 @@ test_try_sync ()
     g_assert_cmpstr (mock_snap_get_path (snap), ==, "/path/to/snap");
 }
 
+void
+TryHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    MockSnap *snap = mock_snapd_find_snap (snapd, "try");
+    g_assert_nonnull (snap);
+    g_assert_cmpstr (mock_snap_get_path (snap), ==, "/path/to/snap");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_try_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    TryHandler tryHandler (loop, snapd, client.trySnap ("/path/to/snap"));
+    QObject::connect (tryHandler.request, &QSnapdTryRequest::complete, &tryHandler, &TryHandler::onComplete);
+    tryHandler.request->runAsync ();
+}
+
 static void
 test_try_progress ()
 {
@@ -4497,7 +4524,7 @@ main (int argc, char **argv)
     g_test_add_func ("/install-stream/devmode", test_install_stream_devmode);
     g_test_add_func ("/install-stream/jailmode", test_install_stream_jailmode);
     g_test_add_func ("/try/sync", test_try_sync);
-    //g_test_add_func ("/try/async", test_try_async);
+    g_test_add_func ("/try/async", test_try_async);
     g_test_add_func ("/try/progress", test_try_progress);
     g_test_add_func ("/refresh/sync", test_refresh_sync);
     g_test_add_func ("/refresh/async", test_refresh_async);

@@ -250,6 +250,24 @@ public slots:
     void onComplete ();
 };
 
+class TryHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    TryHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdTryRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdTryRequest *request;
+    ~TryHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class RefreshHandler: public QObject
 {
     Q_OBJECT
