@@ -13,6 +13,8 @@
 
 QSnapdAuthData::QSnapdAuthData (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
+QSnapdAuthData::QSnapdAuthData (QObject *parent) : QSnapdWrappedObject (snapd_auth_data_new ("", NULL), g_object_unref, parent) {}
+
 QSnapdAuthData::QSnapdAuthData (const QString& macaroon, const QStringList& discharges, QObject *parent) : QSnapdWrappedObject (NULL, g_object_unref, parent)
 {
     char *strv[discharges.size () + 1];

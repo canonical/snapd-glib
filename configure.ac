@@ -61,7 +61,7 @@ AC_ARG_ENABLE(snapd-qt,
 	[enable_snapd_qt="auto"])
 compile_snapd_qt=no
 if test x"$enable_snapd_qt" != "xno"; then
-    PKG_CHECK_MODULES(SNAPD_QT, [Qt5Core Qt5Network],
+    PKG_CHECK_MODULES(SNAPD_QT, [gobject-2.0 gio-2.0 Qt5Core Qt5Network],
     [compile_snapd_qt=yes],
     [if test "x$enable_snapd_qt" != xauto; then
        AC_MSG_FAILURE(
