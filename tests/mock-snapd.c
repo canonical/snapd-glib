@@ -2155,7 +2155,7 @@ handle_snaps (MockSnapd *snapd, SoupMessage *message)
             json_builder_end_object (builder);
 
             change = add_change (snapd);
-            change->data = json_node_ref (json_builder_get_root (builder));
+            change->data = json_builder_get_root (builder);
             mock_change_add_task (change, "refresh");
             send_async_response (message, 202, change->id);
         }
@@ -2857,7 +2857,7 @@ make_change_node (MockChange *change)
     }
     if (change_get_ready (change) && change->data != NULL) {
         json_builder_set_member_name (builder, "data");
-        json_builder_add_value (builder, change->data);
+        json_builder_add_value (builder, json_node_ref (change->data));
     }
     if (error != NULL) {
         json_builder_set_member_name (builder, "err");
@@ -2865,7 +2865,7 @@ make_change_node (MockChange *change)
     }
     json_builder_end_object (builder);
 
-    return json_node_ref (json_builder_get_root (builder));
+    return json_builder_get_root (builder);
 }
 
 static gboolean
@@ -2964,7 +2964,6 @@ handle_change (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
 {
     if (strcmp (message->method, "GET") == 0) {
         MockChange *change;
-        g_autoptr(JsonNode) result = NULL;
 
         change = get_change (snapd, change_id);
         if (change == NULL) {
@@ -2973,8 +2972,7 @@ handle_change (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
         }
         mock_change_progress (snapd, change);
 
-        result = make_change_node (change);
-        send_sync_response (message, 200, result, NULL);
+        send_sync_response (message, 200, make_change_node (change), NULL);
     }
     else if (strcmp (message->method, "POST") == 0) {
         MockChange *change;
@@ -2998,7 +2996,6 @@ handle_change (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
         action = json_object_get_string_member (o, "action");
         if (strcmp (action, "abort") == 0) {
             MockTask *task;
-            g_autoptr(JsonNode) result = NULL;
 
             task = get_current_task (change);
             if (task == NULL) {
@@ -3007,8 +3004,7 @@ handle_change (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
             }
             mock_task_set_status (task, "Error");
             task->error = g_strdup ("cancelled");
-            result = make_change_node (change);
-            send_sync_response (message, 200, result, NULL);
+            send_sync_response (message, 200, make_change_node (change), NULL);
         }
         else {
             send_error_bad_request (message, "change action is unsupported", NULL);
