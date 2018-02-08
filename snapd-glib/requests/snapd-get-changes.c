@@ -120,6 +120,7 @@ snapd_get_changes_finalize (GObject *object)
 
     g_clear_pointer (&request->select, g_free);
     g_clear_pointer (&request->snap_name, g_free);
+    g_clear_pointer (&request->changes, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_changes_parent_class)->finalize (object);
 }
