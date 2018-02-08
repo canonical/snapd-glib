@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 1.33
+
+    * Fix small memory leaks
+    * Fix linking with --no-undefined
+    * Compile snapd-qt with -fPIC to avoid compile failure on Fedora
+
 Overview of changes in snapd-glib 1.32
 
     * Fix crash when calling snapd_login_async
