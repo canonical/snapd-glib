@@ -56,6 +56,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdAuthData::~QSnapdAuthData()@Base" 1.5
  (c++)"QSnapdAuthData::QSnapdAuthData(QString const&, QStringList const&, QObject*)@Base" 1.5
  (c++)"QSnapdAuthData::QSnapdAuthData(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdAuthData::QSnapdAuthData(QObject*)@Base" 1.33
  (c++)"QSnapdChange::error() const@Base" 1.30
  (c++)"QSnapdChange::id() const@Base" 1.5
  (c++)"QSnapdChange::kind() const@Base" 1.5

@@ -6,15 +6,14 @@ Uploaders:
  Jeremy Bicha <jbicha@debian.org>,
  Mike Gabriel <sunweaver@debian.org>,
  Robert Ancell <robert.ancell@canonical.com>
-Build-Depends: debhelper (>= 10),
-               gnome-common,
+Build-Depends: autoconf,
+               automake,
+               debhelper (>= 10),
                gobject-introspection,
                gtk-doc-tools (>= 1.20),
-               intltool (>= 0.35.0),
                libgirepository1.0-dev,
                libglib2.0-dev (>= 2.46),
                libjson-glib-dev (>= 1.2),
-               libpolkit-gobject-1-dev,
                libsoup2.4-dev (>= 2.32),
                qtbase5-dev,
                qtdeclarative5-dev,
@@ -29,8 +28,7 @@ Architecture: linux-any kfreebsd-any
 Multi-Arch: same
 Depends: ${misc:Depends},
          ${shlibs:Depends}
-Recommends: snapd,
-            snapd-login-service,
+Recommends: snapd
 Description: GLib snapd library
  snapd-glib is a library to allow GLib based applications access to snapd,
  the daemon that controls Snaps.
@@ -85,8 +83,7 @@ Architecture: any
 Multi-Arch: same
 Depends: ${misc:Depends},
          ${shlibs:Depends}
-Recommends: snapd,
-            snapd-login-service,
+Recommends: snapd
 Description: Qt snapd library
  snapd-glib is a library to allow GLib based applications access to snapd,
  the daemon that controls Snaps.
@@ -101,8 +98,7 @@ Package: qml-module-snapd
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-Recommends: snapd,
-            snapd-login-service,
+Recommends: snapd
 Description: Snapd QML module
  snapd-glib is a library to allow GLib based applications access to snapd,
  the daemon that controls Snaps.
@@ -135,16 +131,6 @@ Description: Qt snapd library (development files)
 Package: snapd-login-service
 Section: admin
 Architecture: any
-Depends: ${misc:Depends},
-         ${shlibs:Depends}
-Recommends: policykit-1
-Description: Daemon to allow non-root access to snapd
- snapd-glib is a library to allow GLib based applications access to snapd,
- the daemon that controls Snaps.
- .
- Snaps are 'universal' packages that work across many different Linux
- systems, enabling secure distribution of the latest apps and utilities
- for cloud, servers, desktops and the internet of things.
- .
- Snapd Login Service is a daemon that allows users to request authorization from
- snapd. It uses Polkit to check for permissions.
+Depends: ${misc:Depends}
+Description: transitional package for snapd-glib
+ You can safely remove this package.

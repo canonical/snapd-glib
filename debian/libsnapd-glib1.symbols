@@ -217,7 +217,6 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_install_flags_get_type@Base 1.9
  snapd_login_async@Base 0.9
  snapd_login_finish@Base 0.9
- snapd_login_request_get_type@Base 0.9
  snapd_login_sync@Base 0.9
  snapd_plug_get_attribute@Base 1.3
  snapd_plug_get_attribute_names@Base 1.3

@@ -1,8 +1,16 @@
-snapd-glib (1.32-2) UNRELEASED; urgency=medium
+snapd-glib (1.34-1) UNRELEASED; urgency=medium
 
+  [ Jeremy Bicha ]
   * Don't try to build on hurd (Closes: #882523)
 
- -- Jeremy Bicha <jbicha@debian.org>  Thu, 25 Jan 2018 22:49:27 -0500
+  [ Robert Ancell ]
+  * New upstream release
+  * snapd-login-service no longer exists, update build-depends and make
+    transitional package
+  * Don't build-depend on gnome-common
+  * Update symbols (one private one removed)
+
+ -- Robert Ancell <robert.ancell@canonical.com>  Wed, 14 Feb 2018 10:59:38 +1300
 
 snapd-glib (1.32-1) unstable; urgency=medium
 
