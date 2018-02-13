@@ -1107,8 +1107,7 @@ snapd_client_login2_finish (SnapdClient *client, GAsyncResult *result, GError **
  * Set the authorization data to use for requests. Authorization data can be
  * obtained by:
  *
- * - Logging into snapd using snapd_login_sync() or snapd_client_login_sync()
- *   (requires root access)
+ * - Logging into snapd using snapd_client_login_sync()
  *
  * - Using an existing authorization with snapd_auth_data_new().
  *

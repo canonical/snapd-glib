@@ -21,17 +21,20 @@
 
 G_BEGIN_DECLS
 
+G_DEPRECATED_FOR (snapd_client_login2_sync)
 SnapdAuthData          *snapd_login_sync                           (const gchar          *username,
                                                                     const gchar          *password,
                                                                     const gchar          *otp,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
+G_DEPRECATED_FOR (snapd_client_login2_async)
 void                    snapd_login_async                          (const gchar          *username,
                                                                     const gchar          *password,
                                                                     const gchar          *otp,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
+G_DEPRECATED_FOR (snapd_client_login2_finish)
 SnapdAuthData          *snapd_login_finish                         (GAsyncResult         *result,
                                                                     GError              **error);
 

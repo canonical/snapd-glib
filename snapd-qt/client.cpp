@@ -677,7 +677,9 @@ void QSnapdLoginRequest::runSync ()
     if (getClient () != NULL)
         d->user_information = snapd_client_login2_sync (SNAPD_CLIENT (getClient ()), d->email.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.isNull () ? NULL : d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
     else
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         d->auth_data = snapd_login_sync (d->email.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.isNull () ? NULL : d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     finish (error);
 }
 
@@ -689,7 +691,9 @@ void QSnapdLoginRequest::handleResult (void *object, void *result)
     if (getClient () != NULL)
         d->user_information = snapd_client_login2_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
     else
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         d->auth_data = snapd_login_finish (G_ASYNC_RESULT (result), &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
 
     finish (error);
 }
@@ -706,7 +710,9 @@ void QSnapdLoginRequest::runAsync ()
     if (getClient () != NULL)
         snapd_client_login2_async (SNAPD_CLIENT (getClient ()), d->email.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.isNull () ? NULL : d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), login_ready_cb, (gpointer) this);
     else
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
         snapd_login_async (d->email.toStdString ().c_str (), d->password.toStdString ().c_str (), d->otp.isNull () ? NULL : d->otp.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), login_ready_cb, (gpointer) this);
+G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 QSnapdUserInformation *QSnapdLoginRequest::userInformation ()

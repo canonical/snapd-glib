@@ -738,8 +738,8 @@ private:
     Q_DECLARE_PRIVATE(QSnapdRunSnapCtlRequest)
 };
 
-Q_INVOKABLE QSnapdLoginRequest *login (const QString& email, const QString& password);
-Q_INVOKABLE QSnapdLoginRequest *login (const QString& email, const QString& password, const QString& otp);
+Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password);
+Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password, const QString& otp);
 
 class QSnapdClientPrivate;
 class Q_DECL_EXPORT QSnapdClient : public QObject

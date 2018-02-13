@@ -3,7 +3,7 @@ DOC_MAIN_SGML_FILE = $(DOC_MODULE)-docs.xml
 DOC_SOURCE_DIR = $(top_srcdir)/snapd-glib $(top_builddir)/snapd-glib
 
 SCANGOBJ_OPTIONS =
-SCAN_OPTIONS = --deprecated-guards="SNAPD_DISABLE_DEPRECATED" --rebuild-types --ignore-headers="$(top_srcdir)/snapd-glib/tests/mock-snapd.h $(top_srcdir)/snapd-glib/snapd-login-private.h $(top_srcdir)/snapd-glib/snapd-json.h"
+SCAN_OPTIONS = --deprecated-guards="SNAPD_DISABLE_DEPRECATED" --rebuild-types --ignore-headers="$(top_srcdir)/snapd-glib/tests/mock-snapd.h $(top_srcdir)/snapd-glib/snapd-json.h"
 MKDB_OPTIONS = --output-format=xml --name-space=snapd
 MKTMPL_OPTIONS =
 FIXXREF_OPTIONS = \

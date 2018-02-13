@@ -82,7 +82,6 @@ snapd_client_connect_sync (SnapdClient *client,
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Log in to snapd and get authorization to install/remove snaps.
- * This call requires root access; use snapd_login_sync() if you are non-root.
  *
  * Returns: (transfer full): a #SnapdAuthData or %NULL on error.
  *
@@ -121,7 +120,6 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Log in to snapd and get authorization to install/remove snaps.
- * This call requires root access; use snapd_login_sync() if you are non-root.
  *
  * Returns: (transfer full): a #SnapdUserInformation or %NULL on error.
  *

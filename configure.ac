@@ -38,16 +38,6 @@ PKG_CHECK_MODULES(SNAPD, [
     libsoup-2.4 >= $LIBSOUP_REQUIRED
     json-glib-1.0 >= $JSON_GLIB_REQUIRED
 ])
-PKG_CHECK_MODULES(SNAPD_LOGIN_SERVICE, [
-    glib-2.0 >= $GLIB_REQUIRED
-    gio-2.0 >= $GLIB_REQUIRED
-    gio-unix-2.0 >= $GLIB_REQUIRED
-    polkit-gobject-1
-])
-
-PKG_CHECK_EXISTS([polkit-gobject-1 >= 0.114],
-                 [AC_DEFINE(POLKIT_HAS_AUTOPTR_MACROS, 1, [if PolKit has autoptr macros])],
-                 [])
 
 dnl === Test suite ============================================================
 
@@ -110,11 +100,6 @@ if test x"$enable_qml_module" != "xno"; then
 fi
 AM_CONDITIONAL(COMPILE_QML_MODULE, test x"$compile_qml_module" != "xno")
 
-dnl === Translations ==========================================================
-
-AC_PROG_INTLTOOL()
-AC_SUBST([GETTEXT_PACKAGE], [snapd-glib])
-
 dnl === Documentation =========================================================
 
 GTK_DOC_CHECK([1.20], [--flavour no-tmpl])
@@ -135,13 +120,11 @@ AC_CONFIG_FILES([
         doc/Makefile
         doc/reference/Makefile
         doc/reference/version.xml
-        po/Makefile.in
         snapd-glib/Makefile
         snapd-glib/snapd-glib.pc
         snapd-qt/Makefile
         snapd-qt/SnapdConfigVersion.cmake
         snapd-qt/snapd-qt.pc
-        snapd-login-service/Makefile
         tests/Makefile
 ])
 

@@ -27,7 +27,6 @@ source_h = \
 
 source_private_h = \
 	snapd-json.h \
-	snapd-login-private.h \
 	requests/snapd-get-aliases.h \
 	requests/snapd-get-apps.h \
 	requests/snapd-get-assertions.h \
