@@ -533,7 +533,7 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
  * @query: query string to send.
- * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
+ * @suggested_currency: (out) (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
@@ -559,7 +559,7 @@ snapd_client_find_sync (SnapdClient *client,
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
  * @section: (allow-none): store section to search in or %NULL to search in all sections.
  * @query: (allow-none): query string to send or %NULL to get all snaps from the given section.
- * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
+ * @suggested_currency: (out) (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *

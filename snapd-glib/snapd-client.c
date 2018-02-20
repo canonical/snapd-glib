@@ -1898,7 +1898,7 @@ snapd_client_find_async (SnapdClient *client,
  * snapd_client_find_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
- * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
+ * @suggested_currency: (out) (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Complete request started with snapd_client_find_async().
@@ -1956,7 +1956,7 @@ snapd_client_find_section_async (SnapdClient *client,
  * snapd_client_find_section_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
- * @suggested_currency: (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
+ * @suggested_currency: (out) (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Complete request started with snapd_client_find_async().
