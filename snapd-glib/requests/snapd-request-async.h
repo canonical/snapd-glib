@@ -15,6 +15,7 @@
 
 #include "snapd-request.h"
 #include "snapd-change.h"
+#include "snapd-client.h"
 
 G_BEGIN_DECLS
 
@@ -34,6 +35,7 @@ gboolean     _snapd_request_async_parse_result    (SnapdRequestAsync *request,
                                                    GError           **error);
 
 void         _snapd_request_async_report_progress (SnapdRequestAsync *request,
+                                                   SnapdClient       *client,
                                                    SnapdChange       *change);
 
 G_END_DECLS

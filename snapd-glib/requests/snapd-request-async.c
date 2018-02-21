@@ -129,14 +129,14 @@ changes_equal (SnapdChange *change1, SnapdChange *change2)
 }
 
 void
-_snapd_request_async_report_progress (SnapdRequestAsync *request, SnapdChange *change)
+_snapd_request_async_report_progress (SnapdRequestAsync *request, SnapdClient *client, SnapdChange *change)
 {
     SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (request);
 
     if (!changes_equal (priv->change, change)) {
         g_set_object (&priv->change, change);
         if (priv->progress_callback != NULL)
-            priv->progress_callback (SNAPD_CLIENT (g_async_result_get_source_object (G_ASYNC_RESULT (request))),
+            priv->progress_callback (client,
                                      change,
                                      snapd_change_get_tasks (change), // Passed for ABI compatibility, is deprecated
                                      priv->progress_callback_data);

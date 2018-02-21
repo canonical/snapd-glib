@@ -477,7 +477,7 @@ update_changes (SnapdClient *client, SnapdChange *change, JsonNode *data)
     if (request == NULL)
         return;
 
-    _snapd_request_async_report_progress (request, change);
+    _snapd_request_async_report_progress (request, client, change);
 
     /* Complete parent */
     if (snapd_change_get_ready (change)) {
@@ -673,20 +673,20 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
 }
 
 static void
-request_cancelled_cb (GCancellable *cancellable, SnapdRequest *request)
+request_cancelled_cb (GCancellable *cancellable, RequestData *data)
 {
     /* Asynchronous requests require asking snapd to stop them */
-    if (SNAPD_IS_REQUEST_ASYNC (request)) {
-        SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (request);
+    if (SNAPD_IS_REQUEST_ASYNC (data->request)) {
+        SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (data->request);
 
         /* Cancel if we have got a response from snapd */
         if (_snapd_request_async_get_change_id (r) != NULL)
-            send_cancel (SNAPD_CLIENT (g_async_result_get_source_object (G_ASYNC_RESULT (request))), r);
+            send_cancel (data->client, r);
     }
     else {
         g_autoptr(GError) error = NULL;
-        g_cancellable_set_error_if_cancelled (_snapd_request_get_cancellable (request), &error);
-        _snapd_request_return (request, error);
+        g_cancellable_set_error_if_cancelled (_snapd_request_get_cancellable (data->request), &error);
+        _snapd_request_return (data->request, error);
     }
 }
 
@@ -719,7 +719,7 @@ send_request (SnapdClient *client, SnapdRequest *request)
     g_hash_table_insert (priv->request_data, request, data);
 
     if (_snapd_request_get_cancellable (request) != NULL)
-        data->cancelled_id = g_cancellable_connect (_snapd_request_get_cancellable (request), G_CALLBACK (request_cancelled_cb), g_object_ref (request), g_object_unref);
+        data->cancelled_id = g_cancellable_connect (_snapd_request_get_cancellable (request), G_CALLBACK (request_cancelled_cb), request_data_new (client, request), (GDestroyNotify) request_data_free);
 
     message = _snapd_request_get_message (request);
     soup_message_headers_append (message->request_headers, "Host", "");
