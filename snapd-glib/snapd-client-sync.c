@@ -464,7 +464,7 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
  * @plug_name: name of plug to connect.
  * @slot_snap: name of snap containing socket.
  * @slot_name: name of slot to connect.
- * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
@@ -1150,7 +1150,7 @@ snapd_client_get_aliases_sync (SnapdClient *client,
  * @snap: the name of the snap to modify.
  * @app: an app in the snap to make the alias to.
  * @alias: the name of the alias (i.e. the command that will run this app).
- * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1184,7 +1184,7 @@ snapd_client_alias_sync (SnapdClient *client,
  * @client: a #SnapdClient.
  * @snap: (allow-none): the name of the snap to modify or %NULL.
  * @alias: (allow-none): the name of the alias to remove or %NULL to remove all aliases for the given snap.
- * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1215,7 +1215,7 @@ snapd_client_unalias_sync (SnapdClient *client,
  * snapd_client_prefer_sync:
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
- * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1247,7 +1247,7 @@ snapd_client_prefer_sync (SnapdClient *client,
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
- * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1275,7 +1275,7 @@ snapd_client_enable_aliases_sync (SnapdClient *client,
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
- * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1303,7 +1303,7 @@ snapd_client_disable_aliases_sync (SnapdClient *client,
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
- * @progress_callback: (allow-none) (scope async): function to callback with progress.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
  * @progress_callback_data: (closure): user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
