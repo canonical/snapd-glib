@@ -1,4 +1,4 @@
-snapd-glib (1.35-1) UNRELEASED; urgency=medium
+snapd-glib (1.36-1) UNRELEASED; urgency=medium
 
   [ Jeremy Bicha ]
   * Don't try to build on hurd (Closes: #882523)
