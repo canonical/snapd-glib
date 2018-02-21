@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 1.35
+
+    * Fix missing out annotation in find/find_section
+
 Overview of changes in snapd-glib 1.34
 
     * Remove deprecated snapd-login-service
