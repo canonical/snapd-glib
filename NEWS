@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.36
+
+    * Fix progress callback scope annotations
+    * Fix reference leak
+
 Overview of changes in snapd-glib 1.35
 
     * Fix missing out annotation in find/find_section
