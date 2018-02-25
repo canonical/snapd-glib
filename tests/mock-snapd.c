@@ -2311,7 +2311,7 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
 
             snap = find_store_snap_by_name (snapd, name, channel, revision);
             if (snap == NULL) {
-                send_error_bad_request (message, "cannot install, snap not found", NULL);
+                send_error_bad_request (message, "cannot install, snap not found", "snap-not-found");
                 return;
             }
 
@@ -2354,7 +2354,9 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
 
                 /* Find if we have a store snap with a newer revision */
                 store_snap = find_store_snap_by_name (snapd, name, channel, NULL);
-                if (store_snap != NULL && strcmp (store_snap->revision, snap->revision) > 0) {
+                if (store_snap == NULL) {
+                    send_error_bad_request (message, "cannot perform operation on local snap", "snap-local");
+                } else if (strcmp (store_snap->revision, snap->revision) > 0) {
                     MockChange *change;
 
                     mock_snap_set_channel (snap, channel);
@@ -2369,7 +2371,7 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                     send_error_bad_request (message, "snap has no updates available", "snap-no-update-available");
             }
             else
-                send_error_bad_request (message, "cannot refresh: cannot find snap", NULL);
+                send_error_bad_request (message, "cannot refresh: cannot find snap", "snap-not-installed");
         }
         else if (strcmp (action, "remove") == 0) {
             MockSnap *snap;
@@ -2389,7 +2391,6 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                     task->error = g_strdup (snap->error);
 
                 send_async_response (message, 202, change->id);
-
             }
             else
                 send_error_bad_request (message, "snap is not installed", "snap-not-installed");
@@ -2413,7 +2414,7 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 send_async_response (message, 202, change->id);
             }
             else
-                send_error_bad_request (message, "cannot enable: cannot find snap", NULL);
+                send_error_bad_request (message, "cannot enable: cannot find snap", "snap-not-installed");
         }
         else if (strcmp (action, "disable") == 0) {
             MockSnap *snap;
@@ -2436,7 +2437,7 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 send_async_response (message, 202, change->id);
             }
             else
-                send_error_bad_request (message, "cannot disable: cannot find snap", NULL);
+                send_error_bad_request (message, "cannot disable: cannot find snap", "snap-not-installed");
         }
         else if (strcmp (action, "switch") == 0) {
             MockSnap *snap;
@@ -2455,7 +2456,7 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 send_async_response (message, 202, change->id);
             }
             else
-                send_error_bad_request (message, "cannot switch: cannot find snap", NULL);
+                send_error_bad_request (message, "cannot switch: cannot find snap", "snap-not-installed");
         }
         else
             send_error_bad_request (message, "unknown action", NULL);

@@ -3756,7 +3756,7 @@ test_install_not_available (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
-    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_FOUND);
     g_assert_false (result);
 }
 
@@ -4322,9 +4322,29 @@ test_refresh_not_installed (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
-    // FIXME: Should be a not installed error, see https://bugs.launchpad.net/bugs/1659106
-    //g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
-    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
+    g_assert_false (result);
+}
+
+static void
+test_refresh_not_in_store (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_revision (s, "0");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_IN_STORE);
     g_assert_false (result);
 }
 
@@ -4804,9 +4824,7 @@ test_enable_not_installed (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     result = snapd_client_enable_sync (client, "snap", NULL, NULL, NULL, &error);
-    // FIXME: Should be a not installed error, see https://bugs.launchpad.net/bugs/1659106
-    //g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
-    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
     g_assert_false (result);
 }
 
@@ -4946,9 +4964,7 @@ test_disable_not_installed (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     result = snapd_client_disable_sync (client, "snap", NULL, NULL, NULL, &error);
-    // FIXME: Should be a not installed error, see https://bugs.launchpad.net/bugs/1659106
-    //g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
-    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
     g_assert_false (result);
 }
 
@@ -5066,9 +5082,7 @@ test_switch_not_installed (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     result = snapd_client_switch_sync (client, "snap", "beta", NULL, NULL, NULL, &error);
-    // FIXME: Should be a not installed error, see https://bugs.launchpad.net/bugs/1659106
-    //g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
-    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
     g_assert_false (result);
 }
 
@@ -6294,6 +6308,7 @@ main (int argc, char **argv)
     g_test_add_func ("/refresh/channel", test_refresh_channel);
     g_test_add_func ("/refresh/no-updates", test_refresh_no_updates);
     g_test_add_func ("/refresh/not-installed", test_refresh_not_installed);
+    g_test_add_func ("/refresh/not-in-store", test_refresh_not_in_store);
     g_test_add_func ("/refresh-all/sync", test_refresh_all_sync);
     g_test_add_func ("/refresh-all/async", test_refresh_all_async);
     g_test_add_func ("/refresh-all/progress", test_refresh_all_progress);

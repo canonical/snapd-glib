@@ -241,6 +241,16 @@ parse_error_response (JsonObject *root, GError **error)
                              SNAPD_ERROR,
                              SNAPD_ERROR_NOT_INSTALLED,
                              message);
+    else if (g_strcmp0 (kind, "snap-not-found") == 0)
+        g_set_error_literal (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_NOT_FOUND,
+                             message);
+    else if (g_strcmp0 (kind, "snap-local") == 0)
+        g_set_error_literal (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_NOT_IN_STORE,
+                             message);
     else if (g_strcmp0 (kind, "snap-no-update-available") == 0)
         g_set_error_literal (error,
                              SNAPD_ERROR,

@@ -2962,7 +2962,7 @@ test_install_not_available ()
 
     QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap"));
     installRequest->runSync ();
-    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::BadRequest);
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NotFound);
 }
 
 static void
@@ -3385,9 +3385,23 @@ test_refresh_not_installed ()
 
     QScopedPointer<QSnapdRefreshRequest> refreshRequest (client.refresh ("snap"));
     refreshRequest->runSync ();
-    // FIXME: Should be a not installed error, see https://bugs.launchpad.net/bugs/1659106
-    //g_assert_cmpint (refreshRequest->error (), ==, QSnapdRequest::NotInstalled);
-    g_assert_cmpint (refreshRequest->error (), ==, QSnapdRequest::BadRequest);
+    g_assert_cmpint (refreshRequest->error (), ==, QSnapdRequest::NotInstalled);
+}
+
+static void
+test_refresh_not_in_store ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_revision (s, "0");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdRefreshRequest> refreshRequest (client.refresh ("snap"));
+    refreshRequest->runSync ();
+    g_assert_cmpint (refreshRequest->error (), ==, QSnapdRequest::NotInStore);
 }
 
 static void
@@ -3740,9 +3754,7 @@ test_enable_not_installed ()
 
     QScopedPointer<QSnapdEnableRequest> enableRequest (client.enable ("snap"));
     enableRequest->runSync ();
-    // FIXME: Should be a not installed error, see https://bugs.launchpad.net/bugs/1659106
-    //g_assert_cmpint (enableRequest->error (), ==, QSnapdRequest::NotInstalled);
-    g_assert_cmpint (enableRequest->error (), ==, QSnapdRequest::BadRequest);
+    g_assert_cmpint (enableRequest->error (), ==, QSnapdRequest::NotInstalled);
 }
 
 static void
@@ -3837,9 +3849,7 @@ test_disable_not_installed ()
 
     QScopedPointer<QSnapdDisableRequest> disableRequest (client.disable ("snap"));
     disableRequest->runSync ();
-    // FIXME: Should be a not installed error, see https://bugs.launchpad.net/bugs/1659106
-    //g_assert_cmpint (disableRequest->error (), ==, QSnapdRequest::NotInstalled);
-    g_assert_cmpint (disableRequest->error (), ==, QSnapdRequest::BadRequest);
+    g_assert_cmpint (disableRequest->error (), ==, QSnapdRequest::NotInstalled);
 }
 
 static void
@@ -3918,9 +3928,7 @@ test_switch_not_installed ()
 
     QScopedPointer<QSnapdSwitchChannelRequest> switchRequest (client.switchChannel ("snap", "beta"));
     switchRequest->runSync ();
-    // FIXME: Should be a not installed error, see https://bugs.launchpad.net/bugs/1659106
-    //g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
-    g_assert_cmpint (switchRequest->error (), ==, QSnapdRequest::BadRequest);
+    g_assert_cmpint (switchRequest->error (), ==, QSnapdRequest::NotInstalled);
 }
 
 static void
@@ -4880,6 +4888,7 @@ main (int argc, char **argv)
     g_test_add_func ("/refresh/channel", test_refresh_channel);
     g_test_add_func ("/refresh/no-updates", test_refresh_no_updates);
     g_test_add_func ("/refresh/not-installed", test_refresh_not_installed);
+    g_test_add_func ("/refresh/not-in-store", test_refresh_not_in_store);
     g_test_add_func ("/refresh-all/sync", test_refresh_all_sync);
     g_test_add_func ("/refresh-all/async", test_refresh_all_async);
     g_test_add_func ("/refresh-all/progress", test_refresh_all_progress);
