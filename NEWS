@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 1.37
+
+    * Support new snapd errors SNAPD_ERROR_NOT_FOUND, SNAPD_ERROR_NOT_IN_STORE
+
 Overview of changes in snapd-glib 1.36
 
     * Fix progress callback scope annotations
