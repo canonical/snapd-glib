@@ -5,8 +5,7 @@ snapd-glib (1.37-1) UNRELEASED; urgency=medium
 
   [ Robert Ancell ]
   * New upstream release
-  * snapd-login-service no longer exists, update build-depends and make
-    transitional package
+  * snapd-login-service no longer exists, remove binary package
   * Don't build-depend on gnome-common
   * Update symbols (one private one removed)
 

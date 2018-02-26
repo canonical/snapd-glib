@@ -6,9 +6,7 @@ Uploaders:
  Jeremy Bicha <jbicha@debian.org>,
  Mike Gabriel <sunweaver@debian.org>,
  Robert Ancell <robert.ancell@canonical.com>
-Build-Depends: autoconf,
-               automake,
-               debhelper (>= 10),
+Build-Depends: debhelper (>= 10),
                gobject-introspection,
                gtk-doc-tools (>= 1.20),
                libgirepository1.0-dev,
@@ -127,10 +125,3 @@ Description: Qt snapd library (development files)
  snapd-qt is a wrapper library for snapd-glib for Qt applications.
  .
  This package contains the development files.
-
-Package: snapd-login-service
-Section: admin
-Architecture: any
-Depends: ${misc:Depends}
-Description: transitional package for snapd-glib
- You can safely remove this package.
