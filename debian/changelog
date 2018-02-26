@@ -1,4 +1,4 @@
-snapd-glib (1.37-1) UNRELEASED; urgency=medium
+snapd-glib (1.37-1) unstable; urgency=medium
 
   [ Jeremy Bicha ]
   * Don't try to build on hurd (Closes: #882523)
@@ -9,7 +9,7 @@ snapd-glib (1.37-1) UNRELEASED; urgency=medium
   * Don't build-depend on gnome-common
   * Update symbols (one private one removed)
 
- -- Robert Ancell <robert.ancell@canonical.com>  Wed, 14 Feb 2018 10:59:38 +1300
+ -- Robert Ancell <robert.ancell@canonical.com>  Tue, 27 Feb 2018 10:59:38 +1300
 
 snapd-glib (1.32-1) unstable; urgency=medium
 
