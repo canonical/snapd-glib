@@ -37,7 +37,7 @@ Description: GLib snapd library
 
 Package: gir1.2-snapd-1
 Section: introspection
-Architecture: any
+Architecture: linux-any kfreebsd-any
 Multi-Arch: same
 Depends: ${misc:Depends},
          ${gir:Depends},
@@ -57,7 +57,7 @@ Description: Typelib file for libsnapd-glib1
 
 Package: libsnapd-glib-dev
 Section: libdevel
-Architecture: any
+Architecture: linux-any kfreebsd-any
 Multi-Arch: same
 Depends: ${misc:Depends},
          libsnapd-glib1 (= ${binary:Version}),
@@ -77,7 +77,7 @@ Description: GLib snapd library (development files)
  is useful for building applications that need to communicate with snapd.
 
 Package: libsnapd-qt1
-Architecture: any
+Architecture: linux-any kfreebsd-any
 Multi-Arch: same
 Depends: ${misc:Depends},
          ${shlibs:Depends}
@@ -93,7 +93,7 @@ Description: Qt snapd library
  snapd-qt is a wrapper library for snapd-glib for Qt applications.
 
 Package: qml-module-snapd
-Architecture: any
+Architecture: linux-any kfreebsd-any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
 Recommends: snapd
@@ -109,7 +109,7 @@ Description: Snapd QML module
 
 Package: libsnapd-qt-dev
 Section: libdevel
-Architecture: any
+Architecture: linux-any kfreebsd-any
 Multi-Arch: same
 Depends: ${misc:Depends},
          libsnapd-qt1 (= ${binary:Version}),
