@@ -2173,6 +2173,7 @@ test_find_channels ()
     g_assert (snap->tracks ()[0] == "latest");
     g_assert (snap->tracks ()[1] == "TRACK");
     g_assert_cmpint (snap->channelCount (), ==, 3);
+
     QScopedPointer<QSnapdChannel> channel1 (snap->matchChannel ("stable"));
     g_assert_nonnull (channel1);
     g_assert (channel1->name () == "stable");
@@ -2184,6 +2185,7 @@ test_find_channels ()
     g_assert (channel1->epoch () == "0");
     g_assert_cmpint (channel1->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert_cmpint (channel1->size (), ==, 65535);
+
     QScopedPointer<QSnapdChannel> channel2 (snap->matchChannel ("beta"));
     g_assert_nonnull (channel2);
     g_assert (channel2->name () == "beta");
@@ -2195,11 +2197,16 @@ test_find_channels ()
     g_assert (channel2->epoch () == "1");
     g_assert_cmpint (channel2->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
     g_assert_cmpint (channel2->size (), ==, 10000);
-    QScopedPointer<QSnapdChannel> channel3 (snap->matchChannel ("stable/branch"));
-    g_assert (channel3->name () == "stable/branch");
-    g_assert (channel3->track () == "latest");
-    g_assert (channel3->risk () == "stable");
-    g_assert (channel3->branch () == "branch");
+
+    QScopedPointer<QSnapdChannel> channel3 (snap->matchChannel ("edge"));
+    g_assert_nonnull (channel3);
+    g_assert (channel3->name () == "beta");
+
+    QScopedPointer<QSnapdChannel> channel4 (snap->matchChannel ("stable/branch"));
+    g_assert (channel4->name () == "stable/branch");
+    g_assert (channel4->track () == "latest");
+    g_assert (channel4->risk () == "stable");
+    g_assert (channel4->branch () == "branch");
 }
 
 static gboolean

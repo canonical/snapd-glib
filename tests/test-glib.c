@@ -2780,6 +2780,7 @@ test_find_channels (void)
     g_assert_cmpstr (tracks[1], ==, "TRACK");
     channels = snapd_snap_get_channels (snap);
     g_assert_cmpint (channels->len, ==, 3);
+
     channel = snapd_snap_match_channel (snap, "stable");
     g_assert_nonnull (channel);
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable");
@@ -2791,6 +2792,7 @@ test_find_channels (void)
     g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "0");
     g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpint (snapd_channel_get_size (channel), ==, 65535);
+
     channel = snapd_snap_match_channel (snap, "beta");
     g_assert_nonnull (channel);
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "beta");
@@ -2802,6 +2804,11 @@ test_find_channels (void)
     g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "1");
     g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_CLASSIC);
     g_assert_cmpint (snapd_channel_get_size (channel), ==, 10000);
+
+    channel = snapd_snap_match_channel (snap, "edge");
+    g_assert_nonnull (channel);
+    g_assert_cmpstr (snapd_channel_get_name (channel), ==, "beta");
+
     channel = snapd_snap_match_channel (snap, "stable/branch");
     g_assert_nonnull (channel);
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable/branch");
