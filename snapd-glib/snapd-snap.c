@@ -172,13 +172,13 @@ snapd_snap_get_channels (SnapdSnap *snap)
 static int
 parse_risk (const gchar *risk)
 {
-    if (g_strcmp0 (risk, "stable"))
+    if (g_strcmp0 (risk, "stable") == 0)
         return 0;
-    else if (g_strcmp0 (risk, "candidate"))
+    else if (g_strcmp0 (risk, "candidate") == 0)
         return 1;
-    else if (g_strcmp0 (risk, "beta"))
+    else if (g_strcmp0 (risk, "beta") == 0)
         return 2;
-    else if (g_strcmp0 (risk, "edge"))
+    else if (g_strcmp0 (risk, "edge") == 0)
         return 3;
     else
         return -1;
