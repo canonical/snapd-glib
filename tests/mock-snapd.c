@@ -783,8 +783,6 @@ mock_snapd_add_store_snap (MockSnapd *snapd, const gchar *name)
 {
     g_autoptr(GMutexLocker) locker = NULL;
     MockSnap *snap;
-    MockTrack *track;
-    MockChannel *channel;
 
     g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
 
@@ -794,9 +792,7 @@ mock_snapd_add_store_snap (MockSnapd *snapd, const gchar *name)
     snap->download_size = 65535;
     snapd->store_snaps = g_list_append (snapd->store_snaps, snap);
 
-    track = mock_snap_add_track (snap, "latest");
-    channel = mock_track_add_channel (track, "stable", NULL);
-    channel->size = 65535;
+    mock_snap_add_track (snap, "latest");
 
     return snap;
 }

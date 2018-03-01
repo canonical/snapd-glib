@@ -1945,8 +1945,10 @@ test_find_query ()
     mock_snapd_set_suggested_currency (snapd, "NZD");
     mock_snapd_add_store_snap (snapd, "apple");
     mock_snapd_add_store_snap (snapd, "banana");
-    mock_snapd_add_store_snap (snapd, "carrot1");
-    MockSnap *s = mock_snapd_add_store_snap (snapd, "carrot2");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "carrot1");
+    mock_track_add_channel (mock_snap_add_track (s, "latest"), "stable", NULL);
+    s = mock_snapd_add_store_snap (snapd, "carrot2");
+    mock_track_add_channel (mock_snap_add_track (s, "latest"), "stable", NULL);
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_contact (s, "CONTACT");
     mock_snap_set_description (s, "DESCRIPTION");
@@ -2150,6 +2152,7 @@ test_find_channels ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     MockTrack *t = mock_snap_add_track (s, "latest");
+    mock_track_add_channel (t, "stable", NULL);
     MockChannel *c = mock_track_add_channel (t, "beta", NULL);
     mock_channel_set_revision (c, "BETA-REVISION");
     mock_channel_set_version (c, "BETA-VERSION");
@@ -2157,7 +2160,8 @@ test_find_channels ()
     mock_channel_set_confinement (c, "classic");
     mock_channel_set_size (c, 10000);
     c = mock_track_add_channel (t, "stable", "branch");
-    mock_snap_add_track (s, "TRACK");
+    t = mock_snap_add_track (s, "insider");
+    c = mock_track_add_channel (t, "stable", NULL);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2171,42 +2175,202 @@ test_find_channels ()
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->tracks ().count (), ==, 2);
     g_assert (snap->tracks ()[0] == "latest");
-    g_assert (snap->tracks ()[1] == "TRACK");
-    g_assert_cmpint (snap->channelCount (), ==, 3);
+    g_assert (snap->tracks ()[1] == "insider");
+    g_assert_cmpint (snap->channelCount (), ==, 4);
 
-    QScopedPointer<QSnapdChannel> channel1 (snap->matchChannel ("stable"));
-    g_assert_nonnull (channel1);
-    g_assert (channel1->name () == "stable");
-    g_assert (channel1->track () == "latest");
-    g_assert (channel1->risk () == "stable");
-    g_assert (channel1->branch () == NULL);
-    g_assert (channel1->revision () == "REVISION");
-    g_assert (channel1->version () == "VERSION");
-    g_assert (channel1->epoch () == "0");
-    g_assert_cmpint (channel1->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
-    g_assert_cmpint (channel1->size (), ==, 65535);
+    gboolean matched_stable = FALSE, matched_beta = FALSE, matched_branch = FALSE, matched_track = FALSE;
+    for (int i = 0; i < snap->channelCount (); i++) {
+        QSnapdChannel *channel = snap->channel (i);
 
-    QScopedPointer<QSnapdChannel> channel2 (snap->matchChannel ("beta"));
-    g_assert_nonnull (channel2);
-    g_assert (channel2->name () == "beta");
-    g_assert (channel2->track () == "latest");
-    g_assert (channel2->risk () == "beta");
-    g_assert (channel2->branch () == NULL);
-    g_assert (channel2->revision () == "BETA-REVISION");
-    g_assert (channel2->version () == "BETA-VERSION");
-    g_assert (channel2->epoch () == "1");
-    g_assert_cmpint (channel2->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
-    g_assert_cmpint (channel2->size (), ==, 10000);
+        if (channel->name () == "stable") {
+            g_assert (channel->track () == "latest");
+            g_assert (channel->risk () == "stable");
+            g_assert (channel->branch () == NULL);
+            g_assert (channel->revision () == "REVISION");
+            g_assert (channel->version () == "VERSION");
+            g_assert (channel->epoch () == "0");
+            g_assert_cmpint (channel->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
+            g_assert_cmpint (channel->size (), ==, 65535);
+            matched_stable = TRUE;
+        }
+        if (channel->name () == "beta") {
+            g_assert (channel->name () == "beta");
+            g_assert (channel->track () == "latest");
+            g_assert (channel->risk () == "beta");
+            g_assert (channel->branch () == NULL);
+            g_assert (channel->revision () == "BETA-REVISION");
+            g_assert (channel->version () == "BETA-VERSION");
+            g_assert (channel->epoch () == "1");
+            g_assert_cmpint (channel->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
+            g_assert_cmpint (channel->size (), ==, 10000);
+            matched_beta = TRUE;
+        }
+        if (channel->name () == "stable/branch") {
+            g_assert (channel->track () == "latest");
+            g_assert (channel->risk () == "stable");
+            g_assert (channel->branch () == "branch");
+            matched_branch = TRUE;
+        }
+        if (channel->name () == "insider/stable") {
+            g_assert (channel->track () == "insider");
+            g_assert (channel->risk () == "stable");
+            g_assert (channel->branch () == NULL);
+            matched_track = TRUE;
+        }
+    }
+    g_assert_true (matched_stable);
+    g_assert_true (matched_beta);
+    g_assert_true (matched_branch);
+    g_assert_true (matched_track);
+}
 
-    QScopedPointer<QSnapdChannel> channel3 (snap->matchChannel ("edge"));
-    g_assert_nonnull (channel3);
-    g_assert (channel3->name () == "beta");
+static void
+test_find_channels_match ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    QScopedPointer<QSnapdChannel> channel4 (snap->matchChannel ("stable/branch"));
-    g_assert (channel4->name () == "stable/branch");
-    g_assert (channel4->track () == "latest");
-    g_assert (channel4->risk () == "stable");
-    g_assert (channel4->branch () == "branch");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "stable-snap");
+    MockTrack *t = mock_snap_add_track (s, "latest");
+    mock_track_add_channel (t, "stable", NULL);
+
+    s = mock_snapd_add_store_snap (snapd, "full-snap");
+    t = mock_snap_add_track (s, "latest");
+    mock_track_add_channel (t, "stable", NULL);
+    mock_track_add_channel (t, "candidate", NULL);
+    mock_track_add_channel (t, "beta", NULL);
+    mock_track_add_channel (t, "edge", NULL);
+
+    s = mock_snapd_add_store_snap (snapd, "beta-snap");
+    t = mock_snap_add_track (s, "latest");
+    mock_track_add_channel (t, "beta", NULL);
+
+    s = mock_snapd_add_store_snap (snapd, "branch-snap");
+    t = mock_snap_add_track (s, "latest");
+    mock_track_add_channel (t, "stable", NULL);
+    mock_track_add_channel (t, "stable", "branch");
+
+    s = mock_snapd_add_store_snap (snapd, "track-snap");
+    t = mock_snap_add_track (s, "latest");
+    mock_track_add_channel (t, "stable", NULL);
+    t = mock_snap_add_track (s, "insider");
+    mock_track_add_channel (t, "stable", NULL);
+
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    /* All channels match to stable if only stable defined */
+    QScopedPointer<QSnapdFindRequest> findRequest1 (client.find (QSnapdClient::MatchName, "stable-snap"));
+    findRequest1->runSync ();
+    g_assert_cmpint (findRequest1->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest1->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap1 (findRequest1->snap (0));
+    g_assert (snap1->name () == "stable-snap");
+    QScopedPointer<QSnapdChannel> channel1a (snap1->matchChannel ("stable"));
+    g_assert_nonnull (channel1a);
+    g_assert (channel1a->name () == "stable");
+    QScopedPointer<QSnapdChannel> channel1b (snap1->matchChannel ("candidate"));
+    g_assert_nonnull (channel1b);
+    g_assert (channel1b->name () == "stable");
+    QScopedPointer<QSnapdChannel> channel1c (snap1->matchChannel ("beta"));
+    g_assert_nonnull (channel1c);
+    g_assert (channel1c->name () == "stable");
+    QScopedPointer<QSnapdChannel> channel1d (snap1->matchChannel ("edge"));
+    g_assert_nonnull (channel1d);
+    g_assert (channel1d->name () == "stable");
+    QScopedPointer<QSnapdChannel> channel1e (snap1->matchChannel ("UNDEFINED"));
+    g_assert_null (channel1e);
+
+    /* All channels match if all defined */
+    QScopedPointer<QSnapdFindRequest> findRequest2 (client.find (QSnapdClient::MatchName, "full-snap"));
+    findRequest2->runSync ();
+    g_assert_cmpint (findRequest2->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest2->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap2 (findRequest2->snap (0));
+    g_assert (snap2->name () == "full-snap");
+    QScopedPointer<QSnapdChannel> channel2a (snap2->matchChannel ("stable"));
+    g_assert_nonnull (channel2a);
+    g_assert (channel2a->name () == "stable");
+    QScopedPointer<QSnapdChannel> channel2b (snap2->matchChannel ("candidate"));
+    g_assert_nonnull (channel2b);
+    g_assert (channel2b->name () == "candidate");
+    QScopedPointer<QSnapdChannel> channel2c (snap2->matchChannel ("beta"));
+    g_assert_nonnull (channel2c);
+    g_assert (channel2c->name () == "beta");
+    QScopedPointer<QSnapdChannel> channel2d (snap2->matchChannel ("edge"));
+    g_assert_nonnull (channel2d);
+    g_assert (channel2d->name () == "edge");
+    QScopedPointer<QSnapdChannel> channel2e (snap2->matchChannel ("UNDEFINED"));
+    g_assert_null (channel2e);
+
+    /* Only match with more stable channels */
+    QScopedPointer<QSnapdFindRequest> findRequest3 (client.find (QSnapdClient::MatchName, "beta-snap"));
+    findRequest3->runSync ();
+    g_assert_cmpint (findRequest3->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest3->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap3 (findRequest3->snap (0));
+    g_assert (snap3->name () == "beta-snap");
+    QScopedPointer<QSnapdChannel> channel3a (snap3->matchChannel ("stable"));
+    g_assert_null (channel3a);
+    QScopedPointer<QSnapdChannel> channel3b (snap3->matchChannel ("candidate"));
+    g_assert_null (channel3b);
+    QScopedPointer<QSnapdChannel> channel3c (snap3->matchChannel ("beta"));
+    g_assert_nonnull (channel3c);
+    g_assert (channel3c->name () == "beta");
+    QScopedPointer<QSnapdChannel> channel3d (snap3->matchChannel ("edge"));
+    g_assert_nonnull (channel3d);
+    g_assert (channel3d->name () == "beta");
+    QScopedPointer<QSnapdChannel> channel3e (snap3->matchChannel ("UNDEFINED"));
+    g_assert_null (channel3e);
+
+    /* Match branches */
+    QScopedPointer<QSnapdFindRequest> findRequest4 (client.find (QSnapdClient::MatchName, "branch-snap"));
+    findRequest4->runSync ();
+    g_assert_cmpint (findRequest4->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest4->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap4 (findRequest4->snap (0));
+    g_assert (snap4->name () == "branch-snap");
+    QScopedPointer<QSnapdChannel> channel4a (snap4->matchChannel ("stable"));
+    g_assert_nonnull (channel4a);
+    g_assert (channel4a->name () == "stable");
+    QScopedPointer<QSnapdChannel> channel4b (snap4->matchChannel ("stable/branch"));
+    g_assert_nonnull (channel4b);
+    g_assert (channel4b->name () == "stable/branch");
+    QScopedPointer<QSnapdChannel> channel4c (snap4->matchChannel ("candidate"));
+    g_assert_nonnull (channel4c);
+    g_assert (channel4c->name () == "stable");
+    QScopedPointer<QSnapdChannel> channel4d (snap4->matchChannel ("beta"));
+    g_assert_nonnull (channel4d);
+    g_assert (channel4d->name () == "stable");
+    QScopedPointer<QSnapdChannel> channel4e (snap4->matchChannel ("edge"));
+    g_assert_nonnull (channel4e);
+    g_assert (channel4e->name () == "stable");
+    QScopedPointer<QSnapdChannel> channel4f (snap4->matchChannel ("UNDEFINED"));
+    g_assert_null (channel4f);
+
+    /* Match correct tracks */
+    QScopedPointer<QSnapdFindRequest> findRequest5 (client.find (QSnapdClient::MatchName, "track-snap"));
+    findRequest5->runSync ();
+    g_assert_cmpint (findRequest5->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest5->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap5 (findRequest5->snap (0));
+    g_assert (snap5->name () == "track-snap");
+    QScopedPointer<QSnapdChannel> channel5a (snap5->matchChannel ("stable"));
+    g_assert_nonnull (channel5a);
+    g_assert (channel5a->name () == "stable");
+    g_assert (channel5a->track () == "latest");
+    g_assert (channel5a->risk () == "stable");
+    QScopedPointer<QSnapdChannel> channel5b (snap5->matchChannel ("latest/stable"));
+    g_assert_nonnull (channel5b);
+    g_assert (channel5b->name () == "stable");
+    g_assert (channel5b->track () == "latest");
+    g_assert (channel5b->risk () == "stable");
+    QScopedPointer<QSnapdChannel> channel5c (snap5->matchChannel ("insider/stable"));
+    g_assert_nonnull (channel5c);
+    g_assert (channel5c->name () == "insider/stable");
+    g_assert (channel5c->track () == "insider");
+    g_assert (channel5c->risk () == "stable");
 }
 
 static gboolean
@@ -4851,6 +5015,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/name-private", test_find_name_private);
     g_test_add_func ("/find/name-private/not-logged-in", test_find_name_private_not_logged_in);
     g_test_add_func ("/find/channels", test_find_channels);
+    g_test_add_func ("/find/channels-match", test_find_channels_match);
     g_test_add_func ("/find/cancel", test_find_cancel);
     g_test_add_func ("/find/section", test_find_section);
     g_test_add_func ("/find/section_query", test_find_section_query);
