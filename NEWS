@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.38
+
+    * Fix snapd_snap_match_channel not matching risks correctly
+    * Fix return value of SnapdSnap::matchChannel when fails to match
+
 Overview of changes in snapd-glib 1.37
 
     * Support new snapd errors SNAPD_ERROR_NOT_FOUND, SNAPD_ERROR_NOT_IN_STORE
