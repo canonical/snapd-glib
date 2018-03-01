@@ -61,7 +61,10 @@ QSnapdChannel *QSnapdSnap::channel (int n) const
 
 QSnapdChannel *QSnapdSnap::matchChannel (const QString& name) const
 {
-    return new QSnapdChannel (snapd_snap_match_channel (SNAPD_SNAP (wrapped_object), name.toStdString ().c_str ()));
+    SnapdChannel *channel = snapd_snap_match_channel (SNAPD_SNAP (wrapped_object), name.toStdString ().c_str ());
+    if (channel == NULL)
+        return NULL;
+    return new QSnapdChannel (channel);
 }
 
 QSnapdEnums::SnapConfinement QSnapdSnap::confinement () const
