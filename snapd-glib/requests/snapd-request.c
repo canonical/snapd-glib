@@ -61,7 +61,7 @@ void
 _snapd_request_set_source_object (SnapdRequest *request, GObject *object)
 {
     SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (request));  
-    priv->source_object = g_object_ref (object);
+    priv->source_object = object ? g_object_ref (object) :  NULL;
 }
 
 SoupMessage *
@@ -126,7 +126,7 @@ static GObject *
 snapd_get_source_object (GAsyncResult *result)
 {
     SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (result));
-    return g_object_ref (priv->source_object);
+    return priv->source_object ? g_object_ref (priv->source_object) : NULL;
 }
 
 static void
@@ -167,6 +167,7 @@ snapd_request_finalize (GObject *object)
     SnapdRequest *request = SNAPD_REQUEST (object);
     SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
 
+    g_clear_object (&priv->source_object);
     g_clear_object (&priv->message);
     g_cancellable_disconnect (priv->cancellable, priv->cancelled_id);
     g_clear_object (&priv->cancellable);
@@ -191,6 +192,7 @@ snapd_request_class_init (SnapdRequestClass *klass)
                                                          "Source object",
                                                          G_TYPE_OBJECT,
                                                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+
    g_object_class_install_property (gobject_class,
                                     PROP_CANCELLABLE,
                                     g_param_spec_object ("cancellable",

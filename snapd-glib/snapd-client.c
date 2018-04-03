@@ -664,6 +664,18 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
     }
 }
 
+static gboolean
+cancell_idle_cb (gpointer user_data)
+{
+    RequestData *data = (RequestData *) user_data;
+    g_autoptr(GError) error = NULL;
+
+    g_cancellable_set_error_if_cancelled (_snapd_request_get_cancellable (data->request), &error);
+    snapd_request_complete (data->client, data->request, error);
+
+    return G_SOURCE_REMOVE;
+}
+
 static void
 request_cancelled_cb (GCancellable *cancellable, RequestData *data)
 {
@@ -676,9 +688,11 @@ request_cancelled_cb (GCancellable *cancellable, RequestData *data)
             send_cancel (data->client, r);
     }
     else {
-        g_autoptr(GError) error = NULL;
-        g_cancellable_set_error_if_cancelled (_snapd_request_get_cancellable (data->request), &error);
-        _snapd_request_return (data->request, error);
+        /* This cannot be executed directly because it will likely deadlock
+         * in g_cancellable_disconnect. */
+        g_autoptr(GSource) idle_source = g_idle_source_new ();
+        g_source_set_callback (idle_source, cancell_idle_cb, data, NULL);
+        g_source_attach (idle_source, _snapd_request_get_context (data->request));
     }
 }
 

@@ -25,6 +25,7 @@ QStringList QSnapdAssertion::headers () const
     headers = snapd_assertion_get_headers (SNAPD_ASSERTION (wrapped_object));
     for (int i = 0; headers[i] != NULL; i++)
         result.append (headers[i]);
+
     return result;
 }
 

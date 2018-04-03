@@ -217,6 +217,7 @@ test_allow_interaction (void)
     g_assert_no_error (error);
     g_assert_nonnull (info1);
     g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, "true");
+     g_clear_object (&info);
 
     /* If interaction is not allowed, the header is not sent */
     snapd_client_set_allow_interaction (client, FALSE);
@@ -2901,6 +2902,7 @@ test_find_channels_match (void)
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable");
     channel = snapd_snap_match_channel (snap, "UNDEFINED");
     g_assert_null (channel);
+    g_ptr_array_free (snaps, TRUE);
 
     /* All channels match if all defined */
     snaps2 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "full-snap", NULL, NULL, &error);
@@ -2923,6 +2925,7 @@ test_find_channels_match (void)
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "edge");
     channel = snapd_snap_match_channel (snap, "UNDEFINED");
     g_assert_null (channel);
+    g_ptr_array_free (snaps, TRUE);
 
     /* Only match with more stable channels */
     snaps3 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "beta-snap", NULL, NULL, &error);
@@ -2943,6 +2946,7 @@ test_find_channels_match (void)
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "beta");
     channel = snapd_snap_match_channel (snap, "UNDEFINED");
     g_assert_null (channel);
+    g_ptr_array_free (snaps, TRUE);
 
     /* Match branches */
     snaps4 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "branch-snap", NULL, NULL, &error);
@@ -2968,6 +2972,7 @@ test_find_channels_match (void)
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable");
     channel = snapd_snap_match_channel (snap, "UNDEFINED");
     g_assert_null (channel);
+    g_ptr_array_free (snaps, TRUE);
 
     /* Match correct tracks */
     snaps5 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "track-snap", NULL, NULL, &error);
