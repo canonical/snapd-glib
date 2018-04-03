@@ -19,14 +19,12 @@ QSnapdAssertion::QSnapdAssertion (const QString& contents, QObject *parent) :
 
 QStringList QSnapdAssertion::headers () const
 {
-    GStrv headers = NULL;
+    g_auto(GStrv) headers = NULL;
     QStringList result;
 
     headers = snapd_assertion_get_headers (SNAPD_ASSERTION (wrapped_object));
     for (int i = 0; headers[i] != NULL; i++)
         result.append (headers[i]);
-
-    g_strfreev (headers);
 
     return result;
 }
