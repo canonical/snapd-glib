@@ -39,8 +39,8 @@ QString QSnapdAssertion::header (const QString& name) const
 
 QString QSnapdAssertion::body () const
 {
-     g_autofree gchar *body = snapd_assertion_get_body (SNAPD_ASSERTION (wrapped_object));
-     return body;
+    g_autofree gchar *body = snapd_assertion_get_body (SNAPD_ASSERTION (wrapped_object));
+    return body;
 }
 
 QString QSnapdAssertion::signature () const
