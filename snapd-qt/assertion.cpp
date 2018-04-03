@@ -30,15 +30,18 @@ QStringList QSnapdAssertion::headers () const
 
 QString QSnapdAssertion::header (const QString& name) const
 {
-    return snapd_assertion_get_header (SNAPD_ASSERTION (wrapped_object), name.toStdString ().c_str ());
+    g_autofree gchar *header = snapd_assertion_get_header (SNAPD_ASSERTION (wrapped_object), name.toStdString ().c_str ());
+    return header;
 }
 
 QString QSnapdAssertion::body () const
 {
-    return snapd_assertion_get_body (SNAPD_ASSERTION (wrapped_object));
+    g_autofree gchar *body = snapd_assertion_get_body (SNAPD_ASSERTION (wrapped_object));
+    return body;
 }
 
 QString QSnapdAssertion::signature () const
 {
-    return snapd_assertion_get_signature (SNAPD_ASSERTION (wrapped_object));
+    gchar *signature = snapd_assertion_get_signature (SNAPD_ASSERTION (wrapped_object));
+    return signature;
 }
