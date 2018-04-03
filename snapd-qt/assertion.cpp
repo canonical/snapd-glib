@@ -19,26 +19,32 @@ QSnapdAssertion::QSnapdAssertion (const QString& contents, QObject *parent) :
 
 QStringList QSnapdAssertion::headers () const
 {
-    g_auto(GStrv) headers = NULL;
+    GStrv headers = NULL;
     QStringList result;
 
     headers = snapd_assertion_get_headers (SNAPD_ASSERTION (wrapped_object));
     for (int i = 0; headers[i] != NULL; i++)
         result.append (headers[i]);
+
+    g_strfreev (headers);
+
     return result;
 }
 
 QString QSnapdAssertion::header (const QString& name) const
 {
-    return snapd_assertion_get_header (SNAPD_ASSERTION (wrapped_object), name.toStdString ().c_str ());
+    g_autofree gchar *header = snapd_assertion_get_header (SNAPD_ASSERTION (wrapped_object), name.toStdString ().c_str ());
+    return header;
 }
 
 QString QSnapdAssertion::body () const
 {
-    return snapd_assertion_get_body (SNAPD_ASSERTION (wrapped_object));
+     g_autofree gchar *body = snapd_assertion_get_body (SNAPD_ASSERTION (wrapped_object));
+     return body;
 }
 
 QString QSnapdAssertion::signature () const
 {
-    return snapd_assertion_get_signature (SNAPD_ASSERTION (wrapped_object));
+    g_autofree gchar *signature = snapd_assertion_get_signature (SNAPD_ASSERTION (wrapped_object));
+    return signature;
 }
