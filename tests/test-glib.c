@@ -200,7 +200,8 @@ test_allow_interaction (void)
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
+    g_autoptr(SnapdSystemInformation) info1 = NULL;
+    g_autoptr(SnapdSystemInformation) info2 = NULL;
 
     snapd = mock_snapd_new ();
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -212,17 +213,17 @@ test_allow_interaction (void)
     g_assert_true (snapd_client_get_allow_interaction (client));
 
     /* ... which sends the X-Allow-Interaction header with requests */
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    info1 = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (info);
+    g_assert_nonnull (info1);
     g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, "true");
 
     /* If interaction is not allowed, the header is not sent */
     snapd_client_set_allow_interaction (client, FALSE);
     g_assert_false (snapd_client_get_allow_interaction (client));
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    info2 = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (info);
+    g_assert_nonnull (info2);
     g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, NULL);
 }
 
@@ -2837,7 +2838,11 @@ test_find_channels_match (void)
     MockSnap *s;
     MockTrack *t;
     g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
+    g_autoptr(GPtrArray) snaps1 = NULL;
+    g_autoptr(GPtrArray) snaps2 = NULL;
+    g_autoptr(GPtrArray) snaps3 = NULL;
+    g_autoptr(GPtrArray) snaps4 = NULL;
+    g_autoptr(GPtrArray) snaps5 = NULL;
     SnapdSnap *snap;
     SnapdChannel *channel;
     g_autoptr(GError) error = NULL;
@@ -2876,11 +2881,11 @@ test_find_channels_match (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     /* All channels match to stable if only stable defined */
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "stable-snap", NULL, NULL, &error);
+    snaps1 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "stable-snap", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (snaps);
-    g_assert_cmpint (snaps->len, ==, 1);
-    snap = snaps->pdata[0];
+    g_assert_nonnull (snaps1);
+    g_assert_cmpint (snaps1->len, ==, 1);
+    snap = snaps1->pdata[0];
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "stable-snap");
     channel = snapd_snap_match_channel (snap, "stable");
     g_assert_nonnull (channel);
@@ -2898,11 +2903,11 @@ test_find_channels_match (void)
     g_assert_null (channel);
 
     /* All channels match if all defined */
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "full-snap", NULL, NULL, &error);
+    snaps2 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "full-snap", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (snaps);
-    g_assert_cmpint (snaps->len, ==, 1);
-    snap = snaps->pdata[0];
+    g_assert_nonnull (snaps2);
+    g_assert_cmpint (snaps2->len, ==, 1);
+    snap = snaps2->pdata[0];
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "full-snap");
     channel = snapd_snap_match_channel (snap, "stable");
     g_assert_nonnull (channel);
@@ -2920,11 +2925,11 @@ test_find_channels_match (void)
     g_assert_null (channel);
 
     /* Only match with more stable channels */
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "beta-snap", NULL, NULL, &error);
+    snaps3 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "beta-snap", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (snaps);
-    g_assert_cmpint (snaps->len, ==, 1);
-    snap = snaps->pdata[0];
+    g_assert_nonnull (snaps3);
+    g_assert_cmpint (snaps3->len, ==, 1);
+    snap = snaps3->pdata[0];
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "beta-snap");
     channel = snapd_snap_match_channel (snap, "stable");
     g_assert_null (channel);
@@ -2940,11 +2945,11 @@ test_find_channels_match (void)
     g_assert_null (channel);
 
     /* Match branches */
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "branch-snap", NULL, NULL, &error);
+    snaps4 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "branch-snap", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (snaps);
-    g_assert_cmpint (snaps->len, ==, 1);
-    snap = snaps->pdata[0];
+    g_assert_nonnull (snaps4);
+    g_assert_cmpint (snaps4->len, ==, 1);
+    snap = snaps4->pdata[0];
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "branch-snap");
     channel = snapd_snap_match_channel (snap, "stable");
     g_assert_nonnull (channel);
@@ -2965,11 +2970,11 @@ test_find_channels_match (void)
     g_assert_null (channel);
 
     /* Match correct tracks */
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "track-snap", NULL, NULL, &error);
+    snaps5 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "track-snap", NULL, NULL, &error);
     g_assert_no_error (error);
-    g_assert_nonnull (snaps);
-    g_assert_cmpint (snaps->len, ==, 1);
-    snap = snaps->pdata[0];
+    g_assert_nonnull (snaps5);
+    g_assert_cmpint (snaps5->len, ==, 1);
+    snap = snaps5->pdata[0];
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "track-snap");
     channel = snapd_snap_match_channel (snap, "stable");
     g_assert_nonnull (channel);
