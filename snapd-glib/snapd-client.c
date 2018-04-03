@@ -166,14 +166,6 @@ request_data_free (RequestData *data)
     g_slice_free (RequestData, data);
 }
 
-enum
-{
-    PROP_CANCELLABLE = 1,
-    PROP_READY_CALLBACK,
-    PROP_READY_CALLBACK_DATA,
-    PROP_LAST
-};
-
 static void send_request (SnapdClient *client, SnapdRequest *request);
 
 static void
