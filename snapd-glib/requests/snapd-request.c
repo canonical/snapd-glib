@@ -167,6 +167,7 @@ snapd_request_finalize (GObject *object)
     SnapdRequest *request = SNAPD_REQUEST (object);
     SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
 
+    g_clear_object (&priv->source_object);
     g_clear_object (&priv->message);
     g_cancellable_disconnect (priv->cancellable, priv->cancelled_id);
     g_clear_object (&priv->cancellable);
