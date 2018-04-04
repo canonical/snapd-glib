@@ -131,6 +131,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 
 typedef struct
 {
+    int ref_count;
     SnapdClient *client;
     SnapdRequest *request;
     GSource *read_source;
@@ -144,15 +145,27 @@ request_data_new (SnapdClient *client, SnapdRequest *request)
     RequestData *data;
 
     data = g_slice_new0 (RequestData);
+    data->ref_count = 1;
     data->client = client;
     data->request = g_object_ref (request);
 
     return data;
 }
 
-static void
-request_data_free (RequestData *data)
+static RequestData *
+request_data_ref (RequestData *data)
 {
+    data->ref_count++;
+    return data;
+}
+
+static void
+request_data_unref (RequestData *data)
+{
+    data->ref_count--;
+    if (data->ref_count > 0)
+        return;
+
     if (data->read_source != NULL)
         g_source_destroy (data->read_source);
     g_clear_pointer (&data->read_source, g_source_unref);
@@ -664,6 +677,18 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *client)
     }
 }
 
+static gboolean
+cancel_idle_cb (gpointer user_data)
+{
+    RequestData *data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    g_cancellable_set_error_if_cancelled (_snapd_request_get_cancellable (data->request), &error);
+    snapd_request_complete (data->client, data->request, error);
+
+    return G_SOURCE_REMOVE;
+}
+
 static void
 request_cancelled_cb (GCancellable *cancellable, RequestData *data)
 {
@@ -676,9 +701,10 @@ request_cancelled_cb (GCancellable *cancellable, RequestData *data)
             send_cancel (data->client, r);
     }
     else {
-        g_autoptr(GError) error = NULL;
-        g_cancellable_set_error_if_cancelled (_snapd_request_get_cancellable (data->request), &error);
-        _snapd_request_return (data->request, error);
+        /* Execute in an idle thread so g_cancellable_disconnect doesn't deadlock */
+        g_autoptr(GSource) idle_source = g_idle_source_new ();
+        g_source_set_callback (idle_source, cancel_idle_cb, request_data_ref (data), (GDestroyNotify) request_data_unref);
+        g_source_attach (idle_source, _snapd_request_get_context (data->request));
     }
 }
 
@@ -711,7 +737,7 @@ send_request (SnapdClient *client, SnapdRequest *request)
     g_hash_table_insert (priv->request_data, request, data);
 
     if (_snapd_request_get_cancellable (request) != NULL)
-        data->cancelled_id = g_cancellable_connect (_snapd_request_get_cancellable (request), G_CALLBACK (request_cancelled_cb), request_data_new (client, request), (GDestroyNotify) request_data_free);
+        data->cancelled_id = g_cancellable_connect (_snapd_request_get_cancellable (request), G_CALLBACK (request_cancelled_cb), request_data_new (client, request), (GDestroyNotify) request_data_unref);
 
     message = _snapd_request_get_message (request);
     soup_message_headers_append (message->request_headers, "Host", "");
@@ -3468,7 +3494,7 @@ snapd_client_init (SnapdClient *client)
     priv->socket_path = g_strdup (SNAPD_SOCKET);
     priv->user_agent = g_strdup ("snapd-glib/" VERSION);
     priv->allow_interaction = TRUE;
-    priv->request_data = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) request_data_free);
+    priv->request_data = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) request_data_unref);
     priv->buffer = g_byte_array_new ();
     g_mutex_init (&priv->requests_mutex);
     g_mutex_init (&priv->buffer_mutex);
