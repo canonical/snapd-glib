@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 1.39
+
+    * Fix memory leak in QSnapdAssertion
+    * Remove cancelled requests from the request queue.
+    * Fix SnapdClient reference leak in each request
+
 Overview of changes in snapd-glib 1.38
 
     * Fix snapd_snap_match_channel not matching risks correctly
