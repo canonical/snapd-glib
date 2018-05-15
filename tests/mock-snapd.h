@@ -50,6 +50,9 @@ gboolean        mock_snapd_start                  (MockSnapd     *snapd,
 
 void            mock_snapd_stop                   (MockSnapd     *snapd);
 
+void            mock_snapd_set_build_id           (MockSnapd     *snapd,
+                                                   const gchar   *build_id);
+
 void            mock_snapd_set_confinement        (MockSnapd     *snapd,
                                                    const gchar   *confinement);
 

@@ -34,6 +34,7 @@ struct _SnapdSystemInformation
     GObject parent_instance;
 
     gchar *binaries_directory;
+    gchar *build_id;
     SnapdSystemConfinement confinement;
     gchar *kernel_version;
     gboolean on_classic;
@@ -59,6 +60,7 @@ enum
     PROP_BINARIES_DIRECTORY,
     PROP_MOUNT_DIRECTORY,
     PROP_CONFINEMENT,
+    PROP_BUILD_ID,
     PROP_LAST
 };
 
@@ -79,6 +81,23 @@ snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_
 {
     g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
     return system_information->binaries_directory;
+}
+
+/**
+ * snapd_system_information_get_build_id:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Gets the unique build ID for the snap build, e.g. "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1"
+ *
+ * Returns: a build ID.
+ *
+ * Since: 1.40
+ */
+const gchar *
+snapd_system_information_get_build_id (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->build_id;
 }
 
 /**
@@ -261,6 +280,10 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
         g_free (system_information->binaries_directory);
         system_information->binaries_directory = g_strdup (g_value_get_string (value));
         break;
+    case PROP_BUILD_ID:
+        g_free (system_information->build_id);
+        system_information->build_id = g_strdup (g_value_get_string (value));
+        break;
     case PROP_CONFINEMENT:
         system_information->confinement = g_value_get_enum (value);
         break;
@@ -313,6 +336,9 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
     case PROP_BINARIES_DIRECTORY:
         g_value_set_string (value, system_information->binaries_directory);
         break;
+    case PROP_BUILD_ID:
+        g_value_set_string (value, system_information->build_id);
+        break;
     case PROP_CONFINEMENT:
         g_value_set_enum (value, system_information->confinement);
         break;
@@ -355,6 +381,7 @@ snapd_system_information_finalize (GObject *object)
     SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
 
     g_clear_pointer (&system_information->binaries_directory, g_free);
+    g_clear_pointer (&system_information->build_id, g_free);
     g_clear_pointer (&system_information->kernel_version, g_free);
     g_clear_pointer (&system_information->mount_directory, g_free);
     g_clear_pointer (&system_information->os_id, g_free);
@@ -380,6 +407,13 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
                                      g_param_spec_string ("binaries-directory",
                                                           "binaries-directory",
                                                           "Directory with snap binaries",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_BUILD_ID,
+                                     g_param_spec_string ("build-id",
+                                                          "build-id",
+                                                          "Unique build ID for snap build",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,

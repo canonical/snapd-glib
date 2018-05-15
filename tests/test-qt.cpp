@@ -169,6 +169,7 @@ test_get_system_information_sync ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
+    mock_snapd_set_build_id (snapd, "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -178,6 +179,7 @@ test_get_system_information_sync ()
     infoRequest->runSync ();
     g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSystemInformation> systemInformation (infoRequest->systemInformation ());
+    g_assert (systemInformation->buildId () == "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
     g_assert (systemInformation->confinement () == QSnapdEnums::SystemConfinementUnknown);
     g_assert (systemInformation->kernelVersion () == "KERNEL-VERSION");
     g_assert (systemInformation->osId () == "OS-ID");

@@ -70,6 +70,7 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, GEr
     locations  = _snapd_json_get_object (result, "locations");
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
                                        "binaries-directory", locations != NULL ? _snapd_json_get_string (locations, "snap-bin-dir", NULL) : NULL,
+                                       "build-id", _snapd_json_get_string (result, "build-id", NULL),
                                        "confinement", confinement,
                                        "kernel-version", _snapd_json_get_string (result, "kernel-version", NULL),
                                        "managed", _snapd_json_get_bool (result, "managed", FALSE),

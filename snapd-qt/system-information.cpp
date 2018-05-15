@@ -18,6 +18,11 @@ QString QSnapdSystemInformation::binariesDirectory () const
     return snapd_system_information_get_binaries_directory (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
+QString QSnapdSystemInformation::buildId () const
+{
+    return snapd_system_information_get_build_id (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+}
+
 QSnapdEnums::SystemConfinement QSnapdSystemInformation::confinement () const
 {
     switch (snapd_system_information_get_confinement (SNAPD_SYSTEM_INFORMATION (wrapped_object)))

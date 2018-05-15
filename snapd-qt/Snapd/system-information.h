@@ -19,6 +19,7 @@ class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject
     Q_OBJECT
 
     Q_PROPERTY(QString binariesDirectory READ binariesDirectory)
+    Q_PROPERTY(QString buildId READ buildId)
     Q_PROPERTY(QSnapdEnums::SystemConfinement confinement READ confinement)
     Q_PROPERTY(QString kernelVersion READ kernelVersion)
     Q_PROPERTY(bool managed READ managed)
@@ -34,6 +35,7 @@ public:
     explicit QSnapdSystemInformation (void *snapd_object, QObject* parent = 0);
 
     QString binariesDirectory () const;
+    QString buildId () const;
     QSnapdEnums::SystemConfinement confinement () const;
     QString kernelVersion () const;
     bool managed () const;

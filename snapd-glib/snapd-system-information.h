@@ -41,6 +41,8 @@ typedef enum
 
 const gchar *snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_information);
 
+const gchar *snapd_system_information_get_build_id           (SnapdSystemInformation *system_information);
+
 SnapdSystemConfinement snapd_system_information_get_confinement (SnapdSystemInformation *system_information);
 
 const gchar *snapd_system_information_get_kernel_version     (SnapdSystemInformation *system_information);
