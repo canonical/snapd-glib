@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 1.40
+
+    * New API:
+      - snapd_system_information_get_build_id
+    * Fix buffer overflows reading HTTP chunked data
+
 Overview of changes in snapd-glib 1.39
 
     * Fix memory leak in QSnapdAssertion
