@@ -442,6 +442,10 @@ compress_chunks (gchar *body, gsize body_length, gchar **combined_start, gsize *
     /* Use first chunk as output */
     *combined_length = strtoul (body, NULL, 16);
     *combined_start = strstr (body, "\r\n") + 2;
+    if (*combined_length == 0) {
+        *total_length = *combined_start - body;
+        return;
+    }
 
     /* Copy any remaining chunks beside the first one */
     chunk_start = *combined_start + *combined_length + 2;
@@ -450,8 +454,10 @@ compress_chunks (gchar *body, gsize body_length, gchar **combined_start, gsize *
 
         chunk_length = strtoul (chunk_start, NULL, 16);
         chunk_start = strstr (chunk_start, "\r\n") + 2;
-        if (chunk_length == 0)
-            break;
+        if (chunk_length == 0) {
+            *total_length = chunk_start - body;
+            return;
+        }
 
         /* Move this chunk on the end of the last one */
         memmove (*combined_start + *combined_length, chunk_start, chunk_length);
@@ -459,8 +465,6 @@ compress_chunks (gchar *body, gsize body_length, gchar **combined_start, gsize *
 
         chunk_start += chunk_length + 2;
     }
-
-    *total_length = chunk_start - body;
 }
 
 static void
