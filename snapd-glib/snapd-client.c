@@ -412,7 +412,7 @@ have_chunked_body (const gchar *body, gsize body_length)
 {
     while (TRUE) {
         const gchar *chunk_start;
-        gsize chunk_header_length, chunk_length;
+        gsize chunk_header_length, chunk_length, required_length;
 
         /* Read chunk header, stopping on zero length chunk */
         chunk_start = g_strstr_len (body, body_length, "\r\n");
@@ -424,11 +424,12 @@ have_chunked_body (const gchar *body, gsize body_length)
             return TRUE;
 
         /* Check enough space for chunk body */
-        if (chunk_header_length + chunk_length + strlen ("\r\n") > body_length)
+        required_length = chunk_header_length + chunk_length + 2;
+        if (required_length > body_length)
             return FALSE;
         // FIXME: Validate that \r\n is on the end of a chunk?
-        body += chunk_header_length + chunk_length;
-        body_length -= chunk_header_length + chunk_length;
+        body += required_length;
+        body_length -= required_length;
     }
 }
 
