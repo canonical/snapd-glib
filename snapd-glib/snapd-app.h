@@ -54,6 +54,8 @@ gboolean        snapd_app_get_active       (SnapdApp *app);
 
 gchar         **snapd_app_get_aliases      (SnapdApp *app) G_DEPRECATED;
 
+const gchar    *snapd_app_get_common_id    (SnapdApp *app);
+
 SnapdDaemonType snapd_app_get_daemon_type  (SnapdApp *app);
 
 const gchar    *snapd_app_get_desktop_file (SnapdApp *app);

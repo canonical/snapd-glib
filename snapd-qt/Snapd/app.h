@@ -21,6 +21,7 @@ class Q_DECL_EXPORT QSnapdApp : public QSnapdWrappedObject
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(bool active READ active)
     Q_PROPERTY(QStringList aliases READ aliases)
+    Q_PROPERTY(QString commonId READ commonId)
     Q_PROPERTY(QSnapdEnums::DaemonType daemonType READ daemonType)
     Q_PROPERTY(QString desktopFile READ desktopFile)
     Q_PROPERTY(bool enabled READ enabled)
@@ -32,6 +33,7 @@ public:
     QString name () const;
     bool active () const;
     Q_DECL_DEPRECATED QStringList aliases () const;
+    QString commonId () const;
     QSnapdEnums::DaemonType daemonType () const;
     QString desktopFile () const;
     bool enabled () const;

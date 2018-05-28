@@ -38,6 +38,7 @@ struct _SnapdSnap
     gchar *broken;
     gchar *channel;
     GPtrArray *channels;
+    gchar **common_ids;
     SnapdConfinement confinement;
     gchar *contact;
     gchar *description;
@@ -96,6 +97,7 @@ enum
     PROP_CHANNELS,
     PROP_TRACKS,
     PROP_BROKEN,
+    PROP_COMMON_IDS,
     PROP_LAST
 };
 
@@ -232,6 +234,23 @@ snapd_snap_match_channel (SnapdSnap *snap, const gchar *name)
     }
 
     return matched_channel;
+}
+
+/**
+ * snapd_snap_get_common_ids:
+ * @snap: a #SnapdSnap.
+ *
+ * Get common IDs associated with this snap.
+ *
+ * Returns: (transfer none) (array zero-terminated=1): an array of common ids.
+ *
+ * Since: 1.41
+ */
+gchar **
+snapd_snap_get_common_ids (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->common_ids;
 }
 
 /**
@@ -782,6 +801,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->license);
         snap->license = g_strdup (g_value_get_string (value));
         break;
+    case PROP_COMMON_IDS:
+        g_strfreev (snap->common_ids);
+        snap->common_ids = g_strdupv (g_value_get_boxed (value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -881,6 +904,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_LICENSE:
         g_value_set_string (value, snap->license);
         break;
+    case PROP_COMMON_IDS:
+        g_value_set_boxed (value, snap->common_ids);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -896,6 +922,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->broken, g_free);
     g_clear_pointer (&snap->channel, g_free);
     g_clear_pointer (&snap->channels, g_ptr_array_unref);
+    g_clear_pointer (&snap->common_ids, g_strfreev);
     g_clear_pointer (&snap->contact, g_free);
     g_clear_pointer (&snap->description, g_free);
     g_clear_pointer (&snap->developer, g_free);
@@ -952,6 +979,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          "channels",
                                                          "Channels this snap is available on",
                                                          G_TYPE_PTR_ARRAY,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_COMMON_IDS,
+                                     g_param_spec_boxed ("common-ids",
+                                                         "common-ids",
+                                                         "Common IDs",
+                                                         G_TYPE_STRV,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_CONFINEMENT,

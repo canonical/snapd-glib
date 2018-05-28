@@ -28,6 +28,11 @@ QStringList QSnapdApp::aliases () const
     return QStringList ();
 }
 
+QString QSnapdApp::commonId () const
+{
+    return snapd_app_get_common_id (SNAPD_APP (wrapped_object));
+}
+
 QSnapdEnums::DaemonType QSnapdApp::daemonType () const
 {
     switch (snapd_app_get_daemon_type (SNAPD_APP (wrapped_object)))

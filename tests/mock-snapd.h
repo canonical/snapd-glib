@@ -162,6 +162,9 @@ void            mock_app_set_active               (MockApp       *app,
 void            mock_app_set_enabled              (MockApp       *app,
                                                    gboolean       enabled);
 
+void            mock_app_set_common_id            (MockApp       *app,
+                                                   const gchar   *id);
+
 void            mock_app_set_daemon               (MockApp       *app,
                                                    const gchar   *daemon);
 
@@ -185,6 +188,9 @@ void            mock_snap_set_channel             (MockSnap      *snap,
                                                    const gchar   *channel);
 
 const gchar    *mock_snap_get_channel             (MockSnap      *snap);
+
+void            mock_snap_add_common_id           (MockSnap      *snap,
+                                                   const gchar   *id);
 
 MockTrack      *mock_snap_add_track               (MockSnap      *snap,
                                                    const gchar   *name);

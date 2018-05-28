@@ -39,6 +39,7 @@ struct _SnapdApp
     SnapdDaemonType daemon_type;
     gchar *name;
     gchar *snap;
+    gchar *common_id;
     gchar *desktop_file;
     gboolean enabled;
     gboolean active;
@@ -53,6 +54,7 @@ enum
     PROP_SNAP,
     PROP_ACTIVE,
     PROP_ENABLED,
+    PROP_COMMON_ID,
     PROP_LAST
 };
 
@@ -108,6 +110,23 @@ snapd_app_get_aliases (SnapdApp *app)
 {
     g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
     return NULL;
+}
+
+/**
+ * snapd_app_get_common_id:
+ * @app: a #SnapdApp.
+ *
+ * Get the common ID associated with this app.
+ *
+ * Returns: (allow-none): an ID or %NULL.
+ *
+ * Since: 1.41
+ */
+const gchar *
+snapd_app_get_common_id (SnapdApp *app)
+{
+    g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
+    return app->common_id;
 }
 
 /**
@@ -190,6 +209,10 @@ snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GPa
         break;
     case PROP_ALIASES:
         break;
+    case PROP_COMMON_ID:
+        g_free (app->common_id);
+        app->common_id = g_strdup (g_value_get_string (value));
+        break;
     case PROP_DAEMON_TYPE:
         app->daemon_type = g_value_get_enum (value);
         break;
@@ -225,6 +248,9 @@ snapd_app_get_property (GObject *object, guint prop_id, GValue *value, GParamSpe
     case PROP_ALIASES:
         g_value_set_boxed (value, NULL);
         break;
+    case PROP_COMMON_ID:
+        g_value_set_string (value, app->common_id);
+        break;
     case PROP_DAEMON_TYPE:
         g_value_set_enum (value, app->daemon_type);
         break;
@@ -252,6 +278,7 @@ snapd_app_finalize (GObject *object)
     SnapdApp *app = SNAPD_APP (object);
 
     g_clear_pointer (&app->name, g_free);
+    g_clear_pointer (&app->common_id, g_free);
     g_clear_pointer (&app->desktop_file, g_free);
     g_clear_pointer (&app->snap, g_free);
 
@@ -281,6 +308,13 @@ snapd_app_class_init (SnapdAppClass *klass)
                                                          "App aliases",
                                                          G_TYPE_STRV,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_COMMON_ID,
+                                     g_param_spec_string ("common-id",
+                                                          "common-id",
+                                                          "Common ID",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_DAEMON_TYPE,
                                      g_param_spec_enum ("daemon-type",

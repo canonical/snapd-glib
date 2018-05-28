@@ -86,6 +86,7 @@ struct _MockAlias
 struct _MockApp
 {
     gchar *name;
+    gchar *common_id;
     gchar *daemon;
     gchar *desktop_file;
     gboolean enabled;
@@ -225,6 +226,7 @@ static void
 mock_app_free (MockApp *app)
 {
     g_free (app->name);
+    g_free (app->common_id);
     g_free (app->daemon);
     g_free (app->desktop_file);
     g_list_free_full (app->aliases, (GDestroyNotify) mock_alias_free);
@@ -876,6 +878,13 @@ void
 mock_app_set_enabled (MockApp *app, gboolean enabled)
 {
     app->enabled = enabled;
+}
+
+void
+mock_app_set_common_id (MockApp *app, const gchar *id)
+{
+    g_free (app->common_id);
+    app->common_id = g_strdup (id);
 }
 
 void
@@ -1885,6 +1894,10 @@ make_app_node (MockApp *app, const gchar *snap_name)
         json_builder_set_member_name (builder, "name");
         json_builder_add_string_value (builder, app->name);
     }
+    if (app->common_id != NULL) {
+        json_builder_set_member_name (builder, "common-id");
+        json_builder_add_string_value (builder, app->common_id);
+    }
     if (app->daemon != NULL) {
         json_builder_set_member_name (builder, "daemon");
         json_builder_add_string_value (builder, app->daemon);
@@ -1979,6 +1992,24 @@ make_snap_node (MockSnap *snap)
             }
         }
         json_builder_end_object (builder);
+    }
+    if (snap->apps != NULL) {
+        GList *link;
+        int id_count = 0;
+
+        for (link = snap->apps; link; link = link->next) {
+            MockApp *app = link->data;
+            if (app->common_id == NULL)
+                continue;
+            if (id_count == 0) {
+                json_builder_set_member_name (builder, "common-ids");
+                json_builder_begin_array (builder);
+            }
+            id_count++;
+            json_builder_add_string_value (builder, app->common_id);
+        }
+        if (id_count > 0)
+            json_builder_end_array (builder);
     }
     json_builder_set_member_name (builder, "confinement");
     json_builder_add_string_value (builder, snap->confinement);

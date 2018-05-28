@@ -67,6 +67,15 @@ QSnapdChannel *QSnapdSnap::matchChannel (const QString& name) const
     return new QSnapdChannel (channel);
 }
 
+QStringList QSnapdSnap::commonIds () const
+{
+    gchar **common_ids = snapd_snap_get_common_ids (SNAPD_SNAP (wrapped_object));
+    QStringList result;
+    for (int i = 0; common_ids[i] != NULL; i++)
+        result.append (common_ids[i]);
+    return result;
+}
+
 QSnapdEnums::SnapConfinement QSnapdSnap::confinement () const
 {
     switch (snapd_snap_get_confinement (SNAPD_SNAP (wrapped_object)))

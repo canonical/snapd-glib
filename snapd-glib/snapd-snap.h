@@ -77,6 +77,8 @@ GPtrArray        *snapd_snap_get_channels         (SnapdSnap   *snap);
 SnapdChannel     *snapd_snap_match_channel        (SnapdSnap   *snap,
                                                    const gchar *name);
 
+gchar           **snapd_snap_get_common_ids       (SnapdSnap   *snap);
+
 SnapdConfinement  snapd_snap_get_confinement      (SnapdSnap   *snap);
 
 const gchar      *snapd_snap_get_contact          (SnapdSnap   *snap);

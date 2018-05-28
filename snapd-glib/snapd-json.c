@@ -565,6 +565,7 @@ _snapd_json_parse_apps (const gchar *snap_name, JsonArray *apps, GError **error)
         app = g_object_new (SNAPD_TYPE_APP,
                             "name", _snapd_json_get_string (a, "name", NULL),
                             "active", _snapd_json_get_bool (a, "active", FALSE),
+                            "common-id", _snapd_json_get_string (a, "common-id", NULL),
                             "daemon-type", daemon_type,
                             "desktop-file", _snapd_json_get_string (a, "desktop-file", NULL),
                             "enabled", _snapd_json_get_bool (a, "enabled", FALSE),
@@ -591,6 +592,8 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
     JsonObject *prices;
     g_autoptr(GPtrArray) apps_array = NULL;
     g_autoptr(GPtrArray) channels_array = NULL;
+    g_autoptr(JsonArray) common_ids = NULL;
+    g_autoptr(GPtrArray) common_ids_array = NULL;
     g_autoptr(GPtrArray) prices_array = NULL;
     g_autoptr(JsonArray) screenshots = NULL;
     g_autoptr(GPtrArray) screenshots_array = NULL;
@@ -659,6 +662,20 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
             g_ptr_array_add (channels_array, g_steal_pointer (&channel));
         }
     }
+
+    common_ids = _snapd_json_get_array (object, "common-ids");
+    common_ids_array = g_ptr_array_new ();
+    for (i = 0; i < json_array_get_length (common_ids); i++) {
+        JsonNode *node = json_array_get_element (common_ids, i);
+
+        if (json_node_get_value_type (node) != G_TYPE_STRING) {
+            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected common ID type");
+            return NULL;
+        }
+
+        g_ptr_array_add (common_ids_array, (gpointer) json_node_get_string (node));
+    }
+    g_ptr_array_add (common_ids_array, NULL);
 
     install_date = parse_date_time (object, "install-date");
 
@@ -730,6 +747,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                          "broken", _snapd_json_get_string (object, "broken", NULL),
                          "channel", _snapd_json_get_string (object, "channel", NULL),
                          "channels", channels_array,
+                         "common-ids", (gchar **) common_ids_array->pdata,
                          "confinement", confinement,
                          "contact", _snapd_json_get_string (object, "contact", NULL),
                          "description", _snapd_json_get_string (object, "description", NULL),

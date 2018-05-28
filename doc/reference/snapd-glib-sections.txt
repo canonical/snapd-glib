@@ -26,6 +26,7 @@ SnapdApp
 snapd_app_get_name
 snapd_app_get_active
 snapd_app_get_aliases
+snapd_app_get_common_id
 snapd_app_get_daemon_type
 snapd_app_get_desktop_file
 snapd_app_get_enabled
@@ -355,6 +356,7 @@ SNAPD_GLIB_VERSION_1_37
 SNAPD_GLIB_VERSION_1_38
 SNAPD_GLIB_VERSION_1_39
 SNAPD_GLIB_VERSION_1_40
+SNAPD_GLIB_VERSION_1_41
 </SECTION>
 
 <SECTION>
@@ -462,6 +464,7 @@ snapd_snap_get_broken
 snapd_snap_get_channel
 snapd_snap_get_channels
 snapd_snap_match_channel
+snapd_snap_get_common_ids
 snapd_snap_get_confinement
 snapd_snap_get_contact
 snapd_snap_get_description

@@ -1266,6 +1266,7 @@ test_list_one_sync (void)
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
     g_assert_cmpint (g_strv_length (snapd_snap_get_tracks (snap)), ==, 0);
     g_assert_cmpint (snapd_snap_get_channels (snap)->len, ==, 0);
+    g_assert_cmpint (g_strv_length (snapd_snap_get_common_ids (snap)), ==, 0);
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, NULL);
@@ -1303,6 +1304,7 @@ list_one_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_broken (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
+    g_assert_cmpint (g_strv_length (snapd_snap_get_common_ids (snap)), ==, 0);
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, NULL);
@@ -1392,6 +1394,7 @@ test_list_one_optional_fields (void)
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 1);
     app = snapd_snap_get_apps (snap)->pdata[0];
     g_assert_cmpstr (snapd_app_get_name (app), ==, "app");
+    g_assert_null (snapd_app_get_common_id (app));
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
     g_assert_cmpstr (snapd_app_get_snap (app), ==, "snap");
     g_assert_false (snapd_app_get_active (app));
@@ -1422,6 +1425,45 @@ test_list_one_optional_fields (void)
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, "CHANNEL");
     g_assert_true (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+}
+
+static void
+test_list_one_common_ids (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    MockApp *a;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdSnap) snap = NULL;
+    gchar **common_ids;
+    g_autoptr(GError) error = NULL;
+    SnapdApp *app;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap");
+    a = mock_snap_add_app (s, "app1");
+    mock_app_set_common_id (a, "ID1");
+    a = mock_snap_add_app (s, "app2");
+    mock_app_set_common_id (a, "ID2");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snap = snapd_client_list_one_sync (client, "snap", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snap);
+    common_ids = snapd_snap_get_common_ids (snap);
+    g_assert_cmpint (g_strv_length (common_ids), ==, 2);
+    g_assert_cmpstr (common_ids[0], ==, "ID1");
+    g_assert_cmpstr (common_ids[1], ==, "ID2");
+    g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 2);
+    app = snapd_snap_get_apps (snap)->pdata[0];
+    g_assert_cmpstr (snapd_app_get_name (app), ==, "app1");
+    g_assert_cmpstr (snapd_app_get_common_id (app), ==, "ID1");
+    app = snapd_snap_get_apps (snap)->pdata[1];
+    g_assert_cmpstr (snapd_app_get_name (app), ==, "app2");
+    g_assert_cmpstr (snapd_app_get_common_id (app), ==, "ID2");
 }
 
 static void
@@ -6408,6 +6450,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/sync", test_list_one_sync);
     g_test_add_func ("/list-one/async", test_list_one_async);
     g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
+    g_test_add_func ("/list-one/common-ids", test_list_one_common_ids);
     g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
     g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
     g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
