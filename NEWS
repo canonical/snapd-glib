@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 1.41
+
+    * New API:
+      - snapd_app_get_common_id
+      - snapd_snap_get_common_ids
+
 Overview of changes in snapd-glib 1.40
 
     * New API:
