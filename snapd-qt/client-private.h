@@ -134,6 +134,20 @@ public:
     SnapdSnap *snap = NULL;
 };
 
+class QSnapdGetSnapRequestPrivate
+{
+public:
+    QSnapdGetSnapRequestPrivate (const QString& name) :
+        name(name) {}
+    ~QSnapdGetSnapRequestPrivate ()
+    {
+        if (snap != NULL)
+            g_object_unref (snap);
+    }
+    QString name;
+    SnapdSnap *snap = NULL;
+};
+
 class QSnapdGetAppsRequestPrivate
 {
 public:

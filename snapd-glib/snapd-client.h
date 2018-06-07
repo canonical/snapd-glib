@@ -327,13 +327,26 @@ GPtrArray              *snapd_client_get_snaps_finish              (SnapdClient 
 SnapdSnap              *snapd_client_list_one_sync                 (SnapdClient          *client,
                                                                     const gchar          *name,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_snap_sync);
 void                    snapd_client_list_one_async                (SnapdClient          *client,
                                                                     const gchar          *name,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_get_snap_async);
 SnapdSnap              *snapd_client_list_one_finish               (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_snap_finish);
+
+SnapdSnap              *snapd_client_get_snap_sync                 (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_snap_async                (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+SnapdSnap              *snapd_client_get_snap_finish               (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

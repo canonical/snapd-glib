@@ -182,6 +182,23 @@ public slots:
     void onComplete ();
 };
 
+class GetSnapHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetSnapHandler (GMainLoop *loop, QSnapdGetSnapRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetSnapRequest *request;
+    ~GetSnapHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class GetAppsHandler: public QObject
 {
     Q_OBJECT

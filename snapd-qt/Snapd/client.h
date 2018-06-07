@@ -195,6 +195,24 @@ private:
     Q_DECLARE_PRIVATE(QSnapdListOneRequest)
 };
 
+class QSnapdGetSnapRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetSnapRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdGetSnapRequest (const QString& name, void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetSnapRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE QSnapdSnap *snap () const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetSnapRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetSnapRequest)
+};
+
 class QSnapdGetAppsRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetAppsRequest : public QSnapdRequest
 {
@@ -837,7 +855,8 @@ public:
     Q_INVOKABLE QSnapdGetSnapsRequest *getSnaps (const QStringList &snaps);
     Q_INVOKABLE QSnapdGetSnapsRequest *getSnaps (const QString &snap);
     Q_INVOKABLE QSnapdGetSnapsRequest *getSnaps ();
-    Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
+    Q_INVOKABLE Q_DECL_DEPRECATED_X("Use getSnap()") QSnapdListOneRequest *listOne (const QString &name);
+    Q_INVOKABLE QSnapdGetSnapRequest *getSnap (const QString &name);
     Q_INVOKABLE QSnapdGetAppsRequest *getApps ();
     Q_INVOKABLE QSnapdGetAppsRequest *getApps (GetAppsFlags flags);
     Q_INVOKABLE QSnapdGetIconRequest *getIcon (const QString &name);

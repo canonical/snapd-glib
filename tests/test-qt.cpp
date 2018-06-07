@@ -1121,7 +1121,10 @@ test_list_one_sync ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
+QT_WARNING_POP
     listOneRequest->runSync ();
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
@@ -1204,7 +1207,10 @@ test_list_one_async ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     ListOneHandler listOneHandler (loop, client.listOne ("snap"));
+QT_WARNING_POP
     QObject::connect (listOneHandler.request, &QSnapdListOneRequest::complete, &listOneHandler, &ListOneHandler::onComplete);
     listOneHandler.request->runAsync ();
 
@@ -1212,7 +1218,107 @@ test_list_one_async ()
 }
 
 static void
-test_list_one_optional_fields ()
+test_get_snap_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
+    g_assert_cmpint (snap->appCount (), ==, 0);
+    g_assert_null (snap->channel ());
+    g_assert_cmpint (snap->tracks ().count (), ==, 0);
+    g_assert_cmpint (snap->channelCount (), ==, 0);
+    g_assert_cmpint (snap->commonIds ().count (), ==, 0);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
+    g_assert_null (snap->contact ());
+    g_assert_null (snap->description ());
+    g_assert (snap->developer () == "DEVELOPER");
+    g_assert_false (snap->devmode ());
+    g_assert_cmpint (snap->downloadSize (), ==, 0);
+    g_assert (snap->icon () == "ICON");
+    g_assert (snap->id () == "ID");
+    g_assert_true (snap->installDate ().isNull ());
+    g_assert_cmpint (snap->installedSize (), ==, 0);
+    g_assert_false (snap->jailmode ());
+    g_assert_null (snap->license ());
+    g_assert (snap->name () == "snap");
+    g_assert_cmpint (snap->priceCount (), ==, 0);
+    g_assert_false (snap->isPrivate ());
+    g_assert (snap->revision () == "REVISION");
+    g_assert_cmpint (snap->screenshotCount (), ==, 0);
+    g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
+    g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
+    g_assert_null (snap->summary ());
+    g_assert_null (snap->trackingChannel ());
+    g_assert_false (snap->trymode ());
+    g_assert (snap->version () == "VERSION");
+}
+
+void
+GetSnapHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (request->snap ());
+    g_assert_cmpint (snap->appCount (), ==, 0);
+    g_assert_null (snap->broken ());
+    g_assert_null (snap->channel ());
+    g_assert_cmpint (snap->tracks ().count (), ==, 0);
+    g_assert_cmpint (snap->channelCount (), ==, 0);
+    g_assert_cmpint (snap->commonIds ().count (), ==, 0);
+    g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
+    g_assert_null (snap->contact ());
+    g_assert_null (snap->description ());
+    g_assert (snap->developer () == "DEVELOPER");
+    g_assert_false (snap->devmode ());
+    g_assert_cmpint (snap->downloadSize (), ==, 0);
+    g_assert (snap->icon () == "ICON");
+    g_assert (snap->id () == "ID");
+    g_assert_true (snap->installDate ().isNull ());
+    g_assert_cmpint (snap->installedSize (), ==, 0);
+    g_assert_false (snap->jailmode ());
+    g_assert (snap->name () == "snap");
+    g_assert_cmpint (snap->priceCount (), ==, 0);
+    g_assert_false (snap->isPrivate ());
+    g_assert (snap->revision () == "REVISION");
+    g_assert_cmpint (snap->screenshotCount (), ==, 0);
+    g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
+    g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
+    g_assert_null (snap->summary ());
+    g_assert_null (snap->trackingChannel ());
+    g_assert_false (snap->trymode ());
+    g_assert (snap->version () == "VERSION");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_snap_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetSnapHandler getSnapHandler (loop, client.getSnap ("snap"));
+    QObject::connect (getSnapHandler.request, &QSnapdGetSnapRequest::complete, &getSnapHandler, &GetSnapHandler::onComplete);
+    getSnapHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_snap_optional_fields ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
@@ -1238,10 +1344,10 @@ test_list_one_optional_fields ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
-    listOneRequest->runSync ();
-    g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
-    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
     g_assert_cmpint (snap->appCount (), ==, 1);
     QScopedPointer<QSnapdApp> app (snap->app (0));
     g_assert (app->name () == "app");
@@ -1280,7 +1386,7 @@ test_list_one_optional_fields ()
 }
 
 static void
-test_list_one_common_ids ()
+test_get_snap_common_ids ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
@@ -1293,10 +1399,10 @@ test_list_one_common_ids ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
-    listOneRequest->runSync ();
-    g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
-    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
     g_assert_cmpint (snap->commonIds ().count (), ==, 2);
     g_assert (snap->commonIds ()[0] == "ID1");
     g_assert (snap->commonIds ()[1] == "ID2");
@@ -1310,7 +1416,7 @@ test_list_one_common_ids ()
 }
 
 static void
-test_list_one_not_installed ()
+test_get_snap_not_installed ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -1318,13 +1424,13 @@ test_list_one_not_installed ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
-    listOneRequest->runSync ();
-    g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::Failed);
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::Failed);
 }
 
 static void
-test_list_one_classic_confinement ()
+test_get_snap_classic_confinement ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
@@ -1334,15 +1440,15 @@ test_list_one_classic_confinement ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
-    listOneRequest->runSync ();
-    g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
-    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
 }
 
 static void
-test_list_one_devmode_confinement ()
+test_get_snap_devmode_confinement ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
@@ -1352,15 +1458,15 @@ test_list_one_devmode_confinement ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
-    listOneRequest->runSync ();
-    g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
-    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementDevmode);
 }
 
 static void
-test_list_one_daemons ()
+test_get_snap_daemons ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap");
@@ -1381,10 +1487,10 @@ test_list_one_daemons ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdListOneRequest> listOneRequest (client.listOne ("snap"));
-    listOneRequest->runSync ();
-    g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
-    QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
     g_assert_cmpint (snap->appCount (), ==, 6);
     QScopedPointer<QSnapdApp> app1 (snap->app (0));
     g_assert_cmpint (app1->daemonType (), ==, QSnapdEnums::DaemonTypeSimple);
@@ -5115,12 +5221,14 @@ main (int argc, char **argv)
     g_test_add_func ("/get-snaps/filter", test_get_snaps_filter);
     g_test_add_func ("/list-one/sync", test_list_one_sync);
     g_test_add_func ("/list-one/async", test_list_one_async);
-    g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
-    g_test_add_func ("/list-one/common-ids", test_list_one_common_ids);
-    g_test_add_func ("/list-one/not-installed", test_list_one_not_installed);
-    g_test_add_func ("/list-one/classic-confinement", test_list_one_classic_confinement);
-    g_test_add_func ("/list-one/devmode-confinement", test_list_one_devmode_confinement);
-    g_test_add_func ("/list-one/daemons", test_list_one_daemons);
+    g_test_add_func ("/get-snap/sync", test_get_snap_sync);
+    g_test_add_func ("/get-snap/async", test_get_snap_async);
+    g_test_add_func ("/get-snap/optional-fields", test_get_snap_optional_fields);
+    g_test_add_func ("/get-snap/common-ids", test_get_snap_common_ids);
+    g_test_add_func ("/get-snap/not-installed", test_get_snap_not_installed);
+    g_test_add_func ("/get-snap/classic-confinement", test_get_snap_classic_confinement);
+    g_test_add_func ("/get-snap/devmode-confinement", test_get_snap_devmode_confinement);
+    g_test_add_func ("/get-snap/daemons", test_get_snap_daemons);
     g_test_add_func ("/get-apps/sync", test_get_apps_sync);
     g_test_add_func ("/get-apps/async", test_get_apps_async);
     g_test_add_func ("/get-apps/services", test_get_apps_services);

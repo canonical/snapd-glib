@@ -1414,18 +1414,14 @@ snapd_client_get_system_information_finish (SnapdClient *client, GAsyncResult *r
  * See snapd_client_list_one_sync() for more information.
  *
  * Since: 1.0
+ * Deprecated: 1.42: Use snapd_client_get_snap_async()
  */
 void
 snapd_client_list_one_async (SnapdClient *client,
                              const gchar *name,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetSnap *request;
-
-    g_return_if_fail (SNAPD_IS_CLIENT (client));
-
-    request = _snapd_get_snap_new (name, cancellable, callback, user_data);
-    send_request (client, SNAPD_REQUEST (request));
+    return snapd_client_get_snap_async (client, name, cancellable, callback, user_data);
 }
 
 /**
@@ -1440,9 +1436,55 @@ snapd_client_list_one_async (SnapdClient *client,
  * Returns: (transfer full): a #SnapdSnap or %NULL on error.
  *
  * Since: 1.0
+ * Deprecated: 1.42: Use snapd_client_get_snap_finish()
  */
 SnapdSnap *
 snapd_client_list_one_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    return snapd_client_get_snap_finish (client, result, error);
+}
+
+/**
+ * snapd_client_get_snap_async:
+ * @client: a #SnapdClient.
+ * @name: name of snap to get.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get information of a single installed snap.
+ * See snapd_client_get_snap_sync() for more information.
+ *
+ * Since: 1.42
+ */
+void
+snapd_client_get_snap_async (SnapdClient *client,
+                             const gchar *name,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdGetSnap *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    request = _snapd_get_snap_new (name, cancellable, callback, user_data);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_snap_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_snap_async().
+ * See snapd_client_get_snap_sync() for more information.
+ *
+ * Returns: (transfer full): a #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.42
+ */
+SnapdSnap *
+snapd_client_get_snap_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdGetSnap *request;
 

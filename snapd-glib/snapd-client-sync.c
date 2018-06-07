@@ -273,9 +273,31 @@ snapd_client_get_system_information_sync (SnapdClient *client,
  * Returns: (transfer full): a #SnapdSnap or %NULL on error.
  *
  * Since: 1.0
+ * Deprecated: 1.42: Use snapd_client_get_snap_sync()
  */
 SnapdSnap *
 snapd_client_list_one_sync (SnapdClient *client,
+                            const gchar *name,
+                            GCancellable *cancellable, GError **error)
+{
+    return snapd_client_get_snap_sync (client, name, cancellable, error);
+}
+
+/**
+ * snapd_client_get_snap_sync:
+ * @client: a #SnapdClient.
+ * @name: name of snap to get.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get information of a single installed snap.
+ *
+ * Returns: (transfer full): a #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.42
+ */
+SnapdSnap *
+snapd_client_get_snap_sync (SnapdClient *client,
                             const gchar *name,
                             GCancellable *cancellable, GError **error)
 {
@@ -284,9 +306,9 @@ snapd_client_list_one_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
     start_sync (&data);
-    snapd_client_list_one_async (client, name, cancellable, sync_cb, &data);
+    snapd_client_get_snap_async (client, name, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_list_one_finish (client, data.result, error);
+    return snapd_client_get_snap_finish (client, data.result, error);
 }
 
 /**
