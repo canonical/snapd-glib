@@ -290,7 +290,7 @@ snapd_client_list_one_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Get information of a single installed snap.
+ * Get information of a single installed snap. If the snap does not exist an error occurs.
  *
  * Returns: (transfer full): a #SnapdSnap or %NULL on error.
  *
@@ -403,13 +403,16 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  * snapd_client_get_snaps_sync:
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdGetSnapsFlags to control what results are returned.
- * @names: (allow-none): A list of snap names to return results for. If %NULL or empty then all installed snaps are returned.
+ * @names: (allow-none): A list of snap names or %NULL.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Get information on installed snaps. If @flags contains %SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS
  * then all installed revisions are returned (there may be more than one revision per snap).
  * Otherwise only the active revisions are returned.
+ *
+ * If @names is not %NULL and contains at least one name only snaps that match these names are
+ * returned. If a snap is not installed it is not returned (no error is generated).
  *
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  *
