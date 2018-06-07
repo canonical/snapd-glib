@@ -1577,17 +1577,13 @@ snapd_client_get_icon_finish (SnapdClient *client, GAsyncResult *result, GError 
  * See snapd_client_list_sync() for more information.
  *
  * Since: 1.0
+ * Deprecated: 1.42: Use snapd_client_get_snaps_async()
  */
 void
 snapd_client_list_async (SnapdClient *client,
                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetSnaps *request;
-
-    g_return_if_fail (SNAPD_IS_CLIENT (client));
-
-    request = _snapd_get_snaps_new (cancellable, callback, user_data);
-    send_request (client, SNAPD_REQUEST (request));
+    return snapd_client_get_snaps_async (client, SNAPD_GET_SNAPS_FLAGS_NONE, NULL, cancellable, callback, user_data);
 }
 
 /**
@@ -1602,9 +1598,59 @@ snapd_client_list_async (SnapdClient *client,
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  *
  * Since: 1.0
+ * Deprecated: 1.42: Use snapd_client_get_snaps_finish()
  */
 GPtrArray *
 snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    return snapd_client_get_snaps_finish (client, result, error);
+}
+
+/**
+ * snapd_client_get_snaps_async:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdGetSnapsFlags to control what results are returned.
+ * @names: (allow-none): A list of snap names to return results for. If %NULL or empty then all installed snaps are returned.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get information on installed snaps.
+ * See snapd_client_get_snaps_sync() for more information.
+ *
+ * Since: 1.42
+ */
+void
+snapd_client_get_snaps_async (SnapdClient *client,
+                              SnapdGetSnapsFlags flags,
+                              gchar **names,
+                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdGetSnaps *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    request = _snapd_get_snaps_new (cancellable, names, callback, user_data);
+    if ((flags & SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS) != 0)
+        _snapd_get_snaps_set_select (request, "all");
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_snaps_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_snaps_async().
+ * See snapd_client_get_snaps_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.42
+ */
+GPtrArray *
+snapd_client_get_snaps_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdGetSnaps *request;
 

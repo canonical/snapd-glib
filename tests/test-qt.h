@@ -148,6 +148,23 @@ public slots:
     void onComplete ();
 };
 
+class GetSnapsHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetSnapsHandler (GMainLoop *loop, QSnapdGetSnapsRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetSnapsRequest *request;
+    ~GetSnapsHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class ListOneHandler: public QObject
 {
     Q_OBJECT

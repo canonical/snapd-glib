@@ -2145,22 +2145,80 @@ get_refreshable_snaps (MockSnapd *snapd)
     return refreshable_snaps;
 }
 
+static gboolean
+snap_is_active (MockSnapd *snapd, MockSnap *snap)
+{
+    GList *link;
+
+    for (link = snapd->snaps; link; link = link->next) {
+        MockSnap *s = link->data;
+
+        /* Skip this snap */
+        if (s == snap)
+            continue;
+
+        /* Only compare revisions of the same snap */
+        if (strcmp (s->name, snap->name) != 0)
+            continue;
+
+        /* Inactive if other snap has higher revision */
+        if (strcmp (s->revision, snap->revision) > 0)
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
+static gboolean
+filter_snaps (MockSnapd *snapd, const gchar *select_param, gchar **selected_snaps, MockSnap *snap)
+{
+    int i;
+
+    if (select_param == NULL || strcmp (select_param, "enabled") == 0) {
+        if (!snap_is_active (snapd, snap))
+            return FALSE;
+    }
+
+    /* If no filter selected, then return all snaps */
+    if (selected_snaps == NULL || selected_snaps[0] == NULL)
+        return TRUE;
+
+    for (i = 0; selected_snaps[i] != NULL; i++) {
+        if (strcmp (selected_snaps[i], snap->name) == 0)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 static void
-handle_snaps (MockSnapd *snapd, SoupMessage *message)
+handle_snaps (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
 {
     const gchar *content_type;
 
     content_type = soup_message_headers_get_content_type (message->request_headers, NULL);
 
     if (strcmp (message->method, "GET") == 0) {
+        const gchar *select_param = NULL;
+        g_auto(GStrv) selected_snaps = NULL;
         g_autoptr(JsonBuilder) builder = NULL;
         GList *link;
+
+        if (query != NULL) {
+            const gchar *snaps_param = NULL;
+
+            select_param = g_hash_table_lookup (query, "select");
+            snaps_param = g_hash_table_lookup (query, "snaps");
+            if (snaps_param != NULL)
+                selected_snaps = g_strsplit (snaps_param, ",", -1);
+        }
 
         builder = json_builder_new ();
         json_builder_begin_array (builder);
         for (link = snapd->snaps; link; link = link->next) {
             MockSnap *snap = link->data;
-            json_builder_add_value (builder, make_snap_node (snap));
+            if (filter_snaps (snapd, select_param, selected_snaps, snap))
+                json_builder_add_value (builder, make_snap_node (snap));
         }
         json_builder_end_array (builder);
 
@@ -3660,7 +3718,7 @@ handle_request (SoupServer        *server,
     else if (strcmp (path, "/v2/login") == 0)
         handle_login (snapd, message);
     else if (strcmp (path, "/v2/snaps") == 0)
-        handle_snaps (snapd, message);
+        handle_snaps (snapd, message, query);
     else if (g_str_has_prefix (path, "/v2/snaps/"))
         handle_snap (snapd, message, path + strlen ("/v2/snaps/"));
     else if (strcmp (path, "/v2/apps") == 0)

@@ -61,6 +61,21 @@ typedef enum
 } SnapdChangeFilter;
 
 /**
+ * SnapdGetSnapsFlags:
+ * @SNAPD_GET_SNAPS_FLAGS_NONE: No flags, default behaviour.
+ * @SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS: Return all installed revisions.
+ *
+ * Flag to change which snaps are returned.
+ *
+ * Since: 1.42
+ */
+typedef enum
+{
+    SNAPD_GET_SNAPS_FLAGS_NONE          = 0,
+    SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS = 1 << 0
+} SnapdGetSnapsFlags;
+
+/**
  * SnapdGetAppsFlags:
  * @SNAPD_GET_APPS_FLAGS_NONE: No flags, default behaviour.
  * @SNAPD_GET_APPS_FLAGS_SELECT_SERVICES: Select services only.
@@ -72,7 +87,7 @@ typedef enum
 typedef enum
 {
     SNAPD_GET_APPS_FLAGS_NONE            = 0,
-    SNAPD_GET_APPS_FLAGS_SELECT_SERVICES = 1 << 0,
+    SNAPD_GET_APPS_FLAGS_SELECT_SERVICES = 1 << 0
 } SnapdGetAppsFlags;
 
 /**
@@ -285,12 +300,27 @@ SnapdSystemInformation *snapd_client_get_system_information_finish (SnapdClient 
 
 GPtrArray              *snapd_client_list_sync                     (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_snaps_sync);
 void                    snapd_client_list_async                    (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_get_snaps_async);
 GPtrArray              *snapd_client_list_finish                   (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_snaps_finish);
+
+GPtrArray              *snapd_client_get_snaps_sync                (SnapdClient          *client,
+                                                                    SnapdGetSnapsFlags    flags,
+                                                                    gchar               **names,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_snaps_async               (SnapdClient          *client,
+                                                                    SnapdGetSnapsFlags    flags,
+                                                                    gchar               **names,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_get_snaps_finish              (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

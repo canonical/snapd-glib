@@ -157,6 +157,26 @@ private:
     Q_DECLARE_PRIVATE(QSnapdListRequest)
 };
 
+class QSnapdGetSnapsRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetSnapsRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int snapCount READ snapCount)
+
+public:
+    explicit QSnapdGetSnapsRequest (int flags, const QStringList& snaps, void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetSnapsRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int snapCount () const;
+    Q_INVOKABLE QSnapdSnap *snap (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetSnapsRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetSnapsRequest)
+};
+
 class QSnapdListOneRequestPrivate;
 class Q_DECL_EXPORT QSnapdListOneRequest : public QSnapdRequest
 {
@@ -759,6 +779,11 @@ public:
         FilterReady
     };
     Q_ENUM(ChangeFilter)
+    enum GetSnapsFlag
+    {
+        AllRevisions = 1 << 0
+    };
+    Q_DECLARE_FLAGS(GetSnapsFlags, GetSnapsFlag);
     enum GetAppsFlag
     {
         SelectServices = 1 << 0
@@ -806,7 +831,12 @@ public:
     Q_INVOKABLE QSnapdGetChangeRequest *getChange (const QString &id);
     Q_INVOKABLE QSnapdAbortChangeRequest *abortChange (const QString &id);
     Q_INVOKABLE QSnapdGetSystemInformationRequest *getSystemInformation ();
-    Q_INVOKABLE QSnapdListRequest *list ();
+    Q_INVOKABLE Q_DECL_DEPRECATED_X("Use getSnaps()") QSnapdListRequest *list ();
+    Q_INVOKABLE QSnapdGetSnapsRequest *getSnaps (GetSnapsFlags flags, const QStringList &snaps);
+    Q_INVOKABLE QSnapdGetSnapsRequest *getSnaps (GetSnapsFlags flags, const QString &snap);
+    Q_INVOKABLE QSnapdGetSnapsRequest *getSnaps (const QStringList &snaps);
+    Q_INVOKABLE QSnapdGetSnapsRequest *getSnaps (const QString &snap);
+    Q_INVOKABLE QSnapdGetSnapsRequest *getSnaps ();
     Q_INVOKABLE QSnapdListOneRequest *listOne (const QString &name);
     Q_INVOKABLE QSnapdGetAppsRequest *getApps ();
     Q_INVOKABLE QSnapdGetAppsRequest *getApps (GetAppsFlags flags);

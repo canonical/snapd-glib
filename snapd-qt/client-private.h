@@ -105,6 +105,21 @@ public:
     GPtrArray *snaps = NULL;
 };
 
+class QSnapdGetSnapsRequestPrivate
+{
+public:
+    QSnapdGetSnapsRequestPrivate (int flags, const QStringList& snaps) :
+        flags(flags), filter_snaps(snaps) {}
+    ~QSnapdGetSnapsRequestPrivate ()
+    {
+        if (snaps != NULL)
+            g_ptr_array_unref (snaps);
+    }
+    int flags;
+    QStringList filter_snaps;
+    GPtrArray *snaps = NULL;
+};
+
 class QSnapdListOneRequestPrivate
 {
 public:

@@ -961,7 +961,10 @@ test_list_sync ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     QScopedPointer<QSnapdListRequest> listRequest (client.list ());
+QT_WARNING_POP
     listRequest->runSync ();
     g_assert_cmpint (listRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (listRequest->snapCount (), ==, 3);
@@ -994,7 +997,10 @@ test_list_async ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_snap (snapd, "snap1");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "2");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -1002,11 +1008,107 @@ test_list_async ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     ListHandler listHandler (loop, client.list ());
+QT_WARNING_POP
     QObject::connect (listHandler.request, &QSnapdListRequest::complete, &listHandler, &ListHandler::onComplete);
     listHandler.request->runAsync ();
 
     g_main_loop_run (loop);
+}
+
+static void
+test_get_snaps_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "2");
+    mock_snapd_add_snap (snapd, "snap2");
+    mock_snapd_add_snap (snapd, "snap3");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSnapsRequest> getSnapsRequest (client.getSnaps ());
+    getSnapsRequest->runSync ();
+    g_assert_cmpint (getSnapsRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getSnapsRequest->snapCount (), ==, 3);
+    QScopedPointer<QSnapdSnap> snap0 (getSnapsRequest->snap (0));
+    g_assert (snap0->name () == "snap1");
+    QScopedPointer<QSnapdSnap> snap1 (getSnapsRequest->snap (1));
+    g_assert (snap1->name () == "snap2");
+    QScopedPointer<QSnapdSnap> snap2 (getSnapsRequest->snap (2));
+    g_assert (snap2->name () == "snap3");
+}
+
+void
+GetSnapsHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->snapCount (), ==, 3);
+    QScopedPointer<QSnapdSnap> snap0 (request->snap (0));
+    g_assert (snap0->name () == "snap1");
+    QScopedPointer<QSnapdSnap> snap1 (request->snap (1));
+    g_assert (snap1->name () == "snap2");
+    QScopedPointer<QSnapdSnap> snap2 (request->snap (2));
+    g_assert (snap2->name () == "snap3");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_snaps_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "2");
+    mock_snapd_add_snap (snapd, "snap2");
+    mock_snapd_add_snap (snapd, "snap3");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetSnapsHandler getSnapsHandler (loop, client.getSnaps ());
+    QObject::connect (getSnapsHandler.request, &QSnapdGetSnapsRequest::complete, &getSnapsHandler, &GetSnapsHandler::onComplete);
+    getSnapsHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_snaps_filter ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "2");
+    mock_snapd_add_snap (snapd, "snap2");
+    mock_snapd_add_snap (snapd, "snap3");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSnapsRequest> getSnapsRequest (client.getSnaps (QSnapdClient::AllRevisions, QStringList ("snap1")));
+    getSnapsRequest->runSync ();
+    g_assert_cmpint (getSnapsRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getSnapsRequest->snapCount (), ==, 3);
+    QScopedPointer<QSnapdSnap> snap0 (getSnapsRequest->snap (0));
+    g_assert (snap0->name () == "snap1");
+    QScopedPointer<QSnapdSnap> snap1 (getSnapsRequest->snap (1));
+    g_assert (snap1->name () == "snap2");
+    QScopedPointer<QSnapdSnap> snap2 (getSnapsRequest->snap (2));
+    g_assert (snap2->name () == "snap3");
 }
 
 static void
@@ -5008,6 +5110,9 @@ main (int argc, char **argv)
     g_test_add_func ("/abort-change/async", test_abort_change_async);
     g_test_add_func ("/list/sync", test_list_sync);
     g_test_add_func ("/list/async", test_list_async);
+    g_test_add_func ("/get-snaps/sync", test_get_snaps_sync);
+    g_test_add_func ("/get-snaps/async", test_get_snaps_async);
+    g_test_add_func ("/get-snaps/filter", test_get_snaps_filter);
     g_test_add_func ("/list-one/sync", test_list_one_sync);
     g_test_add_func ("/list-one/async", test_list_one_async);
     g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);

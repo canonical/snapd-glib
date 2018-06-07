@@ -356,6 +356,7 @@ snapd_client_get_icon_sync (SnapdClient *client,
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  *
  * Since: 1.0
+ * Deprecated: 1.42: Use snapd_client_get_snaps_sync()
  */
 GPtrArray *
 snapd_client_list_sync (SnapdClient *client,
@@ -366,9 +367,45 @@ snapd_client_list_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
     start_sync (&data);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_list_async (client, cancellable, sync_cb, &data);
+G_GNUC_END_IGNORE_DEPRECATIONS
     end_sync (&data);
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     return snapd_client_list_finish (client, data.result, error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+/**
+ * snapd_client_get_snaps_sync:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdGetSnapsFlags to control what results are returned.
+ * @names: (allow-none): A list of snap names to return results for. If %NULL or empty then all installed snaps are returned.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get information on installed snaps. If @flags contains %SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS
+ * then all installed revisions are returned (there may be more than one revision per snap).
+ * Otherwise only the active revisions are returned.
+ *
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.42
+ */
+GPtrArray *
+snapd_client_get_snaps_sync (SnapdClient *client,
+                             SnapdGetSnapsFlags flags, gchar **names,
+                             GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    start_sync (&data);
+    snapd_client_get_snaps_async (client, flags, names, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_snaps_finish (client, data.result, error);
 }
 
 /**

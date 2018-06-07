@@ -98,6 +98,7 @@ SNAPD_TYPE_CHANNEL
 SnapdClient
 SnapdClientClass
 SnapdChangeFilter
+SnapdGetSnapsFlags
 SnapdGetAppsFlags
 SnapdFindFlags
 SnapdInstallFlags
@@ -137,6 +138,9 @@ snapd_client_get_system_information_finish
 snapd_client_list_sync
 snapd_client_list_async
 snapd_client_list_finish
+snapd_client_get_snaps_sync
+snapd_client_get_snaps_async
+snapd_client_get_snaps_finish
 snapd_client_list_one_sync
 snapd_client_list_one_async
 snapd_client_list_one_finish
@@ -247,6 +251,8 @@ snapd_client_run_snapctl_sync
 SNAPD_TYPE_CLIENT
 SNAPD_TYPE_CHANGE_FILTER
 snapd_change_filter_get_type
+SNAPD_TYPE_GET_SNAPS_FLAGS
+snapd_get_snaps_flags_get_type
 SNAPD_TYPE_GET_APPS_FLAGS
 snapd_get_apps_flags_get_type
 SNAPD_TYPE_FIND_FLAGS
@@ -357,6 +363,7 @@ SNAPD_GLIB_VERSION_1_38
 SNAPD_GLIB_VERSION_1_39
 SNAPD_GLIB_VERSION_1_40
 SNAPD_GLIB_VERSION_1_41
+SNAPD_GLIB_VERSION_1_42
 </SECTION>
 
 <SECTION>

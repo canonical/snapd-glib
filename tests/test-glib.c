@@ -1194,7 +1194,9 @@ test_list_sync (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snaps = snapd_client_list_sync (client, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 3);
@@ -1210,7 +1212,9 @@ list_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(AsyncData) data = user_data;
     g_autoptr(GError) error = NULL;
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snaps = snapd_client_list_finish (SNAPD_CLIENT (object), result, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 3);
@@ -1240,8 +1244,117 @@ test_list_async (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_list_async (client, NULL, list_cb, async_data_new (loop, snapd));
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_main_loop_run (loop);
+}
+
+static void
+test_get_snaps_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) snaps = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "2");
+    mock_snapd_add_snap (snapd, "snap2");
+    mock_snapd_add_snap (snapd, "snap3");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_NONE, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 3);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "snap2");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[2]), ==, "snap3");
+}
+
+static void
+get_snaps_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(GPtrArray) snaps = NULL;
+    g_autoptr(AsyncData) data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    snaps = snapd_client_get_snaps_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 3);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "snap2");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[2]), ==, "snap3");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_get_snaps_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "2");
+    mock_snapd_add_snap (snapd, "snap2");
+    mock_snapd_add_snap (snapd, "snap3");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_snaps_async (client, SNAPD_GET_SNAPS_FLAGS_NONE, NULL, NULL, get_snaps_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_snaps_filter (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) snaps = NULL;
+    gchar *filter_snaps[] = { "snap1", NULL };
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "1");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_revision (s, "2");
+    mock_snapd_add_snap (snapd, "snap2");
+    mock_snapd_add_snap (snapd, "snap3");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS, filter_snaps, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 2);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
+    g_assert_cmpstr (snapd_snap_get_revision (snaps->pdata[0]), ==, "1");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "snap1");
+    g_assert_cmpstr (snapd_snap_get_revision (snaps->pdata[1]), ==, "2");
 }
 
 static void
@@ -6447,6 +6560,9 @@ main (int argc, char **argv)
     g_test_add_func ("/abort-change/async", test_abort_change_async);
     g_test_add_func ("/list/sync", test_list_sync);
     g_test_add_func ("/list/async", test_list_async);
+    g_test_add_func ("/get-snaps/sync", test_get_snaps_sync);
+    g_test_add_func ("/get-snaps/async", test_get_snaps_async);
+    g_test_add_func ("/get-snaps/filter", test_get_snaps_filter);
     g_test_add_func ("/list-one/sync", test_list_one_sync);
     g_test_add_func ("/list-one/async", test_list_one_async);
     g_test_add_func ("/list-one/optional-fields", test_list_one_optional_fields);
