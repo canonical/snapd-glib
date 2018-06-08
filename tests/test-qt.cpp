@@ -998,9 +998,8 @@ test_list_async ()
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "1");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "2");
+    mock_snap_set_status (s, "installed");
+    mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -1023,9 +1022,8 @@ test_get_snaps_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "1");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "2");
+    mock_snap_set_status (s, "installed");
+    mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -1067,9 +1065,8 @@ test_get_snaps_async ()
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "1");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "2");
+    mock_snap_set_status (s, "installed");
+    mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -1089,9 +1086,8 @@ test_get_snaps_filter ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "1");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "2");
+    mock_snap_set_status (s, "installed");
+    mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -1102,13 +1098,12 @@ test_get_snaps_filter ()
     QScopedPointer<QSnapdGetSnapsRequest> getSnapsRequest (client.getSnaps (QSnapdClient::AllRevisions, QStringList ("snap1")));
     getSnapsRequest->runSync ();
     g_assert_cmpint (getSnapsRequest->error (), ==, QSnapdRequest::NoError);
-    g_assert_cmpint (getSnapsRequest->snapCount (), ==, 3);
+    g_assert_cmpint (getSnapsRequest->snapCount (), ==, 2);
     QScopedPointer<QSnapdSnap> snap0 (getSnapsRequest->snap (0));
     g_assert (snap0->name () == "snap1");
+    g_assert (snap0->status () == QSnapdEnums::SnapStatusInstalled);
     QScopedPointer<QSnapdSnap> snap1 (getSnapsRequest->snap (1));
-    g_assert (snap1->name () == "snap2");
-    QScopedPointer<QSnapdSnap> snap2 (getSnapsRequest->snap (2));
-    g_assert (snap2->name () == "snap3");
+    g_assert (snap1->status () == QSnapdEnums::SnapStatusActive);
 }
 
 static void

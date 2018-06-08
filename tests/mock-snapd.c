@@ -2146,36 +2146,12 @@ get_refreshable_snaps (MockSnapd *snapd)
 }
 
 static gboolean
-snap_is_active (MockSnapd *snapd, MockSnap *snap)
-{
-    GList *link;
-
-    for (link = snapd->snaps; link; link = link->next) {
-        MockSnap *s = link->data;
-
-        /* Skip this snap */
-        if (s == snap)
-            continue;
-
-        /* Only compare revisions of the same snap */
-        if (strcmp (s->name, snap->name) != 0)
-            continue;
-
-        /* Inactive if other snap has higher revision */
-        if (strcmp (s->revision, snap->revision) > 0)
-            return FALSE;
-    }
-
-    return TRUE;
-}
-
-static gboolean
 filter_snaps (MockSnapd *snapd, const gchar *select_param, gchar **selected_snaps, MockSnap *snap)
 {
     int i;
 
     if (select_param == NULL || strcmp (select_param, "enabled") == 0) {
-        if (!snap_is_active (snapd, snap))
+        if (strcmp (snap->status, "active") != 0)
             return FALSE;
     }
 

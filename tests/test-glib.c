@@ -1261,9 +1261,8 @@ test_get_snaps_sync (void)
 
     snapd = mock_snapd_new ();
     s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "1");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "2");
+    mock_snap_set_status (s, "installed");
+    mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -1311,9 +1310,8 @@ test_get_snaps_async (void)
 
     snapd = mock_snapd_new ();
     s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "1");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "2");
+    mock_snap_set_status (s, "installed");
+    mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -1337,9 +1335,8 @@ test_get_snaps_filter (void)
 
     snapd = mock_snapd_new ();
     s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "1");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_revision (s, "2");
+    mock_snap_set_status (s, "installed");
+    mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -1352,9 +1349,9 @@ test_get_snaps_filter (void)
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 2);
     g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
-    g_assert_cmpstr (snapd_snap_get_revision (snaps->pdata[0]), ==, "1");
+    g_assert_cmpint (snapd_snap_get_status (snaps->pdata[0]), ==, SNAPD_SNAP_STATUS_INSTALLED);
     g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "snap1");
-    g_assert_cmpstr (snapd_snap_get_revision (snaps->pdata[1]), ==, "2");
+    g_assert_cmpint (snapd_snap_get_status (snaps->pdata[1]), ==, SNAPD_SNAP_STATUS_ACTIVE);
 }
 
 static void

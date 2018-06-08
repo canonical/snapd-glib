@@ -216,31 +216,27 @@ QSnapdGetSnapsRequest::~QSnapdGetSnapsRequest ()
 QSnapdGetSnapsRequest *QSnapdClient::getSnaps (GetSnapsFlags flags, const QStringList &snaps)
 {
     Q_D(QSnapdClient);
-    return new QSnapdGetSnapsRequest (0, QStringList(), d->client);
+    return new QSnapdGetSnapsRequest (flags, snaps, d->client);
 }
 
 QSnapdGetSnapsRequest *QSnapdClient::getSnaps (GetSnapsFlags flags, const QString &snap)
 {
-    Q_D(QSnapdClient);
-    return new QSnapdGetSnapsRequest (0, QStringList(snap), d->client);
+    return getSnaps (flags, QStringList(snap));
 }
 
 QSnapdGetSnapsRequest *QSnapdClient::getSnaps (const QStringList &snaps)
 {
-    Q_D(QSnapdClient);
-    return new QSnapdGetSnapsRequest (0, snaps, d->client);
+    return getSnaps (0, snaps);
 }
 
 QSnapdGetSnapsRequest *QSnapdClient::getSnaps (const QString &snap)
 {
-    Q_D(QSnapdClient);
-    return new QSnapdGetSnapsRequest (0, QStringList(), d->client);
+    return getSnaps (0, QStringList(snap));
 }
 
 QSnapdGetSnapsRequest *QSnapdClient::getSnaps ()
 {
-    Q_D(QSnapdClient);
-    return new QSnapdGetSnapsRequest (0, QStringList(), d->client);
+    return getSnaps (0, QStringList ());
 }
 
 QSnapdListOneRequest::~QSnapdListOneRequest ()
