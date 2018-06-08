@@ -41,6 +41,7 @@ struct _MockSnapd
     GList *snaps;
     gchar *build_id;
     gchar *confinement;
+    GHashTable *sandbox_features;
     gchar *store;
     gboolean managed;
     gboolean on_classic;
@@ -363,6 +364,23 @@ mock_snapd_set_confinement (MockSnapd *snapd, const gchar *confinement)
     locker = g_mutex_locker_new (&snapd->mutex);
     g_free (snapd->confinement);
     snapd->confinement = g_strdup (confinement);
+}
+
+void
+mock_snapd_add_sandbox_feature (MockSnapd *snapd, const gchar *backend, const gchar *feature)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+    GPtrArray *backend_features;
+
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+    backend_features = g_hash_table_lookup (snapd->sandbox_features, backend);
+    if (backend_features == NULL) {
+        backend_features = g_ptr_array_new_with_free_func (g_free);
+        g_hash_table_insert (snapd->sandbox_features, g_strdup (backend), backend_features);
+    }
+    g_ptr_array_add (backend_features, g_strdup (feature));
 }
 
 void
@@ -1623,6 +1641,8 @@ static void
 handle_system_info (MockSnapd *snapd, SoupMessage *message)
 {
     g_autoptr(JsonBuilder) builder = NULL;
+    GHashTableIter iter;
+    gpointer key, value;
 
     if (strcmp (message->method, "GET") != 0) {
         send_error_method_not_allowed (message, "method not allowed");
@@ -1663,6 +1683,23 @@ handle_system_info (MockSnapd *snapd, SoupMessage *message)
     json_builder_set_member_name (builder, "snap-bin-dir");
     json_builder_add_string_value (builder, "/snap/bin");
     json_builder_end_object (builder);
+    if (g_hash_table_size (snapd->sandbox_features) > 0) {
+        json_builder_set_member_name (builder, "sandbox-features");
+        json_builder_begin_object (builder);
+        g_hash_table_iter_init (&iter, snapd->sandbox_features);
+        while (g_hash_table_iter_next (&iter, &key, &value)) {
+            const gchar *backend = key;
+            GPtrArray *backend_features = value;
+            guint i;
+
+            json_builder_set_member_name (builder, backend);
+            json_builder_begin_array (builder);
+            for (i = 0; i < backend_features->len; i++)
+                json_builder_add_string_value (builder, g_ptr_array_index (backend_features, i));
+            json_builder_end_array (builder);
+        }
+        json_builder_end_object (builder);
+    }
     if (snapd->store) {
         json_builder_set_member_name (builder, "store");
         json_builder_add_string_value (builder, snapd->store);
@@ -3762,6 +3799,7 @@ mock_snapd_finalize (GObject *object)
     snapd->snaps = NULL;
     g_free (snapd->build_id);
     g_free (snapd->confinement);
+    g_clear_pointer (&snapd->sandbox_features, g_hash_table_unref);
     g_free (snapd->store);
     g_list_free_full (snapd->store_sections, g_free);
     snapd->store_sections = NULL;
@@ -3911,6 +3949,7 @@ mock_snapd_init (MockSnapd *snapd)
     g_mutex_init (&snapd->mutex);
     g_cond_init (&snapd->condition);
 
+    snapd->sandbox_features = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_ptr_array_unref);
     snapd->dir_path = g_dir_make_tmp ("mock-snapd-XXXXXX", &error);
     if (snapd->dir_path == NULL)
         g_warning ("Failed to make temporary directory: %s", error->message);

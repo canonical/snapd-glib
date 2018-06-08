@@ -234,11 +234,15 @@ test_get_system_information_sync (void)
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(GError) error = NULL;
     g_autoptr(SnapdSystemInformation) info = NULL;
+    GHashTable *sandbox_features;
+    GStrv backend_features;
 
     snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
     mock_snapd_set_build_id (snapd, "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
+    mock_snapd_add_sandbox_feature (snapd, "backend", "feature1");
+    mock_snapd_add_sandbox_feature (snapd, "backend", "feature2");
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -259,6 +263,13 @@ test_get_system_information_sync (void)
     g_assert_cmpstr (snapd_system_information_get_mount_directory (info), ==, "/snap");
     g_assert_cmpstr (snapd_system_information_get_binaries_directory (info), ==, "/snap/bin");
     g_assert_null (snapd_system_information_get_store (info));
+    sandbox_features = snapd_system_information_get_sandbox_features (info);
+    g_assert_nonnull (sandbox_features);
+    backend_features = g_hash_table_lookup (sandbox_features, "backend");
+    g_assert_nonnull (backend_features);
+    g_assert_cmpint (g_strv_length (backend_features), ==, 2);
+    g_assert_cmpstr (backend_features[0], ==, "feature1");
+    g_assert_cmpstr (backend_features[1], ==, "feature2");
 }
 
 static void

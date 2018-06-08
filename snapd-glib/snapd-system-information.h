@@ -57,6 +57,8 @@ const gchar *snapd_system_information_get_os_id              (SnapdSystemInforma
 
 const gchar *snapd_system_information_get_os_version         (SnapdSystemInformation *system_information);
 
+GHashTable  *snapd_system_information_get_sandbox_features   (SnapdSystemInformation *system_information);
+
 const gchar *snapd_system_information_get_series             (SnapdSystemInformation *system_information);
 
 const gchar *snapd_system_information_get_store              (SnapdSystemInformation *system_information);

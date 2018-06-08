@@ -42,6 +42,7 @@ struct _SnapdSystemInformation
     gchar *mount_directory;
     gchar *os_id;
     gchar *os_version;
+    GHashTable *sandbox_features;
     gchar *series;
     gchar *store;
     gchar *version;
@@ -61,6 +62,7 @@ enum
     PROP_MOUNT_DIRECTORY,
     PROP_CONFINEMENT,
     PROP_BUILD_ID,
+    PROP_SANDBOX_FEATURES,
     PROP_LAST
 };
 
@@ -220,6 +222,25 @@ snapd_system_information_get_os_version (SnapdSystemInformation *system_informat
 }
 
 /**
+ * snapd_system_information_get_sandbox_features:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Gets the sandbox features that snapd provides. Each backend in snapd provides
+ * a list of features that it supports. For example, the "confinement-options"
+ * backend may provide "classic", "devmode" and "strict".
+ *
+ * Returns: (transfer none) (element-type utf8 GStrv): a hash table of string arrays keyed by backend name.
+ *
+ * Since: 1.42
+ */
+GHashTable *
+snapd_system_information_get_sandbox_features (SnapdSystemInformation *system_information)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
+    return system_information->sandbox_features;
+}
+
+/**
  * snapd_system_information_get_series:
  * @system_information: a #SnapdSystemInformation.
  *
@@ -309,6 +330,10 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
         g_free (system_information->os_version);
         system_information->os_version = g_strdup (g_value_get_string (value));
         break;
+    case PROP_SANDBOX_FEATURES:
+        g_hash_table_unref (system_information->sandbox_features);
+        system_information->sandbox_features = g_hash_table_ref (g_value_get_pointer (value));
+        break;
     case PROP_SERIES:
         g_free (system_information->series);
         system_information->series = g_strdup (g_value_get_string (value));
@@ -360,6 +385,9 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
     case PROP_OS_VERSION:
         g_value_set_string (value, system_information->os_version);
         break;
+    case PROP_SANDBOX_FEATURES:
+        g_value_set_pointer (value, system_information->sandbox_features);
+        break;
     case PROP_SERIES:
         g_value_set_string (value, system_information->series);
         break;
@@ -386,6 +414,7 @@ snapd_system_information_finalize (GObject *object)
     g_clear_pointer (&system_information->mount_directory, g_free);
     g_clear_pointer (&system_information->os_id, g_free);
     g_clear_pointer (&system_information->os_version, g_free);
+    g_clear_pointer (&system_information->sandbox_features, g_hash_table_unref);
     g_clear_pointer (&system_information->series, g_free);
     g_clear_pointer (&system_information->store, g_free);
     g_clear_pointer (&system_information->version, g_free);
@@ -466,6 +495,12 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
+                                     PROP_SANDBOX_FEATURES,
+                                     g_param_spec_pointer ("sandbox-features",
+                                                           "sandbox-features",
+                                                           "Sandbox features",
+                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
                                      PROP_SERIES,
                                      g_param_spec_string ("series",
                                                           "series",
@@ -491,4 +526,5 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
 static void
 snapd_system_information_init (SnapdSystemInformation *system_information)
 {
+    system_information->sandbox_features = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_strfreev);
 }
