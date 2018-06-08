@@ -1344,7 +1344,7 @@ test_get_snaps_filter (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS, filter_snaps, NULL, &error);
+    snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE, filter_snaps, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 2);

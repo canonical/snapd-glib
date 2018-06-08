@@ -63,7 +63,7 @@ typedef enum
 /**
  * SnapdGetSnapsFlags:
  * @SNAPD_GET_SNAPS_FLAGS_NONE: No flags, default behaviour.
- * @SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS: Return all installed revisions.
+ * @SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE: Return snaps that are installed but not active.
  *
  * Flag to change which snaps are returned.
  *
@@ -71,8 +71,8 @@ typedef enum
  */
 typedef enum
 {
-    SNAPD_GET_SNAPS_FLAGS_NONE          = 0,
-    SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS = 1 << 0
+    SNAPD_GET_SNAPS_FLAGS_NONE              = 0,
+    SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE = 1 << 0
 } SnapdGetSnapsFlags;
 
 /**

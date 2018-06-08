@@ -1673,7 +1673,7 @@ snapd_client_get_snaps_async (SnapdClient *client,
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
     request = _snapd_get_snaps_new (cancellable, names, callback, user_data);
-    if ((flags & SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS) != 0)
+    if ((flags & SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE) != 0)
         _snapd_get_snaps_set_select (request, "all");
     send_request (client, SNAPD_REQUEST (request));
 }

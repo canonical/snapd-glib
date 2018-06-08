@@ -407,9 +407,9 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Get information on installed snaps. If @flags contains %SNAPD_GET_SNAPS_FLAGS_ALL_REVISIONS
- * then all installed revisions are returned (there may be more than one revision per snap).
- * Otherwise only the active revisions are returned.
+ * Get information on installed snaps (snaps with status %SNAPD_SNAP_STATUS_ACTIVE).
+ * If @flags contains %SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE then also return snaps
+ * with status %SNAPD_SNAP_STATUS_INSTALLED.
  *
  * If @names is not %NULL and contains at least one name only snaps that match these names are
  * returned. If a snap is not installed it is not returned (no error is generated).

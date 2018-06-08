@@ -1095,7 +1095,7 @@ test_get_snaps_filter ()
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdGetSnapsRequest> getSnapsRequest (client.getSnaps (QSnapdClient::AllRevisions, QStringList ("snap1")));
+    QScopedPointer<QSnapdGetSnapsRequest> getSnapsRequest (client.getSnaps (QSnapdClient::IncludeInactive, QStringList ("snap1")));
     getSnapsRequest->runSync ();
     g_assert_cmpint (getSnapsRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (getSnapsRequest->snapCount (), ==, 2);

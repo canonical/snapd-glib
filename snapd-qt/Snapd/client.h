@@ -799,7 +799,7 @@ public:
     Q_ENUM(ChangeFilter)
     enum GetSnapsFlag
     {
-        AllRevisions = 1 << 0
+        IncludeInactive = 1 << 0
     };
     Q_DECLARE_FLAGS(GetSnapsFlags, GetSnapsFlag);
     enum GetAppsFlag
