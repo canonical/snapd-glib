@@ -56,6 +56,10 @@ void            mock_snapd_set_build_id           (MockSnapd     *snapd,
 void            mock_snapd_set_confinement        (MockSnapd     *snapd,
                                                    const gchar   *confinement);
 
+void            mock_snapd_add_sandbox_feature    (MockSnapd     *snapd,
+                                                   const gchar   *backend,
+                                                   const gchar   *feature);
+
 void            mock_snapd_set_store              (MockSnapd     *snapd,
                                                    const gchar   *name);
 

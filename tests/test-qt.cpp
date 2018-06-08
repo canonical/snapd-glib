@@ -170,6 +170,8 @@ test_get_system_information_sync ()
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
     mock_snapd_set_build_id (snapd, "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
+    mock_snapd_add_sandbox_feature (snapd, "backend", "feature1");
+    mock_snapd_add_sandbox_feature (snapd, "backend", "feature2");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -191,6 +193,10 @@ test_get_system_information_sync ()
     g_assert (systemInformation->mountDirectory () == "/snap");
     g_assert (systemInformation->binariesDirectory () == "/snap/bin");
     g_assert_null (systemInformation->store ());
+    QHash<QString, QStringList> sandbox_features = systemInformation->sandboxFeatures ();
+    g_assert_cmpint (sandbox_features["backend"].count (), ==, 2);
+    g_assert (sandbox_features["backend"][0] == "feature1");
+    g_assert (sandbox_features["backend"][1] == "feature2");
 }
 
 void

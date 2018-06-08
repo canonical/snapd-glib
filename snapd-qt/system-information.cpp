@@ -57,6 +57,26 @@ QString QSnapdSystemInformation::osVersion () const
     return snapd_system_information_get_os_version (SNAPD_SYSTEM_INFORMATION (wrapped_object));
 }
 
+QHash<QString, QStringList> QSnapdSystemInformation::sandboxFeatures () const
+{
+    QHash<QString, QStringList> sandboxFeatures;
+
+    GHashTable *features = snapd_system_information_get_sandbox_features (SNAPD_SYSTEM_INFORMATION (wrapped_object));
+    GHashTableIter iter;
+    g_hash_table_iter_init (&iter, features);
+    gpointer key, value;
+    while (g_hash_table_iter_next (&iter, &key, &value)) {
+        const gchar *backend = (const gchar *) key;
+        GStrv features = (GStrv) value;
+        int i;
+
+        for (i = 0; features[i] != NULL; i++)
+            sandboxFeatures[backend] << features[i];
+    }
+
+    return sandboxFeatures;
+}
+
 QString QSnapdSystemInformation::series () const
 {
     return snapd_system_information_get_series (SNAPD_SYSTEM_INFORMATION (wrapped_object));
