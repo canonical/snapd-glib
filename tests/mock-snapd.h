@@ -236,9 +236,6 @@ const gchar    *mock_snap_get_data                (MockSnap      *snap);
 void            mock_snap_set_description         (MockSnap      *snap,
                                                    const gchar   *description);
 
-void            mock_snap_set_developer           (MockSnap      *snap,
-                                                   const gchar   *developer);
-
 void            mock_snap_set_devmode             (MockSnap      *snap,
                                                    gboolean       devmode);
 
@@ -286,6 +283,15 @@ gboolean        mock_snap_get_preferred           (MockSnap      *snap);
 MockPrice      *mock_snap_add_price               (MockSnap      *snap,
                                                    gdouble        amount,
                                                    const gchar   *currency);
+
+void            mock_snap_set_publisher_display_name (MockSnap *snap,
+                                                      const gchar *display_name);
+
+void            mock_snap_set_publisher_id        (MockSnap *snap,
+                                                   const gchar *id);
+
+void            mock_snap_set_publisher_username  (MockSnap *snap,
+                                                   const gchar *username);
 
 void            mock_snap_set_restart_required    (MockSnap      *snap,
                                                    gboolean       restart_required);

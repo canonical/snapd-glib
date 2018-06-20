@@ -43,6 +43,9 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(int priceCount READ priceCount)
     Q_PROPERTY(bool isPrivate READ isPrivate)
+    Q_PROPERTY(QString publisherDisplayName READ publisherDisplayName)
+    Q_PROPERTY(QString publisherId READ publisherId)
+    Q_PROPERTY(QString publisherUsername READ publisherUsername)
     Q_PROPERTY(QString revision READ revision)
     Q_PROPERTY(QSnapdEnums::SnapType snapType READ snapType)
     Q_PROPERTY(QSnapdEnums::SnapStatus status READ status)
@@ -67,7 +70,7 @@ public:
     QSnapdEnums::SnapConfinement confinement () const;
     QString contact () const;
     QString description () const;
-    QString developer () const;
+    Q_DECL_DEPRECATED_X("Use publisherUsername()") QString developer () const;
     bool devmode () const;
     qint64 downloadSize () const;
     QString icon () const;
@@ -80,6 +83,9 @@ public:
     int priceCount () const;
     Q_INVOKABLE QSnapdPrice *price (int) const;
     bool isPrivate () const;
+    QString publisherDisplayName () const;
+    QString publisherId () const;
+    QString publisherUsername () const;
     QString revision () const;
     int screenshotCount () const;
     Q_INVOKABLE QSnapdScreenshot *screenshot (int) const;

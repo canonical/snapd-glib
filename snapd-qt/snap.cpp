@@ -104,7 +104,9 @@ QString QSnapdSnap::description () const
 
 QString QSnapdSnap::developer () const
 {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     return snapd_snap_get_developer (SNAPD_SNAP (wrapped_object));
+G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 bool QSnapdSnap::devmode () const
@@ -188,6 +190,21 @@ QSnapdPrice *QSnapdSnap::price (int n) const
 bool QSnapdSnap::isPrivate () const
 {
     return snapd_snap_get_private (SNAPD_SNAP (wrapped_object));
+}
+
+QString QSnapdSnap::publisherDisplayName () const
+{
+    return snapd_snap_get_publisher_display_name (SNAPD_SNAP (wrapped_object));
+}
+
+QString QSnapdSnap::publisherId () const
+{
+    return snapd_snap_get_publisher_id (SNAPD_SNAP (wrapped_object));
+}
+
+QString QSnapdSnap::publisherUsername () const
+{
+    return snapd_snap_get_publisher_username (SNAPD_SNAP (wrapped_object));
 }
 
 QString QSnapdSnap::revision () const

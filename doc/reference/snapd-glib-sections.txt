@@ -490,6 +490,9 @@ snapd_snap_get_license
 snapd_snap_get_name
 snapd_snap_get_prices
 snapd_snap_get_private
+snapd_snap_get_publisher_display_name
+snapd_snap_get_publisher_id
+snapd_snap_get_publisher_username
 snapd_snap_get_revision
 snapd_snap_get_screenshots
 snapd_snap_get_snap_type

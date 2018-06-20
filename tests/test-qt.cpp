@@ -1137,7 +1137,9 @@ QT_WARNING_POP
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert_null (snap->contact ());
     g_assert_null (snap->description ());
-    g_assert (snap->developer () == "DEVELOPER");
+    g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
+    g_assert (snap->publisherId () == "PUBLISHER-ID");
+    g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1173,7 +1175,9 @@ ListOneHandler::onComplete ()
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert_null (snap->contact ());
     g_assert_null (snap->description ());
-    g_assert (snap->developer () == "DEVELOPER");
+    g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
+    g_assert (snap->publisherId () == "PUBLISHER-ID");
+    g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1240,7 +1244,9 @@ test_get_snap_sync ()
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert_null (snap->contact ());
     g_assert_null (snap->description ());
-    g_assert (snap->developer () == "DEVELOPER");
+    g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
+    g_assert (snap->publisherId () == "PUBLISHER-ID");
+    g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1276,7 +1282,9 @@ GetSnapHandler::onComplete ()
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert_null (snap->contact ());
     g_assert_null (snap->description ());
-    g_assert (snap->developer () == "DEVELOPER");
+    g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
+    g_assert (snap->publisherId () == "PUBLISHER-ID");
+    g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1363,7 +1371,9 @@ test_get_snap_optional_fields ()
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
     g_assert (snap->contact () == "CONTACT");
     g_assert (snap->description () == "DESCRIPTION");
-    g_assert (snap->developer () == "DEVELOPER");
+    g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
+    g_assert (snap->publisherId () == "PUBLISHER-ID");
+    g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
     g_assert_true (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1384,6 +1394,26 @@ test_get_snap_optional_fields ()
     g_assert (snap->trackingChannel () == "CHANNEL");
     g_assert_true (snap->trymode ());
     g_assert (snap->version () == "VERSION");
+}
+
+static void
+test_get_snap_deprecated_fields ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+    g_assert (snap->developer () == "PUBLISHER-USERNAME");
+QT_WARNING_POP
 }
 
 static void
@@ -2232,7 +2262,9 @@ test_find_query ()
     g_assert_cmpint (snap1->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert (snap1->contact () == "CONTACT");
     g_assert (snap1->description () == "DESCRIPTION");
-    g_assert (snap1->developer () == "DEVELOPER");
+    g_assert (snap1->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
+    g_assert (snap1->publisherId () == "PUBLISHER-ID");
+    g_assert (snap1->publisherUsername () == "PUBLISHER-USERNAME");
     g_assert_cmpint (snap1->downloadSize (), ==, 1024);
     g_assert (snap1->icon () == "ICON");
     g_assert (snap1->id () == "ID");
@@ -5225,6 +5257,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-snap/sync", test_get_snap_sync);
     g_test_add_func ("/get-snap/async", test_get_snap_async);
     g_test_add_func ("/get-snap/optional-fields", test_get_snap_optional_fields);
+    g_test_add_func ("/get-snap/deprecated-fields", test_get_snap_deprecated_fields);
     g_test_add_func ("/get-snap/common-ids", test_get_snap_common_ids);
     g_test_add_func ("/get-snap/not-installed", test_get_snap_not_installed);
     g_test_add_func ("/get-snap/classic-confinement", test_get_snap_classic_confinement);

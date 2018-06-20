@@ -1393,7 +1393,9 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, NULL);
-    g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
+    g_assert_cmpstr (snapd_snap_get_publisher_display_name (snap), ==, "PUBLISHER-DISPLAY-NAME");
+    g_assert_cmpstr (snapd_snap_get_publisher_id (snap), ==, "PUBLISHER-ID");
+    g_assert_cmpstr (snapd_snap_get_publisher_username (snap), ==, "PUBLISHER-USERNAME");
     g_assert_false (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
@@ -1433,7 +1435,9 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, NULL);
-    g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
+    g_assert_cmpstr (snapd_snap_get_publisher_display_name (snap), ==, "PUBLISHER-DISPLAY-NAME");
+    g_assert_cmpstr (snapd_snap_get_publisher_id (snap), ==, "PUBLISHER-ID");
+    g_assert_cmpstr (snapd_snap_get_publisher_username (snap), ==, "PUBLISHER-USERNAME");
     g_assert_false (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
@@ -1506,7 +1510,9 @@ test_get_snap_sync (void)
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, NULL);
-    g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
+    g_assert_cmpstr (snapd_snap_get_publisher_display_name (snap), ==, "PUBLISHER-DISPLAY-NAME");
+    g_assert_cmpstr (snapd_snap_get_publisher_id (snap), ==, "PUBLISHER-ID");
+    g_assert_cmpstr (snapd_snap_get_publisher_username (snap), ==, "PUBLISHER-USERNAME");
     g_assert_false (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
@@ -1544,7 +1550,9 @@ get_snap_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, NULL);
-    g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
+    g_assert_cmpstr (snapd_snap_get_publisher_display_name (snap), ==, "PUBLISHER-DISPLAY-NAME");
+    g_assert_cmpstr (snapd_snap_get_publisher_id (snap), ==, "PUBLISHER-ID");
+    g_assert_cmpstr (snapd_snap_get_publisher_username (snap), ==, "PUBLISHER-USERNAME");
     g_assert_false (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
@@ -1641,7 +1649,9 @@ test_get_snap_optional_fields (void)
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_CLASSIC);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, "CONTACT");
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, "DESCRIPTION");
-    g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
+    g_assert_cmpstr (snapd_snap_get_publisher_display_name (snap), ==, "PUBLISHER-DISPLAY-NAME");
+    g_assert_cmpstr (snapd_snap_get_publisher_id (snap), ==, "PUBLISHER-ID");
+    g_assert_cmpstr (snapd_snap_get_publisher_username (snap), ==, "PUBLISHER-USERNAME");
     g_assert_true (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
@@ -1661,6 +1671,29 @@ test_get_snap_optional_fields (void)
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, "CHANNEL");
     g_assert_true (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+}
+
+static void
+test_get_snap_deprecated_fields (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdSnap) snap = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snap);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "PUBLISHER-USERNAME");
+G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 static void
@@ -2825,7 +2858,9 @@ test_find_query (void)
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_snap_get_contact (snap), ==, "CONTACT");
     g_assert_cmpstr (snapd_snap_get_description (snap), ==, "DESCRIPTION");
-    g_assert_cmpstr (snapd_snap_get_developer (snap), ==, "DEVELOPER");
+    g_assert_cmpstr (snapd_snap_get_publisher_display_name (snap), ==, "PUBLISHER-DISPLAY-NAME");
+    g_assert_cmpstr (snapd_snap_get_publisher_id (snap), ==, "PUBLISHER-ID");
+    g_assert_cmpstr (snapd_snap_get_publisher_username (snap), ==, "PUBLISHER-USERNAME");
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 1024);
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
@@ -6691,6 +6726,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-snap/sync", test_get_snap_sync);
     g_test_add_func ("/get-snap/async", test_get_snap_async);
     g_test_add_func ("/get-snap/optional-fields", test_get_snap_optional_fields);
+    g_test_add_func ("/get-snap/deprecated-fields", test_get_snap_deprecated_fields);
     g_test_add_func ("/get-snap/common-ids", test_get_snap_common_ids);
     g_test_add_func ("/get-snap/not-installed", test_get_snap_not_installed);
     g_test_add_func ("/get-snap/classic-confinement", test_get_snap_classic_confinement);

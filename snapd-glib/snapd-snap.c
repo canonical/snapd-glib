@@ -42,7 +42,6 @@ struct _SnapdSnap
     SnapdConfinement confinement;
     gchar *contact;
     gchar *description;
-    gchar *developer;
     gboolean devmode;
     gint64 download_size;
     gchar *icon;
@@ -54,6 +53,9 @@ struct _SnapdSnap
     gchar *name;
     GPtrArray *prices;
     gboolean private;
+    gchar *publisher_display_name;
+    gchar *publisher_id;
+    gchar *publisher_username;
     gchar *revision;
     GPtrArray *screenshots;
     SnapdSnapStatus status;
@@ -98,6 +100,9 @@ enum
     PROP_TRACKS,
     PROP_BROKEN,
     PROP_COMMON_IDS,
+    PROP_PUBLISHER_DISPLAY_NAME,
+    PROP_PUBLISHER_ID,
+    PROP_PUBLISHER_USERNAME,
     PROP_LAST
 };
 
@@ -313,12 +318,13 @@ snapd_snap_get_description (SnapdSnap *snap)
  * Returns: a developer name.
  *
  * Since: 1.0
+ * Deprecated: 1.42: Use snapd_snap_get_publisher_username()
  */
 const gchar *
 snapd_snap_get_developer (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->developer;
+    return snap->publisher_username;
 }
 
 /**
@@ -528,6 +534,57 @@ snapd_snap_get_private (SnapdSnap *snap)
 }
 
 /**
+ * snapd_snap_get_publisher_display_name:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the display name of the publisher who created this snap.
+ *
+ * Returns: a publisher display name.
+ *
+ * Since: 1.42
+ */
+const gchar *
+snapd_snap_get_publisher_display_name (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->publisher_display_name;
+}
+
+/**
+ * snapd_snap_get_publisher_id:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the ID of the publisher who created this snap.
+ *
+ * Returns: a publisher ID.
+ *
+ * Since: 1.42
+ */
+const gchar *
+snapd_snap_get_publisher_id (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->publisher_id;
+}
+
+/**
+ * snapd_snap_get_publisher_username:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the username of the publisher who created this snap.
+ *
+ * Returns: a publisher username.
+ *
+ * Since: 1.42
+ */
+const gchar *
+snapd_snap_get_publisher_username (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->publisher_username;
+}
+
+/**
  * snapd_snap_get_revision:
  * @snap: a #SnapdSnap.
  *
@@ -718,10 +775,6 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->description);
         snap->description = g_strdup (g_value_get_string (value));
         break;
-    case PROP_DEVELOPER:
-        g_free (snap->developer);
-        snap->developer = g_strdup (g_value_get_string (value));
-        break;
     case PROP_DEVMODE:
         snap->devmode = g_value_get_boolean (value);
         break;
@@ -762,6 +815,19 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         break;
     case PROP_PRIVATE:
         snap->private = g_value_get_boolean (value);
+        break;
+    case PROP_PUBLISHER_DISPLAY_NAME:
+        g_free (snap->publisher_display_name);
+        snap->publisher_display_name = g_strdup (g_value_get_string (value));
+        break;
+    case PROP_PUBLISHER_ID:
+        g_free (snap->publisher_id);
+        snap->publisher_id = g_strdup (g_value_get_string (value));
+        break;
+    case PROP_PUBLISHER_USERNAME:
+    case PROP_DEVELOPER:
+        g_free (snap->publisher_username);
+        snap->publisher_username = g_strdup (g_value_get_string (value));
         break;
     case PROP_REVISION:
         g_free (snap->revision);
@@ -838,9 +904,6 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_DESCRIPTION:
         g_value_set_string (value, snap->description);
         break;
-    case PROP_DEVELOPER:
-        g_value_set_string (value, snap->developer);
-        break;
     case PROP_DEVMODE:
         g_value_set_boolean (value, snap->devmode);
         break;
@@ -873,6 +936,16 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_PRIVATE:
         g_value_set_boolean (value, snap->private);
+        break;
+    case PROP_PUBLISHER_DISPLAY_NAME:
+        g_value_set_string (value, snap->publisher_display_name);
+        break;
+    case PROP_PUBLISHER_ID:
+        g_value_set_string (value, snap->publisher_id);
+        break;
+    case PROP_PUBLISHER_USERNAME:
+    case PROP_DEVELOPER:
+        g_value_set_string (value, snap->publisher_username);
         break;
     case PROP_REVISION:
         g_value_set_string (value, snap->revision);
@@ -925,13 +998,15 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->common_ids, g_strfreev);
     g_clear_pointer (&snap->contact, g_free);
     g_clear_pointer (&snap->description, g_free);
-    g_clear_pointer (&snap->developer, g_free);
     g_clear_pointer (&snap->icon, g_free);
     g_clear_pointer (&snap->id, g_free);
     g_clear_pointer (&snap->install_date, g_date_time_unref);
     g_clear_pointer (&snap->name, g_free);
     g_clear_pointer (&snap->license, g_free);
     g_clear_pointer (&snap->prices, g_ptr_array_unref);
+    g_clear_pointer (&snap->publisher_display_name, g_free);
+    g_clear_pointer (&snap->publisher_id, g_free);
+    g_clear_pointer (&snap->publisher_username, g_free);
     g_clear_pointer (&snap->revision, g_free);
     g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
     g_clear_pointer (&snap->summary, g_free);
@@ -1014,7 +1089,7 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           "developer",
                                                           "Developer who created the snap",
                                                           NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_DEPRECATED));
     g_object_class_install_property (gobject_class,
                                      PROP_DEVMODE,
                                      g_param_spec_boolean ("devmode",
@@ -1099,6 +1174,27 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                            "TRUE if this snap is only available to its author",
                                                            FALSE,
                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_PUBLISHER_DISPLAY_NAME,
+                                     g_param_spec_string ("publisher-display-name",
+                                                          "publisher-display-name",
+                                                          "Display name for snap publisher",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_PUBLISHER_ID,
+                                     g_param_spec_string ("publisher-id",
+                                                          "publisher-id",
+                                                          "ID for snap publisher",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_PUBLISHER_USERNAME,
+                                     g_param_spec_string ("publisher-username",
+                                                          "publisher-username",
+                                                          "Username for snap publisher",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_REVISION,
                                      g_param_spec_string ("revision",
