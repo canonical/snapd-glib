@@ -158,7 +158,6 @@ struct _MockSnap
     gchar *confinement;
     gchar *contact;
     gchar *description;
-    gchar *developer;
     gboolean devmode;
     int download_size;
     gchar *icon;
@@ -172,6 +171,9 @@ struct _MockSnap
     gchar *name;
     GList *prices;
     gboolean is_private;
+    gchar *publisher_display_name;
+    gchar *publisher_id;
+    gchar *publisher_username;
     gchar *revision;
     GList *screenshots;
     gchar *status;
@@ -295,7 +297,6 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->confinement);
     g_free (snap->contact);
     g_free (snap->description);
-    g_free (snap->developer);
     g_free (snap->icon);
     g_free (snap->icon_mime_type);
     g_bytes_unref (snap->icon_data);
@@ -304,6 +305,9 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->license);
     g_free (snap->name);
     g_list_free_full (snap->prices, (GDestroyNotify) mock_price_free);
+    g_free (snap->publisher_display_name);
+    g_free (snap->publisher_id);
+    g_free (snap->publisher_username);
     g_list_free_full (snap->screenshots, (GDestroyNotify) mock_screenshot_free);
     g_free (snap->revision);
     g_free (snap->status);
@@ -690,7 +694,9 @@ mock_snap_new (const gchar *name)
 
     snap = g_slice_new0 (MockSnap);
     snap->confinement = g_strdup ("strict");
-    snap->developer = g_strdup ("DEVELOPER");
+    snap->publisher_display_name = g_strdup ("PUBLISHER-DISPLAY-NAME");
+    snap->publisher_id = g_strdup ("PUBLISHER-ID");
+    snap->publisher_username = g_strdup ("PUBLISHER-USERNAME");
     snap->icon = g_strdup ("ICON");
     snap->id = g_strdup ("ID");
     snap->name = g_strdup (name);
@@ -1107,13 +1113,6 @@ mock_snap_set_description (MockSnap *snap, const gchar *description)
 }
 
 void
-mock_snap_set_developer (MockSnap *snap, const gchar *developer)
-{
-    g_free (snap->developer);
-    snap->developer = g_strdup (developer);
-}
-
-void
 mock_snap_set_devmode (MockSnap *snap, gboolean devmode)
 {
     snap->devmode = devmode;
@@ -1242,6 +1241,27 @@ mock_snap_find_price (MockSnap *snap, const gchar *currency)
     }
 
     return 0.0;
+}
+
+void
+mock_snap_set_publisher_display_name (MockSnap *snap, const gchar *display_name)
+{
+    g_free (snap->publisher_display_name);
+    snap->publisher_display_name = g_strdup (display_name);
+}
+
+void
+mock_snap_set_publisher_id (MockSnap *snap, const gchar *id)
+{
+    g_free (snap->publisher_id);
+    snap->publisher_id = g_strdup (id);
+}
+
+void
+mock_snap_set_publisher_username (MockSnap *snap, const gchar *username)
+{
+    g_free (snap->publisher_username);
+    snap->publisher_username = g_strdup (username);
 }
 
 void
@@ -2059,7 +2079,7 @@ make_snap_node (MockSnap *snap)
         json_builder_add_string_value (builder, snap->description);
     }
     json_builder_set_member_name (builder, "developer");
-    json_builder_add_string_value (builder, snap->developer);
+    json_builder_add_string_value (builder, snap->publisher_username);
     json_builder_set_member_name (builder, "devmode");
     json_builder_add_boolean_value (builder, snap->devmode);
     if (snap->download_size > 0) {
@@ -2103,6 +2123,15 @@ make_snap_node (MockSnap *snap)
         json_builder_set_member_name (builder, "private");
         json_builder_add_boolean_value (builder, TRUE);
     }
+    json_builder_set_member_name (builder, "publisher");
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "id");
+    json_builder_add_string_value (builder, snap->publisher_id);
+    json_builder_set_member_name (builder, "username");
+    json_builder_add_string_value (builder, snap->publisher_username);
+    json_builder_set_member_name (builder, "display-name");
+    json_builder_add_string_value (builder, snap->publisher_display_name);
+    json_builder_end_object (builder);
     json_builder_set_member_name (builder, "resource");
     resource = g_strdup_printf ("/v2/snaps/%s", snap->name);
     json_builder_add_string_value (builder, resource);

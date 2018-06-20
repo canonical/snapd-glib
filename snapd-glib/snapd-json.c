@@ -590,6 +590,10 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
     JsonObject *channels;
     g_autoptr(GDateTime) install_date = NULL;
     JsonObject *prices;
+    JsonObject *publisher;
+    const gchar *publisher_display_name = NULL;
+    const gchar *publisher_id = NULL;
+    const gchar *publisher_username = NULL;
     g_autoptr(GPtrArray) apps_array = NULL;
     g_autoptr(GPtrArray) channels_array = NULL;
     g_autoptr(JsonArray) common_ids = NULL;
@@ -742,6 +746,15 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
     }
     g_ptr_array_add (track_array, NULL);
 
+    /* The developer field originally contained the publisher username */
+    publisher_username = _snapd_json_get_string (object, "developer", NULL);
+    publisher = _snapd_json_get_object (object, "publisher");
+    if (publisher != NULL) {
+        publisher_display_name = _snapd_json_get_string (publisher, "display-name", NULL);
+        publisher_id = _snapd_json_get_string (publisher, "id", NULL);
+        publisher_username = _snapd_json_get_string (publisher, "username", publisher_username);
+    }
+
     return g_object_new (SNAPD_TYPE_SNAP,
                          "apps", apps_array,
                          "broken", _snapd_json_get_string (object, "broken", NULL),
@@ -751,7 +764,6 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                          "confinement", confinement,
                          "contact", _snapd_json_get_string (object, "contact", NULL),
                          "description", _snapd_json_get_string (object, "description", NULL),
-                         "developer", _snapd_json_get_string (object, "developer", NULL),
                          "devmode", _snapd_json_get_bool (object, "devmode", FALSE),
                          "download-size", _snapd_json_get_int (object, "download-size", 0),
                          "icon", _snapd_json_get_string (object, "icon", NULL),
@@ -763,6 +775,9 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                          "name", name,
                          "prices", prices_array,
                          "private", _snapd_json_get_bool (object, "private", FALSE),
+                         "publisher-id", publisher_id,
+                         "publisher-username", publisher_username,
+                         "publisher-display-name", publisher_display_name,
                          "revision", _snapd_json_get_string (object, "revision", NULL),
                          "screenshots", screenshots_array,
                          "snap-type", snap_type,
