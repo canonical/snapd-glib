@@ -469,6 +469,7 @@ SNAPD_TYPE_SLOT
 SnapdConfinement
 SnapdSnapType
 SnapdSnapStatus
+SnapdPublisherValidation
 snapd_snap_get_apps
 snapd_snap_get_broken
 snapd_snap_get_channel
@@ -493,6 +494,7 @@ snapd_snap_get_private
 snapd_snap_get_publisher_display_name
 snapd_snap_get_publisher_id
 snapd_snap_get_publisher_username
+snapd_snap_get_publisher_validation
 snapd_snap_get_revision
 snapd_snap_get_screenshots
 snapd_snap_get_snap_type
@@ -514,6 +516,8 @@ SNAPD_TYPE_SNAP_STATUS
 snapd_snap_status_get_type
 SNAPD_TYPE_SNAP_TYPE
 snapd_snap_type_get_type
+SNAPD_TYPE_PUBLISHER_VALIDATION
+snapd_publisher_validation_get_type
 </SECTION>
 
 <SECTION>

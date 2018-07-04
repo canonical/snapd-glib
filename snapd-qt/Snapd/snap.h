@@ -46,6 +46,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString publisherDisplayName READ publisherDisplayName)
     Q_PROPERTY(QString publisherId READ publisherId)
     Q_PROPERTY(QString publisherUsername READ publisherUsername)
+    Q_PROPERTY(QSnapdEnums::PublisherValidation publisherValidation READ publisherValidation)
     Q_PROPERTY(QString revision READ revision)
     Q_PROPERTY(QSnapdEnums::SnapType snapType READ snapType)
     Q_PROPERTY(QSnapdEnums::SnapStatus status READ status)
@@ -86,6 +87,7 @@ public:
     QString publisherDisplayName () const;
     QString publisherId () const;
     QString publisherUsername () const;
+    QSnapdEnums::PublisherValidation publisherValidation () const;
     QString revision () const;
     int screenshotCount () const;
     Q_INVOKABLE QSnapdScreenshot *screenshot (int) const;

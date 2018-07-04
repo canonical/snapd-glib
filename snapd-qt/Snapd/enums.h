@@ -76,6 +76,14 @@ public:
         SystemConfinementPartial
     };
     Q_ENUM(SystemConfinement)
+
+    enum PublisherValidation
+    {
+        PublisherValidationUnknown,
+        PublisherValidationUnproven,
+        PublisherValidationVerified
+    };
+    Q_ENUM(PublisherValidation)
 };
 
 #endif

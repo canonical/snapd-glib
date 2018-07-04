@@ -207,6 +207,20 @@ QString QSnapdSnap::publisherUsername () const
     return snapd_snap_get_publisher_username (SNAPD_SNAP (wrapped_object));
 }
 
+QSnapdEnums::PublisherValidation QSnapdSnap::publisherValidation () const
+{
+    switch (snapd_snap_get_publisher_validation (SNAPD_SNAP (wrapped_object)))
+    {
+    case SNAPD_PUBLISHER_VALIDATION_UNPROVEN:
+        return QSnapdEnums::PublisherValidationUnproven;
+    case SNAPD_PUBLISHER_VALIDATION_VERIFIED:
+        return QSnapdEnums::PublisherValidationVerified;
+    case SNAPD_PUBLISHER_VALIDATION_UNKNOWN:
+    default:
+        return QSnapdEnums::PublisherValidationUnknown;
+    }
+}
+
 QString QSnapdSnap::revision () const
 {
     return snapd_snap_get_revision (SNAPD_SNAP (wrapped_object));

@@ -56,6 +56,7 @@ struct _SnapdSnap
     gchar *publisher_display_name;
     gchar *publisher_id;
     gchar *publisher_username;
+    SnapdPublisherValidation publisher_validation;
     gchar *revision;
     GPtrArray *screenshots;
     SnapdSnapStatus status;
@@ -103,6 +104,7 @@ enum
     PROP_PUBLISHER_DISPLAY_NAME,
     PROP_PUBLISHER_ID,
     PROP_PUBLISHER_USERNAME,
+    PROP_PUBLISHER_VALIDATION,
     PROP_LAST
 };
 
@@ -585,6 +587,23 @@ snapd_snap_get_publisher_username (SnapdSnap *snap)
 }
 
 /**
+ * snapd_snap_get_publisher_validation:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the validation for the snap publisher, e.g. %SNAPD_PUBLISHER_VALIDATION_VERIFIED
+ *
+ * Returns: a #SnapdPublisherValidation.
+ *
+ * Since: 1.42
+ */
+SnapdPublisherValidation
+snapd_snap_get_publisher_validation (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
+    return snap->publisher_validation;
+}
+
+/**
  * snapd_snap_get_revision:
  * @snap: a #SnapdSnap.
  *
@@ -829,6 +848,9 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->publisher_username);
         snap->publisher_username = g_strdup (g_value_get_string (value));
         break;
+    case PROP_PUBLISHER_VALIDATION:
+        snap->publisher_validation = g_value_get_enum (value);
+        break;
     case PROP_REVISION:
         g_free (snap->revision);
         snap->revision = g_strdup (g_value_get_string (value));
@@ -946,6 +968,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_PUBLISHER_USERNAME:
     case PROP_DEVELOPER:
         g_value_set_string (value, snap->publisher_username);
+        break;
+    case PROP_PUBLISHER_VALIDATION:
+        g_value_set_enum (value, snap->publisher_validation);
         break;
     case PROP_REVISION:
         g_value_set_string (value, snap->revision);
@@ -1195,6 +1220,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           "Username for snap publisher",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_PUBLISHER_VALIDATION,
+                                     g_param_spec_enum ("publisher-validation",
+                                                        "publisher-validation",
+                                                        "Validation for snap publisher",
+                                                        SNAPD_TYPE_PUBLISHER_VALIDATION, SNAPD_PUBLISHER_VALIDATION_UNKNOWN,
+                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_REVISION,
                                      g_param_spec_string ("revision",
