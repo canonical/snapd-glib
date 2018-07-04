@@ -594,6 +594,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
     const gchar *publisher_display_name = NULL;
     const gchar *publisher_id = NULL;
     const gchar *publisher_username = NULL;
+    SnapdPublisherValidation publisher_validation = SNAPD_PUBLISHER_VALIDATION_UNKNOWN;
     g_autoptr(GPtrArray) apps_array = NULL;
     g_autoptr(GPtrArray) channels_array = NULL;
     g_autoptr(JsonArray) common_ids = NULL;
@@ -750,9 +751,21 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
     publisher_username = _snapd_json_get_string (object, "developer", NULL);
     publisher = _snapd_json_get_object (object, "publisher");
     if (publisher != NULL) {
+        const gchar *validation;
+
         publisher_display_name = _snapd_json_get_string (publisher, "display-name", NULL);
         publisher_id = _snapd_json_get_string (publisher, "id", NULL);
         publisher_username = _snapd_json_get_string (publisher, "username", publisher_username);
+        validation = _snapd_json_get_string (publisher, "validation", NULL);
+        if (validation == NULL || g_strcmp0 (validation, "") == 0)
+            publisher_validation = SNAPD_PUBLISHER_VALIDATION_UNKNOWN;
+        else if (g_strcmp0 (validation, "unproven") == 0)
+            publisher_validation = SNAPD_PUBLISHER_VALIDATION_UNPROVEN;
+        else if (g_strcmp0 (validation, "verified") == 0)
+            publisher_validation = SNAPD_PUBLISHER_VALIDATION_VERIFIED;
+        /* Any unknown validation is treated as verified for forwards compatibility */
+        else
+            publisher_validation = SNAPD_PUBLISHER_VALIDATION_VERIFIED;
     }
 
     return g_object_new (SNAPD_TYPE_SNAP,
@@ -778,6 +791,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                          "publisher-id", publisher_id,
                          "publisher-username", publisher_username,
                          "publisher-display-name", publisher_display_name,
+                         "publisher-validation", publisher_validation,
                          "revision", _snapd_json_get_string (object, "revision", NULL),
                          "screenshots", screenshots_array,
                          "snap-type", snap_type,

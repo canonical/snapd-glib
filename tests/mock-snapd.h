@@ -308,6 +308,9 @@ void            mock_snap_set_publisher_id        (MockSnap *snap,
 void            mock_snap_set_publisher_username  (MockSnap *snap,
                                                    const gchar *username);
 
+void            mock_snap_set_publisher_validation (MockSnap *snap,
+                                                    const gchar *validation);
+
 void            mock_snap_set_restart_required    (MockSnap      *snap,
                                                    gboolean       restart_required);
 

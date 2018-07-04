@@ -1189,6 +1189,7 @@ QT_WARNING_POP
     g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert (snap->publisherId () == "PUBLISHER-ID");
     g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
+    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1227,6 +1228,7 @@ ListOneHandler::onComplete ()
     g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert (snap->publisherId () == "PUBLISHER-ID");
     g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
+    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1296,6 +1298,7 @@ test_get_snap_sync ()
     g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert (snap->publisherId () == "PUBLISHER-ID");
     g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
+    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1334,6 +1337,7 @@ GetSnapHandler::onComplete ()
     g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert (snap->publisherId () == "PUBLISHER-ID");
     g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
+    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1423,6 +1427,7 @@ test_get_snap_optional_fields ()
     g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert (snap->publisherId () == "PUBLISHER-ID");
     g_assert (snap->publisherUsername () == "PUBLISHER-USERNAME");
+    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_true (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
     g_assert (snap->icon () == "ICON");
@@ -1584,6 +1589,60 @@ test_get_snap_daemons ()
     g_assert_cmpint (app5->daemonType (), ==, QSnapdEnums::DaemonTypeDbus);
     QScopedPointer<QSnapdApp> app6 (snap->app (5));
     g_assert_cmpint (app6->daemonType (), ==, QSnapdEnums::DaemonTypeUnknown);
+}
+
+static void
+test_get_snap_publisher_verified ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_publisher_validation (s, "verified");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
+    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationVerified);
+}
+
+static void
+test_get_snap_publisher_unproven ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_publisher_validation (s, "unproven");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
+    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnproven);
+}
+
+static void
+test_get_snap_publisher_unknown_validation ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_publisher_validation (s, "NOT-A-VALIDATION");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
+    getSnapRequest->runSync ();
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
+    QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
+    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationVerified);
 }
 
 static void
@@ -2314,6 +2373,7 @@ test_find_query ()
     g_assert (snap1->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert (snap1->publisherId () == "PUBLISHER-ID");
     g_assert (snap1->publisherUsername () == "PUBLISHER-USERNAME");
+    g_assert_cmpint (snap1->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_cmpint (snap1->downloadSize (), ==, 1024);
     g_assert (snap1->icon () == "ICON");
     g_assert (snap1->id () == "ID");
@@ -5314,6 +5374,9 @@ main (int argc, char **argv)
     g_test_add_func ("/get-snap/classic-confinement", test_get_snap_classic_confinement);
     g_test_add_func ("/get-snap/devmode-confinement", test_get_snap_devmode_confinement);
     g_test_add_func ("/get-snap/daemons", test_get_snap_daemons);
+    g_test_add_func ("/get-snap/publisher-verified", test_get_snap_publisher_verified);
+    g_test_add_func ("/get-snap/publisher-unproven", test_get_snap_publisher_unproven);
+    g_test_add_func ("/get-snap/publisher-unknown-validation", test_get_snap_publisher_unknown_validation);
     g_test_add_func ("/get-apps/sync", test_get_apps_sync);
     g_test_add_func ("/get-apps/async", test_get_apps_async);
     g_test_add_func ("/get-apps/services", test_get_apps_services);

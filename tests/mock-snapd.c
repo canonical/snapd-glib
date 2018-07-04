@@ -179,6 +179,7 @@ struct _MockSnap
     gchar *publisher_display_name;
     gchar *publisher_id;
     gchar *publisher_username;
+    gchar *publisher_validation;
     gchar *revision;
     GList *screenshots;
     gchar *status;
@@ -313,6 +314,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->publisher_display_name);
     g_free (snap->publisher_id);
     g_free (snap->publisher_username);
+    g_free (snap->publisher_validation);
     g_list_free_full (snap->screenshots, (GDestroyNotify) mock_screenshot_free);
     g_free (snap->revision);
     g_free (snap->status);
@@ -1330,6 +1332,13 @@ mock_snap_set_publisher_username (MockSnap *snap, const gchar *username)
 }
 
 void
+mock_snap_set_publisher_validation (MockSnap *snap, const gchar *validation)
+{
+    g_free (snap->publisher_validation);
+    snap->publisher_validation = g_strdup (validation);
+}
+
+void
 mock_snap_set_restart_required (MockSnap *snap, gboolean restart_required)
 {
     snap->restart_required = restart_required;
@@ -2219,6 +2228,10 @@ make_snap_node (MockSnap *snap)
     json_builder_add_string_value (builder, snap->publisher_username);
     json_builder_set_member_name (builder, "display-name");
     json_builder_add_string_value (builder, snap->publisher_display_name);
+    if (snap->publisher_validation != NULL) {
+        json_builder_set_member_name (builder, "validation");
+        json_builder_add_string_value (builder, snap->publisher_validation);
+    }
     json_builder_end_object (builder);
     json_builder_set_member_name (builder, "resource");
     resource = g_strdup_printf ("/v2/snaps/%s", snap->name);
