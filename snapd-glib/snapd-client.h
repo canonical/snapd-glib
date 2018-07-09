@@ -92,11 +92,11 @@ typedef enum
 
 /**
  * SnapdFindFlags:
- * @SNAPD_FIND_FLAGS_NONE: No flags, default behaviour
+ * @SNAPD_FIND_FLAGS_NONE: No flags, default behaviour.
  * @SNAPD_FIND_FLAGS_MATCH_NAME: Search for snaps whose name matches the given
  *     string. The match is exact unless the string ends in *.
- * @SNAPD_FIND_FLAGS_SELECT_PRIVATE: Search private snaps
- * @SNAPD_FIND_FLAGS_SELECT_REFRESH: Deprecated, do not use
+ * @SNAPD_FIND_FLAGS_SELECT_PRIVATE: Search private snaps.
+ * @SNAPD_FIND_FLAGS_SELECT_REFRESH: Deprecated, do not use.
  *
  * Flag to change how a find is performed.
  *
