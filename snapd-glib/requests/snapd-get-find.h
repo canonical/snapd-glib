@@ -32,6 +32,9 @@ void          _snapd_get_find_set_select             (SnapdGetFind        *reque
 void          _snapd_get_find_set_section            (SnapdGetFind        *request,
                                                       const gchar         *section);
 
+void          _snapd_get_find_set_scope             (SnapdGetFind        *request,
+                                                      const gchar         *scope);
+
 GPtrArray    *_snapd_get_find_get_snaps              (SnapdGetFind        *request);
 
 const gchar  *_snapd_get_find_get_suggested_currency (SnapdGetFind        *request);

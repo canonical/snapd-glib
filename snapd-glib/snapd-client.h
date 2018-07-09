@@ -97,6 +97,7 @@ typedef enum
  *     string. The match is exact unless the string ends in *.
  * @SNAPD_FIND_FLAGS_SELECT_PRIVATE: Search private snaps.
  * @SNAPD_FIND_FLAGS_SELECT_REFRESH: Deprecated, do not use.
+ * @SNAPD_FIND_FLAGS_SCOPE_WIDE: Search for snaps from any architecture or branch.
  *
  * Flag to change how a find is performed.
  *
@@ -107,7 +108,8 @@ typedef enum
     SNAPD_FIND_FLAGS_NONE            = 0,
     SNAPD_FIND_FLAGS_MATCH_NAME      = 1 << 0,
     SNAPD_FIND_FLAGS_SELECT_PRIVATE  = 1 << 1,
-    SNAPD_FIND_FLAGS_SELECT_REFRESH  = 1 << 2
+    SNAPD_FIND_FLAGS_SELECT_REFRESH  = 1 << 2,
+    SNAPD_FIND_FLAGS_SCOPE_WIDE      = 1 << 3
 } SnapdFindFlags;
 
 /**

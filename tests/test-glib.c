@@ -3574,6 +3574,57 @@ test_find_section_name (void)
 }
 
 static void
+test_find_scope_narrow (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) snaps = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_store_snap (snapd, "snap1");
+    s = mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snap_set_scope_is_wide (s, TRUE);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "snap", NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 1);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
+}
+
+static void
+test_find_scope_wide (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) snaps = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_store_snap (snapd, "snap1");
+    s = mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snap_set_scope_is_wide (s, TRUE);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_SCOPE_WIDE, "snap", NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 2);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "snap2");
+}
+
+static void
 test_find_refreshable_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -6909,8 +6960,10 @@ main (int argc, char **argv)
     g_test_add_func ("/find/channels-match", test_find_channels_match);
     g_test_add_func ("/find/cancel", test_find_cancel);
     g_test_add_func ("/find/section", test_find_section);
-    g_test_add_func ("/find/section_query", test_find_section_query);
-    g_test_add_func ("/find/section_name", test_find_section_name);
+    g_test_add_func ("/find/section-query", test_find_section_query);
+    g_test_add_func ("/find/section-name", test_find_section_name);
+    g_test_add_func ("/find/scope-narrow", test_find_scope_narrow);
+    g_test_add_func ("/find/scope-wide", test_find_scope_wide);
     g_test_add_func ("/find-refreshable/sync", test_find_refreshable_sync);
     g_test_add_func ("/find-refreshable/async", test_find_refreshable_async);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
