@@ -3253,13 +3253,13 @@ handle_change (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
 static gboolean
 matches_query (MockSnap *snap, const gchar *query)
 {
-    return query != NULL && strstr (snap->name, query) != NULL;
+    return query == NULL || strstr (snap->name, query) != NULL;
 }
 
 static gboolean
 matches_name (MockSnap *snap, const gchar *name)
 {
-    return name != NULL && strcmp (snap->name, name) == 0;
+    return name == NULL || strcmp (snap->name, name) == 0;
 }
 
 static gboolean
@@ -3297,10 +3297,14 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
     select_param = g_hash_table_lookup (query, "select");
     section_param = g_hash_table_lookup (query, "section");
 
-    if (query_param && !strcmp(query_param, "")) query_param = NULL;
-    if (name_param && !strcmp(name_param, "")) name_param = NULL;
-    if (select_param && !strcmp(select_param, "")) select_param = NULL;
-    if (section_param && !strcmp(section_param, "")) section_param = NULL;
+    if (query_param && strcmp (query_param, "") == 0)
+        query_param = NULL;
+    if (name_param && strcmp (name_param, "") == 0)
+        name_param = NULL;
+    if (select_param && strcmp (select_param, "") == 0)
+        select_param = NULL;
+    if (section_param && strcmp (section_param, "") == 0)
+        section_param = NULL;
 
     if (g_strcmp0 (select_param, "refresh") == 0) {
         g_autoptr(GList) refreshable_snaps = NULL;
@@ -3366,8 +3370,16 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
     for (link = snaps; link; link = link->next) {
         MockSnap *snap = link->data;
 
-        if (in_section (snap, section_param) && ((query_param == NULL && name_param == NULL) || matches_query (snap, query_param) || matches_name (snap, name_param)))
-            json_builder_add_value (builder, make_snap_node (snap));
+        if (!in_section (snap, section_param))
+            continue;
+
+        if (!matches_query (snap, query_param))
+            continue;
+
+        if (!matches_name (snap, name_param))
+            continue;
+
+        json_builder_add_value (builder, make_snap_node (snap));
     }
     json_builder_end_array (builder);
 
