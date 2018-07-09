@@ -2059,6 +2059,8 @@ snapd_client_find_section_async (SnapdClient *client,
         _snapd_get_find_set_select (request, "private");
     else if ((flags & SNAPD_FIND_FLAGS_SELECT_REFRESH) != 0)
         _snapd_get_find_set_select (request, "refresh");
+    else if ((flags & SNAPD_FIND_FLAGS_SCOPE_WIDE) != 0)
+        _snapd_get_find_set_scope (request, "wide");
     _snapd_get_find_set_section (request, section);
     send_request (client, SNAPD_REQUEST (request));
 }

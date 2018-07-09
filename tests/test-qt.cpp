@@ -2867,6 +2867,48 @@ test_find_section_name ()
 }
 
 static void
+test_find_scope_narrow ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap1");
+    s = mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snap_set_scope_is_wide (s, TRUE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdFindRequest> findRequest (client.find ("snap"));
+    findRequest->runSync ();
+    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert (snap->name () == "snap1");
+}
+
+static void
+test_find_scope_wide ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap1");
+    s = mock_snapd_add_store_snap (snapd, "snap2");
+    mock_snap_set_scope_is_wide (s, TRUE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::ScopeWide, "snap"));
+    findRequest->runSync ();
+    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest->snapCount (), ==, 2);
+    QScopedPointer<QSnapdSnap> snap1 (findRequest->snap (0));
+    g_assert (snap1->name () == "snap1");
+    QScopedPointer<QSnapdSnap> snap2 (findRequest->snap (1));
+    g_assert (snap2->name () == "snap2");
+}
+
+static void
 test_find_refreshable_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -5417,8 +5459,10 @@ main (int argc, char **argv)
     g_test_add_func ("/find/channels-match", test_find_channels_match);
     g_test_add_func ("/find/cancel", test_find_cancel);
     g_test_add_func ("/find/section", test_find_section);
-    g_test_add_func ("/find/section_query", test_find_section_query);
-    g_test_add_func ("/find/section_name", test_find_section_name);
+    g_test_add_func ("/find/section-query", test_find_section_query);
+    g_test_add_func ("/find/section-name", test_find_section_name);
+    g_test_add_func ("/find/scope-narrow", test_find_scope_narrow);
+    g_test_add_func ("/find/scope-wide", test_find_scope_wide);
     g_test_add_func ("/find-refreshable/sync", test_find_refreshable_sync);
     g_test_add_func ("/find-refreshable/async", test_find_refreshable_async);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);

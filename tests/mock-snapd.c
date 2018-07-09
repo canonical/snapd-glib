@@ -200,6 +200,7 @@ struct _MockSnap
     gchar *error;
     gboolean restart_required;
     gboolean preferred;
+    gboolean scope_is_wide;
 };
 
 struct _MockTask
@@ -1349,6 +1350,12 @@ mock_snap_set_revision (MockSnap *snap, const gchar *revision)
 {
     g_free (snap->revision);
     snap->revision = g_strdup (revision);
+}
+
+void
+mock_snap_set_scope_is_wide (MockSnap *snap, gboolean scope_is_wide)
+{
+    snap->scope_is_wide = scope_is_wide;
 }
 
 MockScreenshot *
@@ -3276,6 +3283,15 @@ matches_name (MockSnap *snap, const gchar *name)
 }
 
 static gboolean
+matches_scope (MockSnap *snap, const gchar *scope)
+{
+    if (g_strcmp0 (scope, "wide") == 0)
+        return TRUE;
+
+    return !snap->scope_is_wide;
+}
+
+static gboolean
 in_section (MockSnap *snap, const gchar *section)
 {
     GList *link;
@@ -3296,7 +3312,9 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
     const gchar *query_param;
     const gchar *name_param;
     const gchar *select_param;
-    const gchar *section_param;
+    select_param = g_hash_table_lookup (query, "select");
+   const gchar *section_param;
+   const gchar *scope_param;
     g_autoptr(JsonBuilder) builder = NULL;
     GList *snaps, *link;
 
@@ -3309,6 +3327,7 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
     name_param = g_hash_table_lookup (query, "name");
     select_param = g_hash_table_lookup (query, "select");
     section_param = g_hash_table_lookup (query, "section");
+    scope_param = g_hash_table_lookup (query, "scope");
 
     if (query_param && strcmp (query_param, "") == 0)
         query_param = NULL;
@@ -3318,6 +3337,8 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
         select_param = NULL;
     if (section_param && strcmp (section_param, "") == 0)
         section_param = NULL;
+    if (scope_param && strcmp (scope_param, "") == 0)
+        scope_param = NULL;
 
     if (g_strcmp0 (select_param, "refresh") == 0) {
         g_autoptr(GList) refreshable_snaps = NULL;
@@ -3390,6 +3411,9 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
             continue;
 
         if (!matches_name (snap, name_param))
+            continue;
+
+        if (!matches_scope (snap, scope_param))
             continue;
 
         json_builder_add_value (builder, make_snap_node (snap));

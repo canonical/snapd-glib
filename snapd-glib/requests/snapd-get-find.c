@@ -19,6 +19,7 @@ struct _SnapdGetFind
     gchar *name;
     gchar *select;
     gchar *section;
+    gchar *scope;
     gchar *suggested_currency;
     GPtrArray *snaps;
 };
@@ -67,6 +68,13 @@ _snapd_get_find_set_section (SnapdGetFind *request, const gchar *section)
     request->section = g_strdup (section);
 }
 
+void
+_snapd_get_find_set_scope (SnapdGetFind *request, const gchar *scope)
+{
+    g_free (request->scope);
+    request->scope = g_strdup (scope);
+}
+
 GPtrArray *
 _snapd_get_find_get_snaps (SnapdGetFind *request)
 {
@@ -102,6 +110,10 @@ generate_get_find_request (SnapdRequest *request)
     if (r->section != NULL) {
         g_autofree gchar *escaped = soup_uri_encode (r->section, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("section=%s", escaped));
+    }
+    if (r->scope != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (r->scope, NULL);
+        g_ptr_array_add (query_attributes, g_strdup_printf ("scope=%s", escaped));
     }
 
     path = g_string_new ("http://snapd/v2/find");
@@ -153,6 +165,7 @@ snapd_get_find_finalize (GObject *object)
     g_free (request->name);
     g_free (request->select);
     g_free (request->section);
+    g_free (request->scope);
     g_free (request->suggested_currency);
     g_clear_pointer (&request->snaps, g_ptr_array_unref);
 

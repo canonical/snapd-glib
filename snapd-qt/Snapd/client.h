@@ -811,7 +811,8 @@ public:
     {
         None          = 0,
         MatchName     = 1 << 0,
-        SelectPrivate = 1 << 1
+        SelectPrivate = 1 << 1,
+        ScopeWide     = 1 << 2
     };
     Q_DECLARE_FLAGS(FindFlags, FindFlag);
     enum InstallFlag

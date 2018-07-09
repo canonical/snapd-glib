@@ -319,6 +319,9 @@ void            mock_snap_set_revision            (MockSnap      *snap,
 
 const gchar    *mock_snap_get_revision            (MockSnap      *snap);
 
+void            mock_snap_set_scope_is_wide       (MockSnap      *snap,
+                                                   gboolean       scope_is_wide);
+
 MockScreenshot *mock_snap_add_screenshot          (MockSnap      *snap,
                                                    const gchar   *url,
                                                    int            width,
