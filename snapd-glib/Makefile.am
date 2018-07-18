@@ -14,6 +14,7 @@ source_h = \
 	snapd-connection.h \
 	snapd-error.h \
 	snapd-icon.h \
+	snapd-interface-info.h \
 	snapd-login.h \
 	snapd-plug.h \
 	snapd-price.h \
@@ -69,6 +70,7 @@ source_c = \
 	snapd-connection.c \
 	snapd-error.c \
 	snapd-icon.c \
+	snapd-interface-info.c \
 	snapd-login.c \
 	snapd-plug.c \
 	snapd-price.c \
