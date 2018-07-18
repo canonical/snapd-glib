@@ -26,6 +26,7 @@
 #include "requests/snapd-get-find.h"
 #include "requests/snapd-get-icon.h"
 #include "requests/snapd-get-interfaces.h"
+#include "requests/snapd-get-interface-info.h"
 #include "requests/snapd-get-sections.h"
 #include "requests/snapd-get-snap.h"
 #include "requests/snapd-get-snaps.h"
@@ -1868,6 +1869,75 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
     if (slots)
        *slots = g_ptr_array_ref (_snapd_get_interfaces_get_slots (request));
     return TRUE;
+}
+
+/**
+ * snapd_client_get_interface_info_async:
+ * @client: a #SnapdClient.
+ * @names: (array zero-terminated=1): a null-terminated array of interface names or %NULL.
+ * @include_doc: whether to include interface documentation
+ * @include_plugs: whether to include plugs
+ * @include_slots: whether to include slots
+ * @only_connected: whether to only include connected plugs/slots
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get the installed snap interfaces.
+ * See snapd_client_get_interface_info_sync() for more information.
+ *
+ * Since: 1.42
+ */
+void
+snapd_client_get_interface_info_async (SnapdClient *client,
+                                       gchar **names,
+                                       gboolean include_docs,
+                                       gboolean include_plugs,
+                                       gboolean include_slots,
+                                       gboolean only_connected,
+                                       GCancellable *cancellable,
+                                       GAsyncReadyCallback callback,
+                                       gpointer user_data)
+{
+    SnapdGetInterfaceInfo *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    request = _snapd_get_interface_info_new (names, include_docs,
+                                             include_plugs, include_slots,
+                                             only_connected, cancellable,
+                                             callback, user_data);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_interface_info_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_interface_info_async().
+ * See snapd_client_get_interface_info_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdInterfaceInfo): an array of #SnapdInterfaceInfo or %NULL.
+ *
+ * Since: 1.42
+ */
+GPtrArray *
+snapd_client_get_interface_info_finish (SnapdClient *client,
+                                        GAsyncResult *result,
+                                        GError **error)
+{
+    SnapdGetInterfaceInfo *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_GET_INTERFACE_INFO (result), FALSE);
+
+    request = SNAPD_GET_INTERFACE_INFO (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_ptr_array_ref (_snapd_get_interface_info_get_interfaces (request));
 }
 
 /**

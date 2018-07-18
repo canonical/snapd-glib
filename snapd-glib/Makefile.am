@@ -37,6 +37,7 @@ source_private_h = \
 	requests/snapd-get-find.h \
 	requests/snapd-get-icon.h \
 	requests/snapd-get-interfaces.h \
+	requests/snapd-get-interface-info.h \
 	requests/snapd-get-sections.h \
 	requests/snapd-get-snap.h \
 	requests/snapd-get-snaps.h \
@@ -92,6 +93,7 @@ source_private_c = \
 	requests/snapd-get-find.c \
 	requests/snapd-get-icon.c \
 	requests/snapd-get-interfaces.c \
+	requests/snapd-get-interface-info.c \
 	requests/snapd-get-sections.c \
 	requests/snapd-get-snap.c \
 	requests/snapd-get-snaps.c \

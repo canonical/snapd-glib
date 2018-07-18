@@ -1113,6 +1113,31 @@ _snapd_json_parse_plug (JsonObject  *object,
                          NULL);
 }
 
+GPtrArray *
+_snapd_json_parse_plug_array (JsonArray *array, GError **error)
+{
+    g_autoptr(GPtrArray) plugs = NULL;
+    guint i;
+
+    plugs = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (array); i++) {
+        JsonNode *node = json_array_get_element (array, i);
+        SnapdPlug *plug;
+
+        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected plug type");
+            return NULL;
+        }
+
+        plug = _snapd_json_parse_plug (json_node_get_object (node), error);
+        if (plug == NULL)
+            return NULL;
+        g_ptr_array_add (plugs, plug);
+    }
+
+    return g_steal_pointer (&plugs);
+}
+
 SnapdSlot *
 _snapd_json_parse_slot (JsonObject  *object,
                         GError     **error)
@@ -1136,4 +1161,81 @@ _snapd_json_parse_slot (JsonObject  *object,
                          "attributes", attributes,
                          // FIXME: apps
                          NULL);
+}
+
+GPtrArray *
+_snapd_json_parse_slot_array (JsonArray *array, GError **error)
+{
+    g_autoptr(GPtrArray) slots = NULL;
+    guint i;
+
+    slots = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (array); i++) {
+        JsonNode *node = json_array_get_element (array, i);
+        SnapdSlot *slot;
+
+        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected slot type");
+            return NULL;
+        }
+
+        slot = _snapd_json_parse_slot (json_node_get_object (node), error);
+        if (slot == NULL)
+            return NULL;
+        g_ptr_array_add (slots, slot);
+    }
+
+    return g_steal_pointer (&slots);
+}
+
+SnapdInterfaceInfo *
+_snapd_json_parse_interface (JsonObject *object, GError **error)
+{
+    g_autoptr(GPtrArray) plug_array = NULL;
+    g_autoptr(GPtrArray) slot_array = NULL;
+    g_autoptr(JsonArray) plugs = NULL;
+    g_autoptr(JsonArray) slots = NULL;
+
+    plugs = _snapd_json_get_array (object, "plugs");
+    plug_array = _snapd_json_parse_plug_array (plugs, error);
+    if (plug_array == NULL)
+        return NULL;
+
+    slots = _snapd_json_get_array (object, "slots");
+    slot_array = _snapd_json_parse_slot_array (slots, error);
+    if (slot_array == NULL)
+        return NULL;
+
+    return g_object_new (SNAPD_TYPE_INTERFACE_INFO,
+                         "name", _snapd_json_get_string (object, "name", NULL),
+                         "summary", _snapd_json_get_string (object, "summary", NULL),
+                         "doc-url", _snapd_json_get_string (object, "doc-url", NULL),
+                         "plugs", plug_array,
+                         "slots", slot_array,
+                         NULL);
+}
+
+GPtrArray *
+_snapd_json_parse_interface_array (JsonArray *array, GError **error)
+{
+    g_autoptr(GPtrArray) interfaces = NULL;
+    guint i;
+
+    interfaces = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (array); i++) {
+        JsonNode *node = json_array_get_element (array, i);
+        SnapdInterfaceInfo *interface;
+
+        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected interface type");
+            return NULL;
+        }
+
+        interface = _snapd_json_parse_interface (json_node_get_object (node), error);
+        if (interface == NULL)
+            return NULL;
+        g_ptr_array_add (interfaces, interface);
+    }
+
+    return g_steal_pointer (&interfaces);
 }
