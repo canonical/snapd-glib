@@ -1516,7 +1516,9 @@ void QSnapdGetInterfacesRequest::runSync ()
 {
     Q_D(QSnapdGetInterfacesRequest);
     g_autoptr(GError) error = NULL;
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_get_interfaces_sync (SNAPD_CLIENT (getClient ()), &d->plugs, &d->slots_, G_CANCELLABLE (getCancellable ()), &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     finish (error);
 }
 
@@ -1526,7 +1528,9 @@ void QSnapdGetInterfacesRequest::handleResult (void *object, void *result)
     g_autoptr(GPtrArray) slots_ = NULL;
     g_autoptr(GError) error = NULL;
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_get_interfaces_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &plugs, &slots_, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
 
     Q_D(QSnapdGetInterfacesRequest);
     d->plugs = (GPtrArray*) g_steal_pointer (&plugs);
@@ -1542,7 +1546,9 @@ static void get_interfaces_ready_cb (GObject *object, GAsyncResult *result, gpoi
 
 void QSnapdGetInterfacesRequest::runAsync ()
 {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_get_interfaces_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), get_interfaces_ready_cb, (gpointer) this);
+G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 int QSnapdGetInterfacesRequest::plugCount () const

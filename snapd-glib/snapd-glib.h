@@ -22,6 +22,7 @@
 #include <snapd-glib/snapd-enum-types.h>
 #include <snapd-glib/snapd-error.h>
 #include <snapd-glib/snapd-icon.h>
+#include <snapd-glib/snapd-interface.h>
 #include <snapd-glib/snapd-login.h>
 #include <snapd-glib/snapd-maintenance.h>
 #include <snapd-glib/snapd-media.h>

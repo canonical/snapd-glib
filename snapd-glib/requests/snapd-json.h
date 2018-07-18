@@ -17,6 +17,7 @@
 #include "snapd-app.h"
 #include "snapd-change.h"
 #include "snapd-connection.h"
+#include "snapd-interface.h"
 #include "snapd-maintenance.h"
 #include "snapd-plug.h"
 #include "snapd-plug-ref.h"
@@ -105,6 +106,9 @@ SnapdPlugRef         *_snapd_json_parse_plug_ref         (JsonNode           *no
                                                           GError            **error);
 
 SnapdConnection      *_snapd_json_parse_connection       (JsonNode           *node,
+                                                          GError            **error);
+
+SnapdInterface       *_snapd_json_parse_interface        (JsonNode           *node,
                                                           GError            **error);
 
 G_END_DECLS
