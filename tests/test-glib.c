@@ -3053,7 +3053,9 @@ test_get_interfaces_sync (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_true (result);
 
@@ -3109,7 +3111,9 @@ get_interfaces_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(AsyncData) data = user_data;
     g_autoptr(GError) error = NULL;
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     r = snapd_client_get_interfaces_finish (SNAPD_CLIENT (object), result, &plugs, &slots, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
 
     g_assert_no_error (error);
     g_assert_true (r);
@@ -3180,7 +3184,9 @@ test_get_interfaces_async (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_get_interfaces_async (client, NULL, get_interfaces_cb, async_data_new (loop, snapd));
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_main_loop_run (loop);
 }
 
@@ -3200,7 +3206,9 @@ test_get_interfaces_no_snaps (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 0);
@@ -3240,7 +3248,9 @@ test_get_interfaces_legacy (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_true (result);
 
@@ -3273,6 +3283,301 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     connections = snapd_slot_get_connections (slot);
     g_assert_cmpint (connections->len, ==, 0);
 G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+static void
+test_get_interfaces2_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockInterface *i1, *i2;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) ifaces = NULL;
+    SnapdInterface *iface;
+    GPtrArray *plugs;
+    GPtrArray *slots;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    i1 = mock_snapd_add_interface (snapd, "interface1");
+    mock_interface_set_summary (i1, "summary1");
+    mock_interface_set_doc_url (i1, "url1");
+    i2 = mock_snapd_add_interface (snapd, "interface2");
+    mock_interface_set_summary (i2, "summary2");
+    mock_interface_set_doc_url (i2, "url2");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_plug (s, i1, "plug1");
+    mock_snap_add_slot (s, i2, "slot1");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_NONE, NULL, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert_nonnull (ifaces);
+    g_assert_cmpint (ifaces->len, ==, 2);
+
+    iface = ifaces->pdata[0];
+    g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface1");
+    g_assert_cmpstr (snapd_interface_get_summary (iface), ==, "summary1");
+    g_assert_cmpstr (snapd_interface_get_doc_url (iface), ==, "url1");
+    plugs = snapd_interface_get_plugs (iface);
+    slots = snapd_interface_get_slots (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 0);
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 0);
+
+    iface = ifaces->pdata[1];
+    g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface2");
+    g_assert_cmpstr (snapd_interface_get_summary (iface), ==, "summary2");
+    g_assert_cmpstr (snapd_interface_get_doc_url (iface), ==, "url2");
+    plugs = snapd_interface_get_plugs (iface);
+    slots = snapd_interface_get_slots (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 0);
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 0);
+}
+
+static void
+get_interfaces2_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    g_autoptr(GPtrArray) ifaces = NULL;
+    g_autoptr(GError) error = NULL;
+    SnapdInterface *iface;
+    GPtrArray *plugs;
+    GPtrArray *slots;
+
+    ifaces = snapd_client_get_interfaces2_finish (SNAPD_CLIENT (object), result, &error);
+
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces);
+
+    g_assert_cmpint (ifaces->len, ==, 2);
+
+    iface = ifaces->pdata[0];
+    g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface1");
+    g_assert_cmpstr (snapd_interface_get_summary (iface), ==, "summary1");
+    g_assert_cmpstr (snapd_interface_get_doc_url (iface), ==, "url1");
+    plugs = snapd_interface_get_plugs (iface);
+    slots = snapd_interface_get_slots (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 0);
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 0);
+
+    iface = ifaces->pdata[1];
+    g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface2");
+    g_assert_cmpstr (snapd_interface_get_summary (iface), ==, "summary2");
+    g_assert_cmpstr (snapd_interface_get_doc_url (iface), ==, "url2");
+    plugs = snapd_interface_get_plugs (iface);
+    slots = snapd_interface_get_slots (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 0);
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 0);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_get_interfaces2_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(GError) error = NULL;
+    MockInterface *i1, *i2;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) ifaces = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    i1 = mock_snapd_add_interface (snapd, "interface1");
+    mock_interface_set_summary (i1, "summary1");
+    mock_interface_set_doc_url (i1, "url1");
+    i2 = mock_snapd_add_interface (snapd, "interface2");
+    mock_interface_set_summary (i2, "summary2");
+    mock_interface_set_doc_url (i2, "url2");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_plug (s, i1, "plug1");
+    mock_snap_add_slot (s, i2, "slot1");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_interfaces2_async (client, SNAPD_GET_INTERFACES_FLAGS_NONE, NULL, NULL, get_interfaces2_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_interfaces2_only_connected (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockInterface *i;
+    MockSnap *s;
+    MockSlot *sl;
+    MockPlug *p;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) ifaces = NULL;
+    SnapdInterface *iface;
+    GPtrArray *plugs;
+    GPtrArray *slots;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    i = mock_snapd_add_interface (snapd, "interface1");
+    mock_snapd_add_interface (snapd, "interface2");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    sl = mock_snap_add_slot (s, i, "slot1");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    p = mock_snap_add_plug (s, i, "plug2");
+    mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_ONLY_CONNECTED, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces);
+
+    g_assert_cmpint (ifaces->len, ==, 1);
+
+    iface = ifaces->pdata[0];
+    g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface1");
+    plugs = snapd_interface_get_plugs (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 0);
+    slots = snapd_interface_get_slots (iface);
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 0);
+}
+
+static void
+test_get_interfaces2_slots (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockInterface *i;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) ifaces = NULL;
+    SnapdInterface *iface;
+    GPtrArray *plugs;
+    GPtrArray *slots;
+    SnapdSlot *slot;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    i = mock_snapd_add_interface (snapd, "interface");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_slot (s, i, "slot1");
+    mock_snap_add_plug (s, i, "plug1");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_INCLUDE_SLOTS, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces);
+
+    g_assert_cmpint (ifaces->len, ==, 1);
+
+    iface = ifaces->pdata[0];
+    plugs = snapd_interface_get_plugs (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 0);
+    slots = snapd_interface_get_slots (iface);
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 1);
+    slot = slots->pdata[0];
+    g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot1");
+    g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
+}
+
+static void
+test_get_interfaces2_plugs (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockInterface *i;
+    MockSnap *s;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) ifaces = NULL;
+    SnapdInterface *iface;
+    GPtrArray *plugs;
+    GPtrArray *slots;
+    SnapdPlug *plug;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    i = mock_snapd_add_interface (snapd, "interface");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_slot (s, i, "slot1");
+    mock_snap_add_plug (s, i, "plug1");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_INCLUDE_PLUGS, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces);
+
+    g_assert_cmpint (ifaces->len, ==, 1);
+
+    iface = ifaces->pdata[0];
+    plugs = snapd_interface_get_plugs (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 1);
+    plug = plugs->pdata[0];
+    g_assert_cmpstr (snapd_plug_get_name (plug), ==, "plug1");
+    g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap1");
+    slots = snapd_interface_get_slots (iface);
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 0);
+}
+
+static void
+test_get_interfaces2_filter (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    gchar *filter_names[] = { "interface2", NULL };
+    g_autoptr(GPtrArray) ifaces = NULL;
+    SnapdInterface *iface;
+    GPtrArray *plugs;
+    GPtrArray *slots;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_interface (snapd, "interface1");
+    mock_snapd_add_interface (snapd, "interface2");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_NONE, filter_names, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces);
+
+    g_assert_cmpint (ifaces->len, ==, 1);
+
+    iface = ifaces->pdata[0];
+    g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface2");
+    plugs = snapd_interface_get_plugs (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 0);
+    slots = snapd_interface_get_slots (iface);
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 0);
 }
 
 static void
@@ -7768,6 +8073,12 @@ main (int argc, char **argv)
     g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
     g_test_add_func ("/get-interfaces/legacy", test_get_interfaces_legacy);
+    g_test_add_func ("/get-interfaces2/sync", test_get_interfaces2_sync);
+    g_test_add_func ("/get-interfaces2/async", test_get_interfaces2_async);
+    g_test_add_func ("/get-interfaces2/only-connected", test_get_interfaces2_only_connected);
+    g_test_add_func ("/get-interfaces2/slots", test_get_interfaces2_slots);
+    g_test_add_func ("/get-interfaces2/plugs", test_get_interfaces2_plugs);
+    g_test_add_func ("/get-interfaces2/filter", test_get_interfaces2_filter);
     g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
     g_test_add_func ("/connect-interface/async", test_connect_interface_async);
     g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);

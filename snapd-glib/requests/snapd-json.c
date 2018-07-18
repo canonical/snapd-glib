@@ -1444,3 +1444,57 @@ _snapd_json_parse_connection (JsonNode *node, GError **error)
                          "plug-attrs", plug_attributes,
                          NULL);
 }
+
+SnapdInterface *
+_snapd_json_parse_interface (JsonNode *node, GError **error)
+{
+    JsonObject *object;
+    g_autoptr(JsonArray) plugs = NULL;
+    g_autoptr(JsonArray) slots = NULL;
+    g_autoptr(GPtrArray) plug_array = NULL;
+    g_autoptr(GPtrArray) slot_array = NULL;
+    guint i;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected interface type");
+        return NULL;
+    }
+    object = json_node_get_object (node);
+
+    plugs = _snapd_json_get_array (object, "plugs");
+    plug_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (plugs); i++) {
+        JsonNode *node = json_array_get_element (plugs, i);
+        SnapdPlug *plug;
+
+        plug = _snapd_json_parse_plug (node, error);
+        if (plug == NULL)
+            return FALSE;
+
+        g_ptr_array_add (plug_array, plug);
+    }
+
+    slots = _snapd_json_get_array (object, "slots");
+    slot_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (slots); i++) {
+        JsonNode *node = json_array_get_element (slots, i);
+        SnapdSlot *slot;
+
+        slot = _snapd_json_parse_slot (node, error);
+        if (slot == NULL)
+            return FALSE;
+
+        g_ptr_array_add (slot_array, slot);
+    }
+
+    return g_object_new (SNAPD_TYPE_INTERFACE,
+                         "name", _snapd_json_get_string (object, "name", NULL),
+                         "summary", _snapd_json_get_string (object, "summary", NULL),
+                         "doc-url", _snapd_json_get_string (object, "doc-url", NULL),
+                         "plugs", plug_array,
+                         "slots", slot_array,
+                         NULL);
+}

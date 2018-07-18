@@ -27,6 +27,7 @@
 #include "requests/snapd-get-find.h"
 #include "requests/snapd-get-icon.h"
 #include "requests/snapd-get-interfaces.h"
+#include "requests/snapd-get-interfaces-legacy.h"
 #include "requests/snapd-get-sections.h"
 #include "requests/snapd-get-snap.h"
 #include "requests/snapd-get-snaps.h"
@@ -1950,11 +1951,11 @@ void
 snapd_client_get_interfaces_async (SnapdClient *client,
                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    g_autoptr(SnapdGetInterfaces) request = NULL;
+    g_autoptr(SnapdGetInterfacesLegacy) request = NULL;
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = _snapd_get_interfaces_new (cancellable, callback, user_data);
+    request = _snapd_get_interfaces_legacy_new (cancellable, callback, user_data);
     send_request (client, SNAPD_REQUEST (request));
 }
 
@@ -1978,6 +1979,79 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
                                     GPtrArray **plugs, GPtrArray **slots,
                                     GError **error)
 {
+    SnapdGetInterfacesLegacy *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_GET_INTERFACES_LEGACY (result), FALSE);
+
+    request = SNAPD_GET_INTERFACES_LEGACY (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return FALSE;
+    if (plugs)
+       *plugs = g_ptr_array_ref (_snapd_get_interfaces_legacy_get_plugs (request));
+    if (slots)
+       *slots = g_ptr_array_ref (_snapd_get_interfaces_legacy_get_slots (request));
+    return TRUE;
+}
+
+/**
+ * snapd_client_get_interfaces2_async:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdGetInterfacesFlags to control what information is returned about the interfaces.
+ * @names: (allow-none) (array zero-terminated=1): a null-terminated array of interface names or %NULL.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get the installed snap interfaces.
+ * See snapd_client_get_interfaces2_sync() for more information.
+ *
+ * Since: 1.48
+ */
+void
+snapd_client_get_interfaces2_async (SnapdClient *client,
+                                    SnapdGetInterfacesFlags flags,
+                                    GStrv names,
+                                    GCancellable *cancellable,
+                                    GAsyncReadyCallback callback,
+                                    gpointer user_data)
+{
+    SnapdGetInterfaces *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    request = _snapd_get_interfaces_new (names, cancellable,
+                                         callback, user_data);
+    if ((flags & SNAPD_GET_INTERFACES_FLAGS_INCLUDE_DOCS) != 0)
+        _snapd_get_interfaces_set_include_docs (request, TRUE);
+    if ((flags & SNAPD_GET_INTERFACES_FLAGS_INCLUDE_PLUGS) != 0)
+        _snapd_get_interfaces_set_include_plugs (request, TRUE);
+    if ((flags & SNAPD_GET_INTERFACES_FLAGS_INCLUDE_SLOTS) != 0)
+        _snapd_get_interfaces_set_include_slots (request, TRUE);
+    if ((flags & SNAPD_GET_INTERFACES_FLAGS_ONLY_CONNECTED) != 0)
+        _snapd_get_interfaces_set_only_connected (request, TRUE);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_interfaces2_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_interfaces2_async().
+ * See snapd_client_get_interfaces2_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdInterface): an array of #SnapdInterface or %NULL on error.
+ *
+ * Since: 1.48
+ */
+GPtrArray *
+snapd_client_get_interfaces2_finish (SnapdClient *client,
+                                     GAsyncResult *result,
+                                     GError **error)
+{
     SnapdGetInterfaces *request;
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
@@ -1986,12 +2060,8 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
     request = SNAPD_GET_INTERFACES (result);
 
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
-        return FALSE;
-    if (plugs)
-       *plugs = g_ptr_array_ref (_snapd_get_interfaces_get_plugs (request));
-    if (slots)
-       *slots = g_ptr_array_ref (_snapd_get_interfaces_get_slots (request));
-    return TRUE;
+        return NULL;
+    return g_ptr_array_ref (_snapd_get_interfaces_get_interfaces (request));
 }
 
 /**

@@ -404,6 +404,9 @@ void            mock_snapd_connect                (MockSnapd     *snapd,
 MockSlot       *mock_snapd_find_plug_connection   (MockSnapd     *snapd,
                                                    MockPlug      *plug);
 
+GList          *mock_snapd_find_slot_connections  (MockSnapd     *snapd,
+                                                   MockSlot      *slot);
+
 void            mock_snapd_add_assertion          (MockSnapd     *snapd,
                                                    const gchar   *assertion);
 

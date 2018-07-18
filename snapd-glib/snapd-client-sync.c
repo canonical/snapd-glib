@@ -527,6 +527,7 @@ snapd_client_add_assertions_sync (SnapdClient *client,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.0
+ * Deprecated: 1.48: Use snapd_client_get_connections_sync()
  */
 gboolean
 snapd_client_get_interfaces_sync (SnapdClient *client,
@@ -538,9 +539,43 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
     start_sync (&data);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_get_interfaces_async (client, cancellable, sync_cb, &data);
+G_GNUC_END_IGNORE_DEPRECATIONS
     end_sync (&data);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     return snapd_client_get_interfaces_finish (client, data.result, plugs, slots, error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+/**
+ * snapd_client_get_interfaces2_sync:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdGetInterfacesFlags to control what information is returned about the interfaces.
+ * @names: (allow-none) (array zero-terminated=1): a null-terminated array of interface names or %NULL.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get information about the available snap interfaces.
+ *
+ * Returns: (transfer container) (element-type SnapdInterface): the available interfaces.
+ *
+ * Since: 1.48
+ */
+GPtrArray *
+snapd_client_get_interfaces2_sync (SnapdClient *client,
+                                   SnapdGetInterfacesFlags flags,
+                                   GStrv names,
+                                   GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    start_sync (&data);
+    snapd_client_get_interfaces2_async (client, flags, names, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_interfaces2_finish (client, data.result, error);
 }
 
 /**

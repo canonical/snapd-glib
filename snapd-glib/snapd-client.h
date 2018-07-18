@@ -157,6 +157,27 @@ typedef enum
 } SnapdCreateUserFlags;
 
 /**
+ * SnapdGetInterfacesFlags:
+ * @SNAPD_GET_INTERFACES_FLAGS_NONE: No flags, default behaviour.
+ * @SNAPD_GET_INTERFACES_FLAGS_INCLUDE_DOCS: Include interface documentation.
+ * @SNAPD_GET_INTERFACES_FLAGS_INCLUDE_PLUGS: Include associated plugs.
+ * @SNAPD_GET_INTERFACES_FLAGS_INCLUDE_SLOTS: Include associated slots.
+ * @SNAPD_GET_INTERFACES_FLAGS_ONLY_CONNECTED: Only return connected interfaces.
+ *
+ * Flags to control how interface information is returned.
+ *
+ * Since: 1.48
+ */
+typedef enum
+{
+    SNAPD_GET_INTERFACES_FLAGS_NONE           = 0,
+    SNAPD_GET_INTERFACES_FLAGS_INCLUDE_DOCS   = 1 << 0,
+    SNAPD_GET_INTERFACES_FLAGS_INCLUDE_PLUGS  = 1 << 1,
+    SNAPD_GET_INTERFACES_FLAGS_INCLUDE_SLOTS  = 1 << 2,
+    SNAPD_GET_INTERFACES_FLAGS_ONLY_CONNECTED = 1 << 3,
+} SnapdGetInterfacesFlags;
+
+/**
  * SnapdProgressCallback:
  * @client: a #SnapdClient
  * @change: a #SnapdChange describing the change in progress
@@ -429,15 +450,30 @@ gboolean                snapd_client_get_interfaces_sync           (SnapdClient 
                                                                     GPtrArray           **plugs,
                                                                     GPtrArray           **slots,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_connections_sync);
 void                    snapd_client_get_interfaces_async          (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_get_connections_async);
 gboolean                snapd_client_get_interfaces_finish         (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GPtrArray           **plugs,
                                                                     GPtrArray           **slots,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_connections_finish);
+
+GPtrArray              *snapd_client_get_interfaces2_sync          (SnapdClient          *client,
+                                                                    SnapdGetInterfacesFlags flags,
+                                                                    GStrv                 names,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_interfaces2_async         (SnapdClient          *client,
+                                                                    SnapdGetInterfacesFlags flags,
+                                                                    GStrv                 names,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_get_interfaces2_finish        (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
                                                                     GError              **error);
 
 gboolean                snapd_client_get_connections_sync          (SnapdClient          *client,
