@@ -2659,7 +2659,7 @@ test_get_interface_info_sync (void)
     MockPlug *p;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(GPtrArray) ifaces = NULL;
-    SnapdInterfaceInfo *iface;
+    SnapdInterface *iface;
     GPtrArray *plugs;
     GPtrArray *slots;
     SnapdPlug *plug;
@@ -2685,11 +2685,11 @@ test_get_interface_info_sync (void)
     g_assert_cmpint (ifaces->len, ==, 1);
 
     iface = ifaces->pdata[0];
-    g_assert_cmpstr (snapd_interface_info_get_name (iface), ==, "INTERFACE");
-    g_assert_cmpstr (snapd_interface_info_get_summary (iface), ==, "interface summary");
-    g_assert_cmpstr (snapd_interface_info_get_doc_url (iface), ==, "interface documentation URL");
-    plugs = snapd_interface_info_get_plugs (iface);
-    slots = snapd_interface_info_get_slots (iface);
+    g_assert_cmpstr (snapd_interface_get_name (iface), ==, "INTERFACE");
+    g_assert_cmpstr (snapd_interface_get_summary (iface), ==, "interface summary");
+    g_assert_cmpstr (snapd_interface_get_doc_url (iface), ==, "interface documentation URL");
+    plugs = snapd_interface_get_plugs (iface);
+    slots = snapd_interface_get_slots (iface);
 
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 2);
@@ -2718,7 +2718,7 @@ test_get_interface_info_sync (void)
     g_assert_cmpint (ifaces->len, ==, 1);
     iface = ifaces->pdata[0];
 
-    plugs = snapd_interface_info_get_plugs (iface);
+    plugs = snapd_interface_get_plugs (iface);
     g_assert_nonnull (plugs);
     g_assert_cmpint (ifaces->len, ==, 1);
     plug = plugs->pdata[0];
@@ -2734,7 +2734,7 @@ test_get_interface_info_sync (void)
     g_assert_cmpint (ifaces->len, ==, 1);
     iface = ifaces->pdata[0];
 
-    plugs = snapd_interface_info_get_plugs (iface);
+    plugs = snapd_interface_get_plugs (iface);
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 0);
 
@@ -2746,7 +2746,7 @@ test_get_interface_info_sync (void)
     g_assert_cmpint (ifaces->len, ==, 1);
     iface = ifaces->pdata[0];
 
-    slots = snapd_interface_info_get_slots (iface);
+    slots = snapd_interface_get_slots (iface);
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 0);
 }

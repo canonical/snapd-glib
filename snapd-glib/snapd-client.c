@@ -1919,7 +1919,7 @@ snapd_client_get_interface_info_async (SnapdClient *client,
  * Complete request started with snapd_client_get_interface_info_async().
  * See snapd_client_get_interface_info_sync() for more information.
  *
- * Returns: (transfer container) (element-type SnapdInterfaceInfo): an array of #SnapdInterfaceInfo or %NULL.
+ * Returns: (transfer container) (element-type SnapdInterface): an array of #SnapdInterface or %NULL.
  *
  * Since: 1.42
  */

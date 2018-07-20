@@ -14,7 +14,7 @@
 #include <json-glib/json-glib.h>
 
 #include "snapd-change.h"
-#include "snapd-interface-info.h"
+#include "snapd-interface.h"
 #include "snapd-plug.h"
 #include "snapd-slot.h"
 #include "snapd-snap.h"
@@ -81,7 +81,7 @@ SnapdSlot            *_snapd_json_parse_slot             (JsonObject         *ob
                                                           GError            **error);
 GPtrArray            *_snapd_json_parse_slot_array       (JsonArray          *array,
                                                           GError            **error);
-SnapdInterfaceInfo   *_snapd_json_parse_interface        (JsonObject         *object,
+SnapdInterface       *_snapd_json_parse_interface        (JsonObject         *object,
                                                           GError            **error);
 GPtrArray            *_snapd_json_parse_interface_array  (JsonArray          *array,
                                                           GError            **error);

@@ -1188,7 +1188,7 @@ _snapd_json_parse_slot_array (JsonArray *array, GError **error)
     return g_steal_pointer (&slots);
 }
 
-SnapdInterfaceInfo *
+SnapdInterface *
 _snapd_json_parse_interface (JsonObject *object, GError **error)
 {
     g_autoptr(GPtrArray) plug_array = NULL;
@@ -1206,7 +1206,7 @@ _snapd_json_parse_interface (JsonObject *object, GError **error)
     if (slot_array == NULL)
         return NULL;
 
-    return g_object_new (SNAPD_TYPE_INTERFACE_INFO,
+    return g_object_new (SNAPD_TYPE_INTERFACE,
                          "name", _snapd_json_get_string (object, "name", NULL),
                          "summary", _snapd_json_get_string (object, "summary", NULL),
                          "doc-url", _snapd_json_get_string (object, "doc-url", NULL),
@@ -1224,7 +1224,7 @@ _snapd_json_parse_interface_array (JsonArray *array, GError **error)
     interfaces = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (array); i++) {
         JsonNode *node = json_array_get_element (array, i);
-        SnapdInterfaceInfo *interface;
+        SnapdInterface *interface;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected interface type");

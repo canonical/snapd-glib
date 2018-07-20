@@ -529,7 +529,7 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
  *
  * Get the installed snap interfaces.
  *
- * Returns: (transfer container) (element-type SnapdInterfaceInfo): the interfaces.
+ * Returns: (transfer container) (element-type SnapdInterface): the interfaces.
  *
  * Since: 1.0
  */
