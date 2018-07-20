@@ -2752,6 +2752,79 @@ test_get_interface_info_sync (void)
 }
 
 static void
+get_interface_info_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+    g_autoptr(GPtrArray) ifaces = NULL;
+    g_autoptr(GError) error = NULL;
+    SnapdInterface *iface;
+    GPtrArray *plugs;
+    GPtrArray *slots;
+    SnapdPlug *plug;
+    SnapdSlot *slot;
+
+    ifaces = snapd_client_get_interface_info_finish (SNAPD_CLIENT (object), result, &error);
+
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces);
+
+    g_assert_nonnull (ifaces);
+    g_assert_cmpint (ifaces->len, ==, 1);
+
+    iface = ifaces->pdata[0];
+    g_assert_cmpstr (snapd_interface_get_name (iface), ==, "INTERFACE");
+    g_assert_cmpstr (snapd_interface_get_summary (iface), ==, "interface summary");
+    g_assert_cmpstr (snapd_interface_get_doc_url (iface), ==, "interface documentation URL");
+    plugs = snapd_interface_get_plugs (iface);
+    slots = snapd_interface_get_slots (iface);
+
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 1);
+
+    plug = plugs->pdata[0];
+    g_assert_cmpstr (snapd_plug_get_name (plug), ==, "plug1");
+    g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
+
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 1);
+
+    slot = slots->pdata[0];
+    g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot1");
+    g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
+
+    g_main_quit (data->loop);
+}
+
+static void
+test_get_interface_info_async (void)
+{
+    g_autoptr(GMainLoop) loop = NULL;
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(GError) error = NULL;
+    MockSnap *s;
+    MockSlot *sl;
+    MockPlug *p;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) ifaces = NULL;
+
+    loop = g_main_loop_new (NULL, FALSE);
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    sl = mock_snap_add_slot (s, "slot1");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    p = mock_snap_add_plug (s, "plug1");
+    mock_plug_set_connection (p, sl);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_interface_info_async (client, NULL, SNAPD_INTERFACE_FLAGS_INCLUDE_DOCS | SNAPD_INTERFACE_FLAGS_INCLUDE_PLUGS | SNAPD_INTERFACE_FLAGS_INCLUDE_SLOTS, NULL, get_interface_info_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
 test_connect_interface_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -7063,6 +7136,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
     g_test_add_func ("/interface-info/sync", test_get_interface_info_sync);
+    g_test_add_func ("/interface-info/async", test_get_interface_info_async);
     g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
     g_test_add_func ("/connect-interface/async", test_connect_interface_async);
     g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);
