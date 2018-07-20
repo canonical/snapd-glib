@@ -1875,10 +1875,7 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
  * snapd_client_get_interface_info_async:
  * @client: a #SnapdClient.
  * @names: (array zero-terminated=1): a null-terminated array of interface names or %NULL.
- * @include_doc: whether to include interface documentation
- * @include_plugs: whether to include plugs
- * @include_slots: whether to include slots
- * @only_connected: whether to only include connected plugs/slots
+ * @flags: control what information is returned about the interfaces.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -1891,10 +1888,7 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
 void
 snapd_client_get_interface_info_async (SnapdClient *client,
                                        gchar **names,
-                                       gboolean include_docs,
-                                       gboolean include_plugs,
-                                       gboolean include_slots,
-                                       gboolean only_connected,
+                                       SnapdInterfaceFlags flags,
                                        GCancellable *cancellable,
                                        GAsyncReadyCallback callback,
                                        gpointer user_data)
@@ -1903,10 +1897,16 @@ snapd_client_get_interface_info_async (SnapdClient *client,
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    request = _snapd_get_interface_info_new (names, include_docs,
-                                             include_plugs, include_slots,
-                                             only_connected, cancellable,
+    request = _snapd_get_interface_info_new (names, cancellable,
                                              callback, user_data);
+    if ((flags & SNAPD_INTERFACE_FLAGS_INCLUDE_DOCS) != 0)
+        _snapd_get_interface_info_set_include_docs (request, TRUE);
+    if ((flags & SNAPD_INTERFACE_FLAGS_INCLUDE_PLUGS) != 0)
+        _snapd_get_interface_info_set_include_plugs (request, TRUE);
+    if ((flags & SNAPD_INTERFACE_FLAGS_INCLUDE_SLOTS) != 0)
+        _snapd_get_interface_info_set_include_slots (request, TRUE);
+    if ((flags & SNAPD_INTERFACE_FLAGS_ONLY_CONNECTED) != 0)
+        _snapd_get_interface_info_set_only_connected (request, TRUE);
     send_request (client, SNAPD_REQUEST (request));
 }
 

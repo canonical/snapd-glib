@@ -31,10 +31,6 @@ G_DEFINE_TYPE (SnapdGetInterfaceInfo, snapd_get_interface_info, snapd_request_ge
 
 SnapdGetInterfaceInfo *
 _snapd_get_interface_info_new (gchar **names,
-                               gboolean include_docs,
-                               gboolean include_plugs,
-                               gboolean include_slots,
-                               gboolean only_connected,
                                GCancellable *cancellable,
                                GAsyncReadyCallback callback,
                                gpointer user_data)
@@ -49,12 +45,36 @@ _snapd_get_interface_info_new (gchar **names,
 
     if (names != NULL && names[0] != NULL)
         request->names = g_strdupv (names);
-    request->include_docs = include_docs;
-    request->include_plugs = include_plugs;
-    request->include_slots = include_slots;
-    request->only_connected = only_connected;
 
     return request;
+}
+
+void
+_snapd_get_interface_info_set_include_docs (SnapdGetInterfaceInfo *request,
+                                            gboolean include_docs)
+{
+    request->include_docs = include_docs;
+}
+
+void
+_snapd_get_interface_info_set_include_plugs (SnapdGetInterfaceInfo *request,
+                                             gboolean include_plugs)
+{
+    request->include_plugs = include_plugs;
+}
+
+void
+_snapd_get_interface_info_set_include_slots (SnapdGetInterfaceInfo *request,
+                                             gboolean include_slots)
+{
+    request->include_slots = include_slots;
+}
+
+void
+_snapd_get_interface_info_set_only_connected (SnapdGetInterfaceInfo *request,
+                                              gboolean only_connected)
+{
+    request->only_connected = only_connected;
 }
 
 GPtrArray *

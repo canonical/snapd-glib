@@ -153,6 +153,27 @@ typedef enum
 } SnapdCreateUserFlags;
 
 /**
+ * SnapdInterfaceFlags:
+ * @SNAPD_INTERFACE_FLAGS_NONE: No flags, default behaviour.
+ * @SNAPD_INTERFACE_FLAGS_INCLUDE_DOCS: Include interface documentation.
+ * @SNAPD_INTERFACE_FLAGS_INCLUDE_PLUGS: Include associated plugs.
+ * @SNAPD_INTERFACE_FLAGS_INCLUDE_SLOTS: Include associated slots.
+ * @SNAPD_INTERFACE_FLAGS_ONLY_CONNECTED: Only return connected interfaces.
+ *
+ * Flags to control how interface information is returned.
+ *
+ * Since: 1.42
+ */
+typedef enum
+{
+    SNAPD_INTERFACE_FLAGS_NONE = 0,
+    SNAPD_INTERFACE_FLAGS_INCLUDE_DOCS = 1 << 0,
+    SNAPD_INTERFACE_FLAGS_INCLUDE_PLUGS = 1 << 1,
+    SNAPD_INTERFACE_FLAGS_INCLUDE_SLOTS = 1 << 2,
+    SNAPD_INTERFACE_FLAGS_ONLY_CONNECTED = 1 << 3,
+} SnapdInterfaceFlags;
+
+/**
  * SnapdProgressCallback:
  * @client: a #SnapdClient
  * @change: a #SnapdChange describing the change in progress
@@ -421,18 +442,12 @@ gboolean                snapd_client_get_interfaces_finish         (SnapdClient 
 
 GPtrArray              *snapd_client_get_interface_info_sync       (SnapdClient          *client,
                                                                     gchar               **names,
-                                                                    gboolean              include_doc,
-                                                                    gboolean              include_plugs,
-                                                                    gboolean              include_slots,
-                                                                    gboolean              only_connected,
+                                                                    SnapdInterfaceFlags   flags,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_get_interface_info_async      (SnapdClient          *client,
                                                                     gchar               **names,
-                                                                    gboolean              include_doc,
-                                                                    gboolean              include_plugs,
-                                                                    gboolean              include_slots,
-                                                                    gboolean              only_connected,
+                                                                    SnapdInterfaceFlags   flags,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);

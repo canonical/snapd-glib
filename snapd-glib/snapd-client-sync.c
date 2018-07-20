@@ -523,10 +523,7 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
  * snapd_client_get_interface_info_sync:
  * @client: a #SnapdClient.
  * @names: (array zero-terminated=1): a null-terminated array of interface names or %NULL.
- * @include_doc: whether to include interface documentation
- * @include_plugs: whether to include plugs
- * @include_slots: whether to include slots
- * @only_connected: whether to only include connected plugs/slots
+ * @flags: control what information is returned about the interfaces.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
@@ -539,10 +536,7 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
 GPtrArray *
 snapd_client_get_interface_info_sync (SnapdClient *client,
                                       gchar **names,
-                                      gboolean include_docs,
-                                      gboolean include_plugs,
-                                      gboolean include_slots,
-                                      gboolean only_connected,
+                                      SnapdInterfaceFlags flags,
                                       GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
@@ -550,7 +544,7 @@ snapd_client_get_interface_info_sync (SnapdClient *client,
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
 
     start_sync (&data);
-    snapd_client_get_interface_info_async (client, names, include_docs, include_plugs, include_slots, only_connected, cancellable, sync_cb, &data);
+    snapd_client_get_interface_info_async (client, names, flags, cancellable, sync_cb, &data);
     end_sync (&data);
     return snapd_client_get_interface_info_finish (client, data.result, error);
 }

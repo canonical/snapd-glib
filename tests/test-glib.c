@@ -2678,7 +2678,7 @@ test_get_interface_info_sync (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    ifaces = snapd_client_get_interface_info_sync (client, NULL, TRUE, TRUE, TRUE, FALSE, NULL, &error);
+    ifaces = snapd_client_get_interface_info_sync (client, NULL, SNAPD_INTERFACE_FLAGS_INCLUDE_DOCS | SNAPD_INTERFACE_FLAGS_INCLUDE_PLUGS | SNAPD_INTERFACE_FLAGS_INCLUDE_SLOTS, NULL, &error);
     g_assert_no_error (error);
 
     g_assert_nonnull (ifaces);
@@ -2712,7 +2712,7 @@ test_get_interface_info_sync (void)
     /* If we select connected interfaces, then we don't see the
      * unconnected plug */
     g_clear_pointer (&ifaces, g_ptr_array_unref);
-    ifaces = snapd_client_get_interface_info_sync (client, NULL, TRUE, TRUE, TRUE, TRUE, NULL, &error);
+    ifaces = snapd_client_get_interface_info_sync (client, NULL, SNAPD_INTERFACE_FLAGS_INCLUDE_DOCS | SNAPD_INTERFACE_FLAGS_INCLUDE_PLUGS | SNAPD_INTERFACE_FLAGS_INCLUDE_SLOTS | SNAPD_INTERFACE_FLAGS_ONLY_CONNECTED, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (ifaces);
     g_assert_cmpint (ifaces->len, ==, 1);
@@ -2728,7 +2728,7 @@ test_get_interface_info_sync (void)
 
     /* No plugs returned if we don't request plugs */
     g_clear_pointer (&ifaces, g_ptr_array_unref);
-    ifaces = snapd_client_get_interface_info_sync (client, NULL, TRUE, FALSE, TRUE, FALSE, NULL, &error);
+    ifaces = snapd_client_get_interface_info_sync (client, NULL, SNAPD_INTERFACE_FLAGS_INCLUDE_DOCS | SNAPD_INTERFACE_FLAGS_INCLUDE_SLOTS, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (ifaces);
     g_assert_cmpint (ifaces->len, ==, 1);
@@ -2740,7 +2740,7 @@ test_get_interface_info_sync (void)
 
     /* No slots returned if we don't request slots */
     g_clear_pointer (&ifaces, g_ptr_array_unref);
-    ifaces = snapd_client_get_interface_info_sync (client, NULL, TRUE, TRUE, FALSE, FALSE, NULL, &error);
+    ifaces = snapd_client_get_interface_info_sync (client, NULL, SNAPD_INTERFACE_FLAGS_INCLUDE_DOCS | SNAPD_INTERFACE_FLAGS_INCLUDE_PLUGS, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (ifaces);
     g_assert_cmpint (ifaces->len, ==, 1);
