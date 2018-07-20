@@ -2651,6 +2651,107 @@ test_get_interfaces_no_snaps (void)
 }
 
 static void
+test_get_interface_info_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockSnap *s;
+    MockSlot *sl;
+    MockPlug *p;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) ifaces = NULL;
+    SnapdInterfaceInfo *iface;
+    GPtrArray *plugs;
+    GPtrArray *slots;
+    SnapdPlug *plug;
+    SnapdSlot *slot;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    sl = mock_snap_add_slot (s, "slot1");
+    mock_snap_add_plug (s, "unconnected");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    p = mock_snap_add_plug (s, "plug1");
+    mock_plug_set_connection (p, sl);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    ifaces = snapd_client_get_interface_info_sync (client, NULL, TRUE, TRUE, TRUE, FALSE, NULL, &error);
+    g_assert_no_error (error);
+
+    g_assert_nonnull (ifaces);
+    g_assert_cmpint (ifaces->len, ==, 1);
+
+    iface = ifaces->pdata[0];
+    g_assert_cmpstr (snapd_interface_info_get_name (iface), ==, "INTERFACE");
+    g_assert_cmpstr (snapd_interface_info_get_summary (iface), ==, "interface summary");
+    g_assert_cmpstr (snapd_interface_info_get_doc_url (iface), ==, "interface documentation URL");
+    plugs = snapd_interface_info_get_plugs (iface);
+    slots = snapd_interface_info_get_slots (iface);
+
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 2);
+
+    plug = plugs->pdata[0];
+    g_assert_cmpstr (snapd_plug_get_name (plug), ==, "plug1");
+    g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
+
+    plug = plugs->pdata[1];
+    g_assert_cmpstr (snapd_plug_get_name (plug), ==, "unconnected");
+    g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap1");
+
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 1);
+
+    slot = slots->pdata[0];
+    g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot1");
+    g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
+
+    /* If we select connected interfaces, then we don't see the
+     * unconnected plug */
+    g_clear_pointer (&ifaces, g_ptr_array_unref);
+    ifaces = snapd_client_get_interface_info_sync (client, NULL, TRUE, TRUE, TRUE, TRUE, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces);
+    g_assert_cmpint (ifaces->len, ==, 1);
+    iface = ifaces->pdata[0];
+
+    plugs = snapd_interface_info_get_plugs (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (ifaces->len, ==, 1);
+    plug = plugs->pdata[0];
+
+    g_assert_cmpstr (snapd_plug_get_name (plug), ==, "plug1");
+    g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
+
+    /* No plugs returned if we don't request plugs */
+    g_clear_pointer (&ifaces, g_ptr_array_unref);
+    ifaces = snapd_client_get_interface_info_sync (client, NULL, TRUE, FALSE, TRUE, FALSE, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces);
+    g_assert_cmpint (ifaces->len, ==, 1);
+    iface = ifaces->pdata[0];
+
+    plugs = snapd_interface_info_get_plugs (iface);
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 0);
+
+    /* No slots returned if we don't request slots */
+    g_clear_pointer (&ifaces, g_ptr_array_unref);
+    ifaces = snapd_client_get_interface_info_sync (client, NULL, TRUE, TRUE, FALSE, FALSE, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces);
+    g_assert_cmpint (ifaces->len, ==, 1);
+    iface = ifaces->pdata[0];
+
+    slots = snapd_interface_info_get_slots (iface);
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 0);
+}
+
+static void
 test_connect_interface_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -6961,6 +7062,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-interfaces/sync", test_get_interfaces_sync);
     g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
+    g_test_add_func ("/interface-info/sync", test_get_interface_info_sync);
     g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
     g_test_add_func ("/connect-interface/async", test_connect_interface_async);
     g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);
