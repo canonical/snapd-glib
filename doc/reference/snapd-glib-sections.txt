@@ -103,6 +103,7 @@ SnapdGetAppsFlags
 SnapdFindFlags
 SnapdInstallFlags
 SnapdCreateUserFlags
+SnapdInterfaceFlags
 SnapdProgressCallback
 snapd_client_new
 snapd_client_new_from_socket
@@ -162,6 +163,9 @@ snapd_client_add_assertions_sync
 snapd_client_get_interfaces_sync
 snapd_client_get_interfaces_async
 snapd_client_get_interfaces_finish
+snapd_client_get_interface_info_sync
+snapd_client_get_interface_info_async
+snapd_client_get_interface_info_finish
 snapd_client_connect_interface_sync
 snapd_client_connect_interface_async
 snapd_client_connect_interface_finish
@@ -264,6 +268,8 @@ SNAPD_TYPE_INSTALL_FLAGS
 snapd_install_flags_get_type
 SNAPD_TYPE_CREATE_USER_FLAGS
 snapd_create_user_flags_get_type
+SNAPD_TYPE_INTERFACE_FLAGS
+snapd_interface_flags_get_type
 SnapdGetAliases
 SnapdGetApps
 SnapdGetAssertions
@@ -273,6 +279,7 @@ SnapdGetChanges
 SnapdGetFind
 SnapdGetIcon
 SnapdGetInterfaces
+SnapdGetInterfaceInfo
 SnapdGetSections
 SnapdGetSnap
 SnapdGetSnaps
@@ -379,6 +386,21 @@ SnapdIcon
 <SUBSECTION Private>
 SnapdIconClass
 SNAPD_TYPE_ICON
+</SECTION>
+
+<SECTION>
+<FILE>snapd-interface</FILE>
+<TITLE>SnapdInterface</TITLE>
+SnapdInterface
+snapd_interface_get_name
+snapd_interface_get_summary
+snapd_interface_get_doc_url
+snapd_interface_get_plugs
+snapd_interface_get_slots
+
+<SUBSECTION Private>
+SnapdInterfaceClass
+SNAPD_TYPE_INTERFACE
 </SECTION>
 
 <SECTION>

@@ -531,7 +531,7 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
  *
  * Returns: (transfer container) (element-type SnapdInterface): the interfaces.
  *
- * Since: 1.0
+ * Since: 1.42
  */
 GPtrArray *
 snapd_client_get_interface_info_sync (SnapdClient *client,

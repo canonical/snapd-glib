@@ -21,7 +21,7 @@
  * the system.
  *
  * Available interfaces can be queried using
- * snapd_client_get_interfaces2_sync().
+ * snapd_client_get_interface_info_sync().
  */
 
 /**
@@ -56,7 +56,7 @@ G_DEFINE_TYPE (SnapdInterface, snapd_interface, G_TYPE_OBJECT);
 
 /**
  * snapd_interface_get_name:
- * @interface: a #SnapdInteraceInfo
+ * @interface: a #SnapdInterface
  *
  * Get the name of this interface.
  *
@@ -73,7 +73,7 @@ snapd_interface_get_name (SnapdInterface *interface)
 
 /**
  * snapd_interface_get_summary:
- * @interface: a #SnapdInteraceInfo
+ * @interface: a #SnapdInterface
  *
  * Get the summary of this interface.
  *
@@ -90,7 +90,7 @@ snapd_interface_get_summary (SnapdInterface *interface)
 
 /**
  * snapd_interface_get_doc_url:
- * @interface: a #SnapdInteraceInfo
+ * @interface: a #SnapdInterface
  *
  * Get the documentation URL of this interface.
  *
@@ -108,7 +108,7 @@ snapd_interface_get_doc_url (SnapdInterface *interface)
 
 /**
  * snapd_interface_get_plugs:
- * @interface: a #SnapdInteraceInfo
+ * @interface: a #SnapdInterface
  *
  * Get the plugs matching this interface type.
  *
@@ -125,7 +125,7 @@ snapd_interface_get_plugs (SnapdInterface *interface)
 
 /**
  * snapd_interface_get_slots:
- * @interface: a #SnapdInteraceInfo
+ * @interface: a #SnapdInterface
  *
  * Get the slots matching this interface type.
  *
