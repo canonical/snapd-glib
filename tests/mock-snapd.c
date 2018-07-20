@@ -2848,94 +2848,235 @@ handle_assertions (MockSnapd *snapd, SoupMessage *message, const gchar *type)
 }
 
 static void
-handle_interfaces (MockSnapd *snapd, SoupMessage *message)
+make_connections (MockSnapd *snapd, JsonBuilder *builder)
+{
+    const GList *link;
+    g_autoptr (GList) connected_plugs = NULL;
+
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "plugs");
+    json_builder_begin_array (builder);
+    for (link = snapd->snaps; link; link = link->next) {
+        MockSnap *snap = link->data;
+        const GList *l;
+
+        for (l = snap->plugs; l; l = l->next) {
+            MockPlug *plug = l->data;
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "snap");
+            json_builder_add_string_value (builder, snap->name);
+            json_builder_set_member_name (builder, "plug");
+            json_builder_add_string_value (builder, plug->name);
+            json_builder_set_member_name (builder, "interface");
+            json_builder_add_string_value (builder, plug->interface);
+            json_builder_set_member_name (builder, "label");
+            json_builder_add_string_value (builder, plug->label);
+            if (plug->connection) {
+                json_builder_set_member_name (builder, "connections");
+                json_builder_begin_array (builder);
+                json_builder_begin_object (builder);
+                json_builder_set_member_name (builder, "snap");
+                json_builder_add_string_value (builder, plug->connection->snap->name);
+                json_builder_set_member_name (builder, "slot");
+                json_builder_add_string_value (builder, plug->connection->name);
+                json_builder_end_object (builder);
+                json_builder_end_array (builder);
+                connected_plugs = g_list_append (connected_plugs, plug);
+            }
+            json_builder_end_object (builder);
+        }
+    }
+    json_builder_end_array (builder);
+    json_builder_set_member_name (builder, "slots");
+    json_builder_begin_array (builder);
+    for (link = snapd->snaps; link; link = link->next) {
+        MockSnap *snap = link->data;
+        const GList *l;
+
+        for (l = snap->slots_; l; l = l->next) {
+            MockSlot *slot = l->data;
+            const GList *l2;
+            g_autoptr(GList) plugs = NULL;
+
+            for (l2 = connected_plugs; l2; l2 = l2->next) {
+                MockPlug *plug = l2->data;
+                if (plug->connection == slot)
+                    plugs = g_list_append (plugs, plug);
+            }
+
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "snap");
+            json_builder_add_string_value (builder, snap->name);
+            json_builder_set_member_name (builder, "slot");
+            json_builder_add_string_value (builder, slot->name);
+            json_builder_set_member_name (builder, "interface");
+            json_builder_add_string_value (builder, slot->interface);
+            json_builder_set_member_name (builder, "label");
+            json_builder_add_string_value (builder, slot->label);
+            if (plugs != NULL) {
+                json_builder_set_member_name (builder, "connections");
+                json_builder_begin_array (builder);
+                for (l2 = plugs; l2; l2 = l2->next) {
+                    MockPlug *plug = l2->data;
+                    json_builder_begin_object (builder);
+                    json_builder_set_member_name (builder, "snap");
+                    json_builder_add_string_value (builder, plug->snap->name);
+                    json_builder_set_member_name (builder, "plug");
+                    json_builder_add_string_value (builder, plug->name);
+                    json_builder_end_object (builder);
+                }
+                json_builder_end_array (builder);
+            }
+            json_builder_end_object (builder);
+        }
+    }
+    json_builder_end_array (builder);
+    json_builder_end_object (builder);
+}
+
+struct interface_data {
+    GList *plugs;
+    GList *slots;
+};
+
+static void
+free_interface_data (struct interface_data *data) {
+    if (!data) return;
+    g_list_free (data->plugs);
+    g_list_free (data->slots);
+    g_free (data);
+}
+
+static void
+make_interface (const char *iface, const struct interface_data *data, JsonBuilder *builder)
+{
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "name");
+    json_builder_add_string_value (builder, iface);
+    json_builder_set_member_name (builder, "summary");
+    json_builder_add_string_value (builder, "interface summary");
+    json_builder_set_member_name (builder, "doc-url");
+    json_builder_add_string_value (builder, "interface documentation URL");
+
+    if (data->plugs) {
+        const GList *l;
+
+        json_builder_set_member_name (builder, "plugs");
+        json_builder_begin_array (builder);
+        for (l = data->plugs; l != NULL; l = l->next) {
+            const MockPlug *plug = l->data;
+
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "snap");
+            json_builder_add_string_value (builder, plug->snap->name);
+            json_builder_set_member_name (builder, "plug");
+            json_builder_add_string_value (builder, plug->name);
+            json_builder_end_object (builder);
+        }
+        json_builder_end_array (builder);
+    }
+    if (data->slots) {
+        const GList *l;
+
+        json_builder_set_member_name (builder, "slots");
+        json_builder_begin_array (builder);
+        for (l = data->slots; l != NULL; l = l->next) {
+            const MockSlot *slot = l->data;
+
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "snap");
+            json_builder_add_string_value (builder, slot->snap->name);
+            json_builder_set_member_name (builder, "slot");
+            json_builder_add_string_value (builder, slot->name);
+            json_builder_end_object (builder);
+        }
+        json_builder_end_array (builder);
+    }
+    json_builder_end_object (builder);
+}
+
+static void
+make_interfaces (MockSnapd *snapd, GHashTable *query, JsonBuilder *builder)
+{
+    g_auto(GStrv) selected_ifaces = NULL;
+    const char *names_param;
+    gboolean only_connected, include_plugs, include_slots;
+    g_autoptr(GHashTable) interfaces = NULL;
+    const GList *l;
+
+    names_param = g_hash_table_lookup (query, "names");
+    if (names_param != NULL)
+        selected_ifaces = g_strsplit (names_param, ",", -1);
+    only_connected = g_strcmp0 (g_hash_table_lookup (query, "select"), "connected") == 0;
+    include_plugs = g_strcmp0 (g_hash_table_lookup (query, "plugs"), "true") == 0;
+    include_slots = g_strcmp0 (g_hash_table_lookup (query, "slots"), "true") == 0;
+
+    /* Collect information about each interface */
+    interfaces = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) free_interface_data);
+    for (l = snapd->snaps; l != NULL; l = l->next) {
+        MockSnap *snap = l->data;
+        const GList *l2;
+
+        if (include_plugs) {
+            for (l2 = snap->plugs; l2 != NULL; l2 = l2->next) {
+                MockPlug *plug = l2->data;
+                struct interface_data *iface;
+
+                if (only_connected && plug->connection == NULL) {
+                    continue;
+                }
+                iface = g_hash_table_lookup (interfaces, plug->interface);
+                if (!iface) {
+                    iface = g_new0 (struct interface_data, 1);
+                    g_hash_table_insert (interfaces, g_strdup (plug->interface), iface);
+                }
+                iface->plugs = g_list_prepend (iface->plugs, plug);
+            }
+        }
+        if (include_slots) {
+            for (l2 = snap->slots_; l2 != NULL; l2 = l2->next) {
+                MockSlot *slot = l2->data;
+                struct interface_data *iface;
+
+                iface = g_hash_table_lookup (interfaces, slot->interface);
+                if (!iface) {
+                    iface = g_new0 (struct interface_data, 1);
+                    g_hash_table_insert (interfaces, g_strdup (slot->interface), iface);
+                }
+                iface->slots = g_list_prepend (iface->slots, slot);
+            }
+        }
+    }
+
+    json_builder_begin_array (builder);
+
+    if (selected_ifaces == NULL || selected_ifaces[0] == NULL) {
+        g_hash_table_foreach (interfaces, (GHFunc)make_interface, builder);
+    } else {
+        int i;
+        for (i = 0; selected_ifaces[i] != NULL; i++) {
+            const struct interface_data *data = g_hash_table_lookup (
+                interfaces, selected_ifaces[i]);
+            if (data != NULL)
+                make_interface (selected_ifaces[i], data, builder);
+        }
+    }
+    json_builder_end_array (builder);
+}
+
+static void
+handle_interfaces (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
 {
     if (strcmp (message->method, "GET") == 0) {
         g_autoptr(JsonBuilder) builder = NULL;
-        GList *link;
-        g_autoptr (GList) connected_plugs = NULL;
 
         builder = json_builder_new ();
-        json_builder_begin_object (builder);
-        json_builder_set_member_name (builder, "plugs");
-        json_builder_begin_array (builder);
-        for (link = snapd->snaps; link; link = link->next) {
-            MockSnap *snap = link->data;
-            GList *l;
 
-            for (l = snap->plugs; l; l = l->next) {
-                MockPlug *plug = l->data;
-                json_builder_begin_object (builder);
-                json_builder_set_member_name (builder, "snap");
-                json_builder_add_string_value (builder, snap->name);
-                json_builder_set_member_name (builder, "plug");
-                json_builder_add_string_value (builder, plug->name);
-                json_builder_set_member_name (builder, "interface");
-                json_builder_add_string_value (builder, plug->interface);
-                json_builder_set_member_name (builder, "label");
-                json_builder_add_string_value (builder, plug->label);
-                if (plug->connection) {
-                    json_builder_set_member_name (builder, "connections");
-                    json_builder_begin_array (builder);
-                    json_builder_begin_object (builder);
-                    json_builder_set_member_name (builder, "snap");
-                    json_builder_add_string_value (builder, plug->connection->snap->name);
-                    json_builder_set_member_name (builder, "slot");
-                    json_builder_add_string_value (builder, plug->connection->name);
-                    json_builder_end_object (builder);
-                    json_builder_end_array (builder);
-                    connected_plugs = g_list_append (connected_plugs, plug);
-                }
-                json_builder_end_object (builder);
-            }
+        if (query != NULL && g_hash_table_lookup (query, "select") != NULL) {
+            make_interfaces (snapd, query, builder);
+        } else {
+            make_connections (snapd, builder);
         }
-        json_builder_end_array (builder);
-        json_builder_set_member_name (builder, "slots");
-        json_builder_begin_array (builder);
-        for (link = snapd->snaps; link; link = link->next) {
-            MockSnap *snap = link->data;
-            GList *l;
-
-            for (l = snap->slots_; l; l = l->next) {
-                MockSlot *slot = l->data;
-                GList *l2;
-                g_autoptr(GList) plugs = NULL;
-
-                for (l2 = connected_plugs; l2; l2 = l2->next) {
-                    MockPlug *plug = l2->data;
-                    if (plug->connection == slot)
-                        plugs = g_list_append (plugs, plug);
-                }
-
-                json_builder_begin_object (builder);
-                json_builder_set_member_name (builder, "snap");
-                json_builder_add_string_value (builder, snap->name);
-                json_builder_set_member_name (builder, "slot");
-                json_builder_add_string_value (builder, slot->name);
-                json_builder_set_member_name (builder, "interface");
-                json_builder_add_string_value (builder, slot->interface);
-                json_builder_set_member_name (builder, "label");
-                json_builder_add_string_value (builder, slot->label);
-                if (plugs != NULL) {
-                    json_builder_set_member_name (builder, "connections");
-                    json_builder_begin_array (builder);
-                    for (l2 = plugs; l2; l2 = l2->next) {
-                        MockPlug *plug = l2->data;
-                        json_builder_begin_object (builder);
-                        json_builder_set_member_name (builder, "snap");
-                        json_builder_add_string_value (builder, plug->snap->name);
-                        json_builder_set_member_name (builder, "plug");
-                        json_builder_add_string_value (builder, plug->name);
-                        json_builder_end_object (builder);
-                    }
-                    json_builder_end_array (builder);
-                }
-                json_builder_end_object (builder);
-            }
-        }
-        json_builder_end_array (builder);
-        json_builder_end_object (builder);
-
         send_sync_response (message, 200, json_builder_get_root (builder), NULL);
     }
     else if (strcmp (message->method, "POST") == 0) {
@@ -3933,7 +4074,7 @@ handle_request (SoupServer        *server,
     else if (g_str_has_prefix (path, "/v2/assertions/"))
         handle_assertions (snapd, message, path + strlen ("/v2/assertions/"));
     else if (strcmp (path, "/v2/interfaces") == 0)
-        handle_interfaces (snapd, message);
+        handle_interfaces (snapd, message, query);
     else if (strcmp (path, "/v2/changes") == 0)
         handle_changes (snapd, message, query);
     else if (g_str_has_prefix (path, "/v2/changes/"))
