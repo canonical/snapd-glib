@@ -11,8 +11,6 @@
 
 #include "snapd-error.h"
 #include "snapd-json.h"
-#include "snapd-plug.h"
-#include "snapd-slot.h"
 
 struct _SnapdGetInterfaces
 {
@@ -61,7 +59,6 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, GErr
     g_autoptr(GPtrArray) slot_array = NULL;
     g_autoptr(JsonArray) plugs = NULL;
     g_autoptr(JsonArray) slots = NULL;
-    guint i;
 
     response = _snapd_json_parse_response (message, error);
     if (response == NULL)
@@ -71,47 +68,13 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, GErr
         return FALSE;
 
     plugs = _snapd_json_get_array (result, "plugs");
-    plug_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (plugs); i++) {
-        JsonNode *node = json_array_get_element (plugs, i);
-        JsonObject *object;
-        g_autoptr(SnapdPlug) plug = NULL;
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error (error,
-                         SNAPD_ERROR,
-                         SNAPD_ERROR_READ_FAILED,
-                         "Unexpected plug type");
-            return FALSE;
-        }
-        object = json_node_get_object (node);
-
-        plug = _snapd_json_parse_plug (object, error);
-        if (plug == NULL)
-            return FALSE;
-        g_ptr_array_add (plug_array, g_steal_pointer (&plug));
-    }
+    plug_array = _snapd_json_parse_plug_array (plugs, error);
+    if (!plug_array)
+        return FALSE;
     slots = _snapd_json_get_array (result, "slots");
-    slot_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (slots); i++) {
-        JsonNode *node = json_array_get_element (slots, i);
-        JsonObject *object;
-        g_autoptr(SnapdSlot) slot = NULL;
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error (error,
-                         SNAPD_ERROR,
-                         SNAPD_ERROR_READ_FAILED,
-                         "Unexpected slot type");
-            return FALSE;
-        }
-        object = json_node_get_object (node);
-
-        slot = _snapd_json_parse_slot (object, error);
-        if (slot == NULL)
-            return FALSE;
-        g_ptr_array_add (slot_array, g_steal_pointer (&slot));
-    }
+    slot_array = _snapd_json_parse_slot_array (slots, error);
+    if (!slot_array)
+        return FALSE;
 
     r->plugs = g_steal_pointer (&plug_array);
     r->slots = g_steal_pointer (&slot_array);
