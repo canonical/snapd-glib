@@ -1,3 +1,28 @@
+Overview of changes in snapd-glib 1.42
+
+    * New API:
+      - snapd_client_get_snap_async
+      - snapd_client_get_snap_finish
+      - snapd_client_get_snap_sync
+      - snapd_client_get_snaps_async
+      - snapd_client_get_snaps_finish
+      - snapd_client_get_snap_sync
+      - snapd_snap_get_publisher_display_name
+      - snapd_snap_get_publisher_id
+      - snapd_snap_get_publisher_username
+      - snapd_snap_get_publisher_validation
+      - snapd_system_information_get_refresh_hold
+      - snapd_system_information_get_refresh_last
+      - snapd_system_information_get_refresh_next
+      - snapd_system_information_get_refresh_schedule
+      - snapd_system_information_get_refresh_timer
+      - snapd_system_information_get_sandbox_features
+      - SNAPD_FIND_FLAGS_SCOPE_WIDE
+    * Deprecated API:
+      - snapd_client_list_async
+      - snapd_client_list_finish
+      - snapd_client_list_sync
+
 Overview of changes in snapd-glib 1.41
 
     * New API:
