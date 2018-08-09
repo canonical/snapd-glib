@@ -1,3 +1,13 @@
+snapd-glib (1.42-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+    - Fix buffer overflows reading HTTP chunked data (LP: #1740865)
+    - Fix memory leak in QSnapdAssertion
+    - Remove cancelled requests from the request queue.
+    - Fix SnapdClient reference leak in each request
+
+ -- Robert Ancell <robert.ancell@canonical.com>  Wed, 11 Apr 2018 15:11:33 +1200
+
 snapd-glib (1.38-1) unstable; urgency=medium
 
   [ Jeremy Bicha ]
