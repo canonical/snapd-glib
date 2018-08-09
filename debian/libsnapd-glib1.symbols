@@ -10,6 +10,7 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_alias_status_get_type@Base 1.8
  snapd_app_get_active@Base 1.25
  snapd_app_get_aliases@Base 1.7
+ snapd_app_get_common_id@Base 1.41
  snapd_app_get_daemon_type@Base 1.9
  snapd_app_get_desktop_file@Base 1.14
  snapd_app_get_enabled@Base 1.25
@@ -124,6 +125,12 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_client_get_sections_async@Base 1.7
  snapd_client_get_sections_finish@Base 1.7
  snapd_client_get_sections_sync@Base 1.7
+ snapd_client_get_snap_async@Base 1.42
+ snapd_client_get_snap_finish@Base 1.42
+ snapd_client_get_snap_sync@Base 1.42
+ snapd_client_get_snaps_async@Base 1.42
+ snapd_client_get_snaps_finish@Base 1.42
+ snapd_client_get_snaps_sync@Base 1.42
  snapd_client_get_socket_path@Base 1.24
  snapd_client_get_system_information_async@Base 0.1
  snapd_client_get_system_information_finish@Base 0.1
@@ -208,6 +215,7 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_get_interfaces_get_type@Base 1.25
  snapd_get_sections_get_type@Base 1.25
  snapd_get_snap_get_type@Base 1.25
+ snapd_get_snaps_flags_get_type@Base 1.42
  snapd_get_snaps_get_type@Base 1.25
  snapd_get_system_info_get_type@Base 1.25
  snapd_get_users_get_type@Base 1.26
@@ -243,6 +251,7 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_price_get_amount@Base 0.1
  snapd_price_get_currency@Base 0.1
  snapd_price_get_type@Base 0.1
+ snapd_publisher_validation_get_type@Base 1.42
  snapd_request_async_get_type@Base 1.25
  snapd_request_get_type@Base 0.7
  snapd_screenshot_get_height@Base 1.0
@@ -263,6 +272,7 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_snap_get_broken@Base 1.25
  snapd_snap_get_channel@Base 0.1
  snapd_snap_get_channels@Base 1.24
+ snapd_snap_get_common_ids@Base 0.41
  snapd_snap_get_confinement@Base 0.1
  snapd_snap_get_contact@Base 1.13
  snapd_snap_get_description@Base 0.1
@@ -278,6 +288,10 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_snap_get_name@Base 0.1
  snapd_snap_get_prices@Base 0.1
  snapd_snap_get_private@Base 0.1
+ snapd_snap_get_publisher_display_name@Base 1.42
+ snapd_snap_get_publisher_id@Base 1.42
+ snapd_snap_get_publisher_username@Base 1.42
+ snapd_snap_get_publisher_validation@Base 1.42
  snapd_snap_get_revision@Base 0.1
  snapd_snap_get_screenshots@Base 1.0
  snapd_snap_get_snap_type@Base 0.1
@@ -294,6 +308,7 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_snap_type_get_type@Base 0.1
  snapd_system_confinement_get_type@Base 1.14
  snapd_system_information_get_binaries_directory@Base 1.11
+ snapd_system_information_get_build_id@Base 1.40
  snapd_system_information_get_confinement@Base 1.14
  snapd_system_information_get_managed@Base 1.7
  snapd_system_information_get_mount_directory@Base 1.11
@@ -301,6 +316,12 @@ libsnapd-glib.so.1 libsnapd-glib1 #MINVER#
  snapd_system_information_get_os_id@Base 0.1
  snapd_system_information_get_kernel_version@Base 1.11
  snapd_system_information_get_os_version@Base 0.1
+ snapd_system_information_get_refresh_hold@Base 1.42
+ snapd_system_information_get_refresh_last@Base 1.42
+ snapd_system_information_get_refresh_next@Base 1.42
+ snapd_system_information_get_refresh_schedule@Base 1.42
+ snapd_system_information_get_refresh_timer@Base 1.42
+ snapd_system_information_get_sandbox_features@Base 1.42
  snapd_system_information_get_series@Base 0.1
  snapd_system_information_get_store@Base 1.7
  snapd_system_information_get_type@Base 0.1

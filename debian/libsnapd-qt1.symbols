@@ -12,6 +12,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++|regex)"^vtable for .*$" 0
  (c++|regex)"^QtMetaTypePrivate::.*@Base$" 0
  (c++|regex)"^QMetaTypeIdQObject<.*@Base$" 0
+ (c++|regex)"^int qRegisterNormalizedMetaType<.*>\(.*\)@Base$" 0
  (c++)"login(QString const&, QString const&)@Base" 1.8
  (c++)"login(QString const&, QString const&, QString const&)@Base" 0
  (c++|optional)"QByteArray::~QByteArray()@Base" 0
@@ -25,6 +26,9 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++|optional)"QString::QString(QString const&)@Base" 0
  (c++|optional)"QString::~QString()@Base" 0
  (c++|optional)"QString::toStdString[abi:cxx11]() const@Base" 0
+ (c++|optional)"QHash<QString, QStringList>::findNode(QString const&, unsigned int) const@Base" 0
+ (c++|optional)"QHash<QString, QStringList>::deleteNode2(QHashData::Node*)@Base" 0
+ (c++|optional)"QHash<QString, QStringList>::duplicateNode(QHashData::Node*, void*)@Base" 0
  (optional)stream_wrapper_get_type@Base 1.9
  (c++)"QSnapdAbortChangeRequest::change() const@Base" 1.30
  (c++)"QSnapdAlias::app() const@Base" 1.8
@@ -38,6 +42,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdAlias::status() const@Base" 1.8
  (c++)"QSnapdApp::active() const@Base" 1.25
  (c++)"QSnapdApp::aliases() const@Base" 1.7
+ (c++)"QSnapdApp::commonId() const@Base" 1.41
  (c++)"QSnapdApp::daemonType() const@Base" 1.9
  (c++)"QSnapdApp::desktopFile() const@Base" 1.14
  (c++)"QSnapdApp::enabled() const@Base" 1.25
@@ -116,6 +121,12 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdClient::getIcon(QString const&)@Base" 1.5
  (c++)"QSnapdClient::getInterfaces()@Base" 1.5
  (c++)"QSnapdClient::getSections()@Base" 1.8
+ (c++)"QSnapdClient::getSnap(QString const&)@Base" 1.42
+ (c++)"QSnapdClient::getSnaps(QFlags<QSnapdClient::GetSnapsFlag>, QStringList const&)@Base" 1.42
+ (c++)"QSnapdClient::getSnaps(QFlags<QSnapdClient::GetSnapsFlag>, QString const&)@Base" 1.42
+ (c++)"QSnapdClient::getSnaps(QStringList const&)@Base" 1.42
+ (c++)"QSnapdClient::getSnaps(QString const&)@Base" 1.42
+ (c++)"QSnapdClient::getSnaps()@Base" 1.42
  (c++)"QSnapdClient::getSystemInformation()@Base" 1.5
  (c++)"QSnapdClient::getUsers()@Base" 1.26
  (c++)"QSnapdClient::install(QFlags<QSnapdClient::InstallFlag>, QIODevice*)@Base" 1.9
@@ -177,6 +188,9 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdGetInterfacesRequest::slotCount() const@Base" 1.5
  (c++)"QSnapdGetInterfacesRequest::slot(int) const@Base" 1.5
  (c++)"QSnapdGetSectionsRequest::sections() const@Base" 1.7
+ (c++)"QSnapdGetSnapRequest::snap() const@Base" 1.42
+ (c++)"QSnapdGetSnapsRequest::snapCount() const@Base" 1.42
+ (c++)"QSnapdGetSnapsRequest::snap(int) const@Base" 1.42
  (c++)"QSnapdGetSystemInformationRequest::systemInformation()@Base" 1.5
  (c++)"QSnapdGetUsersRequest::userInformation(int) const@Base" 1.26
  (c++)"QSnapdGetUsersRequest::userInformationCount() const@Base" 1.26
@@ -232,6 +246,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdSnap::channel() const@Base" 1.5
  (c++)"QSnapdSnap::channelCount() const@Base" 1.24
  (c++)"QSnapdSnap::channel(int) const@Base" 1.24
+ (c++)"QSnapdSnap::commonIds() const@Base" 1.41
  (c++)"QSnapdSnap::confinement() const@Base" 1.5
  (c++)"QSnapdSnap::contact() const@Base" 1.13
  (c++)"QSnapdSnap::description() const@Base" 1.5
@@ -249,6 +264,10 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdSnap::name() const@Base" 1.5
  (c++)"QSnapdSnap::priceCount() const@Base" 1.5
  (c++)"QSnapdSnap::price(int) const@Base" 1.5
+ (c++)"QSnapdSnap::publisherId() const@Base" 1.42
+ (c++)"QSnapdSnap::publisherUsername() const@Base" 1.42
+ (c++)"QSnapdSnap::publisherValidation() const@Base" 1.42
+ (c++)"QSnapdSnap::publisherDisplayName() const@Base" 1.42
  (c++)"QSnapdSnap::~QSnapdSnap()@Base" 1.5
  (c++)"QSnapdSnap::QSnapdSnap(void*, QObject*)@Base" 1.5
  (c++)"QSnapdSnap::revision() const@Base" 1.5
@@ -263,6 +282,7 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdSnap::trymode() const@Base" 1.5
  (c++)"QSnapdSnap::version() const@Base" 1.5
  (c++)"QSnapdSystemInformation::binariesDirectory() const@Base" 1.11
+ (c++)"QSnapdSystemInformation::buildId() const@Base" 1.40
  (c++)"QSnapdSystemInformation::confinement() const@Base" 1.14
  (c++)"QSnapdSystemInformation::kernelVersion() const@Base" 1.11
  (c++)"QSnapdSystemInformation::managed() const@Base" 1.7
@@ -272,6 +292,12 @@ libsnapd-qt.so.1 libsnapd-qt1 #MINVER#
  (c++)"QSnapdSystemInformation::osVersion() const@Base" 1.5
  (c++)"QSnapdSystemInformation::~QSnapdSystemInformation()@Base" 1.5
  (c++)"QSnapdSystemInformation::QSnapdSystemInformation(void*, QObject*)@Base" 1.5
+ (c++)"QSnapdSystemInformation::refreshHold() const@Base" 1.42
+ (c++)"QSnapdSystemInformation::refreshLast() const@Base" 1.42
+ (c++)"QSnapdSystemInformation::refreshNext() const@Base" 1.42
+ (c++)"QSnapdSystemInformation::refreshTimer() const@Base" 1.42
+ (c++)"QSnapdSystemInformation::refreshSchedule() const@Base" 1.42
+ (c++)"QSnapdSystemInformation::sandboxFeatures() const@Base" 1.42
  (c++)"QSnapdSystemInformation::series() const@Base" 1.5
  (c++)"QSnapdSystemInformation::store() const@Base" 1.7
  (c++)"QSnapdSystemInformation::version() const@Base" 1.5
