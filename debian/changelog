@@ -1,12 +1,17 @@
-snapd-glib (1.42-1) UNRELEASED; urgency=medium
+snapd-glib (1.42-1) unstable; urgency=medium
 
+  [ Robert Ancell ]
   * New upstream release (Closes: #897866)
     - Fix buffer overflows reading HTTP chunked data (LP: #1740865)
     - Fix memory leak in QSnapdAssertion
     - Remove cancelled requests from the request queue.
     - Fix SnapdClient reference leak in each request
+  * Update symbols
 
- -- Robert Ancell <robert.ancell@canonical.com>  Wed, 11 Apr 2018 15:11:33 +1200
+  [ Jeremy Bicha ]
+  * Update Vcs fields for move to https://salsa.debian.org/
+
+ -- Jeremy Bicha <jbicha@debian.org>  Thu, 09 Aug 2018 17:50:52 -0400
 
 snapd-glib (1.38-1) unstable; urgency=medium
 
