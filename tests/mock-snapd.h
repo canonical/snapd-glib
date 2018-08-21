@@ -45,6 +45,9 @@ const gchar    *mock_snapd_get_socket_path        (MockSnapd     *snapd);
 void            mock_snapd_set_close_on_request   (MockSnapd     *snapd,
                                                    gboolean       close_on_request);
 
+void            mock_snapd_set_decline_auth       (MockSnapd     *snapd,
+                                                   gboolean       decline_auth);
+
 gboolean        mock_snapd_start                  (MockSnapd     *snapd,
                                                    GError       **error);
 

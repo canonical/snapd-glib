@@ -55,6 +55,7 @@ G_BEGIN_DECLS
  * @SNAPD_ERROR_NETWORK_TIMEOUT: A timeout occurred during the request.
  * @SNAPD_ERROR_NOT_FOUND: the requested snap couldn't be found.
  * @SNAPD_ERROR_NOT_IN_STORE: the requested snap is not in the store.
+ * @SNAPD_ERROR_AUTH_CANCELLED: authentication was cancelled by the user.
  *
  * Error codes returned by snapd operations.
  *
@@ -86,7 +87,8 @@ typedef enum
     SNAPD_ERROR_BAD_QUERY,
     SNAPD_ERROR_NETWORK_TIMEOUT,
     SNAPD_ERROR_NOT_FOUND,
-    SNAPD_ERROR_NOT_IN_STORE
+    SNAPD_ERROR_NOT_IN_STORE,
+    SNAPD_ERROR_AUTH_CANCELLED
 } SnapdError;
 
 /**
