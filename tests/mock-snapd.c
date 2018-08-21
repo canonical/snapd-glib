@@ -36,6 +36,7 @@ struct _MockSnapd
     gchar *dir_path;
     gchar *socket_path;
     gboolean close_on_request;
+    gboolean decline_auth;
     GList *accounts;
     GList *users;
     GList *snaps;
@@ -352,6 +353,13 @@ mock_snapd_set_close_on_request (MockSnapd *snapd, gboolean close_on_request)
 {
     g_return_if_fail (MOCK_IS_SNAPD (snapd));
     snapd->close_on_request = close_on_request;
+}
+
+void
+mock_snapd_set_decline_auth (MockSnapd *snapd, gboolean decline_auth)
+{
+    g_return_if_fail (MOCK_IS_SNAPD (snapd));
+    snapd->decline_auth = decline_auth;
 }
 
 void
@@ -1727,6 +1735,12 @@ send_error_unauthorized (SoupMessage *message, const gchar *error_message, const
 }
 
 static void
+send_error_forbidden (SoupMessage *message, const gchar *error_message, const gchar *kind)
+{
+    send_error_response (message, 403, error_message, kind);
+}
+
+static void
 send_error_not_found (SoupMessage *message, const gchar *error_message)
 {
     send_error_response (message, 404, error_message, NULL);
@@ -2555,6 +2569,11 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
             MockChange *change;
             MockTask *task;
 
+            if (snapd->decline_auth) {
+                send_error_forbidden (message, "cancelled", "auth-cancelled");
+                return;
+            }
+
             snap = find_snap (snapd, name);
             if (snap != NULL) {
                 send_error_bad_request (message, "snap is already installed", "snap-already-installed");
@@ -2627,6 +2646,11 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
         }
         else if (strcmp (action, "remove") == 0) {
             MockSnap *snap;
+
+            if (snapd->decline_auth) {
+                send_error_forbidden (message, "cancelled", "auth-cancelled");
+                return;
+            }
 
             snap = find_snap (snapd, name);
             if (snap != NULL)

@@ -54,7 +54,8 @@ public:
         BadQuery,
         NetworkTimeout,
         NotFound,
-        NotInStore
+        NotInStore,
+        AuthCancelled
     };
     Q_ENUM(QSnapdError)
 
