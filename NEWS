@@ -1,6 +1,13 @@
 Overview of changes in snapd-glib 1.42
 
     * New API:
+      - SNAPD_ERROR_AUTH_CANCELLED
+    * Fix small memory leak
+    * Fix compile warnings
+
+Overview of changes in snapd-glib 1.42
+
+    * New API:
       - snapd_client_get_snap_async
       - snapd_client_get_snap_finish
       - snapd_client_get_snap_sync
