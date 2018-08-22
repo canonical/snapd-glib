@@ -148,7 +148,7 @@ snapd_assertion_get_headers (SnapdAssertion *assertion)
     }
     g_ptr_array_add (headers, NULL);
 
-    return g_steal_pointer (&headers->pdata);
+    return g_steal_pointer ((gchar ***)&headers->pdata);
 }
 
 /**

@@ -135,7 +135,7 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, GErr
     }
     g_ptr_array_add (assertions, NULL);
 
-    r->assertions = g_steal_pointer (&assertions->pdata);
+    r->assertions = g_steal_pointer ((gchar ***)&assertions->pdata);
 
     return TRUE;
 }

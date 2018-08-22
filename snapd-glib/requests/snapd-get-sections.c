@@ -73,7 +73,7 @@ parse_get_sections_response (SnapdRequest *request, SoupMessage *message, GError
     }
     g_ptr_array_add (sections, NULL);
 
-    r->sections = g_steal_pointer (&sections->pdata);
+    r->sections = g_steal_pointer ((gchar ***)&sections->pdata);
 
     return TRUE;
 }
