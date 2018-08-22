@@ -107,7 +107,7 @@ snapd_get_snaps_finalize (GObject *object)
     SnapdGetSnaps *request = SNAPD_GET_SNAPS (object);
 
     g_clear_pointer (&request->select, g_free);
-    g_clear_pointer (&request->select, g_strfreev);
+    g_clear_pointer (&request->names, g_strfreev);
     g_clear_pointer (&request->snaps, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_snaps_parent_class)->finalize (object);
