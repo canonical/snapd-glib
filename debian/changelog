@@ -1,4 +1,4 @@
-snapd-glib (1.43-1) UNRELEASED; urgency=medium
+snapd-glib (1.43-1) unstable; urgency=medium
 
   * New upstream release:
     - Add SNAPD_ERROR_AUTH_CANCELLED
