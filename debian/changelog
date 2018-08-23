@@ -1,3 +1,12 @@
+snapd-glib (1.43-1) UNRELEASED; urgency=medium
+
+  * New upstream release:
+    - Add SNAPD_ERROR_AUTH_CANCELLED
+    - Fix small memory leak
+    - Fix compile warnings
+
+ -- Robert Ancell <robert.ancell@canonical.com>  Thu, 23 Aug 2018 11:52:29 +1200
+
 snapd-glib (1.42-1) unstable; urgency=medium
 
   [ Robert Ancell ]
