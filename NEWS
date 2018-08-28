@@ -1,4 +1,4 @@
-Overview of changes in snapd-glib 1.42
+Overview of changes in snapd-glib 1.43
 
     * New API:
       - SNAPD_ERROR_AUTH_CANCELLED
