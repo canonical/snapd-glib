@@ -69,11 +69,11 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, GErr
 
     plugs = _snapd_json_get_array (result, "plugs");
     plug_array = _snapd_json_parse_plug_array (plugs, error);
-    if (!plug_array)
+    if (plug_array == NULL)
         return FALSE;
     slots = _snapd_json_get_array (result, "slots");
     slot_array = _snapd_json_parse_slot_array (slots, error);
-    if (!slot_array)
+    if (slot_array == NULL)
         return FALSE;
 
     r->plugs = g_steal_pointer (&plug_array);

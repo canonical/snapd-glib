@@ -1874,8 +1874,8 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
 /**
  * snapd_client_get_interface_info_async:
  * @client: a #SnapdClient.
- * @names: (array zero-terminated=1): a null-terminated array of interface names or %NULL.
- * @flags: control what information is returned about the interfaces.
+ * @names: (allow-none) (array zero-terminated=1): a null-terminated array of interface names or %NULL.
+ * @flags: a set of #SnapdInterfaceFlags to control what information is returned about the interfaces.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -1883,7 +1883,7 @@ snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
  * Asynchronously get the installed snap interfaces.
  * See snapd_client_get_interface_info_sync() for more information.
  *
- * Since: 1.42
+ * Since: 1.44
  */
 void
 snapd_client_get_interface_info_async (SnapdClient *client,
@@ -1921,7 +1921,7 @@ snapd_client_get_interface_info_async (SnapdClient *client,
  *
  * Returns: (transfer container) (element-type SnapdInterface): an array of #SnapdInterface or %NULL.
  *
- * Since: 1.42
+ * Since: 1.44
  */
 GPtrArray *
 snapd_client_get_interface_info_finish (SnapdClient *client,

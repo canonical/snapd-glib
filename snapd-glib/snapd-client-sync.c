@@ -498,7 +498,9 @@ snapd_client_add_assertions_sync (SnapdClient *client,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Get the installed snap interfaces.
+ * Get the installed snap interfaces and their connection state.
+ * Unlike snapd_client_get_interface_info_sync(), this offers no
+ * ability to filter the results but does include connection state.
  *
  * Returns: %TRUE on success or %FALSE on error.
  *
@@ -522,16 +524,20 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
 /**
  * snapd_client_get_interface_info_sync:
  * @client: a #SnapdClient.
- * @names: (array zero-terminated=1): a null-terminated array of interface names or %NULL.
- * @flags: control what information is returned about the interfaces.
+ * @names: (allow-none) (array zero-terminated=1): a null-terminated array of interface names or %NULL.
+ * @flags: a set of #SnapdInterfaceFlags to control what information is returned about the interfaces.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Get the installed snap interfaces.
+ * Get information about the available snap interfaces.  Unlike
+ * snapd_client_get_interfaces_sync(), this call provides the ability
+ * to filter the returned information and organises the results by
+ * interface type.  It doesn't currently expose the connection state
+ * of plugs and slots.
  *
  * Returns: (transfer container) (element-type SnapdInterface): the interfaces.
  *
- * Since: 1.42
+ * Since: 1.44
  */
 GPtrArray *
 snapd_client_get_interface_info_sync (SnapdClient *client,
@@ -541,7 +547,7 @@ snapd_client_get_interface_info_sync (SnapdClient *client,
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
     start_sync (&data);
     snapd_client_get_interface_info_async (client, names, flags, cancellable, sync_cb, &data);

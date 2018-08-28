@@ -29,7 +29,7 @@
  *
  * #SnapdInterface contains information about a Snap interface.
  *
- * Since: 1.42
+ * Since: 1.44
  */
 
 struct _SnapdInterface
@@ -62,7 +62,7 @@ G_DEFINE_TYPE (SnapdInterface, snapd_interface, G_TYPE_OBJECT);
  *
  * Returns: a name.
  *
- * Since: 1.42
+ * Since: 1.44
  */
 const gchar *
 snapd_interface_get_name (SnapdInterface *interface)
@@ -79,7 +79,7 @@ snapd_interface_get_name (SnapdInterface *interface)
  *
  * Returns: a summary.
  *
- * Since: 1.42
+ * Since: 1.44
  */
 const gchar *
 snapd_interface_get_summary (SnapdInterface *interface)
@@ -96,7 +96,7 @@ snapd_interface_get_summary (SnapdInterface *interface)
  *
  * Returns: a URL.
  *
- * Since: 1.42
+ * Since: 1.44
  */
 
 const gchar *
@@ -114,7 +114,7 @@ snapd_interface_get_doc_url (SnapdInterface *interface)
  *
  * Returns: (transfer none) (element-type SnapdPlug): an array of #SnapdPlug.
  *
- * Since: 1.42
+ * Since: 1.44
  */
 GPtrArray *
 snapd_interface_get_plugs (SnapdInterface *interface)
@@ -131,7 +131,7 @@ snapd_interface_get_plugs (SnapdInterface *interface)
  *
  * Returns: (transfer none) (element-type SnapdSlot): an array of #SnapdSlot.
  *
- * Since: 1.42
+ * Since: 1.44
  */
 GPtrArray *
 snapd_interface_get_slots (SnapdInterface *interface)
