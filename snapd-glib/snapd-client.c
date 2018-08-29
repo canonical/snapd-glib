@@ -1059,6 +1059,8 @@ snapd_client_login_finish (SnapdClient *client, GAsyncResult *result, GError **e
 {
     g_autoptr(SnapdUserInformation) user_information = NULL;
 
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
     user_information = snapd_client_login2_finish (client, result, error);
     if (user_information == NULL)
         return NULL;
