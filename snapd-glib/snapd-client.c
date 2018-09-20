@@ -781,8 +781,10 @@ send_request (SnapdClient *client, SnapdRequest *request)
     SoupURI *uri;
     SoupMessageHeadersIter iter;
     const char *name, *value;
+    gboolean new_socket = FALSE;
     g_autoptr(SoupBuffer) buffer = NULL;
     g_autoptr(GError) error = NULL;
+    g_autoptr(GError) e = NULL;
 
     // NOTE: Would love to use libsoup but it doesn't support unix sockets
     // https://bugzilla.gnome.org/show_bug.cgi?id=727563
@@ -854,18 +856,39 @@ send_request (SnapdClient *client, SnapdRequest *request)
             snapd_request_complete (client, request, error);
             return;
         }
+        new_socket = TRUE;
     }
 
     data->read_source = make_read_source (client, _snapd_request_get_context (request));
 
     /* send HTTP request */
-    if (!write_to_snapd (client, request_data, cancellable, &error)) {
-        g_autoptr(GError) e = g_error_new (SNAPD_ERROR,
-                                           SNAPD_ERROR_WRITE_FAILED,
-                                           "Failed to write to snapd: %s",
-                                           error->message);
-        snapd_request_complete (client, request, e);
+    if (write_to_snapd (client, request_data, cancellable, &error))
+        return;
+
+    /* If was re-using closed socket, then reconnect and retry */
+    if (!new_socket && g_error_matches (error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE)) {
+        g_clear_error (&error);
+        g_clear_object (&priv->snapd_socket);
+        g_source_destroy (data->read_source);
+        g_clear_pointer (&data->read_source, g_source_unref);
+
+        priv->snapd_socket = open_snapd_socket (priv->socket_path, cancellable, &error);
+        if (priv->snapd_socket == NULL) {
+            snapd_request_complete (client, request, error);
+            return;
+        }
+
+        data->read_source = make_read_source (client, _snapd_request_get_context (request));
+
+        if (write_to_snapd (client, request_data, cancellable, &error))
+            return;
     }
+
+    e = g_error_new (SNAPD_ERROR,
+                     SNAPD_ERROR_WRITE_FAILED,
+                     "Failed to write to snapd: %s",
+                     error->message);
+    snapd_request_complete (client, request, e);
 }
 
 /**
