@@ -129,6 +129,9 @@ G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 /* Number of milliseconds to poll for status in asynchronous operations */
 #define ASYNC_POLL_TIME 100
 
+/* Number times to retry connecting to snapd whne sending messages */
+#define CONNECT_RETRY_COUNT 1
+
 typedef struct
 {
     int ref_count;
@@ -792,7 +795,7 @@ send_request (SnapdClient *client, SnapdRequest *request)
     buffer = soup_message_body_flatten (message->request_body);
     g_byte_array_append (request_data, (const guint8 *) buffer->data, buffer->length);
 
-    for (retry = 0; retry < 2; retry++) {
+    for (retry = 0; retry <= CONNECT_RETRY_COUNT; retry++) {
         g_clear_error (&local_error);
         if (data->read_source != NULL) {
             g_source_destroy (data->read_source);
