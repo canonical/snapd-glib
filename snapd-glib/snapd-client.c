@@ -793,6 +793,7 @@ send_request (SnapdClient *client, SnapdRequest *request)
     g_byte_array_append (request_data, (const guint8 *) buffer->data, buffer->length);
 
     for (retry = 0; retry < 2; retry++) {
+        g_clear_error (&local_error);
         if (data->read_source != NULL) {
             g_source_destroy (data->read_source);
             g_clear_pointer (&data->read_source, g_source_unref);
@@ -837,7 +838,6 @@ send_request (SnapdClient *client, SnapdRequest *request)
         n_written = g_socket_send (priv->snapd_socket, (const gchar *) request_data->data, request_data->len, _snapd_request_get_cancellable (request), &local_error);
         if (n_written < 0 && g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_CONNECTION_CLOSED)) {
             /* If the connection is closed, clear the socket and repeat */
-            g_clear_pointer (&local_error, g_error_free);
             g_clear_object (&priv->snapd_socket);
         } else {
             /* Otherwise, complete */
