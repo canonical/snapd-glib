@@ -764,9 +764,19 @@ static gboolean
 write_to_snapd (SnapdClient *client, GByteArray *data, GCancellable *cancellable, GError **error)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
+    guint n_sent = 0;
 
-    // FIXME: Check for short writes
-    return g_socket_send (priv->snapd_socket, (const gchar *) data->data, data->len, cancellable, error) >= 0;
+    while (n_sent < data->len) {
+        gssize n_written;
+
+        n_written = g_socket_send (priv->snapd_socket, (const gchar *) (data->data + n_sent), data->len - n_sent, cancellable, error);
+        if (n_written < 0)
+            return FALSE;
+
+        n_sent += n_written;
+    }
+
+    return TRUE;
 }
 
 static void
