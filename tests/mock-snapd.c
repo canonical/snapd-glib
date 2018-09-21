@@ -4021,6 +4021,32 @@ mock_snapd_finalize (GObject *object)
     G_OBJECT_CLASS (mock_snapd_parent_class)->finalize (object);
 }
 
+static GSocket *
+open_listening_socket (SoupServer *server, const gchar *socket_path, GError **error)
+{
+    g_autoptr(GSocket) socket = NULL;
+    g_autoptr(GSocketAddress) address = NULL;
+
+    socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
+                           G_SOCKET_TYPE_STREAM,
+                           G_SOCKET_PROTOCOL_DEFAULT,
+                           error);
+    if (socket == NULL)
+        return NULL;
+
+    address = g_unix_socket_address_new (socket_path);
+    if (!g_socket_bind (socket, address, TRUE, error))
+        return NULL;
+
+    if (!g_socket_listen (socket, error))
+        return NULL;
+
+    if (!soup_server_listen_socket (server, socket, 0, error))
+        return NULL;
+
+    return g_steal_pointer (&socket);
+}
+
 gpointer
 mock_snapd_init_thread (gpointer user_data)
 {
@@ -4028,7 +4054,6 @@ mock_snapd_init_thread (gpointer user_data)
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&snapd->mutex);
     g_autoptr(SoupServer) server = NULL;
     g_autoptr(GSocket) socket = NULL;
-    g_autoptr(GSocketAddress) address = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd->context = g_main_context_new ();
@@ -4039,33 +4064,16 @@ mock_snapd_init_thread (gpointer user_data)
     soup_server_add_handler (server, NULL,
                              handle_request, snapd, NULL);
 
-    socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
-                           G_SOCKET_TYPE_STREAM,
-                           G_SOCKET_PROTOCOL_DEFAULT,
-                           &error);
-    if (socket == NULL) {
-        goto end_init;
-    }
-    address = g_unix_socket_address_new (snapd->socket_path);
-    if (!g_socket_bind (socket, address, TRUE, &error)) {
-        goto end_init;
-    }
-    if (!g_socket_listen (socket, &error)) {
-        goto end_init;
-    }
-    if (!soup_server_listen_socket (server, socket, 0, &error)) {
-        goto end_init;
-    }
+    socket = open_listening_socket (server, snapd->socket_path, &error);
 
-end_init:
     g_cond_signal (&snapd->condition);
-    if (error) {
+    if (socket == NULL) {
         g_propagate_error (snapd->thread_init_error, error);
     }
     g_clear_pointer (&locker, g_mutex_locker_free);
 
-    if (!error) {
-        /* run until we're told to stop */
+    /* run until we're told to stop */
+    if (socket != NULL) {
         g_main_loop_run (snapd->loop);
     }
 
