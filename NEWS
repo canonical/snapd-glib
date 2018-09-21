@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.44
+
+    * Reconnect to snapd if disconnected while trying to send the request
+    * Handle short writes to snapd
+
 Overview of changes in snapd-glib 1.43
 
     * New API:
