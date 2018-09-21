@@ -3976,8 +3976,6 @@ mock_snapd_finalize (GObject *object)
     /* shut down the server if it is running */
     mock_snapd_stop (snapd);
 
-    if (g_unlink (snapd->socket_path) < 0)
-        g_printerr ("Failed to unlink mock snapd socket\n");
     if (g_rmdir (snapd->dir_path) < 0)
         g_printerr ("Failed to remove temporary directory\n");
 

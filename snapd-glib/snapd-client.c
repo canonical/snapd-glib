@@ -129,6 +129,9 @@ G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
 /* Number of milliseconds to poll for status in asynchronous operations */
 #define ASYNC_POLL_TIME 100
 
+/* Number times to retry connecting to snapd whne sending messages */
+#define CONNECT_RETRY_COUNT 1
+
 typedef struct
 {
     int ref_count;
@@ -727,6 +730,7 @@ send_request (SnapdClient *client, SnapdRequest *request)
     g_autoptr(SoupBuffer) buffer = NULL;
     gssize n_written;
     g_autoptr(GError) local_error = NULL;
+    int retry;
 
     // NOTE: Would love to use libsoup but it doesn't support unix sockets
     // https://bugzilla.gnome.org/show_bug.cgi?id=727563
@@ -791,44 +795,60 @@ send_request (SnapdClient *client, SnapdRequest *request)
     buffer = soup_message_body_flatten (message->request_body);
     g_byte_array_append (request_data, (const guint8 *) buffer->data, buffer->length);
 
-    if (priv->snapd_socket == NULL) {
-        g_autoptr(GSocketAddress) address = NULL;
-        g_autoptr(GError) error_local = NULL;
-
-        priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
-                                           G_SOCKET_TYPE_STREAM,
-                                           G_SOCKET_PROTOCOL_DEFAULT,
-                                           &error_local);
-        if (priv->snapd_socket == NULL) {
-            g_autoptr(GError) error = g_error_new (SNAPD_ERROR,
-                                                   SNAPD_ERROR_CONNECTION_FAILED,
-                                                   "Unable to create snapd socket: %s",
-                                                   error_local->message);
-            snapd_request_complete (client, request, error);
-            return;
+    for (retry = 0; retry <= CONNECT_RETRY_COUNT; retry++) {
+        g_clear_error (&local_error);
+        if (data->read_source != NULL) {
+            g_source_destroy (data->read_source);
+            g_clear_pointer (&data->read_source, g_source_unref);
         }
-        g_socket_set_blocking (priv->snapd_socket, FALSE);
-        address = g_unix_socket_address_new (priv->socket_path);
-        if (!g_socket_connect (priv->snapd_socket, address, _snapd_request_get_cancellable (request), &error_local)) {
+
+        if (priv->snapd_socket == NULL) {
+            g_autoptr(GSocketAddress) address = NULL;
+            g_autoptr(GError) error_local = NULL;
+
+            priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
+                                               G_SOCKET_TYPE_STREAM,
+                                               G_SOCKET_PROTOCOL_DEFAULT,
+                                               &error_local);
+            if (priv->snapd_socket == NULL) {
+                g_autoptr(GError) error = g_error_new (SNAPD_ERROR,
+                                                       SNAPD_ERROR_CONNECTION_FAILED,
+                                                       "Unable to create snapd socket: %s",
+                                                       error_local->message);
+                snapd_request_complete (client, request, error);
+                return;
+            }
+            g_socket_set_blocking (priv->snapd_socket, FALSE);
+            address = g_unix_socket_address_new (priv->socket_path);
+            if (!g_socket_connect (priv->snapd_socket, address, _snapd_request_get_cancellable (request), &error_local)) {
+                g_clear_object (&priv->snapd_socket);
+                g_autoptr(GError) error = g_error_new (SNAPD_ERROR,
+                                                       SNAPD_ERROR_CONNECTION_FAILED,
+                                                       "Unable to connect snapd socket: %s",
+                                                       error_local->message);
+                snapd_request_complete (client, request, error);
+                return;
+            }
+        }
+
+        data->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
+        g_source_set_name (data->read_source, "snapd-glib-read-source");
+        g_source_set_callback (data->read_source, (GSourceFunc) read_cb, client, NULL);
+        g_source_attach (data->read_source, _snapd_request_get_context (request));
+
+        /* send HTTP request */
+        // FIXME: Check for short writes
+        n_written = g_socket_send (priv->snapd_socket, (const gchar *) request_data->data, request_data->len, _snapd_request_get_cancellable (request), &local_error);
+        if (n_written < 0 && g_error_matches (local_error, G_IO_ERROR, G_IO_ERROR_CONNECTION_CLOSED)) {
+            /* If the connection is closed, clear the socket and repeat */
             g_clear_object (&priv->snapd_socket);
-            g_autoptr(GError) error = g_error_new (SNAPD_ERROR,
-                                                   SNAPD_ERROR_CONNECTION_FAILED,
-                                                   "Unable to connect snapd socket: %s",
-                                                   error_local->message);
-            snapd_request_complete (client, request, error);
-            return;
+        } else {
+            /* Otherwise, complete */
+            break;
         }
     }
 
-    data->read_source = g_socket_create_source (priv->snapd_socket, G_IO_IN, NULL);
-    g_source_set_name (data->read_source, "snapd-glib-read-source");
-    g_source_set_callback (data->read_source, (GSourceFunc) read_cb, client, NULL);
-    g_source_attach (data->read_source, _snapd_request_get_context (request));
-
-    /* send HTTP request */
-    // FIXME: Check for short writes
-    n_written = g_socket_send (priv->snapd_socket, (const gchar *) request_data->data, request_data->len, _snapd_request_get_cancellable (request), &local_error);
-    if (n_written < 0) {
+    if (local_error != NULL) {
         g_autoptr(GError) error = g_error_new (SNAPD_ERROR,
                                                SNAPD_ERROR_WRITE_FAILED,
                                                "Failed to write to snapd: %s",

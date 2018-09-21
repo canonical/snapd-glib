@@ -81,6 +81,68 @@ test_socket_closed_after_request (void)
 }
 
 static void
+test_socket_closed_reconnect (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+    g_clear_object (&info);
+
+    mock_snapd_stop (snapd);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+    g_clear_object (&info);
+}
+
+static void
+test_socket_closed_reconnect_after_failure (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+    g_clear_object (&info);
+
+    mock_snapd_stop (snapd);
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_null (info);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_CONNECTION_FAILED);
+    g_clear_error (&error);
+
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+    g_clear_object (&info);
+}
+
+static void
 test_user_agent_default (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -6891,6 +6953,8 @@ main (int argc, char **argv)
 
     g_test_add_func ("/socket-closed/before-request", test_socket_closed_before_request);
     g_test_add_func ("/socket-closed/after-request", test_socket_closed_after_request);
+    g_test_add_func ("/socket-closed/reconnect", test_socket_closed_reconnect);
+    g_test_add_func ("/socket-closed/reconnect-after-failure", test_socket_closed_reconnect_after_failure);
     g_test_add_func ("/user-agent/default", test_user_agent_default);
     g_test_add_func ("/user-agent/custom", test_user_agent_custom);
     g_test_add_func ("/user-agent/null", test_user_agent_null);
