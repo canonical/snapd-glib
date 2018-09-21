@@ -4077,6 +4077,9 @@ mock_snapd_init_thread (gpointer user_data)
         g_main_loop_run (snapd->loop);
     }
 
+    if (g_unlink (snapd->socket_path) < 0)
+        g_printerr ("Failed to unlink mock snapd socket\n");
+
     g_clear_pointer (&snapd->loop, g_main_loop_unref);
     g_clear_pointer (&snapd->context, g_main_context_unref);
 
