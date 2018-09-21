@@ -796,9 +796,9 @@ send_request (SnapdClient *client, SnapdRequest *request)
         g_autoptr(GError) error_local = NULL;
 
         priv->snapd_socket = g_socket_new (G_SOCKET_FAMILY_UNIX,
-                                                  G_SOCKET_TYPE_STREAM,
-                                                  G_SOCKET_PROTOCOL_DEFAULT,
-                                                  &error_local);
+                                           G_SOCKET_TYPE_STREAM,
+                                           G_SOCKET_PROTOCOL_DEFAULT,
+                                           &error_local);
         if (priv->snapd_socket == NULL) {
             g_autoptr(GError) error = g_error_new (SNAPD_ERROR,
                                                    SNAPD_ERROR_CONNECTION_FAILED,
