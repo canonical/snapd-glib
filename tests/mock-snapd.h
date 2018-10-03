@@ -203,6 +203,9 @@ void            mock_app_add_manual_alias         (MockApp       *app,
 MockAlias      *mock_app_find_alias               (MockApp       *app,
                                                    const gchar   *name);
 
+void            mock_snap_set_base                (MockSnap      *snap,
+                                                   const gchar   *base);
+
 void            mock_snap_set_broken              (MockSnap      *snap,
                                                    const gchar   *broken);
 

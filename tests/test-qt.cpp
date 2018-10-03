@@ -1217,6 +1217,7 @@ ListOneHandler::onComplete ()
     g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (request->snap ());
     g_assert_cmpint (snap->appCount (), ==, 0);
+    g_assert_null (snap->base ());
     g_assert_null (snap->broken ());
     g_assert_null (snap->channel ());
     g_assert_cmpint (snap->tracks ().count (), ==, 0);
@@ -1326,6 +1327,7 @@ GetSnapHandler::onComplete ()
     g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (request->snap ());
     g_assert_cmpint (snap->appCount (), ==, 0);
+    g_assert_null (snap->base ());
     g_assert_null (snap->broken ());
     g_assert_null (snap->channel ());
     g_assert_cmpint (snap->tracks ().count (), ==, 0);
@@ -1388,6 +1390,7 @@ test_get_snap_optional_fields ()
     mock_app_add_auto_alias (a, "app2");
     mock_app_add_auto_alias (a, "app3");
     mock_app_set_desktop_file (a, "/var/lib/snapd/desktop/applications/app.desktop");
+    mock_snap_set_base (s, "BASE");
     mock_snap_set_broken (s, "BROKEN");
     mock_snap_set_confinement (s, "classic");
     mock_snap_set_devmode (s, TRUE);
@@ -1419,6 +1422,7 @@ test_get_snap_optional_fields ()
     g_assert_false (app->enabled ());
     g_assert_false (app->active ());
     g_assert (app->desktopFile () == "/var/lib/snapd/desktop/applications/app.desktop");
+    g_assert (snap->base () == "BASE");
     g_assert (snap->broken () == "BROKEN");
     g_assert (snap->channel () == "CHANNEL");
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementClassic);

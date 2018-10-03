@@ -775,6 +775,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
 
     return g_object_new (SNAPD_TYPE_SNAP,
                          "apps", apps_array,
+                         "base", _snapd_json_get_string (object, "base", NULL),
                          "broken", _snapd_json_get_string (object, "broken", NULL),
                          "channel", _snapd_json_get_string (object, "channel", NULL),
                          "channels", channels_array,

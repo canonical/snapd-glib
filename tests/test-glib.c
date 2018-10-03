@@ -1549,6 +1549,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
+    g_assert_cmpstr (snapd_snap_get_base (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_broken (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
     g_assert_cmpint (g_strv_length (snapd_snap_get_common_ids (snap)), ==, 0);
@@ -1666,6 +1667,7 @@ get_snap_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
+    g_assert_cmpstr (snapd_snap_get_base (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_broken (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
     g_assert_cmpint (g_strv_length (snapd_snap_get_common_ids (snap)), ==, 0);
@@ -1737,6 +1739,7 @@ test_get_snap_optional_fields (void)
     mock_app_add_auto_alias (a, "app2");
     mock_app_add_auto_alias (a, "app3");
     mock_app_set_desktop_file (a, "/var/lib/snapd/desktop/applications/app.desktop");
+    mock_snap_set_base (s, "BASE");
     mock_snap_set_broken (s, "BROKEN");
     mock_snap_set_confinement (s, "classic");
     mock_snap_set_devmode (s, TRUE);
@@ -1767,6 +1770,7 @@ test_get_snap_optional_fields (void)
     g_assert_false (snapd_app_get_active (app));
     g_assert_false (snapd_app_get_enabled (app));
     g_assert_cmpstr (snapd_app_get_desktop_file (app), ==, "/var/lib/snapd/desktop/applications/app.desktop");
+    g_assert_cmpstr (snapd_snap_get_base (snap), ==, "BASE");
     g_assert_cmpstr (snapd_snap_get_broken (snap), ==, "BROKEN");
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_CLASSIC);

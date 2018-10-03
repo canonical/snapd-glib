@@ -85,6 +85,8 @@ typedef enum
 
 GPtrArray               *snapd_snap_get_apps                   (SnapdSnap   *snap);
 
+const gchar             *snapd_snap_get_base                   (SnapdSnap   *snap);
+
 const gchar             *snapd_snap_get_broken                 (SnapdSnap   *snap);
 
 const gchar             *snapd_snap_get_channel                (SnapdSnap   *snap);

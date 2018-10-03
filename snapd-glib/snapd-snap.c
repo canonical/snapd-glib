@@ -35,6 +35,7 @@ struct _SnapdSnap
     GObject parent_instance;
 
     GPtrArray *apps;
+    gchar *base;
     gchar *broken;
     gchar *channel;
     GPtrArray *channels;
@@ -105,6 +106,7 @@ enum
     PROP_PUBLISHER_ID,
     PROP_PUBLISHER_USERNAME,
     PROP_PUBLISHER_VALIDATION,
+    PROP_BASE,
     PROP_LAST
 };
 
@@ -125,6 +127,23 @@ snapd_snap_get_apps (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
     return snap->apps;
+}
+
+/**
+ * snapd_snap_get_base:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the base snap this snap uses.
+ *
+ * Returns: (allow-none): a snap name or %NULL if not set.
+ *
+ * Since: 1.45
+ */
+const gchar *
+snapd_snap_get_base (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->base;
 }
 
 /**
@@ -770,6 +789,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         if (g_value_get_boxed (value) != NULL)
             snap->apps = g_ptr_array_ref (g_value_get_boxed (value));
         break;
+    case PROP_BASE:
+        g_free (snap->base);
+        snap->base = g_strdup (g_value_get_string (value));
+        break;
     case PROP_BROKEN:
         g_free (snap->broken);
         snap->broken = g_strdup (g_value_get_string (value));
@@ -908,6 +931,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_APPS:
         g_value_set_boxed (value, snap->apps);
         break;
+    case PROP_BASE:
+        g_value_set_string (value, snap->base);
+        break;
     case PROP_BROKEN:
         g_value_set_string (value, snap->broken);
         break;
@@ -1017,6 +1043,7 @@ snapd_snap_finalize (GObject *object)
     SnapdSnap *snap = SNAPD_SNAP (object);
 
     g_clear_pointer (&snap->apps, g_ptr_array_unref);
+    g_clear_pointer (&snap->base, g_free);
     g_clear_pointer (&snap->broken, g_free);
     g_clear_pointer (&snap->channel, g_free);
     g_clear_pointer (&snap->channels, g_ptr_array_unref);
@@ -1059,6 +1086,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          "Apps this snap contains",
                                                          G_TYPE_PTR_ARRAY,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_BASE,
+                                     g_param_spec_string ("base",
+                                                          "base",
+                                                          "Base snap this snap uses",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_BROKEN,
                                      g_param_spec_string ("broken",

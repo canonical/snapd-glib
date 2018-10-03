@@ -159,6 +159,7 @@ struct _MockSlot
 struct _MockSnap
 {
     GList *apps;
+    gchar *base;
     gchar *broken;
     gchar *channel;
     gchar *confinement;
@@ -300,6 +301,7 @@ static void
 mock_snap_free (MockSnap *snap)
 {
     g_list_free_full (snap->apps, (GDestroyNotify) mock_app_free);
+    g_free (snap->base);
     g_free (snap->broken);
     g_free (snap->channel);
     g_free (snap->confinement);
@@ -1043,6 +1045,13 @@ mock_app_find_alias (MockApp *app, const gchar *name)
     }
 
     return NULL;
+}
+
+void
+mock_snap_set_base (MockSnap *snap, const gchar *base)
+{
+    g_free (snap->base);
+    snap->base = g_strdup (base);
 }
 
 void
@@ -2116,6 +2125,10 @@ make_snap_node (MockSnap *snap)
     if (snap->broken) {
         json_builder_set_member_name (builder, "broken");
         json_builder_add_string_value (builder, snap->broken);
+    }
+    if (snap->base) {
+        json_builder_set_member_name (builder, "base");
+        json_builder_add_string_value (builder, snap->base);
     }
     if (snap->channel) {
         json_builder_set_member_name (builder, "channel");

@@ -24,6 +24,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_OBJECT
 
     Q_PROPERTY(int appCount READ appCount)
+    Q_PROPERTY(QString base READ base)
     Q_PROPERTY(QString broken READ broken)
     Q_PROPERTY(QString channel READ channel)
     Q_PROPERTY(int channelCount READ channelCount)
@@ -62,6 +63,7 @@ public:
 
     int appCount () const;
     Q_INVOKABLE QSnapdApp *app (int) const;
+    QString base () const;
     QString broken () const;
     QString channel () const;
     int channelCount () const;
