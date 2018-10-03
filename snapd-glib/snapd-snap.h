@@ -122,6 +122,8 @@ gboolean                 snapd_snap_get_jailmode               (SnapdSnap   *sna
 
 const gchar             *snapd_snap_get_license                (SnapdSnap   *snap);
 
+const gchar             *snapd_snap_get_mounted_from           (SnapdSnap   *snap);
+
 const gchar             *snapd_snap_get_name                   (SnapdSnap   *snap);
 
 GPtrArray               *snapd_snap_get_prices                 (SnapdSnap   *snap);

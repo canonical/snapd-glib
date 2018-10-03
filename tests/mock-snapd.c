@@ -175,6 +175,7 @@ struct _MockSnap
     int installed_size;
     gboolean jailmode;
     gchar *license;
+    gchar *mounted_from;
     gchar *name;
     GList *prices;
     gboolean is_private;
@@ -313,6 +314,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->id);
     g_free (snap->install_date);
     g_free (snap->license);
+    g_free (snap->mounted_from);
     g_free (snap->name);
     g_list_free_full (snap->prices, (GDestroyNotify) mock_price_free);
     g_free (snap->publisher_display_name);
@@ -1289,6 +1291,13 @@ mock_snap_set_license (MockSnap *snap, const gchar *license)
     snap->license = g_strdup (license);
 }
 
+void
+mock_snap_set_mounted_from (MockSnap *snap, const gchar *mounted_from)
+{
+    g_free (snap->mounted_from);
+    snap->mounted_from = g_strdup (mounted_from);
+}
+
 const gchar *
 mock_snap_get_path (MockSnap *snap)
 {
@@ -2234,6 +2243,10 @@ make_snap_node (MockSnap *snap)
     if (snap->license) {
         json_builder_set_member_name (builder, "license");
         json_builder_add_string_value (builder, snap->license);
+    }
+    if (snap->mounted_from) {
+        json_builder_set_member_name (builder, "mounted-from");
+        json_builder_add_string_value (builder, snap->mounted_from);
     }
     json_builder_set_member_name (builder, "name");
     json_builder_add_string_value (builder, snap->name);

@@ -1198,6 +1198,7 @@ QT_WARNING_POP
     g_assert_cmpint (snap->installedSize (), ==, 0);
     g_assert_false (snap->jailmode ());
     g_assert_null (snap->license ());
+    g_assert_null (snap->mountedFrom ());
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert_false (snap->isPrivate ());
@@ -1308,6 +1309,7 @@ test_get_snap_sync ()
     g_assert_cmpint (snap->installedSize (), ==, 0);
     g_assert_false (snap->jailmode ());
     g_assert_null (snap->license ());
+    g_assert_null (snap->mountedFrom ());
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert_false (snap->isPrivate ());
@@ -1402,6 +1404,7 @@ test_get_snap_optional_fields ()
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_license (s, "LICENSE");
+    mock_snap_set_mounted_from (s, "MOUNTED-FROM");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -1441,6 +1444,7 @@ test_get_snap_optional_fields ()
     g_assert_cmpint (snap->installedSize (), ==, 1024);
     g_assert_true (snap->jailmode ());
     g_assert (snap->license () == "LICENSE");
+    g_assert (snap->mountedFrom () == "MOUNTED-FROM");
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert_false (snap->isPrivate ());

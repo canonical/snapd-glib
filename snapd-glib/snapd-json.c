@@ -791,6 +791,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                          "installed-size", _snapd_json_get_int (object, "installed-size", 0),
                          "jailmode", _snapd_json_get_bool (object, "jailmode", FALSE),
                          "license", _snapd_json_get_string (object, "license", NULL),
+                         "mounted-from", _snapd_json_get_string (object, "mounted-from", NULL),
                          "name", name,
                          "prices", prices_array,
                          "private", _snapd_json_get_bool (object, "private", FALSE),

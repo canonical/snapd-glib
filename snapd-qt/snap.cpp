@@ -169,6 +169,11 @@ QString QSnapdSnap::license () const
     return snapd_snap_get_license (SNAPD_SNAP (wrapped_object));
 }
 
+QString QSnapdSnap::mountedFrom () const
+{
+    return snapd_snap_get_mounted_from (SNAPD_SNAP (wrapped_object));
+}
+
 QString QSnapdSnap::name () const
 {
     return snapd_snap_get_name (SNAPD_SNAP (wrapped_object));

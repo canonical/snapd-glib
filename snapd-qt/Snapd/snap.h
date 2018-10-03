@@ -41,6 +41,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(qint64 installedSize READ installedSize)
     Q_PROPERTY(bool jailmode READ jailmode)
     Q_PROPERTY(QString license READ license)
+    Q_PROPERTY(QString mountedFrom READ mountedFrom)
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(int priceCount READ priceCount)
     Q_PROPERTY(bool isPrivate READ isPrivate)
@@ -82,6 +83,7 @@ public:
     qint64 installedSize () const;
     bool jailmode () const;
     QString license () const;
+    QString mountedFrom () const;
     QString name () const;
     int priceCount () const;
     Q_INVOKABLE QSnapdPrice *price (int) const;

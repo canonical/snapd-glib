@@ -1568,6 +1568,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
     g_assert_false (snapd_snap_get_jailmode (snap));
     g_assert_null (snapd_snap_get_license (snap));
+    g_assert_null (snapd_snap_get_mounted_from (snap));
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert_false (snapd_snap_get_private (snap));
@@ -1686,6 +1687,7 @@ get_snap_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
     g_assert_false (snapd_snap_get_jailmode (snap));
     g_assert_null (snapd_snap_get_license (snap));
+    g_assert_null (snapd_snap_get_mounted_from (snap));
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert_false (snapd_snap_get_private (snap));
@@ -1751,6 +1753,7 @@ test_get_snap_optional_fields (void)
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_license (s, "LICENSE");
+    mock_snap_set_mounted_from (s, "MOUNTED-FROM");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -1788,6 +1791,7 @@ test_get_snap_optional_fields (void)
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 1024);
     g_assert_true (snapd_snap_get_jailmode (snap));
     g_assert_cmpstr (snapd_snap_get_license (snap), ==, "LICENSE");
+    g_assert_cmpstr (snapd_snap_get_mounted_from (snap), ==, "MOUNTED-FROM");
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert_false (snapd_snap_get_private (snap));

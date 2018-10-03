@@ -51,6 +51,7 @@ struct _SnapdSnap
     gint64 installed_size;
     gboolean jailmode;
     gchar *license;
+    gchar *mounted_from;
     gchar *name;
     GPtrArray *prices;
     gboolean private;
@@ -107,6 +108,7 @@ enum
     PROP_PUBLISHER_USERNAME,
     PROP_PUBLISHER_VALIDATION,
     PROP_BASE,
+    PROP_MOUNTED_FROM,
     PROP_LAST
 };
 
@@ -486,6 +488,24 @@ snapd_snap_get_license (SnapdSnap *snap)
 }
 
 /**
+ * snapd_snap_get_mounted_from:
+ * @snap: a #SnapdSnap.
+ *
+ * Gets the path this snap is mounted from, which is a .snap file for installed
+ * snaps and a directory for snaps in try mode.
+ *
+ * Returns: (allow-none): a file path or %NULL.
+ *
+ * Since: 1.45
+ */
+const gchar *
+snapd_snap_get_mounted_from (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->mounted_from;
+}
+
+/**
  * snapd_snap_get_title:
  * @snap: a #SnapdSnap.
  *
@@ -846,6 +866,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->title);
         snap->title = g_strdup (g_value_get_string (value));
         break;
+    case PROP_MOUNTED_FROM:
+        g_free (snap->mounted_from);
+        snap->mounted_from = g_strdup (g_value_get_string (value));
+        break;
     case PROP_NAME:
         g_free (snap->name);
         snap->name = g_strdup (g_value_get_string (value));
@@ -975,6 +999,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_TITLE:
         g_value_set_string (value, snap->title);
+        break;
+    case PROP_MOUNTED_FROM:
+        g_value_set_string (value, snap->mounted_from);
         break;
     case PROP_NAME:
         g_value_set_string (value, snap->name);
@@ -1203,6 +1230,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                      g_param_spec_string ("license",
                                                           "license",
                                                           "The snap license as an SPDX expression",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_MOUNTED_FROM,
+                                     g_param_spec_string ("mounted-from",
+                                                          "mounted-from",
+                                                          "Path snap is mounted from",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,

@@ -297,6 +297,9 @@ gboolean        mock_snap_get_jailmode            (MockSnap      *snap);
 void            mock_snap_set_license             (MockSnap      *snap,
                                                    const gchar   *license);
 
+void            mock_snap_set_mounted_from        (MockSnap      *snap,
+                                                   const gchar   *mounted_from);
+
 const gchar    *mock_snap_get_path                (MockSnap      *snap);
 
 gboolean        mock_snap_get_preferred           (MockSnap      *snap);
