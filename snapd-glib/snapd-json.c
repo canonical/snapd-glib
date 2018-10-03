@@ -14,6 +14,7 @@
 
 #include "snapd-error.h"
 #include "snapd-app.h"
+#include "snapd-media.h"
 #include "snapd-screenshot.h"
 #include "snapd-task.h"
 
@@ -604,6 +605,8 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
     g_autoptr(GPtrArray) channels_array = NULL;
     g_autoptr(JsonArray) common_ids = NULL;
     g_autoptr(GPtrArray) common_ids_array = NULL;
+    g_autoptr(JsonArray) media = NULL;
+    g_autoptr(GPtrArray) media_array = NULL;
     g_autoptr(GPtrArray) prices_array = NULL;
     g_autoptr(JsonArray) screenshots = NULL;
     g_autoptr(GPtrArray) screenshots_array = NULL;
@@ -713,6 +716,28 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
         }
     }
 
+    media = _snapd_json_get_array (object, "media");
+    media_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (media); i++) {
+        JsonNode *node = json_array_get_element (media, i);
+        JsonObject *s;
+        g_autoptr(SnapdMedia) media = NULL;
+
+        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected media type");
+            return NULL;
+        }
+
+        s = json_node_get_object (node);
+        media = g_object_new (SNAPD_TYPE_MEDIA,
+                              "type", _snapd_json_get_string (s, "type", NULL),
+                              "url", _snapd_json_get_string (s, "url", NULL),
+                              "width", (guint) _snapd_json_get_int (s, "width", 0),
+                              "height", (guint) _snapd_json_get_int (s, "height", 0),
+                              NULL);
+        g_ptr_array_add (media_array, g_steal_pointer (&media));
+    }
+
     screenshots = _snapd_json_get_array (object, "screenshots");
     screenshots_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (screenshots); i++) {
@@ -791,6 +816,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                          "installed-size", _snapd_json_get_int (object, "installed-size", 0),
                          "jailmode", _snapd_json_get_bool (object, "jailmode", FALSE),
                          "license", _snapd_json_get_string (object, "license", NULL),
+                         "media", media_array,
                          "mounted-from", _snapd_json_get_string (object, "mounted-from", NULL),
                          "name", name,
                          "prices", prices_array,

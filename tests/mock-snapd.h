@@ -30,9 +30,9 @@ typedef struct _MockAlias MockAlias;
 typedef struct _MockApp MockApp;
 typedef struct _MockChange MockChange;
 typedef struct _MockChannel MockChannel;
+typedef struct _MockMedia MockMedia;
 typedef struct _MockPlug MockPlug;
 typedef struct _MockPrice MockPrice;
-typedef struct _MockScreenshot MockScreenshot;
 typedef struct _MockSlot MockSlot;
 typedef struct _MockSnap MockSnap;
 typedef struct _MockTask MockTask;
@@ -331,7 +331,8 @@ const gchar    *mock_snap_get_revision            (MockSnap      *snap);
 void            mock_snap_set_scope_is_wide       (MockSnap      *snap,
                                                    gboolean       scope_is_wide);
 
-MockScreenshot *mock_snap_add_screenshot          (MockSnap      *snap,
+MockMedia      *mock_snap_add_media               (MockSnap      *snap,
+                                                   const gchar   *type,
                                                    const gchar   *url,
                                                    int            width,
                                                    int            height);

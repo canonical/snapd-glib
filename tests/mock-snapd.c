@@ -130,8 +130,9 @@ struct _MockPrice
     gchar *currency;
 };
 
-struct _MockScreenshot
+struct _MockMedia
 {
+    gchar *type;
     gchar *url;
     int width;
     int height;
@@ -175,6 +176,7 @@ struct _MockSnap
     int installed_size;
     gboolean jailmode;
     gchar *license;
+    GList *media;
     gchar *mounted_from;
     gchar *name;
     GList *prices;
@@ -184,7 +186,6 @@ struct _MockSnap
     gchar *publisher_username;
     gchar *publisher_validation;
     gchar *revision;
-    GList *screenshots;
     gchar *status;
     gchar *summary;
     gchar *title;
@@ -274,10 +275,11 @@ mock_price_free (MockPrice *price)
 }
 
 static void
-mock_screenshot_free (MockScreenshot *screenshot)
+mock_media_free (MockMedia *media)
 {
-    g_free (screenshot->url);
-    g_slice_free (MockScreenshot, screenshot);
+    g_free (media->type);
+    g_free (media->url);
+    g_slice_free (MockMedia, media);
 }
 
 static void
@@ -314,6 +316,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->id);
     g_free (snap->install_date);
     g_free (snap->license);
+    g_list_free_full (snap->media, (GDestroyNotify) mock_media_free);
     g_free (snap->mounted_from);
     g_free (snap->name);
     g_list_free_full (snap->prices, (GDestroyNotify) mock_price_free);
@@ -321,7 +324,6 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->publisher_id);
     g_free (snap->publisher_username);
     g_free (snap->publisher_validation);
-    g_list_free_full (snap->screenshots, (GDestroyNotify) mock_screenshot_free);
     g_free (snap->revision);
     g_free (snap->status);
     g_free (snap->summary);
@@ -1384,18 +1386,19 @@ mock_snap_set_scope_is_wide (MockSnap *snap, gboolean scope_is_wide)
     snap->scope_is_wide = scope_is_wide;
 }
 
-MockScreenshot *
-mock_snap_add_screenshot (MockSnap *snap, const gchar *url, int width, int height)
+MockMedia *
+mock_snap_add_media (MockSnap *snap, const gchar *type, const gchar *url, int width, int height)
 {
-    MockScreenshot *screenshot;
+    MockMedia *media;
 
-    screenshot = g_slice_new0 (MockScreenshot);
-    screenshot->url = g_strdup (url);
-    screenshot->width = width;
-    screenshot->height = height;
-    snap->screenshots = g_list_append (snap->screenshots, screenshot);
+    media = g_slice_new0 (MockMedia);
+    media->type = g_strdup (type);
+    media->url = g_strdup (url);
+    media->width = width;
+    media->height = height;
+    snap->media = g_list_append (snap->media, media);
 
-    return screenshot;
+    return media;
 }
 
 void
@@ -2117,6 +2120,7 @@ make_snap_node (MockSnap *snap)
 {
     g_autoptr(JsonBuilder) builder = NULL;
     g_autofree gchar *resource = NULL;
+    int screenshot_count = 0;
 
     builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -2248,6 +2252,32 @@ make_snap_node (MockSnap *snap)
         json_builder_set_member_name (builder, "mounted-from");
         json_builder_add_string_value (builder, snap->mounted_from);
     }
+    if (snap->media != NULL) {
+        GList *link;
+
+        json_builder_set_member_name (builder, "media");
+        json_builder_begin_array (builder);
+        for (link = snap->media; link; link = link->next) {
+            MockMedia *media = link->data;
+
+            if (strcmp (media->type, "screenshot") == 0)
+                screenshot_count++;
+
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "type");
+            json_builder_add_string_value (builder, media->type);
+            json_builder_set_member_name (builder, "url");
+            json_builder_add_string_value (builder, media->url);
+            if (media->width > 0 && media->height > 0) {
+                json_builder_set_member_name (builder, "width");
+                json_builder_add_int_value (builder, media->width);
+                json_builder_set_member_name (builder, "height");
+                json_builder_add_int_value (builder, media->height);
+            }
+            json_builder_end_object (builder);
+        }
+        json_builder_end_array (builder);
+    }
     json_builder_set_member_name (builder, "name");
     json_builder_add_string_value (builder, snap->name);
     if (snap->prices != NULL) {
@@ -2285,22 +2315,25 @@ make_snap_node (MockSnap *snap)
     json_builder_add_string_value (builder, resource);
     json_builder_set_member_name (builder, "revision");
     json_builder_add_string_value (builder, snap->revision);
-    if (snap->screenshots != NULL) {
+    if (screenshot_count > 0) {
         GList *link;
 
         json_builder_set_member_name (builder, "screenshots");
         json_builder_begin_array (builder);
-        for (link = snap->screenshots; link; link = link->next) {
-            MockScreenshot *screenshot = link->data;
+        for (link = snap->media; link; link = link->next) {
+            MockMedia *media = link->data;
+
+            if (strcmp (media->type, "screenshot") != 0)
+                continue;
 
             json_builder_begin_object (builder);
             json_builder_set_member_name (builder, "url");
-            json_builder_add_string_value (builder, screenshot->url);
-            if (screenshot->width > 0 && screenshot->height > 0) {
+            json_builder_add_string_value (builder, media->url);
+            if (media->width > 0 && media->height > 0) {
                 json_builder_set_member_name (builder, "width");
-                json_builder_add_int_value (builder, screenshot->width);
+                json_builder_add_int_value (builder, media->width);
                 json_builder_set_member_name (builder, "height");
-                json_builder_add_int_value (builder, screenshot->height);
+                json_builder_add_int_value (builder, media->height);
             }
             json_builder_end_object (builder);
         }

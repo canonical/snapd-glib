@@ -51,6 +51,7 @@ struct _SnapdSnap
     gint64 installed_size;
     gboolean jailmode;
     gchar *license;
+    GPtrArray *media;
     gchar *mounted_from;
     gchar *name;
     GPtrArray *prices;
@@ -109,6 +110,7 @@ enum
     PROP_PUBLISHER_VALIDATION,
     PROP_BASE,
     PROP_MOUNTED_FROM,
+    PROP_MEDIA,
     PROP_LAST
 };
 
@@ -488,6 +490,23 @@ snapd_snap_get_license (SnapdSnap *snap)
 }
 
 /**
+ * snapd_snap_get_media:
+ * @snap: a #SnapdSnap.
+ *
+ * Get media that is associated with this snap.
+ *
+ * Returns: (transfer none) (element-type SnapdMedia): an array of #SnapdMedia.
+ *
+ * Since: 1.45
+ */
+GPtrArray *
+snapd_snap_get_media (SnapdSnap *snap)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    return snap->media;
+}
+
+/**
  * snapd_snap_get_mounted_from:
  * @snap: a #SnapdSnap.
  *
@@ -669,6 +688,7 @@ snapd_snap_get_revision (SnapdSnap *snap)
  * Returns: (transfer none) (element-type SnapdScreenshot): an array of #SnapdScreenshot.
  *
  * Since: 1.0
+ * Deprecated: 1.45: Use snapd_snap_get_media()
  */
 GPtrArray *
 snapd_snap_get_screenshots (SnapdSnap *snap)
@@ -866,6 +886,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (snap->mounted_from);
         snap->mounted_from = g_strdup (g_value_get_string (value));
         break;
+    case PROP_MEDIA:
+        g_clear_pointer (&snap->media, g_ptr_array_unref);
+        if (g_value_get_boxed (value) != NULL)
+            snap->media = g_ptr_array_ref (g_value_get_boxed (value));
+        break;
     case PROP_NAME:
         g_free (snap->name);
         snap->name = g_strdup (g_value_get_string (value));
@@ -997,6 +1022,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_JAILMODE:
         g_value_set_boolean (value, snap->jailmode);
         break;
+    case PROP_MEDIA:
+        g_value_set_boxed (value, snap->media);
+        break;
     case PROP_MOUNTED_FROM:
         g_value_set_string (value, snap->mounted_from);
         break;
@@ -1082,6 +1110,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->install_date, g_date_time_unref);
     g_clear_pointer (&snap->name, g_free);
     g_clear_pointer (&snap->license, g_free);
+    g_clear_pointer (&snap->media, g_ptr_array_unref);
     g_clear_pointer (&snap->prices, g_ptr_array_unref);
     g_clear_pointer (&snap->publisher_display_name, g_free);
     g_clear_pointer (&snap->publisher_id, g_free);
@@ -1232,6 +1261,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           "The snap license as an SPDX expression",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_MEDIA,
+                                     g_param_spec_boxed ("media",
+                                                         "media",
+                                                         "Media associated with this snap",
+                                                         G_TYPE_PTR_ARRAY,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_MOUNTED_FROM,
                                      g_param_spec_string ("mounted-from",

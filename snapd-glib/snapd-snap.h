@@ -122,6 +122,8 @@ gboolean                 snapd_snap_get_jailmode               (SnapdSnap   *sna
 
 const gchar             *snapd_snap_get_license                (SnapdSnap   *snap);
 
+GPtrArray               *snapd_snap_get_media                  (SnapdSnap   *snap);
+
 const gchar             *snapd_snap_get_mounted_from           (SnapdSnap   *snap);
 
 const gchar             *snapd_snap_get_name                   (SnapdSnap   *snap);
@@ -140,7 +142,7 @@ SnapdPublisherValidation snapd_snap_get_publisher_validation   (SnapdSnap   *sna
 
 const gchar             *snapd_snap_get_revision               (SnapdSnap   *snap);
 
-GPtrArray               *snapd_snap_get_screenshots            (SnapdSnap   *snap);
+GPtrArray               *snapd_snap_get_screenshots            (SnapdSnap   *snap) G_DEPRECATED_FOR(snapd_snap_get_media);
 
 SnapdSnapType            snapd_snap_get_snap_type              (SnapdSnap   *snap);
 

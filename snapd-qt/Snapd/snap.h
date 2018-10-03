@@ -16,6 +16,7 @@
 #include <Snapd/Enums>
 #include <Snapd/App>
 #include <Snapd/Channel>
+#include <Snapd/Media>
 #include <Snapd/Price>
 #include <Snapd/Screenshot>
 
@@ -83,6 +84,8 @@ public:
     qint64 installedSize () const;
     bool jailmode () const;
     QString license () const;
+    int mediaCount () const;
+    Q_INVOKABLE QSnapdMedia *media (int) const;
     QString mountedFrom () const;
     QString name () const;
     int priceCount () const;
@@ -93,8 +96,8 @@ public:
     QString publisherUsername () const;
     QSnapdEnums::PublisherValidation publisherValidation () const;
     QString revision () const;
-    int screenshotCount () const;
-    Q_INVOKABLE QSnapdScreenshot *screenshot (int) const;
+    Q_DECL_DEPRECATED_X("Use mediaCount()") int screenshotCount () const;
+    Q_DECL_DEPRECATED_X("Use media()") QSnapdScreenshot *screenshot (int) const;
     QSnapdEnums::SnapType snapType () const;
     QSnapdEnums::SnapStatus status () const;
     QString summary () const;

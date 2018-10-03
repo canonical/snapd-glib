@@ -169,6 +169,24 @@ QString QSnapdSnap::license () const
     return snapd_snap_get_license (SNAPD_SNAP (wrapped_object));
 }
 
+int QSnapdSnap::mediaCount () const
+{
+    GPtrArray *media;
+
+    media = snapd_snap_get_media (SNAPD_SNAP (wrapped_object));
+    return media != NULL ? media->len : 0;
+}
+
+QSnapdMedia *QSnapdSnap::media (int n) const
+{
+    GPtrArray *media;
+
+    media = snapd_snap_get_media (SNAPD_SNAP (wrapped_object));
+    if (media == NULL || n < 0 || (guint) n >= media->len)
+        return NULL;
+    return new QSnapdMedia (media->pdata[n]);
+}
+
 QString QSnapdSnap::mountedFrom () const
 {
     return snapd_snap_get_mounted_from (SNAPD_SNAP (wrapped_object));
@@ -240,7 +258,9 @@ int QSnapdSnap::screenshotCount () const
 {
     GPtrArray *screenshots;
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     screenshots = snapd_snap_get_screenshots (SNAPD_SNAP (wrapped_object));
+G_GNUC_END_IGNORE_DEPRECATIONS
     return screenshots != NULL ? screenshots->len : 0;
 }
 
@@ -248,7 +268,9 @@ QSnapdScreenshot *QSnapdSnap::screenshot (int n) const
 {
     GPtrArray *screenshots;
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     screenshots = snapd_snap_get_screenshots (SNAPD_SNAP (wrapped_object));
+G_GNUC_END_IGNORE_DEPRECATIONS
     if (screenshots == NULL || n < 0 || (guint) n >= screenshots->len)
         return NULL;
     return new QSnapdScreenshot (screenshots->pdata[n]);
