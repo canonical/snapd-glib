@@ -471,6 +471,7 @@ SnapdSnapType
 SnapdSnapStatus
 SnapdPublisherValidation
 snapd_snap_get_apps
+snapd_snap_get_base
 snapd_snap_get_broken
 snapd_snap_get_channel
 snapd_snap_get_channels
@@ -488,6 +489,7 @@ snapd_snap_get_install_date
 snapd_snap_get_installed_size
 snapd_snap_get_jailmode
 snapd_snap_get_license
+snapd_snap_get_mounted_from
 snapd_snap_get_name
 snapd_snap_get_prices
 snapd_snap_get_private
