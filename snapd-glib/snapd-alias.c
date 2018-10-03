@@ -64,7 +64,7 @@ G_DEFINE_TYPE (SnapdAlias, snapd_alias, G_TYPE_OBJECT)
  *
  * Get the app this is an alias for.
  *
- * Returns: an app name or %NULL.
+ * Returns: (allow-none): an app name or %NULL.
  *
  * Since: 1.8
  * Deprecated: 1.25: Use snapd_alias_get_app_manual() or snapd_alias_get_app_auto().

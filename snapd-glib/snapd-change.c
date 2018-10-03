@@ -203,7 +203,7 @@ snapd_change_get_ready_time (SnapdChange *change)
  *
  * Gets the error string associated with this change.
  *
- * Returns: an error string or %NULL.
+ * Returns: (allow-none): an error string or %NULL.
  *
  * Since: 1.30
  */

@@ -152,7 +152,7 @@ snapd_snap_get_base (SnapdSnap *snap)
  *
  * Get the reason this snap is broken.
  *
- * Returns: an error string or %NULL if not broken.
+ * Returns: (allow-none): an error string or %NULL if not broken.
  *
  * Since: 1.25
  */

@@ -1022,7 +1022,7 @@ snapd_client_set_user_agent (SnapdClient *client, const gchar *user_agent)
  *
  * Get the HTTP user-agent that is sent with each request to snapd.
  *
- * Returns: user agent or %NULL if none set.
+ * Returns: (allow-none): user agent or %NULL if none set.
  *
  * Since: 1.16
  */
