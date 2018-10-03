@@ -433,6 +433,20 @@ SNAPD_TYPE_PRICE
 </SECTION>
 
 <SECTION>
+<FILE>snapd-media</FILE>
+<TITLE>SnapdMedia</TITLE>
+snapd_media_get_media_type
+snapd_media_get_url
+snapd_media_get_width
+snapd_media_get_height
+SnapdMedia
+
+<SUBSECTION Private>
+SnapdMediaClass
+SNAPD_TYPE_MEDIA
+</SECTION>
+
+<SECTION>
 <FILE>snapd-screenshot</FILE>
 <TITLE>SnapdScreenshot</TITLE>
 snapd_screenshot_get_url
@@ -489,6 +503,7 @@ snapd_snap_get_install_date
 snapd_snap_get_installed_size
 snapd_snap_get_jailmode
 snapd_snap_get_license
+snapd_snap_get_media
 snapd_snap_get_mounted_from
 snapd_snap_get_name
 snapd_snap_get_prices

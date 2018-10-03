@@ -15,6 +15,7 @@ source_h = \
 	snapd-error.h \
 	snapd-icon.h \
 	snapd-login.h \
+	snapd-media.h \
 	snapd-plug.h \
 	snapd-price.h \
 	snapd-screenshot.h \
@@ -70,6 +71,7 @@ source_c = \
 	snapd-error.c \
 	snapd-icon.c \
 	snapd-login.c \
+	snapd-media.c \
 	snapd-plug.c \
 	snapd-price.c \
 	snapd-screenshot.c \

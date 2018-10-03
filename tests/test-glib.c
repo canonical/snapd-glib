@@ -1523,11 +1523,14 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_null (snapd_snap_get_install_date (snap));
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
     g_assert_false (snapd_snap_get_jailmode (snap));
+    g_assert_cmpint (snapd_snap_get_media (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert_false (snapd_snap_get_private (snap));
     g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_screenshots (snap)->len, ==, 0);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
@@ -1568,12 +1571,15 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
     g_assert_false (snapd_snap_get_jailmode (snap));
     g_assert_null (snapd_snap_get_license (snap));
+    g_assert_cmpint (snapd_snap_get_media (snap)->len, ==, 0);
     g_assert_null (snapd_snap_get_mounted_from (snap));
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert_false (snapd_snap_get_private (snap));
     g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_screenshots (snap)->len, ==, 0);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
@@ -1644,11 +1650,14 @@ test_get_snap_sync (void)
     g_assert_null (snapd_snap_get_install_date (snap));
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
     g_assert_false (snapd_snap_get_jailmode (snap));
+    g_assert_cmpint (snapd_snap_get_media (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert_false (snapd_snap_get_private (snap));
     g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_screenshots (snap)->len, ==, 0);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
@@ -1687,12 +1696,15 @@ get_snap_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
     g_assert_false (snapd_snap_get_jailmode (snap));
     g_assert_null (snapd_snap_get_license (snap));
+    g_assert_cmpint (snapd_snap_get_media (snap)->len, ==, 0);
     g_assert_null (snapd_snap_get_mounted_from (snap));
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert_false (snapd_snap_get_private (snap));
     g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_screenshots (snap)->len, ==, 0);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
@@ -1791,12 +1803,15 @@ test_get_snap_optional_fields (void)
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 1024);
     g_assert_true (snapd_snap_get_jailmode (snap));
     g_assert_cmpstr (snapd_snap_get_license (snap), ==, "LICENSE");
+    g_assert_cmpint (snapd_snap_get_media (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_mounted_from (snap), ==, "MOUNTED-FROM");
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
     g_assert_cmpint (snapd_snap_get_prices (snap)->len, ==, 0);
     g_assert_false (snapd_snap_get_private (snap));
     g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_screenshots (snap)->len, ==, 0);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, "SUMMARY");
@@ -3004,7 +3019,7 @@ test_find_query (void)
     g_autoptr(GPtrArray) snaps = NULL;
     SnapdSnap *snap;
     gchar **tracks;
-    GPtrArray *channels, *prices, *screenshots;
+    GPtrArray *channels, *media, *prices, *screenshots;
     SnapdChannel *channel;
     g_autoptr(GError) error = NULL;
 
@@ -3023,8 +3038,9 @@ test_find_query (void)
     mock_snap_set_download_size (s, 1024);
     mock_snap_add_price (s, 1.20, "NZD");
     mock_snap_add_price (s, 0.87, "USD");
-    mock_snap_add_screenshot (s, "screenshot0.png", 0, 0);
-    mock_snap_add_screenshot (s, "screenshot1.png", 1024, 1024);
+    mock_snap_add_media (s, "screenshot", "screenshot0.png", 0, 0);
+    mock_snap_add_media (s, "screenshot", "screenshot1.png", 1024, 1024);
+    mock_snap_add_media (s, "banner", "banner.png", 0, 0);
     mock_snap_set_trymode (s, TRUE);
     g_assert_true (mock_snapd_start (snapd, &error));
 
@@ -3068,6 +3084,16 @@ test_find_query (void)
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
     g_assert_null (snapd_snap_get_install_date (snap));
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
+    media = snapd_snap_get_media (snap);
+    g_assert_cmpint (media->len, ==, 3);
+    g_assert_cmpstr (snapd_media_get_media_type (media->pdata[0]), ==, "screenshot");
+    g_assert_cmpstr (snapd_media_get_url (media->pdata[0]), ==, "screenshot0.png");
+    g_assert_cmpstr (snapd_media_get_media_type (media->pdata[1]), ==, "screenshot");
+    g_assert_cmpstr (snapd_media_get_url (media->pdata[1]), ==, "screenshot1.png");
+    g_assert_cmpint (snapd_media_get_width (media->pdata[1]), ==, 1024);
+    g_assert_cmpint (snapd_media_get_height (media->pdata[1]), ==, 1024);
+    g_assert_cmpstr (snapd_media_get_media_type (media->pdata[2]), ==, "banner");
+    g_assert_cmpstr (snapd_media_get_url (media->pdata[2]), ==, "banner.png");
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "carrot2");
     prices = snapd_snap_get_prices (snap);
     g_assert_cmpint (prices->len, ==, 2);
@@ -3077,12 +3103,14 @@ test_find_query (void)
     g_assert_cmpstr (snapd_price_get_currency (prices->pdata[1]), ==, "USD");
     g_assert_false (snapd_snap_get_private (snap));
     g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     screenshots = snapd_snap_get_screenshots (snap);
     g_assert_cmpint (screenshots->len, ==, 2);
     g_assert_cmpstr (snapd_screenshot_get_url (screenshots->pdata[0]), ==, "screenshot0.png");
     g_assert_cmpstr (snapd_screenshot_get_url (screenshots->pdata[1]), ==, "screenshot1.png");
     g_assert_cmpint (snapd_screenshot_get_width (screenshots->pdata[1]), ==, 1024);
     g_assert_cmpint (snapd_screenshot_get_height (screenshots->pdata[1]), ==, 1024);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, "SUMMARY");

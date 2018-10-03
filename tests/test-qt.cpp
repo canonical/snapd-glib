@@ -1198,12 +1198,16 @@ QT_WARNING_POP
     g_assert_cmpint (snap->installedSize (), ==, 0);
     g_assert_false (snap->jailmode ());
     g_assert_null (snap->license ());
+    g_assert_cmpint (snap->mediaCount (), ==, 0);
     g_assert_null (snap->mountedFrom ());
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert_false (snap->isPrivate ());
     g_assert (snap->revision () == "REVISION");
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     g_assert_cmpint (snap->screenshotCount (), ==, 0);
+QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert_null (snap->summary ());
@@ -1238,11 +1242,15 @@ ListOneHandler::onComplete ()
     g_assert_true (snap->installDate ().isNull ());
     g_assert_cmpint (snap->installedSize (), ==, 0);
     g_assert_false (snap->jailmode ());
+    g_assert_cmpint (snap->mediaCount (), ==, 0);
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert_false (snap->isPrivate ());
     g_assert (snap->revision () == "REVISION");
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     g_assert_cmpint (snap->screenshotCount (), ==, 0);
+QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert_null (snap->summary ());
@@ -1309,12 +1317,16 @@ test_get_snap_sync ()
     g_assert_cmpint (snap->installedSize (), ==, 0);
     g_assert_false (snap->jailmode ());
     g_assert_null (snap->license ());
+    g_assert_cmpint (snap->mediaCount (), ==, 0);
     g_assert_null (snap->mountedFrom ());
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert_false (snap->isPrivate ());
     g_assert (snap->revision () == "REVISION");
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     g_assert_cmpint (snap->screenshotCount (), ==, 0);
+QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert_null (snap->summary ());
@@ -1349,11 +1361,15 @@ GetSnapHandler::onComplete ()
     g_assert_true (snap->installDate ().isNull ());
     g_assert_cmpint (snap->installedSize (), ==, 0);
     g_assert_false (snap->jailmode ());
+    g_assert_cmpint (snap->mediaCount (), ==, 0);
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert_false (snap->isPrivate ());
     g_assert (snap->revision () == "REVISION");
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     g_assert_cmpint (snap->screenshotCount (), ==, 0);
+QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert_null (snap->summary ());
@@ -1444,12 +1460,16 @@ test_get_snap_optional_fields ()
     g_assert_cmpint (snap->installedSize (), ==, 1024);
     g_assert_true (snap->jailmode ());
     g_assert (snap->license () == "LICENSE");
+    g_assert_cmpint (snap->mediaCount (), ==, 0);
     g_assert (snap->mountedFrom () == "MOUNTED-FROM");
     g_assert (snap->name () == "snap");
     g_assert_cmpint (snap->priceCount (), ==, 0);
     g_assert_false (snap->isPrivate ());
     g_assert (snap->revision () == "REVISION");
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     g_assert_cmpint (snap->screenshotCount (), ==, 0);
+QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert (snap->summary () == "SUMMARY");
@@ -2348,8 +2368,9 @@ test_find_query ()
     mock_snap_set_download_size (s, 1024);
     mock_snap_add_price (s, 1.20, "NZD");
     mock_snap_add_price (s, 0.87, "USD");
-    mock_snap_add_screenshot (s, "screenshot0.png", 0, 0);
-    mock_snap_add_screenshot (s, "screenshot1.png", 1024, 1024);
+    mock_snap_add_media (s, "screenshot", "screenshot0.png", 0, 0);
+    mock_snap_add_media (s, "screenshot", "screenshot1.png", 1024, 1024);
+    mock_snap_add_media (s, "banner", "banner.png", 0, 0);
     mock_snap_set_trymode (s, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -2387,6 +2408,18 @@ test_find_query ()
     g_assert (snap1->id () == "ID");
     g_assert_false (snap1->installDate ().isValid ());
     g_assert_cmpint (snap1->installedSize (), ==, 0);
+    g_assert_cmpint (snap1->mediaCount (), ==, 3);
+    QScopedPointer<QSnapdMedia> media0 (snap1->media (0));
+    g_assert (media0->type () == "screenshot");
+    g_assert (media0->url () == "screenshot0.png");
+    QScopedPointer<QSnapdMedia> media1 (snap1->media (1));
+    g_assert (media1->type () == "screenshot");
+    g_assert (media1->url () == "screenshot1.png");
+    g_assert_cmpint (media1->width (), ==, 1024);
+    g_assert_cmpint (media1->height (), ==, 1024);
+    QScopedPointer<QSnapdMedia> media2 (snap1->media (2));
+    g_assert (media2->type () == "banner");
+    g_assert (media2->url () == "banner.png");
     g_assert (snap1->name () == "carrot2");
     g_assert_cmpint (snap1->priceCount (), ==, 2);
     QScopedPointer<QSnapdPrice> price0 (snap1->price (0));
@@ -2397,6 +2430,8 @@ test_find_query ()
     g_assert (price1->currency () == "USD");
     g_assert_false (snap1->isPrivate ());
     g_assert (snap1->revision () == "REVISION");
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     g_assert_cmpint (snap1->screenshotCount (), ==, 2);
     QScopedPointer<QSnapdScreenshot> screenshot0 (snap1->screenshot (0));
     g_assert (screenshot0->url () == "screenshot0.png");
@@ -2404,6 +2439,7 @@ test_find_query ()
     g_assert (screenshot1->url () == "screenshot1.png");
     g_assert_cmpint (screenshot1->width (), ==, 1024);
     g_assert_cmpint (screenshot1->height (), ==, 1024);
+QT_WARNING_POP
     g_assert_cmpint (snap1->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap1->status (), ==, QSnapdEnums::SnapStatusActive);
     g_assert (snap1->summary () == "SUMMARY");

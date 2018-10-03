@@ -30,6 +30,7 @@
     <xi:include href="xml/snapd-client.xml"/>
     <xi:include href="xml/snapd-connection.xml"/>
     <xi:include href="xml/snapd-icon.xml"/>
+    <xi:include href="xml/snapd-media.xml"/>
     <xi:include href="xml/snapd-plug.xml"/>
     <xi:include href="xml/snapd-price.xml"/>
     <xi:include href="xml/snapd-screenshot.xml"/>
