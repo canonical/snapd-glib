@@ -862,10 +862,6 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_JAILMODE:
         snap->jailmode = g_value_get_boolean (value);
         break;
-    case PROP_TITLE:
-        g_free (snap->title);
-        snap->title = g_strdup (g_value_get_string (value));
-        break;
     case PROP_MOUNTED_FROM:
         g_free (snap->mounted_from);
         snap->mounted_from = g_strdup (g_value_get_string (value));
@@ -916,6 +912,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_SUMMARY:
         g_free (snap->summary);
         snap->summary = g_strdup (g_value_get_string (value));
+        break;
+    case PROP_TITLE:
+        g_free (snap->title);
+        snap->title = g_strdup (g_value_get_string (value));
         break;
     case PROP_TRACKING_CHANNEL:
         g_free (snap->tracking_channel);
@@ -997,9 +997,6 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_JAILMODE:
         g_value_set_boolean (value, snap->jailmode);
         break;
-    case PROP_TITLE:
-        g_value_set_string (value, snap->title);
-        break;
     case PROP_MOUNTED_FROM:
         g_value_set_string (value, snap->mounted_from);
         break;
@@ -1039,6 +1036,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_SUMMARY:
         g_value_set_string (value, snap->summary);
+        break;
+    case PROP_TITLE:
+        g_value_set_string (value, snap->title);
         break;
     case PROP_TRACKING_CHANNEL:
         g_value_set_string (value, snap->tracking_channel);
@@ -1240,13 +1240,6 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
-                                     PROP_TITLE,
-                                     g_param_spec_string ("title",
-                                                          "title",
-                                                          "The snap title",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
-    g_object_class_install_property (gobject_class,
                                      PROP_NAME,
                                      g_param_spec_string ("name",
                                                           "name",
@@ -1321,6 +1314,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                      g_param_spec_string ("summary",
                                                           "summary",
                                                           "One line description",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_TITLE,
+                                     g_param_spec_string ("title",
+                                                          "title",
+                                                          "The snap title",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
