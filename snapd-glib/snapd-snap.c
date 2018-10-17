@@ -1111,6 +1111,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&snap->name, g_free);
     g_clear_pointer (&snap->license, g_free);
     g_clear_pointer (&snap->media, g_ptr_array_unref);
+    g_clear_pointer (&snap->mounted_from, g_free);
     g_clear_pointer (&snap->prices, g_ptr_array_unref);
     g_clear_pointer (&snap->publisher_display_name, g_free);
     g_clear_pointer (&snap->publisher_id, g_free);
