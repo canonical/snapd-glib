@@ -18,15 +18,15 @@ class Q_DECL_EXPORT QSnapdChannel : public QSnapdWrappedObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(QString branch READ branch)
-    Q_PROPERTY(QSnapdEnums::SnapConfinement confinement READ confinement)
-    Q_PROPERTY(QString epoch READ epoch)
-    Q_PROPERTY(QString name READ name)
-    Q_PROPERTY(QString revision READ revision)
-    Q_PROPERTY(QString risk READ risk)
-    Q_PROPERTY(qint64 size READ size)
-    Q_PROPERTY(QString track READ track)
-    Q_PROPERTY(QString version READ version)
+    Q_PROPERTY(QString branch READ branch CONSTANT)
+    Q_PROPERTY(QSnapdEnums::SnapConfinement confinement READ confinement CONSTANT)
+    Q_PROPERTY(QString epoch READ epoch CONSTANT)
+    Q_PROPERTY(QString name READ name CONSTANT)
+    Q_PROPERTY(QString revision READ revision CONSTANT)
+    Q_PROPERTY(QString risk READ risk CONSTANT)
+    Q_PROPERTY(qint64 size READ size CONSTANT)
+    Q_PROPERTY(QString track READ track CONSTANT)
+    Q_PROPERTY(QString version READ version CONSTANT)
 
 public:
     explicit QSnapdChannel (void* snapd_object, QObject* parent = 0);
