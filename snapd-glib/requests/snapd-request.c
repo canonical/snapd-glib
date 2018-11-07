@@ -87,14 +87,14 @@ respond_cb (gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
-void
+gboolean
 _snapd_request_return (SnapdRequest *request, GError *error)
 {
     g_autoptr(GSource) source = NULL;
     SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
 
     if (priv->responded)
-        return;
+        return FALSE;
     priv->responded = TRUE;
     if (error != NULL)
         priv->error = g_error_copy (error);
@@ -102,6 +102,8 @@ _snapd_request_return (SnapdRequest *request, GError *error)
     source = g_idle_source_new ();
     g_source_set_callback (source, respond_cb, g_object_ref (request), g_object_unref);
     g_source_attach (source, _snapd_request_get_context (request));
+
+    return TRUE;
 }
 
 gboolean

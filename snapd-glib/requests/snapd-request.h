@@ -36,7 +36,7 @@ void          _snapd_request_generate          (SnapdRequest *request);
 
 SoupMessage  *_snapd_request_get_message       (SnapdRequest *request);
 
-void          _snapd_request_return            (SnapdRequest *request,
+gboolean       _snapd_request_return           (SnapdRequest *request,
                                                 GError       *error);
 
 gboolean      _snapd_request_propagate_error   (SnapdRequest *request,
