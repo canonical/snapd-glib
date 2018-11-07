@@ -28,7 +28,6 @@ typedef struct
     SoupMessage *message;
 
     GCancellable *cancellable;
-    gulong cancelled_id;
 
     gboolean responded;
     GAsyncReadyCallback ready_callback;
@@ -169,7 +168,6 @@ snapd_request_finalize (GObject *object)
 
     g_clear_object (&priv->source_object);
     g_clear_object (&priv->message);
-    g_cancellable_disconnect (priv->cancellable, priv->cancelled_id);
     g_clear_object (&priv->cancellable);
     g_clear_pointer (&priv->error, g_error_free);
     g_clear_pointer (&priv->context, g_main_context_unref);
