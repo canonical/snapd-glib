@@ -55,7 +55,8 @@ public:
         NetworkTimeout,
         NotFound,
         NotInStore,
-        AuthCancelled
+        AuthCancelled,
+        NotClassic
     };
     Q_ENUM(QSnapdError)
 

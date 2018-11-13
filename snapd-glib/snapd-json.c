@@ -292,6 +292,11 @@ parse_error_response (JsonObject *root, GError **error)
                              SNAPD_ERROR,
                              SNAPD_ERROR_AUTH_CANCELLED,
                              message);
+    else if (g_strcmp0 (kind, "snap-not-classic") == 0)
+        g_set_error_literal (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_NOT_CLASSIC,
+                             message);
     else {
         switch (status_code) {
         case SOUP_STATUS_BAD_REQUEST:

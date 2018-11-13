@@ -150,6 +150,9 @@ void QSnapdRequest::finish (void *error)
             case SNAPD_ERROR_AUTH_CANCELLED:
                 d->error = QSnapdRequest::QSnapdError::AuthCancelled;
                 break;
+            case SNAPD_ERROR_NOT_CLASSIC:
+                d->error = QSnapdRequest::QSnapdError::NotClassic;
+                break;
             default:
                 /* This indicates we should add a new entry here... */
                 d->error = QSnapdRequest::QSnapdError::UnknownError;

@@ -3467,6 +3467,23 @@ test_install_classic ()
 }
 
 static void
+test_install_not_classic ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_on_classic (snapd, TRUE);
+    mock_snapd_add_store_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert_null (mock_snapd_find_snap (snapd, "snap"));
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install (QSnapdClient::Classic, "snap"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::NotClassic);
+}
+
+static void
 test_install_needs_classic_system ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -5537,6 +5554,7 @@ main (int argc, char **argv)
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/needs-classic", test_install_needs_classic);
     g_test_add_func ("/install/classic", test_install_classic);
+    g_test_add_func ("/install/not-classic", test_install_not_classic);
     g_test_add_func ("/install/needs-classic-system", test_install_needs_classic_system);
     g_test_add_func ("/install/needs-devmode", test_install_needs_devmode);
     g_test_add_func ("/install/devmode", test_install_devmode);

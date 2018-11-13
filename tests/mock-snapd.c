@@ -2653,6 +2653,10 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 send_error_bad_request (message, "requires classic confinement", "snap-needs-classic-system");
                 return;
             }
+            if (classic && strcmp (snap->confinement, "classic") != 0) {
+                send_error_bad_request (message, "snap not compatible with --classic", "snap-not-classic");
+                return;
+            }
             if (strcmp (snap->confinement, "devmode") == 0 && !devmode) {
                 send_error_bad_request (message, "requires devmode or confinement override", "snap-needs-devmode");
                 return;

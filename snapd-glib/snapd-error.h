@@ -56,6 +56,7 @@ G_BEGIN_DECLS
  * @SNAPD_ERROR_NOT_FOUND: the requested snap couldn't be found.
  * @SNAPD_ERROR_NOT_IN_STORE: the requested snap is not in the store.
  * @SNAPD_ERROR_AUTH_CANCELLED: authentication was cancelled by the user.
+ * @SNAPD_ERROR_NOT_CLASSIC: snap not compatible with classic mode.
  *
  * Error codes returned by snapd operations.
  *
@@ -88,7 +89,8 @@ typedef enum
     SNAPD_ERROR_NETWORK_TIMEOUT,
     SNAPD_ERROR_NOT_FOUND,
     SNAPD_ERROR_NOT_IN_STORE,
-    SNAPD_ERROR_AUTH_CANCELLED
+    SNAPD_ERROR_AUTH_CANCELLED,
+    SNAPD_ERROR_NOT_CLASSIC
 } SnapdError;
 
 /**

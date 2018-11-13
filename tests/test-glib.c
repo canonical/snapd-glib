@@ -4352,6 +4352,28 @@ test_install_classic (void)
 }
 
 static void
+test_install_not_classic (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_on_classic (snapd, TRUE);
+    mock_snapd_add_store_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_assert_null (mock_snapd_find_snap (snapd, "snap"));
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_CLASSIC);
+    g_assert_false (result);
+}
+
+static void
 test_install_needs_classic_system (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -7099,6 +7121,7 @@ main (int argc, char **argv)
     g_test_add_func ("/install/progress", test_install_progress);
     g_test_add_func ("/install/needs-classic", test_install_needs_classic);
     g_test_add_func ("/install/classic", test_install_classic);
+    g_test_add_func ("/install/not-classic", test_install_not_classic);
     g_test_add_func ("/install/needs-classic-system", test_install_needs_classic_system);
     g_test_add_func ("/install/needs-devmode", test_install_needs_devmode);
     g_test_add_func ("/install/devmode", test_install_devmode);
