@@ -2650,7 +2650,7 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 return;
             }
             if (strcmp (snap->confinement, "classic") == 0 && !snapd->on_classic) {
-                send_error_bad_request (message, "requires classic confinement", "snap-needs-classic-system");
+                send_error_bad_request (message, "requires classic confinement which is only available on classic systems", "snap-needs-classic-system");
                 return;
             }
             if (classic && strcmp (snap->confinement, "classic") != 0) {
