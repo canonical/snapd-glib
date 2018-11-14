@@ -2564,6 +2564,11 @@ handle_snaps (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
                 return;
             }
 
+            if (strcmp (snap_path, "*") == 0) {
+                send_error_bad_request (snapd, message, "directory does not contain an unpacked snap", "snap-not-a-snap");
+                return;
+            }
+
             change = add_change (snapd);
             mock_change_set_spawn_time (change, snapd->spawn_time);
             mock_change_set_ready_time (change, snapd->ready_time);

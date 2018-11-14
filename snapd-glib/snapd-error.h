@@ -59,6 +59,7 @@ G_BEGIN_DECLS
  * @SNAPD_ERROR_NOT_CLASSIC: snap not compatible with classic mode.
  * @SNAPD_ERROR_REVISION_NOT_AVAILABLE: requested snap revision not available.
  * @SNAPD_ERROR_CHANNEL_NOT_AVAILABLE: requested snap channel not available.
+ * @SNAPD_ERROR_NOT_A_SNAP: the given snap or directory does not look like a snap.
  *
  * Error codes returned by snapd operations.
  *
@@ -94,7 +95,8 @@ typedef enum
     SNAPD_ERROR_AUTH_CANCELLED,
     SNAPD_ERROR_NOT_CLASSIC,
     SNAPD_ERROR_REVISION_NOT_AVAILABLE,
-    SNAPD_ERROR_CHANNEL_NOT_AVAILABLE
+    SNAPD_ERROR_CHANNEL_NOT_AVAILABLE,
+    SNAPD_ERROR_NOT_A_SNAP
 } SnapdError;
 
 /**

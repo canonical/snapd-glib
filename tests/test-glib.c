@@ -5116,6 +5116,26 @@ test_try_progress (void)
 }
 
 static void
+test_try_not_a_snap (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GInputStream) stream = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    result = snapd_client_try_sync (client, "*", NULL, NULL, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_A_SNAP);
+    g_assert_false (result);
+}
+
+static void
 test_refresh_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -7290,6 +7310,7 @@ main (int argc, char **argv)
     g_test_add_func ("/try/sync", test_try_sync);
     g_test_add_func ("/try/async", test_try_async);
     g_test_add_func ("/try/progress", test_try_progress);
+    g_test_add_func ("/try/not-a-snap", test_try_not_a_snap);
     g_test_add_func ("/refresh/sync", test_refresh_sync);
     g_test_add_func ("/refresh/async", test_refresh_async);
     g_test_add_func ("/refresh/progress", test_refresh_progress);

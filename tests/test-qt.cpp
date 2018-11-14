@@ -4051,6 +4051,20 @@ test_try_progress ()
 }
 
 static void
+test_try_not_a_snap ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdTryRequest> tryRequest (client.trySnap ("*"));
+    tryRequest->runSync ();
+    g_assert_cmpint (tryRequest->error (), ==, QSnapdRequest::NotASnap);
+}
+
+static void
 test_refresh_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -5689,6 +5703,7 @@ main (int argc, char **argv)
     g_test_add_func ("/try/sync", test_try_sync);
     g_test_add_func ("/try/async", test_try_async);
     g_test_add_func ("/try/progress", test_try_progress);
+    g_test_add_func ("/try/not-a-snap", test_try_not_a_snap);
     g_test_add_func ("/refresh/sync", test_refresh_sync);
     g_test_add_func ("/refresh/async", test_refresh_async);
     g_test_add_func ("/refresh/progress", test_refresh_progress);

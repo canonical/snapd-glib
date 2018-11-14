@@ -159,6 +159,9 @@ void QSnapdRequest::finish (void *error)
             case SNAPD_ERROR_CHANNEL_NOT_AVAILABLE:
                 d->error = QSnapdRequest::QSnapdError::ChannelNotAvailable;
                 break;
+            case SNAPD_ERROR_NOT_A_SNAP:
+                d->error = QSnapdRequest::QSnapdError::NotASnap;
+                break;
             default:
                 /* This indicates we should add a new entry here... */
                 d->error = QSnapdRequest::QSnapdError::UnknownError;
