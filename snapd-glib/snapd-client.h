@@ -358,13 +358,28 @@ SnapdSnap              *snapd_client_get_snap_finish               (SnapdClient 
 GPtrArray              *snapd_client_get_apps_sync                 (SnapdClient          *client,
                                                                     SnapdGetAppsFlags     flags,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_apps2_sync);
 void                    snapd_client_get_apps_async                (SnapdClient          *client,
                                                                     SnapdGetAppsFlags     flags,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_get_apps2_async);
 GPtrArray              *snapd_client_get_apps_finish               (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_apps2_finish);
+
+GPtrArray              *snapd_client_get_apps2_sync                (SnapdClient          *client,
+                                                                    SnapdGetAppsFlags     flags,
+                                                                    GStrv                 snaps,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_apps2_async               (SnapdClient          *client,
+                                                                    SnapdGetAppsFlags     flags,
+                                                                    GStrv                 snaps,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_get_apps2_finish              (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

@@ -1859,6 +1859,27 @@ test_get_apps_services ()
 }
 
 static void
+test_get_apps_filter ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_app (s, "app1");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    mock_snap_add_app (s, "app2");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetAppsRequest> appsRequest (client.getApps ("snap1"));
+    appsRequest->runSync ();
+    g_assert_cmpint (appsRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (appsRequest->appCount (), ==, 1);
+    g_assert (appsRequest->app (0)->snap () == "snap1");
+    g_assert (appsRequest->app (0)->name () == "app1");
+}
+
+static void
 test_icon_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -5624,6 +5645,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-apps/sync", test_get_apps_sync);
     g_test_add_func ("/get-apps/async", test_get_apps_async);
     g_test_add_func ("/get-apps/services", test_get_apps_services);
+    g_test_add_func ("/get-apps/filter", test_get_apps_filter);
     g_test_add_func ("/icon/sync", test_icon_sync);
     g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);

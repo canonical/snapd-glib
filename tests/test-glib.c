@@ -2190,7 +2190,7 @@ test_get_apps_sync (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    apps = snapd_client_get_apps_sync (client, SNAPD_GET_APPS_FLAGS_NONE, NULL, &error);
+    apps = snapd_client_get_apps2_sync (client, SNAPD_GET_APPS_FLAGS_NONE, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (apps);
     g_assert_cmpint (apps->len, ==, 3);
@@ -2222,7 +2222,7 @@ get_apps_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     SnapdApp *app;
     g_autoptr(GError) error = NULL;
 
-    apps = snapd_client_get_apps_finish (SNAPD_CLIENT (object), result, &error);
+    apps = snapd_client_get_apps2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (apps);
     g_assert_cmpint (apps->len, ==, 3);
@@ -2274,7 +2274,7 @@ test_get_apps_async (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snapd_client_get_apps_async (client, SNAPD_GET_APPS_FLAGS_NONE, NULL, get_apps_cb, async_data_new (loop, snapd));
+    snapd_client_get_apps2_async (client, SNAPD_GET_APPS_FLAGS_NONE, NULL, NULL, get_apps_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
@@ -2298,11 +2298,39 @@ test_get_apps_services (void)
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    apps = snapd_client_get_apps_sync (client, SNAPD_GET_APPS_FLAGS_SELECT_SERVICES, NULL, &error);
+    apps = snapd_client_get_apps2_sync (client, SNAPD_GET_APPS_FLAGS_SELECT_SERVICES, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (apps);
     g_assert_cmpint (apps->len, ==, 1);
     g_assert_cmpstr (snapd_app_get_name (apps->pdata[0]), ==, "app2");
+}
+
+static void
+test_get_apps_filter (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    MockSnap *s;
+    g_autoptr(GPtrArray) apps = NULL;
+    gchar *filter_snaps[] = { "snap1", NULL };
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_app (s, "app1");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    mock_snap_add_app (s, "app2");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    apps = snapd_client_get_apps2_sync (client, SNAPD_GET_APPS_FLAGS_NONE, filter_snaps, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (apps);
+    g_assert_cmpint (apps->len, ==, 1);
+    g_assert_cmpstr (snapd_app_get_snap (apps->pdata[0]), ==, "snap1");
+    g_assert_cmpstr (snapd_app_get_name (apps->pdata[0]), ==, "app1");
 }
 
 static void
@@ -7231,6 +7259,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-apps/sync", test_get_apps_sync);
     g_test_add_func ("/get-apps/async", test_get_apps_async);
     g_test_add_func ("/get-apps/services", test_get_apps_services);
+    g_test_add_func ("/get-apps/filter", test_get_apps_filter);
     g_test_add_func ("/icon/sync", test_icon_sync);
     g_test_add_func ("/icon/async", test_icon_async);
     g_test_add_func ("/icon/not-installed", test_icon_not_installed);

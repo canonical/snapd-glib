@@ -15,13 +15,14 @@ struct _SnapdGetApps
 {
     SnapdRequest parent_instance;
     gchar *select;
+    GStrv snaps;
     GPtrArray *apps;
 };
 
 G_DEFINE_TYPE (SnapdGetApps, snapd_get_apps, snapd_request_get_type ())
 
 SnapdGetApps *
-_snapd_get_apps_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_get_apps_new (GStrv snaps, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdGetApps *request;
 
@@ -30,6 +31,8 @@ _snapd_get_apps_new (GCancellable *cancellable, GAsyncReadyCallback callback, gp
                                             "ready-callback", callback,
                                             "ready-callback-data", user_data,
                                             NULL));
+   if (snaps != NULL && snaps[0] != NULL)
+       request->snaps = g_strdupv (snaps);
 
     return request;
 }
@@ -51,16 +54,32 @@ static SoupMessage *
 generate_get_apps_request (SnapdRequest *request)
 {
     SnapdGetApps *r = SNAPD_GET_APPS (request);
-    g_autofree gchar *uri = NULL;
+    g_autoptr(GPtrArray) query_attributes = NULL;
+    g_autoptr(GString) path = NULL;
 
+    query_attributes = g_ptr_array_new_with_free_func (g_free);
     if (r->select != NULL) {
         g_autofree gchar *escaped = soup_uri_encode (r->select, NULL);
-        uri = g_strdup_printf ("http://snapd/v2/apps?select=%s", escaped);
+        g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", escaped));
     }
-    else
-        uri = g_strdup ("http://snapd/v2/apps");
+    if (r->snaps != NULL) {
+        g_autofree gchar *snaps_list = g_strjoinv (",", r->snaps);
+        g_ptr_array_add (query_attributes, g_strdup_printf ("names=%s", snaps_list));
+    }
 
-    return soup_message_new ("GET", uri);
+    path = g_string_new ("http://snapd/v2/apps");
+    if (query_attributes->len > 0) {
+        guint i;
+
+        g_string_append_c (path, '?');
+        for (i = 0; i < query_attributes->len; i++) {
+            if (i != 0)
+                g_string_append_c (path, '&');
+            g_string_append (path, (gchar *) query_attributes->pdata[i]);
+        }
+    }
+
+    return soup_message_new ("GET", path->str);
 }
 
 static gboolean
@@ -93,6 +112,7 @@ snapd_get_apps_finalize (GObject *object)
     SnapdGetApps *request = SNAPD_GET_APPS (object);
 
     g_clear_pointer (&request->select, g_free);
+    g_clear_pointer (&request->snaps, g_strfreev);
     g_clear_pointer (&request->apps, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_apps_parent_class)->finalize (object);

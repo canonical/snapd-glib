@@ -2414,14 +2414,9 @@ get_refreshable_snaps (MockSnapd *snapd)
 }
 
 static gboolean
-filter_snaps (MockSnapd *snapd, const gchar *select_param, gchar **selected_snaps, MockSnap *snap)
+filter_snaps (GStrv selected_snaps, MockSnap *snap)
 {
     int i;
-
-    if (select_param == NULL || strcmp (select_param, "enabled") == 0) {
-        if (strcmp (snap->status, "active") != 0)
-            return FALSE;
-    }
 
     /* If no filter selected, then return all snaps */
     if (selected_snaps == NULL || selected_snaps[0] == NULL)
@@ -2461,8 +2456,14 @@ handle_snaps (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
         json_builder_begin_array (builder);
         for (link = snapd->snaps; link; link = link->next) {
             MockSnap *snap = link->data;
-            if (filter_snaps (snapd, select_param, selected_snaps, snap))
-                json_builder_add_value (builder, make_snap_node (snap));
+
+            if (!filter_snaps (selected_snaps, snap))
+                continue;
+
+            if ((select_param == NULL || strcmp (select_param, "enabled") == 0) && strcmp (snap->status, "active") != 0)
+                continue;
+
+            json_builder_add_value (builder, make_snap_node (snap));
         }
         json_builder_end_array (builder);
 
@@ -2842,11 +2843,11 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
         send_error_method_not_allowed (snapd, message, "method not allowed");
 }
 
-
 static void
 handle_apps (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
 {
     const gchar *select_param = NULL;
+    g_auto(GStrv) selected_snaps = NULL;
     g_autoptr(JsonBuilder) builder = NULL;
     GList *link;
 
@@ -2855,8 +2856,14 @@ handle_apps (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
         return;
     }
 
-    if (query != NULL)
+    if (query != NULL) {
+        const gchar *snaps_param = NULL;
+
         select_param = g_hash_table_lookup (query, "select");
+        snaps_param = g_hash_table_lookup (query, "names");
+        if (snaps_param != NULL)
+            selected_snaps = g_strsplit (snaps_param, ",", -1);
+    }
 
     builder = json_builder_new ();
     json_builder_begin_array (builder);
@@ -2864,11 +2871,16 @@ handle_apps (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
         MockSnap *snap = link->data;
         GList *app_link;
 
+        if (!filter_snaps (selected_snaps, snap))
+            continue;
+
         for (app_link = snap->apps; app_link; app_link = app_link->next) {
             MockApp *app = app_link->data;
 
-            if (g_strcmp0 (select_param, "service") != 0 || app->daemon != NULL)
-                json_builder_add_value (builder, make_app_node (app, snap->name));
+            if (g_strcmp0 (select_param, "service") == 0 && app->daemon == NULL)
+                continue;
+
+            json_builder_add_value (builder, make_app_node (app, snap->name));
         }
     }
     json_builder_end_array (builder);

@@ -1579,20 +1579,14 @@ snapd_client_get_snap_finish (SnapdClient *client, GAsyncResult *result, GError 
  * See snapd_client_get_apps_sync() for more information.
  *
  * Since: 1.25
+ * Deprecated: 1.45: Use snapd_client_get_apps2_async()
  */
 void
 snapd_client_get_apps_async (SnapdClient *client,
                              SnapdGetAppsFlags flags,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetApps *request;
-
-    g_return_if_fail (SNAPD_IS_CLIENT (client));
-
-    request = _snapd_get_apps_new (cancellable, callback, user_data);
-    if ((flags & SNAPD_GET_APPS_FLAGS_SELECT_SERVICES) != 0)
-        _snapd_get_apps_set_select (request, "service");
-    send_request (client, SNAPD_REQUEST (request));
+    return snapd_client_get_apps2_async (client, flags, NULL, cancellable, callback, user_data);
 }
 
 /**
@@ -1607,9 +1601,59 @@ snapd_client_get_apps_async (SnapdClient *client,
  * Returns: (transfer container) (element-type SnapdApp): an array of #SnapdApp or %NULL on error.
  *
  * Since: 1.25
+ * Deprecated: 1.45: Use snapd_client_get_apps2_finish()
  */
 GPtrArray *
 snapd_client_get_apps_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    return snapd_client_get_apps2_finish (client, result, error);
+}
+
+/**
+ * snapd_client_get_apps2_async:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdGetAppsFlags to control what results are returned.
+ * @snaps: (allow-none): A list of snap names to return results for. If %NULL or empty then apps for all installed snaps are returned.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get information on installed apps.
+ * See snapd_client_get_apps2_sync() for more information.
+ *
+ * Since: 1.45
+ */
+void
+snapd_client_get_apps2_async (SnapdClient *client,
+                              SnapdGetAppsFlags flags,
+                              GStrv snaps,
+                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    SnapdGetApps *request;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+
+    request = _snapd_get_apps_new (snaps, cancellable, callback, user_data);
+    if ((flags & SNAPD_GET_APPS_FLAGS_SELECT_SERVICES) != 0)
+        _snapd_get_apps_set_select (request, "service");
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_apps2_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_apps2_async().
+ * See snapd_client_get_apps2_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdApp): an array of #SnapdApp or %NULL on error.
+ *
+ * Since: 1.45
+ */
+GPtrArray *
+snapd_client_get_apps2_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdGetApps *request;
 

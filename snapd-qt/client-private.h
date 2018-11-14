@@ -151,14 +151,15 @@ public:
 class QSnapdGetAppsRequestPrivate
 {
 public:
-    QSnapdGetAppsRequestPrivate (int flags) :
-        flags(flags) {}
+    QSnapdGetAppsRequestPrivate (int flags, const QStringList& snaps) :
+        flags(flags), filter_snaps(snaps) {}
     ~QSnapdGetAppsRequestPrivate ()
     {
         if (apps != NULL)
             g_ptr_array_unref (apps);
     }
     int flags;
+    QStringList filter_snaps;
     GPtrArray *apps = NULL;
 };
 

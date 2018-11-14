@@ -323,20 +323,44 @@ snapd_client_get_snap_sync (SnapdClient *client,
  * Returns: (transfer container) (element-type SnapdApp): an array of #SnapdApp or %NULL on error.
  *
  * Since: 1.25
+ * Deprecated: 1.45: Use snapd_client_get_apps2_sync()
  */
 GPtrArray *
 snapd_client_get_apps_sync (SnapdClient *client,
                             SnapdGetAppsFlags flags,
                             GCancellable *cancellable, GError **error)
 {
+    return snapd_client_get_apps2_sync (client, flags, NULL, cancellable, error);
+}
+
+/**
+ * snapd_client_get_apps2_sync:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdGetAppsFlags to control what results are returned.
+ * @snaps: (allow-none): A list of snap names to return results for. If %NULL or empty then apps for all installed snaps are returned.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get information on installed apps.
+ *
+ * Returns: (transfer container) (element-type SnapdApp): an array of #SnapdApp or %NULL on error.
+ *
+ * Since: 1.45
+ */
+GPtrArray *
+snapd_client_get_apps2_sync (SnapdClient *client,
+                             SnapdGetAppsFlags flags,
+                             GStrv snaps,
+                             GCancellable *cancellable, GError **error)
+{
     g_auto(SyncData) data = { 0 };
 
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
 
     start_sync (&data);
-    snapd_client_get_apps_async (client, flags, cancellable, sync_cb, &data);
+    snapd_client_get_apps2_async (client, flags, snaps, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_apps_finish (client, data.result, error);
+    return snapd_client_get_apps2_finish (client, data.result, error);
 }
 
 /**

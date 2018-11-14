@@ -222,6 +222,7 @@ class Q_DECL_EXPORT QSnapdGetAppsRequest : public QSnapdRequest
 
 public:
     explicit QSnapdGetAppsRequest (int flags, void *snapd_client, QObject *parent = 0);
+    explicit QSnapdGetAppsRequest (int flags, const QStringList& snaps, void *snapd_client, QObject *parent = 0);
     ~QSnapdGetAppsRequest ();
     virtual void runSync ();
     virtual void runAsync ();
@@ -862,6 +863,10 @@ public:
     Q_INVOKABLE QSnapdGetSnapRequest *getSnap (const QString &name);
     Q_INVOKABLE QSnapdGetAppsRequest *getApps ();
     Q_INVOKABLE QSnapdGetAppsRequest *getApps (GetAppsFlags flags);
+    Q_INVOKABLE QSnapdGetAppsRequest *getApps (GetAppsFlags flags, const QStringList &snaps);
+    Q_INVOKABLE QSnapdGetAppsRequest *getApps (GetAppsFlags flags, const QString &snap);
+    Q_INVOKABLE QSnapdGetAppsRequest *getApps (const QStringList &snaps);
+    Q_INVOKABLE QSnapdGetAppsRequest *getApps (const QString &snap);
     Q_INVOKABLE QSnapdGetIconRequest *getIcon (const QString &name);
     Q_INVOKABLE QSnapdGetAssertionsRequest *getAssertions (const QString &type);
     Q_INVOKABLE QSnapdAddAssertionsRequest *addAssertions (const QStringList &assertions);
