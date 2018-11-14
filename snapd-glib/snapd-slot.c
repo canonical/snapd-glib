@@ -120,12 +120,12 @@ snapd_slot_get_interface (SnapdSlot *slot)
  *
  * Since: 1.3
  */
-gchar **
+GStrv
 snapd_slot_get_attribute_names (SnapdSlot *slot, guint *length)
 {
     GHashTableIter iter;
     gpointer name;
-    gchar **names;
+    GStrv names;
     guint size, i;
 
     g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);

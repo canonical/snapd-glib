@@ -37,7 +37,7 @@ struct _SnapdUserInformation
     gint64 id;
     gchar *username;
     gchar *email;
-    gchar **ssh_keys;
+    GStrv ssh_keys;
     SnapdAuthData *auth_data;
 };
 
@@ -114,7 +114,7 @@ snapd_user_information_get_email (SnapdUserInformation *user_information)
  *
  * Since: 1.3
  */
-gchar **
+GStrv
 snapd_user_information_get_ssh_keys (SnapdUserInformation *user_information)
 {
     g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (user_information), NULL);

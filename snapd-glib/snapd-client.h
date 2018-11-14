@@ -316,12 +316,12 @@ GPtrArray              *snapd_client_list_finish                   (SnapdClient 
 
 GPtrArray              *snapd_client_get_snaps_sync                (SnapdClient          *client,
                                                                     SnapdGetSnapsFlags    flags,
-                                                                    gchar               **names,
+                                                                    GStrv                 names,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_get_snaps_async               (SnapdClient          *client,
                                                                     SnapdGetSnapsFlags    flags,
-                                                                    gchar               **names,
+                                                                    GStrv                 names,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
@@ -396,7 +396,7 @@ SnapdIcon              *snapd_client_get_icon_finish               (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-gchar                 **snapd_client_get_assertions_sync           (SnapdClient          *client,
+GStrv                   snapd_client_get_assertions_sync           (SnapdClient          *client,
                                                                     const gchar          *type,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
@@ -405,16 +405,16 @@ void                    snapd_client_get_assertions_async          (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-gchar                 **snapd_client_get_assertions_finish         (SnapdClient          *client,
+GStrv                   snapd_client_get_assertions_finish         (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
 gboolean                snapd_client_add_assertions_sync           (SnapdClient          *client,
-                                                                    gchar               **assertions,
+                                                                    GStrv                 assertions,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_add_assertions_async          (SnapdClient          *client,
-                                                                    gchar               **assertions,
+                                                                    GStrv                 assertions,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
@@ -627,7 +627,7 @@ gboolean                snapd_client_refresh_finish                (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-gchar                 **snapd_client_refresh_all_sync              (SnapdClient          *client,
+GStrv                   snapd_client_refresh_all_sync              (SnapdClient          *client,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
@@ -638,7 +638,7 @@ void                    snapd_client_refresh_all_async             (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-gchar                 **snapd_client_refresh_all_finish            (SnapdClient          *client,
+GStrv                   snapd_client_refresh_all_finish            (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
@@ -777,14 +777,14 @@ GPtrArray              *snapd_client_get_users_finish              (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-gchar                 **snapd_client_get_sections_sync             (SnapdClient          *client,
+GStrv                   snapd_client_get_sections_sync             (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_get_sections_async            (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-gchar                 **snapd_client_get_sections_finish           (SnapdClient          *client,
+GStrv                   snapd_client_get_sections_finish           (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
@@ -858,14 +858,14 @@ gboolean                snapd_client_prefer_finish                 (SnapdClient 
 
 gboolean                snapd_client_enable_aliases_sync           (SnapdClient          *client,
                                                                     const gchar          *snap,
-                                                                    gchar               **aliases,
+                                                                    GStrv                 aliases,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error) G_DEPRECATED;
 void                    snapd_client_enable_aliases_async          (SnapdClient          *client,
                                                                     const gchar          *snap,
-                                                                    gchar               **aliases,
+                                                                    GStrv                 aliases,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
@@ -877,14 +877,14 @@ gboolean                snapd_client_enable_aliases_finish         (SnapdClient 
 
 gboolean                snapd_client_disable_aliases_sync          (SnapdClient          *client,
                                                                     const gchar          *snap,
-                                                                    gchar               **aliases,
+                                                                    GStrv                 aliases,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error) G_DEPRECATED;
 void                    snapd_client_disable_aliases_async         (SnapdClient          *client,
                                                                     const gchar          *snap,
-                                                                    gchar               **aliases,
+                                                                    GStrv                 aliases,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
@@ -896,14 +896,14 @@ gboolean                snapd_client_disable_aliases_finish        (SnapdClient 
 
 gboolean                snapd_client_reset_aliases_sync            (SnapdClient          *client,
                                                                     const gchar          *snap,
-                                                                    gchar               **aliases,
+                                                                    GStrv                 aliases,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error) G_DEPRECATED;
 void                    snapd_client_reset_aliases_async           (SnapdClient          *client,
                                                                     const gchar          *snap,
-                                                                    gchar               **aliases,
+                                                                    GStrv                 aliases,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
@@ -915,14 +915,14 @@ gboolean                snapd_client_reset_aliases_finish          (SnapdClient 
 
 gboolean                snapd_client_run_snapctl_sync              (SnapdClient          *client,
                                                                     const gchar          *context_id,
-                                                                    gchar               **args,
-                                                                    gchar               **stdout_output,
-                                                                    gchar               **stderr_output,
+                                                                    GStrv                 args,
+                                                                    GStrv                 stdout_output,
+                                                                    GStrv                 stderr_output,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
 void                    snapd_client_run_snapctl_async             (SnapdClient          *client,
                                                                     const gchar          *context_id,
-                                                                    gchar               **args,
+                                                                    GStrv                 args,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);

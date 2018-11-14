@@ -41,7 +41,7 @@ struct _SnapdAuthData
     GObject parent_instance;
 
     gchar *macaroon;
-    gchar **discharges;
+    GStrv discharges;
 };
 
 enum
@@ -65,7 +65,7 @@ G_DEFINE_TYPE (SnapdAuthData, snapd_auth_data, G_TYPE_OBJECT)
  * Since: 1.0
  **/
 SnapdAuthData *
-snapd_auth_data_new (const gchar *macaroon, gchar **discharges)
+snapd_auth_data_new (const gchar *macaroon, GStrv discharges)
 {
     g_return_val_if_fail (macaroon != NULL, NULL);
     return g_object_new (SNAPD_TYPE_AUTH_DATA,
@@ -73,6 +73,7 @@ snapd_auth_data_new (const gchar *macaroon, gchar **discharges)
                          "discharges", discharges,
                          NULL);
 }
+
 /**
  * snapd_auth_data_get_macaroon:
  * @auth_data: a #SnapdAuthData.
@@ -100,7 +101,7 @@ snapd_auth_data_get_macaroon (SnapdAuthData *auth_data)
  *
  * Since: 1.0
  */
-gchar **
+GStrv
 snapd_auth_data_get_discharges (SnapdAuthData *auth_data)
 {
     g_return_val_if_fail (SNAPD_IS_AUTH_DATA (auth_data), NULL);

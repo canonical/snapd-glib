@@ -32,7 +32,7 @@ QString QSnapdAuthData::macaroon () const
 
 QStringList QSnapdAuthData::discharges () const
 {
-    gchar **discharges = snapd_auth_data_get_discharges (SNAPD_AUTH_DATA (wrapped_object));
+    GStrv discharges = snapd_auth_data_get_discharges (SNAPD_AUTH_DATA (wrapped_object));
     QStringList result;
     for (int i = 0; discharges[i] != NULL; i++)
         result.append (discharges[i]);

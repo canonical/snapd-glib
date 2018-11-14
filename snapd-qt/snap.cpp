@@ -74,7 +74,7 @@ QSnapdChannel *QSnapdSnap::matchChannel (const QString& name) const
 
 QStringList QSnapdSnap::commonIds () const
 {
-    gchar **common_ids = snapd_snap_get_common_ids (SNAPD_SNAP (wrapped_object));
+    GStrv common_ids = snapd_snap_get_common_ids (SNAPD_SNAP (wrapped_object));
     QStringList result;
     for (int i = 0; common_ids[i] != NULL; i++)
         result.append (common_ids[i]);
@@ -329,7 +329,7 @@ QString QSnapdSnap::trackingChannel () const
 
 QStringList QSnapdSnap::tracks () const
 {
-    gchar **tracks = snapd_snap_get_tracks (SNAPD_SNAP (wrapped_object));
+    GStrv tracks = snapd_snap_get_tracks (SNAPD_SNAP (wrapped_object));
     QStringList result;
     for (int i = 0; tracks[i] != NULL; i++)
         result.append (tracks[i]);

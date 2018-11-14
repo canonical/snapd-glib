@@ -17,7 +17,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (SnapdGetSnaps, snapd_get_snaps, SNAPD, GET_SNAPS, SnapdRequest)
 
 SnapdGetSnaps *_snapd_get_snaps_new       (GCancellable        *cancellable,
-                                           gchar              **names,
+                                           GStrv                names,
                                            GAsyncReadyCallback  callback,
                                            gpointer             user_data);
 

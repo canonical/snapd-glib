@@ -125,7 +125,7 @@ get_header (const gchar *content, gsize *offset, gsize *name_start, gsize *name_
  *
  * Since: 1.0
  */
-gchar **
+GStrv
 snapd_assertion_get_headers (SnapdAssertion *assertion)
 {
     g_autoptr(GPtrArray) headers = NULL;
@@ -148,7 +148,7 @@ snapd_assertion_get_headers (SnapdAssertion *assertion)
     }
     g_ptr_array_add (headers, NULL);
 
-    return g_steal_pointer ((gchar ***)&headers->pdata);
+    return g_steal_pointer ((GStrv *)&headers->pdata);
 }
 
 /**

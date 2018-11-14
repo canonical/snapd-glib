@@ -188,7 +188,7 @@ public:
             g_strfreev (assertions);
     }
     QString type;
-    gchar **assertions = NULL;
+    GStrv assertions = NULL;
 };
 
 class QSnapdAddAssertionsRequestPrivate
@@ -318,7 +318,7 @@ public:
         if (snap_names != NULL)
             g_strfreev (snap_names);
     }
-    gchar **snap_names = NULL;
+    GStrv snap_names = NULL;
 };
 
 class QSnapdRemoveRequestPrivate
@@ -415,7 +415,7 @@ public:
         if (sections != NULL)
             g_strfreev (sections);
     }
-    gchar **sections = NULL;
+    GStrv sections = NULL;
 };
 
 class QSnapdGetAliasesRequestPrivate

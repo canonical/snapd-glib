@@ -52,7 +52,7 @@ const gchar    *snapd_app_get_name         (SnapdApp *app);
 
 gboolean        snapd_app_get_active       (SnapdApp *app);
 
-gchar         **snapd_app_get_aliases      (SnapdApp *app) G_DEPRECATED;
+GStrv           snapd_app_get_aliases      (SnapdApp *app) G_DEPRECATED;
 
 const gchar    *snapd_app_get_common_id    (SnapdApp *app);
 

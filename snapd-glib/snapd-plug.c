@@ -120,12 +120,12 @@ snapd_plug_get_interface (SnapdPlug *plug)
  *
  * Since: 1.3
  */
-gchar **
+GStrv
 snapd_plug_get_attribute_names (SnapdPlug *plug, guint *length)
 {
     GHashTableIter iter;
     gpointer name;
-    gchar **names;
+    GStrv names;
     guint size, i;
 
     g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);

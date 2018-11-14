@@ -444,7 +444,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  */
 GPtrArray *
 snapd_client_get_snaps_sync (SnapdClient *client,
-                             SnapdGetSnapsFlags flags, gchar **names,
+                             SnapdGetSnapsFlags flags, GStrv names,
                              GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
@@ -470,7 +470,7 @@ snapd_client_get_snaps_sync (SnapdClient *client,
  *
  * Since: 1.8
  */
-gchar **
+GStrv
 snapd_client_get_assertions_sync (SnapdClient *client,
                                   const gchar *type,
                                   GCancellable *cancellable, GError **error)
@@ -500,7 +500,7 @@ snapd_client_get_assertions_sync (SnapdClient *client,
  */
 gboolean
 snapd_client_add_assertions_sync (SnapdClient *client,
-                                  gchar **assertions,
+                                  GStrv assertions,
                                   GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
@@ -886,7 +886,7 @@ snapd_client_refresh_sync (SnapdClient *client,
  *
  * Since: 1.5
  */
-gchar **
+GStrv
 snapd_client_refresh_all_sync (SnapdClient *client,
                                SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                GCancellable *cancellable, GError **error)
@@ -1189,7 +1189,7 @@ snapd_client_get_users_sync (SnapdClient *client,
  *
  * Since: 1.7
  */
-gchar **
+GStrv
 snapd_client_get_sections_sync (SnapdClient *client,
                                 GCancellable *cancellable, GError **error)
 {
@@ -1348,7 +1348,7 @@ snapd_client_prefer_sync (SnapdClient *client,
  */
 gboolean
 snapd_client_enable_aliases_sync (SnapdClient *client,
-                                  const gchar *snap, gchar **aliases,
+                                  const gchar *snap, GStrv aliases,
                                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                   GCancellable *cancellable, GError **error)
 {
@@ -1376,7 +1376,7 @@ snapd_client_enable_aliases_sync (SnapdClient *client,
  */
 gboolean
 snapd_client_disable_aliases_sync (SnapdClient *client,
-                                   const gchar *snap, gchar **aliases,
+                                   const gchar *snap, GStrv aliases,
                                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                    GCancellable *cancellable, GError **error)
 {
@@ -1404,7 +1404,7 @@ snapd_client_disable_aliases_sync (SnapdClient *client,
  */
 gboolean
 snapd_client_reset_aliases_sync (SnapdClient *client,
-                                 const gchar *snap, gchar **aliases,
+                                 const gchar *snap, GStrv aliases,
                                  SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                  GCancellable *cancellable, GError **error)
 {
@@ -1431,7 +1431,7 @@ snapd_client_reset_aliases_sync (SnapdClient *client,
  */
 gboolean
 snapd_client_run_snapctl_sync (SnapdClient *client,
-                               const gchar *context_id, gchar **args,
+                               const gchar *context_id, GStrv args,
                                gchar **stdout_output, gchar **stderr_output,
                                GCancellable *cancellable, GError **error)
 {

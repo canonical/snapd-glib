@@ -15,7 +15,7 @@ struct _SnapdPostSnapctl
 {
     SnapdRequest parent_instance;
     gchar *context_id;
-    gchar **args;
+    GStrv args;
     gchar *stdout_output;
     gchar *stderr_output;
 };
@@ -23,7 +23,7 @@ struct _SnapdPostSnapctl
 G_DEFINE_TYPE (SnapdPostSnapctl, snapd_post_snapctl, snapd_request_get_type ())
 
 SnapdPostSnapctl *
-_snapd_post_snapctl_new (const gchar *context_id, gchar **args, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_post_snapctl_new (const gchar *context_id, GStrv args, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdPostSnapctl *request;
 

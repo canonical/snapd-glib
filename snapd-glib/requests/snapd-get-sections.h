@@ -20,7 +20,7 @@ SnapdGetSections *_snapd_get_sections_new          (GCancellable        *cancell
                                                     GAsyncReadyCallback  callback,
                                                     gpointer             user_data);
 
-gchar           **_snapd_get_sections_get_sections (SnapdGetSections *request);
+GStrv             _snapd_get_sections_get_sections (SnapdGetSections *request);
 
 G_END_DECLS
 

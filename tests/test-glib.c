@@ -638,7 +638,7 @@ test_login_sync (void)
     g_autoptr(MockSnapd) snapd = NULL;
     MockAccount *a;
     g_auto(GStrv) keys = NULL;
-    gchar **ssh_keys = NULL;
+    GStrv ssh_keys = NULL;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(SnapdUserInformation) user_information = NULL;
     SnapdAuthData *auth_data;
@@ -677,7 +677,7 @@ login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(AsyncData) data = user_data;
     MockAccount *a;
     g_autoptr(SnapdUserInformation) user_information = NULL;
-    gchar **ssh_keys = NULL;
+    GStrv ssh_keys = NULL;
     SnapdAuthData *auth_data;
     int i;
     g_autoptr(GError) error = NULL;
@@ -1952,7 +1952,7 @@ test_get_snap_common_ids (void)
     MockApp *a;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(SnapdSnap) snap = NULL;
-    gchar **common_ids;
+    GStrv common_ids;
     g_autoptr(GError) error = NULL;
     SnapdApp *app;
 
@@ -3147,7 +3147,7 @@ test_find_query (void)
     g_autofree gchar *suggested_currency = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     SnapdSnap *snap;
-    gchar **tracks;
+    GStrv tracks;
     GPtrArray *channels, *media, *prices, *screenshots;
     SnapdChannel *channel;
     g_autoptr(GError) error = NULL;
@@ -3422,7 +3422,7 @@ test_find_channels (void)
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
     SnapdSnap *snap;
-    gchar **tracks;
+    GStrv tracks;
     GPtrArray *channels;
     guint i;
     gboolean matched_stable = FALSE, matched_beta = FALSE, matched_branch = FALSE, matched_track = FALSE;
@@ -6486,7 +6486,7 @@ test_create_user_sync (void)
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(SnapdUserInformation) info = NULL;
-    gchar **ssh_keys;
+    GStrv ssh_keys;
     MockAccount *account;
     g_autoptr(GError) error = NULL;
 
@@ -6567,7 +6567,7 @@ test_create_users_sync (void)
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(GPtrArray) users_info = NULL;
     SnapdUserInformation *info;
-    gchar **ssh_keys;
+    GStrv ssh_keys;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();

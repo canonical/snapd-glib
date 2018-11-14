@@ -1039,14 +1039,14 @@ QSnapdSnap *QSnapdListRequest::snap (int n) const
     return new QSnapdSnap (d->snaps->pdata[n]);
 }
 
-static gchar **
+static GStrv
 string_list_to_strv (const QStringList& list)
 {
-    gchar **value;
+    GStrv value;
     int size, i;
 
     size = list.size ();
-    value = (gchar **) malloc (sizeof (gchar *) * (size + 1));
+    value = (GStrv) malloc (sizeof (gchar *) * (size + 1));
     for (i = 0; i < size; i++)
         value[i] = g_strdup (list[i].toStdString ().c_str ());
     value[size] = NULL;
@@ -1336,7 +1336,7 @@ void QSnapdGetAssertionsRequest::handleResult (void *object, void *result)
     assertions = snapd_client_get_assertions_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
 
     Q_D(QSnapdGetAssertionsRequest);
-    d->assertions = (gchar **) g_steal_pointer (&assertions);
+    d->assertions = (GStrv) g_steal_pointer (&assertions);
     finish (error);
 }
 
@@ -1857,7 +1857,7 @@ void QSnapdRefreshAllRequest::handleResult (void *object, void *result)
     snap_names = snapd_client_refresh_all_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
 
     Q_D(QSnapdRefreshAllRequest);
-    d->snap_names = (gchar **) g_steal_pointer (&snap_names);
+    d->snap_names = (GStrv) g_steal_pointer (&snap_names);
 
     finish (error);
 }
@@ -2297,7 +2297,7 @@ void QSnapdGetSectionsRequest::handleResult (void *object, void *result)
     sections = snapd_client_get_sections_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
 
     Q_D(QSnapdGetSectionsRequest);
-    d->sections = (gchar**) g_steal_pointer (&sections);
+    d->sections = (GStrv) g_steal_pointer (&sections);
     finish (error);
 }
 

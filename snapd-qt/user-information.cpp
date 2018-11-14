@@ -30,7 +30,7 @@ QString QSnapdUserInformation::email () const
 
 QStringList QSnapdUserInformation::sshKeys () const
 {
-    gchar **ssh_keys = snapd_user_information_get_ssh_keys (SNAPD_USER_INFORMATION (wrapped_object));
+    GStrv ssh_keys = snapd_user_information_get_ssh_keys (SNAPD_USER_INFORMATION (wrapped_object));
     QStringList result;
     for (int i = 0; ssh_keys[i] != NULL; i++)
         result.append (ssh_keys[i]);

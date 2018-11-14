@@ -25,7 +25,7 @@ SnapdPostSnaps *_snapd_post_snaps_new            (const gchar           *action,
                                                   GAsyncReadyCallback    callback,
                                                   gpointer               user_data);
 
-gchar         **_snapd_post_snaps_get_snap_names (SnapdPostSnaps        *request);
+GStrv           _snapd_post_snaps_get_snap_names (SnapdPostSnaps        *request);
 
 G_END_DECLS
 

@@ -94,9 +94,9 @@ const gchar             *snapd_snap_get_channel                (SnapdSnap   *sna
 GPtrArray               *snapd_snap_get_channels               (SnapdSnap   *snap);
 
 SnapdChannel            *snapd_snap_match_channel              (SnapdSnap   *snap,
-                                                        const gchar *name);
+                                                                const gchar *name);
 
-gchar                  **snapd_snap_get_common_ids             (SnapdSnap   *snap);
+GStrv                    snapd_snap_get_common_ids             (SnapdSnap   *snap);
 
 SnapdConfinement         snapd_snap_get_confinement            (SnapdSnap   *snap);
 
@@ -154,7 +154,7 @@ const gchar             *snapd_snap_get_title                  (SnapdSnap   *sna
 
 const gchar             *snapd_snap_get_tracking_channel       (SnapdSnap   *snap);
 
-gchar                  **snapd_snap_get_tracks                 (SnapdSnap   *snap);
+GStrv                    snapd_snap_get_tracks                 (SnapdSnap   *snap);
 
 gboolean                 snapd_snap_get_trymode                (SnapdSnap   *snap);
 

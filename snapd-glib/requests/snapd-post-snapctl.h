@@ -17,7 +17,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (SnapdPostSnapctl, snapd_post_snapctl, SNAPD, POST_SNAPCTL, SnapdRequest)
 
 SnapdPostSnapctl *_snapd_post_snapctl_new               (const gchar         *context_id,
-                                                         gchar              **args,
+                                                         GStrv                args,
                                                          GCancellable        *cancellable,
                                                          GAsyncReadyCallback  callback,
                                                          gpointer             user_data);

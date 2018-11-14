@@ -24,7 +24,7 @@ G_DECLARE_FINAL_TYPE (SnapdAssertion, snapd_assertion, SNAPD, ASSERTION, GObject
 
 SnapdAssertion *snapd_assertion_new                   (const gchar    *content);
 
-gchar         **snapd_assertion_get_headers           (SnapdAssertion *assertion);
+GStrv           snapd_assertion_get_headers           (SnapdAssertion *assertion);
 
 gchar          *snapd_assertion_get_header            (SnapdAssertion *assertion,
                                                        const gchar    *name);

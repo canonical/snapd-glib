@@ -16,7 +16,7 @@ struct _SnapdPostSnaps
 {
     SnapdRequestAsync parent_instance;
     gchar *action;
-    gchar **snap_names;
+    GStrv snap_names;
 };
 
 G_DEFINE_TYPE (SnapdPostSnaps, snapd_post_snaps, snapd_request_async_get_type ())
@@ -40,7 +40,7 @@ _snapd_post_snaps_new (const gchar *action,
     return request;
 }
 
-gchar **
+GStrv
 _snapd_post_snaps_get_snap_names (SnapdPostSnaps *request)
 {
     return request->snap_names;
@@ -105,7 +105,7 @@ parse_post_snaps_result (SnapdRequestAsync *request, JsonNode *result, GError **
     }
     g_ptr_array_add (snap_names, NULL);
 
-    r->snap_names = (gchar **) g_steal_pointer (&snap_names->pdata);
+    r->snap_names = (GStrv) g_steal_pointer (&snap_names->pdata);
 
     return TRUE;
 }

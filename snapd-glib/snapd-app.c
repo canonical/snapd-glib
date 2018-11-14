@@ -105,7 +105,7 @@ snapd_app_get_active (SnapdApp *app)
  * Since: 1.7
  * Deprecated: 1.25
  */
-gchar **
+GStrv
 snapd_app_get_aliases (SnapdApp *app)
 {
     g_return_val_if_fail (SNAPD_IS_APP (app), NULL);

@@ -116,7 +116,7 @@ void            mock_account_set_has_payment_methods (MockAccount   *account,
 
 const gchar    *mock_account_get_macaroon         (MockAccount   *account);
 
-gchar         **mock_account_get_discharges       (MockAccount   *account);
+GStrv           mock_account_get_discharges       (MockAccount   *account);
 
 gboolean        mock_account_get_sudoer           (MockAccount   *account);
 
@@ -126,7 +126,7 @@ void            mock_account_set_otp              (MockAccount   *account,
                                                    const gchar   *otp);
 
 void            mock_account_set_ssh_keys         (MockAccount   *account,
-                                                   gchar        **ssh_keys);
+                                                   GStrv          ssh_keys);
 
 MockAccount    *mock_snapd_find_account_by_username (MockSnapd     *snapd,
                                                      const gchar   *username);

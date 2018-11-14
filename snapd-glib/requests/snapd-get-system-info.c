@@ -105,7 +105,7 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, Sna
                 g_ptr_array_add (features_ptr_array, (gpointer) json_node_get_string (node));
             }
             g_ptr_array_add (features_ptr_array, NULL);
-            g_hash_table_insert (sandbox_features_hash, g_strdup (name), g_strdupv ((gchar **) features_ptr_array->pdata));
+            g_hash_table_insert (sandbox_features_hash, g_strdup (name), g_strdupv ((GStrv) features_ptr_array->pdata));
         }
     }
     system_information = g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,

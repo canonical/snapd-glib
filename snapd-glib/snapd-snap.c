@@ -39,7 +39,7 @@ struct _SnapdSnap
     gchar *broken;
     gchar *channel;
     GPtrArray *channels;
-    gchar **common_ids;
+    GStrv common_ids;
     SnapdConfinement confinement;
     gchar *contact;
     gchar *description;
@@ -66,7 +66,7 @@ struct _SnapdSnap
     gchar *summary;
     gchar *title;
     gchar *tracking_channel;
-    gchar **tracks;
+    GStrv tracks;
     gboolean trymode;
     SnapdSnapType snap_type;
     gchar *version;
@@ -276,7 +276,7 @@ snapd_snap_match_channel (SnapdSnap *snap, const gchar *name)
  *
  * Since: 1.41
  */
-gchar **
+GStrv
 snapd_snap_get_common_ids (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
@@ -775,7 +775,7 @@ snapd_snap_get_tracking_channel (SnapdSnap *snap)
  *
  * Since: 1.22
  */
-gchar **
+GStrv
 snapd_snap_get_tracks (SnapdSnap *snap)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);

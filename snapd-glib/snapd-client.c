@@ -831,7 +831,7 @@ send_request (SnapdClient *client, SnapdRequest *request)
 
     if (priv->auth_data != NULL) {
         g_autoptr(GString) authorization = NULL;
-        gchar **discharges;
+        GStrv discharges;
         gsize i;
 
         authorization = g_string_new ("");
@@ -1778,7 +1778,7 @@ snapd_client_list_finish (SnapdClient *client, GAsyncResult *result, GError **er
 void
 snapd_client_get_snaps_async (SnapdClient *client,
                               SnapdGetSnapsFlags flags,
-                              gchar **names,
+                              GStrv names,
                               GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdGetSnaps *request;
@@ -1859,7 +1859,7 @@ snapd_client_get_assertions_async (SnapdClient *client,
  *
  * Since: 1.8
  */
-gchar **
+GStrv
 snapd_client_get_assertions_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdGetAssertions *request;
@@ -1889,7 +1889,7 @@ snapd_client_get_assertions_finish (SnapdClient *client, GAsyncResult *result, G
  */
 void
 snapd_client_add_assertions_async (SnapdClient *client,
-                                   gchar **assertions,
+                                   GStrv assertions,
                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdPostAssertions *request;
@@ -2640,7 +2640,7 @@ snapd_client_refresh_all_async (SnapdClient *client,
  *
  * Since: 1.5
  */
-gchar **
+GStrv
 snapd_client_refresh_all_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdPostSnaps *request;
@@ -3165,7 +3165,7 @@ snapd_client_get_sections_async (SnapdClient *client,
  *
  * Since: 1.7
  */
-gchar **
+GStrv
 snapd_client_get_sections_finish (SnapdClient *client, GAsyncResult *result, GError **error)
 {
     SnapdGetSections *request;
@@ -3413,7 +3413,7 @@ snapd_client_prefer_finish (SnapdClient *client, GAsyncResult *result, GError **
  */
 void
 snapd_client_enable_aliases_async (SnapdClient *client,
-                                   const gchar *snap, gchar **aliases,
+                                   const gchar *snap, GStrv aliases,
                                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
@@ -3468,7 +3468,7 @@ snapd_client_enable_aliases_finish (SnapdClient *client, GAsyncResult *result, G
  */
 void
 snapd_client_disable_aliases_async (SnapdClient *client,
-                                    const gchar *snap, gchar **aliases,
+                                    const gchar *snap, GStrv aliases,
                                     SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                     GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
@@ -3523,7 +3523,7 @@ snapd_client_disable_aliases_finish (SnapdClient *client, GAsyncResult *result, 
  */
 void
 snapd_client_reset_aliases_async (SnapdClient *client,
-                                  const gchar *snap, gchar **aliases,
+                                  const gchar *snap, GStrv aliases,
                                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
@@ -3575,7 +3575,7 @@ snapd_client_reset_aliases_finish (SnapdClient *client, GAsyncResult *result, GE
  */
 void
 snapd_client_run_snapctl_async (SnapdClient *client,
-                                const gchar *context_id, gchar **args,
+                                const gchar *context_id, GStrv args,
                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdPostSnapctl *request;

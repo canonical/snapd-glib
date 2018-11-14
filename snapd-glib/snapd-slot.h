@@ -29,7 +29,7 @@ const gchar *snapd_slot_get_snap            (SnapdSlot   *slot);
 
 const gchar *snapd_slot_get_interface       (SnapdSlot   *slot);
 
-gchar      **snapd_slot_get_attribute_names (SnapdSlot   *slot,
+GStrv        snapd_slot_get_attribute_names (SnapdSlot   *slot,
                                              guint       *length);
 
 gboolean     snapd_slot_has_attribute       (SnapdSlot   *slot,

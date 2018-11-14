@@ -21,7 +21,7 @@ SnapdGetAssertions *_snapd_get_assertions_new            (const gchar         *t
                                                           GAsyncReadyCallback  callback,
                                                           gpointer             user_data);
 
-gchar             **_snapd_get_assertions_get_assertions (SnapdGetAssertions *request);
+GStrv               _snapd_get_assertions_get_assertions (SnapdGetAssertions *request);
 
 G_END_DECLS
 

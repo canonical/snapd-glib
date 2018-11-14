@@ -29,7 +29,7 @@ const gchar *snapd_plug_get_snap            (SnapdPlug   *plug);
 
 const gchar *snapd_plug_get_interface       (SnapdPlug   *plug);
 
-gchar      **snapd_plug_get_attribute_names (SnapdPlug   *plug,
+GStrv        snapd_plug_get_attribute_names (SnapdPlug   *plug,
                                              guint       *length);
 
 gboolean     snapd_plug_has_attribute       (SnapdPlug   *plug,

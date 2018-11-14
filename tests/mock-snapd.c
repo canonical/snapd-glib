@@ -75,9 +75,9 @@ struct _MockAccount
     gchar *username;
     gchar *password;
     gchar *otp;
-    gchar **ssh_keys;
+    GStrv ssh_keys;
     gchar *macaroon;
-    gchar **discharges;
+    GStrv discharges;
     gboolean sudoer;
     gboolean known;
     gboolean terms_accepted;
@@ -602,7 +602,7 @@ mock_account_get_macaroon (MockAccount *account)
     return account->macaroon;
 }
 
-gchar **
+GStrv
 mock_account_get_discharges (MockAccount *account)
 {
     return account->discharges;
@@ -628,7 +628,7 @@ mock_account_set_otp (MockAccount *account, const gchar *otp)
 }
 
 void
-mock_account_set_ssh_keys (MockAccount *account, gchar **ssh_keys)
+mock_account_set_ssh_keys (MockAccount *account, GStrv ssh_keys)
 {
     g_clear_pointer (&account->ssh_keys, g_strfreev);
     account->ssh_keys = g_strdupv (ssh_keys);
@@ -816,7 +816,7 @@ mock_account_add_private_snap (MockAccount *account, const gchar *name)
 }
 
 static gboolean
-discharges_match (gchar **discharges0, gchar **discharges1)
+discharges_match (GStrv discharges0, GStrv discharges1)
 {
     int i;
 
@@ -831,7 +831,7 @@ discharges_match (gchar **discharges0, gchar **discharges1)
 }
 
 static MockAccount *
-find_account_by_macaroon (MockSnapd *snapd, const gchar *macaroon, gchar **discharges)
+find_account_by_macaroon (MockSnapd *snapd, const gchar *macaroon, GStrv discharges)
 {
     GList *link;
 
@@ -1890,7 +1890,7 @@ handle_system_info (MockSnapd *snapd, SoupMessage *message)
 }
 
 static gboolean
-parse_macaroon (const gchar *authorization, gchar **macaroon, gchar ***discharges)
+parse_macaroon (const gchar *authorization, GStrv macaroon, GStrv *discharges)
 {
     g_autofree gchar *scheme = NULL;
     g_autofree gchar *m = NULL;
@@ -1960,7 +1960,7 @@ parse_macaroon (const gchar *authorization, gchar **macaroon, gchar ***discharge
         return FALSE;
 
     *macaroon = g_steal_pointer (&m);
-    *discharges = (gchar **) d->pdata;
+    *discharges = (GStrv) d->pdata;
     g_ptr_array_free (d, FALSE);
     d = NULL;
     return TRUE;

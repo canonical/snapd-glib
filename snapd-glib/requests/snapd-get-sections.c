@@ -15,7 +15,7 @@
 struct _SnapdGetSections
 {
     SnapdRequest parent_instance;
-    gchar **sections;
+    GStrv sections;
 };
 
 G_DEFINE_TYPE (SnapdGetSections, snapd_get_sections, snapd_request_get_type ())
@@ -30,7 +30,7 @@ _snapd_get_sections_new (GCancellable *cancellable, GAsyncReadyCallback callback
                                              NULL));
 }
 
-gchar **
+GStrv
 _snapd_get_sections_get_sections (SnapdGetSections *request)
 {
     return request->sections;
@@ -73,7 +73,7 @@ parse_get_sections_response (SnapdRequest *request, SoupMessage *message, SnapdM
     }
     g_ptr_array_add (sections, NULL);
 
-    r->sections = g_steal_pointer ((gchar ***)&sections->pdata);
+    r->sections = g_steal_pointer ((GStrv *)&sections->pdata);
 
     return TRUE;
 }

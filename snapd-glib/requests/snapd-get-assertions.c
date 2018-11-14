@@ -19,7 +19,7 @@ struct _SnapdGetAssertions
 {
     SnapdRequest parent_instance;
     gchar *type;
-    gchar **assertions;
+    GStrv assertions;
 };
 
 G_DEFINE_TYPE (SnapdGetAssertions, snapd_get_assertions, snapd_request_get_type ())
@@ -39,7 +39,7 @@ _snapd_get_assertions_new (const gchar *type, GCancellable *cancellable, GAsyncR
     return request;
 }
 
-gchar **
+GStrv
 _snapd_get_assertions_get_assertions (SnapdGetAssertions *request)
 {
     return request->assertions;
@@ -135,7 +135,7 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, Snap
     }
     g_ptr_array_add (assertions, NULL);
 
-    r->assertions = g_steal_pointer ((gchar ***)&assertions->pdata);
+    r->assertions = g_steal_pointer ((GStrv *)&assertions->pdata);
 
     return TRUE;
 }

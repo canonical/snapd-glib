@@ -841,7 +841,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                          "broken", _snapd_json_get_string (object, "broken", NULL),
                          "channel", _snapd_json_get_string (object, "channel", NULL),
                          "channels", channels_array,
-                         "common-ids", (gchar **) common_ids_array->pdata,
+                         "common-ids", (GStrv) common_ids_array->pdata,
                          "confinement", confinement,
                          "contact", _snapd_json_get_string (object, "contact", NULL),
                          "description", _snapd_json_get_string (object, "description", NULL),
@@ -869,7 +869,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                          "summary", _snapd_json_get_string (object, "summary", NULL),
                          "title", _snapd_json_get_string (object, "title", NULL),
                          "tracking-channel", _snapd_json_get_string (object, "tracking-channel", NULL),
-                         "tracks", (gchar **) track_array->pdata,
+                         "tracks", (GStrv) track_array->pdata,
                          "trymode", _snapd_json_get_bool (object, "trymode", FALSE),
                          "version", _snapd_json_get_string (object, "version", NULL),
                          NULL);
@@ -949,14 +949,14 @@ _snapd_json_parse_user_information (JsonObject *object, GError **error)
             g_ptr_array_add (discharge_array, (gpointer) json_node_get_string (node));
         }
         g_ptr_array_add (discharge_array, NULL);
-        auth_data = snapd_auth_data_new (_snapd_json_get_string (object, "macaroon", NULL), (gchar **) discharge_array->pdata);
+        auth_data = snapd_auth_data_new (_snapd_json_get_string (object, "macaroon", NULL), (GStrv) discharge_array->pdata);
     }
 
     return g_object_new (SNAPD_TYPE_USER_INFORMATION,
                          "id", _snapd_json_get_int (object, "id", -1),
                          "username", _snapd_json_get_string (object, "username", NULL),
                          "email", _snapd_json_get_string (object, "email", NULL),
-                         "ssh-keys", (gchar **) ssh_key_array->pdata,
+                         "ssh-keys", (GStrv) ssh_key_array->pdata,
                          "auth-data", auth_data,
                          NULL);
 }

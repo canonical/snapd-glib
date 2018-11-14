@@ -16,13 +16,13 @@
 struct _SnapdPostAssertions
 {
     SnapdRequest parent_instance;
-    gchar **assertions;
+    GStrv assertions;
 };
 
 G_DEFINE_TYPE (SnapdPostAssertions, snapd_post_assertions, snapd_request_get_type ())
 
 SnapdPostAssertions *
-_snapd_post_assertions_new (gchar **assertions,
+_snapd_post_assertions_new (GStrv assertions,
                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdPostAssertions *request;

@@ -15,14 +15,14 @@ struct _SnapdGetSnaps
 {
     SnapdRequest parent_instance;
     gchar *select;
-    gchar **names;
+    GStrv names;
     GPtrArray *snaps;
 };
 
 G_DEFINE_TYPE (SnapdGetSnaps, snapd_get_snaps, snapd_request_get_type ())
 
 SnapdGetSnaps *
-_snapd_get_snaps_new (GCancellable *cancellable, gchar **names, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_get_snaps_new (GCancellable *cancellable, GStrv names, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdGetSnaps *request;
 

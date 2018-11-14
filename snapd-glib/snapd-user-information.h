@@ -30,7 +30,7 @@ const gchar   *snapd_user_information_get_username  (SnapdUserInformation *user_
 
 const gchar   *snapd_user_information_get_email     (SnapdUserInformation *user_information);
 
-gchar        **snapd_user_information_get_ssh_keys  (SnapdUserInformation *user_information);
+GStrv          snapd_user_information_get_ssh_keys  (SnapdUserInformation *user_information);
 
 SnapdAuthData *snapd_user_information_get_auth_data (SnapdUserInformation *user_information);
 
