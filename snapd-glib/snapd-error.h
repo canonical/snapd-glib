@@ -63,6 +63,10 @@ G_BEGIN_DECLS
  * @SNAPD_ERROR_DNS_FAILURE: A hostname failed to resolve during the request.
  * @SNAPD_ERROR_OPTION_NOT_FOUND: A requested configuration option is not set.
  * @SNAPD_ERROR_UNSUCCESSFUL: A snapctl command was unsuccessful.
+ * @SNAPD_ERROR_APP_NOT_FOUND: The requested app coundn't be found.
+ * @SNAPD_ERROR_ARCHITECTURE_NOT_AVAILABLE: No snap revision on specified architecture.
+ * @SNAPD_ERROR_CHANGE_CONFLICT: The requested operation would conflict with currently ongoing change.
+ * @SNAPD_ERROR_INTERFACES_UNCHANGED: The requested interfaces' operation would have no effect.
  *
  * Error codes returned by snapd operations.
  *
@@ -103,6 +107,10 @@ typedef enum
     SNAPD_ERROR_DNS_FAILURE,
     SNAPD_ERROR_OPTION_NOT_FOUND,
     SNAPD_ERROR_UNSUCCESSFUL,
+    SNAPD_ERROR_APP_NOT_FOUND,
+    SNAPD_ERROR_ARCHITECTURE_NOT_AVAILABLE,
+    SNAPD_ERROR_CHANGE_CONFLICT,
+    SNAPD_ERROR_INTERFACES_UNCHANGED,
 } SnapdError;
 
 /**
