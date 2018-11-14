@@ -289,6 +289,107 @@ test_allow_interaction (void)
     g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, NULL);
 }
 
+static void
+test_maintenance_none (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+    SnapdMaintenance *maintenance;
+
+    snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+
+    maintenance = snapd_client_get_maintenance (client);
+    g_assert_null (maintenance);
+}
+
+static void
+test_maintenance_daemon_restart (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+    SnapdMaintenance *maintenance;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_maintenance (snapd, "daemon-restart", "daemon is restarting");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+
+    maintenance = snapd_client_get_maintenance (client);
+    g_assert_nonnull (maintenance);
+    g_assert_cmpint (snapd_maintenance_get_kind (maintenance), ==, SNAPD_MAINTENANCE_KIND_DAEMON_RESTART);
+    g_assert_cmpstr (snapd_maintenance_get_message (maintenance), ==, "daemon is restarting");
+}
+
+static void
+test_maintenance_system_restart (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+    SnapdMaintenance *maintenance;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_maintenance (snapd, "system-restart", "system is restarting");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+
+    maintenance = snapd_client_get_maintenance (client);
+    g_assert_nonnull (maintenance);
+    g_assert_cmpint (snapd_maintenance_get_kind (maintenance), ==, SNAPD_MAINTENANCE_KIND_SYSTEM_RESTART);
+    g_assert_cmpstr (snapd_maintenance_get_message (maintenance), ==, "system is restarting");
+}
+
+static void
+test_maintenance_unknown (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = NULL;
+    SnapdMaintenance *maintenance;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_set_maintenance (snapd, "no-such-kind", "MESSAGE");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (info);
+
+    maintenance = snapd_client_get_maintenance (client);
+    g_assert_nonnull (maintenance);
+    g_assert_cmpint (snapd_maintenance_get_kind (maintenance), ==, SNAPD_MAINTENANCE_KIND_UNKNOWN);
+    g_assert_cmpstr (snapd_maintenance_get_message (maintenance), ==, "MESSAGE");
+}
+
 static gboolean
 date_matches (GDateTime *date, int year, int month, int day, int hour, int minute, int second)
 {
@@ -7019,6 +7120,10 @@ main (int argc, char **argv)
     g_test_add_func ("/accept-language/basic", test_accept_language);
     g_test_add_func ("/accept-language/empty", test_accept_language_empty);
     g_test_add_func ("/allow-interaction/basic", test_allow_interaction);
+    g_test_add_func ("/maintenance/none", test_maintenance_none);
+    g_test_add_func ("/maintenance/daemon-restart", test_maintenance_daemon_restart);
+    g_test_add_func ("/maintenance/system-restart", test_maintenance_system_restart);
+    g_test_add_func ("/maintenance/unknown", test_maintenance_unknown);
     g_test_add_func ("/get-system-information/sync", test_get_system_information_sync);
     g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);

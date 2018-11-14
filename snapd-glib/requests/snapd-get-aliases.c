@@ -46,7 +46,7 @@ generate_get_aliases_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetAliases *r = SNAPD_GET_ALIASES (request);
     g_autoptr(JsonObject) response = NULL;
@@ -56,7 +56,7 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, GError 
     const gchar *snap;
     JsonNode *snap_node;
 
-    response = _snapd_json_parse_response (message, error);
+    response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
     result = _snapd_json_get_sync_result_o (response, error);

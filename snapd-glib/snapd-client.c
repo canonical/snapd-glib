@@ -114,6 +114,9 @@ typedef struct
     GMutex buffer_mutex;
     GByteArray *buffer;
     gsize n_read;
+
+    /* Maintenance information returned from snapd */
+    SnapdMaintenance *maintenance;
 } SnapdClientPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
@@ -523,9 +526,11 @@ update_changes (SnapdClient *client, SnapdChange *change, JsonNode *data)
 static void
 parse_response (SnapdClient *client, SnapdRequest *request, SoupMessage *message)
 {
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_autoptr(GError) error = NULL;
 
-    if (!SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, message, &error)) {
+    g_clear_object (&priv->maintenance);
+    if (!SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, message, &priv->maintenance, &error)) {
         if (SNAPD_IS_GET_CHANGE (request)) {
             complete_change (client, _snapd_get_change_get_change_id (SNAPD_GET_CHANGE (request)), error);
             snapd_request_complete (client, request, NULL);
@@ -1057,6 +1062,28 @@ snapd_client_set_allow_interaction (SnapdClient *client, gboolean allow_interact
 
     priv = snapd_client_get_instance_private (client);
     priv->allow_interaction = allow_interaction;
+}
+
+/**
+ * snapd_client_get_maintenance:
+ * @client: a #SnapdClient
+ *
+ * Get the maintenance information reported by snapd or %NULL if no maintenance is in progress.
+ * This information is updated after every request.
+ *
+ * Returns: (transfer none) (allow-none): a #SnapdMaintenance or %NULL.
+ *
+ * Since: 1.45
+ */
+SnapdMaintenance *
+snapd_client_get_maintenance (SnapdClient *client)
+{
+    SnapdClientPrivate *priv;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+
+    priv = snapd_client_get_instance_private (client);
+    return priv->maintenance;
 }
 
 /**
@@ -3635,6 +3662,7 @@ snapd_client_finalize (GObject *object)
     g_clear_object (&priv->snapd_socket);
     g_clear_pointer (&priv->request_data, g_hash_table_unref);
     g_clear_pointer (&priv->buffer, g_byte_array_unref);
+    g_clear_object (&priv->maintenance);
 
     G_OBJECT_CLASS (snapd_client_parent_class)->finalize (object);
 }

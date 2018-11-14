@@ -84,6 +84,14 @@ public:
         PublisherValidationVerified
     };
     Q_ENUM(PublisherValidation)
+
+    enum MaintenanceKind
+    {
+        MaintenanceKindUnknown,
+        MaintenanceKindDaemonRestart,
+        MaintenanceKindSystemRestart
+    };
+    Q_ENUM(MaintenanceKind)
 };
 
 #endif

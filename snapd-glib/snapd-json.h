@@ -14,6 +14,7 @@
 #include <json-glib/json-glib.h>
 
 #include "snapd-change.h"
+#include "snapd-maintenance.h"
 #include "snapd-snap.h"
 #include "snapd-user-information.h"
 
@@ -44,6 +45,7 @@ GDateTime            *_snapd_json_get_date_time          (JsonObject         *ob
                                                           const gchar        *name);
 
 JsonObject           *_snapd_json_parse_response         (SoupMessage        *message,
+                                                          SnapdMaintenance **maintenance,
                                                           GError            **error);
 
 JsonObject           *_snapd_json_get_sync_result_o      (JsonObject         *response,

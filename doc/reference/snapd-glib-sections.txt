@@ -110,6 +110,7 @@ snapd_client_set_socket_path
 snapd_client_get_socket_path
 snapd_client_get_allow_interaction
 snapd_client_set_allow_interaction
+snapd_client_get_maintenance
 snapd_client_connect_sync
 snapd_client_connect_async
 snapd_client_connect_finish
@@ -430,6 +431,21 @@ SnapdPrice
 <SUBSECTION Private>
 SnapdPriceClass
 SNAPD_TYPE_PRICE
+</SECTION>
+
+<SECTION>
+<FILE>snapd-maintenance</FILE>
+<TITLE>SnapdMaintenance</TITLE>
+SnapdMaintenanceKind
+snapd_maintenance_get_kind
+snapd_maintenance_get_message
+SnapdMaintenance
+
+<SUBSECTION Private>
+SnapdMaintenanceClass
+SNAPD_TYPE_MAINTENANCE
+SNAPD_TYPE_MAINTENANCE_KIND
+snapd_maintenance_kind_get_type
 </SECTION>
 
 <SECTION>

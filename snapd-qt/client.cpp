@@ -122,6 +122,16 @@ bool QSnapdClient::allowInteraction () const
     return snapd_client_get_allow_interaction (d->client);
 }
 
+QSnapdMaintenance *QSnapdClient::maintenance () const
+{
+    Q_D(const QSnapdClient);
+    SnapdMaintenance *m = snapd_client_get_maintenance (d->client);
+    if (m == NULL)
+        return NULL;
+    else
+        return new QSnapdMaintenance (m);
+}
+
 void QSnapdClient::setAuthData (QSnapdAuthData *authData)
 {
     Q_D(QSnapdClient);

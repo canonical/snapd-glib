@@ -333,7 +333,7 @@ parse_error_response (JsonObject *root, GError **error)
 }
 
 JsonObject *
-_snapd_json_parse_response (SoupMessage *message, GError **error)
+_snapd_json_parse_response (SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     const gchar *content_type;
     g_autoptr(JsonParser) parser = NULL;
@@ -369,6 +369,23 @@ _snapd_json_parse_response (SoupMessage *message, GError **error)
     if (type_node == NULL || json_node_get_value_type (type_node) != G_TYPE_STRING) {
         g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_RESPONSE, "snapd response does not have a type");
         return NULL;
+    }
+
+    if (json_object_has_member (root, "maintenance") && maintenance != NULL) {
+        JsonObject *m = json_object_get_object_member (root, "maintenance");
+        const gchar *kind;
+        SnapdMaintenanceKind maintenance_kind = SNAPD_MAINTENANCE_KIND_UNKNOWN;
+
+        kind = _snapd_json_get_string (m, "kind", NULL);
+        if (g_strcmp0 (kind, "daemon-restart") == 0)
+            maintenance_kind = SNAPD_MAINTENANCE_KIND_DAEMON_RESTART;
+        else if (g_strcmp0 (kind, "system-restart") == 0)
+            maintenance_kind = SNAPD_MAINTENANCE_KIND_SYSTEM_RESTART;
+
+        *maintenance = g_object_new (SNAPD_TYPE_MAINTENANCE,
+                                     "kind", maintenance_kind,
+                                     "message", _snapd_json_get_string (m, "message", NULL),
+                                     NULL);
     }
 
     if (strcmp (json_node_get_string (type_node), "error") == 0) {

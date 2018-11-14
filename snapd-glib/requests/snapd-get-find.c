@@ -132,14 +132,14 @@ generate_get_find_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_find_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_get_find_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetFind *r = SNAPD_GET_FIND (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
 
-    response = _snapd_json_parse_response (message, error);
+    response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
     result = _snapd_json_get_sync_result_a (response, error);

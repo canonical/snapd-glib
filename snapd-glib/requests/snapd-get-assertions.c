@@ -58,7 +58,7 @@ generate_get_assertions_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetAssertions *r = SNAPD_GET_ASSERTIONS (request);
     const gchar *content_type;
@@ -71,7 +71,7 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, GErr
         g_autoptr(JsonObject) response = NULL;
         g_autoptr(JsonObject) result = NULL;
 
-        response = _snapd_json_parse_response (message, error);
+        response = _snapd_json_parse_response (message, maintenance, error);
         if (response == NULL)
             return FALSE;
         result = _snapd_json_get_sync_result_o (response, error);

@@ -79,13 +79,13 @@ generate_post_change_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_change_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_post_change_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdPostChange *r = SNAPD_POST_CHANGE (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
 
-    response = _snapd_json_parse_response (message, error);
+    response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
     result = _snapd_json_get_sync_result_o (response, error);

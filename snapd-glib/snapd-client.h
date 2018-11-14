@@ -19,6 +19,7 @@
 
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-icon.h>
+#include <snapd-glib/snapd-maintenance.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-change.h>
@@ -203,6 +204,8 @@ void                    snapd_client_set_allow_interaction         (SnapdClient 
                                                                     gboolean              allow_interaction);
 
 gboolean                snapd_client_get_allow_interaction         (SnapdClient          *client);
+
+SnapdMaintenance       *snapd_client_get_maintenance               (SnapdClient          *client);
 
 SnapdAuthData          *snapd_client_login_sync                    (SnapdClient          *client,
                                                                     const gchar          *email,

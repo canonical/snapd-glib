@@ -43,7 +43,7 @@ generate_get_sections_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_sections_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_get_sections_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetSections *r = SNAPD_GET_SECTIONS (request);
     g_autoptr(JsonObject) response = NULL;
@@ -51,7 +51,7 @@ parse_get_sections_response (SnapdRequest *request, SoupMessage *message, GError
     g_autoptr(GPtrArray) sections = NULL;
     guint i;
 
-    response = _snapd_json_parse_response (message, error);
+    response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
     result = _snapd_json_get_sync_result_a (response, error);

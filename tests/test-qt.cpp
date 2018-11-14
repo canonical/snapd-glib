@@ -164,6 +164,83 @@ test_allow_interaction ()
 }
 
 static void
+test_maintenance_none ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdMaintenance> maintenance (client.maintenance ());
+    g_assert_null (maintenance);
+}
+
+static void
+test_maintenance_daemon_restart ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_maintenance (snapd, "daemon-restart", "daemon is restarting");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdMaintenance> maintenance (client.maintenance ());
+    g_assert_nonnull (maintenance);
+    g_assert (maintenance->kind () == QSnapdEnums::MaintenanceKindDaemonRestart);
+    g_assert (maintenance->message () == "daemon is restarting");
+}
+
+static void
+test_maintenance_system_restart ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_maintenance (snapd, "system-restart", "system is restarting");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdMaintenance> maintenance (client.maintenance ());
+    g_assert_nonnull (maintenance);
+    g_assert (maintenance->kind () == QSnapdEnums::MaintenanceKindSystemRestart);
+    g_assert (maintenance->message () == "system is restarting");
+}
+
+static void
+test_maintenance_unknown ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_maintenance (snapd, "no-such-kind", "MESSAGE");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSystemInformationRequest> infoRequest (client.getSystemInformation ());
+    infoRequest->runSync ();
+    g_assert_cmpint (infoRequest->error (), ==, QSnapdRequest::NoError);
+
+    QScopedPointer<QSnapdMaintenance> maintenance (client.maintenance ());
+    g_assert_nonnull (maintenance);
+    g_assert (maintenance->kind () == QSnapdEnums::MaintenanceKindUnknown);
+    g_assert (maintenance->message () == "MESSAGE");
+}
+
+static void
 test_get_system_information_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -5453,6 +5530,10 @@ main (int argc, char **argv)
     g_test_add_func ("/accept-language/basic", test_accept_language);
     g_test_add_func ("/accept-language/empty", test_accept_language_empty);
     g_test_add_func ("/allow-interaction/basic", test_allow_interaction);
+    g_test_add_func ("/maintenance/none", test_maintenance_none);
+    g_test_add_func ("/maintenance/daemon-restart", test_maintenance_daemon_restart);
+    g_test_add_func ("/maintenance/system-restart", test_maintenance_system_restart);
+    g_test_add_func ("/maintenance/unknown", test_maintenance_unknown);
     g_test_add_func ("/get-system-information/sync", test_get_system_information_sync);
     g_test_add_func ("/get-system-information/async", test_get_system_information_async);
     g_test_add_func ("/get-system-information/store", test_get_system_information_store);

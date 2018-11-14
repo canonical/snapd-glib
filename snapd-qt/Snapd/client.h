@@ -17,6 +17,7 @@
 #include <Snapd/AuthData>
 #include <Snapd/Connection>
 #include <Snapd/Icon>
+#include <Snapd/Maintenance>
 #include <Snapd/Plug>
 #include <Snapd/Request>
 #include <Snapd/Slot>
@@ -841,6 +842,7 @@ public:
     Q_INVOKABLE QString userAgent () const;
     Q_INVOKABLE void setAllowInteraction (bool allowInteraction);
     Q_INVOKABLE bool allowInteraction () const;
+    Q_INVOKABLE QSnapdMaintenance *maintenance () const;
     Q_INVOKABLE void setAuthData (QSnapdAuthData *authData);
     Q_INVOKABLE QSnapdAuthData *authData ();
     Q_INVOKABLE QSnapdGetChangesRequest *getChanges ();

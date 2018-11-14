@@ -13,6 +13,8 @@
 #include <glib-object.h>
 #include <libsoup/soup.h>
 
+#include "snapd-maintenance.h"
+
 G_BEGIN_DECLS
 
 G_DECLARE_DERIVABLE_TYPE (SnapdRequest, snapd_request, SNAPD, REQUEST, GObject)
@@ -22,7 +24,7 @@ struct _SnapdRequestClass
     GObjectClass parent_class;
 
     SoupMessage *(*generate_request)(SnapdRequest *request);
-    gboolean (*parse_response)(SnapdRequest *request, SoupMessage *message, GError **error);
+    gboolean (*parse_response)(SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error);
 };
 
 void          _snapd_request_set_source_object (SnapdRequest *request,

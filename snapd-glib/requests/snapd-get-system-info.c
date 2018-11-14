@@ -45,7 +45,7 @@ generate_get_system_info_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetSystemInfo *r = SNAPD_GET_SYSTEM_INFO (request);
     g_autoptr(JsonObject) response = NULL;
@@ -56,7 +56,7 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, GEr
     JsonObject *os_release, *locations, *refresh, *sandbox_features;
     g_autoptr(GHashTable) sandbox_features_hash = NULL;
 
-    response = _snapd_json_parse_response (message, error);
+    response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
     result = _snapd_json_get_sync_result_o (response, error);

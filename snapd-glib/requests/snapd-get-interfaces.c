@@ -244,7 +244,7 @@ get_attributes (JsonObject *object, const gchar *name, GError **error)
 }
 
 static gboolean
-parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetInterfaces *r = SNAPD_GET_INTERFACES (request);
     g_autoptr(JsonObject) response = NULL;
@@ -255,7 +255,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, GErr
     g_autoptr(JsonArray) slots = NULL;
     guint i;
 
-    response = _snapd_json_parse_response (message, error);
+    response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
     result = _snapd_json_get_sync_result_o (response, error);

@@ -35,11 +35,11 @@ generate_get_buy_ready_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_buy_ready_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_get_buy_ready_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     g_autoptr(JsonObject) response = NULL;
 
-    response = _snapd_json_parse_response (message, error);
+    response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
 

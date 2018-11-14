@@ -85,14 +85,14 @@ generate_post_create_user_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_create_user_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_post_create_user_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdPostCreateUser *r = SNAPD_POST_CREATE_USER (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(SnapdUserInformation) user_information = NULL;
 
-    response = _snapd_json_parse_response (message, error);
+    response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
     result = _snapd_json_get_sync_result_o (response, error);

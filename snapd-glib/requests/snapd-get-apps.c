@@ -64,14 +64,14 @@ generate_get_apps_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_apps_response (SnapdRequest *request, SoupMessage *message, GError **error)
+parse_get_apps_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetApps *r = SNAPD_GET_APPS (request);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     GPtrArray *apps;
 
-    response = _snapd_json_parse_response (message, error);
+    response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
     result = _snapd_json_get_sync_result_a (response, error);

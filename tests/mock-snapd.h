@@ -53,6 +53,10 @@ gboolean        mock_snapd_start                  (MockSnapd     *snapd,
 
 void            mock_snapd_stop                   (MockSnapd     *snapd);
 
+void            mock_snapd_set_maintenance        (MockSnapd     *snapd,
+                                                   const gchar   *type,
+                                                   const gchar   *message);
+
 void            mock_snapd_set_build_id           (MockSnapd     *snapd,
                                                    const gchar   *build_id);
 
