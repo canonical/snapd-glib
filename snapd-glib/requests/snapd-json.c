@@ -331,6 +331,26 @@ parse_error_response (JsonObject *root, JsonNode **error_value, GError **error)
                              SNAPD_ERROR,
                              SNAPD_ERROR_UNSUCCESSFUL,
                              message);
+    else if (g_strcmp0 (kind, "app-not-found") == 0)
+        g_set_error_literal (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_APP_NOT_FOUND,
+                             message);
+    else if (g_strcmp0 (kind, "snap-architecture-not-available") == 0)
+         g_set_error_literal (error,
+                              SNAPD_ERROR,
+                              SNAPD_ERROR_ARCHITECTURE_NOT_AVAILABLE,
+                              message);
+    else if (g_strcmp0 (kind, "snap-change-conflict") == 0)
+         g_set_error_literal (error,
+                              SNAPD_ERROR,
+                              SNAPD_ERROR_CHANGE_CONFLICT,
+                              message);
+    else if (g_strcmp0 (kind, "interfaces-unchanged") == 0)
+         g_set_error_literal (error,
+                              SNAPD_ERROR,
+                              SNAPD_ERROR_INTERFACES_UNCHANGED,
+                              message);
     else {
         switch (status_code) {
         case SOUP_STATUS_BAD_REQUEST:

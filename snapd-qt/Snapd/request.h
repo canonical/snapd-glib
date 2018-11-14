@@ -62,7 +62,11 @@ public:
         ChannelNotAvailable,
         NotASnap,
         DNSFailure,
-        OptionNotFound
+        OptionNotFound,
+        AppNotFound,
+        ArchitectureNotAvailable,
+        ChangeConflict,
+        InterfacesUnchanged
     };
     Q_ENUM(QSnapdError)
 
