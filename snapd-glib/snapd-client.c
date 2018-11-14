@@ -966,11 +966,10 @@ snapd_client_connect_finish (SnapdClient *client, GAsyncResult *result, GError *
 void
 snapd_client_set_socket_path (SnapdClient *client, const gchar *socket_path)
 {
-    SnapdClientPrivate *priv;
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    priv = snapd_client_get_instance_private (client);
     g_free (priv->socket_path);
     if (priv->socket_path != NULL)
         priv->socket_path = g_strdup (socket_path);
@@ -991,11 +990,8 @@ snapd_client_set_socket_path (SnapdClient *client, const gchar *socket_path)
 const gchar *
 snapd_client_get_socket_path (SnapdClient *client)
 {
-    SnapdClientPrivate *priv;
-
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-
-    priv = snapd_client_get_instance_private (client);
     return priv->socket_path;
 }
 
@@ -1012,11 +1008,10 @@ snapd_client_get_socket_path (SnapdClient *client)
 void
 snapd_client_set_user_agent (SnapdClient *client, const gchar *user_agent)
 {
-    SnapdClientPrivate *priv;
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
-    priv = snapd_client_get_instance_private (client);
     g_free (priv->user_agent);
     priv->user_agent = g_strdup (user_agent);
 }
@@ -1034,11 +1029,8 @@ snapd_client_set_user_agent (SnapdClient *client, const gchar *user_agent)
 const gchar *
 snapd_client_get_user_agent (SnapdClient *client)
 {
-    SnapdClientPrivate *priv;
-
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-
-    priv = snapd_client_get_instance_private (client);
     return priv->user_agent;
 }
 
@@ -1056,11 +1048,8 @@ snapd_client_get_user_agent (SnapdClient *client)
 void
 snapd_client_set_allow_interaction (SnapdClient *client, gboolean allow_interaction)
 {
-    SnapdClientPrivate *priv;
-
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_return_if_fail (SNAPD_IS_CLIENT (client));
-
-    priv = snapd_client_get_instance_private (client);
     priv->allow_interaction = allow_interaction;
 }
 
@@ -1078,11 +1067,8 @@ snapd_client_set_allow_interaction (SnapdClient *client, gboolean allow_interact
 SnapdMaintenance *
 snapd_client_get_maintenance (SnapdClient *client)
 {
-    SnapdClientPrivate *priv;
-
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-
-    priv = snapd_client_get_instance_private (client);
     return priv->maintenance;
 }
 
@@ -1099,11 +1085,8 @@ snapd_client_get_maintenance (SnapdClient *client)
 gboolean
 snapd_client_get_allow_interaction (SnapdClient *client)
 {
-    SnapdClientPrivate *priv;
-
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
-
-    priv = snapd_client_get_instance_private (client);
     return priv->allow_interaction;
 }
 
@@ -1232,11 +1215,8 @@ snapd_client_login2_finish (SnapdClient *client, GAsyncResult *result, GError **
 void
 snapd_client_set_auth_data (SnapdClient *client, SnapdAuthData *auth_data)
 {
-    SnapdClientPrivate *priv;
-
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_return_if_fail (SNAPD_IS_CLIENT (client));
-
-    priv = snapd_client_get_instance_private (client);
     g_clear_object (&priv->auth_data);
     if (auth_data != NULL)
         priv->auth_data = g_object_ref (auth_data);
@@ -1255,12 +1235,8 @@ snapd_client_set_auth_data (SnapdClient *client, SnapdAuthData *auth_data)
 SnapdAuthData *
 snapd_client_get_auth_data (SnapdClient *client)
 {
-    SnapdClientPrivate *priv;
-
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
     g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
-
-    priv = snapd_client_get_instance_private (client);
-
     return priv->auth_data;
 }
 
