@@ -56,7 +56,9 @@ public:
         NotFound,
         NotInStore,
         AuthCancelled,
-        NotClassic
+        NotClassic,
+        RevisionNotAvailable,
+        ChannelNotAvailable
     };
     Q_ENUM(QSnapdError)
 

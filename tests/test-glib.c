@@ -4663,6 +4663,46 @@ test_install_not_available (void)
 }
 
 static void
+test_install_channel_not_available (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", "channel", NULL, NULL, NULL, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_CHANNEL_NOT_AVAILABLE);
+    g_assert_false (result);
+}
+
+static void
+test_install_revision_not_available (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    gboolean result;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, "1.1", NULL, NULL, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_REVISION_NOT_AVAILABLE);
+    g_assert_false (result);
+}
+
+static void
 test_install_snapd_restart (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -7235,6 +7275,8 @@ main (int argc, char **argv)
     g_test_add_func ("/install/channel", test_install_channel);
     g_test_add_func ("/install/revision", test_install_revision);
     g_test_add_func ("/install/not-available", test_install_not_available);
+    g_test_add_func ("/install/channel-not-available", test_install_channel_not_available);
+    g_test_add_func ("/install/revision-not-available", test_install_revision_not_available);
     g_test_add_func ("/install/snapd-restart", test_install_snapd_restart);
     g_test_add_func ("/install/async-snapd-restart", test_install_async_snapd_restart);
     g_test_add_func ("/install/auth-cancelled", test_install_auth_cancelled);

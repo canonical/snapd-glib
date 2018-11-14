@@ -3704,6 +3704,36 @@ test_install_not_available ()
 }
 
 static void
+test_install_channel_not_available ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap", "channel"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::ChannelNotAvailable);
+}
+
+static void
+test_install_revision_not_available ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdInstallRequest> installRequest (client.install ("snap", NULL, "1.1"));
+    installRequest->runSync ();
+    g_assert_cmpint (installRequest->error (), ==, QSnapdRequest::RevisionNotAvailable);
+}
+
+static void
 test_install_snapd_restart ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -5644,6 +5674,8 @@ main (int argc, char **argv)
     g_test_add_func ("/install/channel", test_install_channel);
     g_test_add_func ("/install/revision", test_install_revision);
     g_test_add_func ("/install/not-available", test_install_not_available);
+    g_test_add_func ("/install/channel-not-available", test_install_channel_not_available);
+    g_test_add_func ("/install/revision-not-available", test_install_revision_not_available);
     g_test_add_func ("/install/snapd-restart", test_install_snapd_restart);
     g_test_add_func ("/install/async-snapd-restart", test_install_async_snapd_restart);
     g_test_add_func ("/install/auth-cancelled", test_install_auth_cancelled);

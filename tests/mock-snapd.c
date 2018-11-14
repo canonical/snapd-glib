@@ -1783,9 +1783,9 @@ send_error_forbidden (MockSnapd *snapd, SoupMessage *message, const gchar *error
 }
 
 static void
-send_error_not_found (MockSnapd *snapd, SoupMessage *message, const gchar *error_message)
+send_error_not_found (MockSnapd *snapd, SoupMessage *message, const gchar *error_message, const gchar *kind)
 {
-    send_error_response (snapd, message, 404, error_message, NULL);
+    send_error_response (snapd, message, 404, error_message, kind);
 }
 
 static void
@@ -2615,7 +2615,7 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
         if (snap != NULL)
             send_sync_response (snapd, message, 200, make_snap_node (snap), NULL);
         else
-            send_error_not_found (snapd, message, "cannot find snap");
+            send_error_not_found (snapd, message, "cannot find snap", NULL);
     }
     else if (strcmp (message->method, "POST") == 0) {
         g_autoptr(JsonNode) request = NULL;
@@ -2660,9 +2660,21 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
                 return;
             }
 
+            snap = find_store_snap_by_name (snapd, name, NULL, NULL);
+            if (snap == NULL) {
+                send_error_not_found (snapd, message, "cannot install, snap not found", "snap-not-found");
+                return;
+            }
+
+            snap = find_store_snap_by_name (snapd, name, channel, NULL);
+            if (snap == NULL) {
+                send_error_not_found (snapd, message, "no snap revision on specified channel", "snap-channel-not-available");
+                return;
+            }
+
             snap = find_store_snap_by_name (snapd, name, channel, revision);
             if (snap == NULL) {
-                send_error_bad_request (snapd, message, "cannot install, snap not found", "snap-not-found");
+                send_error_not_found (snapd, message, "no snap revision available as specified", "snap-revision-not-available");
                 return;
             }
 
@@ -2871,16 +2883,16 @@ handle_icon (MockSnapd *snapd, SoupMessage *message, const gchar *path)
     }
 
     if (!g_str_has_suffix (path, "/icon")) {
-        send_error_not_found (snapd, message, "not found");
+        send_error_not_found (snapd, message, "not found", NULL);
         return;
     }
     name = g_strndup (path, strlen (path) - strlen ("/icon"));
 
     snap = find_snap (snapd, name);
     if (snap == NULL)
-        send_error_not_found (snapd, message, "cannot find snap");
+        send_error_not_found (snapd, message, "cannot find snap", NULL);
     else if (snap->icon_data == NULL)
-        send_error_not_found (snapd, message, "not found");
+        send_error_not_found (snapd, message, "not found", NULL);
     else
         send_response (message, 200, snap->icon_mime_type,
                        (const guint8 *) g_bytes_get_data (snap->icon_data, NULL),
@@ -3328,7 +3340,7 @@ handle_change (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
 
         change = get_change (snapd, change_id);
         if (change == NULL) {
-            send_error_not_found (snapd, message, "cannot find change");
+            send_error_not_found (snapd, message, "cannot find change", NULL);
             return;
         }
         mock_change_progress (snapd, change);
@@ -3343,7 +3355,7 @@ handle_change (MockSnapd *snapd, SoupMessage *message, const gchar *change_id)
 
         change = get_change (snapd, change_id);
         if (change == NULL) {
-            send_error_not_found (snapd, message, "cannot find change");
+            send_error_not_found (snapd, message, "cannot find change", NULL);
             return;
         }
 
@@ -3609,7 +3621,7 @@ handle_buy (MockSnapd *snapd, SoupMessage *message)
 
     snap = find_store_snap_by_id (snapd, snap_id);
     if (snap == NULL) {
-        send_error_not_found (snapd, message, "not found"); // FIXME: Check is error snapd returns
+        send_error_not_found (snapd, message, "not found", NULL); // FIXME: Check is error snapd returns
         return;
     }
 
@@ -3773,19 +3785,19 @@ handle_aliases (MockSnapd *snapd, SoupMessage *message)
         if (json_object_has_member (o, "snap")) {
             snap = find_snap (snapd, json_object_get_string_member (o, "snap"));
             if (snap == NULL) {
-                send_error_not_found (snapd, message, "cannot find snap");
+                send_error_not_found (snapd, message, "cannot find snap", NULL);
                 return;
             }
         }
         else if (alias != NULL) {
             snap = find_snap_by_alias (snapd, alias);
             if (snap == NULL) {
-                send_error_not_found (snapd, message, "cannot find snap");
+                send_error_not_found (snapd, message, "cannot find snap", NULL);
                 return;
             }
         }
         else {
-            send_error_not_found (snapd, message, "cannot find snap");
+            send_error_not_found (snapd, message, "cannot find snap", NULL);
             return;
         }
 
@@ -3796,12 +3808,12 @@ handle_aliases (MockSnapd *snapd, SoupMessage *message)
 
             app_name = json_object_get_string_member (o, "app");
             if (app_name == NULL) {
-                send_error_not_found (snapd, message, "No app specified");
+                send_error_not_found (snapd, message, "No app specified", NULL);
                 return;
             }
             app = mock_snap_find_app (snap, app_name);
             if (app == NULL) {
-                send_error_not_found (snapd, message, "App not found");
+                send_error_not_found (snapd, message, "App not found", NULL);
                 return;
             }
             mock_app_add_manual_alias (app, alias, TRUE);
@@ -4039,7 +4051,7 @@ handle_request (SoupServer        *server,
     else if (strcmp (path, "/v2/users") == 0)
         handle_users (snapd, message);
     else
-        send_error_not_found (snapd, message, "not found");
+        send_error_not_found (snapd, message, "not found", NULL);
 }
 
 static gboolean

@@ -57,6 +57,8 @@ G_BEGIN_DECLS
  * @SNAPD_ERROR_NOT_IN_STORE: the requested snap is not in the store.
  * @SNAPD_ERROR_AUTH_CANCELLED: authentication was cancelled by the user.
  * @SNAPD_ERROR_NOT_CLASSIC: snap not compatible with classic mode.
+ * @SNAPD_ERROR_REVISION_NOT_AVAILABLE: requested snap revision not available.
+ * @SNAPD_ERROR_CHANNEL_NOT_AVAILABLE: requested snap channel not available.
  *
  * Error codes returned by snapd operations.
  *
@@ -90,7 +92,9 @@ typedef enum
     SNAPD_ERROR_NOT_FOUND,
     SNAPD_ERROR_NOT_IN_STORE,
     SNAPD_ERROR_AUTH_CANCELLED,
-    SNAPD_ERROR_NOT_CLASSIC
+    SNAPD_ERROR_NOT_CLASSIC,
+    SNAPD_ERROR_REVISION_NOT_AVAILABLE,
+    SNAPD_ERROR_CHANNEL_NOT_AVAILABLE
 } SnapdError;
 
 /**
