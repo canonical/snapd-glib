@@ -189,11 +189,13 @@ snapd_request_complete_unlocked (SnapdClient *client, SnapdRequest *request, GEr
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (client);
 
-    g_hash_table_remove (priv->request_data, request);
-
     _snapd_request_return (request, error);
-    priv->requests = g_list_remove (priv->requests, request);
-    g_object_unref (request);
+
+    if (g_hash_table_lookup (priv->request_data, request) != NULL) {
+        g_hash_table_remove (priv->request_data, request);
+        priv->requests = g_list_remove (priv->requests, request);
+        g_object_unref (request);
+    }
 }
 
 static void
