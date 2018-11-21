@@ -401,4 +401,31 @@
  */
 #define SNAPD_GLIB_VERSION_1_42
 
+/**
+ * SNAPD_GLIB_VERSION_1_43:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.43
+ *
+ * Since: 1.43
+ */
+#define SNAPD_GLIB_VERSION_1_43
+
+/**
+ * SNAPD_GLIB_VERSION_1_44:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.44
+ *
+ * Since: 1.44
+ */
+#define SNAPD_GLIB_VERSION_1_44
+
+/**
+ * SNAPD_GLIB_VERSION_1_45:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.45
+ *
+ * Since: 1.45
+ */
+#define SNAPD_GLIB_VERSION_1_45
+
 #endif /* __SNAPD_GLIB_VERSION_H__ */

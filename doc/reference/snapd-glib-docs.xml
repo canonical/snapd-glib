@@ -207,6 +207,14 @@
     <title>Index of new symbols in 1.42</title>
     <xi:include href="xml/api-index-1.42.xml"><xi:fallback /></xi:include>
   </index>
+  <index id="api-index-1-43" role="1.43">
+    <title>Index of new symbols in 1.43</title>
+    <xi:include href="xml/api-index-1.43.xml"><xi:fallback /></xi:include>
+  </index>
+  <index id="api-index-1-44" role="1.44">
+    <title>Index of new symbols in 1.44</title>
+    <xi:include href="xml/api-index-1.44.xml"><xi:fallback /></xi:include>
+  </index>
   <index id="api-index-1-45" role="1.45">
     <title>Index of new symbols in 1.45</title>
     <xi:include href="xml/api-index-1.45.xml"><xi:fallback /></xi:include>

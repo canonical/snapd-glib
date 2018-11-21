@@ -1,3 +1,35 @@
+Overview of changes in snapd-glib 1.45
+
+    * New API:
+      - snapd_client_get_apps2_sync
+      - snapd_client_get_apps2_async
+      - snapd_client_get_apps2_finish
+      - snapd_client_get_maintenance
+      - snapd_maintenance_get_kind
+      - snapd_maintenance_get_message
+      - snapd_media_get_media_type
+      - snapd_media_get_url
+      - snapd_media_get_width
+      - snapd_media_get_height
+      - snapd_snap_get_base
+      - snapd_snap_get_media
+      - snapd_snap_get_mounted_from
+      - SNAPD_ERROR_NOT_CLASSIC
+      - SNAPD_ERROR_REVISION_NOT_AVAILABLE
+      - SNAPD_ERROR_CHANNEL_NOT_AVAILABLE
+      - SNAPD_ERROR_NOT_A_SNAP
+    * Deprecated API:
+      - snapd_client_get_apps_sync
+      - snapd_client_get_apps_async
+      - snapd_client_get_apps_finish
+      - snapd_snap_get_screenshots
+    * Fix double-unref on cancelled requests
+    * Support new snap media and mounted-from fields
+    * Support filtering when querying apps
+    * Support snapd maintenance information
+    * Support new error codes
+    * Add missing allow-none GIR annotations
+
 Overview of changes in snapd-glib 1.44
 
     * Reconnect to snapd if disconnected while trying to send the request
