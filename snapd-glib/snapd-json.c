@@ -312,6 +312,11 @@ parse_error_response (JsonObject *root, GError **error)
                              SNAPD_ERROR,
                              SNAPD_ERROR_NOT_A_SNAP,
                              message);
+    else if (g_strcmp0 (kind, "dns-failure") == 0)
+        g_set_error_literal (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_DNS_FAILURE,
+                             message);
     else {
         switch (status_code) {
         case SOUP_STATUS_BAD_REQUEST:

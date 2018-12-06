@@ -59,7 +59,8 @@ public:
         NotClassic,
         RevisionNotAvailable,
         ChannelNotAvailable,
-        NotASnap
+        NotASnap,
+        DNSFailure
     };
     Q_ENUM(QSnapdError)
 

@@ -162,6 +162,9 @@ void QSnapdRequest::finish (void *error)
             case SNAPD_ERROR_NOT_A_SNAP:
                 d->error = QSnapdRequest::QSnapdError::NotASnap;
                 break;
+            case SNAPD_ERROR_DNS_FAILURE:
+                d->error = QSnapdRequest::QSnapdError::DNSFailure;
+                break;
             default:
                 /* This indicates we should add a new entry here... */
                 d->error = QSnapdRequest::QSnapdError::UnknownError;

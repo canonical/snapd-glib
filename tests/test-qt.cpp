@@ -2616,6 +2616,20 @@ test_find_network_timeout ()
 }
 
 static void
+test_find_dns_failure ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdFindRequest> findRequest (client.find ("dns-failure"));
+    findRequest->runSync ();
+    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::DNSFailure);
+}
+
+static void
 test_find_name ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -5676,6 +5690,7 @@ main (int argc, char **argv)
     g_test_add_func ("/find/query-private/not-logged-in", test_find_query_private_not_logged_in);
     g_test_add_func ("/find/bad-query", test_find_bad_query);
     g_test_add_func ("/find/network-timeout", test_find_network_timeout);
+    g_test_add_func ("/find/dns-failure", test_find_dns_failure);
     g_test_add_func ("/find/name", test_find_name);
     g_test_add_func ("/find/name-private", test_find_name_private);
     g_test_add_func ("/find/name-private/not-logged-in", test_find_name_private_not_logged_in);

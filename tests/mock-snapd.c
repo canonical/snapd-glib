@@ -3523,6 +3523,13 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
         return;
     }
 
+    /* Make a special query that simulates a DNS Failure */
+    if (g_strcmp0 (query_param, "dns-failure") == 0)
+    {
+        send_error_bad_request (snapd, message, "failed to resolve address", "dns-failure");
+        return;
+    }
+
     /* Certain characters not allowed in queries */
     if (query_param != NULL) {
         int i;
