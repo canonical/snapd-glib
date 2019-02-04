@@ -237,6 +237,9 @@ void            mock_channel_set_branch           (MockChannel  *channel,
 void            mock_channel_set_epoch            (MockChannel  *channel,
                                                    const gchar   *epoch);
 
+void            mock_channel_set_released_at      (MockChannel  *channel,
+                                                   const gchar   *released_at);
+
 void            mock_channel_set_revision         (MockChannel  *channel,
                                                    const gchar   *revision);
 

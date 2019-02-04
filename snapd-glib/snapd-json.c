@@ -710,6 +710,7 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
                                     "confinement", confinement,
                                     "epoch", _snapd_json_get_string (c, "epoch", NULL),
                                     "name", _snapd_json_get_string (c, "channel", NULL),
+                                    "released-at", _snapd_json_get_date_time (c, "released-at"),
                                     "revision", _snapd_json_get_string (c, "revision", NULL),
                                     "size", _snapd_json_get_int (c, "size", 0),
                                     "version", _snapd_json_get_string (c, "version", NULL),

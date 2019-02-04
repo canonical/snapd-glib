@@ -121,6 +121,7 @@ struct _MockChannel
     gchar *branch;
     gchar *confinement;
     gchar *epoch;
+    gchar *released_at;
     gchar *revision;
     int size;
     gchar *version;
@@ -256,6 +257,7 @@ mock_channel_free (MockChannel *channel)
     g_free (channel->branch);
     g_free (channel->confinement);
     g_free (channel->epoch);
+    g_free (channel->released_at);
     g_free (channel->revision);
     g_free (channel->version);
     g_slice_free (MockChannel, channel);
@@ -1146,6 +1148,13 @@ mock_channel_set_epoch (MockChannel *channel, const gchar *epoch)
 {
     g_free (channel->epoch);
     channel->epoch = g_strdup (epoch);
+}
+
+void
+mock_channel_set_released_at (MockChannel *channel, const gchar *released_at)
+{
+    g_free (channel->released_at);
+    channel->released_at = g_strdup (released_at);
 }
 
 void
@@ -2210,6 +2219,10 @@ make_snap_node (MockSnap *snap)
                 json_builder_add_string_value (builder, channel->epoch);
                 json_builder_set_member_name (builder, "size");
                 json_builder_add_int_value (builder, channel->size);
+                if (channel->released_at != NULL) {
+                    json_builder_set_member_name (builder, "released-at");
+                    json_builder_add_string_value (builder, channel->released_at);
+                }
                 json_builder_end_object (builder);
             }
         }

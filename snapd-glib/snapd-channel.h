@@ -51,6 +51,8 @@ const gchar      *snapd_channel_get_name        (SnapdChannel *channel);
 
 const gchar      *snapd_channel_get_revision    (SnapdChannel *channel);
 
+GDateTime        *snapd_channel_get_released_at (SnapdChannel *channel);
+
 const gchar      *snapd_channel_get_risk        (SnapdChannel *channel);
 
 gint64            snapd_channel_get_size        (SnapdChannel *channel);

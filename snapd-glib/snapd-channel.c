@@ -38,6 +38,7 @@ struct _SnapdChannel
     gchar *branch;
     gchar *epoch;
     gchar *name;
+    GDateTime *released_at;
     gchar *revision;
     gchar *risk;
     gint64 size;
@@ -53,6 +54,7 @@ enum
     PROP_REVISION,
     PROP_SIZE,
     PROP_VERSION,
+    PROP_RELEASED_AT,
     PROP_LAST
 };
 
@@ -136,6 +138,23 @@ snapd_channel_get_name (SnapdChannel *channel)
 {
     g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
     return channel->name;
+}
+
+/**
+ * snapd_channel_get_released_at:
+ * @channel: a #SnapdChannel.
+ *
+ * Get the date this revision was released into the channel or %NULL if unknown.
+ *
+ * Returns: (transfer none) (allow-none): a #GDateTime.
+ *
+ * Since: 1.46
+ */
+GDateTime *
+snapd_channel_get_released_at (SnapdChannel *channel)
+{
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
+    return channel->released_at;
 }
 
 /**
@@ -292,6 +311,11 @@ snapd_channel_set_property (GObject *object, guint prop_id, const GValue *value,
     case PROP_NAME:
         set_name (channel, g_value_get_string (value));
         break;
+    case PROP_RELEASED_AT:
+        g_clear_pointer (&channel->released_at, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL)
+            channel->released_at = g_date_time_ref (g_value_get_boxed (value));
+        break;
     case PROP_REVISION:
         g_free (channel->revision);
         channel->revision = g_strdup (g_value_get_string (value));
@@ -324,6 +348,9 @@ snapd_channel_get_property (GObject *object, guint prop_id, GValue *value, GPara
     case PROP_NAME:
         g_value_set_string (value, channel->name);
         break;
+    case PROP_RELEASED_AT:
+        g_value_set_boxed (value, channel->released_at);
+        break;
     case PROP_REVISION:
         g_value_set_string (value, channel->revision);
         break;
@@ -348,6 +375,7 @@ snapd_channel_finalize (GObject *object)
     g_clear_pointer (&channel->epoch, g_free);
     g_clear_pointer (&channel->name, g_free);
     g_clear_pointer (&channel->revision, g_free);
+    g_clear_pointer (&channel->released_at, g_date_time_unref);
     g_clear_pointer (&channel->risk, g_free);
     g_clear_pointer (&channel->track, g_free);
     g_clear_pointer (&channel->version, g_free);
@@ -392,6 +420,13 @@ snapd_channel_class_init (SnapdChannelClass *klass)
                                                           "Revision of this snap",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_RELEASED_AT,
+                                     g_param_spec_boxed ("released-at",
+                                                         "released-at",
+                                                         "Date revision was released into channel",
+                                                         G_TYPE_DATE_TIME,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_SIZE,
                                      g_param_spec_int64 ("size",

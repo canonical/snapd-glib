@@ -2702,6 +2702,7 @@ test_find_channels ()
     mock_channel_set_epoch (c, "1");
     mock_channel_set_confinement (c, "classic");
     mock_channel_set_size (c, 10000);
+    mock_channel_set_released_at (c, "2018-01-19T13:14:15Z");
     c = mock_track_add_channel (t, "stable", "branch");
     t = mock_snap_add_track (s, "insider");
     c = mock_track_add_channel (t, "stable", NULL);
@@ -2734,6 +2735,7 @@ test_find_channels ()
             g_assert (channel->epoch () == "0");
             g_assert_cmpint (channel->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
             g_assert_cmpint (channel->size (), ==, 65535);
+            g_assert (channel->releasedAt ().isNull ());
             matched_stable = TRUE;
         }
         if (channel->name () == "beta") {
@@ -2746,18 +2748,21 @@ test_find_channels ()
             g_assert (channel->epoch () == "1");
             g_assert_cmpint (channel->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
             g_assert_cmpint (channel->size (), ==, 10000);
+            g_assert (channel->releasedAt () == QDateTime (QDate (2018, 1, 19), QTime (13, 14, 15), Qt::UTC));
             matched_beta = TRUE;
         }
         if (channel->name () == "stable/branch") {
             g_assert (channel->track () == "latest");
             g_assert (channel->risk () == "stable");
             g_assert (channel->branch () == "branch");
+            g_assert (channel->releasedAt ().isNull ());
             matched_branch = TRUE;
         }
         if (channel->name () == "insider/stable") {
             g_assert (channel->track () == "insider");
             g_assert (channel->risk () == "stable");
             g_assert (channel->branch () == NULL);
+            g_assert (channel->releasedAt ().isNull ());
             matched_track = TRUE;
         }
     }

@@ -3458,6 +3458,7 @@ test_find_channels (void)
     mock_channel_set_epoch (c, "1");
     mock_channel_set_confinement (c, "classic");
     mock_channel_set_size (c, 10000);
+    mock_channel_set_released_at (c, "2018-01-19T13:14:15Z");
     c = mock_track_add_channel (t, "stable", "branch");
     t = mock_snap_add_track (s, "insider");
     mock_track_add_channel (t, "stable", NULL);
@@ -3492,6 +3493,7 @@ test_find_channels (void)
             g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "0");
             g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_STRICT);
             g_assert_cmpint (snapd_channel_get_size (channel), ==, 65535);
+            g_assert_null (snapd_channel_get_released_at (channel));
             matched_stable = TRUE;
         }
         if (strcmp (snapd_channel_get_name (channel), "beta") == 0) {
@@ -3503,18 +3505,21 @@ test_find_channels (void)
             g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "1");
             g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_CLASSIC);
             g_assert_cmpint (snapd_channel_get_size (channel), ==, 10000);
+            g_assert (date_matches (snapd_channel_get_released_at (channel), 2018, 1, 19, 13, 14, 15));
             matched_beta = TRUE;
         }
         if (strcmp (snapd_channel_get_name (channel), "stable/branch") == 0) {
             g_assert_cmpstr (snapd_channel_get_track (channel), ==, "latest");
             g_assert_cmpstr (snapd_channel_get_risk (channel), ==, "stable");
             g_assert_cmpstr (snapd_channel_get_branch (channel), ==, "branch");
+            g_assert_null (snapd_channel_get_released_at (channel));
             matched_branch = TRUE;
         }
         if (strcmp (snapd_channel_get_name (channel), "insider/stable") == 0) {
             g_assert_cmpstr (snapd_channel_get_track (channel), ==, "insider");
             g_assert_cmpstr (snapd_channel_get_risk (channel), ==, "stable");
             g_assert_null (snapd_channel_get_branch (channel));
+            g_assert_null (snapd_channel_get_released_at (channel));
             matched_track = TRUE;
         }
     }

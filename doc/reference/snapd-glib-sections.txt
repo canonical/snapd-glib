@@ -80,6 +80,7 @@ snapd_channel_get_branch
 snapd_channel_get_confinement
 snapd_channel_get_epoch
 snapd_channel_get_name
+snapd_channel_get_released_at
 snapd_channel_get_revision
 snapd_channel_get_risk
 snapd_channel_get_size

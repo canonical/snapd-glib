@@ -44,6 +44,26 @@ QString QSnapdChannel::name () const
     return snapd_channel_get_name (SNAPD_CHANNEL (wrapped_object));
 }
 
+static QDateTime convertDateTime (GDateTime *datetime)
+{
+    if (datetime == NULL)
+        return QDateTime ();
+
+    QDate date (g_date_time_get_year (datetime),
+                g_date_time_get_month (datetime),
+                g_date_time_get_day_of_month (datetime));
+    QTime time (g_date_time_get_hour (datetime),
+                g_date_time_get_minute (datetime),
+                g_date_time_get_second (datetime),
+                g_date_time_get_microsecond (datetime) / 1000);
+    return QDateTime (date, time, Qt::OffsetFromUTC, g_date_time_get_utc_offset (datetime) / 1000000);
+}
+
+QDateTime QSnapdChannel::releasedAt () const
+{
+    return convertDateTime (snapd_channel_get_released_at (SNAPD_CHANNEL (wrapped_object)));
+}
+
 QString QSnapdChannel::revision () const
 {
     return snapd_channel_get_revision (SNAPD_CHANNEL (wrapped_object));
