@@ -17,6 +17,8 @@ source_h = \
 	snapd-interface.h \
 	snapd-login.h \
 	snapd-maintenance.h \
+	snapd-markdown-node.h \
+	snapd-markdown-parser.h \
 	snapd-media.h \
 	snapd-plug.h \
 	snapd-plug-ref.h \
@@ -81,6 +83,8 @@ source_c = \
 	snapd-interface.c \
 	snapd-login.c \
 	snapd-maintenance.c \
+	snapd-markdown-node.c \
+	snapd-markdown-parser.c \
 	snapd-media.c \
 	snapd-plug.c \
 	snapd-plug-ref.c \
