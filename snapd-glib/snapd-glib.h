@@ -25,6 +25,8 @@
 #include <snapd-glib/snapd-interface.h>
 #include <snapd-glib/snapd-login.h>
 #include <snapd-glib/snapd-maintenance.h>
+#include <snapd-glib/snapd-markdown-node.h>
+#include <snapd-glib/snapd-markdown-parser.h>
 #include <snapd-glib/snapd-media.h>
 #include <snapd-glib/snapd-plug.h>
 #include <snapd-glib/snapd-plug-ref.h>

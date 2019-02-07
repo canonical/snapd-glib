@@ -321,7 +321,8 @@ snapd_snap_get_contact (SnapdSnap *snap)
  * snapd_snap_get_description:
  * @snap: a #SnapdSnap.
  *
- * Get a multi-line description of this snap.
+ * Get a multi-line description of this snap. The description is formatted using
+ * a subset of Markdown. To parse this use a #SnapdMarkdownParser.
  *
  * Returns: description text.
  *

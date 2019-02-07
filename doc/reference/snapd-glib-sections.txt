@@ -529,6 +529,39 @@ snapd_maintenance_kind_get_type
 </SECTION>
 
 <SECTION>
+<FILE>snapd-markdown-parser</FILE>
+<TITLE>SnapdMarkdownParser</TITLE>
+SnapdMarkdownParser
+SnapdMarkdownVersion
+snapd_markdown_parser_new
+snapd_markdown_parser_parse
+
+<SUBSECTION Private>
+SnapdMarkdownParserClass
+SNAPD_TYPE_MARKDOWN_PARSER
+SNAPD_TYPE_MARKDOWN_VERSION
+snapd_markdown_parser_get_type
+snapd_markdown_version_get_type
+</SECTION>
+
+<SECTION>
+<FILE>snapd-markdown-node</FILE>
+<TITLE>SnapdMarkdownNode</TITLE>
+SnapdMarkdownNodeType
+SnapdMarkdownNode
+snapd_markdown_node_get_node_type
+snapd_markdown_node_get_text
+snapd_markdown_node_get_children
+
+<SUBSECTION Private>
+SnapdMarkdownNodeClass
+SNAPD_TYPE_MARKDOWN_NODE
+SNAPD_TYPE_MARKDOWN_NODE_TYPE
+snapd_markdown_node_type_get_type
+snapd_markdown_node_get_type
+</SECTION>
+
+<SECTION>
 <FILE>snapd-media</FILE>
 <TITLE>SnapdMedia</TITLE>
 snapd_media_get_media_type
