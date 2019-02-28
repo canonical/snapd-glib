@@ -6760,6 +6760,14 @@ test_get_sections_async (void)
     g_main_loop_run (loop);
 }
 
+static gint
+compare_alias_name (gconstpointer a, gconstpointer b)
+{
+    SnapdAlias *alias_a = *((SnapdAlias **) a);
+    SnapdAlias *alias_b = *((SnapdAlias **) b);
+    return strcmp (snapd_alias_get_name (alias_a), snapd_alias_get_name (alias_b));
+}
+
 static void
 test_aliases_get_sync (void)
 {
@@ -6791,6 +6799,7 @@ test_aliases_get_sync (void)
     g_assert_no_error (error);
     g_assert_nonnull (aliases);
     g_assert_cmpint (aliases->len, ==, 3);
+    g_ptr_array_sort (aliases, compare_alias_name);
     alias = aliases->pdata[0];
     g_assert_cmpstr (snapd_alias_get_name (alias), ==, "alias1");
     g_assert_cmpstr (snapd_alias_get_snap (alias), ==, "snap");
@@ -6826,6 +6835,7 @@ get_aliases_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_no_error (error);
     g_assert_nonnull (aliases);
     g_assert_cmpint (aliases->len, ==, 3);
+    g_ptr_array_sort (aliases, compare_alias_name);
     alias = aliases->pdata[0];
     g_assert_cmpstr (snapd_alias_get_name (alias), ==, "alias1");
     g_assert_cmpstr (snapd_alias_get_snap (alias), ==, "snap");
