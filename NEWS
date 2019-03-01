@@ -1,3 +1,10 @@
+Overview of changes in snapd-glib 1.46
+
+    * New API:
+      - snapd_channel_get_released_at
+      - SNAPD_ERROR_DNS_FAILURE
+    * Fix tests breaking due to undefined order of results
+
 Overview of changes in snapd-glib 1.45
 
     * New API:
