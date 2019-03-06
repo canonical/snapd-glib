@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 1.47
+
+    * Remove generated MOC file from tarball
+
 Overview of changes in snapd-glib 1.46
 
     * New API:
