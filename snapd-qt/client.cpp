@@ -1559,6 +1559,8 @@ static SnapdFindFlags convertFindFlags (int flags)
 
     if ((flags & QSnapdClient::FindFlag::MatchName) != 0)
         result |= SNAPD_FIND_FLAGS_MATCH_NAME;
+    if ((flags & QSnapdClient::FindFlag::MatchCommonId) != 0)
+        result |= SNAPD_FIND_FLAGS_MATCH_COMMON_ID;
     if ((flags & QSnapdClient::FindFlag::SelectPrivate) != 0)
         result |= SNAPD_FIND_FLAGS_SELECT_PRIVATE;
     if ((flags & QSnapdClient::FindFlag::ScopeWide) != 0)

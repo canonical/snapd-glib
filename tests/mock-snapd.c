@@ -3442,6 +3442,23 @@ matches_scope (MockSnap *snap, const gchar *scope)
 }
 
 static gboolean
+has_common_id (MockSnap *snap, const gchar *common_id)
+{
+    GList *link;
+
+    if (common_id == NULL)
+        return TRUE;
+
+    for (link = snap->apps; link; link = link->next) {
+        MockApp *app = link->data;
+        if (g_strcmp0 (app->common_id, common_id) == 0)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+static gboolean
 in_section (MockSnap *snap, const gchar *section)
 {
     GList *link;
@@ -3459,12 +3476,13 @@ in_section (MockSnap *snap, const gchar *section)
 static void
 handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
 {
+    const gchar *common_id_param;
     const gchar *query_param;
     const gchar *name_param;
     const gchar *select_param;
     select_param = g_hash_table_lookup (query, "select");
-   const gchar *section_param;
-   const gchar *scope_param;
+    const gchar *section_param;
+    const gchar *scope_param;
     g_autoptr(JsonBuilder) builder = NULL;
     GList *snaps, *link;
 
@@ -3473,12 +3491,15 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
         return;
     }
 
+    common_id_param = g_hash_table_lookup (query, "common-id");
     query_param = g_hash_table_lookup (query, "q");
     name_param = g_hash_table_lookup (query, "name");
     select_param = g_hash_table_lookup (query, "select");
     section_param = g_hash_table_lookup (query, "section");
     scope_param = g_hash_table_lookup (query, "scope");
 
+    if (common_id_param && strcmp (common_id_param, "") == 0)
+        common_id_param = NULL;
     if (query_param && strcmp (query_param, "") == 0)
         query_param = NULL;
     if (name_param && strcmp (name_param, "") == 0)
@@ -3560,6 +3581,9 @@ handle_find (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
     json_builder_begin_array (builder);
     for (link = snaps; link; link = link->next) {
         MockSnap *snap = link->data;
+
+        if (!has_common_id (snap, common_id_param))
+            continue;
 
         if (!in_section (snap, section_param))
             continue;

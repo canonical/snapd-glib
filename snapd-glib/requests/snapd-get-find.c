@@ -15,6 +15,7 @@
 struct _SnapdGetFind
 {
     SnapdRequest parent_instance;
+    gchar *common_id;
     gchar *query;
     gchar *name;
     gchar *select;
@@ -38,6 +39,13 @@ _snapd_get_find_new (GCancellable *cancellable, GAsyncReadyCallback callback, gp
                                             NULL));
 
     return request;
+}
+
+void
+_snapd_get_find_set_common_id (SnapdGetFind *request, const gchar *common_id)
+{
+    g_free (request->common_id);
+    request->common_id = g_strdup (common_id);
 }
 
 void
@@ -95,6 +103,10 @@ generate_get_find_request (SnapdRequest *request)
     g_autoptr(GString) path = NULL;
 
     query_attributes = g_ptr_array_new_with_free_func (g_free);
+    if (r->common_id != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (r->common_id, NULL);
+        g_ptr_array_add (query_attributes, g_strdup_printf ("common-id=%s", escaped));
+    }
     if (r->query != NULL) {
         g_autofree gchar *escaped = soup_uri_encode (r->query, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("q=%s", escaped));
@@ -161,6 +173,7 @@ snapd_get_find_finalize (GObject *object)
 {
     SnapdGetFind *request = SNAPD_GET_FIND (object);
 
+    g_free (request->common_id);
     g_free (request->query);
     g_free (request->name);
     g_free (request->select);
