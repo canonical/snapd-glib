@@ -2176,6 +2176,8 @@ snapd_client_find_section_async (SnapdClient *client,
     request = _snapd_get_find_new (cancellable, callback, user_data);
     if ((flags & SNAPD_FIND_FLAGS_MATCH_NAME) != 0)
         _snapd_get_find_set_name (request, query);
+    else if ((flags & SNAPD_FIND_FLAGS_MATCH_COMMON_ID) != 0)
+        _snapd_get_find_set_common_id (request, query);
     else
         _snapd_get_find_set_query (request, query);
     if ((flags & SNAPD_FIND_FLAGS_SELECT_PRIVATE) != 0)
