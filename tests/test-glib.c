@@ -143,6 +143,25 @@ test_socket_closed_reconnect_after_failure (void)
 }
 
 static void
+test_client_set_socket_path (void)
+{
+    g_autoptr(SnapdClient) client = NULL;
+    const gchar *default_path;
+
+    client = snapd_client_new ();
+    default_path = snapd_client_get_socket_path (client);
+
+    snapd_client_set_socket_path (client, "first.sock");
+    g_assert_cmpstr (snapd_client_get_socket_path (client), ==, "first.sock");
+
+    snapd_client_set_socket_path (client, "second.sock");
+    g_assert_cmpstr (snapd_client_get_socket_path (client), ==, "second.sock");
+
+    snapd_client_set_socket_path (client, NULL);
+    g_assert_cmpstr (snapd_client_get_socket_path (client), ==, default_path);
+}
+
+static void
 test_user_agent_default (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
@@ -7265,6 +7284,7 @@ main (int argc, char **argv)
     g_test_add_func ("/socket-closed/after-request", test_socket_closed_after_request);
     g_test_add_func ("/socket-closed/reconnect", test_socket_closed_reconnect);
     g_test_add_func ("/socket-closed/reconnect-after-failure", test_socket_closed_reconnect_after_failure);
+    g_test_add_func ("/client/set-socket-path", test_client_set_socket_path);
     g_test_add_func ("/user-agent/default", test_user_agent_default);
     g_test_add_func ("/user-agent/custom", test_user_agent_custom);
     g_test_add_func ("/user-agent/null", test_user_agent_null);

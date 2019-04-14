@@ -981,7 +981,7 @@ snapd_client_set_socket_path (SnapdClient *client, const gchar *socket_path)
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
     g_free (priv->socket_path);
-    if (priv->socket_path != NULL)
+    if (socket_path != NULL)
         priv->socket_path = g_strdup (socket_path);
     else
         priv->socket_path = g_strdup (SNAPD_SOCKET);
