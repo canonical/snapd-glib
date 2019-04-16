@@ -48,6 +48,22 @@ test_socket_closed_after_request ()
 }
 
 static void
+test_client_set_socket_path (void)
+{
+    QSnapdClient client;
+    QString default_path = client.socketPath ();
+
+    client.setSocketPath ("first.sock");
+    g_assert (client.socketPath () == "first.sock");
+
+    client.setSocketPath ("second.sock");
+    g_assert (client.socketPath () == "second.sock");
+
+    client.setSocketPath (NULL);
+    g_assert (client.socketPath () == default_path);
+}
+
+static void
 test_user_agent_default ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -5637,6 +5653,7 @@ main (int argc, char **argv)
 
     g_test_add_func ("/socket-closed/before-request", test_socket_closed_before_request);
     g_test_add_func ("/socket-closed/after-request", test_socket_closed_after_request);
+    g_test_add_func ("/client/set-socket-path", test_client_set_socket_path);
     g_test_add_func ("/user-agent/default", test_user_agent_default);
     g_test_add_func ("/user-agent/custom", test_user_agent_custom);
     g_test_add_func ("/user-agent/null", test_user_agent_null);
