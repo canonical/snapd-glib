@@ -340,6 +340,17 @@ QSnapdAddAssertionsRequest *QSnapdClient::addAssertions (const QStringList& asse
     return new QSnapdAddAssertionsRequest (assertions, d->client);
 }
 
+QSnapdGetConnectionsRequest::~QSnapdGetConnectionsRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdGetConnectionsRequest *QSnapdClient::getConnections ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetConnectionsRequest (d->client);
+}
+
 QSnapdGetInterfacesRequest::~QSnapdGetInterfacesRequest ()
 {
     delete d_ptr;
@@ -1398,6 +1409,103 @@ void QSnapdAddAssertionsRequest::runAsync ()
 
     assertions = string_list_to_strv (d->assertions);
     snapd_client_add_assertions_async (SNAPD_CLIENT (getClient ()), assertions, G_CANCELLABLE (getCancellable ()), add_assertions_ready_cb, (gpointer) this);
+}
+
+QSnapdGetConnectionsRequest::QSnapdGetConnectionsRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetConnectionsRequestPrivate ()) {}
+
+void QSnapdGetConnectionsRequest::runSync ()
+{
+    Q_D(QSnapdGetConnectionsRequest);
+    g_autoptr(GError) error = NULL;
+    snapd_client_get_connections_sync (SNAPD_CLIENT (getClient ()), &d->established, &d->undesired, &d->plugs, &d->slots_, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetConnectionsRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GPtrArray) established = NULL;
+    g_autoptr(GPtrArray) undesired = NULL;
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots_ = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd_client_get_connections_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &established, &undesired, &plugs, &slots_, &error);
+
+    Q_D(QSnapdGetConnectionsRequest);
+    d->established = (GPtrArray*) g_steal_pointer (&established);
+    d->undesired = (GPtrArray*) g_steal_pointer (&undesired);
+    d->plugs = (GPtrArray*) g_steal_pointer (&plugs);
+    d->slots_ = (GPtrArray*) g_steal_pointer (&slots_);
+    finish (error);
+}
+
+static void get_connections_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetConnectionsRequest *request = static_cast<QSnapdGetConnectionsRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetConnectionsRequest::runAsync ()
+{
+    snapd_client_get_connections_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), get_connections_ready_cb, (gpointer) this);
+}
+
+int QSnapdGetConnectionsRequest::establishedCount () const
+{
+    Q_D(const QSnapdGetConnectionsRequest);
+    return d->established != NULL ? d->established->len : 0;
+}
+
+QSnapdConnection *QSnapdGetConnectionsRequest::established (int n) const
+{
+    Q_D(const QSnapdGetConnectionsRequest);
+    if (d->established == NULL || n < 0 || (guint) n >= d->established->len)
+        return NULL;
+    return new QSnapdConnection (d->established->pdata[n]);
+}
+
+int QSnapdGetConnectionsRequest::undesiredCount () const
+{
+    Q_D(const QSnapdGetConnectionsRequest);
+    return d->undesired != NULL ? d->undesired->len : 0;
+}
+
+QSnapdConnection *QSnapdGetConnectionsRequest::undesired (int n) const
+{
+    Q_D(const QSnapdGetConnectionsRequest);
+    if (d->undesired == NULL || n < 0 || (guint) n >= d->undesired->len)
+        return NULL;
+    return new QSnapdConnection (d->undesired->pdata[n]);
+}
+
+int QSnapdGetConnectionsRequest::plugCount () const
+{
+    Q_D(const QSnapdGetConnectionsRequest);
+    return d->plugs != NULL ? d->plugs->len : 0;
+}
+
+QSnapdPlug *QSnapdGetConnectionsRequest::plug (int n) const
+{
+    Q_D(const QSnapdGetConnectionsRequest);
+    if (d->plugs == NULL || n < 0 || (guint) n >= d->plugs->len)
+        return NULL;
+    return new QSnapdPlug (d->plugs->pdata[n]);
+}
+
+int QSnapdGetConnectionsRequest::slotCount () const
+{
+    Q_D(const QSnapdGetConnectionsRequest);
+    return d->slots_ != NULL ? d->slots_->len : 0;
+}
+
+QSnapdSlot *QSnapdGetConnectionsRequest::slot (int n) const
+{
+    Q_D(const QSnapdGetConnectionsRequest);
+    if (d->slots_ == NULL || n < 0 || (guint) n >= d->slots_->len)
+        return NULL;
+    return new QSnapdSlot (d->slots_->pdata[n]);
 }
 
 QSnapdGetInterfacesRequest::QSnapdGetInterfacesRequest (void *snapd_client, QObject *parent) :

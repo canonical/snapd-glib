@@ -440,6 +440,25 @@ gboolean                snapd_client_get_interfaces_finish         (SnapdClient 
                                                                     GPtrArray           **slots,
                                                                     GError              **error);
 
+gboolean                snapd_client_get_connections_sync          (SnapdClient          *client,
+                                                                    GPtrArray           **established,
+                                                                    GPtrArray           **undesired,
+                                                                    GPtrArray           **plugs,
+                                                                    GPtrArray           **slots,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_connections_async         (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_get_connections_finish        (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GPtrArray           **established,
+                                                                    GPtrArray           **undesired,
+                                                                    GPtrArray           **plugs,
+                                                                    GPtrArray           **slots,
+                                                                    GError              **error);
+
 gboolean                snapd_client_connect_interface_sync        (SnapdClient          *client,
                                                                     const gchar          *plug_snap,
                                                                     const gchar          *plug_name,

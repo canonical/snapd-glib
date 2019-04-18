@@ -12,17 +12,29 @@
 
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
+#include <Snapd/PlugRef>
+#include <Snapd/SlotRef>
 
 class Q_DECL_EXPORT QSnapdConnection : public QSnapdWrappedObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QSnapdSlotRef slot READ slot)
+    Q_PROPERTY(QSnapdPlugRef plug READ plug)
+    Q_PROPERTY(QString interface READ interface)
+    Q_PROPERTY(bool manual READ manual)
+    Q_PROPERTY(bool gadget READ gadget)
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString snap READ snap)
 
 public:
     explicit QSnapdConnection (void* snapd_object, QObject* parent = 0);
 
+    QSnapdSlotRef *slot () const;
+    QSnapdPlugRef *plug () const;
+    QString interface () const;
+    bool manual () const;
+    bool gadget () const;
     QString name () const;
     QString snap () const;
 };

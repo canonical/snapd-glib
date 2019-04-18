@@ -55,7 +55,8 @@ struct _MockSnapd
     gchar *refresh_timer;
     GList *store_sections;
     GList *store_snaps;
-    GList *connections;
+    GList *established_connections;
+    GList *undesired_connections;
     GList *assertions;
     int change_index;
     GList *changes;
@@ -162,6 +163,8 @@ struct _MockConnection
 {
     MockPlug *plug;
     MockSlot *slot;
+    gboolean manual;
+    gboolean gadget;
 };
 
 struct _MockSnap
@@ -1550,17 +1553,76 @@ mock_snap_find_slot (MockSnap *snap, const gchar *name)
     return NULL;
 }
 
-MockConnection *
-mock_snapd_connect (MockSnapd *snapd, MockPlug *plug, MockSlot *slot)
+void
+mock_snapd_connect (MockSnapd *snapd, MockPlug *plug, MockSlot *slot, gboolean manual, gboolean gadget)
 {
-    MockConnection *connection;
+    g_return_if_fail (plug != NULL);
 
-    connection = g_slice_new0 (MockConnection);
-    connection->plug = plug;
-    connection->slot = slot;
-    snapd->connections = g_list_append (snapd->connections, connection);
+    if (slot != NULL) {
+        g_autoptr(GList) old_established_connections = NULL;
+        g_autoptr(GList) old_undesired_connections = NULL;
+        GList *link;
+        MockConnection *connection;
 
-    return connection;
+        /* Remove existing connections */
+        old_established_connections = g_steal_pointer (&snapd->established_connections);
+        for (link = old_established_connections; link; link = link->next) {
+            connection = link->data;
+            if (connection->plug == plug)
+                continue;
+            snapd->established_connections = g_list_append (snapd->established_connections, connection);
+        }
+        old_undesired_connections = g_steal_pointer (&snapd->undesired_connections);
+        for (link = old_undesired_connections; link; link = link->next) {
+            connection = link->data;
+            if (connection->plug == plug)
+                continue;
+            snapd->undesired_connections = g_list_append (snapd->undesired_connections, connection);
+        }
+
+        connection = g_slice_new0 (MockConnection);
+        connection->plug = plug;
+        connection->slot = slot;
+        connection->manual = manual;
+        connection->gadget = gadget;
+        snapd->established_connections = g_list_append (snapd->established_connections, connection);
+    }
+    else {
+        g_autoptr(GList) old_established_connections = NULL;
+        g_autoptr(GList) old_undesired_connections = NULL;
+        GList *link;
+        MockConnection *connection;
+        MockSlot *autoconnected_slot = NULL;
+
+        /* Remove existing connections */
+        old_established_connections = g_steal_pointer (&snapd->established_connections);
+        for (link = old_established_connections; link; link = link->next) {
+            connection = link->data;
+            if (connection->plug == plug) {
+                if (!connection->manual)
+                    autoconnected_slot = connection->slot;
+                continue;
+            }
+            snapd->established_connections = g_list_append (snapd->established_connections, connection);
+        }
+        old_undesired_connections = g_steal_pointer (&snapd->undesired_connections);
+        for (link = old_undesired_connections; link; link = link->next) {
+            connection = link->data;
+            if (connection->plug == plug)
+                continue;
+            snapd->undesired_connections = g_list_append (snapd->undesired_connections, connection);
+        }
+
+        /* Mark as undesired if overriding auto connection */
+        if (autoconnected_slot != NULL) {
+            connection = g_slice_new0 (MockConnection);
+            connection->plug = plug;
+            connection->slot = autoconnected_slot;
+            connection->manual = manual;
+            connection->gadget = gadget;
+            snapd->undesired_connections = g_list_append (snapd->undesired_connections, connection);
+        }
+    }
 }
 
 MockSlot *
@@ -1568,7 +1630,7 @@ mock_snapd_find_plug_connection (MockSnapd *snapd, MockPlug *plug)
 {
     GList *link;
 
-    for (link = snapd->connections; link; link = link->next) {
+    for (link = snapd->established_connections; link; link = link->next) {
         MockConnection *connection = link->data;
         if (connection->plug == plug)
             return connection->slot;
@@ -3018,7 +3080,7 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
                 GList *l2;
                 g_autoptr(GList) slots = NULL;
 
-                for (l2 = snapd->connections; l2; l2 = l2->next) {
+                for (l2 = snapd->established_connections; l2; l2 = l2->next) {
                     MockConnection *connection = l2->data;
                     if (connection->plug == plug)
                         slots = g_list_append (slots, connection->slot);
@@ -3062,7 +3124,7 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
                 GList *l2;
                 g_autoptr(GList) plugs = NULL;
 
-                for (l2 = snapd->connections; l2; l2 = l2->next) {
+                for (l2 = snapd->established_connections; l2; l2 = l2->next) {
                     MockConnection *connection = l2->data;
                     if (connection->slot == slot)
                         plugs = g_list_append (plugs, connection->plug);
@@ -3166,7 +3228,7 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
 
             for (link = plugs; link; link = link->next) {
                 MockPlug *plug = link->data;
-                mock_snapd_connect (snapd, plug, slots->data);
+                mock_snapd_connect (snapd, plug, slots->data, TRUE, FALSE);
             }
 
             change = add_change (snapd);
@@ -3185,20 +3247,9 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
                 return;
             }
 
-            old_connections = g_steal_pointer (&snapd->connections);
-            for (link = old_connections; link; link = link->next) {
-                MockConnection *connection = link->data;
-                GList *link2;
-                gboolean connection_matches = FALSE;
-
-                for (link2 = plugs; link2; link2 = link2->next) {
-                    MockPlug *plug = link2->data;
-                    if (connection->plug == plug && connection->slot == slots->data)
-                        connection_matches = TRUE;
-                }
-
-                if (!connection_matches)
-                    snapd->connections = g_list_append (snapd->connections, connection);
+            for (link = plugs; link; link = link->next) {
+                MockPlug *plug = link->data;
+                mock_snapd_connect (snapd, plug, NULL, TRUE, FALSE);
             }
 
             change = add_change (snapd);
@@ -3212,6 +3263,174 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
     }
     else
         send_error_method_not_allowed (snapd, message, "method not allowed");
+}
+
+static void
+add_connection (JsonBuilder *builder, MockConnection *connection)
+{
+    MockPlug *plug = connection->plug;
+    MockSlot *slot = connection->slot;
+
+    json_builder_begin_object (builder);
+
+    json_builder_set_member_name (builder, "slot");
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "snap");
+    json_builder_add_string_value (builder, slot->snap->name);
+    json_builder_set_member_name (builder, "slot");
+    json_builder_add_string_value (builder, slot->name);
+    json_builder_end_object (builder);
+
+    json_builder_set_member_name (builder, "plug");
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "snap");
+    json_builder_add_string_value (builder, plug->snap->name);
+    json_builder_set_member_name (builder, "plug");
+    json_builder_add_string_value (builder, plug->name);
+    json_builder_end_object (builder);
+
+    json_builder_set_member_name (builder, "interface");
+    json_builder_add_string_value (builder, plug->interface);
+
+    if (connection->manual) {
+        json_builder_set_member_name (builder, "manual");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+
+    if (connection->gadget) {
+        json_builder_set_member_name (builder, "gadget");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+
+    // FIXME: slot-attrs
+    // FIXME: plug-attrs
+
+    json_builder_end_object (builder);
+}
+
+static void
+handle_connections (MockSnapd *snapd, SoupMessage *message)
+{
+    g_autoptr(JsonBuilder) builder = NULL;
+    GList *link;
+
+    if (strcmp (message->method, "GET") != 0) {
+        send_error_method_not_allowed (snapd, message, "method not allowed");
+        return;
+    }
+
+    builder = json_builder_new ();
+    json_builder_begin_object (builder);
+
+    json_builder_set_member_name (builder, "established");
+    json_builder_begin_array (builder);
+    for (link = snapd->established_connections; link; link = link->next) {
+        MockConnection *connection = link->data;
+        add_connection (builder, connection);
+    }
+    json_builder_end_array (builder);
+
+    if (snapd->undesired_connections != NULL) {
+        json_builder_set_member_name (builder, "undesired");
+        json_builder_begin_array (builder);
+        for (link = snapd->undesired_connections; link; link = link->next) {
+            MockConnection *connection = link->data;
+            add_connection (builder, connection);
+        }
+        json_builder_end_array (builder);
+    }
+
+    json_builder_set_member_name (builder, "plugs");
+    json_builder_begin_array (builder);
+    for (link = snapd->snaps; link; link = link->next) {
+        MockSnap *snap = link->data;
+        GList *l;
+
+        for (l = snap->plugs; l; l = l->next) {
+            MockPlug *plug = l->data;
+            GList *l2;
+            g_autoptr(GList) slots = NULL;
+
+            for (l2 = snapd->established_connections; l2; l2 = l2->next) {
+                MockConnection *connection = l2->data;
+                if (connection->plug == plug)
+                    slots = g_list_append (slots, connection->slot);
+            }
+
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "snap");
+            json_builder_add_string_value (builder, snap->name);
+            json_builder_set_member_name (builder, "plug");
+            json_builder_add_string_value (builder, plug->name);
+            json_builder_set_member_name (builder, "interface");
+            json_builder_add_string_value (builder, plug->interface);
+            json_builder_set_member_name (builder, "label");
+            json_builder_add_string_value (builder, plug->label);
+            if (slots != NULL) {
+                json_builder_set_member_name (builder, "connections");
+                json_builder_begin_array (builder);
+                for (l2 = slots; l2; l2 = l2->next) {
+                        MockSlot *slot = l2->data;
+                        json_builder_begin_object (builder);
+                        json_builder_set_member_name (builder, "snap");
+                        json_builder_add_string_value (builder, slot->snap->name);
+                        json_builder_set_member_name (builder, "slot");
+                        json_builder_add_string_value (builder, slot->name);
+                        json_builder_end_object (builder);
+                }
+                json_builder_end_array (builder);
+            }
+            json_builder_end_object (builder);
+        }
+    }
+    json_builder_end_array (builder);
+    json_builder_set_member_name (builder, "slots");
+    json_builder_begin_array (builder);
+    for (link = snapd->snaps; link; link = link->next) {
+        MockSnap *snap = link->data;
+        GList *l;
+
+        for (l = snap->slots_; l; l = l->next) {
+            MockSlot *slot = l->data;
+            GList *l2;
+            g_autoptr(GList) plugs = NULL;
+
+            for (l2 = snapd->established_connections; l2; l2 = l2->next) {
+                MockConnection *connection = l2->data;
+                if (connection->slot == slot)
+                    plugs = g_list_append (plugs, connection->plug);
+            }
+
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "snap");
+            json_builder_add_string_value (builder, snap->name);
+            json_builder_set_member_name (builder, "slot");
+            json_builder_add_string_value (builder, slot->name);
+            json_builder_set_member_name (builder, "interface");
+            json_builder_add_string_value (builder, slot->interface);
+            json_builder_set_member_name (builder, "label");
+            json_builder_add_string_value (builder, slot->label);
+            if (plugs != NULL) {
+                json_builder_set_member_name (builder, "connections");
+                json_builder_begin_array (builder);
+                for (l2 = plugs; l2; l2 = l2->next) {
+                    MockPlug *plug = l2->data;
+                    json_builder_begin_object (builder);
+                    json_builder_set_member_name (builder, "snap");
+                    json_builder_add_string_value (builder, plug->snap->name);
+                    json_builder_set_member_name (builder, "plug");
+                    json_builder_add_string_value (builder, plug->name);
+                    json_builder_end_object (builder);
+                }
+                json_builder_end_array (builder);
+            }
+            json_builder_end_object (builder);
+        }
+    }
+    json_builder_end_array (builder);
+    json_builder_end_object (builder);
+
+    send_sync_response (snapd, message, 200, json_builder_get_root (builder), NULL);
 }
 
 static MockTask *
@@ -4138,6 +4357,8 @@ handle_request (SoupServer        *server,
         handle_assertions (snapd, message, path + strlen ("/v2/assertions/"));
     else if (strcmp (path, "/v2/interfaces") == 0)
         handle_interfaces (snapd, message);
+    else if (strcmp (path, "/v2/connections") == 0)
+        handle_connections (snapd, message);
     else if (strcmp (path, "/v2/changes") == 0)
         handle_changes (snapd, message, query);
     else if (g_str_has_prefix (path, "/v2/changes/"))
@@ -4206,8 +4427,10 @@ mock_snapd_finalize (GObject *object)
     snapd->store_sections = NULL;
     g_list_free_full (snapd->store_snaps, (GDestroyNotify) mock_snap_free);
     snapd->store_snaps = NULL;
-    g_list_free_full (snapd->connections, (GDestroyNotify) mock_connection_free);
-    snapd->connections = NULL;
+    g_list_free_full (snapd->established_connections, (GDestroyNotify) mock_connection_free);
+    snapd->established_connections = NULL;
+    g_list_free_full (snapd->undesired_connections, (GDestroyNotify) mock_connection_free);
+    snapd->undesired_connections = NULL;
     g_list_free_full (snapd->assertions, g_free);
     snapd->assertions = NULL;
     g_list_free_full (snapd->changes, (GDestroyNotify) mock_change_free);

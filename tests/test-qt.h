@@ -233,6 +233,23 @@ public slots:
     void onComplete ();
 };
 
+class GetConnectionsHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetConnectionsHandler (GMainLoop *loop, QSnapdGetConnectionsRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetConnectionsRequest *request;
+    ~GetConnectionsHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class GetInterfacesHandler: public QObject
 {
     Q_OBJECT

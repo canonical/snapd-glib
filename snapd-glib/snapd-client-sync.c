@@ -544,6 +544,38 @@ snapd_client_get_interfaces_sync (SnapdClient *client,
 }
 
 /**
+ * snapd_client_get_connections_sync:
+ * @client: a #SnapdClient.
+ * @established: (out) (allow-none) (transfer container) (element-type SnapdConnection): the location to store the array of connections or %NULL.
+ * @undesired: (out) (allow-none) (transfer container) (element-type SnapdConnection): the location to store the array of auto-connected connections that have been manually disconnected or %NULL.
+ * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the location to store the array of #SnapdPlug or %NULL.
+ * @slots: (out) (allow-none) (transfer container) (element-type SnapdSlot): the location to store the array of #SnapdSlot or %NULL.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get the installed snap connections.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.48
+ */
+gboolean
+snapd_client_get_connections_sync (SnapdClient *client,
+                                   GPtrArray **established, GPtrArray **undesired,
+                                   GPtrArray **plugs, GPtrArray **slots,
+                                   GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+
+    start_sync (&data);
+    snapd_client_get_connections_async (client, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_connections_finish (client, data.result, established, undesired, plugs, slots, error);
+}
+
+/**
  * snapd_client_connect_interface_sync:
  * @client: a #SnapdClient.
  * @plug_snap: name of snap containing plug.

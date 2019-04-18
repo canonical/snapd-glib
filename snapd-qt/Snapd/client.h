@@ -289,6 +289,33 @@ private:
     Q_DECLARE_PRIVATE(QSnapdAddAssertionsRequest)
 };
 
+class QSnapdGetConnectionsRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetConnectionsRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int plugCount READ plugCount)
+    Q_PROPERTY(int slotCount READ slotCount)
+
+public:
+    explicit QSnapdGetConnectionsRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetConnectionsRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int establishedCount () const;
+    Q_INVOKABLE QSnapdConnection *established (int) const;
+    Q_INVOKABLE int undesiredCount () const;
+    Q_INVOKABLE QSnapdConnection *undesired (int) const;
+    Q_INVOKABLE int plugCount () const;
+    Q_INVOKABLE QSnapdPlug *plug (int) const;
+    Q_INVOKABLE int slotCount () const;
+    Q_INVOKABLE QSnapdSlot *slot (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetConnectionsRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetConnectionsRequest)
+};
+
 class QSnapdGetInterfacesRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetInterfacesRequest : public QSnapdRequest
 {
@@ -871,6 +898,7 @@ public:
     Q_INVOKABLE QSnapdGetIconRequest *getIcon (const QString &name);
     Q_INVOKABLE QSnapdGetAssertionsRequest *getAssertions (const QString &type);
     Q_INVOKABLE QSnapdAddAssertionsRequest *addAssertions (const QStringList &assertions);
+    Q_INVOKABLE QSnapdGetConnectionsRequest *getConnections ();
     Q_INVOKABLE QSnapdGetInterfacesRequest *getInterfaces ();
     Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
