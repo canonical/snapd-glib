@@ -37,6 +37,7 @@ source_private_h = \
 	requests/snapd-get-buy-ready.h \
 	requests/snapd-get-change.h \
 	requests/snapd-get-changes.h \
+	requests/snapd-get-connections.h \
 	requests/snapd-get-find.h \
 	requests/snapd-get-icon.h \
 	requests/snapd-get-interfaces.h \
@@ -95,6 +96,7 @@ source_private_c = \
 	requests/snapd-get-buy-ready.c \
 	requests/snapd-get-change.c \
 	requests/snapd-get-changes.c \
+	requests/snapd-get-connections.c \
 	requests/snapd-get-find.c \
 	requests/snapd-get-icon.c \
 	requests/snapd-get-interfaces.c \

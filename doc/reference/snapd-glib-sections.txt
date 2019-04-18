@@ -167,6 +167,9 @@ snapd_client_add_assertions_sync
 snapd_client_get_interfaces_sync
 snapd_client_get_interfaces_async
 snapd_client_get_interfaces_finish
+snapd_client_get_connections_sync
+snapd_client_get_connections_async
+snapd_client_get_connections_finish
 snapd_client_connect_interface_sync
 snapd_client_connect_interface_async
 snapd_client_connect_interface_finish
@@ -275,6 +278,7 @@ SnapdGetAssertions
 SnapdGetBuyReady
 SnapdGetChange
 SnapdGetChanges
+SnapdGetConnections
 SnapdGetFind
 SnapdGetIcon
 SnapdGetInterfaces
@@ -329,6 +333,17 @@ SNAPD_TYPE_SLOT_REF
 <SECTION>
 <FILE>snapd-connection</FILE>
 <TITLE>SnapdConnection</TITLE>
+snapd_connection_get_interface
+snapd_connection_get_slot
+snapd_connection_get_plug
+snapd_connection_get_manual
+snapd_connection_get_gadget
+snapd_connection_get_slot_attribute_names
+snapd_connection_has_slot_attribute
+snapd_connection_get_slot_attribute
+snapd_connection_get_plug_attribute_names
+snapd_connection_has_plug_attribute
+snapd_connection_get_plug_attribute
 snapd_connection_get_name
 snapd_connection_get_snap
 SnapdConnection

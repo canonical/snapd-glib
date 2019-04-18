@@ -383,9 +383,11 @@ MockSlot       *mock_snap_add_slot                (MockSnap      *snap,
 MockSlot       *mock_snap_find_slot               (MockSnap      *snap,
                                                    const gchar   *name);
 
-MockConnection *mock_snapd_connect                (MockSnapd     *snapd,
+void            mock_snapd_connect                (MockSnapd     *snapd,
                                                    MockPlug      *plug,
-                                                   MockSlot      *slot);
+                                                   MockSlot      *slot,
+                                                   gboolean       manual,
+                                                   gboolean       gadget);
 
 MockSlot       *mock_snapd_find_plug_connection   (MockSnapd     *snapd,
                                                    MockPlug      *plug);

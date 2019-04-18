@@ -13,6 +13,37 @@
 
 QSnapdConnection::QSnapdConnection (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
+QSnapdSlotRef *QSnapdConnection::slot () const
+{
+    SnapdSlotRef *slot_ref = snapd_connection_get_slot (SNAPD_CONNECTION (wrapped_object));
+    if (slot_ref == NULL)
+        return NULL;
+    return new QSnapdSlotRef (slot_ref);
+}
+
+QSnapdPlugRef *QSnapdConnection::plug () const
+{
+    SnapdPlugRef *plug_ref = snapd_connection_get_plug (SNAPD_CONNECTION (wrapped_object));
+    if (plug_ref == NULL)
+        return NULL;
+    return new QSnapdPlugRef (plug_ref);
+}
+
+QString QSnapdConnection::interface () const
+{
+    return snapd_connection_get_interface (SNAPD_CONNECTION (wrapped_object));
+}
+
+bool QSnapdConnection::manual () const
+{
+    return snapd_connection_get_manual (SNAPD_CONNECTION (wrapped_object));
+}
+
+bool QSnapdConnection::gadget () const
+{
+    return snapd_connection_get_gadget (SNAPD_CONNECTION (wrapped_object));
+}
+
 QString QSnapdConnection::name () const
 {
 QT_WARNING_PUSH

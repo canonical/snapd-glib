@@ -199,6 +199,26 @@ public:
     QStringList assertions;
 };
 
+class QSnapdGetConnectionsRequestPrivate
+{
+public:
+    ~QSnapdGetConnectionsRequestPrivate ()
+    {
+        if (established != NULL)
+            g_ptr_array_unref (established);
+        if (undesired != NULL)
+            g_ptr_array_unref (undesired);
+        if (plugs != NULL)
+            g_ptr_array_unref (plugs);
+        if (slots_ != NULL)
+            g_ptr_array_unref (slots_);
+    }
+    GPtrArray *established = NULL;
+    GPtrArray *undesired = NULL;
+    GPtrArray *plugs = NULL;
+    GPtrArray *slots_ = NULL;
+};
+
 class QSnapdGetInterfacesRequestPrivate
 {
 public:
