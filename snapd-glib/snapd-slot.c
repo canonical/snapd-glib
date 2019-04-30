@@ -12,6 +12,8 @@
 #include <string.h>
 
 #include "snapd-slot.h"
+#include "snapd-connection.h"
+#include "snapd-plug-ref.h"
 
 /**
  * SECTION: snapd-slot
@@ -43,6 +45,7 @@ struct _SnapdSlot
     GHashTable *attributes;
     gchar *label;
     GPtrArray *connections;
+    GPtrArray *legacy_connections;
 };
 
 enum
@@ -204,9 +207,44 @@ snapd_slot_get_label (SnapdSlot *slot)
  * Returns: (transfer none) (element-type SnapdConnection): an array of #SnapdConnection.
  *
  * Since: 1.0
+ * Deprecated: 1.48: Use snapd_slot_get_connected_plugs()
  */
 GPtrArray *
 snapd_slot_get_connections (SnapdSlot *slot)
+{
+    g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
+
+    if (slot->legacy_connections == NULL) {
+        int i;
+
+        slot->legacy_connections = g_ptr_array_new_with_free_func (g_object_unref);
+        for (i = 0; i < slot->connections->len; i++) {
+            SnapdPlugRef *plug_ref = g_ptr_array_index (slot->connections, i);
+            SnapdConnection *connection;
+
+            connection = g_object_new (SNAPD_TYPE_CONNECTION,
+                                       "name", snapd_plug_ref_get_plug (plug_ref),
+                                       "snap", snapd_plug_ref_get_snap (plug_ref),
+                                       NULL);
+            g_ptr_array_add (slot->legacy_connections, connection);
+        }
+    }
+
+    return slot->legacy_connections;
+}
+
+/**
+ * snapd_slot_get_connected_plugs:
+ * @slot: a #SnapdSlot.
+ *
+ * Get the plugs connected to this slot.
+ *
+ * Returns: (transfer none) (element-type SnapdPlugRef): an array of #SnapdPlugRef.
+ *
+ * Since: 1.48
+ */
+GPtrArray *
+snapd_slot_get_connected_plugs (SnapdSlot *slot)
 {
     g_return_val_if_fail (SNAPD_IS_SLOT (slot), NULL);
     return slot->connections;
@@ -291,6 +329,7 @@ snapd_slot_finalize (GObject *object)
     g_clear_pointer (&slot->attributes, g_hash_table_unref);
     g_clear_pointer (&slot->label, g_free);
     g_clear_pointer (&slot->connections, g_ptr_array_unref);
+    g_clear_pointer (&slot->legacy_connections, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_slot_parent_class)->finalize (object);
 }

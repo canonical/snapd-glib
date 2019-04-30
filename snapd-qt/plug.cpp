@@ -37,7 +37,10 @@ int QSnapdPlug::connectionCount () const
 {
     GPtrArray *connections;
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     connections = snapd_plug_get_connections (SNAPD_PLUG (wrapped_object));
+QT_WARNING_POP
     return connections != NULL ? connections->len : 0;
 }
 
@@ -45,8 +48,29 @@ QSnapdConnection *QSnapdPlug::connection (int n) const
 {
     GPtrArray *connections;
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     connections = snapd_plug_get_connections (SNAPD_PLUG (wrapped_object));
+QT_WARNING_POP
     if (connections == NULL || n < 0 || (guint) n >= connections->len)
         return NULL;
     return new QSnapdConnection (connections->pdata[n]);
+}
+
+int QSnapdPlug::connectedSlotCount () const
+{
+    GPtrArray *connections;
+
+    connections = snapd_plug_get_connected_slots (SNAPD_PLUG (wrapped_object));
+    return connections != NULL ? connections->len : 0;
+}
+
+QSnapdSlotRef *QSnapdPlug::connectedSlot (int n) const
+{
+    GPtrArray *connections;
+
+    connections = snapd_plug_get_connected_slots (SNAPD_PLUG (wrapped_object));
+    if (connections == NULL || n < 0 || (guint) n >= connections->len)
+        return NULL;
+    return new QSnapdSlotRef (connections->pdata[n]);
 }

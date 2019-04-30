@@ -26,9 +26,11 @@
 #include <snapd-glib/snapd-maintenance.h>
 #include <snapd-glib/snapd-media.h>
 #include <snapd-glib/snapd-plug.h>
+#include <snapd-glib/snapd-plug-ref.h>
 #include <snapd-glib/snapd-price.h>
 #include <snapd-glib/snapd-screenshot.h>
 #include <snapd-glib/snapd-slot.h>
+#include <snapd-glib/snapd-slot-ref.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-task.h>

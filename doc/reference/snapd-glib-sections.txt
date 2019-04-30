@@ -303,6 +303,30 @@ SnapdRequestClass
 </SECTION>
 
 <SECTION>
+<FILE>snapd-plug-ref</FILE>
+<TITLE>SnapdPlugRef</TITLE>
+snapd_plug_ref_get_plug
+snapd_plug_ref_get_snap
+SnapdPlugRef
+
+<SUBSECTION Private>
+SnapdPlugRefClass
+SNAPD_TYPE_PLUG_REF
+</SECTION>
+
+<SECTION>
+<FILE>snapd-slot-ref</FILE>
+<TITLE>SnapdSlotRef</TITLE>
+snapd_slot_ref_get_slot
+snapd_slot_ref_get_snap
+SnapdSlotRef
+
+<SUBSECTION Private>
+SnapdSlotRefClass
+SNAPD_TYPE_SLOT_REF
+</SECTION>
+
+<SECTION>
 <FILE>snapd-connection</FILE>
 <TITLE>SnapdConnection</TITLE>
 snapd_connection_get_name
@@ -424,6 +448,7 @@ snapd_plug_has_attribute
 snapd_plug_get_attribute
 snapd_plug_get_label
 snapd_plug_get_connections
+snapd_plug_get_connected_slots
 SnapdPlug
 
 <SUBSECTION Private>
@@ -496,6 +521,7 @@ snapd_slot_has_attribute
 snapd_slot_get_attribute
 snapd_slot_get_label
 snapd_slot_get_connections
+snapd_slot_get_connected_plugs
 SnapdSlot
 
 <SUBSECTION Private>

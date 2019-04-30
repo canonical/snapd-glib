@@ -18,9 +18,11 @@ source_h = \
 	snapd-maintenance.h \
 	snapd-media.h \
 	snapd-plug.h \
+	snapd-plug-ref.h \
 	snapd-price.h \
 	snapd-screenshot.h \
 	snapd-slot.h \
+	snapd-slot-ref.h \
 	snapd-snap.h \
 	snapd-system-information.h \
 	snapd-task.h \
@@ -75,9 +77,11 @@ source_c = \
 	snapd-maintenance.c \
 	snapd-media.c \
 	snapd-plug.c \
+	snapd-plug-ref.c \
 	snapd-price.c \
 	snapd-screenshot.c \
 	snapd-slot.c \
+	snapd-slot-ref.c \
 	snapd-snap.c \
 	snapd-system-information.c \
 	snapd-task.c \

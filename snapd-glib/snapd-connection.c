@@ -57,6 +57,7 @@ G_DEFINE_TYPE (SnapdConnection, snapd_connection, G_TYPE_OBJECT)
  * Returns: a name.
  *
  * Since: 1.0
+ * Deprecated: 1.48: Use snapd_plug_ref_get_plug() or snapd_slot_ref_get_slot()
  */
 const gchar *
 snapd_connection_get_name (SnapdConnection *connection)
@@ -74,6 +75,7 @@ snapd_connection_get_name (SnapdConnection *connection)
  * Returns: a snap name.
  *
  * Since: 1.0
+ * Deprecated: 1.48: Use snapd_plug_ref_get_snap() or snapd_slot_ref_get_snap()
  */
 const gchar *
 snapd_connection_get_snap (SnapdConnection *connection)

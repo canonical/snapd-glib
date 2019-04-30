@@ -3,7 +3,7 @@ pkgconfig_DATA = snapd-qt.pc
 pkgconfigdir = $(libdir)/pkgconfig
 endif
 
-source_cpp = alias.cpp app.cpp assertion.cpp auth-data.cpp change.cpp channel.cpp client.cpp connection.cpp icon.cpp maintenance.cpp media.cpp plug.cpp price.cpp request.cpp screenshot.cpp slot.cpp snap.cpp system-information.cpp task.cpp user-information.cpp
+source_cpp = alias.cpp app.cpp assertion.cpp auth-data.cpp change.cpp channel.cpp client.cpp connection.cpp icon.cpp maintenance.cpp media.cpp plug.cpp plug-ref.cpp price.cpp request.cpp screenshot.cpp slot.cpp slot-ref.cpp snap.cpp system-information.cpp task.cpp user-information.cpp
 source_moc = $(source_cpp:.cpp=_moc.cpp) client-private_moc.cpp wrapped-object_moc.cpp enums_moc.cpp
 source_h = Snapd/Alias Snapd/alias.h \
            Snapd/App Snapd/app.h \
@@ -18,10 +18,12 @@ source_h = Snapd/Alias Snapd/alias.h \
            Snapd/Maintenance Snapd/maintenance.h \
            Snapd/Media Snapd/media.h \
            Snapd/Plug Snapd/plug.h \
+           Snapd/PlugRef Snapd/plug-ref.h \
            Snapd/Price Snapd/price.h \
            Snapd/Request Snapd/request.h \
            Snapd/Screenshot Snapd/screenshot.h \
            Snapd/Slot Snapd/slot.h \
+           Snapd/SlotRef Snapd/slot-ref.h \
            Snapd/Snap Snapd/snap.h \
            Snapd/SystemInformation Snapd/system-information.h \
            Snapd/Task Snapd/task.h \

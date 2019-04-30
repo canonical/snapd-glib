@@ -15,10 +15,16 @@ QSnapdConnection::QSnapdConnection (void *snapd_object, QObject *parent) : QSnap
 
 QString QSnapdConnection::name () const
 {
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     return snapd_connection_get_name (SNAPD_CONNECTION (wrapped_object));
+QT_WARNING_POP
 }
 
 QString QSnapdConnection::snap () const
 {
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     return snapd_connection_get_snap (SNAPD_CONNECTION (wrapped_object));
+QT_WARNING_POP
 }

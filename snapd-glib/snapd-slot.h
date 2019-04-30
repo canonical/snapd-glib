@@ -15,7 +15,6 @@
 #endif
 
 #include <glib-object.h>
-#include <snapd-glib/snapd-connection.h>
 
 G_BEGIN_DECLS
 
@@ -40,7 +39,9 @@ GVariant    *snapd_slot_get_attribute       (SnapdSlot   *slot,
 
 const gchar *snapd_slot_get_label           (SnapdSlot   *slot);
 
-GPtrArray   *snapd_slot_get_connections     (SnapdSlot   *slot);
+GPtrArray   *snapd_slot_get_connections     (SnapdSlot   *slot) G_DEPRECATED_FOR(snapd_slot_get_connected_plugs);
+
+GPtrArray   *snapd_slot_get_connected_plugs (SnapdSlot   *slot);
 
 G_END_DECLS
 
