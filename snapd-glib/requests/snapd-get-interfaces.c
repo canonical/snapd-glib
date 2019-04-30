@@ -12,7 +12,9 @@
 #include "snapd-error.h"
 #include "snapd-json.h"
 #include "snapd-plug.h"
+#include "snapd-plug-ref.h"
 #include "snapd-slot.h"
+#include "snapd-slot-ref.h"
 
 struct _SnapdGetInterfaces
 {
@@ -52,18 +54,18 @@ generate_get_interfaces_request (SnapdRequest *request)
 }
 
 static GPtrArray *
-get_connections (JsonObject *object, const gchar *name, GError **error)
+get_plug_refs (JsonObject *object, GError **error)
 {
     g_autoptr(JsonArray) array = NULL;
-    GPtrArray *connections;
+    GPtrArray *plug_refs;
     guint i;
 
-    connections = g_ptr_array_new_with_free_func (g_object_unref);
+    plug_refs = g_ptr_array_new_with_free_func (g_object_unref);
     array = _snapd_json_get_array (object, "connections");
     for (i = 0; i < json_array_get_length (array); i++) {
         JsonNode *node = json_array_get_element (array, i);
         JsonObject *object;
-        SnapdConnection *connection;
+        SnapdPlugRef *plug_ref;
 
         if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
             g_set_error (error,
@@ -74,14 +76,47 @@ get_connections (JsonObject *object, const gchar *name, GError **error)
         }
 
         object = json_node_get_object (node);
-        connection = g_object_new (SNAPD_TYPE_CONNECTION,
-                                   "name", _snapd_json_get_string (object, name, NULL),
-                                   "snap", _snapd_json_get_string (object, "snap", NULL),
-                                   NULL);
-        g_ptr_array_add (connections, connection);
+        plug_ref = g_object_new (SNAPD_TYPE_PLUG_REF,
+                                 "plug", _snapd_json_get_string (object, "plug", NULL),
+                                 "snap", _snapd_json_get_string (object, "snap", NULL),
+                                 NULL);
+        g_ptr_array_add (plug_refs, plug_ref);
     }
 
-    return connections;
+    return plug_refs;
+}
+
+static GPtrArray *
+get_slot_refs (JsonObject *object, GError **error)
+{
+    g_autoptr(JsonArray) array = NULL;
+    GPtrArray *slot_refs;
+    guint i;
+
+    slot_refs = g_ptr_array_new_with_free_func (g_object_unref);
+    array = _snapd_json_get_array (object, "connections");
+    for (i = 0; i < json_array_get_length (array); i++) {
+        JsonNode *node = json_array_get_element (array, i);
+        JsonObject *object;
+        SnapdSlotRef *slot_ref;
+
+        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected connection type");
+            return NULL;
+        }
+
+        object = json_node_get_object (node);
+        slot_ref = g_object_new (SNAPD_TYPE_SLOT_REF,
+                                 "slot", _snapd_json_get_string (object, "slot", NULL),
+                                 "snap", _snapd_json_get_string (object, "snap", NULL),
+                                 NULL);
+        g_ptr_array_add (slot_refs, slot_ref);
+    }
+
+    return slot_refs;
 }
 
 static GVariant *node_to_variant (JsonNode *node);
@@ -267,7 +302,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
     for (i = 0; i < json_array_get_length (plugs); i++) {
         JsonNode *node = json_array_get_element (plugs, i);
         JsonObject *object;
-        g_autoptr(GPtrArray) connections = NULL;
+        g_autoptr(GPtrArray) slot_refs = NULL;
         g_autoptr(GHashTable) attributes = NULL;
         g_autoptr(SnapdPlug) plug = NULL;
 
@@ -280,8 +315,8 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
         }
         object = json_node_get_object (node);
 
-        connections = get_connections (object, "slot", error);
-        if (connections == NULL)
+        slot_refs = get_slot_refs (object, error);
+        if (slot_refs == NULL)
             return FALSE;
         attributes = get_attributes (object, "slot", error);
         if (attributes == NULL)
@@ -292,7 +327,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
                              "snap", _snapd_json_get_string (object, "snap", NULL),
                              "interface", _snapd_json_get_string (object, "interface", NULL),
                              "label", _snapd_json_get_string (object, "label", NULL),
-                             "connections", connections,
+                             "connections", slot_refs,
                              "attributes", attributes,
                              // FIXME: apps
                              NULL);
@@ -303,7 +338,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
     for (i = 0; i < json_array_get_length (slots); i++) {
         JsonNode *node = json_array_get_element (slots, i);
         JsonObject *object;
-        g_autoptr(GPtrArray) connections = NULL;
+        g_autoptr(GPtrArray) plug_refs = NULL;
         g_autoptr(GHashTable) attributes = NULL;
         g_autoptr(SnapdSlot) slot = NULL;
 
@@ -316,8 +351,8 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
         }
         object = json_node_get_object (node);
 
-        connections = get_connections (object, "plug", error);
-        if (connections == NULL)
+        plug_refs = get_plug_refs (object, error);
+        if (plug_refs == NULL)
             return FALSE;
         attributes = get_attributes (object, "plug", error);
         if (attributes == NULL)
@@ -328,7 +363,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
                              "snap", _snapd_json_get_string (object, "snap", NULL),
                              "interface", _snapd_json_get_string (object, "interface", NULL),
                              "label", _snapd_json_get_string (object, "label", NULL),
-                             "connections", connections,
+                             "connections", plug_refs,
                              "attributes", attributes,
                              // FIXME: apps
                              NULL);

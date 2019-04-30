@@ -13,6 +13,7 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 #include <Snapd/Connection>
+#include <Snapd/SlotRef>
 
 class Q_DECL_EXPORT QSnapdPlug : public QSnapdWrappedObject
 {
@@ -23,6 +24,7 @@ class Q_DECL_EXPORT QSnapdPlug : public QSnapdWrappedObject
     Q_PROPERTY(QString interface READ interface)
     Q_PROPERTY(QString label READ label)
     Q_PROPERTY(int connectionCount READ connectionCount)
+    Q_PROPERTY(int connectedSlotCount READ connectedSlotCount)
 
 public:
     explicit QSnapdPlug (void* snapd_object, QObject* parent = 0);
@@ -31,8 +33,10 @@ public:
     QString snap () const;
     QString interface () const;
     QString label () const;
-    int connectionCount () const;
-    Q_INVOKABLE QSnapdConnection *connection (int) const;
+    Q_DECL_DEPRECATED_X("Use connectedSlotCount()") int connectionCount () const;
+    Q_INVOKABLE Q_DECL_DEPRECATED_X("Use connectedSlot()") QSnapdConnection *connection (int) const;
+    int connectedSlotCount () const;
+    Q_INVOKABLE QSnapdSlotRef *connectedSlot (int) const;
 };
 
 #endif

@@ -15,7 +15,6 @@
 #endif
 
 #include <glib-object.h>
-#include <snapd-glib/snapd-connection.h>
 
 G_BEGIN_DECLS
 
