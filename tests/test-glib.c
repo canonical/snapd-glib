@@ -2727,7 +2727,7 @@ test_get_interfaces_sync (void)
     mock_snap_add_slot (s, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
     p = mock_snap_add_plug (s, "plug1");
-    mock_plug_set_connection (p, sl);
+    mock_snapd_connect (snapd, p, sl);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -2852,7 +2852,7 @@ test_get_interfaces_async (void)
     mock_snap_add_slot (s, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
     p = mock_snap_add_plug (s, "plug1");
-    mock_plug_set_connection (p, sl);
+    mock_snapd_connect (snapd, p, sl);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -2910,7 +2910,7 @@ test_get_interfaces_legacy (void)
     mock_snap_add_slot (s, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
     p = mock_snap_add_plug (s, "plug1");
-    mock_plug_set_connection (p, sl);
+    mock_snapd_connect (snapd, p, sl);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -2975,7 +2975,7 @@ test_connect_interface_sync (void)
     result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    g_assert (mock_plug_get_connection (plug) == slot);
+    g_assert (mock_snapd_find_plug_connection (snapd, plug) == slot);
 }
 
 static void
@@ -2996,7 +2996,7 @@ connect_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     r = snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
-    g_assert (mock_plug_get_connection (plug) == slot);
+    g_assert (mock_snapd_find_plug_connection (data->snapd, plug) == slot);
 
     g_main_loop_quit (data->loop);
 }
@@ -3064,7 +3064,7 @@ test_connect_interface_progress (void)
     result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", connect_interface_progress_cb, &connect_interface_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    g_assert (mock_plug_get_connection (plug) == slot);
+    g_assert (mock_snapd_find_plug_connection (snapd, plug) == slot);
     g_assert_cmpint (connect_interface_progress_data.progress_done, >, 0);
 }
 
@@ -3103,7 +3103,7 @@ test_disconnect_interface_sync (void)
     slot = mock_snap_add_slot (s, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
     plug = mock_snap_add_plug (s, "plug");
-    mock_plug_set_connection (plug, slot);
+    mock_snapd_connect (snapd, plug, slot);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -3112,7 +3112,7 @@ test_disconnect_interface_sync (void)
     result = snapd_client_disconnect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    g_assert_null (mock_plug_get_connection (plug));
+    g_assert_null (mock_snapd_find_plug_connection (snapd, plug));
 }
 
 static void
@@ -3130,7 +3130,7 @@ disconnect_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     r = snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
-    g_assert_null (mock_plug_get_connection (plug));
+    g_assert_null (mock_snapd_find_plug_connection (data->snapd, plug));
 
     g_main_loop_quit (data->loop);
 }
@@ -3153,7 +3153,7 @@ test_disconnect_interface_async (void)
     slot = mock_snap_add_slot (s, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
     plug = mock_snap_add_plug (s, "plug");
-    mock_plug_set_connection (plug, slot);
+    mock_snapd_connect (snapd, plug, slot);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -3192,7 +3192,7 @@ test_disconnect_interface_progress (void)
     slot = mock_snap_add_slot (s, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
     plug = mock_snap_add_plug (s, "plug");
-    mock_plug_set_connection (plug, slot);
+    mock_snapd_connect (snapd, plug, slot);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -3202,7 +3202,7 @@ test_disconnect_interface_progress (void)
     result = snapd_client_disconnect_interface_sync (client, "snap2", "plug", "snap1", "slot", disconnect_interface_progress_cb, &disconnect_interface_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    g_assert_null (mock_plug_get_connection (plug));
+    g_assert_null (mock_snapd_find_plug_connection (snapd, plug));
     g_assert_cmpint (disconnect_interface_progress_data.progress_done, >, 0);
 }
 
