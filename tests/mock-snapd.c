@@ -55,8 +55,6 @@ struct _MockSnapd
     gchar *refresh_timer;
     GList *store_sections;
     GList *store_snaps;
-    GList *plugs;
-    GList *slots;
     GList *assertions;
     int change_index;
     GList *changes;
@@ -4159,10 +4157,6 @@ mock_snapd_finalize (GObject *object)
     snapd->store_sections = NULL;
     g_list_free_full (snapd->store_snaps, (GDestroyNotify) mock_snap_free);
     snapd->store_snaps = NULL;
-    g_list_free_full (snapd->plugs, (GDestroyNotify) mock_plug_free);
-    snapd->plugs = NULL;
-    g_list_free_full (snapd->slots, (GDestroyNotify) mock_slot_free);
-    snapd->slots = NULL;
     g_list_free_full (snapd->assertions, g_free);
     snapd->assertions = NULL;
     g_list_free_full (snapd->changes, (GDestroyNotify) mock_change_free);
