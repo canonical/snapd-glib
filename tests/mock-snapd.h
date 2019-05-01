@@ -30,6 +30,7 @@ typedef struct _MockAlias MockAlias;
 typedef struct _MockApp MockApp;
 typedef struct _MockChange MockChange;
 typedef struct _MockChannel MockChannel;
+typedef struct _MockConnection MockConnection;
 typedef struct _MockMedia MockMedia;
 typedef struct _MockPlug MockPlug;
 typedef struct _MockPrice MockPrice;
@@ -382,10 +383,12 @@ MockSlot       *mock_snap_add_slot                (MockSnap      *snap,
 MockSlot       *mock_snap_find_slot               (MockSnap      *snap,
                                                    const gchar   *name);
 
-void            mock_plug_set_connection          (MockPlug      *plug,
+MockConnection *mock_snapd_connect                (MockSnapd     *snapd,
+                                                   MockPlug      *plug,
                                                    MockSlot      *slot);
 
-MockSlot       *mock_plug_get_connection          (MockPlug      *plug);
+MockSlot       *mock_snapd_find_plug_connection   (MockSnapd     *snapd,
+                                                   MockPlug      *plug);
 
 void            mock_snapd_add_assertion          (MockSnapd     *snapd,
                                                    const gchar   *assertion);
