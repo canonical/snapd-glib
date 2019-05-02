@@ -13,6 +13,7 @@
 #include <libsoup/soup.h>
 #include <json-glib/json-glib.h>
 
+#include "snapd-app.h"
 #include "snapd-change.h"
 #include "snapd-maintenance.h"
 #include "snapd-plug.h"
@@ -70,10 +71,8 @@ SnapdChange          *_snapd_json_parse_change           (JsonNode            *n
 SnapdSnap            *_snapd_json_parse_snap             (JsonNode           *node,
                                                           GError            **error);
 
-GPtrArray            *_snapd_json_parse_snap_array       (JsonNode           *node,
-                                                          GError            **error);
-
-GPtrArray            *_snapd_json_parse_app_array        (JsonNode           *node,
+SnapdApp             *_snapd_json_parse_app              (JsonNode           *node,
+                                                          const gchar        *snap_name,
                                                           GError            **error);
 
 SnapdUserInformation *_snapd_json_parse_user_information (JsonNode           *node,
@@ -91,13 +90,7 @@ SnapdPlug            *_snapd_json_parse_plug             (JsonNode           *no
 SnapdSlotRef         *_snapd_json_parse_slot_ref         (JsonNode           *node,
                                                           GError            **error);
 
-GPtrArray            *_snapd_json_parse_slot_ref_array   (JsonNode           *node,
-                                                          GError            **error);
-
 SnapdPlugRef         *_snapd_json_parse_plug_ref         (JsonNode           *node,
-                                                          GError            **error);
-
-GPtrArray            *_snapd_json_parse_plug_ref_array   (JsonNode           *node,
                                                           GError            **error);
 
 G_END_DECLS

@@ -87,22 +87,28 @@ parse_get_apps_response (SnapdRequest *request, SoupMessage *message, SnapdMaint
 {
     SnapdGetApps *r = SNAPD_GET_APPS (request);
     g_autoptr(JsonObject) response = NULL;
-    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
-    /*g_autoptr(JsonNode) result = NULL;*/
-    JsonNode *result;
-    GPtrArray *apps;
+    g_autoptr(JsonArray) result = NULL;
+    g_autoptr(GPtrArray) apps = NULL;
+    guint i;
 
     response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result (response, error);
+    result = _snapd_json_get_sync_result_a (response, error);
     if (result == NULL)
         return FALSE;
 
-    apps = _snapd_json_parse_app_array (result, error);
-    json_node_unref (result);
-    if (apps == NULL)
-        return FALSE;
+    apps = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (result); i++) {
+        JsonNode *node = json_array_get_element (result, i);
+        SnapdApp *app;
+
+        app = _snapd_json_parse_app (node, NULL, error);
+        if (app == NULL)
+            return FALSE;
+
+        g_ptr_array_add (apps, app);
+    }
 
     r->apps = g_steal_pointer (&apps);
 
