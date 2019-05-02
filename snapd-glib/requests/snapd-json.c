@@ -626,8 +626,9 @@ _snapd_json_parse_apps (const gchar *snap_name, JsonArray *apps, GError **error)
 }
 
 SnapdSnap *
-_snapd_json_parse_snap (JsonObject *object, GError **error)
+_snapd_json_parse_snap (JsonNode *node, GError **error)
 {
+    JsonObject *object;
     const gchar *name;
     SnapdConfinement confinement;
     const gchar *snap_type_string;
@@ -655,6 +656,15 @@ _snapd_json_parse_snap (JsonObject *object, GError **error)
     g_autoptr(JsonArray) tracks = NULL;
     g_autoptr(GPtrArray) track_array = NULL;
     guint i;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected snap type");
+        return NULL;
+    }
+    object = json_node_get_object (node);
 
     name = _snapd_json_get_string (object, "name", NULL);
 
@@ -892,14 +902,10 @@ _snapd_json_parse_snap_array (JsonArray *array, GError **error)
         JsonNode *node = json_array_get_element (array, i);
         SnapdSnap *snap;
 
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected snap type");
-            return NULL;
-        }
-
-        snap = _snapd_json_parse_snap (json_node_get_object (node), error);
+        snap = _snapd_json_parse_snap (node, error);
         if (snap == NULL)
             return NULL;
+
         g_ptr_array_add (snaps, snap);
     }
 

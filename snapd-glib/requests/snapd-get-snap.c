@@ -58,17 +58,20 @@ parse_get_snap_response (SnapdRequest *request, SoupMessage *message, SnapdMaint
 {
     SnapdGetSnap *r = SNAPD_GET_SNAP (request);
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonObject) result = NULL;
+    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
+    /*g_autoptr(JsonNode) result = NULL;*/
+    JsonNode *result;
     g_autoptr(SnapdSnap) snap = NULL;
 
     response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_o (response, error);
+    result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return FALSE;
 
     snap = _snapd_json_parse_snap (result, error);
+    json_node_unref (result);
     if (snap == NULL)
         return FALSE;
 
