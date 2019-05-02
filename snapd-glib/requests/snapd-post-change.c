@@ -83,16 +83,19 @@ parse_post_change_response (SnapdRequest *request, SoupMessage *message, SnapdMa
 {
     SnapdPostChange *r = SNAPD_POST_CHANGE (request);
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonObject) result = NULL;
+    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
+    /*g_autoptr(JsonNode) result = NULL;*/
+    JsonNode *result;
 
     response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_o (response, error);
+    result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return FALSE;
 
     r->change = _snapd_json_parse_change (result, error);
+    json_node_unref (result);
     if (r->change == NULL)
         return FALSE;
 
@@ -104,8 +107,8 @@ parse_post_change_response (SnapdRequest *request, SoupMessage *message, SnapdMa
         return FALSE;
     }
 
-    if (json_object_has_member (result, "data"))
-        r->data = json_node_ref (json_object_get_member (result, "data"));
+    if (json_object_has_member (json_node_get_object (result), "data"))
+        r->data = json_node_ref (json_object_get_member (json_node_get_object (result), "data"));
 
     return TRUE;
 }

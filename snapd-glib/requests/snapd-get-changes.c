@@ -97,14 +97,10 @@ parse_get_changes_response (SnapdRequest *request, SoupMessage *message, SnapdMa
         JsonNode *node = json_array_get_element (result, i);
         SnapdChange *change;
 
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected snap type");
-            return FALSE;
-        }
-
-        change = _snapd_json_parse_change (json_node_get_object (node), error);
+        change = _snapd_json_parse_change (node, error);
         if (change == NULL)
             return FALSE;
+
         g_ptr_array_add (changes, change);
     }
 

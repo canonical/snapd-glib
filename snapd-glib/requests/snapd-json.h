@@ -64,7 +64,7 @@ JsonArray            *_snapd_json_get_sync_result_a      (JsonObject         *re
 gchar                *_snapd_json_get_async_result       (JsonObject         *response,
                                                           GError            **error);
 
-SnapdChange          *_snapd_json_parse_change           (JsonObject         *object,
+SnapdChange          *_snapd_json_parse_change           (JsonNode            *node,
                                                           GError            **error);
 
 SnapdSnap            *_snapd_json_parse_snap             (JsonNode           *node,
