@@ -966,3 +966,43 @@ _snapd_json_parse_user_information (JsonObject *object, GError **error)
                          "auth-data", auth_data,
                          NULL);
 }
+
+SnapdSlotRef *
+_snapd_json_parse_slot_ref (JsonNode *node, GError **error)
+{
+    JsonObject *object;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected slot ref type");
+        return NULL;
+    }
+    object = json_node_get_object (node);
+
+    return g_object_new (SNAPD_TYPE_SLOT_REF,
+                         "slot", _snapd_json_get_string (object, "slot", NULL),
+                         "snap", _snapd_json_get_string (object, "snap", NULL),
+                         NULL);
+}
+
+SnapdPlugRef *
+_snapd_json_parse_plug_ref (JsonNode *node, GError **error)
+{
+    JsonObject *object;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected plug ref type");
+        return NULL;
+    }
+    object = json_node_get_object (node);
+
+    return g_object_new (SNAPD_TYPE_PLUG_REF,
+                         "plug", _snapd_json_get_string (object, "plug", NULL),
+                         "snap", _snapd_json_get_string (object, "snap", NULL),
+                         NULL);
+}

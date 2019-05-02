@@ -15,6 +15,8 @@
 
 #include "snapd-change.h"
 #include "snapd-maintenance.h"
+#include "snapd-plug-ref.h"
+#include "snapd-slot-ref.h"
 #include "snapd-snap.h"
 #include "snapd-user-information.h"
 
@@ -70,6 +72,12 @@ GPtrArray            *_snapd_json_parse_app_array        (JsonArray          *ar
                                                           GError            **error);
 
 SnapdUserInformation *_snapd_json_parse_user_information (JsonObject         *object,
+                                                          GError            **error);
+
+SnapdSlotRef         *_snapd_json_parse_slot_ref         (JsonNode           *node,
+                                                          GError            **error);
+
+SnapdPlugRef         *_snapd_json_parse_plug_ref         (JsonNode           *node,
                                                           GError            **error);
 
 G_END_DECLS
