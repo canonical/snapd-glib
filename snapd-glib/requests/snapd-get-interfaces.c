@@ -53,72 +53,6 @@ generate_get_interfaces_request (SnapdRequest *request)
     return soup_message_new ("GET", "http://snapd/v2/interfaces");
 }
 
-static GPtrArray *
-get_plug_refs (JsonObject *object, GError **error)
-{
-    g_autoptr(JsonArray) array = NULL;
-    GPtrArray *plug_refs;
-    guint i;
-
-    plug_refs = g_ptr_array_new_with_free_func (g_object_unref);
-    array = _snapd_json_get_array (object, "connections");
-    for (i = 0; i < json_array_get_length (array); i++) {
-        JsonNode *node = json_array_get_element (array, i);
-        JsonObject *object;
-        SnapdPlugRef *plug_ref;
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error (error,
-                         SNAPD_ERROR,
-                         SNAPD_ERROR_READ_FAILED,
-                         "Unexpected connection type");
-            return NULL;
-        }
-
-        object = json_node_get_object (node);
-        plug_ref = g_object_new (SNAPD_TYPE_PLUG_REF,
-                                 "plug", _snapd_json_get_string (object, "plug", NULL),
-                                 "snap", _snapd_json_get_string (object, "snap", NULL),
-                                 NULL);
-        g_ptr_array_add (plug_refs, plug_ref);
-    }
-
-    return plug_refs;
-}
-
-static GPtrArray *
-get_slot_refs (JsonObject *object, GError **error)
-{
-    g_autoptr(JsonArray) array = NULL;
-    GPtrArray *slot_refs;
-    guint i;
-
-    slot_refs = g_ptr_array_new_with_free_func (g_object_unref);
-    array = _snapd_json_get_array (object, "connections");
-    for (i = 0; i < json_array_get_length (array); i++) {
-        JsonNode *node = json_array_get_element (array, i);
-        JsonObject *object;
-        SnapdSlotRef *slot_ref;
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error (error,
-                         SNAPD_ERROR,
-                         SNAPD_ERROR_READ_FAILED,
-                         "Unexpected connection type");
-            return NULL;
-        }
-
-        object = json_node_get_object (node);
-        slot_ref = g_object_new (SNAPD_TYPE_SLOT_REF,
-                                 "slot", _snapd_json_get_string (object, "slot", NULL),
-                                 "snap", _snapd_json_get_string (object, "snap", NULL),
-                                 NULL);
-        g_ptr_array_add (slot_refs, slot_ref);
-    }
-
-    return slot_refs;
-}
-
 static GVariant *node_to_variant (JsonNode *node);
 
 static GVariant *
@@ -315,9 +249,14 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
         }
         object = json_node_get_object (node);
 
-        slot_refs = get_slot_refs (object, error);
-        if (slot_refs == NULL)
-            return FALSE;
+        if (json_object_has_member (object, "connections")) {
+            slot_refs = _snapd_json_parse_slot_ref_array (json_object_get_member (object, "connections"), error);
+            if (slot_refs == NULL)
+                return FALSE;
+        }
+        else
+            slot_refs = g_ptr_array_new_with_free_func (g_object_unref);
+
         attributes = get_attributes (object, "slot", error);
         if (attributes == NULL)
             return FALSE;
@@ -351,9 +290,14 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
         }
         object = json_node_get_object (node);
 
-        plug_refs = get_plug_refs (object, error);
-        if (plug_refs == NULL)
-            return FALSE;
+        if (json_object_has_member (object, "connections")) {
+            plug_refs = _snapd_json_parse_plug_ref_array (json_object_get_member (object, "connections"), error);
+            if (plug_refs == NULL)
+                return FALSE;
+        }
+        else
+            plug_refs = g_ptr_array_new_with_free_func (g_object_unref);
+
         attributes = get_attributes (object, "plug", error);
         if (attributes == NULL)
             return FALSE;
