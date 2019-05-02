@@ -30,7 +30,7 @@ source_h = \
 	snapd-version.h
 
 source_private_h = \
-	snapd-json.h \
+	requests/snapd-json.h \
 	requests/snapd-get-aliases.h \
 	requests/snapd-get-apps.h \
 	requests/snapd-get-assertions.h \
@@ -89,7 +89,7 @@ source_c = \
 	snapd-user-information.c
 
 source_private_c = \
-	snapd-json.c \
+	requests/snapd-json.c \
 	requests/snapd-get-aliases.c \
 	requests/snapd-get-apps.c \
 	requests/snapd-get-assertions.c \
