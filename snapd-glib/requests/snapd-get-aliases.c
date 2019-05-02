@@ -80,38 +80,12 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, SnapdMa
 
         json_object_iter_init (&alias_iter, json_node_get_object (snap_node));
         while (json_object_iter_next (&alias_iter, &name, &alias_node)) {
-            JsonObject *o;
-            SnapdAliasStatus status = SNAPD_ALIAS_STATUS_UNKNOWN;
-            const gchar *status_string;
             SnapdAlias *alias;
 
-            if (json_node_get_value_type (alias_node) != JSON_TYPE_OBJECT) {
-                g_set_error (error,
-                             SNAPD_ERROR,
-                             SNAPD_ERROR_READ_FAILED,
-                             "Unexpected alias type");
+            alias = _snapd_json_parse_alias (alias_node, snap, name, error);
+            if (alias == NULL)
                 return FALSE;
-            }
 
-            o = json_node_get_object (alias_node);
-            status_string = _snapd_json_get_string (o, "status", NULL);
-            if (strcmp (status_string, "disabled") == 0)
-                status = SNAPD_ALIAS_STATUS_DISABLED;
-            else if (strcmp (status_string, "auto") == 0)
-                status = SNAPD_ALIAS_STATUS_AUTO;
-            else if (strcmp (status_string, "manual") == 0)
-                status = SNAPD_ALIAS_STATUS_MANUAL;
-            else
-                status = SNAPD_ALIAS_STATUS_UNKNOWN;
-
-            alias = g_object_new (SNAPD_TYPE_ALIAS,
-                                  "snap", snap,
-                                  "app-auto", _snapd_json_get_string (o, "auto", NULL),
-                                  "app-manual", _snapd_json_get_string (o, "manual", NULL),
-                                  "command", _snapd_json_get_string (o, "command", NULL),
-                                  "name", name,
-                                  "status", status,
-                                  NULL);
             g_ptr_array_add (aliases, alias);
         }
     }

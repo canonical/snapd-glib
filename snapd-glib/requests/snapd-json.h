@@ -13,14 +13,17 @@
 #include <libsoup/soup.h>
 #include <json-glib/json-glib.h>
 
+#include "snapd-alias.h"
 #include "snapd-app.h"
 #include "snapd-change.h"
+#include "snapd-connection.h"
 #include "snapd-maintenance.h"
 #include "snapd-plug.h"
 #include "snapd-plug-ref.h"
 #include "snapd-slot.h"
 #include "snapd-slot-ref.h"
 #include "snapd-snap.h"
+#include "snapd-system-information.h"
 #include "snapd-user-information.h"
 
 G_BEGIN_DECLS
@@ -68,11 +71,19 @@ gchar                *_snapd_json_get_async_result       (JsonObject         *re
 SnapdChange          *_snapd_json_parse_change           (JsonNode            *node,
                                                           GError            **error);
 
+SnapdSystemInformation *_snapd_json_parse_system_information (JsonNode       *node,
+                                                              GError        **error);
+
 SnapdSnap            *_snapd_json_parse_snap             (JsonNode           *node,
                                                           GError            **error);
 
 SnapdApp             *_snapd_json_parse_app              (JsonNode           *node,
                                                           const gchar        *snap_name,
+                                                          GError            **error);
+
+SnapdAlias           *_snapd_json_parse_alias            (JsonNode           *node,
+                                                          const gchar        *snap_name,
+                                                          const gchar        *name,
                                                           GError            **error);
 
 SnapdUserInformation *_snapd_json_parse_user_information (JsonNode           *node,
@@ -91,6 +102,9 @@ SnapdSlotRef         *_snapd_json_parse_slot_ref         (JsonNode           *no
                                                           GError            **error);
 
 SnapdPlugRef         *_snapd_json_parse_plug_ref         (JsonNode           *node,
+                                                          GError            **error);
+
+SnapdConnection      *_snapd_json_parse_connection       (JsonNode           *node,
                                                           GError            **error);
 
 G_END_DECLS

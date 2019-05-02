@@ -68,62 +68,6 @@ generate_get_connections_request (SnapdRequest *request)
     return soup_message_new ("GET", "http://snapd/v2/connections");
 }
 
-static SnapdConnection *
-get_connection (JsonNode *node, GError **error)
-{
-    JsonObject *object;
-    g_autoptr(SnapdSlotRef) slot_ref = NULL;
-    g_autoptr(SnapdPlugRef) plug_ref = NULL;
-    g_autoptr(GHashTable) slot_attributes = NULL;
-    g_autoptr(GHashTable) plug_attributes = NULL;
-
-    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_READ_FAILED,
-                     "Unexpected connection type");
-        return NULL;
-    }
-    object = json_node_get_object (node);
-
-    if (json_object_has_member (object, "slot")) {
-        slot_ref = _snapd_json_parse_slot_ref (json_object_get_member (object, "slot"), error);
-        if (slot_ref == NULL)
-            return NULL;
-    }
-    if (json_object_has_member (object, "plug")) {
-        plug_ref = _snapd_json_parse_plug_ref (json_object_get_member (object, "plug"), error);
-        if (plug_ref == NULL)
-            return NULL;
-    }
-
-    if (json_object_has_member (object, "slot-attrs")) {
-        slot_attributes = _snapd_json_parse_attributes (json_object_get_member (object, "slot-attrs"), error);
-        if (slot_attributes == NULL)
-            return FALSE;
-    }
-    else
-        slot_attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
-
-    if (json_object_has_member (object, "plug-attrs")) {
-        plug_attributes = _snapd_json_parse_attributes (json_object_get_member (object, "plug-attrs"), error);
-        if (plug_attributes == NULL)
-            return FALSE;
-    }
-    else
-        plug_attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
-
-    return g_object_new (SNAPD_TYPE_CONNECTION,
-                         "slot", slot_ref,
-                         "plug", plug_ref,
-                         "interface", _snapd_json_get_string (object, "interface", NULL),
-                         "manual", _snapd_json_get_bool (object, "manual", FALSE),
-                         "gadget", _snapd_json_get_bool (object, "gadget", FALSE),
-                         "slot-attrs", slot_attributes,
-                         "plug-attrs", plug_attributes,
-                         NULL);
-}
-
 static gboolean
 parse_get_connections_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
@@ -153,7 +97,7 @@ parse_get_connections_response (SnapdRequest *request, SoupMessage *message, Sna
         JsonNode *node = json_array_get_element (established, i);
         g_autoptr(SnapdConnection) connection = NULL;
 
-        connection = get_connection (node, error);
+        connection = _snapd_json_parse_connection (node, error);
         if (connection == NULL)
             return FALSE;
 
@@ -166,7 +110,7 @@ parse_get_connections_response (SnapdRequest *request, SoupMessage *message, Sna
         JsonNode *node = json_array_get_element (undesired, i);
         SnapdConnection *connection;
 
-        connection = get_connection (node, error);
+        connection = _snapd_json_parse_connection (node, error);
         if (connection == NULL)
             return FALSE;
 

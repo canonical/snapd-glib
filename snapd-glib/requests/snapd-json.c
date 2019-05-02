@@ -581,6 +581,92 @@ parse_confinement (const gchar *value)
         return SNAPD_CONFINEMENT_UNKNOWN;
 }
 
+SnapdSystemInformation *
+_snapd_json_parse_system_information (JsonNode *node, GError **error)
+{
+    JsonObject *object;
+    const gchar *confinement_string;
+    SnapdSystemConfinement confinement = SNAPD_SYSTEM_CONFINEMENT_UNKNOWN;
+    JsonObject *os_release, *locations, *refresh, *sandbox_features;
+    g_autoptr(GHashTable) sandbox_features_hash = NULL;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected system information type");
+        return NULL;
+    }
+    object = json_node_get_object (node);
+
+    confinement_string = _snapd_json_get_string (object, "confinement", "");
+    if (strcmp (confinement_string, "strict") == 0)
+        confinement = SNAPD_SYSTEM_CONFINEMENT_STRICT;
+    else if (strcmp (confinement_string, "partial") == 0)
+        confinement = SNAPD_SYSTEM_CONFINEMENT_PARTIAL;
+    os_release = _snapd_json_get_object (object, "os-release");
+    locations = _snapd_json_get_object (object, "locations");
+    refresh = _snapd_json_get_object (object, "refresh");
+    sandbox_features = _snapd_json_get_object (object, "sandbox-features");
+    sandbox_features_hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_strfreev);
+    if (sandbox_features != NULL) {
+        JsonObjectIter iter;
+        const gchar *name;
+        JsonNode *features_node;
+
+        json_object_iter_init (&iter, sandbox_features);
+        while (json_object_iter_next (&iter, &name, &features_node)) {
+            JsonArray *features_array;
+            g_autoptr(GPtrArray) features_ptr_array = NULL;
+            guint i;
+
+            if (json_node_get_value_type (features_node) != JSON_TYPE_ARRAY) {
+                g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected sandbox features type");
+                return FALSE;
+            }
+
+            features_array = json_node_get_array (features_node);
+            features_ptr_array = g_ptr_array_new ();
+            for (i = 0; i < json_array_get_length (features_array); i++) {
+                JsonNode *node = json_array_get_element (features_array, i);
+
+                if (json_node_get_value_type (node) != G_TYPE_STRING) {
+                    g_set_error (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_READ_FAILED,
+                                 "Unexpected sandbox feature type");
+                    return FALSE;
+                }
+
+                g_ptr_array_add (features_ptr_array, (gpointer) json_node_get_string (node));
+            }
+            g_ptr_array_add (features_ptr_array, NULL);
+            g_hash_table_insert (sandbox_features_hash, g_strdup (name), g_strdupv ((GStrv) features_ptr_array->pdata));
+        }
+    }
+
+    return g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
+                         "binaries-directory", locations != NULL ? _snapd_json_get_string (locations, "snap-bin-dir", NULL) : NULL,
+                         "build-id", _snapd_json_get_string (object, "build-id", NULL),
+                         "confinement", confinement,
+                         "kernel-version", _snapd_json_get_string (object, "kernel-version", NULL),
+                         "managed", _snapd_json_get_bool (object, "managed", FALSE),
+                         "mount-directory", locations != NULL ? _snapd_json_get_string (locations, "snap-mount-dir", NULL) : NULL,
+                         "on-classic", _snapd_json_get_bool (object, "on-classic", FALSE),
+                         "os-id", os_release != NULL ? _snapd_json_get_string (os_release, "id", NULL) : NULL,
+                         "os-version", os_release != NULL ? _snapd_json_get_string (os_release, "version-id", NULL) : NULL,
+                         "sandbox-features", g_steal_pointer (&sandbox_features_hash),
+                         "series", _snapd_json_get_string (object, "series", NULL),
+                         "store", _snapd_json_get_string (object, "store", NULL),
+                         "version", _snapd_json_get_string (object, "version", NULL),
+                         "refresh-hold", _snapd_json_get_date_time (refresh, "hold"),
+                         "refresh-last", _snapd_json_get_date_time (refresh, "last"),
+                         "refresh-next", _snapd_json_get_date_time (refresh, "next"),
+                         "refresh-schedule", _snapd_json_get_string (refresh, "schedule", NULL),
+                         "refresh-timer", _snapd_json_get_string (refresh, "timer", NULL),
+                         NULL);
+}
+
 SnapdSnap *
 _snapd_json_parse_snap (JsonNode *node, GError **error)
 {
@@ -897,6 +983,42 @@ _snapd_json_parse_app (JsonNode *node, const gchar *snap_name, GError **error)
                          "desktop-file", _snapd_json_get_string (object, "desktop-file", NULL),
                          "enabled", _snapd_json_get_bool (object, "enabled", FALSE),
                          "snap", snap_name ? snap_name : app_snap_name,
+                         NULL);
+}
+
+SnapdAlias *
+_snapd_json_parse_alias (JsonNode *node, const gchar *snap_name, const gchar *name, GError **error)
+{
+    JsonObject *object;
+    SnapdAliasStatus status = SNAPD_ALIAS_STATUS_UNKNOWN;
+    const gchar *status_string;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected alias type");
+        return FALSE;
+    }
+    object = json_node_get_object (node);
+
+    status_string = _snapd_json_get_string (object, "status", NULL);
+    if (strcmp (status_string, "disabled") == 0)
+        status = SNAPD_ALIAS_STATUS_DISABLED;
+    else if (strcmp (status_string, "auto") == 0)
+        status = SNAPD_ALIAS_STATUS_AUTO;
+    else if (strcmp (status_string, "manual") == 0)
+        status = SNAPD_ALIAS_STATUS_MANUAL;
+    else
+        status = SNAPD_ALIAS_STATUS_UNKNOWN;
+
+    return g_object_new (SNAPD_TYPE_ALIAS,
+                         "snap", snap_name,
+                         "app-auto", _snapd_json_get_string (object, "auto", NULL),
+                         "app-manual", _snapd_json_get_string (object, "manual", NULL),
+                         "command", _snapd_json_get_string (object, "command", NULL),
+                         "name", name,
+                         "status", status,
                          NULL);
 }
 
@@ -1264,5 +1386,61 @@ _snapd_json_parse_plug_ref (JsonNode *node, GError **error)
     return g_object_new (SNAPD_TYPE_PLUG_REF,
                          "plug", _snapd_json_get_string (object, "plug", NULL),
                          "snap", _snapd_json_get_string (object, "snap", NULL),
+                         NULL);
+}
+
+SnapdConnection *
+_snapd_json_parse_connection (JsonNode *node, GError **error)
+{
+    JsonObject *object;
+    g_autoptr(SnapdSlotRef) slot_ref = NULL;
+    g_autoptr(SnapdPlugRef) plug_ref = NULL;
+    g_autoptr(GHashTable) slot_attributes = NULL;
+    g_autoptr(GHashTable) plug_attributes = NULL;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected connection type");
+        return NULL;
+    }
+    object = json_node_get_object (node);
+
+    if (json_object_has_member (object, "slot")) {
+        slot_ref = _snapd_json_parse_slot_ref (json_object_get_member (object, "slot"), error);
+        if (slot_ref == NULL)
+            return NULL;
+    }
+    if (json_object_has_member (object, "plug")) {
+        plug_ref = _snapd_json_parse_plug_ref (json_object_get_member (object, "plug"), error);
+        if (plug_ref == NULL)
+            return NULL;
+    }
+
+    if (json_object_has_member (object, "slot-attrs")) {
+        slot_attributes = _snapd_json_parse_attributes (json_object_get_member (object, "slot-attrs"), error);
+        if (slot_attributes == NULL)
+            return FALSE;
+    }
+    else
+        slot_attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
+
+    if (json_object_has_member (object, "plug-attrs")) {
+        plug_attributes = _snapd_json_parse_attributes (json_object_get_member (object, "plug-attrs"), error);
+        if (plug_attributes == NULL)
+            return FALSE;
+    }
+    else
+        plug_attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
+
+    return g_object_new (SNAPD_TYPE_CONNECTION,
+                         "slot", slot_ref,
+                         "plug", plug_ref,
+                         "interface", _snapd_json_get_string (object, "interface", NULL),
+                         "manual", _snapd_json_get_bool (object, "manual", FALSE),
+                         "gadget", _snapd_json_get_bool (object, "gadget", FALSE),
+                         "slot-attrs", slot_attributes,
+                         "plug-attrs", plug_attributes,
                          NULL);
 }
