@@ -499,13 +499,23 @@ _snapd_json_get_async_result (JsonObject *response, GError **error)
 }
 
 SnapdChange *
-_snapd_json_parse_change (JsonObject *object, GError **error)
+_snapd_json_parse_change (JsonNode *node, GError **error)
 {
+    JsonObject *object;
     g_autoptr(JsonArray) array = NULL;
     guint i;
     g_autoptr(GPtrArray) tasks = NULL;
     g_autoptr(GDateTime) main_spawn_time = NULL;
     g_autoptr(GDateTime) main_ready_time = NULL;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected change type");
+        return NULL;
+    }
+    object = json_node_get_object (node);
 
     array = _snapd_json_get_array (object, "tasks");
     tasks = g_ptr_array_new_with_free_func (g_object_unref);
