@@ -68,46 +68,6 @@ generate_get_connections_request (SnapdRequest *request)
     return soup_message_new ("GET", "http://snapd/v2/connections");
 }
 
-static SnapdSlotRef *
-get_slot_ref (JsonNode *node, GError **error)
-{
-    JsonObject *object;
-
-    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_READ_FAILED,
-                     "Unexpected slot ref type");
-        return NULL;
-    }
-    object = json_node_get_object (node);
-
-    return g_object_new (SNAPD_TYPE_SLOT_REF,
-                         "slot", _snapd_json_get_string (object, "slot", NULL),
-                         "snap", _snapd_json_get_string (object, "snap", NULL),
-                         NULL);
-}
-
-static SnapdPlugRef *
-get_plug_ref (JsonNode *node, GError **error)
-{
-    JsonObject *object;
-
-    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_READ_FAILED,
-                     "Unexpected plug ref type");
-        return NULL;
-    }
-    object = json_node_get_object (node);
-
-    return g_object_new (SNAPD_TYPE_PLUG_REF,
-                         "plug", _snapd_json_get_string (object, "plug", NULL),
-                         "snap", _snapd_json_get_string (object, "snap", NULL),
-                         NULL);
-}
-
 static GVariant *node_to_variant (JsonNode *node);
 
 static GVariant *
@@ -286,12 +246,12 @@ get_connection (JsonNode *node, GError **error)
     object = json_node_get_object (node);
 
     if (json_object_has_member (object, "slot")) {
-        slot_ref = get_slot_ref (json_object_get_member (object, "slot"), error);
+        slot_ref = _snapd_json_parse_slot_ref (json_object_get_member (object, "slot"), error);
         if (slot_ref == NULL)
             return NULL;
     }
     if (json_object_has_member (object, "plug")) {
-        plug_ref = get_plug_ref (json_object_get_member (object, "plug"), error);
+        plug_ref = _snapd_json_parse_plug_ref (json_object_get_member (object, "plug"), error);
         if (plug_ref == NULL)
             return NULL;
     }
@@ -327,7 +287,7 @@ get_plug_refs (JsonObject *object, GError **error)
         JsonNode *node = json_array_get_element (array, i);
         SnapdPlugRef *plug_ref;
 
-        plug_ref = get_plug_ref (node, error);
+        plug_ref = _snapd_json_parse_plug_ref (node, error);
         if (plug_ref == NULL)
             return NULL;
         g_ptr_array_add (plug_refs, plug_ref);
@@ -349,7 +309,7 @@ get_slot_refs (JsonObject *object, GError **error)
         JsonNode *node = json_array_get_element (array, i);
         SnapdSlotRef *slot_ref;
 
-        slot_ref = get_slot_ref (node, error);
+        slot_ref = _snapd_json_parse_slot_ref (node, error);
         if (slot_ref == NULL)
             return NULL;
         g_ptr_array_add (slot_refs, slot_ref);
