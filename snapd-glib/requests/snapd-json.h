@@ -70,10 +70,10 @@ SnapdChange          *_snapd_json_parse_change           (JsonObject         *ob
 SnapdSnap            *_snapd_json_parse_snap             (JsonNode           *node,
                                                           GError            **error);
 
-GPtrArray            *_snapd_json_parse_snap_array       (JsonArray          *array,
+GPtrArray            *_snapd_json_parse_snap_array       (JsonNode           *node,
                                                           GError            **error);
 
-GPtrArray            *_snapd_json_parse_app_array        (JsonArray          *array,
+GPtrArray            *_snapd_json_parse_app_array        (JsonNode           *node,
                                                           GError            **error);
 
 SnapdUserInformation *_snapd_json_parse_user_information (JsonNode           *node,
