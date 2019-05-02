@@ -581,70 +581,6 @@ parse_confinement (const gchar *value)
         return SNAPD_CONFINEMENT_UNKNOWN;
 }
 
-static GPtrArray *
-_snapd_json_parse_apps (const gchar *snap_name, JsonNode *node, GError **error)
-{
-    JsonArray *apps;
-    g_autoptr(GPtrArray) apps_array = NULL;
-    guint i;
-
-    if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_READ_FAILED,
-                     "Unexpected app array type");
-        return NULL;
-    }
-    apps = json_node_get_array (node);
-
-    apps_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (apps); i++) {
-        JsonNode *node = json_array_get_element (apps, i);
-        JsonObject *a;
-        const gchar *daemon;
-        g_autoptr(SnapdApp) app = NULL;
-        SnapdDaemonType daemon_type = SNAPD_DAEMON_TYPE_NONE;
-        const gchar *app_snap_name;
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected app type");
-            return NULL;
-        }
-
-        a = json_node_get_object (node);
-
-        daemon = _snapd_json_get_string (a, "daemon", NULL);
-        if (daemon == NULL)
-            daemon_type = SNAPD_DAEMON_TYPE_NONE;
-        else if (strcmp (daemon, "simple") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_SIMPLE;
-        else if (strcmp (daemon, "forking") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_FORKING;
-        else if (strcmp (daemon, "oneshot") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_ONESHOT;
-        else if (strcmp (daemon, "dbus") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_DBUS;
-        else if (strcmp (daemon, "notify") == 0)
-            daemon_type = SNAPD_DAEMON_TYPE_NOTIFY;
-        else
-            daemon_type = SNAPD_DAEMON_TYPE_UNKNOWN;
-
-        app_snap_name = _snapd_json_get_string (a, "snap", NULL);
-        app = g_object_new (SNAPD_TYPE_APP,
-                            "name", _snapd_json_get_string (a, "name", NULL),
-                            "active", _snapd_json_get_bool (a, "active", FALSE),
-                            "common-id", _snapd_json_get_string (a, "common-id", NULL),
-                            "daemon-type", daemon_type,
-                            "desktop-file", _snapd_json_get_string (a, "desktop-file", NULL),
-                            "enabled", _snapd_json_get_bool (a, "enabled", FALSE),
-                            "snap", app_snap_name != NULL ? app_snap_name : snap_name,
-                            NULL);
-        g_ptr_array_add (apps_array, g_steal_pointer (&app));
-    }
-
-    return g_steal_pointer (&apps_array);
-}
-
 SnapdSnap *
 _snapd_json_parse_snap (JsonNode *node, GError **error)
 {
@@ -710,13 +646,18 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
     else if (strcmp (snap_status_string, "active") == 0)
         snap_status = SNAPD_SNAP_STATUS_ACTIVE;
 
-    if (json_object_has_member (object, "apps")) {
-        apps_array = _snapd_json_parse_apps (name, json_object_get_member (object, "apps"), error);
-        if (apps_array == NULL)
+    apps = _snapd_json_get_array (object, "apps");
+    apps_array = g_ptr_array_new ();
+    for (i = 0; i < json_array_get_length (apps); i++) {
+        JsonNode *node = json_array_get_element (apps, i);
+        SnapdApp *app;
+
+        app = _snapd_json_parse_app (node, name, error);
+        if (app == NULL)
             return NULL;
+
+        g_ptr_array_add (apps_array, app);
     }
-    else
-        apps_array = g_ptr_array_new_with_free_func (g_object_unref);
 
     channels = _snapd_json_get_object (object, "channels");
     channels_array = g_ptr_array_new_with_free_func (g_object_unref);
@@ -914,41 +855,49 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
                          NULL);
 }
 
-GPtrArray *
-_snapd_json_parse_snap_array (JsonNode *node, GError **error)
+SnapdApp *
+_snapd_json_parse_app (JsonNode *node, const gchar *snap_name, GError **error)
 {
-    JsonArray *array;
-    g_autoptr(GPtrArray) snaps = NULL;
-    guint i;
+    JsonObject *object;
+    const gchar *daemon;
+    SnapdDaemonType daemon_type = SNAPD_DAEMON_TYPE_NONE;
+    const gchar *app_snap_name;
 
-    if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
         g_set_error (error,
                      SNAPD_ERROR,
                      SNAPD_ERROR_READ_FAILED,
-                     "Unexpected snap array type");
+                     "Unexpected app type");
         return NULL;
     }
-    array = json_node_get_array (node);
+    object = json_node_get_object (node);
 
-    snaps = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (array); i++) {
-        JsonNode *node = json_array_get_element (array, i);
-        SnapdSnap *snap;
+    daemon = _snapd_json_get_string (object, "daemon", NULL);
+    if (daemon == NULL)
+        daemon_type = SNAPD_DAEMON_TYPE_NONE;
+    else if (strcmp (daemon, "simple") == 0)
+        daemon_type = SNAPD_DAEMON_TYPE_SIMPLE;
+    else if (strcmp (daemon, "forking") == 0)
+        daemon_type = SNAPD_DAEMON_TYPE_FORKING;
+    else if (strcmp (daemon, "oneshot") == 0)
+        daemon_type = SNAPD_DAEMON_TYPE_ONESHOT;
+    else if (strcmp (daemon, "dbus") == 0)
+        daemon_type = SNAPD_DAEMON_TYPE_DBUS;
+    else if (strcmp (daemon, "notify") == 0)
+        daemon_type = SNAPD_DAEMON_TYPE_NOTIFY;
+    else
+        daemon_type = SNAPD_DAEMON_TYPE_UNKNOWN;
 
-        snap = _snapd_json_parse_snap (node, error);
-        if (snap == NULL)
-            return NULL;
-
-        g_ptr_array_add (snaps, snap);
-    }
-
-    return g_steal_pointer (&snaps);
-}
-
-GPtrArray *
-_snapd_json_parse_app_array (JsonNode *node, GError **error)
-{
-    return _snapd_json_parse_apps (NULL, node, error);
+    app_snap_name = _snapd_json_get_string (object, "snap", NULL);
+    return g_object_new (SNAPD_TYPE_APP,
+                         "name", _snapd_json_get_string (object, "name", NULL),
+                         "active", _snapd_json_get_bool (object, "active", FALSE),
+                         "common-id", _snapd_json_get_string (object, "common-id", NULL),
+                         "daemon-type", daemon_type,
+                         "desktop-file", _snapd_json_get_string (object, "desktop-file", NULL),
+                         "enabled", _snapd_json_get_bool (object, "enabled", FALSE),
+                         "snap", snap_name ? snap_name : app_snap_name,
+                         NULL);
 }
 
 SnapdUserInformation *
@@ -1184,8 +1133,10 @@ SnapdSlot *
 _snapd_json_parse_slot (JsonNode *node, GError **error)
 {
     JsonObject *object;
+    g_autoptr(JsonArray) connections = NULL;
     g_autoptr(GPtrArray) plug_refs = NULL;
     g_autoptr(GHashTable) attributes = NULL;
+    guint i;
 
     if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
         g_set_error (error,
@@ -1196,13 +1147,17 @@ _snapd_json_parse_slot (JsonNode *node, GError **error)
     }
     object = json_node_get_object (node);
 
-    if (json_object_has_member (object, "connections")) {
-        plug_refs = _snapd_json_parse_plug_ref_array (json_object_get_member (object, "connections"), error);
-        if (plug_refs == NULL)
-            return FALSE;
+    connections = _snapd_json_get_array (object, "connections");
+    plug_refs = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (connections); i++) {
+        JsonNode *node = json_array_get_element (connections, i);
+        SnapdPlugRef *plug_ref;
+
+        plug_ref = _snapd_json_parse_plug_ref (node, error);
+        if (plug_ref == NULL)
+            return NULL;
+        g_ptr_array_add (plug_refs, plug_ref);
     }
-    else
-        plug_refs = g_ptr_array_new_with_free_func (g_object_unref);
 
     if (json_object_has_member (object, "attrs")) {
         attributes = _snapd_json_parse_attributes (json_object_get_member (object, "attrs"), error);
@@ -1227,8 +1182,10 @@ SnapdPlug *
 _snapd_json_parse_plug (JsonNode *node, GError **error)
 {
     JsonObject *object;
+    g_autoptr(JsonArray) connections = NULL;
     g_autoptr(GPtrArray) slot_refs = NULL;
     g_autoptr(GHashTable) attributes = NULL;
+    guint i;
 
     if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
         g_set_error (error,
@@ -1239,13 +1196,17 @@ _snapd_json_parse_plug (JsonNode *node, GError **error)
     }
     object = json_node_get_object (node);
 
-    if (json_object_has_member (object, "connections")) {
-        slot_refs = _snapd_json_parse_slot_ref_array (json_object_get_member (object, "connections"), error);
-        if (slot_refs == NULL)
-            return FALSE;
+    connections = _snapd_json_get_array (object, "connections");
+    slot_refs = g_ptr_array_new_with_free_func (g_object_unref);
+    for (i = 0; i < json_array_get_length (connections); i++) {
+        JsonNode *node = json_array_get_element (connections, i);
+        SnapdSlotRef *slot_ref;
+
+        slot_ref = _snapd_json_parse_slot_ref (node, error);
+        if (slot_ref == NULL)
+            return NULL;
+        g_ptr_array_add (slot_refs, slot_ref);
     }
-    else
-        slot_refs = g_ptr_array_new_with_free_func (g_object_unref);
 
     if (json_object_has_member (object, "attrs")) {
         attributes = _snapd_json_parse_attributes (json_object_get_member (object, "attrs"), error);
@@ -1286,36 +1247,6 @@ _snapd_json_parse_slot_ref (JsonNode *node, GError **error)
                          NULL);
 }
 
-GPtrArray *
-_snapd_json_parse_slot_ref_array (JsonNode *node, GError **error)
-{
-    g_autoptr(GPtrArray) slot_refs = NULL;
-    JsonArray *array;
-    guint i;
-
-    if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_READ_FAILED,
-                     "Unexpected slot ref array type");
-        return NULL;
-    }
-
-    slot_refs = g_ptr_array_new_with_free_func (g_object_unref);
-    array = json_node_get_array (node);
-    for (i = 0; i < json_array_get_length (array); i++) {
-        JsonNode *node = json_array_get_element (array, i);
-        SnapdSlotRef *slot_ref;
-
-        slot_ref = _snapd_json_parse_slot_ref (node, error);
-        if (slot_ref == NULL)
-            return NULL;
-        g_ptr_array_add (slot_refs, slot_ref);
-    }
-
-    return g_steal_pointer (&slot_refs);
-}
-
 SnapdPlugRef *
 _snapd_json_parse_plug_ref (JsonNode *node, GError **error)
 {
@@ -1334,34 +1265,4 @@ _snapd_json_parse_plug_ref (JsonNode *node, GError **error)
                          "plug", _snapd_json_get_string (object, "plug", NULL),
                          "snap", _snapd_json_get_string (object, "snap", NULL),
                          NULL);
-}
-
-GPtrArray *
-_snapd_json_parse_plug_ref_array (JsonNode *node, GError **error)
-{
-    g_autoptr(GPtrArray) plug_refs = NULL;
-    JsonArray *array;
-    guint i;
-
-    if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_READ_FAILED,
-                     "Unexpected plug ref array type");
-        return NULL;
-    }
-
-    plug_refs = g_ptr_array_new_with_free_func (g_object_unref);
-    array = json_node_get_array (node);
-    for (i = 0; i < json_array_get_length (array); i++) {
-        JsonNode *node = json_array_get_element (array, i);
-        SnapdPlugRef *plug_ref;
-
-        plug_ref = _snapd_json_parse_plug_ref (node, error);
-        if (plug_ref == NULL)
-            return NULL;
-        g_ptr_array_add (plug_refs, plug_ref);
-    }
-
-    return g_steal_pointer (&plug_refs);
 }
