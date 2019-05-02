@@ -83,7 +83,7 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, SnapdMa
             JsonObject *o;
             SnapdAliasStatus status = SNAPD_ALIAS_STATUS_UNKNOWN;
             const gchar *status_string;
-            g_autoptr(SnapdAlias) alias = NULL;
+            SnapdAlias *alias;
 
             if (json_node_get_value_type (alias_node) != JSON_TYPE_OBJECT) {
                 g_set_error (error,
@@ -112,7 +112,7 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, SnapdMa
                                   "name", name,
                                   "status", status,
                                   NULL);
-            g_ptr_array_add (aliases, g_steal_pointer (&alias));
+            g_ptr_array_add (aliases, alias);
         }
     }
 
