@@ -63,17 +63,10 @@ parse_get_users_response (SnapdRequest *request, SoupMessage *message, SnapdMain
         JsonNode *node = json_array_get_element (result, i);
         SnapdUserInformation *user_information;
 
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error (error,
-                         SNAPD_ERROR,
-                         SNAPD_ERROR_READ_FAILED,
-                         "Unexpected user information type");
-            return FALSE;
-        }
-
-        user_information = _snapd_json_parse_user_information (json_node_get_object (node), error);
+        user_information = _snapd_json_parse_user_information (node, error);
         if (user_information == NULL)
             return FALSE;
+
         g_ptr_array_add (users_information, user_information);
     }
 
