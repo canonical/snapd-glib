@@ -76,25 +76,25 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
     plug_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (plugs); i++) {
         JsonNode *node = json_array_get_element (plugs, i);
-        g_autoptr(SnapdPlug) plug = NULL;
+        SnapdPlug *plug ;
 
         plug = _snapd_json_parse_plug (node, error);
         if (plug == NULL)
             return FALSE;
 
-        g_ptr_array_add (plug_array, g_steal_pointer (&plug));
+        g_ptr_array_add (plug_array, plug);
     }
     slots = _snapd_json_get_array (result, "slots");
     slot_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (slots); i++) {
         JsonNode *node = json_array_get_element (slots, i);
-        g_autoptr(SnapdSlot) slot = NULL;
+        SnapdSlot *slot;
 
         slot = _snapd_json_parse_slot (node, error);
         if (slot == NULL)
             return FALSE;
 
-        g_ptr_array_add (slot_array, g_steal_pointer (&slot));
+        g_ptr_array_add (slot_array, slot);
     }
 
     r->plugs = g_steal_pointer (&plug_array);
