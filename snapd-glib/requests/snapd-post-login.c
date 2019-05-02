@@ -80,16 +80,19 @@ parse_post_login_response (SnapdRequest *request, SoupMessage *message, SnapdMai
 {
     SnapdPostLogin *r = SNAPD_POST_LOGIN (request);
     g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonObject) result = NULL;
+    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
+    /*g_autoptr(JsonNode) result = NULL;*/
+    JsonNode *result;
 
     response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_o (response, error);
+    result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return FALSE;
 
     r->user_information = _snapd_json_parse_user_information (result, error);
+    json_node_unref (result);
     if (r->user_information == NULL)
         return FALSE;
 

@@ -52,6 +52,9 @@ JsonObject           *_snapd_json_parse_response         (SoupMessage        *me
                                                           SnapdMaintenance **maintenance,
                                                           GError            **error);
 
+JsonNode             *_snapd_json_get_sync_result        (JsonObject         *response,
+                                                          GError            **error);
+
 JsonObject           *_snapd_json_get_sync_result_o      (JsonObject         *response,
                                                           GError            **error);
 
@@ -73,7 +76,7 @@ GPtrArray            *_snapd_json_parse_snap_array       (JsonArray          *ar
 GPtrArray            *_snapd_json_parse_app_array        (JsonArray          *array,
                                                           GError            **error);
 
-SnapdUserInformation *_snapd_json_parse_user_information (JsonObject         *object,
+SnapdUserInformation *_snapd_json_parse_user_information (JsonNode           *node,
                                                           GError            **error);
 
 GHashTable           *_snapd_json_parse_attributes       (JsonNode           *node,

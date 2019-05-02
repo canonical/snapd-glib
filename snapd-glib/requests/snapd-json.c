@@ -416,8 +416,8 @@ _snapd_json_parse_response (SoupMessage *message, SnapdMaintenance **maintenance
     return json_object_ref (root);
 }
 
-static JsonNode *
-parse_sync_response (JsonObject *response, GError **error)
+JsonNode *
+_snapd_json_get_sync_result (JsonObject *response, GError **error)
 {
     const gchar *type;
 
@@ -439,9 +439,9 @@ JsonObject *
 _snapd_json_get_sync_result_o (JsonObject *response, GError **error)
 {
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
-    /*g_autoptr(JsonNode) result = parse_sync_response (response, error);*/
+    /*g_autoptr(JsonNode) result = _snapd_json_get_sync_result (response, error);*/
     JsonObject *r;
-    JsonNode *result = parse_sync_response (response, error);
+    JsonNode *result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return NULL;
 
@@ -460,9 +460,9 @@ JsonArray *
 _snapd_json_get_sync_result_a (JsonObject *response, GError **error)
 {
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
-    /*g_autoptr(JsonNode) result = parse_sync_response (response, error);*/
+    /*g_autoptr(JsonNode) result = _snapd_json_get_sync_result (response, error);*/
     JsonArray *r;
-    JsonNode *result = parse_sync_response (response, error);
+    JsonNode *result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return NULL;
 
@@ -913,12 +913,22 @@ _snapd_json_parse_app_array (JsonArray *array, GError **error)
 }
 
 SnapdUserInformation *
-_snapd_json_parse_user_information (JsonObject *object, GError **error)
+_snapd_json_parse_user_information (JsonNode *node, GError **error)
 {
+    JsonObject *object;
     g_autoptr(JsonArray) ssh_keys = NULL;
     g_autoptr(GPtrArray) ssh_key_array = NULL;
     g_autoptr(SnapdAuthData) auth_data = NULL;
     guint i;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected user information type");
+        return NULL;
+    }
+    object = json_node_get_object (node);
 
     ssh_keys = _snapd_json_get_array (object, "ssh-keys");
     ssh_key_array = g_ptr_array_new ();
