@@ -572,10 +572,20 @@ parse_confinement (const gchar *value)
 }
 
 static GPtrArray *
-_snapd_json_parse_apps (const gchar *snap_name, JsonArray *apps, GError **error)
+_snapd_json_parse_apps (const gchar *snap_name, JsonNode *node, GError **error)
 {
+    JsonArray *apps;
     g_autoptr(GPtrArray) apps_array = NULL;
     guint i;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected app array type");
+        return NULL;
+    }
+    apps = json_node_get_array (node);
 
     apps_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (apps); i++) {
@@ -690,10 +700,13 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
     else if (strcmp (snap_status_string, "active") == 0)
         snap_status = SNAPD_SNAP_STATUS_ACTIVE;
 
-    apps = _snapd_json_get_array (object, "apps");
-    apps_array = _snapd_json_parse_apps (name, apps, error);
-    if (apps_array == NULL)
-        return NULL;
+    if (json_object_has_member (object, "apps")) {
+        apps_array = _snapd_json_parse_apps (name, json_object_get_member (object, "apps"), error);
+        if (apps_array == NULL)
+            return NULL;
+    }
+    else
+        apps_array = g_ptr_array_new_with_free_func (g_object_unref);
 
     channels = _snapd_json_get_object (object, "channels");
     channels_array = g_ptr_array_new_with_free_func (g_object_unref);
@@ -892,10 +905,20 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
 }
 
 GPtrArray *
-_snapd_json_parse_snap_array (JsonArray *array, GError **error)
+_snapd_json_parse_snap_array (JsonNode *node, GError **error)
 {
+    JsonArray *array;
     g_autoptr(GPtrArray) snaps = NULL;
     guint i;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected snap array type");
+        return NULL;
+    }
+    array = json_node_get_array (node);
 
     snaps = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (array); i++) {
@@ -913,9 +936,9 @@ _snapd_json_parse_snap_array (JsonArray *array, GError **error)
 }
 
 GPtrArray *
-_snapd_json_parse_app_array (JsonArray *array, GError **error)
+_snapd_json_parse_app_array (JsonNode *node, GError **error)
 {
-    return _snapd_json_parse_apps (NULL, array, error);
+    return _snapd_json_parse_apps (NULL, node, error);
 }
 
 SnapdUserInformation *
