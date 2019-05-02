@@ -15,7 +15,9 @@
 
 #include "snapd-change.h"
 #include "snapd-maintenance.h"
+#include "snapd-plug.h"
 #include "snapd-plug-ref.h"
+#include "snapd-slot.h"
 #include "snapd-slot-ref.h"
 #include "snapd-snap.h"
 #include "snapd-user-information.h"
@@ -72,6 +74,15 @@ GPtrArray            *_snapd_json_parse_app_array        (JsonArray          *ar
                                                           GError            **error);
 
 SnapdUserInformation *_snapd_json_parse_user_information (JsonObject         *object,
+                                                          GError            **error);
+
+GHashTable           *_snapd_json_parse_attributes       (JsonNode           *node,
+                                                          GError            **error);
+
+SnapdSlot            *_snapd_json_parse_slot             (JsonNode           *node,
+                                                          GError            **error);
+
+SnapdPlug            *_snapd_json_parse_plug             (JsonNode           *node,
                                                           GError            **error);
 
 SnapdSlotRef         *_snapd_json_parse_slot_ref         (JsonNode           *node,
