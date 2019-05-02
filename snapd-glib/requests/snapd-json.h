@@ -77,7 +77,13 @@ SnapdUserInformation *_snapd_json_parse_user_information (JsonObject         *ob
 SnapdSlotRef         *_snapd_json_parse_slot_ref         (JsonNode           *node,
                                                           GError            **error);
 
+GPtrArray            *_snapd_json_parse_slot_ref_array   (JsonNode           *node,
+                                                          GError            **error);
+
 SnapdPlugRef         *_snapd_json_parse_plug_ref         (JsonNode           *node,
+                                                          GError            **error);
+
+GPtrArray            *_snapd_json_parse_plug_ref_array   (JsonNode           *node,
                                                           GError            **error);
 
 G_END_DECLS

@@ -987,6 +987,36 @@ _snapd_json_parse_slot_ref (JsonNode *node, GError **error)
                          NULL);
 }
 
+GPtrArray *
+_snapd_json_parse_slot_ref_array (JsonNode *node, GError **error)
+{
+    g_autoptr(GPtrArray) slot_refs = NULL;
+    JsonArray *array;
+    guint i;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected slot ref array type");
+        return NULL;
+    }
+
+    slot_refs = g_ptr_array_new_with_free_func (g_object_unref);
+    array = json_node_get_array (node);
+    for (i = 0; i < json_array_get_length (array); i++) {
+        JsonNode *node = json_array_get_element (array, i);
+        SnapdSlotRef *slot_ref;
+
+        slot_ref = _snapd_json_parse_slot_ref (node, error);
+        if (slot_ref == NULL)
+            return NULL;
+        g_ptr_array_add (slot_refs, slot_ref);
+    }
+
+    return g_steal_pointer (&slot_refs);
+}
+
 SnapdPlugRef *
 _snapd_json_parse_plug_ref (JsonNode *node, GError **error)
 {
@@ -1005,4 +1035,34 @@ _snapd_json_parse_plug_ref (JsonNode *node, GError **error)
                          "plug", _snapd_json_get_string (object, "plug", NULL),
                          "snap", _snapd_json_get_string (object, "snap", NULL),
                          NULL);
+}
+
+GPtrArray *
+_snapd_json_parse_plug_ref_array (JsonNode *node, GError **error)
+{
+    g_autoptr(GPtrArray) plug_refs = NULL;
+    JsonArray *array;
+    guint i;
+
+    if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected plug ref array type");
+        return NULL;
+    }
+
+    plug_refs = g_ptr_array_new_with_free_func (g_object_unref);
+    array = json_node_get_array (node);
+    for (i = 0; i < json_array_get_length (array); i++) {
+        JsonNode *node = json_array_get_element (array, i);
+        SnapdPlugRef *plug_ref;
+
+        plug_ref = _snapd_json_parse_plug_ref (node, error);
+        if (plug_ref == NULL)
+            return NULL;
+        g_ptr_array_add (plug_refs, plug_ref);
+    }
+
+    return g_steal_pointer (&plug_refs);
 }
