@@ -362,6 +362,32 @@ QSnapdGetInterfacesRequest *QSnapdClient::getInterfaces ()
     return new QSnapdGetInterfacesRequest (d->client);
 }
 
+QSnapdGetInterfaces2Request::~QSnapdGetInterfaces2Request ()
+{
+    delete d_ptr;
+}
+
+QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 ()
+{
+    return getInterfaces2 (0, QStringList ());
+}
+
+QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 (InterfaceFlags flags)
+{
+    return getInterfaces2 (flags, QStringList ());
+}
+
+QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 (const QStringList &names)
+{
+    return getInterfaces2 (0, names);
+}
+
+QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 (InterfaceFlags flags, const QStringList &names)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetInterfaces2Request (flags, names, d->client);
+}
+
 QSnapdConnectInterfaceRequest::~QSnapdConnectInterfaceRequest ()
 {
     delete d_ptr;
@@ -1577,6 +1603,78 @@ QSnapdSlot *QSnapdGetInterfacesRequest::slot (int n) const
     if (d->slots_ == NULL || n < 0 || (guint) n >= d->slots_->len)
         return NULL;
     return new QSnapdSlot (d->slots_->pdata[n]);
+}
+
+QSnapdGetInterfaces2Request::QSnapdGetInterfaces2Request (int flags, const QStringList &names, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetInterfaces2RequestPrivate (flags, names)) {}
+
+static SnapdGetInterfacesFlags convertInterfaceFlags (int flags)
+{
+    int result = SNAPD_GET_INTERFACES_FLAGS_NONE;
+
+    if ((flags & QSnapdClient::InterfaceFlag::IncludeDocs) != 0)
+        result |= SNAPD_GET_INTERFACES_FLAGS_INCLUDE_DOCS;
+    if ((flags & QSnapdClient::InterfaceFlag::IncludePlugs) != 0)
+        result |= SNAPD_GET_INTERFACES_FLAGS_INCLUDE_PLUGS;
+    if ((flags & QSnapdClient::InterfaceFlag::IncludeSlots) != 0)
+        result |= SNAPD_GET_INTERFACES_FLAGS_INCLUDE_SLOTS;
+    if ((flags & QSnapdClient::InterfaceFlag::OnlyConnected) != 0)
+        result |= SNAPD_GET_INTERFACES_FLAGS_ONLY_CONNECTED;
+
+    return (SnapdGetInterfacesFlags) result;
+}
+
+void QSnapdGetInterfaces2Request::runSync ()
+{
+    Q_D(QSnapdGetInterfaces2Request);
+    g_auto(GStrv) names = NULL;
+    g_autoptr(GError) error = NULL;
+
+    names = string_list_to_strv (d->names);
+    d->interfaces = snapd_client_get_interfaces2_sync (SNAPD_CLIENT (getClient ()), convertInterfaceFlags (d->flags), names, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetInterfaces2Request::handleResult (void *object, void *result)
+{
+    g_autoptr(GPtrArray) interfaces = NULL;
+    g_autoptr(GError) error = NULL;
+
+    interfaces = snapd_client_get_interfaces2_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    Q_D(QSnapdGetInterfaces2Request);
+    d->interfaces = (GPtrArray*) g_steal_pointer (&interfaces);
+    finish (error);
+}
+
+static void get_interfaces2_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetInterfaces2Request *request = static_cast<QSnapdGetInterfaces2Request*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetInterfaces2Request::runAsync ()
+{
+    Q_D(QSnapdGetInterfaces2Request);
+    g_auto(GStrv) names = NULL;
+
+    names = string_list_to_strv (d->names);
+    snapd_client_get_interfaces2_async (SNAPD_CLIENT (getClient ()), convertInterfaceFlags (d->flags), names, G_CANCELLABLE (getCancellable ()), get_interfaces2_ready_cb, (gpointer) this);
+}
+
+int QSnapdGetInterfaces2Request::interfaceCount () const
+{
+    Q_D(const QSnapdGetInterfaces2Request);
+    return d->interfaces != NULL ? d->interfaces->len : 0;
+}
+
+QSnapdInterface *QSnapdGetInterfaces2Request::interface (int n) const
+{
+    Q_D(const QSnapdGetInterfaces2Request);
+    if (d->interfaces == NULL || n < 0 || (guint) n >= d->interfaces->len)
+        return NULL;
+    return new QSnapdInterface (d->interfaces->pdata[n]);
 }
 
 QSnapdConnectInterfaceRequest::QSnapdConnectInterfaceRequest (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name, void *snapd_client, QObject *parent) :

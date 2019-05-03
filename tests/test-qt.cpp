@@ -2578,6 +2578,178 @@ QT_WARNING_POP
 }
 
 static void
+test_get_interfaces2_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i1 = mock_snapd_add_interface (snapd, "interface1");
+    mock_interface_set_summary (i1, "summary1");
+    mock_interface_set_doc_url (i1, "url1");
+    MockInterface *i2 = mock_snapd_add_interface (snapd, "interface2");
+    mock_interface_set_summary (i2, "summary2");
+    mock_interface_set_doc_url (i2, "url2");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_plug (s, i1, "plug1");
+    mock_snap_add_slot (s, i2, "slot1");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetInterfaces2Request> getInterfacesRequest (client.getInterfaces2 ());
+    getInterfacesRequest->runSync ();
+    g_assert_cmpint (getInterfacesRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (getInterfacesRequest->interfaceCount (), ==, 2);
+
+    QScopedPointer<QSnapdInterface> iface0 (getInterfacesRequest->interface (0));
+    g_assert (iface0->name () == "interface1");
+    g_assert (iface0->summary () == "summary1");
+    g_assert (iface0->docUrl () == "url1");
+    g_assert_cmpint (iface0->plugCount (), ==, 0);
+    g_assert_cmpint (iface0->slotCount (), ==, 0);
+
+    QScopedPointer<QSnapdInterface> iface1 (getInterfacesRequest->interface (1));
+    g_assert (iface1->name () == "interface2");
+    g_assert (iface1->summary () == "summary2");
+    g_assert (iface1->docUrl () == "url2");
+    g_assert_cmpint (iface1->plugCount (), ==, 0);
+    g_assert_cmpint (iface1->slotCount (), ==, 0);
+}
+
+void
+GetInterfaces2Handler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (request->interfaceCount (), ==, 2);
+
+    QScopedPointer<QSnapdInterface> iface0 (request->interface (0));
+    g_assert (iface0->name () == "interface1");
+    g_assert (iface0->summary () == "summary1");
+    g_assert (iface0->docUrl () == "url1");
+    g_assert_cmpint (iface0->plugCount (), ==, 0);
+    g_assert_cmpint (iface0->slotCount (), ==, 0);
+
+    QScopedPointer<QSnapdInterface> iface1 (request->interface (1));
+    g_assert (iface1->name () == "interface2");
+    g_assert (iface1->summary () == "summary2");
+    g_assert (iface1->docUrl () == "url2");
+    g_assert_cmpint (iface1->plugCount (), ==, 0);
+    g_assert_cmpint (iface1->slotCount (), ==, 0);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_interfaces2_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i1 = mock_snapd_add_interface (snapd, "interface1");
+    mock_interface_set_summary (i1, "summary1");
+    mock_interface_set_doc_url (i1, "url1");
+    MockInterface *i2 = mock_snapd_add_interface (snapd, "interface2");
+    mock_interface_set_summary (i2, "summary2");
+    mock_interface_set_doc_url (i2, "url2");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_plug (s, i1, "plug1");
+    mock_snap_add_slot (s, i2, "slot1");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetInterfaces2Handler getInterfacesHandler (loop, client.getInterfaces2 ());
+    QObject::connect (getInterfacesHandler.request, &QSnapdGetInterfaces2Request::complete, &getInterfacesHandler, &GetInterfaces2Handler::onComplete);
+    getInterfacesHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_interfaces2_only_connected ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface1");
+    mock_snapd_add_interface (snapd, "interface2");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug2");
+    mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetInterfaces2Request> getInterfacesRequest (client.getInterfaces2 (QSnapdClient::OnlyConnected));
+    getInterfacesRequest->runSync ();
+    g_assert_cmpint (getInterfacesRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (getInterfacesRequest->interfaceCount (), ==, 1);
+
+    QScopedPointer<QSnapdInterface> iface (getInterfacesRequest->interface (0));
+    g_assert (iface->name () == "interface1");
+    g_assert_cmpint (iface->plugCount (), ==, 0);
+    g_assert_cmpint (iface->slotCount (), ==, 0);
+}
+
+static void
+test_get_interfaces2_slots ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_slot (s, i, "slot1");
+    mock_snap_add_plug (s, i, "plug1");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetInterfaces2Request> getInterfacesRequest (client.getInterfaces2 (QSnapdClient::IncludeSlots));
+    getInterfacesRequest->runSync ();
+    g_assert_cmpint (getInterfacesRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (getInterfacesRequest->interfaceCount (), ==, 1);
+
+    QScopedPointer<QSnapdInterface> iface (getInterfacesRequest->interface (0));
+    g_assert_cmpint (iface->plugCount (), ==, 0);
+    g_assert_cmpint (iface->slotCount (), ==, 1);
+    QScopedPointer<QSnapdSlot> slot (iface->slot (0));
+    g_assert (slot->name () == "slot1");
+    g_assert (slot->snap () == "snap1");
+}
+
+static void
+test_get_interfaces2_plugs ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_add_slot (s, i, "slot1");
+    mock_snap_add_plug (s, i, "plug1");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetInterfaces2Request> getInterfacesRequest (client.getInterfaces2 (QSnapdClient::IncludePlugs));
+    getInterfacesRequest->runSync ();
+    g_assert_cmpint (getInterfacesRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (getInterfacesRequest->interfaceCount (), ==, 1);
+
+    QScopedPointer<QSnapdInterface> iface (getInterfacesRequest->interface (0));
+    g_assert_cmpint (iface->plugCount (), ==, 1);
+    QScopedPointer<QSnapdPlug> plug (iface->plug (0));
+    g_assert (plug->name () == "plug1");
+    g_assert (plug->snap () == "snap1");
+    g_assert_cmpint (iface->slotCount (), ==, 0);
+}
+
+static void
 test_connect_interface_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -6030,6 +6202,11 @@ main (int argc, char **argv)
     g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
     g_test_add_func ("/get-interfaces/legacy", test_get_interfaces_legacy);
+    g_test_add_func ("/get-interfaces2/sync", test_get_interfaces2_sync);
+    g_test_add_func ("/get-interfaces2/async", test_get_interfaces2_async);
+    g_test_add_func ("/get-interfaces2/only-connected", test_get_interfaces2_only_connected);
+    g_test_add_func ("/get-interfaces2/slots", test_get_interfaces2_slots);
+    g_test_add_func ("/get-interfaces2/plugs", test_get_interfaces2_plugs);
     g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
     g_test_add_func ("/connect-interface/async", test_connect_interface_async);
     g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);

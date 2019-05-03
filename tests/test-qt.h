@@ -267,6 +267,23 @@ public slots:
     void onComplete ();
 };
 
+class GetInterfaces2Handler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetInterfaces2Handler (GMainLoop *loop, QSnapdGetInterfaces2Request *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetInterfaces2Request *request;
+    ~GetInterfaces2Handler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class ConnectInterfaceHandler: public QObject
 {
     Q_OBJECT
