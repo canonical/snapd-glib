@@ -17,6 +17,7 @@
 #include <Snapd/AuthData>
 #include <Snapd/Connection>
 #include <Snapd/Icon>
+#include <Snapd/Interface>
 #include <Snapd/Maintenance>
 #include <Snapd/Plug>
 #include <Snapd/Request>
@@ -337,6 +338,26 @@ public:
 private:
     QSnapdGetInterfacesRequestPrivate *d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetInterfacesRequest)
+};
+
+class QSnapdGetInterfaces2RequestPrivate;
+class Q_DECL_EXPORT QSnapdGetInterfaces2Request : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(int interfaceCount READ interfaceCount)
+
+public:
+    explicit QSnapdGetInterfaces2Request (int flags, const QStringList &names, void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetInterfaces2Request ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int interfaceCount () const;
+    Q_INVOKABLE QSnapdInterface *interface (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetInterfaces2RequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetInterfaces2Request)
 };
 
 class QSnapdConnectInterfaceRequestPrivate;
@@ -859,6 +880,14 @@ public:
         Known          = 1 << 1
     };
     Q_DECLARE_FLAGS(CreateUserFlags, CreateUserFlag);
+    enum InterfaceFlag
+    {
+        IncludeDocs    = 1 << 1,
+        IncludePlugs   = 1 << 2,
+        IncludeSlots   = 1 << 3,
+        OnlyConnected  = 1 << 4
+    };
+    Q_DECLARE_FLAGS(InterfaceFlags, InterfaceFlag);
     explicit QSnapdClient (QObject* parent=0);
     explicit QSnapdClient (int fd, QObject* parent=0);
     virtual ~QSnapdClient ();
@@ -900,6 +929,10 @@ public:
     Q_INVOKABLE QSnapdAddAssertionsRequest *addAssertions (const QStringList &assertions);
     Q_INVOKABLE QSnapdGetConnectionsRequest *getConnections ();
     Q_INVOKABLE QSnapdGetInterfacesRequest *getInterfaces ();
+    Q_INVOKABLE QSnapdGetInterfaces2Request *getInterfaces2 ();
+    Q_INVOKABLE QSnapdGetInterfaces2Request *getInterfaces2 (InterfaceFlags flags);
+    Q_INVOKABLE QSnapdGetInterfaces2Request *getInterfaces2 (const QStringList &names);
+    Q_INVOKABLE QSnapdGetInterfaces2Request *getInterfaces2 (InterfaceFlags flags, const QStringList &names);
     Q_INVOKABLE QSnapdConnectInterfaceRequest *connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdDisconnectInterfaceRequest *disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name);
     Q_INVOKABLE QSnapdFindRequest *find (const QString &query);
@@ -950,5 +983,6 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::GetAppsFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::FindFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::InstallFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::CreateUserFlags)
+Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::InterfaceFlags)
 
 #endif

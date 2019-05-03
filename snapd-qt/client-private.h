@@ -233,6 +233,21 @@ public:
     GPtrArray *slots_ = NULL;
 };
 
+class QSnapdGetInterfaces2RequestPrivate
+{
+public:
+    QSnapdGetInterfaces2RequestPrivate (int flags, const QStringList &names) :
+        flags (flags), names (names) {};
+    ~QSnapdGetInterfaces2RequestPrivate ()
+    {
+        if (interfaces != NULL)
+            g_ptr_array_unref (interfaces);
+    }
+    int flags;
+    QStringList names;
+    GPtrArray *interfaces = NULL;
+};
+
 class QSnapdConnectInterfaceRequestPrivate
 {
 public:
