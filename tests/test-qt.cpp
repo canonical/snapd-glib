@@ -2159,17 +2159,18 @@ static void
 test_get_connections_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *sl = mock_snap_add_slot (s, "slot1");
-    mock_snap_add_slot (s, "slot2");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
+    mock_snap_add_slot (s, i, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *p = mock_snap_add_plug (s, "auto-plug");
+    MockPlug *p = mock_snap_add_plug (s, i, "auto-plug");
     mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
-    p = mock_snap_add_plug (s, "manual-plug");
+    p = mock_snap_add_plug (s, i, "manual-plug");
     mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
-    p = mock_snap_add_plug (s, "gadget-plug");
+    p = mock_snap_add_plug (s, i, "gadget-plug");
     mock_snapd_connect (snapd, p, sl, FALSE, TRUE);
-    p = mock_snap_add_plug (s, "undesired-plug");
+    p = mock_snap_add_plug (s, i, "undesired-plug");
     mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
     mock_snapd_connect (snapd, p, NULL, TRUE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -2184,7 +2185,7 @@ test_get_connections_sync ()
     g_assert_cmpint (getConnectionsRequest->establishedCount (), ==, 3);
 
     QScopedPointer<QSnapdConnection> connection0 (getConnectionsRequest->established (0));
-    g_assert (connection0->interface () == "INTERFACE");
+    g_assert (connection0->interface () == "interface");
     QScopedPointer<QSnapdSlotRef> slotRef0 (connection0->slot ());
     g_assert (slotRef0->snap () == "snap1");
     g_assert (slotRef0->slot () == "slot1");
@@ -2195,7 +2196,7 @@ test_get_connections_sync ()
     g_assert_false (connection0->gadget ());
 
     QScopedPointer<QSnapdConnection> connection1 (getConnectionsRequest->established (1));
-    g_assert (connection1->interface () == "INTERFACE");
+    g_assert (connection1->interface () == "interface");
     QScopedPointer<QSnapdSlotRef> slotRef1 (connection1->slot ());
     g_assert (slotRef1->snap () == "snap1");
     g_assert (slotRef1->slot () == "slot1");
@@ -2206,7 +2207,7 @@ test_get_connections_sync ()
     g_assert_false (connection1->gadget ());
 
     QScopedPointer<QSnapdConnection> connection2 (getConnectionsRequest->established (2));
-    g_assert (connection2->interface () == "INTERFACE");
+    g_assert (connection2->interface () == "interface");
     QScopedPointer<QSnapdSlotRef> slotRef2 (connection2->slot ());
     g_assert (slotRef2->snap () == "snap1");
     g_assert (slotRef2->slot () == "slot1");
@@ -2219,7 +2220,7 @@ test_get_connections_sync ()
     g_assert_cmpint (getConnectionsRequest->undesiredCount (), ==, 1);
 
     QScopedPointer<QSnapdConnection> connection4 (getConnectionsRequest->undesired (0));
-    g_assert (connection4->interface () == "INTERFACE");
+    g_assert (connection4->interface () == "interface");
     QScopedPointer<QSnapdSlotRef> slotRef4 (connection4->slot ());
     g_assert (slotRef4->snap () == "snap1");
     g_assert (slotRef4->slot () == "slot1");
@@ -2234,7 +2235,7 @@ test_get_connections_sync ()
     QScopedPointer<QSnapdPlug> plug0 (getConnectionsRequest->plug (0));
     g_assert (plug0->name () == "auto-plug");
     g_assert (plug0->snap () == "snap2");
-    g_assert (plug0->interface () == "INTERFACE");
+    g_assert (plug0->interface () == "interface");
     // FIXME: Attributes
     g_assert (plug0->label () == "LABEL");
     g_assert_cmpint (plug0->connectedSlotCount (), ==, 1);
@@ -2245,7 +2246,7 @@ test_get_connections_sync ()
     QScopedPointer<QSnapdPlug> plug1 (getConnectionsRequest->plug (1));
     g_assert (plug1->name () == "manual-plug");
     g_assert (plug1->snap () == "snap2");
-    g_assert (plug1->interface () == "INTERFACE");
+    g_assert (plug1->interface () == "interface");
     // FIXME: Attributes
     g_assert (plug1->label () == "LABEL");
     g_assert_cmpint (plug1->connectedSlotCount (), ==, 1);
@@ -2256,7 +2257,7 @@ test_get_connections_sync ()
     QScopedPointer<QSnapdPlug> plug2 (getConnectionsRequest->plug (2));
     g_assert (plug2->name () == "gadget-plug");
     g_assert (plug2->snap () == "snap2");
-    g_assert (plug2->interface () == "INTERFACE");
+    g_assert (plug2->interface () == "interface");
     // FIXME: Attributes
     g_assert (plug2->label () == "LABEL");
     g_assert_cmpint (plug2->connectedSlotCount (), ==, 1);
@@ -2267,7 +2268,7 @@ test_get_connections_sync ()
     QScopedPointer<QSnapdPlug> plug3 (getConnectionsRequest->plug (3));
     g_assert (plug3->name () == "undesired-plug");
     g_assert (plug3->snap () == "snap2");
-    g_assert (plug3->interface () == "INTERFACE");
+    g_assert (plug3->interface () == "interface");
     // FIXME: Attributes
     g_assert (plug3->label () == "LABEL");
     g_assert_cmpint (plug3->connectedSlotCount (), ==, 0);
@@ -2277,7 +2278,7 @@ test_get_connections_sync ()
     QScopedPointer<QSnapdSlot> slot0 (getConnectionsRequest->slot (0));
     g_assert (slot0->name () == "slot1");
     g_assert (slot0->snap () == "snap1");
-    g_assert (slot0->interface () == "INTERFACE");
+    g_assert (slot0->interface () == "interface");
     // FIXME: Attributes
     g_assert (slot0->label () == "LABEL");
     g_assert_cmpint (slot0->connectedPlugCount (), ==, 3);
@@ -2304,7 +2305,7 @@ GetConnectionsHandler::onComplete ()
 
     g_assert_cmpint (request->establishedCount (), ==, 1);
     QScopedPointer<QSnapdConnection> connection (request->established (0));
-    g_assert (connection->interface () == "INTERFACE");
+    g_assert (connection->interface () == "interface");
     QScopedPointer<QSnapdSlotRef> slotRef1 (connection->slot ());
     g_assert (slotRef1->snap () == "snap1");
     g_assert (slotRef1->slot () == "slot1");
@@ -2322,7 +2323,7 @@ GetConnectionsHandler::onComplete ()
     QScopedPointer<QSnapdPlug> plug (request->plug (0));
     g_assert (plug->name () == "plug1");
     g_assert (plug->snap () == "snap2");
-    g_assert (plug->interface () == "INTERFACE");
+    g_assert (plug->interface () == "interface");
     // FIXME: Attributes
     g_assert (plug->label () == "LABEL");
     g_assert_cmpint (plug->connectedSlotCount (), ==, 1);
@@ -2335,7 +2336,7 @@ GetConnectionsHandler::onComplete ()
     QScopedPointer<QSnapdSlot> slot0 (request->slot (0));
     g_assert (slot0->name () == "slot1");
     g_assert (slot0->snap () == "snap1");
-    g_assert (slot0->interface () == "INTERFACE");
+    g_assert (slot0->interface () == "interface");
     // FIXME: Attributes
     g_assert (slot0->label () == "LABEL");
     g_assert_cmpint (slot0->connectedPlugCount (), ==, 1);
@@ -2357,11 +2358,12 @@ test_get_connections_async ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *sl = mock_snap_add_slot (s, "slot1");
-    mock_snap_add_slot (s, "slot2");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
+    mock_snap_add_slot (s, i, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *p = mock_snap_add_plug (s, "plug1");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug1");
     mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -2398,11 +2400,12 @@ static void
 test_get_interfaces_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *sl = mock_snap_add_slot (s, "slot1");
-    mock_snap_add_slot (s, "slot2");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
+    mock_snap_add_slot (s, i, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *p = mock_snap_add_plug (s, "plug1");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug1");
     mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -2418,7 +2421,7 @@ test_get_interfaces_sync ()
     QScopedPointer<QSnapdPlug> plug (getInterfacesRequest->plug (0));
     g_assert (plug->name () == "plug1");
     g_assert (plug->snap () == "snap2");
-    g_assert (plug->interface () == "INTERFACE");
+    g_assert (plug->interface () == "interface");
     // FIXME: Attributes
     g_assert (plug->label () == "LABEL");
     g_assert_cmpint (plug->connectedSlotCount (), ==, 1);
@@ -2431,7 +2434,7 @@ test_get_interfaces_sync ()
     QScopedPointer<QSnapdSlot> slot0 (getInterfacesRequest->slot (0));
     g_assert (slot0->name () == "slot1");
     g_assert (slot0->snap () == "snap1");
-    g_assert (slot0->interface () == "INTERFACE");
+    g_assert (slot0->interface () == "interface");
     // FIXME: Attributes
     g_assert (slot0->label () == "LABEL");
     g_assert_cmpint (slot0->connectedPlugCount (), ==, 1);
@@ -2455,7 +2458,7 @@ GetInterfacesHandler::onComplete ()
     QScopedPointer<QSnapdPlug> plug (request->plug (0));
     g_assert (plug->name () == "plug1");
     g_assert (plug->snap () == "snap2");
-    g_assert (plug->interface () == "INTERFACE");
+    g_assert (plug->interface () == "interface");
     // FIXME: Attributes
     g_assert (plug->label () == "LABEL");
     g_assert_cmpint (plug->connectedSlotCount (), ==, 1);
@@ -2468,7 +2471,7 @@ GetInterfacesHandler::onComplete ()
     QScopedPointer<QSnapdSlot> slot0 (request->slot (0));
     g_assert (slot0->name () == "slot1");
     g_assert (slot0->snap () == "snap1");
-    g_assert (slot0->interface () == "INTERFACE");
+    g_assert (slot0->interface () == "interface");
     // FIXME: Attributes
     g_assert (slot0->label () == "LABEL");
     g_assert_cmpint (slot0->connectedPlugCount (), ==, 1);
@@ -2490,11 +2493,12 @@ test_get_interfaces_async ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *sl = mock_snap_add_slot (s, "slot1");
-    mock_snap_add_slot (s, "slot2");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
+    mock_snap_add_slot (s, i, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *p = mock_snap_add_plug (s, "plug1");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug1");
     mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -2528,11 +2532,12 @@ static void
 test_get_interfaces_legacy ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *sl = mock_snap_add_slot (s, "slot1");
-    mock_snap_add_slot (s, "slot2");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
+    mock_snap_add_slot (s, i, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *p = mock_snap_add_plug (s, "plug1");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug1");
     mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -2576,10 +2581,11 @@ static void
 test_connect_interface_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *slot = mock_snap_add_slot (s, "slot");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *plug = mock_snap_add_plug (s, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2608,10 +2614,11 @@ test_connect_interface_async ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_add_slot (s, "slot");
+    mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    mock_snap_add_plug (s, "plug");
+    mock_snap_add_plug (s, i, "plug");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2628,10 +2635,11 @@ static void
 test_connect_interface_progress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *slot = mock_snap_add_slot (s, "slot");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *plug = mock_snap_add_plug (s, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2664,10 +2672,11 @@ static void
 test_disconnect_interface_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *slot = mock_snap_add_slot (s, "slot");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *plug = mock_snap_add_plug (s, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
     mock_snapd_connect (snapd, plug, slot, TRUE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -2697,10 +2706,11 @@ test_disconnect_interface_async ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *slot = mock_snap_add_slot (s, "slot");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *plug = mock_snap_add_plug (s, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
     mock_snapd_connect (snapd, plug, slot, TRUE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -2718,10 +2728,11 @@ static void
 test_disconnect_interface_progress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    MockSlot *slot = mock_snap_add_slot (s, "slot");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    MockPlug *plug = mock_snap_add_plug (s, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
     mock_snapd_connect (snapd, plug, slot, TRUE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 

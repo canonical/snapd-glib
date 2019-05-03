@@ -31,6 +31,7 @@ typedef struct _MockApp MockApp;
 typedef struct _MockChange MockChange;
 typedef struct _MockChannel MockChannel;
 typedef struct _MockConnection MockConnection;
+typedef struct _MockInterface MockInterface;
 typedef struct _MockMedia MockMedia;
 typedef struct _MockPlug MockPlug;
 typedef struct _MockPrice MockPrice;
@@ -164,6 +165,15 @@ void            mock_change_set_ready_time        (MockChange    *change,
 
 MockSnap       *mock_account_add_private_snap     (MockAccount   *account,
                                                    const gchar   *name);
+
+MockInterface  *mock_snapd_add_interface          (MockSnapd     *snapd,
+                                                   const gchar   *name);
+
+void            mock_interface_set_summary        (MockInterface *interface,
+                                                   const gchar   *summary);
+
+void            mock_interface_set_doc_url        (MockInterface *interface,
+                                                   const gchar   *url);
 
 MockSnap       *mock_snapd_add_snap               (MockSnapd     *snapd,
                                                    const gchar   *name);
@@ -372,12 +382,14 @@ void            mock_snap_add_store_section       (MockSnap      *snap,
                                                    const gchar   *section);
 
 MockPlug       *mock_snap_add_plug                (MockSnap      *snap,
+                                                   MockInterface *interface,
                                                    const gchar   *name);
 
 MockPlug       *mock_snap_find_plug               (MockSnap      *snap,
                                                    const gchar   *name);
 
 MockSlot       *mock_snap_add_slot                (MockSnap      *snap,
+                                                   MockInterface *interface,
                                                    const gchar   *name);
 
 MockSlot       *mock_snap_find_slot               (MockSnap      *snap,

@@ -39,6 +39,7 @@ struct _MockSnapd
     gboolean decline_auth;
     GList *accounts;
     GList *users;
+    GList *interfaces;
     GList *snaps;
     gchar *build_id;
     gchar *confinement;
@@ -141,11 +142,18 @@ struct _MockMedia
     int height;
 };
 
+struct _MockInterface
+{
+    gchar *name;
+    gchar *summary;
+    gchar *doc_url;
+};
+
 struct _MockPlug
 {
     MockSnap *snap;
     gchar *name;
-    gchar *interface;
+    MockInterface *interface;
     // FIXME: Attributes
     gchar *label;
 };
@@ -154,7 +162,7 @@ struct _MockSlot
 {
     MockSnap *snap;
     gchar *name;
-    gchar *interface;
+    MockInterface *interface;
     // FIXME: Attributes
     gchar *label;
 };
@@ -294,10 +302,18 @@ mock_media_free (MockMedia *media)
 }
 
 static void
+mock_interface_free (MockInterface *interface)
+{
+    g_free (interface->name);
+    g_free (interface->summary);
+    g_free (interface->doc_url);
+    g_slice_free (MockInterface, interface);
+}
+
+static void
 mock_plug_free (MockPlug *plug)
 {
     g_free (plug->name);
-    g_free (plug->interface);
     g_free (plug->label);
     g_slice_free (MockPlug, plug);
 }
@@ -306,7 +322,6 @@ static void
 mock_slot_free (MockSlot *slot)
 {
     g_free (slot->name);
-    g_free (slot->interface);
     g_free (slot->label);
     g_slice_free (MockSlot, slot);
 }
@@ -872,6 +887,49 @@ mock_account_free (MockAccount *account)
     g_strfreev (account->discharges);
     g_list_free_full (account->private_snaps, (GDestroyNotify) mock_snap_free);
     g_slice_free (MockAccount, account);
+}
+
+static MockInterface *
+mock_interface_new (const gchar *name)
+{
+    MockInterface *interface;
+
+    interface = g_slice_new0 (MockInterface);
+    interface->name = g_strdup (name);
+    interface->summary = g_strdup ("SUMMARY");
+    interface->doc_url = g_strdup ("URL");
+
+    return interface;
+}
+
+MockInterface *
+mock_snapd_add_interface (MockSnapd *snapd, const gchar *name)
+{
+    g_autoptr(GMutexLocker) locker = NULL;
+    MockInterface *interface;
+
+    g_return_val_if_fail (MOCK_IS_SNAPD (snapd), NULL);
+
+    locker = g_mutex_locker_new (&snapd->mutex);
+
+    interface = mock_interface_new (name);
+    snapd->interfaces = g_list_append (snapd->interfaces, interface);
+
+    return interface;
+}
+
+void
+mock_interface_set_summary (MockInterface *interface, const gchar *summary)
+{
+    g_free (interface->summary);
+    interface->summary = g_strdup (summary);
+}
+
+void
+mock_interface_set_doc_url (MockInterface *interface, const gchar *url)
+{
+    g_free (interface->doc_url);
+    interface->doc_url = g_strdup (url);
 }
 
 MockSnap *
@@ -1496,14 +1554,14 @@ mock_snap_add_store_section (MockSnap *snap, const gchar *name)
 }
 
 MockPlug *
-mock_snap_add_plug (MockSnap *snap, const gchar *name)
+mock_snap_add_plug (MockSnap *snap, MockInterface *interface, const gchar *name)
 {
     MockPlug *plug;
 
     plug = g_slice_new0 (MockPlug);
     plug->snap = snap;
     plug->name = g_strdup (name);
-    plug->interface = g_strdup ("INTERFACE");
+    plug->interface = interface;
     plug->label = g_strdup ("LABEL");
     snap->plugs = g_list_append (snap->plugs, plug);
 
@@ -1525,14 +1583,14 @@ mock_snap_find_plug (MockSnap *snap, const gchar *name)
 }
 
 MockSlot *
-mock_snap_add_slot (MockSnap *snap, const gchar *name)
+mock_snap_add_slot (MockSnap *snap, MockInterface *interface, const gchar *name)
 {
     MockSlot *slot;
 
     slot = g_slice_new0 (MockSlot);
     slot->snap = snap;
     slot->name = g_strdup (name);
-    slot->interface = g_strdup ("INTERFACE");
+    slot->interface = interface;
     slot->label = g_strdup ("LABEL");
     snap->slots_ = g_list_append (snap->slots_, slot);
 
@@ -3092,7 +3150,7 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
                 json_builder_set_member_name (builder, "plug");
                 json_builder_add_string_value (builder, plug->name);
                 json_builder_set_member_name (builder, "interface");
-                json_builder_add_string_value (builder, plug->interface);
+                json_builder_add_string_value (builder, plug->interface->name);
                 json_builder_set_member_name (builder, "label");
                 json_builder_add_string_value (builder, plug->label);
                 if (slots != NULL) {
@@ -3136,7 +3194,7 @@ handle_interfaces (MockSnapd *snapd, SoupMessage *message)
                 json_builder_set_member_name (builder, "slot");
                 json_builder_add_string_value (builder, slot->name);
                 json_builder_set_member_name (builder, "interface");
-                json_builder_add_string_value (builder, slot->interface);
+                json_builder_add_string_value (builder, slot->interface->name);
                 json_builder_set_member_name (builder, "label");
                 json_builder_add_string_value (builder, slot->label);
                 if (plugs != NULL) {
@@ -3290,7 +3348,7 @@ add_connection (JsonBuilder *builder, MockConnection *connection)
     json_builder_end_object (builder);
 
     json_builder_set_member_name (builder, "interface");
-    json_builder_add_string_value (builder, plug->interface);
+    json_builder_add_string_value (builder, plug->interface->name);
 
     if (connection->manual) {
         json_builder_set_member_name (builder, "manual");
@@ -3363,7 +3421,7 @@ handle_connections (MockSnapd *snapd, SoupMessage *message)
             json_builder_set_member_name (builder, "plug");
             json_builder_add_string_value (builder, plug->name);
             json_builder_set_member_name (builder, "interface");
-            json_builder_add_string_value (builder, plug->interface);
+            json_builder_add_string_value (builder, plug->interface->name);
             json_builder_set_member_name (builder, "label");
             json_builder_add_string_value (builder, plug->label);
             if (slots != NULL) {
@@ -3407,7 +3465,7 @@ handle_connections (MockSnapd *snapd, SoupMessage *message)
             json_builder_set_member_name (builder, "slot");
             json_builder_add_string_value (builder, slot->name);
             json_builder_set_member_name (builder, "interface");
-            json_builder_add_string_value (builder, slot->interface);
+            json_builder_add_string_value (builder, slot->interface->name);
             json_builder_set_member_name (builder, "label");
             json_builder_add_string_value (builder, slot->label);
             if (plugs != NULL) {
@@ -4410,6 +4468,8 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&snapd->socket_path, g_free);
     g_list_free_full (snapd->accounts, (GDestroyNotify) mock_account_free);
     snapd->accounts = NULL;
+    g_list_free_full (snapd->interfaces, (GDestroyNotify) mock_interface_free);
+    snapd->interfaces = NULL;
     g_list_free_full (snapd->snaps, (GDestroyNotify) mock_snap_free);
     snapd->snaps = NULL;
     g_free (snapd->build_id);
