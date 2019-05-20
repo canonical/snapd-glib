@@ -30,6 +30,7 @@
 #include "requests/snapd-get-interfaces-legacy.h"
 #include "requests/snapd-get-sections.h"
 #include "requests/snapd-get-snap.h"
+#include "requests/snapd-get-snap-conf.h"
 #include "requests/snapd-get-snaps.h"
 #include "requests/snapd-get-system-info.h"
 #include "requests/snapd-get-users.h"
@@ -46,6 +47,7 @@
 #include "requests/snapd-post-snap-try.h"
 #include "requests/snapd-post-snaps.h"
 #include "requests/snapd-post-snapctl.h"
+#include "requests/snapd-put-snap-conf.h"
 
 /**
  * SECTION:snapd-client
@@ -1577,6 +1579,115 @@ snapd_client_get_snap_finish (SnapdClient *client, GAsyncResult *result, GError 
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_object_ref (_snapd_get_snap_get_snap (request));
+}
+
+/**
+ * snapd_client_get_snap_conf_async:
+ * @client: a #SnapdClient.
+ * @name: name of snap to get configuration from.
+ * @keys: (allow-none): keys to returns or %NULL to return all.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get configuration for a snap.
+ * See snapd_client_get_snap_conf_sync() for more information.
+ *
+ * Since: 1.48
+ */
+void
+snapd_client_get_snap_conf_async (SnapdClient *client,
+                                  const gchar *name,
+                                  GStrv keys,
+                                  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_autoptr(SnapdGetSnapConf) request = NULL;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (name != NULL);
+
+    request = _snapd_get_snap_conf_new (name, keys, cancellable, callback, user_data);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_snap_conf_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_snap_conf_async().
+ * See snapd_client_get_snap_conf_sync() for more information.
+ *
+ * Returns: (transfer full) (element-type utf8 GVariant): a table of configuration values or %NULL on error.
+ *
+ * Since: 1.48
+ */
+GHashTable *
+snapd_client_get_snap_conf_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    SnapdGetSnapConf *request;
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_SNAP_CONF (result), NULL);
+
+    request = SNAPD_GET_SNAP_CONF (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_hash_table_ref (_snapd_get_snap_conf_get_conf (request));
+}
+
+/**
+ * snapd_client_set_snap_conf_async:
+ * @client: a #SnapdClient.
+ * @name: name of snap to set configuration for.
+ * @key_values: (element-type utf8 GVariant): Keys to set.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously set configuration for a snap.
+ * See snapd_client_set_snap_conf_sync() for more information.
+ *
+ * Since: 1.48
+ */
+void
+snapd_client_set_snap_conf_async (SnapdClient *client,
+                                  const gchar *name,
+                                  GHashTable *key_values,
+                                  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_autoptr(SnapdPutSnapConf) request = NULL;
+
+    g_return_if_fail (SNAPD_IS_CLIENT (client));
+    g_return_if_fail (name != NULL);
+    g_return_if_fail (key_values != NULL);
+
+    request = _snapd_put_snap_conf_new (name, key_values, cancellable, callback, user_data);
+    send_request (client, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_set_snap_conf_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_set_snap_conf_async().
+ * See snapd_client_set_snap_conf_sync() for more information.
+ *
+ * Returns: %TRUE if configuration successfully applied.
+ *
+ * Since: 1.48
+ */
+gboolean
+snapd_client_set_snap_conf_finish (SnapdClient *client, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_PUT_SNAP_CONF (result), FALSE);
+
+    return _snapd_request_propagate_error (SNAPD_REQUEST (result), error);
 }
 
 /**

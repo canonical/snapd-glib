@@ -181,6 +181,7 @@ struct _MockSnap
     gchar *base;
     gchar *broken;
     gchar *channel;
+    GHashTable *configuration;
     gchar *confinement;
     gchar *contact;
     gchar *description;
@@ -339,6 +340,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->base);
     g_free (snap->broken);
     g_free (snap->channel);
+    g_hash_table_unref (snap->configuration);
     g_free (snap->confinement);
     g_free (snap->contact);
     g_free (snap->description);
@@ -817,6 +819,7 @@ mock_snap_new (const gchar *name)
     MockSnap *snap;
 
     snap = g_slice_new0 (MockSnap);
+    snap->configuration = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     snap->confinement = g_strdup ("strict");
     snap->publisher_display_name = g_strdup ("PUBLISHER-DISPLAY-NAME");
     snap->publisher_id = g_strdup ("PUBLISHER-ID");
@@ -1161,6 +1164,24 @@ const gchar *
 mock_snap_get_channel (MockSnap *snap)
 {
     return snap->channel;
+}
+
+void
+mock_snap_set_conf (MockSnap *snap, const gchar *name, const gchar *value)
+{
+    g_hash_table_insert (snap->configuration, g_strdup (name), g_strdup (value));
+}
+
+gsize
+mock_snap_get_conf_count (MockSnap *snap)
+{
+    return g_hash_table_size (snap->configuration);
+}
+
+const gchar *
+mock_snap_get_conf (MockSnap *snap, const gchar *name)
+{
+    return g_hash_table_lookup (snap->configuration, name);
 }
 
 MockTrack *
@@ -3016,6 +3037,120 @@ handle_snap (MockSnapd *snapd, SoupMessage *message, const gchar *name)
         send_error_method_not_allowed (snapd, message, "method not allowed");
 }
 
+static gint
+compare_keys (gconstpointer a, gconstpointer b)
+{
+    gchar *name_a = *((gchar **) a);
+    gchar *name_b = *((gchar **) b);
+    return strcmp (name_a, name_b);
+}
+
+static void
+handle_snap_conf (MockSnapd *snapd, SoupMessage *message, const gchar *name, GHashTable *query)
+{
+    if (strcmp (message->method, "GET") == 0) {
+        const gchar *keys_param = NULL;
+        g_autoptr(GPtrArray) keys = NULL;
+        MockSnap *snap;
+        g_autoptr(JsonBuilder) builder = NULL;
+        int i;
+
+        if (strcmp (name, "system") == 0)
+            snap = find_snap (snapd, "core");
+        else
+            snap = find_snap (snapd, name);
+
+        keys = g_ptr_array_new_with_free_func (g_free);
+        if (query != NULL)
+            keys_param = g_hash_table_lookup (query, "keys");
+        if (keys_param != NULL) {
+            g_auto(GStrv) key_names = NULL;
+
+            key_names = g_strsplit (keys_param, ",", -1);
+            for (i = 0; key_names[i] != NULL; i++)
+                g_ptr_array_add (keys, g_strdup (g_strstrip (key_names[i])));
+        }
+        if (keys->len == 0 && snap != NULL) {
+            g_autofree GStrv key_names = NULL;
+
+            key_names = (GStrv) g_hash_table_get_keys_as_array (snap->configuration, NULL);
+            for (i = 0; key_names[i] != NULL; i++)
+                g_ptr_array_add (keys, g_strdup (g_strstrip (key_names[i])));
+        }
+        g_ptr_array_sort (keys, compare_keys);
+
+        builder = json_builder_new ();
+        json_builder_begin_object (builder);
+        for (i = 0; i < keys->len; i++) {
+            const gchar *key = g_ptr_array_index (keys, i);
+            const gchar *value = NULL;
+            g_autoptr(JsonParser) parser = NULL;
+            gboolean result;
+
+            if (snap != NULL)
+                value = g_hash_table_lookup (snap->configuration, key);
+
+            if (value == NULL) {
+                g_autofree gchar *error_message = g_strdup_printf ("snap \"%s\" has no \"%s\" configuration option", name, key);
+                send_error_bad_request (snapd, message, error_message, "option-not-found");
+                return;
+            }
+
+            parser = json_parser_new ();
+            result = json_parser_load_from_data (parser, value, -1, NULL);
+            g_assert (result);
+
+            json_builder_set_member_name (builder, key);
+            json_builder_add_value (builder, json_node_ref (json_parser_get_root (parser)));
+        }
+        json_builder_end_object (builder);
+
+        send_sync_response (snapd, message, 200, json_builder_get_root (builder), NULL);
+    }
+    else if (strcmp (message->method, "PUT") == 0) {
+        g_autoptr(JsonNode) request = NULL;
+        JsonObject *o;
+        JsonObjectIter iter;
+        const gchar *key;
+        JsonNode *value_node;
+        MockSnap *snap;
+        MockChange *change;
+
+        request = get_json (message);
+        if (request == NULL) {
+            send_error_bad_request (snapd, message, "cannot decode request body into patch values", NULL);
+            return;
+        }
+
+        if (strcmp (name, "system") == 0)
+            snap = find_snap (snapd, "core");
+        else
+            snap = find_snap (snapd, name);
+        if (snap == NULL) {
+            send_error_not_found (snapd, message, "snap is not installed", "snap-not-found");
+            return;
+        }
+
+        o = json_node_get_object (request);
+
+        json_object_iter_init (&iter, o);
+        while (json_object_iter_next (&iter, &key, &value_node)) {
+            g_autoptr(JsonGenerator) generator = NULL;
+            g_autofree gchar *value = NULL;
+
+            generator = json_generator_new ();
+            json_generator_set_root (generator, value_node);
+            value = json_generator_to_data (generator, NULL);
+            mock_snap_set_conf (snap, key, value);
+        }
+
+        change = add_change (snapd);
+        send_async_response (snapd, message, 202, change->id);
+    }
+    else
+        send_error_method_not_allowed (snapd, message, "method not allowed");
+}
+
 static void
 handle_apps (MockSnapd *snapd, SoupMessage *message, GHashTable *query)
 {
@@ -4566,8 +4701,14 @@ handle_request (SoupServer        *server,
         handle_login (snapd, message);
     else if (strcmp (path, "/v2/snaps") == 0)
         handle_snaps (snapd, message, query);
-    else if (g_str_has_prefix (path, "/v2/snaps/"))
-        handle_snap (snapd, message, path + strlen ("/v2/snaps/"));
+    else if (g_str_has_prefix (path, "/v2/snaps/")) {
+        if (g_str_has_suffix (path, "/conf")) {
+            g_autofree gchar *name = g_strndup (path + strlen ("/v2/snaps/"), strlen (path) - strlen ("/v2/snaps/") - strlen ("/conf"));
+            handle_snap_conf (snapd, message, name, query);
+        }
+        else
+            handle_snap (snapd, message, path + strlen ("/v2/snaps/"));
+    }
     else if (strcmp (path, "/v2/apps") == 0)
         handle_apps (snapd, message, query);
     else if (g_str_has_prefix (path, "/v2/icons/"))

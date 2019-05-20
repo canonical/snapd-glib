@@ -150,6 +150,12 @@ snapd_client_list_one_finish
 snapd_client_get_snap_sync
 snapd_client_get_snap_async
 snapd_client_get_snap_finish
+snapd_client_get_snap_conf_sync
+snapd_client_get_snap_conf_async
+snapd_client_get_snap_conf_finish
+snapd_client_set_snap_conf_sync
+snapd_client_set_snap_conf_async
+snapd_client_set_snap_conf_finish
 snapd_client_get_apps_sync
 snapd_client_get_apps_async
 snapd_client_get_apps_finish
@@ -291,6 +297,7 @@ SnapdGetInterfaces
 SnapdGetInterfacesLegacy
 SnapdGetSections
 SnapdGetSnap
+SnapdGetSnapConf
 SnapdGetSnaps
 SnapdGetSystemInfo
 SnapdGetUsers
@@ -307,6 +314,7 @@ SnapdPostSnapStream
 SnapdPostSnapTry
 SnapdPostSnapctl
 SnapdPostSnaps
+SnapdPutSnapConf
 SnapdRequest
 SnapdRequestAsync
 SnapdRequestAsyncClass

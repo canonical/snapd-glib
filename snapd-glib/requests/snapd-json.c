@@ -317,6 +317,11 @@ parse_error_response (JsonObject *root, GError **error)
                              SNAPD_ERROR,
                              SNAPD_ERROR_DNS_FAILURE,
                              message);
+    else if (g_strcmp0 (kind, "option-not-found") == 0)
+        g_set_error_literal (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_OPTION_NOT_FOUND,
+                             message);
     else {
         switch (status_code) {
         case SOUP_STATUS_BAD_REQUEST:
@@ -1226,21 +1231,12 @@ node_to_variant (JsonNode *node)
 }
 
 GHashTable *
-_snapd_json_parse_attributes (JsonNode *node, GError **error)
+_snapd_json_parse_object (JsonObject *object, GError **error)
 {
-    JsonObject *object;
     JsonObjectIter iter;
     g_autoptr(GHashTable) attributes = NULL;
     const gchar *attribute_name;
-
-    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-        g_set_error (error,
-                     SNAPD_ERROR,
-                     SNAPD_ERROR_READ_FAILED,
-                     "Unexpected attributes type");
-        return NULL;
-    }
-    object = json_node_get_object (node);
+    JsonNode *node;
 
     attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
 
@@ -1249,6 +1245,20 @@ _snapd_json_parse_attributes (JsonNode *node, GError **error)
         g_hash_table_insert (attributes, g_strdup (attribute_name), node_to_variant (node));
 
     return g_steal_pointer (&attributes);
+}
+
+GHashTable *
+_snapd_json_parse_attributes (JsonNode *node, GError **error)
+{
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected attributes type");
+        return NULL;
+    }
+
+    return _snapd_json_parse_object (json_node_get_object (node), error);
 }
 
 SnapdSlot *
