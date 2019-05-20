@@ -60,7 +60,8 @@ public:
         RevisionNotAvailable,
         ChannelNotAvailable,
         NotASnap,
-        DNSFailure
+        DNSFailure,
+        OptionNotFound
     };
     Q_ENUM(QSnapdError)
 

@@ -90,6 +90,9 @@ SnapdAlias           *_snapd_json_parse_alias            (JsonNode           *no
 SnapdUserInformation *_snapd_json_parse_user_information (JsonNode           *node,
                                                           GError            **error);
 
+GHashTable           *_snapd_json_parse_object           (JsonObject         *node,
+                                                          GError            **error);
+
 GHashTable           *_snapd_json_parse_attributes       (JsonNode           *node,
                                                           GError            **error);
 

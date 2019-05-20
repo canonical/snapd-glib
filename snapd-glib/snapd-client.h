@@ -379,6 +379,36 @@ SnapdSnap              *snapd_client_get_snap_finish               (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+GHashTable             *snapd_client_get_snap_conf_sync            (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    GStrv                 keys,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_snap_conf_async           (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    GStrv                 keys,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GHashTable             *snapd_client_get_snap_conf_finish          (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_set_snap_conf_sync            (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    GHashTable           *key_values,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_set_snap_conf_async           (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    GHashTable           *key_values,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_set_snap_conf_finish          (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 GPtrArray              *snapd_client_get_apps_sync                 (SnapdClient          *client,
                                                                     SnapdGetAppsFlags     flags,
                                                                     GCancellable         *cancellable,

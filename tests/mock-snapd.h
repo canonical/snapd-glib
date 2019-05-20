@@ -229,8 +229,14 @@ void            mock_snap_set_channel             (MockSnap      *snap,
 
 const gchar    *mock_snap_get_channel             (MockSnap      *snap);
 
-void            mock_snap_add_common_id           (MockSnap      *snap,
-                                                   const gchar   *id);
+void            mock_snap_set_conf                (MockSnap      *snap,
+                                                   const gchar   *name,
+                                                   const gchar   *value);
+
+gsize           mock_snap_get_conf_count          (MockSnap      *snap);
+
+const gchar    *mock_snap_get_conf                (MockSnap      *snap,
+                                                   const gchar   *name);
 
 MockTrack      *mock_snap_add_track               (MockSnap      *snap,
                                                    const gchar   *name);

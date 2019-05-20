@@ -312,6 +312,69 @@ snapd_client_get_snap_sync (SnapdClient *client,
 }
 
 /**
+ * snapd_client_get_snap_conf_sync:
+ * @client: a #SnapdClient.
+ * @name: name of snap to get configuration from.
+ * @keys: (allow-none): keys to returns or %NULL to return all.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get configuration for a snap. System configuration is stored using the name "system".
+ *
+ * Returns: (transfer full) (element-type utf8 GVariant): a table of configuration values or %NULL on error.
+ *
+ * Since: 1.48
+ */
+GHashTable *
+snapd_client_get_snap_conf_sync (SnapdClient *client,
+                                 const gchar *name,
+                                 GStrv keys,
+                                 GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (name != NULL, NULL);
+
+    start_sync (&data);
+    snapd_client_get_snap_conf_async (client, name, keys, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_snap_conf_finish (client, data.result, error);
+}
+
+/**
+ * snapd_client_set_snap_conf_sync:
+ * @client: a #SnapdClient.
+ * @name: name of snap to set configuration for.
+ * @key_values: (element-type utf8 GVariant): Keys to set.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Set configuration for a snap. System configuration is stored using the name "system".
+ *
+ * Returns: %TRUE if configuration successfully applied.
+ *
+ * Since: 1.48
+ */
+gboolean
+snapd_client_set_snap_conf_sync (SnapdClient *client,
+                                 const gchar *name,
+                                 GHashTable *key_values,
+                                 GCancellable *cancellable, GError **error)
+{
+    g_auto(SyncData) data = { 0 };
+
+    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (name != NULL, FALSE);
+    g_return_val_if_fail (key_values != NULL, FALSE);
+
+    start_sync (&data);
+    snapd_client_set_snap_conf_async (client, name, key_values, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_set_snap_conf_finish (client, data.result, error);
+}
+
+/**
  * snapd_client_get_apps_sync:
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdGetAppsFlags to control what results are returned.

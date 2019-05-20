@@ -45,6 +45,7 @@ source_private_h = \
 	requests/snapd-get-interfaces-legacy.h \
 	requests/snapd-get-sections.h \
 	requests/snapd-get-snap.h \
+	requests/snapd-get-snap-conf.h \
 	requests/snapd-get-snaps.h \
 	requests/snapd-get-system-info.h \
 	requests/snapd-get-users.h \
@@ -61,6 +62,7 @@ source_private_h = \
 	requests/snapd-post-snap-try.h \
 	requests/snapd-post-snaps.h \
 	requests/snapd-post-snapctl.h \
+	requests/snapd-put-snap-conf.h \
 	requests/snapd-request.h \
 	requests/snapd-request-async.h
 
@@ -106,6 +108,7 @@ source_private_c = \
 	requests/snapd-get-interfaces-legacy.c \
 	requests/snapd-get-sections.c \
 	requests/snapd-get-snap.c \
+	requests/snapd-get-snap-conf.c \
 	requests/snapd-get-snaps.c \
 	requests/snapd-get-system-info.c \
 	requests/snapd-get-users.c \
@@ -122,6 +125,7 @@ source_private_c = \
 	requests/snapd-post-snap-try.c \
 	requests/snapd-post-snaps.c \
 	requests/snapd-post-snapctl.c \
+	requests/snapd-put-snap-conf.c \
 	requests/snapd-request.c \
 	requests/snapd-request-async.c
 
