@@ -10,6 +10,7 @@
 #include <snapd-glib/snapd-glib.h>
 
 #include "Snapd/plug.h"
+#include "variant.h"
 
 QSnapdPlug::QSnapdPlug (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
@@ -26,6 +27,26 @@ QString QSnapdPlug::snap () const
 QString QSnapdPlug::interface () const
 {
     return snapd_plug_get_interface (SNAPD_PLUG (wrapped_object));
+}
+
+QStringList QSnapdPlug::attributeNames () const
+{
+    g_auto(GStrv) names = snapd_plug_get_attribute_names (SNAPD_PLUG (wrapped_object), NULL);
+    QStringList result;
+    for (int i = 0; names[i] != NULL; i++)
+        result.append (names[i]);
+    return result;
+}
+
+bool QSnapdPlug::hasAttribute (const QString &name) const
+{
+    return snapd_plug_has_attribute (SNAPD_PLUG (wrapped_object), name.toStdString ().c_str ());
+}
+
+QVariant QSnapdPlug::attribute (const QString &name) const
+{
+    g_autoptr(GVariant) value = snapd_plug_get_attribute (SNAPD_PLUG (wrapped_object), name.toStdString ().c_str ());
+    return gvariant_to_qvariant (value);
 }
 
 QString QSnapdPlug::label () const

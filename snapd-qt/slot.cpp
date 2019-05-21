@@ -10,6 +10,7 @@
 #include <snapd-glib/snapd-glib.h>
 
 #include "Snapd/slot.h"
+#include "variant.h"
 
 QSnapdSlot::QSnapdSlot (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
@@ -26,6 +27,26 @@ QString QSnapdSlot::snap () const
 QString QSnapdSlot::interface () const
 {
     return snapd_slot_get_interface (SNAPD_SLOT (wrapped_object));
+}
+
+QStringList QSnapdSlot::attributeNames () const
+{
+    g_auto(GStrv) names = snapd_slot_get_attribute_names (SNAPD_SLOT (wrapped_object), NULL);
+    QStringList result;
+    for (int i = 0; names[i] != NULL; i++)
+        result.append (names[i]);
+    return result;
+}
+
+bool QSnapdSlot::hasAttribute (const QString &name) const
+{
+    return snapd_slot_has_attribute (SNAPD_SLOT (wrapped_object), name.toStdString ().c_str ());
+}
+
+QVariant QSnapdSlot::attribute (const QString &name) const
+{
+    g_autoptr(GVariant) value = snapd_slot_get_attribute (SNAPD_SLOT (wrapped_object), name.toStdString ().c_str ());
+    return gvariant_to_qvariant (value);
 }
 
 QString QSnapdSlot::label () const

@@ -11,6 +11,7 @@
 #define SNAPD_CONNECTION_H
 
 #include <QtCore/QObject>
+#include <QtCore/QVariant>
 #include <Snapd/WrappedObject>
 #include <Snapd/PlugRef>
 #include <Snapd/SlotRef>
@@ -35,6 +36,12 @@ public:
     QString interface () const;
     bool manual () const;
     bool gadget () const;
+    Q_INVOKABLE QStringList slotAttributeNames () const;
+    Q_INVOKABLE bool hasSlotAttribute (const QString &name) const;
+    Q_INVOKABLE QVariant slotAttribute (const QString &name) const;
+    Q_INVOKABLE QStringList plugAttributeNames () const;
+    Q_INVOKABLE bool hasPlugAttribute (const QString &name) const;
+    Q_INVOKABLE QVariant plugAttribute (const QString &name) const;
     QString name () const;
     QString snap () const;
 };

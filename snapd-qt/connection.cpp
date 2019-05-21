@@ -10,6 +10,7 @@
 #include <snapd-glib/snapd-glib.h>
 
 #include "Snapd/connection.h"
+#include "variant.h"
 
 QSnapdConnection::QSnapdConnection (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
 
@@ -42,6 +43,46 @@ bool QSnapdConnection::manual () const
 bool QSnapdConnection::gadget () const
 {
     return snapd_connection_get_gadget (SNAPD_CONNECTION (wrapped_object));
+}
+
+QStringList QSnapdConnection::slotAttributeNames () const
+{
+    g_auto(GStrv) names = snapd_connection_get_slot_attribute_names (SNAPD_CONNECTION (wrapped_object), NULL);
+    QStringList result;
+    for (int i = 0; names[i] != NULL; i++)
+        result.append (names[i]);
+    return result;
+}
+
+bool QSnapdConnection::hasSlotAttribute (const QString &name) const
+{
+    return snapd_connection_has_slot_attribute (SNAPD_CONNECTION (wrapped_object), name.toStdString ().c_str ());
+}
+
+QVariant QSnapdConnection::slotAttribute (const QString &name) const
+{
+    g_autoptr(GVariant) value = snapd_connection_get_slot_attribute (SNAPD_CONNECTION (wrapped_object), name.toStdString ().c_str ());
+    return gvariant_to_qvariant (value);
+}
+
+QStringList QSnapdConnection::plugAttributeNames () const
+{
+    g_auto(GStrv) names = snapd_connection_get_plug_attribute_names (SNAPD_CONNECTION (wrapped_object), NULL);
+    QStringList result;
+    for (int i = 0; names[i] != NULL; i++)
+        result.append (names[i]);
+    return result;
+}
+
+bool QSnapdConnection::hasPlugAttribute (const QString &name) const
+{
+    return snapd_connection_has_plug_attribute (SNAPD_CONNECTION (wrapped_object), name.toStdString ().c_str ());
+}
+
+QVariant QSnapdConnection::plugAttribute (const QString &name) const
+{
+    g_autoptr(GVariant) value = snapd_connection_get_plug_attribute (SNAPD_CONNECTION (wrapped_object), name.toStdString ().c_str ());
+    return gvariant_to_qvariant (value);
 }
 
 QString QSnapdConnection::name () const
