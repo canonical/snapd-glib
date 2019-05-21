@@ -2342,6 +2342,32 @@ setup_get_connections (MockSnapd *snapd)
 }
 
 static void
+check_plug_no_attributes (QSnapdPlug &plug)
+{
+    QStringList attribute_names = plug.attributeNames ();
+    g_assert_cmpint (attribute_names.length (), ==, 0);
+}
+
+static void
+check_slot_no_attributes (QSnapdSlot &slot)
+{
+    QStringList attribute_names = slot.attributeNames ();
+    g_assert_cmpint (attribute_names.length (), ==, 0);
+}
+
+static void
+check_connection_no_plug_attributes (QSnapdConnection &connection)
+{
+    g_assert_cmpint (connection.plugAttributeNames().length (), ==, 0);
+}
+
+static void
+check_connection_no_slot_attributes (QSnapdConnection &connection)
+{
+    g_assert_cmpint (connection.slotAttributeNames().length (), ==, 0);
+}
+
+static void
 check_get_connections_result (QSnapdGetConnectionsRequest &request)
 {
     g_assert_cmpint (request.establishedCount (), ==, 3);
@@ -2354,6 +2380,8 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     QScopedPointer<QSnapdPlugRef> plugRef0 (connection0->plug ());
     g_assert (plugRef0->snap () == "snap2");
     g_assert (plugRef0->plug () == "auto-plug");
+    check_connection_no_slot_attributes (*connection0);
+    check_connection_no_plug_attributes (*connection0);
     g_assert_false (connection0->manual ());
     g_assert_false (connection0->gadget ());
 
@@ -2365,6 +2393,8 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     QScopedPointer<QSnapdPlugRef> plugRef1 (connection1->plug ());
     g_assert (plugRef1->snap () == "snap2");
     g_assert (plugRef1->plug () == "manual-plug");
+    check_connection_no_slot_attributes (*connection1);
+    check_connection_no_plug_attributes (*connection1);
     g_assert_true (connection1->manual ());
     g_assert_false (connection1->gadget ());
 
@@ -2376,6 +2406,8 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     QScopedPointer<QSnapdPlugRef> plugRef2 (connection2->plug ());
     g_assert (plugRef2->snap () == "snap2");
     g_assert (plugRef2->plug () == "gadget-plug");
+    check_connection_no_slot_attributes (*connection2);
+    check_connection_no_plug_attributes (*connection2);
     g_assert_false (connection2->manual ());
     g_assert_true (connection2->gadget ());
 
@@ -2389,6 +2421,8 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     QScopedPointer<QSnapdPlugRef> plugRef4 (connection4->plug ());
     g_assert (plugRef4->snap () == "snap2");
     g_assert (plugRef4->plug () == "undesired-plug");
+    check_connection_no_slot_attributes (*connection4);
+    check_connection_no_plug_attributes (*connection4);
     g_assert_true (connection4->manual ());
     g_assert_false (connection4->gadget ());
 
@@ -2398,7 +2432,7 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     g_assert (plug0->name () == "auto-plug");
     g_assert (plug0->snap () == "snap2");
     g_assert (plug0->interface () == "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (*plug0);
     g_assert (plug0->label () == "LABEL");
     g_assert_cmpint (plug0->connectedSlotCount (), ==, 1);
     QScopedPointer<QSnapdSlotRef> slotRefp0 (plug0->connectedSlot (0));
@@ -2409,7 +2443,7 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     g_assert (plug1->name () == "manual-plug");
     g_assert (plug1->snap () == "snap2");
     g_assert (plug1->interface () == "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (*plug1);
     g_assert (plug1->label () == "LABEL");
     g_assert_cmpint (plug1->connectedSlotCount (), ==, 1);
     QScopedPointer<QSnapdSlotRef> slotRefp1 (plug1->connectedSlot (0));
@@ -2420,7 +2454,7 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     g_assert (plug2->name () == "gadget-plug");
     g_assert (plug2->snap () == "snap2");
     g_assert (plug2->interface () == "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (*plug2);
     g_assert (plug2->label () == "LABEL");
     g_assert_cmpint (plug2->connectedSlotCount (), ==, 1);
     QScopedPointer<QSnapdSlotRef> slotRefp2 (plug2->connectedSlot (0));
@@ -2431,7 +2465,7 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     g_assert (plug3->name () == "undesired-plug");
     g_assert (plug3->snap () == "snap2");
     g_assert (plug3->interface () == "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (*plug3);
     g_assert (plug3->label () == "LABEL");
     g_assert_cmpint (plug3->connectedSlotCount (), ==, 0);
 
@@ -2441,7 +2475,7 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     g_assert (slot0->name () == "slot1");
     g_assert (slot0->snap () == "snap1");
     g_assert (slot0->interface () == "interface");
-    // FIXME: Attributes
+    check_slot_no_attributes (*slot0);
     g_assert (slot0->label () == "LABEL");
     g_assert_cmpint (slot0->connectedPlugCount (), ==, 3);
     QScopedPointer<QSnapdPlugRef> plugRefs0 (slot0->connectedPlug (0));
@@ -2457,6 +2491,7 @@ check_get_connections_result (QSnapdGetConnectionsRequest &request)
     QScopedPointer<QSnapdSlot> slot1 (request.slot (1));
     g_assert (slot1->name () == "slot2");
     g_assert (slot1->snap () == "snap1");
+    check_slot_no_attributes (*slot1);
     g_assert_cmpint (slot1->connectedPlugCount (), ==, 0);
 }
 
@@ -2526,6 +2561,104 @@ test_get_connections_empty ()
 }
 
 static void
+check_names_match (QStringList names, QStringList &expected_names)
+{
+    g_assert_cmpint (names.length (), ==, expected_names.length ());
+
+    QStringList sorted_names = names;
+    sorted_names.sort ();
+    QStringList sorted_expected_names = expected_names;
+    sorted_expected_names.sort ();
+    for (int i = 0; i < names.length (); i++)
+        g_assert (sorted_names[i] == sorted_expected_names[i]);
+}
+
+static void
+test_get_connections_attributes ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
+    mock_slot_add_attribute (sl, "slot-string-key", "\"value\"");
+    mock_slot_add_attribute (sl, "slot-int-key", "42");
+    mock_slot_add_attribute (sl, "slot-bool-key", "true");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug1");
+    mock_plug_add_attribute (p, "plug-string-key", "\"value\"");
+    mock_plug_add_attribute (p, "plug-int-key", "42");
+    mock_plug_add_attribute (p, "plug-bool-key", "true");
+    mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetConnectionsRequest> getConnectionsRequest (client.getConnections ());
+    getConnectionsRequest->runSync ();
+    g_assert_cmpint (getConnectionsRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (getConnectionsRequest->establishedCount (), ==, 1);
+    QScopedPointer<QSnapdConnection> connection (getConnectionsRequest->established (0));
+
+    check_names_match (connection->plugAttributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key");
+    g_assert_true (connection->hasPlugAttribute ("plug-string-key"));
+    g_assert_true (connection->plugAttribute ("plug-string-key").type () == (QVariant::Type) QMetaType::QString);
+    g_assert_true (connection->plugAttribute ("plug-string-key").toString () == "value");
+    g_assert_true (connection->hasPlugAttribute ("plug-int-key"));
+    g_assert_true (connection->plugAttribute ("plug-int-key").type () == (QVariant::Type) QMetaType::LongLong);
+    g_assert_cmpint (connection->plugAttribute ("plug-int-key").toLongLong (), ==, 42);
+    g_assert_true (connection->hasPlugAttribute ("plug-bool-key"));
+    g_assert_true (connection->plugAttribute ("plug-bool-key").type () == (QVariant::Type) QMetaType::Bool);
+    g_assert_true (connection->plugAttribute ("plug-bool-key").toBool ());
+    g_assert_false (connection->hasPlugAttribute ("plug-invalid-key"));
+    g_assert_false (connection->plugAttribute ("plug-invalid-key").isValid ());
+
+    check_names_match (connection->slotAttributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key");
+    g_assert_true (connection->hasSlotAttribute ("slot-string-key"));
+    g_assert_true (connection->slotAttribute ("slot-string-key").type () == (QVariant::Type) QMetaType::QString);
+    g_assert_true (connection->slotAttribute ("slot-string-key").toString () == "value");
+    g_assert_true (connection->hasSlotAttribute ("slot-int-key"));
+    g_assert_true (connection->slotAttribute ("slot-int-key").type () == (QVariant::Type) QMetaType::LongLong);
+    g_assert_cmpint (connection->slotAttribute ("slot-int-key").toLongLong (), ==, 42);
+    g_assert_true (connection->hasSlotAttribute ("slot-bool-key"));
+    g_assert_true (connection->slotAttribute ("slot-bool-key").type () == (QVariant::Type) QMetaType::Bool);
+    g_assert_true (connection->slotAttribute ("slot-bool-key").toBool ());
+    g_assert_false (connection->hasSlotAttribute ("slot-invalid-key"));
+    g_assert_false (connection->slotAttribute ("slot-invalid-key").isValid ());
+
+    g_assert_cmpint (getConnectionsRequest->plugCount (), ==, 1);
+    QScopedPointer<QSnapdPlug> plug (getConnectionsRequest->plug (0));
+    check_names_match (plug->attributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key");
+    g_assert_true (plug->hasAttribute ("plug-string-key"));
+    g_assert_true (plug->attribute ("plug-string-key").type () == (QVariant::Type) QMetaType::QString);
+    g_assert_true (plug->attribute ("plug-string-key").toString () == "value");
+    g_assert_true (plug->hasAttribute ("plug-int-key"));
+    g_assert_true (plug->attribute ("plug-int-key").type () == (QVariant::Type) QMetaType::LongLong);
+    g_assert_cmpint (plug->attribute ("plug-int-key").toLongLong (), ==, 42);
+    g_assert_true (plug->hasAttribute ("plug-bool-key"));
+    g_assert_true (plug->attribute ("plug-bool-key").type () == (QVariant::Type) QMetaType::Bool);
+    g_assert_true (plug->attribute ("plug-bool-key").toBool ());
+    g_assert_false (plug->hasAttribute ("plug-invalid-key"));
+    g_assert_false (plug->attribute ("plug-invalid-key").isValid ());
+
+    g_assert_cmpint (getConnectionsRequest->slotCount (), ==, 1);
+    QScopedPointer<QSnapdSlot> slot (getConnectionsRequest->slot (0));
+    check_names_match (slot->attributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key");
+    g_assert_true (slot->hasAttribute ("slot-string-key"));
+    g_assert_true (slot->attribute ("slot-string-key").type () == (QVariant::Type) QMetaType::QString);
+    g_assert_true (slot->attribute ("slot-string-key").toString () == "value");
+    g_assert_true (slot->hasAttribute ("slot-int-key"));
+    g_assert_true (slot->attribute ("slot-int-key").type () == (QVariant::Type) QMetaType::LongLong);
+    g_assert_cmpint (slot->attribute ("slot-int-key").toLongLong (), ==, 42);
+    g_assert_true (slot->hasAttribute ("slot-bool-key"));
+    g_assert_true (slot->attribute ("slot-bool-key").type () == (QVariant::Type) QMetaType::Bool);
+    g_assert_true (slot->attribute ("slot-bool-key").toBool ());
+    g_assert_false (slot->hasAttribute ("slot-invalid-key"));
+    g_assert_false (slot->attribute ("slot-invalid-key").isValid ());
+}
+
+static void
 setup_get_interfaces (MockSnapd *snapd)
 {
     MockInterface *i = mock_snapd_add_interface (snapd, "interface");
@@ -2546,7 +2679,7 @@ check_get_interfaces_result (QSnapdGetInterfacesRequest &request)
     g_assert (plug->name () == "plug1");
     g_assert (plug->snap () == "snap2");
     g_assert (plug->interface () == "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (*plug);
     g_assert (plug->label () == "LABEL");
     g_assert_cmpint (plug->connectedSlotCount (), ==, 1);
     QScopedPointer<QSnapdSlotRef> slotRef (plug->connectedSlot (0));
@@ -2559,7 +2692,7 @@ check_get_interfaces_result (QSnapdGetInterfacesRequest &request)
     g_assert (slot0->name () == "slot1");
     g_assert (slot0->snap () == "snap1");
     g_assert (slot0->interface () == "interface");
-    // FIXME: Attributes
+    check_slot_no_attributes (*slot0);
     g_assert (slot0->label () == "LABEL");
     g_assert_cmpint (slot0->connectedPlugCount (), ==, 1);
     QScopedPointer<QSnapdPlugRef> plugRef (slot0->connectedPlug (0));
@@ -2569,6 +2702,7 @@ check_get_interfaces_result (QSnapdGetInterfacesRequest &request)
     QScopedPointer<QSnapdSlot> slot1 (request.slot (1));
     g_assert (slot1->name () == "slot2");
     g_assert (slot1->snap () == "snap1");
+    check_slot_no_attributes (*slot1);
     g_assert_cmpint (slot1->connectedPlugCount (), ==, 0);
 }
 
@@ -2632,6 +2766,61 @@ test_get_interfaces_no_snaps ()
     g_assert_cmpint (getInterfacesRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (getInterfacesRequest->plugCount (), ==, 0);
     g_assert_cmpint (getInterfacesRequest->slotCount (), ==, 0);
+}
+
+static void
+test_get_interfaces_attributes ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
+    mock_slot_add_attribute (sl, "slot-string-key", "\"value\"");
+    mock_slot_add_attribute (sl, "slot-int-key", "42");
+    mock_slot_add_attribute (sl, "slot-bool-key", "true");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug1");
+    mock_plug_add_attribute (p, "plug-string-key", "\"value\"");
+    mock_plug_add_attribute (p, "plug-int-key", "42");
+    mock_plug_add_attribute (p, "plug-bool-key", "true");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetInterfacesRequest> getInterfacesRequest (client.getInterfaces ());
+    getInterfacesRequest->runSync ();
+    g_assert_cmpint (getInterfacesRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (getInterfacesRequest->plugCount (), ==, 1);
+    QScopedPointer<QSnapdPlug> plug (getInterfacesRequest->plug (0));
+    check_names_match (plug->attributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key");
+    g_assert_true (plug->hasAttribute ("plug-string-key"));
+    g_assert_true (plug->attribute ("plug-string-key").type () == (QVariant::Type) QMetaType::QString);
+    g_assert_true (plug->attribute ("plug-string-key").toString () == "value");
+    g_assert_true (plug->hasAttribute ("plug-int-key"));
+    g_assert_true (plug->attribute ("plug-int-key").type () == (QVariant::Type) QMetaType::LongLong);
+    g_assert_cmpint (plug->attribute ("plug-int-key").toLongLong (), ==, 42);
+    g_assert_true (plug->hasAttribute ("plug-bool-key"));
+    g_assert_true (plug->attribute ("plug-bool-key").type () == (QVariant::Type) QMetaType::Bool);
+    g_assert_true (plug->attribute ("plug-bool-key").toBool ());
+    g_assert_false (plug->hasAttribute ("plug-invalid-key"));
+    g_assert_false (plug->attribute ("plug-invalid-key").isValid ());
+
+    g_assert_cmpint (getInterfacesRequest->slotCount (), ==, 1);
+    QScopedPointer<QSnapdSlot> slot (getInterfacesRequest->slot (0));
+    check_names_match (slot->attributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key");
+    g_assert_true (slot->hasAttribute ("slot-string-key"));
+    g_assert_true (slot->attribute ("slot-string-key").type () == (QVariant::Type) QMetaType::QString);
+    g_assert_true (slot->attribute ("slot-string-key").toString () == "value");
+    g_assert_true (slot->hasAttribute ("slot-int-key"));
+    g_assert_true (slot->attribute ("slot-int-key").type () == (QVariant::Type) QMetaType::LongLong);
+    g_assert_cmpint (slot->attribute ("slot-int-key").toLongLong (), ==, 42);
+    g_assert_true (slot->hasAttribute ("slot-bool-key"));
+    g_assert_true (slot->attribute ("slot-bool-key").type () == (QVariant::Type) QMetaType::Bool);
+    g_assert_true (slot->attribute ("slot-bool-key").toBool ());
+    g_assert_false (slot->hasAttribute ("slot-invalid-key"));
+    g_assert_false (slot->attribute ("slot-invalid-key").isValid ());
 }
 
 static void
@@ -3078,7 +3267,7 @@ test_find_query ()
     g_assert (snap1->channel () == "CHANNEL");
     g_assert_cmpint (snap1->tracks ().count (), ==, 1);
     g_assert (snap1->tracks ()[0] == "latest");
-    g_assert (snap1->channelCount () == 1);
+    g_assert_cmpint (snap1->channelCount (), ==, 1);
     QScopedPointer<QSnapdChannel> channel (snap1->channel (0));
     g_assert (channel->name () == "stable");
     g_assert_cmpint (channel->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
@@ -6311,9 +6500,11 @@ main (int argc, char **argv)
     g_test_add_func ("/get-connections/sync", test_get_connections_sync);
     g_test_add_func ("/get-connections/async", test_get_connections_async);
     g_test_add_func ("/get-connections/empty", test_get_connections_empty);
+    g_test_add_func ("/get-connections/attributes", test_get_connections_attributes);
     g_test_add_func ("/get-interfaces/sync", test_get_interfaces_sync);
     g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
+    g_test_add_func ("/get-interfaces/attributes", test_get_interfaces_attributes);
     g_test_add_func ("/get-interfaces/legacy", test_get_interfaces_legacy);
     g_test_add_func ("/get-interfaces2/sync", test_get_interfaces2_sync);
     g_test_add_func ("/get-interfaces2/async", test_get_interfaces2_async);

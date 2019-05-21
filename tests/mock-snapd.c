@@ -154,7 +154,7 @@ struct _MockPlug
     MockSnap *snap;
     gchar *name;
     MockInterface *interface;
-    // FIXME: Attributes
+    GHashTable *attributes;
     gchar *label;
 };
 
@@ -163,7 +163,7 @@ struct _MockSlot
     MockSnap *snap;
     gchar *name;
     MockInterface *interface;
-    // FIXME: Attributes
+    GHashTable *attributes;
     gchar *label;
 };
 
@@ -315,6 +315,7 @@ static void
 mock_plug_free (MockPlug *plug)
 {
     g_free (plug->name);
+    g_hash_table_unref (plug->attributes);
     g_free (plug->label);
     g_slice_free (MockPlug, plug);
 }
@@ -323,6 +324,7 @@ static void
 mock_slot_free (MockSlot *slot)
 {
     g_free (slot->name);
+    g_hash_table_unref (slot->attributes);
     g_free (slot->label);
     g_slice_free (MockSlot, slot);
 }
@@ -1583,6 +1585,7 @@ mock_snap_add_plug (MockSnap *snap, MockInterface *interface, const gchar *name)
     plug->snap = snap;
     plug->name = g_strdup (name);
     plug->interface = interface;
+    plug->attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     plug->label = g_strdup ("LABEL");
     snap->plugs = g_list_append (snap->plugs, plug);
 
@@ -1603,6 +1606,12 @@ mock_snap_find_plug (MockSnap *snap, const gchar *name)
     return NULL;
 }
 
+void
+mock_plug_add_attribute (MockPlug *plug, const gchar *name, const gchar *value)
+{
+    g_hash_table_insert (plug->attributes, g_strdup (name), g_strdup (value));
+}
+
 MockSlot *
 mock_snap_add_slot (MockSnap *snap, MockInterface *interface, const gchar *name)
 {
@@ -1612,6 +1621,7 @@ mock_snap_add_slot (MockSnap *snap, MockInterface *interface, const gchar *name)
     slot->snap = snap;
     slot->name = g_strdup (name);
     slot->interface = interface;
+    slot->attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     slot->label = g_strdup ("LABEL");
     snap->slots_ = g_list_append (snap->slots_, slot);
 
@@ -1630,6 +1640,12 @@ mock_snap_find_slot (MockSnap *snap, const gchar *name)
     }
 
     return NULL;
+}
+
+void
+mock_slot_add_attribute (MockSlot *slot, const gchar *name, const gchar *value)
+{
+    g_hash_table_insert (slot->attributes, g_strdup (name), g_strdup (value));
 }
 
 void
@@ -3269,6 +3285,36 @@ handle_assertions (MockSnapd *snapd, SoupMessage *message, const gchar *type)
 }
 
 static void
+make_attributes (GHashTable *attributes, JsonBuilder *builder)
+{
+    g_autoptr(GPtrArray) keys = NULL;
+    g_autofree GStrv key_names = NULL;
+    int i;
+
+    keys = g_ptr_array_new_with_free_func (g_free);
+    key_names = (GStrv) g_hash_table_get_keys_as_array (attributes, NULL);
+    for (i = 0; key_names[i] != NULL; i++)
+        g_ptr_array_add (keys, g_strdup (g_strstrip (key_names[i])));
+    g_ptr_array_sort (keys, compare_keys);
+
+    json_builder_begin_object (builder);
+    for (i = 0; i < keys->len; i++) {
+        const gchar *key = g_ptr_array_index (keys, i);
+        const gchar *value = g_hash_table_lookup (attributes, key);
+        g_autoptr(JsonParser) parser = NULL;
+        gboolean result;
+
+        parser = json_parser_new ();
+        result = json_parser_load_from_data (parser, value, -1, NULL);
+        g_assert (result);
+
+        json_builder_set_member_name (builder, key);
+        json_builder_add_value (builder, json_node_ref (json_parser_get_root (parser)));
+    }
+    json_builder_end_object (builder);
+}
+
+static void
 make_connections (MockSnapd *snapd, JsonBuilder *builder)
 {
     GList *link;
@@ -3298,6 +3344,10 @@ make_connections (MockSnapd *snapd, JsonBuilder *builder)
             json_builder_add_string_value (builder, plug->name);
             json_builder_set_member_name (builder, "interface");
             json_builder_add_string_value (builder, plug->interface->name);
+            if (g_hash_table_size (plug->attributes) > 0) {
+                json_builder_set_member_name (builder, "attrs");
+                make_attributes (plug->attributes, builder);
+            }
             json_builder_set_member_name (builder, "label");
             json_builder_add_string_value (builder, plug->label);
             if (slots != NULL) {
@@ -3342,6 +3392,10 @@ make_connections (MockSnapd *snapd, JsonBuilder *builder)
             json_builder_add_string_value (builder, slot->name);
             json_builder_set_member_name (builder, "interface");
             json_builder_add_string_value (builder, slot->interface->name);
+            if (g_hash_table_size (slot->attributes) > 0) {
+                json_builder_set_member_name (builder, "attrs");
+                make_attributes (slot->attributes, builder);
+            }
             json_builder_set_member_name (builder, "label");
             json_builder_add_string_value (builder, slot->label);
             if (plugs != NULL) {
@@ -3637,6 +3691,11 @@ add_connection (JsonBuilder *builder, MockConnection *connection)
     json_builder_add_string_value (builder, slot->name);
     json_builder_end_object (builder);
 
+    if (g_hash_table_size (slot->attributes) > 0) {
+        json_builder_set_member_name (builder, "slot-attrs");
+        make_attributes (slot->attributes, builder);
+    }
+
     json_builder_set_member_name (builder, "plug");
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "snap");
@@ -3644,6 +3703,11 @@ add_connection (JsonBuilder *builder, MockConnection *connection)
     json_builder_set_member_name (builder, "plug");
     json_builder_add_string_value (builder, plug->name);
     json_builder_end_object (builder);
+
+    if (g_hash_table_size (plug->attributes) > 0) {
+        json_builder_set_member_name (builder, "plug-attrs");
+        make_attributes (plug->attributes, builder);
+    }
 
     json_builder_set_member_name (builder, "interface");
     json_builder_add_string_value (builder, plug->interface->name);
@@ -3657,9 +3721,6 @@ add_connection (JsonBuilder *builder, MockConnection *connection)
         json_builder_set_member_name (builder, "gadget");
         json_builder_add_boolean_value (builder, TRUE);
     }
-
-    // FIXME: slot-attrs
-    // FIXME: plug-attrs
 
     json_builder_end_object (builder);
 }
@@ -3720,6 +3781,10 @@ handle_connections (MockSnapd *snapd, SoupMessage *message)
             json_builder_add_string_value (builder, plug->name);
             json_builder_set_member_name (builder, "interface");
             json_builder_add_string_value (builder, plug->interface->name);
+            if (g_hash_table_size (plug->attributes) > 0) {
+                json_builder_set_member_name (builder, "attrs");
+                make_attributes (plug->attributes, builder);
+            }
             json_builder_set_member_name (builder, "label");
             json_builder_add_string_value (builder, plug->label);
             if (slots != NULL) {
@@ -3764,6 +3829,10 @@ handle_connections (MockSnapd *snapd, SoupMessage *message)
             json_builder_add_string_value (builder, slot->name);
             json_builder_set_member_name (builder, "interface");
             json_builder_add_string_value (builder, slot->interface->name);
+            if (g_hash_table_size (slot->attributes) > 0) {
+                json_builder_set_member_name (builder, "attrs");
+                make_attributes (slot->attributes, builder);
+            }
             json_builder_set_member_name (builder, "label");
             json_builder_add_string_value (builder, slot->label);
             if (plugs != NULL) {

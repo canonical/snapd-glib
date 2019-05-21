@@ -2946,24 +2946,68 @@ static void
 setup_get_connections (MockSnapd *snapd)
 {
     MockInterface *i;
-    MockSnap *s;
-    MockSlot *sl;
-    MockPlug *p;
+    MockSnap *snap1, *snap2;
+    MockSlot *slot1;
+    MockPlug *plug;
 
     i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    sl = mock_snap_add_slot (s, i, "slot1");
-    mock_snap_add_slot (s, i, "slot2");
-    s = mock_snapd_add_snap (snapd, "snap2");
-    p = mock_snap_add_plug (s, i, "auto-plug");
-    mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
-    p = mock_snap_add_plug (s, i, "manual-plug");
-    mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
-    p = mock_snap_add_plug (s, i, "gadget-plug");
-    mock_snapd_connect (snapd, p, sl, FALSE, TRUE);
-    p = mock_snap_add_plug (s, i, "undesired-plug");
-    mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
-    mock_snapd_connect (snapd, p, NULL, TRUE, FALSE);
+    snap1 = mock_snapd_add_snap (snapd, "snap1");
+    slot1 = mock_snap_add_slot (snap1, i, "slot1");
+    mock_snap_add_slot (snap1, i, "slot2");
+    snap2 = mock_snapd_add_snap (snapd, "snap2");
+    plug = mock_snap_add_plug (snap2, i, "auto-plug");
+    mock_snapd_connect (snapd, plug, slot1, FALSE, FALSE);
+    plug = mock_snap_add_plug (snap2, i, "manual-plug");
+    mock_snapd_connect (snapd, plug, slot1, TRUE, FALSE);
+    plug = mock_snap_add_plug (snap2, i, "gadget-plug");
+    mock_snapd_connect (snapd, plug, slot1, FALSE, TRUE);
+    plug = mock_snap_add_plug (snap2, i, "undesired-plug");
+    mock_snapd_connect (snapd, plug, slot1, FALSE, FALSE);
+    mock_snapd_connect (snapd, plug, NULL, TRUE, FALSE);
+}
+
+static void
+check_plug_no_attributes (SnapdPlug *plug)
+{
+    g_auto(GStrv) attribute_names = NULL;
+    guint length;
+
+    attribute_names = snapd_plug_get_attribute_names (plug, &length);
+    g_assert_cmpint (length, ==, 0);
+    g_assert_cmpint (g_strv_length (attribute_names), ==, 0);
+}
+
+static void
+check_slot_no_attributes (SnapdSlot *slot)
+{
+    g_auto(GStrv) attribute_names = NULL;
+    guint length;
+
+    attribute_names = snapd_slot_get_attribute_names (slot, &length);
+    g_assert_cmpint (length, ==, 0);
+    g_assert_cmpint (g_strv_length (attribute_names), ==, 0);
+}
+
+static void
+check_connection_no_plug_attributes (SnapdConnection *connection)
+{
+    g_auto(GStrv) attribute_names = NULL;
+    guint length;
+
+    attribute_names = snapd_connection_get_plug_attribute_names (connection, &length);
+    g_assert_cmpint (length, ==, 0);
+    g_assert_cmpint (g_strv_length (attribute_names), ==, 0);
+}
+
+static void
+check_connection_no_slot_attributes (SnapdConnection *connection)
+{
+    g_auto(GStrv) attribute_names = NULL;
+    guint length;
+
+    attribute_names = snapd_connection_get_slot_attribute_names (connection, &length);
+    g_assert_cmpint (length, ==, 0);
+    g_assert_cmpint (g_strv_length (attribute_names), ==, 0);
 }
 
 static void
@@ -2988,6 +3032,8 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     plug_ref = snapd_connection_get_plug (connection);
     g_assert_cmpstr (snapd_plug_ref_get_snap (plug_ref), ==, "snap2");
     g_assert_cmpstr (snapd_plug_ref_get_plug (plug_ref), ==, "auto-plug");
+    check_connection_no_slot_attributes (connection);
+    check_connection_no_plug_attributes (connection);
     g_assert_false (snapd_connection_get_manual (connection));
     g_assert_false (snapd_connection_get_gadget (connection));
 
@@ -2999,6 +3045,8 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     plug_ref = snapd_connection_get_plug (connection);
     g_assert_cmpstr (snapd_plug_ref_get_snap (plug_ref), ==, "snap2");
     g_assert_cmpstr (snapd_plug_ref_get_plug (plug_ref), ==, "manual-plug");
+    check_connection_no_slot_attributes (connection);
+    check_connection_no_plug_attributes (connection);
     g_assert_true (snapd_connection_get_manual (connection));
     g_assert_false (snapd_connection_get_gadget (connection));
 
@@ -3010,6 +3058,8 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     plug_ref = snapd_connection_get_plug (connection);
     g_assert_cmpstr (snapd_plug_ref_get_snap (plug_ref), ==, "snap2");
     g_assert_cmpstr (snapd_plug_ref_get_plug (plug_ref), ==, "gadget-plug");
+    check_connection_no_slot_attributes (connection);
+    check_connection_no_plug_attributes (connection);
     g_assert_false (snapd_connection_get_manual (connection));
     g_assert_true (snapd_connection_get_gadget (connection));
 
@@ -3024,6 +3074,8 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     plug_ref = snapd_connection_get_plug (connection);
     g_assert_cmpstr (snapd_plug_ref_get_snap (plug_ref), ==, "snap2");
     g_assert_cmpstr (snapd_plug_ref_get_plug (plug_ref), ==, "undesired-plug");
+    check_connection_no_slot_attributes (connection);
+    check_connection_no_plug_attributes (connection);
     g_assert_true (snapd_connection_get_manual (connection));
     g_assert_false (snapd_connection_get_gadget (connection));
 
@@ -3034,7 +3086,7 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     g_assert_cmpstr (snapd_plug_get_name (plug), ==, "auto-plug");
     g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
     g_assert_cmpstr (snapd_plug_get_interface (plug), ==, "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (plug);
     g_assert_cmpstr (snapd_plug_get_label (plug), ==, "LABEL");
     connected_slots = snapd_plug_get_connected_slots (plug);
     g_assert_cmpint (connected_slots->len, ==, 1);
@@ -3046,7 +3098,7 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     g_assert_cmpstr (snapd_plug_get_name (plug), ==, "manual-plug");
     g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
     g_assert_cmpstr (snapd_plug_get_interface (plug), ==, "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (plug);
     g_assert_cmpstr (snapd_plug_get_label (plug), ==, "LABEL");
     connected_slots = snapd_plug_get_connected_slots (plug);
     g_assert_cmpint (connected_slots->len, ==, 1);
@@ -3058,7 +3110,7 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     g_assert_cmpstr (snapd_plug_get_name (plug), ==, "gadget-plug");
     g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
     g_assert_cmpstr (snapd_plug_get_interface (plug), ==, "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (plug);
     g_assert_cmpstr (snapd_plug_get_label (plug), ==, "LABEL");
     connected_slots = snapd_plug_get_connected_slots (plug);
     g_assert_cmpint (connected_slots->len, ==, 1);
@@ -3070,7 +3122,7 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     g_assert_cmpstr (snapd_plug_get_name (plug), ==, "undesired-plug");
     g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
     g_assert_cmpstr (snapd_plug_get_interface (plug), ==, "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (plug);
     g_assert_cmpstr (snapd_plug_get_label (plug), ==, "LABEL");
     connected_slots = snapd_plug_get_connected_slots (plug);
     g_assert_cmpint (connected_slots->len, ==, 0);
@@ -3082,7 +3134,7 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot1");
     g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
     g_assert_cmpstr (snapd_slot_get_interface (slot), ==, "interface");
-    // FIXME: Attributes
+    check_slot_no_attributes (slot);
     g_assert_cmpstr (snapd_slot_get_label (slot), ==, "LABEL");
     connected_plugs = snapd_slot_get_connected_plugs (slot);
     g_assert_cmpint (connected_plugs->len, ==, 3);
@@ -3099,6 +3151,7 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     slot = slots->pdata[1];
     g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot2");
     g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
+    check_slot_no_attributes (slot);
     connected_plugs = snapd_slot_get_connected_plugs (slot);
     g_assert_cmpint (connected_plugs->len, ==, 0);
 }
@@ -3205,21 +3258,187 @@ test_get_connections_empty (void)
     g_assert_cmpint (slots->len, ==, 0);
 }
 
-static void
-setup_get_interfaces (MockSnapd *snapd)
+static gint
+compare_name (gconstpointer a, gconstpointer b)
 {
+    gchar *name_a = *((gchar **) a);
+    gchar *name_b = *((gchar **) b);
+    return strcmp (name_a, name_b);
+}
+
+static GStrv
+sort_names (GStrv value)
+{
+    g_autoptr(GPtrArray) result = NULL;
+    int i;
+
+    result = g_ptr_array_new ();
+    for (i = 0; value[i] != NULL; i++)
+        g_ptr_array_add (result, g_strdup (value[i]));
+    g_ptr_array_sort (result, compare_name);
+    g_ptr_array_add (result, NULL);
+
+    return g_steal_pointer ((GStrv *) &result->pdata);
+}
+
+static void
+check_names_match (GStrv names, guint names_length, const gchar *expected)
+{
+    g_auto(GStrv) expected_names = NULL;
+    g_auto(GStrv) sorted_expected_names = NULL;
+    g_auto(GStrv) sorted_names = NULL;
+    int i;
+
+    g_assert_cmpint (g_strv_length (names), ==, names_length);
+    expected_names = g_strsplit (expected, ",", -1);
+    sorted_expected_names = sort_names (expected_names);
+    g_assert_cmpint (g_strv_length (expected_names), ==, names_length);
+    sorted_names = sort_names (names);
+    for (i = 0; i < names_length; i++)
+        g_assert_cmpstr (sorted_names[i], ==, sorted_expected_names[i]);
+}
+
+static void
+test_get_connections_attributes (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
     MockInterface *i;
     MockSnap *s;
     MockSlot *sl;
     MockPlug *p;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) established = NULL;
+    g_autoptr(GPtrArray) undesired = NULL;
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots = NULL;
+    gboolean result;
+    SnapdConnection *connection;
+    SnapdPlug *plug;
+    SnapdSlot *slot;
+    GStrv names;
+    guint names_length;
+    GVariant *value;
+    g_autoptr(GError) error = NULL;
 
+    snapd = mock_snapd_new ();
     i = mock_snapd_add_interface (snapd, "interface");
     s = mock_snapd_add_snap (snapd, "snap1");
     sl = mock_snap_add_slot (s, i, "slot1");
-    mock_snap_add_slot (s, i, "slot2");
+    mock_slot_add_attribute (sl, "slot-string-key", "\"value\"");
+    mock_slot_add_attribute (sl, "slot-int-key", "42");
+    mock_slot_add_attribute (sl, "slot-bool-key", "true");
     s = mock_snapd_add_snap (snapd, "snap2");
     p = mock_snap_add_plug (s, i, "plug1");
-    mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
+    mock_plug_add_attribute (p, "plug-string-key", "\"value\"");
+    mock_plug_add_attribute (p, "plug-int-key", "42");
+    mock_plug_add_attribute (p, "plug-bool-key", "true");
+    mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    result = snapd_client_get_connections_sync (client, &established, &undesired, &plugs, &slots, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_true (result);
+
+    g_assert_nonnull (established);
+    g_assert_cmpint (established->len, ==, 1);
+
+    connection = established->pdata[0];
+    names = snapd_connection_get_plug_attribute_names (connection, &names_length);
+    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key");
+    g_assert_true (snapd_connection_has_plug_attribute (connection, "plug-string-key"));
+    value = snapd_connection_get_plug_attribute (connection, "plug-string-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
+    g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
+    g_assert_true (snapd_connection_has_plug_attribute (connection, "plug-int-key"));
+    value = snapd_connection_get_plug_attribute (connection, "plug-int-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
+    g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
+    g_assert_true (snapd_connection_has_plug_attribute (connection, "plug-bool-key"));
+    value = snapd_connection_get_plug_attribute (connection, "plug-bool-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
+    g_assert_true (g_variant_get_boolean (value));
+    g_assert_false (snapd_connection_has_plug_attribute (connection, "plug-invalid-key"));
+    g_assert_null (snapd_connection_get_plug_attribute (connection, "plug-invalid-key"));
+
+    names = snapd_connection_get_slot_attribute_names (connection, &names_length);
+    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key");
+    g_assert_true (snapd_connection_has_slot_attribute (connection, "slot-string-key"));
+    value = snapd_connection_get_slot_attribute (connection, "slot-string-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
+    g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
+    g_assert_true (snapd_connection_has_slot_attribute (connection, "slot-int-key"));
+    value = snapd_connection_get_slot_attribute (connection, "slot-int-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
+    g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
+    g_assert_true (snapd_connection_has_slot_attribute (connection, "slot-bool-key"));
+    value = snapd_connection_get_slot_attribute (connection, "slot-bool-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
+    g_assert_false (snapd_connection_has_slot_attribute (connection, "slot-invalid-key"));
+    g_assert_null (snapd_connection_get_slot_attribute (connection, "slot-invalid-key"));
+
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 1);
+
+    plug = plugs->pdata[0];
+    names = snapd_plug_get_attribute_names (plug, &names_length);
+    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key");
+    g_assert_true (snapd_plug_has_attribute (plug, "plug-string-key"));
+    value = snapd_plug_get_attribute (plug, "plug-string-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
+    g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
+    g_assert_true (snapd_plug_has_attribute (plug, "plug-int-key"));
+    value = snapd_plug_get_attribute (plug, "plug-int-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
+    g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
+    g_assert_true (snapd_plug_has_attribute (plug, "plug-bool-key"));
+    value = snapd_plug_get_attribute (plug, "plug-bool-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
+    g_assert_true (g_variant_get_boolean (value));
+    value = snapd_plug_get_attribute (plug, "plug-invalid-key");
+    g_assert_false (snapd_plug_has_attribute (plug, "plug-invalid-key"));
+    g_assert_null (snapd_plug_get_attribute (plug, "plug-invalid-key"));
+
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 1);
+
+    slot = slots->pdata[0];
+    names = snapd_slot_get_attribute_names (slot, &names_length);
+    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key");
+    g_assert_true (snapd_slot_has_attribute (slot, "slot-string-key"));
+    value = snapd_slot_get_attribute (slot, "slot-string-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
+    g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
+    g_assert_true (snapd_slot_has_attribute (slot, "slot-int-key"));
+    value = snapd_slot_get_attribute (slot, "slot-int-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
+    g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
+    g_assert_true (snapd_slot_has_attribute (slot, "slot-bool-key"));
+    value = snapd_slot_get_attribute (slot, "slot-bool-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
+    g_assert_true (g_variant_get_boolean (value));
+    value = snapd_slot_get_attribute (slot, "slot-invalid-key");
+    g_assert_false (snapd_slot_has_attribute (slot, "slot-invalid-key"));
+    g_assert_null (snapd_slot_get_attribute (slot, "slot-invalid-key"));
+}
+
+static void
+setup_get_interfaces (MockSnapd *snapd)
+{
+    MockInterface *i;
+    MockSnap *snap1, *snap2;
+    MockSlot *slot1;
+    MockPlug *plug1;
+
+    i = mock_snapd_add_interface (snapd, "interface");
+    snap1 = mock_snapd_add_snap (snapd, "snap1");
+    slot1 = mock_snap_add_slot (snap1, i, "slot1");
+    mock_snap_add_slot (snap1, i, "slot2");
+    snap2 = mock_snapd_add_snap (snapd, "snap2");
+    plug1 = mock_snap_add_plug (snap2, i, "plug1");
+    mock_snapd_connect (snapd, plug1, slot1, TRUE, FALSE);
 }
 
 static void
@@ -3239,7 +3458,7 @@ check_get_interfaces_result (GPtrArray *plugs, GPtrArray *slots)
     g_assert_cmpstr (snapd_plug_get_name (plug), ==, "plug1");
     g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
     g_assert_cmpstr (snapd_plug_get_interface (plug), ==, "interface");
-    // FIXME: Attributes
+    check_plug_no_attributes (plug);
     g_assert_cmpstr (snapd_plug_get_label (plug), ==, "LABEL");
     connected_slots = snapd_plug_get_connected_slots (plug);
     g_assert_cmpint (connected_slots->len, ==, 1);
@@ -3254,7 +3473,7 @@ check_get_interfaces_result (GPtrArray *plugs, GPtrArray *slots)
     g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot1");
     g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
     g_assert_cmpstr (snapd_slot_get_interface (slot), ==, "interface");
-    // FIXME: Attributes
+    check_slot_no_attributes (slot);
     g_assert_cmpstr (snapd_slot_get_label (slot), ==, "LABEL");
     connected_plugs = snapd_slot_get_connected_plugs (slot);
     g_assert_cmpint (connected_plugs->len, ==, 1);
@@ -3265,6 +3484,7 @@ check_get_interfaces_result (GPtrArray *plugs, GPtrArray *slots)
     slot = slots->pdata[1];
     g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot2");
     g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
+    check_slot_no_attributes (slot);
     connected_plugs = snapd_slot_get_connected_plugs (slot);
     g_assert_cmpint (connected_plugs->len, ==, 0);
 }
@@ -3364,6 +3584,93 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 0);
     g_assert_true (result);
+}
+
+static void
+test_get_interfaces_attributes (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    MockInterface *i;
+    MockSnap *s;
+    MockSlot *sl;
+    MockPlug *p;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots = NULL;
+    gboolean result;
+    SnapdPlug *plug;
+    SnapdSlot *slot;
+    GStrv names;
+    guint names_length;
+    GVariant *value;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    i = mock_snapd_add_interface (snapd, "interface");
+    s = mock_snapd_add_snap (snapd, "snap1");
+    sl = mock_snap_add_slot (s, i, "slot1");
+    mock_slot_add_attribute (sl, "slot-string-key", "\"value\"");
+    mock_slot_add_attribute (sl, "slot-int-key", "42");
+    mock_slot_add_attribute (sl, "slot-bool-key", "true");
+    s = mock_snapd_add_snap (snapd, "snap2");
+    p = mock_snap_add_plug (s, i, "plug1");
+    mock_plug_add_attribute (p, "plug-string-key", "\"value\"");
+    mock_plug_add_attribute (p, "plug-int-key", "42");
+    mock_plug_add_attribute (p, "plug-bool-key", "true");
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    g_assert_no_error (error);
+    g_assert_true (result);
+
+    g_assert_nonnull (plugs);
+    g_assert_cmpint (plugs->len, ==, 1);
+
+    plug = plugs->pdata[0];
+    names = snapd_plug_get_attribute_names (plug, &names_length);
+    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key");
+    g_assert_true (snapd_plug_has_attribute (plug, "plug-string-key"));
+    value = snapd_plug_get_attribute (plug, "plug-string-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
+    g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
+    g_assert_true (snapd_plug_has_attribute (plug, "plug-int-key"));
+    value = snapd_plug_get_attribute (plug, "plug-int-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
+    g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
+    g_assert_true (snapd_plug_has_attribute (plug, "plug-bool-key"));
+    value = snapd_plug_get_attribute (plug, "plug-bool-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
+    g_assert_true (g_variant_get_boolean (value));
+    value = snapd_plug_get_attribute (plug, "plug-invalid-key");
+    g_assert_false (snapd_plug_has_attribute (plug, "plug-invalid-key"));
+    g_assert_null (snapd_plug_get_attribute (plug, "plug-invalid-key"));
+
+    g_assert_nonnull (slots);
+    g_assert_cmpint (slots->len, ==, 1);
+
+    slot = slots->pdata[0];
+    names = snapd_slot_get_attribute_names (slot, &names_length);
+    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key");
+    g_assert_true (snapd_slot_has_attribute (slot, "slot-string-key"));
+    value = snapd_slot_get_attribute (slot, "slot-string-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
+    g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
+    g_assert_true (snapd_slot_has_attribute (slot, "slot-int-key"));
+    value = snapd_slot_get_attribute (slot, "slot-int-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
+    g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
+    g_assert_true (snapd_slot_has_attribute (slot, "slot-bool-key"));
+    value = snapd_slot_get_attribute (slot, "slot-bool-key");
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
+    g_assert_true (g_variant_get_boolean (value));
+    value = snapd_slot_get_attribute (slot, "slot-invalid-key");
+    g_assert_false (snapd_slot_has_attribute (slot, "slot-invalid-key"));
+    g_assert_null (snapd_slot_get_attribute (slot, "slot-invalid-key"));
 }
 
 static void
@@ -8225,9 +8532,11 @@ main (int argc, char **argv)
     g_test_add_func ("/get-connections/sync", test_get_connections_sync);
     g_test_add_func ("/get-connections/async", test_get_connections_async);
     g_test_add_func ("/get-connections/empty", test_get_connections_empty);
+    g_test_add_func ("/get-connections/attributes", test_get_connections_attributes);
     g_test_add_func ("/get-interfaces/sync", test_get_interfaces_sync);
     g_test_add_func ("/get-interfaces/async", test_get_interfaces_async);
     g_test_add_func ("/get-interfaces/no-snaps", test_get_interfaces_no_snaps);
+    g_test_add_func ("/get-interfaces/attributes", test_get_interfaces_attributes);
     g_test_add_func ("/get-interfaces/legacy", test_get_interfaces_legacy);
     g_test_add_func ("/get-interfaces2/sync", test_get_interfaces2_sync);
     g_test_add_func ("/get-interfaces2/async", test_get_interfaces2_async);
