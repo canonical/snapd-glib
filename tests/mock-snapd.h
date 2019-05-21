@@ -394,12 +394,20 @@ MockPlug       *mock_snap_add_plug                (MockSnap      *snap,
 MockPlug       *mock_snap_find_plug               (MockSnap      *snap,
                                                    const gchar   *name);
 
+void            mock_plug_add_attribute           (MockPlug      *plug,
+                                                   const gchar   *name,
+                                                   const gchar   *value);
+
 MockSlot       *mock_snap_add_slot                (MockSnap      *snap,
                                                    MockInterface *interface,
                                                    const gchar   *name);
 
 MockSlot       *mock_snap_find_slot               (MockSnap      *snap,
                                                    const gchar   *name);
+
+void            mock_slot_add_attribute           (MockSlot      *slot,
+                                                   const gchar   *name,
+                                                   const gchar   *value);
 
 void            mock_snapd_connect                (MockSnapd     *snapd,
                                                    MockPlug      *plug,
