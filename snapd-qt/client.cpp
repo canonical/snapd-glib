@@ -271,6 +271,34 @@ QSnapdGetSnapRequest *QSnapdClient::getSnap (const QString& name)
     return new QSnapdGetSnapRequest (name, d->client);
 }
 
+QSnapdGetSnapConfRequest::~QSnapdGetSnapConfRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdGetSnapConfRequest *QSnapdClient::getSnapConf (const QString &name, const QStringList &keys)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetSnapConfRequest (name, keys, d->client);
+}
+
+QSnapdGetSnapConfRequest *QSnapdClient::getSnapConf (const QString &name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetSnapConfRequest (name, QStringList (), d->client);
+}
+
+QSnapdSetSnapConfRequest::~QSnapdSetSnapConfRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdSetSnapConfRequest *QSnapdClient::setSnapConf (const QString &name, const QHash<QString, QVariant> &configuration)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdSetSnapConfRequest (name, configuration, d->client);
+}
+
 QSnapdGetAppsRequest::~QSnapdGetAppsRequest ()
 {
     delete d_ptr;
@@ -1239,6 +1267,196 @@ QSnapdSnap *QSnapdGetSnapRequest::snap () const
 {
     Q_D(const QSnapdGetSnapRequest);
     return new QSnapdSnap (d->snap);
+}
+
+QSnapdGetSnapConfRequest::QSnapdGetSnapConfRequest (const QString& name, const QStringList& keys, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetSnapConfRequestPrivate (name, keys)) {}
+
+void QSnapdGetSnapConfRequest::runSync ()
+{
+    Q_D(QSnapdGetSnapConfRequest);
+    g_auto(GStrv) keys = NULL;
+    g_autoptr(GError) error = NULL;
+
+    keys = string_list_to_strv (d->keys);
+    d->configuration = snapd_client_get_snap_conf_sync (SNAPD_CLIENT (getClient ()), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), keys, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetSnapConfRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GHashTable) configuration = NULL;
+    g_autoptr(GError) error = NULL;
+
+    configuration = snapd_client_get_snap_conf_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    Q_D(QSnapdGetSnapConfRequest);
+    d->configuration = (GHashTable*) g_steal_pointer (&configuration);
+    finish (error);
+}
+
+static void get_snap_conf_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdGetSnapConfRequest *request = static_cast<QSnapdGetSnapConfRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdGetSnapConfRequest::runAsync ()
+{
+    Q_D(QSnapdGetSnapConfRequest);
+    g_auto(GStrv) keys = NULL;
+
+    keys = string_list_to_strv (d->keys);
+    snapd_client_get_snap_conf_async (SNAPD_CLIENT (getClient ()), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), keys, G_CANCELLABLE (getCancellable ()), get_snap_conf_ready_cb, (gpointer) this);
+}
+
+static QVariant
+gvariant_to_qvariant (GVariant *variant)
+{
+    if (g_variant_is_of_type (variant, G_VARIANT_TYPE_BOOLEAN))
+        return QVariant (g_variant_get_boolean (variant));
+    if (g_variant_is_of_type (variant, G_VARIANT_TYPE_INT64))
+        return QVariant ((qlonglong) g_variant_get_int64 (variant));
+    if (g_variant_is_of_type (variant, G_VARIANT_TYPE_STRING))
+        return QVariant (g_variant_get_string (variant, NULL));
+    if (g_variant_is_of_type (variant, G_VARIANT_TYPE_DOUBLE))
+        return QVariant (g_variant_get_double (variant));
+    if (g_variant_is_of_type (variant, G_VARIANT_TYPE ("av"))) {
+        QList<QVariant> list;
+        GVariantIter iter;
+        g_variant_iter_init (&iter, variant);
+        GVariant *value;
+        while (g_variant_iter_loop (&iter, "v", &value))
+            list.append (gvariant_to_qvariant (value));
+        return QVariant (list);
+    }
+    if (g_variant_is_of_type (variant, G_VARIANT_TYPE ("a{sv}"))) {
+        QHash<QString, QVariant> object;
+        GVariantIter iter;
+        g_variant_iter_init (&iter, variant);
+        const gchar *key;
+        GVariant *value;
+        while (g_variant_iter_loop (&iter, "sv", &key, &value))
+            object.insert (key, gvariant_to_qvariant (value));
+        return QVariant (object);
+    }
+    if (g_variant_is_of_type (variant, G_VARIANT_TYPE ("mv")))
+        return QVariant ();
+
+    return QVariant ();
+}
+
+QHash<QString, QVariant> *QSnapdGetSnapConfRequest::configuration () const
+{
+    Q_D(const QSnapdGetSnapConfRequest);
+    GHashTableIter iter;
+    gpointer key, value;
+
+    QHash<QString, QVariant> *conf = new QHash<QString, QVariant> ();
+    g_hash_table_iter_init (&iter, d->configuration);
+    while (g_hash_table_iter_next (&iter, &key, &value)) {
+        const gchar *conf_key = (const gchar *) key;
+        GVariant *conf_value = (GVariant *) value;
+        conf->insert (conf_key, gvariant_to_qvariant (conf_value));
+    }
+
+    return conf;
+}
+
+QSnapdSetSnapConfRequest::QSnapdSetSnapConfRequest (const QString& name, const QHash<QString, QVariant>& configuration, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdSetSnapConfRequestPrivate (name, configuration)) {}
+
+static GVariant *
+qvariant_to_gvariant (const QVariant& variant)
+{
+    if (variant.isNull ())
+        return g_variant_new ("mv", NULL);
+
+    switch (variant.type ()) {
+    case QMetaType::Bool:
+        return g_variant_new_boolean (variant.value<bool>());
+    case QMetaType::LongLong:
+        return g_variant_new_int64 (variant.value<qlonglong>());
+    case QMetaType::QString:
+        return g_variant_new_string (variant.value<QString>().toStdString ().c_str ());
+    case QMetaType::Double:
+        return g_variant_new_double (variant.value<double>());
+    case QMetaType::QVariantList: {
+        g_autoptr(GVariantBuilder) builder = g_variant_builder_new (G_VARIANT_TYPE ("av"));
+        QList<QVariant> list = variant.toList ();
+        for (int i = 0; i < list.length (); i++) {
+            GVariant *v = qvariant_to_gvariant (list[i]);
+            g_variant_builder_add_value (builder, v);
+        }
+        return g_variant_ref_sink (g_variant_builder_end (builder));
+    }
+    case QMetaType::QVariantMap:
+    case QMetaType::QVariantHash: {
+        g_autoptr(GVariantBuilder) builder = g_variant_builder_new (G_VARIANT_TYPE ("a{sv}"));
+        QMap<QString, QVariant> map = variant.toMap ();
+        QMapIterator<QString, QVariant> i (map);
+        while (i.hasNext ()) {
+            i.next ();
+            GVariant *v = qvariant_to_gvariant (i.value ());
+            g_variant_builder_add (builder, "{sv}", i.key ().toStdString ().c_str (), v);
+        }
+        return g_variant_ref_sink (g_variant_builder_end (builder));
+    }
+    default:
+        return NULL;
+    }
+}
+
+static GHashTable *
+configuration_to_key_values (const QHash<QString, QVariant>& configuration)
+{
+    g_autoptr(GHashTable) conf = NULL;
+
+    conf = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
+    QHashIterator<QString, QVariant> i (configuration);
+    while (i.hasNext ()) {
+        i.next ();
+        g_hash_table_insert (conf, g_strdup (i.key ().toStdString ().c_str ()), qvariant_to_gvariant (i.value ()));
+    }
+
+    return (GHashTable *) g_steal_pointer (&conf);
+}
+
+void QSnapdSetSnapConfRequest::runSync ()
+{
+    Q_D(QSnapdSetSnapConfRequest);
+    g_autoptr(GHashTable) key_values = NULL;
+    g_autoptr(GError) error = NULL;
+
+    key_values = configuration_to_key_values (d->configuration);
+    snapd_client_set_snap_conf_sync (SNAPD_CLIENT (getClient ()), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), key_values, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdSetSnapConfRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GHashTable) configuration = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd_client_set_snap_conf_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    finish (error);
+}
+
+static void set_snap_conf_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdSetSnapConfRequest *request = static_cast<QSnapdSetSnapConfRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdSetSnapConfRequest::runAsync ()
+{
+    Q_D(QSnapdSetSnapConfRequest);
+    g_autoptr(GHashTable) key_values = NULL;
+
+    key_values = configuration_to_key_values (d->configuration);
+    snapd_client_set_snap_conf_async (SNAPD_CLIENT (getClient ()), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), key_values, G_CANCELLABLE (getCancellable ()), set_snap_conf_ready_cb, (gpointer) this);
 }
 
 static SnapdGetAppsFlags convertGetAppsFlags (int flags)

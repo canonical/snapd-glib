@@ -15,6 +15,7 @@
 #include "stream-wrapper.h"
 
 #include <QtCore/QObject>
+#include <QtCore/QVariant>
 #include <QIODevice>
 
 class QSnapdConnectRequestPrivate
@@ -146,6 +147,30 @@ public:
     }
     QString name;
     SnapdSnap *snap = NULL;
+};
+
+class QSnapdGetSnapConfRequestPrivate
+{
+public:
+    QSnapdGetSnapConfRequestPrivate (const QString& name, const QStringList& keys) :
+        name(name), keys(keys) {}
+    ~QSnapdGetSnapConfRequestPrivate ()
+    {
+        if (configuration != NULL)
+            g_hash_table_unref (configuration);
+    }
+    QString name;
+    QStringList keys;
+    GHashTable *configuration = NULL;
+};
+
+class QSnapdSetSnapConfRequestPrivate
+{
+public:
+    QSnapdSetSnapConfRequestPrivate (const QString& name, const QHash<QString, QVariant>& configuration) :
+        name(name), configuration(configuration) {}
+    QString name;
+    QHash<QString, QVariant> configuration;
 };
 
 class QSnapdGetAppsRequestPrivate
