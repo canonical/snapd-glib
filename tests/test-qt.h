@@ -199,6 +199,41 @@ public slots:
     void onComplete ();
 };
 
+class GetSnapConfHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetSnapConfHandler (GMainLoop *loop, QSnapdGetSnapConfRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetSnapConfRequest *request;
+    ~GetSnapConfHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class SetSnapConfHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    SetSnapConfHandler (GMainLoop *loop, MockSnapd *snapd, QSnapdSetSnapConfRequest *request) : loop (loop), snapd (snapd), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    QSnapdSetSnapConfRequest *request;
+    ~SetSnapConfHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class GetAppsHandler: public QObject
 {
     Q_OBJECT

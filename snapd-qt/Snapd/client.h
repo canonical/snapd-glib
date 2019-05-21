@@ -215,6 +215,41 @@ private:
     Q_DECLARE_PRIVATE(QSnapdGetSnapRequest)
 };
 
+class QSnapdGetSnapConfRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetSnapConfRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdGetSnapConfRequest (const QString& name, const QStringList &keys, void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetSnapConfRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE QHash<QString, QVariant> *configuration () const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdGetSnapConfRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetSnapConfRequest)
+};
+
+class QSnapdSetSnapConfRequestPrivate;
+class Q_DECL_EXPORT QSnapdSetSnapConfRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdSetSnapConfRequest (const QString& name, const QHash<QString, QVariant> &configuration, void *snapd_client, QObject *parent = 0);
+    ~QSnapdSetSnapConfRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdSetSnapConfRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdSetSnapConfRequest)
+};
+
 class QSnapdGetAppsRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetAppsRequest : public QSnapdRequest
 {
@@ -918,6 +953,9 @@ public:
     Q_INVOKABLE QSnapdGetSnapsRequest *getSnaps ();
     Q_INVOKABLE Q_DECL_DEPRECATED_X("Use getSnap()") QSnapdListOneRequest *listOne (const QString &name);
     Q_INVOKABLE QSnapdGetSnapRequest *getSnap (const QString &name);
+    Q_INVOKABLE QSnapdGetSnapConfRequest *getSnapConf (const QString &name);
+    Q_INVOKABLE QSnapdGetSnapConfRequest *getSnapConf (const QString &name, const QStringList &keys);
+    Q_INVOKABLE QSnapdSetSnapConfRequest *setSnapConf (const QString &name, const QHash<QString, QVariant> &configuration);
     Q_INVOKABLE QSnapdGetAppsRequest *getApps ();
     Q_INVOKABLE QSnapdGetAppsRequest *getApps (GetAppsFlags flags);
     Q_INVOKABLE QSnapdGetAppsRequest *getApps (GetAppsFlags flags, const QStringList &snaps);
