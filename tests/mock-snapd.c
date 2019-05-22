@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include <glib/gstdio.h>
 #include <gio/gunixsocketaddress.h>
@@ -4832,10 +4833,10 @@ mock_snapd_finalize (GObject *object)
     /* shut down the server if it is running */
     mock_snapd_stop (snapd);
 
-    if (g_unlink (snapd->socket_path) < 0)
-        g_printerr ("Failed to unlink mock snapd socket\n");
+    if (g_unlink (snapd->socket_path) < 0 && errno != ENOENT)
+        g_printerr ("Failed to unlink mock snapd socket: %s\n", g_strerror (errno));
     if (g_rmdir (snapd->dir_path) < 0)
-        g_printerr ("Failed to remove temporary directory\n");
+        g_printerr ("Failed to remove temporary directory: %s\n", g_strerror (errno));
 
     g_clear_pointer (&snapd->dir_path, g_free);
     g_clear_pointer (&snapd->socket_path, g_free);
