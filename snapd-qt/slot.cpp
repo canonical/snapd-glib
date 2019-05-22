@@ -45,7 +45,7 @@ bool QSnapdSlot::hasAttribute (const QString &name) const
 
 QVariant QSnapdSlot::attribute (const QString &name) const
 {
-    g_autoptr(GVariant) value = snapd_slot_get_attribute (SNAPD_SLOT (wrapped_object), name.toStdString ().c_str ());
+    GVariant *value = snapd_slot_get_attribute (SNAPD_SLOT (wrapped_object), name.toStdString ().c_str ());
     return gvariant_to_qvariant (value);
 }
 
