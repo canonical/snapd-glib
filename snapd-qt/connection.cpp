@@ -61,7 +61,7 @@ bool QSnapdConnection::hasSlotAttribute (const QString &name) const
 
 QVariant QSnapdConnection::slotAttribute (const QString &name) const
 {
-    g_autoptr(GVariant) value = snapd_connection_get_slot_attribute (SNAPD_CONNECTION (wrapped_object), name.toStdString ().c_str ());
+    GVariant *value = snapd_connection_get_slot_attribute (SNAPD_CONNECTION (wrapped_object), name.toStdString ().c_str ());
     return gvariant_to_qvariant (value);
 }
 
@@ -81,7 +81,7 @@ bool QSnapdConnection::hasPlugAttribute (const QString &name) const
 
 QVariant QSnapdConnection::plugAttribute (const QString &name) const
 {
-    g_autoptr(GVariant) value = snapd_connection_get_plug_attribute (SNAPD_CONNECTION (wrapped_object), name.toStdString ().c_str ());
+    GVariant *value = snapd_connection_get_plug_attribute (SNAPD_CONNECTION (wrapped_object), name.toStdString ().c_str ());
     return gvariant_to_qvariant (value);
 }
 

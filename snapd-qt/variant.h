@@ -13,8 +13,11 @@
 static QVariant
 gvariant_to_qvariant (GVariant *variant)
 {
+    if (variant == NULL)
+        return QVariant ();
+
     if (g_variant_is_of_type (variant, G_VARIANT_TYPE_BOOLEAN))
-        return QVariant (g_variant_get_boolean (variant));
+        return QVariant ((bool) g_variant_get_boolean (variant));
     if (g_variant_is_of_type (variant, G_VARIANT_TYPE_INT64))
         return QVariant ((qlonglong) g_variant_get_int64 (variant));
     if (g_variant_is_of_type (variant, G_VARIANT_TYPE_STRING))

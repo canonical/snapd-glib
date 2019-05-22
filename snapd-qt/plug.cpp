@@ -45,7 +45,7 @@ bool QSnapdPlug::hasAttribute (const QString &name) const
 
 QVariant QSnapdPlug::attribute (const QString &name) const
 {
-    g_autoptr(GVariant) value = snapd_plug_get_attribute (SNAPD_PLUG (wrapped_object), name.toStdString ().c_str ());
+    GVariant *value = snapd_plug_get_attribute (SNAPD_PLUG (wrapped_object), name.toStdString ().c_str ());
     return gvariant_to_qvariant (value);
 }
 
