@@ -2337,31 +2337,69 @@ test_get_snap_conf_invalid_key (void)
     g_assert_null (conf);
 }
 
+static GHashTable *
+setup_set_snap_conf (MockSnapd *snapd)
+{
+    g_autoptr(GHashTable) key_values = NULL;
+    g_autoptr(GVariantBuilder) array_builder = NULL;
+    g_autoptr(GVariantBuilder) object_builder = NULL;
+
+    mock_snapd_add_snap (snapd, "core");
+
+    key_values = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_variant_unref);
+    g_hash_table_insert (key_values, "string-key", g_variant_new_string ("value"));
+    g_hash_table_insert (key_values, "int-key", g_variant_new_int64 (42));
+    g_hash_table_insert (key_values, "bool-key", g_variant_new_boolean (TRUE));
+    g_hash_table_insert (key_values, "number-key", g_variant_new_double (1.25));
+    array_builder = g_variant_builder_new (G_VARIANT_TYPE ("av"));
+    g_variant_builder_add (array_builder, "v", g_variant_new_int64 (1));
+    g_variant_builder_add (array_builder, "v", g_variant_new_string ("two"));
+    g_variant_builder_add (array_builder, "v", g_variant_new_double (3.0));
+    g_hash_table_insert (key_values, "array-key", g_variant_builder_end (array_builder));
+    object_builder = g_variant_builder_new (G_VARIANT_TYPE ("a{sv}"));
+    g_variant_builder_add (object_builder, "{sv}", "name", g_variant_new_string ("foo"));
+    g_variant_builder_add (object_builder, "{sv}", "value", g_variant_new_int64 (42));
+    g_hash_table_insert (key_values, "object-key", g_variant_builder_end (object_builder));
+
+    return g_steal_pointer (&key_values);
+}
+
+static void
+check_set_snap_conf_result (MockSnapd *snapd)
+{
+    MockSnap *snap;
+
+    snap = mock_snapd_find_snap (snapd, "core");
+    g_assert_cmpint (mock_snap_get_conf_count (snap), ==, 6);
+    g_assert_cmpstr (mock_snap_get_conf (snap, "string-key"), ==, "\"value\"");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "int-key"), ==, "42");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "bool-key"), ==, "true");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "number-key"), ==, "1.25");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "array-key"), ==, "[1,\"two\",3.0]");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "object-key"), ==, "{\"name\":\"foo\",\"value\":42}");
+}
+
 static void
 test_set_snap_conf_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(GHashTable) key_values = NULL;
     gboolean r;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "core");
+    key_values = setup_set_snap_conf (snapd);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    key_values = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_variant_unref);
-    g_hash_table_insert (key_values, "string-value", g_variant_new_string ("value"));
     r = snapd_client_set_snap_conf_sync (client, "system", key_values, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
-    g_assert_cmpint (mock_snap_get_conf_count (s), ==, 1);
-    g_assert_cmpstr (mock_snap_get_conf (s, "string-value"), ==, "\"value\"");
+    check_set_snap_conf_result (snapd);
 }
 
 static void
@@ -2369,16 +2407,13 @@ set_snap_conf_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
     gboolean r;
-    MockSnap *s;
     g_autoptr(GError) error = NULL;
 
     r = snapd_client_set_snap_conf_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
-    s = mock_snapd_find_snap (data->snapd, "core");
-    g_assert_cmpint (mock_snap_get_conf_count (s), ==, 1);
-    g_assert_cmpstr (mock_snap_get_conf (s, "string-value"), ==, "\"value\"");
+    check_set_snap_conf_result (data->snapd);
 
     g_main_loop_quit (data->loop);
 }
@@ -2395,14 +2430,12 @@ test_set_snap_conf_async (void)
     loop = g_main_loop_new (NULL, FALSE);
 
     snapd = mock_snapd_new ();
-    mock_snapd_add_snap (snapd, "core");
+    key_values = setup_set_snap_conf (snapd);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    key_values = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_variant_unref);
-    g_hash_table_insert (key_values, "string-value", g_variant_new_string ("value"));
     snapd_client_set_snap_conf_async (client, "system", key_values, NULL, set_snap_conf_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }

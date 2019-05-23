@@ -1874,24 +1874,53 @@ test_get_snap_conf_invalid_key ()
     g_assert_cmpint (getSnapConfRequest->error (), ==, QSnapdRequest::OptionNotFound);
 }
 
+static QHash<QString, QVariant>
+setup_set_snap_conf (MockSnapd *snapd)
+{
+    mock_snapd_add_snap (snapd, "core");
+
+    QHash<QString, QVariant> configuration;
+    configuration["string-key"] = "value";
+    configuration["int-key"] = (qlonglong) 42;
+    configuration["bool-key"] = true;
+    configuration["number-key"] = 1.25;
+    configuration["array-key"] = QVariantList () << 1 << "two" << 3.0;
+    QHash<QString, QVariant> object;
+    object["name"] = "foo";
+    object["value"] = 42;
+    configuration["object-key"] = object;
+
+    return configuration;
+}
+
+static void
+check_set_snap_conf_result (MockSnapd *snapd)
+{
+    MockSnap *snap = mock_snapd_find_snap (snapd, "core");
+    g_assert_cmpint (mock_snap_get_conf_count (snap), ==, 6);
+    g_assert_cmpstr (mock_snap_get_conf (snap, "string-key"), ==, "\"value\"");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "int-key"), ==, "42");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "bool-key"), ==, "true");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "number-key"), ==, "1.25");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "array-key"), ==, "[1,\"two\",3.0]");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "object-key"), ==, "{\"name\":\"foo\",\"value\":42}");
+}
+
 static void
 test_set_snap_conf_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockSnap *s = mock_snapd_add_snap (snapd, "core");
+    QHash<QString, QVariant> configuration = setup_set_snap_conf (snapd);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QHash<QString, QVariant> configuration;
-    configuration["string-value"] = "value";
     QScopedPointer<QSnapdSetSnapConfRequest> setSnapConfRequest (client.setSnapConf ("system", configuration));
     setSnapConfRequest->runSync ();
     g_assert_cmpint (setSnapConfRequest->error (), ==, QSnapdRequest::NoError);
 
-    g_assert_cmpint (mock_snap_get_conf_count (s), ==, 1);
-    g_assert_cmpstr (mock_snap_get_conf (s, "string-value"), ==, "\"value\"");
+    check_set_snap_conf_result (snapd);
 }
 
 void
@@ -1899,9 +1928,7 @@ SetSnapConfHandler::onComplete ()
 {
     g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
 
-    MockSnap *s = mock_snapd_find_snap (snapd, "core");
-    g_assert_cmpint (mock_snap_get_conf_count (s), ==, 1);
-    g_assert_cmpstr (mock_snap_get_conf (s, "string-value"), ==, "\"value\"");
+    check_set_snap_conf_result (snapd);
 
     g_main_loop_quit (loop);
 }
@@ -1912,14 +1939,12 @@ test_set_snap_conf_async ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_snap (snapd, "core");
+    QHash<QString, QVariant> configuration = setup_set_snap_conf (snapd);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QHash<QString, QVariant> configuration;
-    configuration["string-value"] = "value";
     SetSnapConfHandler setSnapConfHandler (loop, snapd, client.setSnapConf ("system", configuration));
     QObject::connect (setSnapConfHandler.request, &QSnapdSetSnapConfRequest::complete, &setSnapConfHandler, &SetSnapConfHandler::onComplete);
     setSnapConfHandler.request->runAsync ();
@@ -2594,13 +2619,13 @@ test_get_connections_attributes ()
     mock_slot_add_attribute (sl, "slot-string-key", "\"value\"");
     mock_slot_add_attribute (sl, "slot-int-key", "42");
     mock_slot_add_attribute (sl, "slot-bool-key", "true");
-    mock_slot_add_attribute (sl, "slot-number-key", "1.25");   
+    mock_slot_add_attribute (sl, "slot-number-key", "1.25");
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *p = mock_snap_add_plug (s, i, "plug1");
     mock_plug_add_attribute (p, "plug-string-key", "\"value\"");
     mock_plug_add_attribute (p, "plug-int-key", "42");
     mock_plug_add_attribute (p, "plug-bool-key", "true");
-    mock_plug_add_attribute (p, "plug-number-key", "1.25");   
+    mock_plug_add_attribute (p, "plug-number-key", "1.25");
     mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
