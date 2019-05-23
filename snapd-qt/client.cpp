@@ -1342,6 +1342,8 @@ qvariant_to_gvariant (const QVariant& variant)
     switch (variant.type ()) {
     case QMetaType::Bool:
         return g_variant_new_boolean (variant.value<bool>());
+    case QMetaType::Int:
+        return g_variant_new_int64 (variant.value<int>());
     case QMetaType::LongLong:
         return g_variant_new_int64 (variant.value<qlonglong>());
     case QMetaType::QString:
@@ -1353,7 +1355,7 @@ qvariant_to_gvariant (const QVariant& variant)
         QList<QVariant> list = variant.toList ();
         for (int i = 0; i < list.length (); i++) {
             GVariant *v = qvariant_to_gvariant (list[i]);
-            g_variant_builder_add_value (builder, v);
+            g_variant_builder_add (builder, "v", v);
         }
         return g_variant_ref_sink (g_variant_builder_end (builder));
     }
@@ -1370,7 +1372,7 @@ qvariant_to_gvariant (const QVariant& variant)
         return g_variant_ref_sink (g_variant_builder_end (builder));
     }
     default:
-        return NULL;
+        return g_variant_new ("mv", NULL);
     }
 }
 
