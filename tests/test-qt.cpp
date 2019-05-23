@@ -1774,6 +1774,7 @@ test_get_snap_conf_sync ()
     mock_snap_set_conf (s, "string-key", "\"value\"");
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
+    mock_snap_set_conf (s, "number-key", "1.25");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -1783,10 +1784,11 @@ test_get_snap_conf_sync ()
     getSnapConfRequest->runSync ();
     g_assert_cmpint (getSnapConfRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QHash<QString, QVariant>> configuration (getSnapConfRequest->configuration ());
-    g_assert_cmpint (configuration->size (), ==, 3);
+    g_assert_cmpint (configuration->size (), ==, 4);
     g_assert_true (configuration->value ("string-key") == "value");
     g_assert_true (configuration->value ("int-key") == 42);
     g_assert_true (configuration->value ("bool-key") == true);
+    g_assert_true (configuration->value ("number-key") == 1.25);
 }
 
 void
@@ -1794,10 +1796,11 @@ GetSnapConfHandler::onComplete ()
 {
     g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QHash<QString, QVariant>> configuration (request->configuration ());
-    g_assert_cmpint (configuration->size (), ==, 3);
+    g_assert_cmpint (configuration->size (), ==, 4);
     g_assert_true (configuration->value ("string-key") == "value");
     g_assert_true (configuration->value ("int-key") == 42);
     g_assert_true (configuration->value ("bool-key") == true);
+    g_assert_true (configuration->value ("number-key") == 1.25);
 
     g_main_loop_quit (loop);
 }
@@ -1812,6 +1815,7 @@ test_get_snap_conf_async ()
     mock_snap_set_conf (s, "string-key", "\"value\"");
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
+    mock_snap_set_conf (s, "number-key", "1.25");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -2583,11 +2587,13 @@ test_get_connections_attributes ()
     mock_slot_add_attribute (sl, "slot-string-key", "\"value\"");
     mock_slot_add_attribute (sl, "slot-int-key", "42");
     mock_slot_add_attribute (sl, "slot-bool-key", "true");
+    mock_slot_add_attribute (sl, "slot-number-key", "1.25");   
     s = mock_snapd_add_snap (snapd, "snap2");
     MockPlug *p = mock_snap_add_plug (s, i, "plug1");
     mock_plug_add_attribute (p, "plug-string-key", "\"value\"");
     mock_plug_add_attribute (p, "plug-int-key", "42");
     mock_plug_add_attribute (p, "plug-bool-key", "true");
+    mock_plug_add_attribute (p, "plug-number-key", "1.25");   
     mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -2601,7 +2607,7 @@ test_get_connections_attributes ()
     g_assert_cmpint (getConnectionsRequest->establishedCount (), ==, 1);
     QScopedPointer<QSnapdConnection> connection (getConnectionsRequest->established (0));
 
-    check_names_match (connection->plugAttributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key");
+    check_names_match (connection->plugAttributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key" << "plug-number-key");
     g_assert_true (connection->hasPlugAttribute ("plug-string-key"));
     g_assert_true (connection->plugAttribute ("plug-string-key").type () == (QVariant::Type) QMetaType::QString);
     g_assert_true (connection->plugAttribute ("plug-string-key").toString () == "value");
@@ -2611,10 +2617,13 @@ test_get_connections_attributes ()
     g_assert_true (connection->hasPlugAttribute ("plug-bool-key"));
     g_assert_true (connection->plugAttribute ("plug-bool-key").type () == (QVariant::Type) QMetaType::Bool);
     g_assert_true (connection->plugAttribute ("plug-bool-key").toBool ());
+    g_assert_true (connection->hasPlugAttribute ("plug-number-key"));
+    g_assert_true (connection->plugAttribute ("plug-number-key").type () == (QVariant::Type) QMetaType::Double);
+    g_assert_cmpfloat (connection->plugAttribute ("plug-number-key").toDouble (), ==, 1.25);
     g_assert_false (connection->hasPlugAttribute ("plug-invalid-key"));
     g_assert_false (connection->plugAttribute ("plug-invalid-key").isValid ());
 
-    check_names_match (connection->slotAttributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key");
+    check_names_match (connection->slotAttributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key" << "slot-number-key");
     g_assert_true (connection->hasSlotAttribute ("slot-string-key"));
     g_assert_true (connection->slotAttribute ("slot-string-key").type () == (QVariant::Type) QMetaType::QString);
     g_assert_true (connection->slotAttribute ("slot-string-key").toString () == "value");
@@ -2624,12 +2633,15 @@ test_get_connections_attributes ()
     g_assert_true (connection->hasSlotAttribute ("slot-bool-key"));
     g_assert_true (connection->slotAttribute ("slot-bool-key").type () == (QVariant::Type) QMetaType::Bool);
     g_assert_true (connection->slotAttribute ("slot-bool-key").toBool ());
+    g_assert_true (connection->hasSlotAttribute ("slot-number-key"));
+    g_assert_true (connection->slotAttribute ("slot-number-key").type () == (QVariant::Type) QMetaType::Double);
+    g_assert_cmpfloat (connection->slotAttribute ("slot-number-key").toDouble (), ==, 1.25);
     g_assert_false (connection->hasSlotAttribute ("slot-invalid-key"));
     g_assert_false (connection->slotAttribute ("slot-invalid-key").isValid ());
 
     g_assert_cmpint (getConnectionsRequest->plugCount (), ==, 1);
     QScopedPointer<QSnapdPlug> plug (getConnectionsRequest->plug (0));
-    check_names_match (plug->attributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key");
+    check_names_match (plug->attributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key" << "plug-number-key");
     g_assert_true (plug->hasAttribute ("plug-string-key"));
     g_assert_true (plug->attribute ("plug-string-key").type () == (QVariant::Type) QMetaType::QString);
     g_assert_true (plug->attribute ("plug-string-key").toString () == "value");
@@ -2639,12 +2651,15 @@ test_get_connections_attributes ()
     g_assert_true (plug->hasAttribute ("plug-bool-key"));
     g_assert_true (plug->attribute ("plug-bool-key").type () == (QVariant::Type) QMetaType::Bool);
     g_assert_true (plug->attribute ("plug-bool-key").toBool ());
+    g_assert_true (plug->hasAttribute ("plug-number-key"));
+    g_assert_true (plug->attribute ("plug-number-key").type () == (QVariant::Type) QMetaType::Double);
+    g_assert_cmpfloat (plug->attribute ("plug-number-key").toDouble (), ==, 1.25);
     g_assert_false (plug->hasAttribute ("plug-invalid-key"));
     g_assert_false (plug->attribute ("plug-invalid-key").isValid ());
 
     g_assert_cmpint (getConnectionsRequest->slotCount (), ==, 1);
     QScopedPointer<QSnapdSlot> slot (getConnectionsRequest->slot (0));
-    check_names_match (slot->attributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key");
+    check_names_match (slot->attributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key" << "slot-number-key");
     g_assert_true (slot->hasAttribute ("slot-string-key"));
     g_assert_true (slot->attribute ("slot-string-key").type () == (QVariant::Type) QMetaType::QString);
     g_assert_true (slot->attribute ("slot-string-key").toString () == "value");
@@ -2654,6 +2669,9 @@ test_get_connections_attributes ()
     g_assert_true (slot->hasAttribute ("slot-bool-key"));
     g_assert_true (slot->attribute ("slot-bool-key").type () == (QVariant::Type) QMetaType::Bool);
     g_assert_true (slot->attribute ("slot-bool-key").toBool ());
+    g_assert_true (slot->hasAttribute ("slot-number-key"));
+    g_assert_true (slot->attribute ("slot-number-key").type () == (QVariant::Type) QMetaType::Double);
+    g_assert_cmpfloat (slot->attribute ("slot-number-key").toDouble (), ==, 1.25);
     g_assert_false (slot->hasAttribute ("slot-invalid-key"));
     g_assert_false (slot->attribute ("slot-invalid-key").isValid ());
 }

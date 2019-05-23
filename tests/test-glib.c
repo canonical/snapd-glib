@@ -2199,6 +2199,7 @@ test_get_snap_conf_sync (void)
     mock_snap_set_conf (s, "string-key", "\"value\"");
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
+    mock_snap_set_conf (s, "number-key", "1.25");
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -2207,7 +2208,7 @@ test_get_snap_conf_sync (void)
     conf = snapd_client_get_snap_conf_sync (client, "system", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (conf);
-    g_assert_cmpint (g_hash_table_size (conf), ==, 3);
+    g_assert_cmpint (g_hash_table_size (conf), ==, 4);
     value = g_hash_table_lookup (conf, "string-key");
     g_assert_nonnull (value);
     g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -2220,6 +2221,10 @@ test_get_snap_conf_sync (void)
     g_assert_nonnull (value);
     g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
     g_assert_true (g_variant_get_boolean (value));
+    value = g_hash_table_lookup (conf, "number-key");
+    g_assert_nonnull (value);
+    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
 }
 
 static void
@@ -2233,7 +2238,7 @@ get_snap_conf_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     conf = snapd_client_get_snap_conf_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (conf);
-    g_assert_cmpint (g_hash_table_size (conf), ==, 3);
+    g_assert_cmpint (g_hash_table_size (conf), ==, 4);
     value = g_hash_table_lookup (conf, "string-key");
     g_assert_nonnull (value);
     g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -2246,6 +2251,10 @@ get_snap_conf_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_nonnull (value);
     g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
     g_assert_true (g_variant_get_boolean (value));
+    value = g_hash_table_lookup (conf, "number-key");
+    g_assert_nonnull (value);
+    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
 
     g_main_loop_quit (data->loop);
 }
@@ -2266,6 +2275,7 @@ test_get_snap_conf_async (void)
     mock_snap_set_conf (s, "string-key", "\"value\"");
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
+    mock_snap_set_conf (s, "number-key", "1.25");
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();
@@ -3327,11 +3337,13 @@ test_get_connections_attributes (void)
     mock_slot_add_attribute (sl, "slot-string-key", "\"value\"");
     mock_slot_add_attribute (sl, "slot-int-key", "42");
     mock_slot_add_attribute (sl, "slot-bool-key", "true");
+    mock_slot_add_attribute (sl, "slot-number-key", "1.25");
     s = mock_snapd_add_snap (snapd, "snap2");
     p = mock_snap_add_plug (s, i, "plug1");
     mock_plug_add_attribute (p, "plug-string-key", "\"value\"");
     mock_plug_add_attribute (p, "plug-int-key", "42");
     mock_plug_add_attribute (p, "plug-bool-key", "true");
+    mock_plug_add_attribute (p, "plug-number-key", "1.25");
     mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
     g_assert_true (mock_snapd_start (snapd, &error));
 
@@ -3347,7 +3359,7 @@ test_get_connections_attributes (void)
 
     connection = established->pdata[0];
     names = snapd_connection_get_plug_attribute_names (connection, &names_length);
-    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key");
+    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key,plug-number-key");
     g_assert_true (snapd_connection_has_plug_attribute (connection, "plug-string-key"));
     value = snapd_connection_get_plug_attribute (connection, "plug-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -3360,11 +3372,15 @@ test_get_connections_attributes (void)
     value = snapd_connection_get_plug_attribute (connection, "plug-bool-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
     g_assert_true (g_variant_get_boolean (value));
+    value = snapd_connection_get_plug_attribute (connection, "plug-number-key");
+    g_assert_nonnull (value);
+    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
     g_assert_false (snapd_connection_has_plug_attribute (connection, "plug-invalid-key"));
     g_assert_null (snapd_connection_get_plug_attribute (connection, "plug-invalid-key"));
 
     names = snapd_connection_get_slot_attribute_names (connection, &names_length);
-    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key");
+    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key,slot-number-key");
     g_assert_true (snapd_connection_has_slot_attribute (connection, "slot-string-key"));
     value = snapd_connection_get_slot_attribute (connection, "slot-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -3376,6 +3392,10 @@ test_get_connections_attributes (void)
     g_assert_true (snapd_connection_has_slot_attribute (connection, "slot-bool-key"));
     value = snapd_connection_get_slot_attribute (connection, "slot-bool-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
+    value = snapd_connection_get_slot_attribute (connection, "slot-number-key");
+    g_assert_nonnull (value);
+    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
     g_assert_false (snapd_connection_has_slot_attribute (connection, "slot-invalid-key"));
     g_assert_null (snapd_connection_get_slot_attribute (connection, "slot-invalid-key"));
 
@@ -3384,7 +3404,7 @@ test_get_connections_attributes (void)
 
     plug = plugs->pdata[0];
     names = snapd_plug_get_attribute_names (plug, &names_length);
-    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key");
+    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key,plug-number-key");
     g_assert_true (snapd_plug_has_attribute (plug, "plug-string-key"));
     value = snapd_plug_get_attribute (plug, "plug-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -3397,6 +3417,10 @@ test_get_connections_attributes (void)
     value = snapd_plug_get_attribute (plug, "plug-bool-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
     g_assert_true (g_variant_get_boolean (value));
+    value = snapd_plug_get_attribute (plug, "plug-number-key");
+    g_assert_nonnull (value);
+    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
     value = snapd_plug_get_attribute (plug, "plug-invalid-key");
     g_assert_false (snapd_plug_has_attribute (plug, "plug-invalid-key"));
     g_assert_null (snapd_plug_get_attribute (plug, "plug-invalid-key"));
@@ -3406,7 +3430,7 @@ test_get_connections_attributes (void)
 
     slot = slots->pdata[0];
     names = snapd_slot_get_attribute_names (slot, &names_length);
-    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key");
+    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key,slot-number-key");
     g_assert_true (snapd_slot_has_attribute (slot, "slot-string-key"));
     value = snapd_slot_get_attribute (slot, "slot-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -3419,6 +3443,10 @@ test_get_connections_attributes (void)
     value = snapd_slot_get_attribute (slot, "slot-bool-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
     g_assert_true (g_variant_get_boolean (value));
+    value = snapd_slot_get_attribute (slot, "slot-number-key");
+    g_assert_nonnull (value);
+    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
     value = snapd_slot_get_attribute (slot, "slot-invalid-key");
     g_assert_false (snapd_slot_has_attribute (slot, "slot-invalid-key"));
     g_assert_null (snapd_slot_get_attribute (slot, "slot-invalid-key"));
