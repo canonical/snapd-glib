@@ -39,7 +39,7 @@ gvariant_to_qvariant (GVariant *variant)
         g_variant_iter_init (&iter, variant);
         const gchar *key;
         GVariant *value;
-        while (g_variant_iter_loop (&iter, "sv", &key, &value))
+        while (g_variant_iter_loop (&iter, "{sv}", &key, &value))
             object.insert (key, gvariant_to_qvariant (value));
         return QVariant (object);
     }
