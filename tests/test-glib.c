@@ -2185,30 +2185,25 @@ test_get_snap_publisher_unknown_validation (void)
 }
 
 static void
-test_get_snap_conf_sync (void)
+setup_get_snap_conf (MockSnapd *snapd)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
     MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GHashTable) conf = NULL;
-    GVariant *value;
-    g_autoptr(GError) error = NULL;
 
-    snapd = mock_snapd_new ();
     s = mock_snapd_add_snap (snapd, "core");
     mock_snap_set_conf (s, "string-key", "\"value\"");
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
     mock_snap_set_conf (s, "number-key", "1.25");
-    g_assert_true (mock_snapd_start (snapd, &error));
+    mock_snap_set_conf (s, "array-key", "[ 1, \"two\", 3.0 ]");
+    mock_snap_set_conf (s, "object-key", "{\"name\": \"foo\", \"value\": 42}");
+}
 
-    client = snapd_client_new ();
-    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+static void
+check_get_snap_conf_result (GHashTable *conf)
+{
+    GVariant *value;
 
-    conf = snapd_client_get_snap_conf_sync (client, "system", NULL, NULL, &error);
-    g_assert_no_error (error);
-    g_assert_nonnull (conf);
-    g_assert_cmpint (g_hash_table_size (conf), ==, 4);
+    g_assert_cmpint (g_hash_table_size (conf), ==, 6);
     value = g_hash_table_lookup (conf, "string-key");
     g_assert_nonnull (value);
     g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -2228,33 +2223,39 @@ test_get_snap_conf_sync (void)
 }
 
 static void
+test_get_snap_conf_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = NULL;
+    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(GHashTable) conf = NULL;
+    g_autoptr(GError) error = NULL;
+
+    snapd = mock_snapd_new ();
+    setup_get_snap_conf (snapd);
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    conf = snapd_client_get_snap_conf_sync (client, "system", NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (conf);
+
+    check_get_snap_conf_result (conf);
+}
+
+static void
 get_snap_conf_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
     g_autoptr(GHashTable) conf = NULL;
-    GVariant *value;
     g_autoptr(GError) error = NULL;
 
     conf = snapd_client_get_snap_conf_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (conf);
-    g_assert_cmpint (g_hash_table_size (conf), ==, 4);
-    value = g_hash_table_lookup (conf, "string-key");
-    g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
-    g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
-    value = g_hash_table_lookup (conf, "int-key");
-    g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
-    g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
-    value = g_hash_table_lookup (conf, "bool-key");
-    g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
-    g_assert_true (g_variant_get_boolean (value));
-    value = g_hash_table_lookup (conf, "number-key");
-    g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
-    g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
+
+    check_get_snap_conf_result (conf);
 
     g_main_loop_quit (data->loop);
 }
@@ -2264,18 +2265,13 @@ test_get_snap_conf_async (void)
 {
     g_autoptr(GMainLoop) loop = NULL;
     g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
     g_autoptr(SnapdClient) client = NULL;
     g_autoptr(GError) error = NULL;
 
     loop = g_main_loop_new (NULL, FALSE);
 
     snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "core");
-    mock_snap_set_conf (s, "string-key", "\"value\"");
-    mock_snap_set_conf (s, "int-key", "42");
-    mock_snap_set_conf (s, "bool-key", "true");
-    mock_snap_set_conf (s, "number-key", "1.25");
+    setup_get_snap_conf (snapd);
     g_assert_true (mock_snapd_start (snapd, &error));
 
     client = snapd_client_new ();

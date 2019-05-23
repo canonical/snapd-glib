@@ -1767,14 +1767,33 @@ test_get_snap_publisher_unknown_validation ()
 }
 
 static void
-test_get_snap_conf_sync ()
+setup_get_snap_conf (MockSnapd *snapd)
 {
-    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "core");
     mock_snap_set_conf (s, "string-key", "\"value\"");
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
     mock_snap_set_conf (s, "number-key", "1.25");
+    mock_snap_set_conf (s, "array-key", "[ 1, \"two\", 3.0 ]");
+    mock_snap_set_conf (s, "object-key", "{\"name\": \"foo\", \"value\": 42}");
+}
+
+static void
+check_get_snap_conf_result (QSnapdGetSnapConfRequest &request)
+{
+    QScopedPointer<QHash<QString, QVariant>> configuration (request.configuration ());
+    g_assert_cmpint (configuration->size (), ==, 6);
+    g_assert_true (configuration->value ("string-key") == "value");
+    g_assert_true (configuration->value ("int-key") == 42);
+    g_assert_true (configuration->value ("bool-key") == true);
+    g_assert_true (configuration->value ("number-key") == 1.25);
+}
+
+static void
+test_get_snap_conf_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    setup_get_snap_conf (snapd);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -1783,24 +1802,16 @@ test_get_snap_conf_sync ()
     QScopedPointer<QSnapdGetSnapConfRequest> getSnapConfRequest (client.getSnapConf ("system"));
     getSnapConfRequest->runSync ();
     g_assert_cmpint (getSnapConfRequest->error (), ==, QSnapdRequest::NoError);
-    QScopedPointer<QHash<QString, QVariant>> configuration (getSnapConfRequest->configuration ());
-    g_assert_cmpint (configuration->size (), ==, 4);
-    g_assert_true (configuration->value ("string-key") == "value");
-    g_assert_true (configuration->value ("int-key") == 42);
-    g_assert_true (configuration->value ("bool-key") == true);
-    g_assert_true (configuration->value ("number-key") == 1.25);
+
+    check_get_snap_conf_result (*getSnapConfRequest);
 }
 
 void
 GetSnapConfHandler::onComplete ()
 {
     g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
-    QScopedPointer<QHash<QString, QVariant>> configuration (request->configuration ());
-    g_assert_cmpint (configuration->size (), ==, 4);
-    g_assert_true (configuration->value ("string-key") == "value");
-    g_assert_true (configuration->value ("int-key") == 42);
-    g_assert_true (configuration->value ("bool-key") == true);
-    g_assert_true (configuration->value ("number-key") == 1.25);
+
+    check_get_snap_conf_result (*request);
 
     g_main_loop_quit (loop);
 }
@@ -1811,11 +1822,7 @@ test_get_snap_conf_async ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    MockSnap *s = mock_snapd_add_snap (snapd, "core");
-    mock_snap_set_conf (s, "string-key", "\"value\"");
-    mock_snap_set_conf (s, "int-key", "42");
-    mock_snap_set_conf (s, "bool-key", "true");
-    mock_snap_set_conf (s, "number-key", "1.25");
+    setup_get_snap_conf (snapd);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
