@@ -470,6 +470,15 @@ is_url (const gchar *text, int *length)
     return TRUE;
 }
 
+static int
+find_url (const gchar *text, int *url_length)
+{
+    for (int offset = 0; text[offset] != '\0'; offset++)
+         if (is_url (text + offset, url_length))
+             return offset;
+    return -1;
+}
+
 SnapdMarkdownNode *
 make_url_node (const gchar *text, int length)
 {
@@ -490,6 +499,7 @@ extract_urls (GPtrArray *nodes)
         SnapdMarkdownNode *node = g_ptr_array_index (nodes, i);
         GPtrArray *children;
         const gchar *text;
+        int url_offset, url_length;
 
         children = snapd_markdown_node_get_children (node);
         if (children != NULL)
@@ -499,16 +509,14 @@ extract_urls (GPtrArray *nodes)
             continue;
 
         text = snapd_markdown_node_get_text (node);
-        for (int offset = 0; text[offset] != '\0'; offset++) {
-            int url_length;
-            if (is_url (text + offset, &url_length)) {
-                if (text[offset + url_length] != '\0')
-                    g_ptr_array_insert (nodes, i + 1, make_text_node (text + offset + url_length, -1));
-                g_ptr_array_insert (nodes, i + 1, make_url_node (text + offset, url_length));
-                if (offset > 0)
-                    g_ptr_array_insert (nodes, i + 1, make_text_node (text, offset));
-                g_ptr_array_remove_index (nodes, i);
-            }
+        url_offset = find_url (text, &url_length);
+        if (url_offset >= 0) {
+            if (text[url_offset + url_length] != '\0')
+                g_ptr_array_insert (nodes, i + 1, make_text_node (text + url_offset + url_length, -1));
+            g_ptr_array_insert (nodes, i + 1, make_url_node (text + url_offset, url_length));
+            if (url_offset > 0)
+                g_ptr_array_insert (nodes, i + 1, make_text_node (text, url_offset));
+            g_ptr_array_remove_index (nodes, i);
         }
     }
 }
