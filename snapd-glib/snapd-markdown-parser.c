@@ -502,7 +502,7 @@ extract_urls (GPtrArray *nodes)
         int url_offset, url_length;
 
         children = snapd_markdown_node_get_children (node);
-        if (children != NULL)
+        if (snapd_markdown_node_get_node_type (node) != SNAPD_MARKDOWN_NODE_TYPE_URL && children != NULL)
             extract_urls (children);
 
         if (snapd_markdown_node_get_node_type (node) != SNAPD_MARKDOWN_NODE_TYPE_TEXT)

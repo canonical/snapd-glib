@@ -87,6 +87,7 @@ serialize_node (QSnapdMarkdownNode &node)
        return serialize_children (node);
 
    default:
+       g_assert (FALSE);
        return "";
    }
 }
@@ -103,14 +104,14 @@ parse (const QString &text)
 }
 
 static void
-test_markdown_empty (void)
+test_markdown_empty ()
 {
     QString markup = parse ("");
     g_assert (markup == "");
 }
 
 static void
-test_markdown_single_character (void)
+test_markdown_single_character ()
 {
     QString markup = parse ("a");
     g_assert (markup == "<p>a</p>\n");
@@ -120,14 +121,14 @@ test_markdown_single_character (void)
  * Some tests are modified to match the expected snap behaviour */
 
 static void
-test_markdown_precedence (void)
+test_markdown_precedence ()
 {
     QString example12 = parse ("- `one\n- two`\n");
     g_assert (example12 == "<ul>\n<li>`one</li>\n<li>two`</li>\n</ul>\n");
 }
 
 static void
-test_markdown_indented_code (void)
+test_markdown_indented_code ()
 {
     QString example76 = parse ("    a simple\n      indented code block\n");
     g_assert (example76 == "<pre><code>a simple\n  indented code block\n</code></pre>\n");
@@ -161,7 +162,7 @@ test_markdown_indented_code (void)
 }
 
 static void
-test_markdown_paragraphs (void)
+test_markdown_paragraphs ()
 {
     QString example182 = parse ("aaa\n\nbbb\n");
     g_assert (example182 == "<p>aaa</p>\n<p>bbb</p>\n");
@@ -186,7 +187,7 @@ test_markdown_paragraphs (void)
 }
 
 static void
-test_markdown_list_items (void)
+test_markdown_list_items ()
 {
     QString example218 = parse ("- one\n\n two\n");
     g_assert (example218 == "<ul>\n<li>one</li>\n</ul>\n<p>two</p>\n");
@@ -262,7 +263,7 @@ test_markdown_list_items (void)
 }
 
 static void
-test_markdown_lists (void)
+test_markdown_lists ()
 {
     QString example264 = parse ("- foo\n- bar\n+ baz\n");
     g_assert (example264 == "<ul>\n<li>foo</li>\n<li>bar</li>\n</ul>\n<ul>\n<li>baz</li>\n</ul>\n");
@@ -308,7 +309,7 @@ test_markdown_lists (void)
 }
 
 static void
-test_markdown_inlines (void)
+test_markdown_inlines ()
 {
     QString example288 = parse ("`hi`lo`\n");
     g_assert (example288 == "<p><code>hi</code>lo`</p>\n");
@@ -330,7 +331,7 @@ test_markdown_inlines (void)
 }
 
 static void
-test_markdown_code_spans (void)
+test_markdown_code_spans ()
 {
     QString example314 = parse ("`foo`\n");
     g_assert (example314 == "<p><code>foo</code></p>\n");
@@ -373,7 +374,7 @@ test_markdown_code_spans (void)
 }
 
 static void
-test_markdown_emphasis (void)
+test_markdown_emphasis ()
 {
     QString example331 = parse ("*foo bar*\n");
     g_assert (example331 == "<p><em>foo bar</em></p>\n");
@@ -728,7 +729,7 @@ test_markdown_emphasis (void)
 }
 
 static void
-test_markdown_textual_content (void)
+test_markdown_textual_content ()
 {
     QString example622 = parse ("hello $.;'there\n");
     g_assert (example622 == "<p>hello $.;'there</p>\n");
@@ -738,6 +739,92 @@ test_markdown_textual_content (void)
 
     QString example624 = parse ("Multiple     spaces\n");
     g_assert (example624 == "<p>Multiple     spaces</p>\n");
+}
+
+static QString serialize_url_node (QSnapdMarkdownNode &node);
+
+static QString
+serialize_url_children (QSnapdMarkdownNode &node)
+{
+    QString result;
+    for (int i = 0; i < node.childCount (); i++) {
+        QScopedPointer<QSnapdMarkdownNode> child (node.child (i));
+        result += serialize_url_node (*child);
+    }
+    return result;
+}
+
+static QString
+serialize_url_node (QSnapdMarkdownNode &node)
+{
+   switch (node.type ()) {
+   case QSnapdMarkdownNode::NodeTypeText:
+       return escape_text (node.text ());
+
+   case QSnapdMarkdownNode::NodeTypeParagraph:
+       return "<p>" + serialize_url_children (node) + "</p>";
+
+   case QSnapdMarkdownNode::NodeTypeUrl:
+       return "<url>" + serialize_url_children (node) + "</url>";
+
+   default:
+       g_assert (FALSE);
+       return "";
+   }
+}
+
+static QString
+parse_url (const QString &text)
+{
+    QSnapdMarkdownParser parser (QSnapdMarkdownParser::MarkdownVersion0);
+    QList<QSnapdMarkdownNode> nodes = parser.parse (text);
+    QString result;
+    for (int i = 0; i < nodes.size (); i++)
+        result += serialize_url_node (nodes[i]);
+    return result;
+}
+
+static void
+test_markdown_urls ()
+{
+    QString url0 = parse_url ("http://localhost");
+    g_assert (url0 == "<p><url>http://localhost</url></p>");
+
+    QString url1 = parse_url ("https://localhost");
+    g_assert (url1 == "<p><url>https://localhost</url></p>");
+
+    QString url2 = parse_url ("mailto:name@example.com");
+    g_assert (url2 == "<p><url>mailto:name@example.com</url></p>");
+
+    QString url3 = parse_url ("ftp://foo");
+    g_assert (url3 == "<p>ftp://foo</p>");
+
+    QString url4 = parse_url ("http://");
+    g_assert (url4 == "<p>http://</p>");
+
+    QString url5 = parse_url ("https://");
+    g_assert (url5 == "<p>https://</p>");
+
+    QString url6 = parse_url ("mailto:");
+    g_assert (url6 == "<p>mailto:</p>");
+
+    QString url7 = parse_url (" https://localhost");
+    g_assert (url7 == "<p><url>https://localhost</url></p>");
+
+    QString url8 = parse_url ("https://localhost ");
+    g_assert (url8 == "<p><url>https://localhost</url></p>");
+
+    QString url9 = parse_url (" https://localhost ");
+    g_assert (url9 == "<p><url>https://localhost</url></p>");
+
+    QString url10 = parse_url ("x https://localhost");
+    g_assert (url10 == "<p>x <url>https://localhost</url></p>");
+
+    QString url11 = parse_url ("https://localhost x");
+    g_assert (url11 == "<p><url>https://localhost</url> x</p>");
+
+    QString url12 = parse_url ("x https://localhost x");
+    g_assert (url12 == "<p>x <url>https://localhost</url> x</p>");
 }
 
 int
@@ -756,6 +843,7 @@ main (int argc, char **argv)
     g_test_add_func ("/markdown/code-spans", test_markdown_code_spans);
     g_test_add_func ("/markdown/emphasis", test_markdown_emphasis);
     g_test_add_func ("/markdown/textual-content", test_markdown_textual_content);
+    g_test_add_func ("/markdown/urls", test_markdown_urls);
 
     return g_test_run ();
 }

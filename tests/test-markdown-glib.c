@@ -100,6 +100,7 @@ serialize_node (SnapdMarkdownNode *node)
        return serialize_nodes (children);
 
    default:
+       g_assert (FALSE);
        return g_strdup ("");
    }
 }
@@ -750,6 +751,97 @@ test_markdown_textual_content (void)
     g_assert_cmpstr (example624, ==, "<p>Multiple     spaces</p>\n");
 }
 
+static gchar *serialize_url_node (SnapdMarkdownNode *node);
+
+static gchar *
+serialize_url_nodes (GPtrArray *nodes)
+{
+    g_autoptr(GString) text = g_string_new ("");
+
+    for (int i = 0; i < nodes->len; i++) {
+        SnapdMarkdownNode *node = g_ptr_array_index (nodes, i);
+        g_autofree gchar *node_text = serialize_url_node (node);
+        g_string_append (text, node_text);
+    }
+
+    return g_steal_pointer (&text->str);
+}
+
+static gchar *
+serialize_url_node (SnapdMarkdownNode *node)
+{
+   g_autofree gchar *contents = NULL;
+   GPtrArray *children = snapd_markdown_node_get_children (node);
+
+   switch (snapd_markdown_node_get_node_type (node)) {
+   case SNAPD_MARKDOWN_NODE_TYPE_TEXT:
+       return g_strdup (snapd_markdown_node_get_text (node));
+
+   case SNAPD_MARKDOWN_NODE_TYPE_PARAGRAPH:
+       contents = serialize_url_nodes (children);
+       return g_strdup_printf ("<p>%s</p>", contents);
+
+   case SNAPD_MARKDOWN_NODE_TYPE_URL:
+       contents = serialize_url_nodes (children);
+       return g_strdup_printf ("<url>%s</url>", contents);
+
+   default:
+       g_assert (FALSE);
+       return NULL;
+   }
+}
+
+static gchar *
+parse_url (const gchar *text)
+{
+    g_autoptr(SnapdMarkdownParser) parser = snapd_markdown_parser_new (SNAPD_MARKDOWN_VERSION_0);
+    g_autoptr(GPtrArray) nodes = snapd_markdown_parser_parse (parser, text);
+    return serialize_url_nodes (nodes);
+}
+
+static void
+test_markdown_urls (void)
+{
+    g_autofree gchar *url0 = parse_url ("http://localhost");
+    g_assert_cmpstr (url0, ==, "<p><url>http://localhost</url></p>");
+
+    g_autofree gchar *url1 = parse_url ("https://localhost");
+    g_assert_cmpstr (url1, ==, "<p><url>https://localhost</url></p>");
+
+    g_autofree gchar *url2 = parse_url ("mailto:name@example.com");
+    g_assert_cmpstr (url2, ==, "<p><url>mailto:name@example.com</url></p>");
+
+    g_autofree gchar *url3 = parse_url ("ftp://foo");
+    g_assert_cmpstr (url3, ==, "<p>ftp://foo</p>");
+
+    g_autofree gchar *url4 = parse_url ("http://");
+    g_assert_cmpstr (url4, ==, "<p>http://</p>");
+
+    g_autofree gchar *url5 = parse_url ("https://");
+    g_assert_cmpstr (url5, ==, "<p>https://</p>");
+
+    g_autofree gchar *url6 = parse_url ("mailto:");
+    g_assert_cmpstr (url6, ==, "<p>mailto:</p>");
+
+    g_autofree gchar *url7 = parse_url (" https://localhost");
+    g_assert_cmpstr (url7, ==, "<p><url>https://localhost</url></p>");
+
+    g_autofree gchar *url8 = parse_url ("https://localhost ");
+    g_assert_cmpstr (url8, ==, "<p><url>https://localhost</url></p>");
+
+    g_autofree gchar *url9 = parse_url (" https://localhost ");
+    g_assert_cmpstr (url9, ==, "<p><url>https://localhost</url></p>");
+
+    g_autofree gchar *url10 = parse_url ("x https://localhost");
+    g_assert_cmpstr (url10, ==, "<p>x <url>https://localhost</url></p>");
+
+    g_autofree gchar *url11 = parse_url ("https://localhost x");
+    g_assert_cmpstr (url11, ==, "<p><url>https://localhost</url> x</p>");
+
+    g_autofree gchar *url12 = parse_url ("x https://localhost x");
+    g_assert_cmpstr (url12, ==, "<p>x <url>https://localhost</url> x</p>");
+}
+
 int
 main (int argc, char **argv)
 {
@@ -766,6 +858,7 @@ main (int argc, char **argv)
     g_test_add_func ("/markdown/code-spans", test_markdown_code_spans);
     g_test_add_func ("/markdown/emphasis", test_markdown_emphasis);
     g_test_add_func ("/markdown/textual-content", test_markdown_textual_content);
+    g_test_add_func ("/markdown/urls", test_markdown_urls);
 
     return g_test_run ();
 }
