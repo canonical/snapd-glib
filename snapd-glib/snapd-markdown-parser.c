@@ -438,7 +438,13 @@ is_valid_url_char (gchar c)
         return TRUE;
     if (c >= '0' && c <= '9')
         return TRUE;
-    if (strchr ("-._~:/?#[]@!$&'()*+,;=%", c) != NULL)
+    /* "Safe" characters */
+    if (strchr ("$-_.+", c) != NULL)
+         return TRUE;
+    /* "Reserved" characters */
+    if (strchr (";/?:@&=", c) != NULL)
+        return TRUE;
+    if (strchr ("~#[]!'()*,%", c) != NULL)
         return TRUE;
 
     return FALSE;
@@ -447,7 +453,7 @@ is_valid_url_char (gchar c)
 static gboolean
 is_url (const gchar *text, int *length)
 {
-    int prefix_length, _length;
+    int prefix_length, _length, bracket_count;
 
     if (g_str_has_prefix (text, "http://"))
         prefix_length = 7;
@@ -459,8 +465,17 @@ is_url (const gchar *text, int *length)
         return FALSE;
 
     _length = prefix_length;
-    while (text[_length] != '\0' && is_valid_url_char (text[_length]))
-         _length++;
+    bracket_count = 0;
+    while (text[_length] != '\0' && is_valid_url_char (text[_length])) {
+        if (text[_length] == '(')
+            bracket_count++;
+        else if (text[_length] == ')') {
+            bracket_count--;
+            if (bracket_count < 0)
+                break;
+        }
+        _length++;
+    }
     if (_length == prefix_length)
         return FALSE;
 

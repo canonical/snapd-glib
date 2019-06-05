@@ -840,6 +840,12 @@ test_markdown_urls (void)
 
     g_autofree gchar *url12 = parse_url ("x https://localhost x");
     g_assert_cmpstr (url12, ==, "<p>x <url>https://localhost</url> x</p>");
+
+    g_autofree gchar *url13 = parse_url ("(https://localhost)");
+    g_assert_cmpstr (url13, ==, "<p>(<url>https://localhost</url>)</p>");
+
+    g_autofree gchar *url14 = parse_url ("https://localhost/(foo)");
+    g_assert_cmpstr (url14, ==, "<p><url>https://localhost/(foo)</url></p>");
 }
 
 int
