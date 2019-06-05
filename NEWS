@@ -1,3 +1,65 @@
+Overview of changes in snapd-glib 1.48
+
+    * New API:
+      - snapd_client_get_connections_async
+      - snapd_client_get_connections_finish
+      - snapd_client_get_connections_sync
+      - snapd_client_get_interfaces2_async
+      - snapd_client_get_interfaces2_finish
+      - snapd_client_get_interfaces2_sync
+      - snapd_client_get_snap_conf_async
+      - snapd_client_get_snap_conf_finish
+      - snapd_client_get_snap_conf_sync
+      - snapd_client_set_snap_conf_async
+      - snapd_client_set_snap_conf_finish
+      - snapd_client_set_snap_conf_sync
+      - snapd_connection_get_gadget
+      - snapd_connection_get_interface
+      - snapd_connection_get_manual
+      - snapd_connection_get_plug
+      - snapd_connection_get_plug_attribute
+      - snapd_connection_get_plug_attribute_names
+      - snapd_connection_get_slot
+      - snapd_connection_get_slot_attribute
+      - snapd_connection_get_slot_attribute_names
+      - snapd_connection_has_plug_attribute
+      - snapd_connection_has_slot_attribute
+      - snapd_interface_get_doc_url
+      - snapd_interface_get_name
+      - snapd_interface_get_plugs
+      - snapd_interface_get_slots
+      - snapd_interface_get_summary
+      - snapd_markdown_node_get_children
+      - snapd_markdown_node_get_node_type
+      - snapd_markdown_node_get_text
+      - snapd_markdown_parser_new
+      - snapd_markdown_parser_get_combine_whitespace
+      - snapd_markdown_parser_parse
+      - snapd_markdown_parser_set_combine_whitespace
+      - snapd_plug_get_connected_slots
+      - snapd_plug_ref_get_plug
+      - snapd_plug_ref_get_snap
+      - snapd_slot_get_connected_plugs
+      - snapd_slot_ref_get_slot
+      - snapd_slot_ref_get_snap
+    * Deprecated API:
+      - snapd_client_get_interfaces_async
+      - snapd_client_get_interfaces_finish
+      - snapd_client_get_interfaces_sync
+      - snapd_connection_get_name
+      - snapd_connection_get_snap
+      - snapd_plug_get_connections
+      - snapd_slot_get_connections
+    * Allow searching via common-id
+    * Add a description markdown parser
+    * Replace SnapdConnection with SnapdPlugRef and SnapdSlotRef
+    * Support updated connections API (/v2/connections)
+    * Support updated /v2/interfaces&select= API
+    * Support snap configuration API
+    * Add Qt interface attribute API
+    * Make snapd_client_set_socket_path revert to the default when NULL passed.
+    * Fix C99 mode not being enabled on older versions of GCC
+
 Overview of changes in snapd-glib 1.47
 
     * Remove generated MOC file from tarball
