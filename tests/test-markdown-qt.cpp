@@ -831,6 +831,12 @@ test_markdown_urls ()
 
     QString url14 = parse_url ("https://localhost/(foo)");
     g_assert (url14 == "<p><url>https://localhost/(foo)</url></p>");
+
+    QString url15 = parse_url ("https://localhost/.");
+    g_assert (url15 == "<p><url>https://localhost/</url>.</p>");
+
+    QString url16 = parse_url ("https://localhost/,");
+    g_assert (url16 == "<p><url>https://localhost/</url>,</p>");
 }
 
 int

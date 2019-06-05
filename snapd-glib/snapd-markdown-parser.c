@@ -498,6 +498,9 @@ is_url (const gchar *text, int *length)
         }
         _length++;
     }
+    /* Can't end in punctuation */
+    while (_length > prefix_length && strchr (",.", text[_length - 1]) != NULL)
+        _length--;
     if (_length == prefix_length)
         return FALSE;
 
