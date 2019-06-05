@@ -2057,6 +2057,7 @@ snapd_client_add_assertions_finish (SnapdClient *client, GAsyncResult *result, G
  * See snapd_client_get_interfaces_sync() for more information.
  *
  * Since: 1.0
+ * Deprecated: 1.48: Use snapd_client_get_connections_async()
  */
 void
 snapd_client_get_interfaces_async (SnapdClient *client,
@@ -2084,6 +2085,7 @@ snapd_client_get_interfaces_async (SnapdClient *client,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.0
+ * Deprecated: 1.48: Use snapd_client_get_connections_finish()
  */
 gboolean
 snapd_client_get_interfaces_finish (SnapdClient *client, GAsyncResult *result,
