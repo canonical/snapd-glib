@@ -273,6 +273,28 @@ make_text_node (const gchar *text, int length)
 }
 
 SnapdMarkdownNode *
+make_paragraph_text_node (const gchar *text, int length)
+{
+    g_autoptr(GString) result = NULL;
+    gchar last_c;
+
+    result = g_string_new ("");
+    last_c = '\0';
+    for (int i = 0; text[i] != '\0' && (length == -1 || i < length); i++) {
+        gchar c = text[i];
+        if (isspace (c)) {
+            if (!isspace (last_c))
+                g_string_append_c (result, ' ');
+        }
+        else
+            g_string_append_c (result, c);
+        last_c = c;
+    }
+
+    return make_text_node (result->str, -1);
+}
+
+SnapdMarkdownNode *
 make_delimiter_node (EmphasisInfo *info)
 {
     g_autofree gchar *text = g_malloc (info->length + 1);
@@ -575,7 +597,7 @@ markup_inline (SnapdMarkdownParser *parser, const gchar *text)
             }
             else
             {
-                 g_ptr_array_add (nodes, make_text_node (text + start, size));
+                 g_ptr_array_add (nodes, make_paragraph_text_node (text + start, size));
                  i = start + size;
             }
 
@@ -611,7 +633,7 @@ markup_inline (SnapdMarkdownParser *parser, const gchar *text)
                 info->can_open_emphasis = is_left_flanking;
                 info->can_close_emphasis = is_right_flanking;
             }
-            node = make_text_node (text + start, i - start);
+            node = make_paragraph_text_node (text + start, i - start);
             g_ptr_array_add (nodes, node);
             g_hash_table_insert (emphasis_info, node, g_steal_pointer (&info));
             continue;
@@ -627,7 +649,7 @@ markup_inline (SnapdMarkdownParser *parser, const gchar *text)
 
             i++;
         }
-        g_ptr_array_add (nodes, make_text_node (text + start, i - start));
+        g_ptr_array_add (nodes, make_paragraph_text_node (text + start, i - start));
     }
 
     /* Convert nodes into emphasis */

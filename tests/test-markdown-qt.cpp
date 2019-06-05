@@ -146,7 +146,7 @@ test_markdown_indented_code ()
     g_assert (example81 == "<pre><code>chunk1\n  \n  chunk2\n</code></pre>\n");
 
     QString example82 = parse ("Foo\n    bar\n\n");
-    g_assert (example82 == "<p>Foo\nbar</p>\n");
+    g_assert (example82 == "<p>Foo bar</p>\n");
 
     QString example83 = parse ("    foo\nbar\n");
     g_assert (example83 == "<pre><code>foo\n</code></pre>\n<p>bar</p>\n");
@@ -168,19 +168,19 @@ test_markdown_paragraphs ()
     g_assert (example182 == "<p>aaa</p>\n<p>bbb</p>\n");
 
     QString example183 = parse ("aaa\nbbb\n\nccc\nddd\n");
-    g_assert (example183 == "<p>aaa\nbbb</p>\n<p>ccc\nddd</p>\n");
+    g_assert (example183 == "<p>aaa bbb</p>\n<p>ccc ddd</p>\n");
 
     QString example184 = parse ("aaa\n\n\nbbb\n");
     g_assert (example184 == "<p>aaa</p>\n<p>bbb</p>\n");
 
     QString example185 = parse ("  aaa\n bbb\n");
-    g_assert (example185 == "<p>aaa\nbbb</p>\n");
+    g_assert (example185 == "<p>aaa bbb</p>\n");
 
     QString example186 = parse ("aaa\n             bbb\n                                       ccc\n");
-    g_assert (example186 == "<p>aaa\nbbb\nccc</p>\n");
+    g_assert (example186 == "<p>aaa bbb ccc</p>\n");
 
     QString example187 = parse ("   aaa\nbbb\n");
-    g_assert (example187 == "<p>aaa\nbbb</p>\n");
+    g_assert (example187 == "<p>aaa bbb</p>\n");
 
     QString example188 = parse ("    aaa\nbbb\n");
     g_assert (example188 == "<pre><code>aaa\n</code></pre>\n<p>bbb</p>\n");
@@ -247,7 +247,7 @@ test_markdown_list_items ()
     g_assert (example247 == "<ul>\n<li></li>\n</ul>\n");
 
     QString example248 = parse ("foo\n*\n\nfoo\n1.\n");
-    g_assert (example248 == "<p>foo\n*</p>\n<p>foo\n1.</p>\n");
+    g_assert (example248 == "<p>foo *</p>\n<p>foo 1.</p>\n");
 
     QString example252 = parse ("    1.  A paragraph\n        with two lines.\n\n            indented code\n\n        > A block quote.\n");
     g_assert (example252 == "<pre><code>1.  A paragraph\n    with two lines.\n\n        indented code\n\n    &gt; A block quote.\n</code></pre>\n");
@@ -272,7 +272,7 @@ test_markdown_lists ()
     g_assert (example266 == "<p>Foo</p>\n<ul>\n<li>bar</li>\n<li>baz</li>\n</ul>\n");
 
     QString example267 = parse ("The number of windows in my house is\n14.  The number of doors is 6.\n");
-    g_assert (example267 == "<p>The number of windows in my house is\n14.  The number of doors is 6.</p>\n");
+    g_assert (example267 == "<p>The number of windows in my house is 14. The number of doors is 6.</p>\n");
 
     QString example269 = parse ("- foo\n\n- bar\n\n\n- baz\n");
     g_assert (example269 == "<ul>\n<li>foo</li>\n<li>bar</li>\n<li>baz</li>\n</ul>\n");
@@ -318,10 +318,10 @@ test_markdown_inlines ()
     g_assert (example289 == "<p>!&quot;#$%&amp;'()*+,-./:;&lt;=&gt;?@[\\]^_`{|}~</p>\n");
 
     QString example290 = parse ("\\\t\\A\\a\\ \\3\\φ\\«\n");
-    g_assert (example290 == "<p>\\\t\\A\\a\\ \\3\\φ\\«</p>\n");
+    g_assert (example290 == "<p>\\ \\A\\a\\ \\3\\φ\\«</p>\n");
 
     QString example291 = parse ("\\*not emphasized*\n\\<br/> not a tag\n\\[not a link](/foo)\n\\`not code`\n1\\. not a list\n\\* not a list\n\\# not a heading\n\\[foo]: /url \"not a reference\"\n");
-    g_assert (example291 == "<p>*not emphasized*\n&lt;br/&gt; not a tag\n[not a link](/foo)\n`not code`\n1. not a list\n* not a list\n# not a heading\n[foo]: /url &quot;not a reference&quot;</p>\n");
+    g_assert (example291 == "<p>*not emphasized* &lt;br/&gt; not a tag [not a link](/foo) `not code` 1. not a list * not a list # not a heading [foo]: /url &quot;not a reference&quot;</p>\n");
 
     QString example292 = parse ("\\\\*emphasis*\n");
     g_assert (example292 == "<p>\\<em>emphasis</em></p>\n");
@@ -425,7 +425,7 @@ test_markdown_emphasis ()
     g_assert (example346 == "<p>*foo bar *</p>\n");
 
     QString example347 = parse ("*foo bar\n*\n");
-    g_assert (example347 == "<p>*foo bar\n*</p>\n");
+    g_assert (example347 == "<p>*foo bar *</p>\n");
 
     QString example348 = parse ("*(*foo)\n");
     g_assert (example348 == "<p>*(*foo)</p>\n");
@@ -476,7 +476,7 @@ test_markdown_emphasis ()
     g_assert (example363 == "<p>__ foo bar__</p>\n");
 
     QString example364 = parse ("__\nfoo bar__\n");
-    g_assert (example364 == "<p>__\nfoo bar__</p>\n");
+    g_assert (example364 == "<p>__ foo bar__</p>\n");
 
     QString example365 = parse ("a__\"foo\"__\n");
     g_assert (example365 == "<p>a__&quot;foo&quot;__</p>\n");
@@ -506,7 +506,7 @@ test_markdown_emphasis ()
     g_assert (example373 == "<p><em>(<strong>foo</strong>)</em></p>\n");
 
     QString example374 = parse ("**Gomphocarpus (*Gomphocarpus physocarpus*, syn.\n*Asclepias physocarpa*)**\n");
-    g_assert (example374 == "<p><strong>Gomphocarpus (<em>Gomphocarpus physocarpus</em>, syn.\n<em>Asclepias physocarpa</em>)</strong></p>\n");
+    g_assert (example374 == "<p><strong>Gomphocarpus (<em>Gomphocarpus physocarpus</em>, syn. <em>Asclepias physocarpa</em>)</strong></p>\n");
 
     QString example375 = parse ("**foo \"*bar*\" foo**\n");
     g_assert (example375 == "<p><strong>foo &quot;<em>bar</em>&quot; foo</strong></p>\n");
@@ -536,7 +536,7 @@ test_markdown_emphasis ()
     g_assert (example383 == "<p><strong>(bar)</strong>.</p>\n");
 
     QString example385 = parse ("*foo\nbar*\n");
-    g_assert (example385 == "<p><em>foo\nbar</em></p>\n");
+    g_assert (example385 == "<p><em>foo bar</em></p>\n");
 
     QString example386 = parse ("_foo __bar__ baz_\n");
     g_assert (example386 == "<p><em>foo <strong>bar</strong> baz</em></p>\n");
@@ -575,7 +575,7 @@ test_markdown_emphasis ()
     g_assert (example398 == "<p>**** is not an empty strong emphasis</p>\n");
 
     QString example400 = parse ("**foo\nbar**\n");
-    g_assert (example400 == "<p><strong>foo\nbar</strong></p>\n");
+    g_assert (example400 == "<p><strong>foo bar</strong></p>\n");
 
     QString example401 = parse ("__foo _bar_ baz__\n");
     g_assert (example401 == "<p><strong>foo <em>bar</em> baz</strong></p>\n");
@@ -602,7 +602,7 @@ test_markdown_emphasis ()
     g_assert (example408 == "<p><strong>foo <em>bar</em></strong></p>\n");
 
     QString example409 = parse ("**foo *bar **baz**\nbim* bop**\n");
-    g_assert (example409 == "<p><strong>foo <em>bar <strong>baz</strong>\nbim</em> bop</strong></p>\n");
+    g_assert (example409 == "<p><strong>foo <em>bar <strong>baz</strong> bim</em> bop</strong></p>\n");
 
     QString example411 = parse ("__ is not an empty emphasis\n");
     g_assert (example411 == "<p>__ is not an empty emphasis</p>\n");
@@ -738,7 +738,7 @@ test_markdown_textual_content ()
     g_assert (example623 == "<p>Foo χρῆν</p>\n");
 
     QString example624 = parse ("Multiple     spaces\n");
-    g_assert (example624 == "<p>Multiple     spaces</p>\n");
+    g_assert (example624 == "<p>Multiple spaces</p>\n");
 }
 
 static QString serialize_url_node (QSnapdMarkdownNode &node);
