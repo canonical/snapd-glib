@@ -18,6 +18,8 @@ class Q_DECL_EXPORT QSnapdMarkdownParser : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(bool preserveWhitespace READ preserveWhitespace WRITE setPreserveWhitespace)
+
 public:
     enum MarkdownVersion
     {
@@ -26,6 +28,8 @@ public:
     Q_ENUM(MarkdownVersion)
     explicit QSnapdMarkdownParser (MarkdownVersion version, QObject* parent = 0);
 
+    void setPreserveWhitespace (bool preserveWhitespace) const;
+    bool preserveWhitespace () const;
     QList<QSnapdMarkdownNode> parse (const QString &text) const;
 
 private:

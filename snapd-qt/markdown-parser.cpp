@@ -38,6 +38,18 @@ QSnapdMarkdownParser::QSnapdMarkdownParser (QSnapdMarkdownParser::MarkdownVersio
      QObject (parent),
      d_ptr (new QSnapdMarkdownParserPrivate (version)) {}
 
+void QSnapdMarkdownParser::setPreserveWhitespace (bool preserveWhitespace) const
+{
+    Q_D(const QSnapdMarkdownParser);
+    snapd_markdown_parser_set_preserve_whitespace (d->parser, preserveWhitespace);
+}
+
+bool QSnapdMarkdownParser::preserveWhitespace () const
+{
+    Q_D(const QSnapdMarkdownParser);
+    return snapd_markdown_parser_get_preserve_whitespace (d->parser);
+}
+
 QList<QSnapdMarkdownNode> QSnapdMarkdownParser::parse (const QString &text) const
 {
     Q_D(const QSnapdMarkdownParser);

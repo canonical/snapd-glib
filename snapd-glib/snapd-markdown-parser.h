@@ -35,10 +35,15 @@ typedef enum
 
 G_DECLARE_FINAL_TYPE (SnapdMarkdownParser, snapd_markdown_parser, SNAPD, MARKDOWN_PARSER, GObject)
 
-SnapdMarkdownParser *snapd_markdown_parser_new   (SnapdMarkdownVersion version);
+SnapdMarkdownParser *snapd_markdown_parser_new                     (SnapdMarkdownVersion version);
 
-GPtrArray           *snapd_markdown_parser_parse (SnapdMarkdownParser *parser,
-                                                  const gchar         *text);
+void                 snapd_markdown_parser_set_preserve_whitespace (SnapdMarkdownParser *parser,
+                                                                    gboolean             preserve_whitespace);
+
+gboolean             snapd_markdown_parser_get_preserve_whitespace (SnapdMarkdownParser *parser);
+
+GPtrArray           *snapd_markdown_parser_parse                   (SnapdMarkdownParser *parser,
+                                                                    const gchar         *text);
 
 G_END_DECLS
 

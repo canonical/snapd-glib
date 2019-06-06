@@ -46,6 +46,8 @@
 struct _SnapdMarkdownParser
 {
     GObject parent_instance;
+
+    gboolean preserve_whitespace;
 };
 
 G_DEFINE_TYPE (SnapdMarkdownParser, snapd_markdown_parser, G_TYPE_OBJECT)
@@ -270,6 +272,31 @@ make_text_node (const gchar *text, int length)
                              "node-type", SNAPD_MARKDOWN_NODE_TYPE_TEXT,
                              "text", text,
                              NULL);
+}
+
+SnapdMarkdownNode *
+make_paragraph_text_node (SnapdMarkdownParser *parser, const gchar *text, int length)
+{
+    g_autoptr(GString) result = NULL;
+    gchar last_c;
+
+    if (parser->preserve_whitespace)
+        return make_text_node (text, length);
+
+    result = g_string_new ("");
+    last_c = '\0';
+    for (int i = 0; text[i] != '\0' && (length == -1 || i < length); i++) {
+        gchar c = text[i];
+        if (isspace (c)) {
+            if (!isspace (last_c))
+                g_string_append_c (result, ' ');
+        }
+        else
+            g_string_append_c (result, c);
+        last_c = c;
+    }
+
+    return make_text_node (result->str, -1);
 }
 
 SnapdMarkdownNode *
@@ -578,7 +605,7 @@ markup_inline (SnapdMarkdownParser *parser, const gchar *text)
             }
             else
             {
-                 g_ptr_array_add (nodes, make_text_node (text + start, size));
+                 g_ptr_array_add (nodes, make_paragraph_text_node (parser, text + start, size));
                  i = start + size;
             }
 
@@ -614,7 +641,7 @@ markup_inline (SnapdMarkdownParser *parser, const gchar *text)
                 info->can_open_emphasis = is_left_flanking;
                 info->can_close_emphasis = is_right_flanking;
             }
-            node = make_text_node (text + start, i - start);
+            node = make_paragraph_text_node (parser, text + start, i - start);
             g_ptr_array_add (nodes, node);
             g_hash_table_insert (emphasis_info, node, g_steal_pointer (&info));
             continue;
@@ -630,7 +657,7 @@ markup_inline (SnapdMarkdownParser *parser, const gchar *text)
 
             i++;
         }
-        g_ptr_array_add (nodes, make_text_node (text + start, i - start));
+        g_ptr_array_add (nodes, make_paragraph_text_node (parser, text + start, i - start));
     }
 
     /* Convert nodes into emphasis */
@@ -843,6 +870,42 @@ SnapdMarkdownParser *
 snapd_markdown_parser_new (SnapdMarkdownVersion version)
 {
     return g_object_new (SNAPD_TYPE_MARKDOWN_PARSER, NULL);
+}
+
+/**
+ * snapd_markdown_parser_set_preserve_whitespace:
+ * @parser: a #SnapdMarkdownParser.
+ * @preserve_whitespace: %TRUE if the parse should keep paragraph whitespace intact.
+ *
+ * Consecutive paragraph whitespace (space, tabs, newlines) is automatically
+ * combined into a single space character. This renders the paragraphs in the
+ * form that HTML uses. If you need the original whitespace that the markdown
+ * author wrote then set this to %FALSE.
+ *
+ * Since: 1.48
+ */
+void
+snapd_markdown_parser_set_preserve_whitespace (SnapdMarkdownParser *parser, gboolean preserve_whitespace)
+{
+    g_return_if_fail (SNAPD_IS_MARKDOWN_PARSER (parser));
+    parser->preserve_whitespace = preserve_whitespace;
+}
+
+/**
+ * snapd_markdown_parser_get_preserve_whitespace:
+ * @parser: a #SnapdMarkdownParser.
+ *
+ * Check if paragraph whitespace will be kept intact.
+ *
+ * Returns: %TRUE if paragraph whitespace is preserved.
+ *
+ * Since: 1.48
+ */
+gboolean
+snapd_markdown_parser_get_preserve_whitespace (SnapdMarkdownParser *parser)
+{
+    g_return_val_if_fail (SNAPD_IS_MARKDOWN_PARSER (parser), FALSE);
+    return parser->preserve_whitespace;
 }
 
 /**

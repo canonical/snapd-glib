@@ -534,6 +534,8 @@ snapd_maintenance_kind_get_type
 SnapdMarkdownParser
 SnapdMarkdownVersion
 snapd_markdown_parser_new
+snapd_markdown_parser_get_preserve_whitespace
+snapd_markdown_parser_set_preserve_whitespace
 snapd_markdown_parser_parse
 
 <SUBSECTION Private>

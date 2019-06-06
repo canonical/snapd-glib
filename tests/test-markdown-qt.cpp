@@ -96,6 +96,7 @@ static QString
 parse (const QString &text)
 {
     QSnapdMarkdownParser parser (QSnapdMarkdownParser::MarkdownVersion0);
+    parser.setPreserveWhitespace (true);
     QList<QSnapdMarkdownNode> nodes = parser.parse (text);
     QString result;
     for (int i = 0; i < nodes.size (); i++)
@@ -839,6 +840,37 @@ test_markdown_urls ()
     g_assert (url16 == "<p><url>https://localhost/</url>,</p>");
 }
 
+static QString
+parse_whitespace (const QString &text)
+{
+    QSnapdMarkdownParser parser (QSnapdMarkdownParser::MarkdownVersion0);
+    g_assert_false (parser.preserveWhitespace ());
+    QList<QSnapdMarkdownNode> nodes = parser.parse (text);
+    QString result;
+    for (int i = 0; i < nodes.size (); i++)
+        result += serialize_node (nodes[i]);
+    return result;
+}
+
+static void
+test_markdown_whitespace ()
+{
+    QString whitespace0 = parse_whitespace ("Inter  word");
+    g_assert (whitespace0 == "<p>Inter word</p>\n");
+
+    QString whitespace1 = parse_whitespace ("Inter    word");
+    g_assert (whitespace1 == "<p>Inter word</p>\n");
+
+    QString whitespace2 = parse_whitespace ("New\nline");
+    g_assert (whitespace2 == "<p>New line</p>\n");
+
+    QString whitespace3 = parse_whitespace ("New \n line");
+    g_assert (whitespace3 == "<p>New line</p>\n");
+
+    QString whitespace4 = parse_whitespace ("A  *very  emphasised*  line");
+    g_assert (whitespace4 == "<p>A <em>very emphasised</em> line</p>\n");
+}
+
 int
 main (int argc, char **argv)
 {
@@ -856,6 +888,7 @@ main (int argc, char **argv)
     g_test_add_func ("/markdown/emphasis", test_markdown_emphasis);
     g_test_add_func ("/markdown/textual-content", test_markdown_textual_content);
     g_test_add_func ("/markdown/urls", test_markdown_urls);
+    g_test_add_func ("/markdown/whitespace", test_markdown_whitespace);
 
     return g_test_run ();
 }

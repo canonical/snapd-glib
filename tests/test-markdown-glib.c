@@ -109,6 +109,7 @@ static gchar *
 parse (const gchar *text)
 {
     g_autoptr(SnapdMarkdownParser) parser = snapd_markdown_parser_new (SNAPD_MARKDOWN_VERSION_0);
+    snapd_markdown_parser_set_preserve_whitespace (parser, TRUE);
     g_autoptr(GPtrArray) nodes = snapd_markdown_parser_parse (parser, text);
     return serialize_nodes (nodes);
 }
@@ -854,6 +855,34 @@ test_markdown_urls (void)
     g_assert_cmpstr (url16, ==, "<p><url>https://localhost/</url>,</p>");
 }
 
+static gchar *
+parse_whitespace (const gchar *text)
+{
+    g_autoptr(SnapdMarkdownParser) parser = snapd_markdown_parser_new (SNAPD_MARKDOWN_VERSION_0);
+    g_assert_false (snapd_markdown_parser_get_preserve_whitespace (parser));
+    g_autoptr(GPtrArray) nodes = snapd_markdown_parser_parse (parser, text);
+    return serialize_nodes (nodes);
+}
+
+static void
+test_markdown_whitespace (void)
+{
+    g_autofree gchar *whitespace0 = parse_whitespace ("Inter  word");
+    g_assert_cmpstr (whitespace0, ==, "<p>Inter word</p>\n");
+
+    g_autofree gchar *whitespace1 = parse_whitespace ("Inter    word");
+    g_assert_cmpstr (whitespace1, ==, "<p>Inter word</p>\n");
+
+    g_autofree gchar *whitespace2 = parse_whitespace ("New\nline");
+    g_assert_cmpstr (whitespace2, ==, "<p>New line</p>\n");
+
+    g_autofree gchar *whitespace3 = parse_whitespace ("New \n line");
+    g_assert_cmpstr (whitespace3, ==, "<p>New line</p>\n");
+
+    g_autofree gchar *whitespace4 = parse_whitespace ("A  *very  emphasised*  line");
+    g_assert_cmpstr (whitespace4, ==, "<p>A <em>very emphasised</em> line</p>\n");
+}
+
 int
 main (int argc, char **argv)
 {
@@ -871,6 +900,7 @@ main (int argc, char **argv)
     g_test_add_func ("/markdown/emphasis", test_markdown_emphasis);
     g_test_add_func ("/markdown/textual-content", test_markdown_textual_content);
     g_test_add_func ("/markdown/urls", test_markdown_urls);
+    g_test_add_func ("/markdown/whitespace", test_markdown_whitespace);
 
     return g_test_run ();
 }
