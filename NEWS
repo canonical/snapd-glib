@@ -42,6 +42,7 @@ Overview of changes in snapd-glib 1.48
       - snapd_slot_get_connected_plugs
       - snapd_slot_ref_get_slot
       - snapd_slot_ref_get_snap
+      - SNAPD_ERROR_OPTION_NOT_FOUND
     * Deprecated API:
       - snapd_client_get_interfaces_async
       - snapd_client_get_interfaces_finish
