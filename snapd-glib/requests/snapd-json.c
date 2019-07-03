@@ -745,7 +745,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
         snap_status = SNAPD_SNAP_STATUS_ACTIVE;
 
     apps = _snapd_json_get_array (object, "apps");
-    apps_array = g_ptr_array_new ();
+    apps_array = g_ptr_array_new_with_free_func (g_object_unref);
     for (i = 0; i < json_array_get_length (apps); i++) {
         JsonNode *node = json_array_get_element (apps, i);
         SnapdApp *app;
