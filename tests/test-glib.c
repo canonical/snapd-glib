@@ -146,10 +146,10 @@ static void
 test_client_set_socket_path (void)
 {
     g_autoptr(SnapdClient) client = NULL;
-    const gchar *default_path;
+    g_autofree gchar *default_path = NULL;
 
     client = snapd_client_new ();
-    default_path = snapd_client_get_socket_path (client);
+    default_path = g_strdup (snapd_client_get_socket_path (client));
 
     snapd_client_set_socket_path (client, "first.sock");
     g_assert_cmpstr (snapd_client_get_socket_path (client), ==, "first.sock");
