@@ -667,7 +667,7 @@ _snapd_json_parse_system_information (JsonNode *node, GError **error)
                          "on-classic", _snapd_json_get_bool (object, "on-classic", FALSE),
                          "os-id", os_release != NULL ? _snapd_json_get_string (os_release, "id", NULL) : NULL,
                          "os-version", os_release != NULL ? _snapd_json_get_string (os_release, "version-id", NULL) : NULL,
-                         "sandbox-features", g_steal_pointer (&sandbox_features_hash),
+                         "sandbox-features", sandbox_features_hash,
                          "series", _snapd_json_get_string (object, "series", NULL),
                          "store", _snapd_json_get_string (object, "store", NULL),
                          "version", _snapd_json_get_string (object, "version", NULL),
