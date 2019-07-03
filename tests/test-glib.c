@@ -2759,7 +2759,7 @@ test_get_assertions_sync (void)
 {
     g_autoptr(MockSnapd) snapd = NULL;
     g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) assertions;
+    g_auto(GStrv) assertions = NULL;
     g_autoptr(GError) error = NULL;
 
     snapd = mock_snapd_new ();
@@ -3354,7 +3354,10 @@ test_get_connections_attributes (void)
     SnapdConnection *connection;
     SnapdPlug *plug;
     SnapdSlot *slot;
-    GStrv names;
+    g_auto(GStrv) plug_attribute_names = NULL;
+    g_auto(GStrv) slot_attribute_names = NULL;
+    g_auto(GStrv) plug_names = NULL;
+    g_auto(GStrv) slot_names = NULL;
     guint names_length;
     GVariant *value;
     g_autoptr(GError) error = NULL;
@@ -3387,8 +3390,8 @@ test_get_connections_attributes (void)
     g_assert_cmpint (established->len, ==, 1);
 
     connection = established->pdata[0];
-    names = snapd_connection_get_plug_attribute_names (connection, &names_length);
-    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key,plug-number-key");
+    plug_attribute_names = snapd_connection_get_plug_attribute_names (connection, &names_length);
+    check_names_match (plug_attribute_names, names_length, "plug-string-key,plug-int-key,plug-bool-key,plug-number-key");
     g_assert_true (snapd_connection_has_plug_attribute (connection, "plug-string-key"));
     value = snapd_connection_get_plug_attribute (connection, "plug-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -3408,8 +3411,8 @@ test_get_connections_attributes (void)
     g_assert_false (snapd_connection_has_plug_attribute (connection, "plug-invalid-key"));
     g_assert_null (snapd_connection_get_plug_attribute (connection, "plug-invalid-key"));
 
-    names = snapd_connection_get_slot_attribute_names (connection, &names_length);
-    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key,slot-number-key");
+    slot_attribute_names = snapd_connection_get_slot_attribute_names (connection, &names_length);
+    check_names_match (slot_attribute_names, names_length, "slot-string-key,slot-int-key,slot-bool-key,slot-number-key");
     g_assert_true (snapd_connection_has_slot_attribute (connection, "slot-string-key"));
     value = snapd_connection_get_slot_attribute (connection, "slot-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -3432,8 +3435,8 @@ test_get_connections_attributes (void)
     g_assert_cmpint (plugs->len, ==, 1);
 
     plug = plugs->pdata[0];
-    names = snapd_plug_get_attribute_names (plug, &names_length);
-    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key,plug-number-key");
+    plug_names = snapd_plug_get_attribute_names (plug, &names_length);
+    check_names_match (plug_names, names_length, "plug-string-key,plug-int-key,plug-bool-key,plug-number-key");
     g_assert_true (snapd_plug_has_attribute (plug, "plug-string-key"));
     value = snapd_plug_get_attribute (plug, "plug-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -3458,8 +3461,8 @@ test_get_connections_attributes (void)
     g_assert_cmpint (slots->len, ==, 1);
 
     slot = slots->pdata[0];
-    names = snapd_slot_get_attribute_names (slot, &names_length);
-    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key,slot-number-key");
+    slot_names = snapd_slot_get_attribute_names (slot, &names_length);
+    check_names_match (slot_names, names_length, "slot-string-key,slot-int-key,slot-bool-key,slot-number-key");
     g_assert_true (snapd_slot_has_attribute (slot, "slot-string-key"));
     value = snapd_slot_get_attribute (slot, "slot-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -3657,7 +3660,8 @@ test_get_interfaces_attributes (void)
     gboolean result;
     SnapdPlug *plug;
     SnapdSlot *slot;
-    GStrv names;
+    g_auto(GStrv) plug_names = NULL;
+    g_auto(GStrv) slot_names = NULL;
     guint names_length;
     GVariant *value;
     g_autoptr(GError) error = NULL;
@@ -3689,8 +3693,8 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (plugs->len, ==, 1);
 
     plug = plugs->pdata[0];
-    names = snapd_plug_get_attribute_names (plug, &names_length);
-    check_names_match (names, names_length, "plug-string-key,plug-int-key,plug-bool-key");
+    plug_names = snapd_plug_get_attribute_names (plug, &names_length);
+    check_names_match (plug_names, names_length, "plug-string-key,plug-int-key,plug-bool-key");
     g_assert_true (snapd_plug_has_attribute (plug, "plug-string-key"));
     value = snapd_plug_get_attribute (plug, "plug-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
@@ -3711,8 +3715,8 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (slots->len, ==, 1);
 
     slot = slots->pdata[0];
-    names = snapd_slot_get_attribute_names (slot, &names_length);
-    check_names_match (names, names_length, "slot-string-key,slot-int-key,slot-bool-key");
+    slot_names = snapd_slot_get_attribute_names (slot, &names_length);
+    check_names_match (slot_names, names_length, "slot-string-key,slot-int-key,slot-bool-key");
     g_assert_true (snapd_slot_has_attribute (slot, "slot-string-key"));
     value = snapd_slot_get_attribute (slot, "slot-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));

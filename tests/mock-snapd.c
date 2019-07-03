@@ -1697,6 +1697,7 @@ mock_snapd_connect (MockSnapd *snapd, MockPlug *plug, MockSlot *slot, gboolean m
             if (connection->plug == plug) {
                 if (!connection->manual)
                     autoconnected_slot = connection->slot;
+                mock_connection_free (connection);
                 continue;
             }
             snapd->established_connections = g_list_append (snapd->established_connections, connection);
