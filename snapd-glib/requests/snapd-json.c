@@ -594,6 +594,9 @@ _snapd_json_parse_system_information (JsonNode *node, GError **error)
     SnapdSystemConfinement confinement = SNAPD_SYSTEM_CONFINEMENT_UNKNOWN;
     JsonObject *os_release, *locations, *refresh, *sandbox_features;
     g_autoptr(GHashTable) sandbox_features_hash = NULL;
+    g_autoptr(GDateTime) refresh_hold = NULL;
+    g_autoptr(GDateTime) refresh_last = NULL;
+    g_autoptr(GDateTime) refresh_next = NULL;
 
     if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
         g_set_error (error,
@@ -650,6 +653,10 @@ _snapd_json_parse_system_information (JsonNode *node, GError **error)
         }
     }
 
+    refresh_hold = _snapd_json_get_date_time (refresh, "hold");
+    refresh_last = _snapd_json_get_date_time (refresh, "last");
+    refresh_next = _snapd_json_get_date_time (refresh, "next");
+
     return g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
                          "binaries-directory", locations != NULL ? _snapd_json_get_string (locations, "snap-bin-dir", NULL) : NULL,
                          "build-id", _snapd_json_get_string (object, "build-id", NULL),
@@ -664,9 +671,9 @@ _snapd_json_parse_system_information (JsonNode *node, GError **error)
                          "series", _snapd_json_get_string (object, "series", NULL),
                          "store", _snapd_json_get_string (object, "store", NULL),
                          "version", _snapd_json_get_string (object, "version", NULL),
-                         "refresh-hold", _snapd_json_get_date_time (refresh, "hold"),
-                         "refresh-last", _snapd_json_get_date_time (refresh, "last"),
-                         "refresh-next", _snapd_json_get_date_time (refresh, "next"),
+                         "refresh-hold", refresh_hold,
+                         "refresh-last", refresh_last,
+                         "refresh-next", refresh_next,
                          "refresh-schedule", _snapd_json_get_string (refresh, "schedule", NULL),
                          "refresh-timer", _snapd_json_get_string (refresh, "timer", NULL),
                          NULL);
@@ -761,6 +768,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
         while (json_object_iter_next (&iter, &name, &channel_node)) {
             JsonObject *c;
             SnapdConfinement confinement;
+            g_autoptr(GDateTime) released_at = NULL;
             g_autoptr(SnapdChannel) channel = NULL;
 
             if (json_node_get_value_type (channel_node) != JSON_TYPE_OBJECT) {
@@ -770,12 +778,13 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
             c = json_node_get_object (channel_node);
 
             confinement = parse_confinement (_snapd_json_get_string (c, "confinement", ""));
+            released_at = _snapd_json_get_date_time (c, "released-at");
 
             channel = g_object_new (SNAPD_TYPE_CHANNEL,
                                     "confinement", confinement,
                                     "epoch", _snapd_json_get_string (c, "epoch", NULL),
                                     "name", _snapd_json_get_string (c, "channel", NULL),
-                                    "released-at", _snapd_json_get_date_time (c, "released-at"),
+                                    "released-at", released_at,
                                     "revision", _snapd_json_get_string (c, "revision", NULL),
                                     "size", _snapd_json_get_int (c, "size", 0),
                                     "version", _snapd_json_get_string (c, "version", NULL),
