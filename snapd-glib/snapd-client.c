@@ -2130,7 +2130,7 @@ snapd_client_get_interfaces2_async (SnapdClient *client,
                                     GAsyncReadyCallback callback,
                                     gpointer user_data)
 {
-    SnapdGetInterfaces *request;
+    g_autoptr(SnapdGetInterfaces) request = NULL;
 
     g_return_if_fail (SNAPD_IS_CLIENT (client));
 
