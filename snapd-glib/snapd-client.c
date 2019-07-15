@@ -1954,7 +1954,7 @@ snapd_client_add_assertions_finish (SnapdClient *self, GAsyncResult *result, GEr
  * See snapd_client_get_interfaces_sync() for more information.
  *
  * Since: 1.0
- * Deprecated: 1.48: Use snapd_client_get_connections_async()
+ * Deprecated: 1.48: Use snapd_client_get_connections2_async()
  */
 void
 snapd_client_get_interfaces_async (SnapdClient *self,
@@ -1980,7 +1980,7 @@ snapd_client_get_interfaces_async (SnapdClient *self,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.0
- * Deprecated: 1.48: Use snapd_client_get_connections_finish()
+ * Deprecated: 1.48: Use snapd_client_get_connections2_finish()
  */
 gboolean
 snapd_client_get_interfaces_finish (SnapdClient *self, GAsyncResult *result,
@@ -2076,15 +2076,13 @@ snapd_client_get_interfaces2_finish (SnapdClient *self,
  * See snapd_client_get_connections_sync() for more information.
  *
  * Since: 1.48
+ * Deprecated: 1.49: Use snapd_client_get_connections2_async()
  */
 void
 snapd_client_get_connections_async (SnapdClient *self,
-                                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+                                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    g_return_if_fail (SNAPD_IS_CLIENT (self));
-
-    g_autoptr(SnapdGetConnections) request = _snapd_get_connections_new (cancellable, callback, user_data);
-    send_request (self, SNAPD_REQUEST (request));
+    snapd_client_get_connections2_async (self, SNAPD_GET_CONNECTIONS_FLAGS_NONE, NULL, NULL, cancellable, callback, user_data);
 }
 
 /**
@@ -2103,12 +2101,68 @@ snapd_client_get_connections_async (SnapdClient *self,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.48
+ * Deprecated: 1.49: Use snapd_client_get_connections2_finish()
  */
 gboolean
 snapd_client_get_connections_finish (SnapdClient *self, GAsyncResult *result,
                                      GPtrArray **established, GPtrArray **undesired,
                                      GPtrArray **plugs, GPtrArray **slots,
                                      GError **error)
+{
+    return snapd_client_get_connections2_finish (self, result, established, undesired, plugs, slots, error);
+}
+
+/**
+ * snapd_client_get_connections2_async:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdGetConnectionsFlags to control what results are returned.
+ * @snap: (allow-none): the name of the snap to get connections for or %NULL for all snaps.
+ * @interface: (allow-none): the name of the interface to get connections for or %NULL for all interfaces.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get the installed snap connections.
+ * See snapd_client_get_connections_sync() for more information.
+ *
+ * Since: 1.49
+ */
+void
+snapd_client_get_connections2_async (SnapdClient *self,
+                                     SnapdGetConnectionsFlags flags, const gchar *snap, const gchar *interface,
+                                     GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    const gchar *select = NULL;
+    if ((flags & SNAPD_GET_CONNECTIONS_FLAGS_SELECT_ALL) != 0)
+        select = "all";
+    g_autoptr(SnapdGetConnections) request = _snapd_get_connections_new (snap, interface, select, cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_connections2_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @established: (out) (allow-none) (transfer container) (element-type SnapdConnection): the location to store the array of connections or %NULL.
+ * @undesired: (out) (allow-none) (transfer container) (element-type SnapdConnection): the location to store the array of auto-connected connections that have been manually disconnected or %NULL.
+ * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the location to store the array of #SnapdPlug or %NULL.
+ * @slots: (out) (allow-none) (transfer container) (element-type SnapdSlot): the location to store the array of #SnapdSlot or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_connections_async().
+ * See snapd_client_get_connections_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.49
+ */
+gboolean
+snapd_client_get_connections2_finish (SnapdClient *self, GAsyncResult *result,
+                                      GPtrArray **established, GPtrArray **undesired,
+                                      GPtrArray **plugs, GPtrArray **slots,
+                                      GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (SNAPD_IS_GET_CONNECTIONS (result), FALSE);

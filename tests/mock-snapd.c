@@ -3409,13 +3409,37 @@ add_connection (JsonBuilder *builder, MockConnection *connection)
     json_builder_end_object (builder);
 }
 
+static gboolean
+matches_name (MockSnap *snap, const gchar *name)
+{
+    return name == NULL || strcmp (snap->name, name) == 0;
+}
+
+static gboolean
+matches_interface_name (MockInterface *interface, const gchar *name)
+{
+    return name == NULL || strcmp (interface->name, name) == 0;
+}
+
 static void
-handle_connections (MockSnapd *self, SoupMessage *message)
+handle_connections (MockSnapd *self, SoupMessage *message, GHashTable *query)
 {
     if (strcmp (message->method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
         return;
     }
+
+    const gchar *snap_name = query != NULL ? g_hash_table_lookup (query, "snap") : NULL;
+    const gchar *interface_name = query != NULL ? g_hash_table_lookup (query, "interface") : NULL;
+    const gchar *select = query != NULL ? g_hash_table_lookup (query, "select") : NULL;
+
+    if (select != NULL && strcmp (select, "all") != 0) {
+        send_error_bad_request (self, message, "unsupported select qualifier", NULL);
+        return;
+    }
+    gboolean only_connected = TRUE;
+    if (g_strcmp0 (select, "all") == 0)
+        only_connected = FALSE;
 
     g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -3424,14 +3448,27 @@ handle_connections (MockSnapd *self, SoupMessage *message)
     json_builder_begin_array (builder);
     for (GList *link = self->established_connections; link; link = link->next) {
         MockConnection *connection = link->data;
-        add_connection (builder, connection);
+
+        if (matches_name (connection->plug->snap, snap_name) || matches_name (connection->slot->snap, snap_name))
+            add_connection (builder, connection);
     }
     json_builder_end_array (builder);
 
-    if (self->undesired_connections != NULL) {
+    g_autoptr(GList) undesired_connections = NULL;
+    for (GList *link = self->undesired_connections; link; link = link->next) {
+         MockConnection *connection = link->data;
+
+         if (only_connected && snap_name == NULL)
+             continue;
+         if (!matches_name (connection->plug->snap, snap_name) && !matches_name (connection->slot->snap, snap_name))
+             continue;
+
+         undesired_connections = g_list_append (undesired_connections, connection);
+    }
+    if (undesired_connections != NULL) {
         json_builder_set_member_name (builder, "undesired");
         json_builder_begin_array (builder);
-        for (GList *link = self->undesired_connections; link; link = link->next) {
+        for (GList *link = undesired_connections; link; link = link->next) {
             MockConnection *connection = link->data;
             add_connection (builder, connection);
         }
@@ -3446,12 +3483,28 @@ handle_connections (MockSnapd *self, SoupMessage *message)
         for (GList *l = snap->plugs; l; l = l->next) {
             MockPlug *plug = l->data;
 
+            if (!matches_interface_name (plug->interface, interface_name))
+                 continue;
+
+            if (!matches_name (snap, snap_name) && !matches_name (plug->snap, snap_name))
+                continue;
+
             g_autoptr(GList) slots = NULL;
             for (GList *l2 = self->established_connections; l2; l2 = l2->next) {
                 MockConnection *connection = l2->data;
+
+                if (!matches_name (snap, snap_name) && !matches_name (connection->slot->snap, snap_name))
+                    continue;
+
                 if (connection->plug == plug)
                     slots = g_list_append (slots, connection->slot);
             }
+
+            if (!matches_name (snap, snap_name) && slots == NULL)
+                 continue;
+
+            if (only_connected && slots == NULL)
+                 continue;
 
             json_builder_begin_object (builder);
             json_builder_set_member_name (builder, "snap");
@@ -3492,12 +3545,25 @@ handle_connections (MockSnapd *self, SoupMessage *message)
         for (GList *l = snap->slots_; l; l = l->next) {
             MockSlot *slot = l->data;
 
+            if (!matches_interface_name (slot->interface, interface_name))
+                 continue;
+
             g_autoptr(GList) plugs = NULL;
             for (GList *l2 = self->established_connections; l2; l2 = l2->next) {
                 MockConnection *connection = l2->data;
+
+                if (!matches_name (snap, snap_name) && !matches_name (connection->plug->snap, snap_name))
+                    continue;
+
                 if (connection->slot == slot)
                     plugs = g_list_append (plugs, connection->plug);
             }
+
+            if (!matches_name (snap, snap_name) && plugs == NULL)
+                 continue;
+
+            if (only_connected && plugs == NULL)
+                 continue;
 
             json_builder_begin_object (builder);
             json_builder_set_member_name (builder, "snap");
@@ -3767,12 +3833,6 @@ static gboolean
 matches_query (MockSnap *snap, const gchar *query)
 {
     return query == NULL || strstr (snap->name, query) != NULL;
-}
-
-static gboolean
-matches_name (MockSnap *snap, const gchar *name)
-{
-    return name == NULL || strcmp (snap->name, name) == 0;
 }
 
 static gboolean
@@ -4368,7 +4428,7 @@ handle_request (SoupServer        *server,
     else if (strcmp (path, "/v2/interfaces") == 0)
         handle_interfaces (self, message, query);
     else if (strcmp (path, "/v2/connections") == 0)
-        handle_connections (self, message);
+        handle_connections (self, message, query);
     else if (strcmp (path, "/v2/changes") == 0)
         handle_changes (self, message, query);
     else if (g_str_has_prefix (path, "/v2/changes/"))

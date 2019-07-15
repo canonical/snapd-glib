@@ -20,6 +20,9 @@
 struct _SnapdGetConnections
 {
     SnapdRequest parent_instance;
+    gchar *snap;
+    gchar *interface;
+    gchar *select;
     GPtrArray *established;
     GPtrArray *plugs;
     GPtrArray *slots;
@@ -29,13 +32,19 @@ struct _SnapdGetConnections
 G_DEFINE_TYPE (SnapdGetConnections, snapd_get_connections, snapd_request_get_type ())
 
 SnapdGetConnections *
-_snapd_get_connections_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_get_connections_new (const gchar *snap, const gchar *interface, const gchar *select,
+                            GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    return SNAPD_GET_CONNECTIONS (g_object_new (snapd_get_connections_get_type (),
-                                                "cancellable", cancellable,
-                                                "ready-callback", callback,
-                                                "ready-callback-data", user_data,
-                                                NULL));
+    SnapdGetConnections *self = SNAPD_GET_CONNECTIONS (g_object_new (snapd_get_connections_get_type (),
+                                                                     "cancellable", cancellable,
+                                                                     "ready-callback", callback,
+                                                                     "ready-callback-data", user_data,
+                                                                     NULL));
+    self->snap = g_strdup (snap);
+    self->interface = g_strdup (interface);
+    self->select = g_strdup (select);
+
+    return self;
 }
 
 GPtrArray *
@@ -65,7 +74,27 @@ _snapd_get_connections_get_undesired (SnapdGetConnections *self)
 static SoupMessage *
 generate_get_connections_request (SnapdRequest *request)
 {
-    return soup_message_new ("GET", "http://snapd/v2/connections");
+    SnapdGetConnections *self = SNAPD_GET_CONNECTIONS (request);
+
+    g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
+    if (self->snap != NULL)
+        g_ptr_array_add (query_attributes, g_strdup_printf ("snap=%s", self->snap));
+    if (self->interface != NULL)
+        g_ptr_array_add (query_attributes, g_strdup_printf ("interface=%s", self->interface));
+    if (self->select != NULL)
+        g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", self->select));
+
+    g_autoptr(GString) path = g_string_new ("http://snapd/v2/connections");
+    if (query_attributes->len > 0) {
+        g_string_append_c (path, '?');
+        for (guint i = 0; i < query_attributes->len; i++) {
+            if (i != 0)
+                g_string_append_c (path, '&');
+            g_string_append (path, (gchar *) query_attributes->pdata[i]);
+        }
+    }
+
+    return soup_message_new ("GET", path->str);
 }
 
 static gboolean
@@ -141,6 +170,9 @@ snapd_get_connections_finalize (GObject *object)
 {
     SnapdGetConnections *self = SNAPD_GET_CONNECTIONS (object);
 
+    g_clear_pointer (&self->snap, g_free);
+    g_clear_pointer (&self->interface, g_free);
+    g_clear_pointer (&self->select, g_free);
     g_clear_pointer (&self->established, g_ptr_array_unref);
     g_clear_pointer (&self->plugs, g_ptr_array_unref);
     g_clear_pointer (&self->slots, g_ptr_array_unref);
