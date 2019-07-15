@@ -377,7 +377,25 @@ QSnapdGetConnectionsRequest::~QSnapdGetConnectionsRequest ()
 QSnapdGetConnectionsRequest *QSnapdClient::getConnections ()
 {
     Q_D(QSnapdClient);
-    return new QSnapdGetConnectionsRequest (d->client);
+    return new QSnapdGetConnectionsRequest (0, QString (), QString (), d->client);
+}
+
+QSnapdGetConnectionsRequest *QSnapdClient::getConnections (GetConnectionsFlags flags)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetConnectionsRequest (flags, QString (), QString (), d->client);
+}
+
+QSnapdGetConnectionsRequest *QSnapdClient::getConnections (const QString &snap, const QString &interface)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetConnectionsRequest (0, snap, interface, d->client);
+}
+
+QSnapdGetConnectionsRequest *QSnapdClient::getConnections (GetConnectionsFlags flags, const QString &snap, const QString &interface)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetConnectionsRequest (flags, snap, interface, d->client);
 }
 
 QSnapdGetInterfacesRequest::~QSnapdGetInterfacesRequest ()
@@ -1622,15 +1640,25 @@ void QSnapdAddAssertionsRequest::runAsync ()
     snapd_client_add_assertions_async (SNAPD_CLIENT (getClient ()), assertions, G_CANCELLABLE (getCancellable ()), add_assertions_ready_cb, (gpointer) this);
 }
 
-QSnapdGetConnectionsRequest::QSnapdGetConnectionsRequest (void *snapd_client, QObject *parent) :
+static SnapdGetConnectionsFlags convertGetConnectionsFlags (int flags)
+{
+    int result = SNAPD_GET_CONNECTIONS_FLAGS_NONE;
+
+    if ((flags & QSnapdClient::GetConnectionsFlag::SelectAll) != 0)
+        result |= SNAPD_GET_CONNECTIONS_FLAGS_SELECT_ALL;
+
+    return (SnapdGetConnectionsFlags) result;
+}
+
+QSnapdGetConnectionsRequest::QSnapdGetConnectionsRequest (int flags, const QString &snap, const QString &interface, void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdGetConnectionsRequestPrivate ()) {}
+    d_ptr (new QSnapdGetConnectionsRequestPrivate (flags, snap, interface)) {}
 
 void QSnapdGetConnectionsRequest::runSync ()
 {
     Q_D(QSnapdGetConnectionsRequest);
     g_autoptr(GError) error = NULL;
-    snapd_client_get_connections_sync (SNAPD_CLIENT (getClient ()), &d->established, &d->undesired, &d->plugs, &d->slots_, G_CANCELLABLE (getCancellable ()), &error);
+    snapd_client_get_connections2_sync (SNAPD_CLIENT (getClient ()), convertGetConnectionsFlags (d->flags), d->snap.isNull () ? NULL : d->snap.toStdString ().c_str (), d->interface.isNull () ? NULL : d->interface.toStdString ().c_str (), &d->established, &d->undesired, &d->plugs, &d->slots_, G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -1642,7 +1670,7 @@ void QSnapdGetConnectionsRequest::handleResult (void *object, void *result)
     g_autoptr(GPtrArray) slots_ = NULL;
     g_autoptr(GError) error = NULL;
 
-    snapd_client_get_connections_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &established, &undesired, &plugs, &slots_, &error);
+    snapd_client_get_connections2_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &established, &undesired, &plugs, &slots_, &error);
 
     Q_D(QSnapdGetConnectionsRequest);
     d->established = (GPtrArray*) g_steal_pointer (&established);
@@ -1660,7 +1688,8 @@ static void get_connections_ready_cb (GObject *object, GAsyncResult *result, gpo
 
 void QSnapdGetConnectionsRequest::runAsync ()
 {
-    snapd_client_get_connections_async (SNAPD_CLIENT (getClient ()), G_CANCELLABLE (getCancellable ()), get_connections_ready_cb, (gpointer) this);
+    Q_D(QSnapdGetConnectionsRequest);
+    snapd_client_get_connections2_async (SNAPD_CLIENT (getClient ()), convertGetConnectionsFlags (d->flags), d->snap.isNull () ? NULL : d->snap.toStdString ().c_str (), d->interface.isNull () ? NULL : d->interface.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), get_connections_ready_cb, (gpointer) this);
 }
 
 int QSnapdGetConnectionsRequest::establishedCount () const

@@ -227,6 +227,8 @@ public:
 class QSnapdGetConnectionsRequestPrivate
 {
 public:
+    QSnapdGetConnectionsRequestPrivate (int flags, const QString &snap, const QString &interface) :
+        flags (flags), snap (snap), interface (interface) {};
     ~QSnapdGetConnectionsRequestPrivate ()
     {
         if (established != NULL)
@@ -238,6 +240,9 @@ public:
         if (slots_ != NULL)
             g_ptr_array_unref (slots_);
     }
+    int flags;
+    QString snap;
+    QString interface;
     GPtrArray *established = NULL;
     GPtrArray *undesired = NULL;
     GPtrArray *plugs = NULL;

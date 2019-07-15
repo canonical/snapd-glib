@@ -92,6 +92,21 @@ typedef enum
 } SnapdGetAppsFlags;
 
 /**
+ * SnapdGetConnectionsFlags:
+ * @SNAPD_GET_CONNECTIONS_FLAGS_NONE: No flags, default behaviour.
+ * @SNAPD_GET_CONNECTIONS_FLAGS_SELECT_ALL: Select all connections, not just connected ones.
+ *
+ * Flag to change how connections are returned.
+ *
+ * Since: 1.49
+ */
+typedef enum
+{
+    SNAPD_GET_CONNECTIONS_FLAGS_NONE       = 0,
+    SNAPD_GET_CONNECTIONS_FLAGS_SELECT_ALL = 1 << 0,
+} SnapdGetConnectionsFlags;
+
+/**
  * SnapdFindFlags:
  * @SNAPD_FIND_FLAGS_NONE: No flags, default behaviour.
  * @SNAPD_FIND_FLAGS_MATCH_NAME: Search for snaps whose name matches the given
@@ -512,12 +527,37 @@ gboolean                snapd_client_get_connections_sync          (SnapdClient 
                                                                     GPtrArray           **plugs,
                                                                     GPtrArray           **slots,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_connections2_sync);
 void                    snapd_client_get_connections_async         (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_get_connections2_async);
 gboolean                snapd_client_get_connections_finish        (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GPtrArray           **established,
+                                                                    GPtrArray           **undesired,
+                                                                    GPtrArray           **plugs,
+                                                                    GPtrArray           **slots,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_get_connections2_finish);
+
+gboolean                snapd_client_get_connections2_sync         (SnapdClient          *client,
+                                                                    SnapdGetConnectionsFlags flags,
+                                                                    const gchar          *snap,
+                                                                    const gchar          *interface,
+                                                                    GPtrArray           **established,
+                                                                    GPtrArray           **undesired,
+                                                                    GPtrArray           **plugs,
+                                                                    GPtrArray           **slots,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_connections2_async        (SnapdClient          *client,
+                                                                    SnapdGetConnectionsFlags flags,
+                                                                    const gchar          *snap,
+                                                                    const gchar          *interface,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_get_connections2_finish       (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GPtrArray           **established,
                                                                     GPtrArray           **undesired,

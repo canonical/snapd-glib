@@ -333,7 +333,7 @@ class Q_DECL_EXPORT QSnapdGetConnectionsRequest : public QSnapdRequest
     Q_PROPERTY(int slotCount READ slotCount)
 
 public:
-    explicit QSnapdGetConnectionsRequest (void *snapd_client, QObject *parent = 0);
+    explicit QSnapdGetConnectionsRequest (int flags, const QString &snap, const QString &interface, void *snapd_client, QObject *parent = 0);
     ~QSnapdGetConnectionsRequest ();
     virtual void runSync ();
     virtual void runAsync ();
@@ -872,6 +872,7 @@ class Q_DECL_EXPORT QSnapdClient : public QObject
     Q_PROPERTY(QString socketPath READ socketPath WRITE setSocketPath)
     Q_PROPERTY(QString userAgent READ userAgent WRITE setUserAgent)
     Q_PROPERTY(bool allowInteraction READ allowInteraction WRITE setAllowInteraction)
+    Q_FLAGS(GetConnectionsFlags)
     Q_FLAGS(FindFlags)
 
 public:
@@ -892,6 +893,11 @@ public:
         SelectServices = 1 << 0
     };
     Q_DECLARE_FLAGS(GetAppsFlags, GetAppsFlag);
+    enum GetConnectionsFlag
+    {
+        SelectAll = 1 << 0
+    };
+    Q_DECLARE_FLAGS(GetConnectionsFlags, GetConnectionsFlag);
     enum FindFlag
     {
         None          = 0,
@@ -966,6 +972,9 @@ public:
     Q_INVOKABLE QSnapdGetAssertionsRequest *getAssertions (const QString &type);
     Q_INVOKABLE QSnapdAddAssertionsRequest *addAssertions (const QStringList &assertions);
     Q_INVOKABLE QSnapdGetConnectionsRequest *getConnections ();
+    Q_INVOKABLE QSnapdGetConnectionsRequest *getConnections (GetConnectionsFlags flags);
+    Q_INVOKABLE QSnapdGetConnectionsRequest *getConnections (const QString &snap, const QString &interface);
+    Q_INVOKABLE QSnapdGetConnectionsRequest *getConnections (GetConnectionsFlags flags, const QString &snap, const QString &interface);
     Q_INVOKABLE QSnapdGetInterfacesRequest *getInterfaces ();
     Q_INVOKABLE QSnapdGetInterfaces2Request *getInterfaces2 ();
     Q_INVOKABLE QSnapdGetInterfaces2Request *getInterfaces2 (InterfaceFlags flags);

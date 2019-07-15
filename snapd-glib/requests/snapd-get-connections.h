@@ -16,7 +16,10 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdGetConnections, snapd_get_connections, SNAPD, GET_CONNECTIONS, SnapdRequest)
 
-SnapdGetConnections *_snapd_get_connections_new             (GCancellable        *cancellable,
+SnapdGetConnections *_snapd_get_connections_new             (const gchar         *snap,
+                                                             const gchar         *interface,
+                                                             const gchar         *select,
+                                                             GCancellable        *cancellable,
                                                              GAsyncReadyCallback  callback,
                                                              gpointer             user_data);
 

@@ -101,6 +101,7 @@ SnapdClientClass
 SnapdChangeFilter
 SnapdGetSnapsFlags
 SnapdGetAppsFlags
+SnapdGetConnectionsFlags
 SnapdFindFlags
 SnapdInstallFlags
 SnapdCreateUserFlags
@@ -180,6 +181,9 @@ snapd_client_get_interfaces2_finish
 snapd_client_get_connections_sync
 snapd_client_get_connections_async
 snapd_client_get_connections_finish
+snapd_client_get_connections2_sync
+snapd_client_get_connections2_async
+snapd_client_get_connections2_finish
 snapd_client_connect_interface_sync
 snapd_client_connect_interface_async
 snapd_client_connect_interface_finish
@@ -276,6 +280,8 @@ SNAPD_TYPE_GET_SNAPS_FLAGS
 snapd_get_snaps_flags_get_type
 SNAPD_TYPE_GET_APPS_FLAGS
 snapd_get_apps_flags_get_type
+SNAPD_TYPE_GET_CONNECTIONS_FLAGS
+snapd_get_connections_flags_get_type
 SNAPD_TYPE_FIND_FLAGS
 snapd_find_flags_get_type
 SNAPD_TYPE_INSTALL_FLAGS
