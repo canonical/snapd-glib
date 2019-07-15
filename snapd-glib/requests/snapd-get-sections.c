@@ -37,29 +37,25 @@ _snapd_get_sections_get_sections (SnapdGetSections *self)
 }
 
 static SoupMessage *
-generate_get_sections_request (SnapdRequest *self)
+generate_get_sections_request (SnapdRequest *request)
 {
     return soup_message_new ("GET", "http://snapd/v2/sections");
 }
 
 static gboolean
-parse_get_sections_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_sections_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetSections *r = SNAPD_GET_SECTIONS (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) result = NULL;
-    g_autoptr(GPtrArray) sections = NULL;
-    guint i;
+    SnapdGetSections *self = SNAPD_GET_SECTIONS (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_a (response, error);
+    g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
     if (result == NULL)
         return FALSE;
 
-    sections = g_ptr_array_new ();
-    for (i = 0; i < json_array_get_length (result); i++) {
+    g_autoptr(GPtrArray) sections = g_ptr_array_new ();
+    for (guint i = 0; i < json_array_get_length (result); i++) {
         JsonNode *node = json_array_get_element (result, i);
         if (json_node_get_value_type (node) != G_TYPE_STRING) {
             g_set_error (error,
@@ -73,7 +69,7 @@ parse_get_sections_response (SnapdRequest *self, SoupMessage *message, SnapdMain
     }
     g_ptr_array_add (sections, NULL);
 
-    r->sections = g_steal_pointer ((GStrv *)&sections->pdata);
+    self->sections = g_steal_pointer ((GStrv *)&sections->pdata);
 
     return TRUE;
 }

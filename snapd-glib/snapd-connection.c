@@ -162,16 +162,14 @@ snapd_connection_get_gadget (SnapdConnection *self)
 GStrv
 snapd_connection_get_slot_attribute_names (SnapdConnection *self, guint *length)
 {
-    GHashTableIter iter;
-    gpointer name;
-    GStrv names;
-    guint size, i;
-
     g_return_val_if_fail (SNAPD_IS_CONNECTION (self), NULL);
 
+    GHashTableIter iter;
     g_hash_table_iter_init (&iter, self->slot_attributes);
-    size = g_hash_table_size (self->slot_attributes);
-    names = g_malloc (sizeof (gchar *) * (size + 1));
+    guint size = g_hash_table_size (self->slot_attributes);
+    GStrv names = g_malloc (sizeof (gchar *) * (size + 1));
+    guint i;
+    gpointer name;
     for (i = 0; g_hash_table_iter_next (&iter, &name, NULL); i++)
         names[i] = g_strdup (name);
     names[i] = NULL;
@@ -231,16 +229,14 @@ snapd_connection_get_slot_attribute (SnapdConnection *self, const gchar *name)
 GStrv
 snapd_connection_get_plug_attribute_names (SnapdConnection *self, guint *length)
 {
-    GHashTableIter iter;
-    gpointer name;
-    GStrv names;
-    guint size, i;
-
     g_return_val_if_fail (SNAPD_IS_CONNECTION (self), NULL);
 
+    GHashTableIter iter;
     g_hash_table_iter_init (&iter, self->plug_attributes);
-    size = g_hash_table_size (self->plug_attributes);
-    names = g_malloc (sizeof (gchar *) * (size + 1));
+    guint size = g_hash_table_size (self->plug_attributes);
+    GStrv names = g_malloc (sizeof (gchar *) * (size + 1));
+    guint i;
+    gpointer name;
     for (i = 0; g_hash_table_iter_next (&iter, &name, NULL); i++)
         names[i] = g_strdup (name);
     names[i] = NULL;

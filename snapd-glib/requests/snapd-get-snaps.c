@@ -24,13 +24,11 @@ G_DEFINE_TYPE (SnapdGetSnaps, snapd_get_snaps, snapd_request_get_type ())
 SnapdGetSnaps *
 _snapd_get_snaps_new (GCancellable *cancellable, GStrv names, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetSnaps *self;
-
-    self = SNAPD_GET_SNAPS (g_object_new (snapd_get_snaps_get_type (),
-                                             "cancellable", cancellable,
-                                             "ready-callback", callback,
-                                             "ready-callback-data", user_data,
-                                             NULL));
+    SnapdGetSnaps *self = SNAPD_GET_SNAPS (g_object_new (snapd_get_snaps_get_type (),
+                                                         "cancellable", cancellable,
+                                                         "ready-callback", callback,
+                                                         "ready-callback-data", user_data,
+                                                         NULL));
    if (names != NULL && names[0] != NULL)
        self->names = g_strdupv (names);
 
@@ -51,26 +49,22 @@ _snapd_get_snaps_get_snaps (SnapdGetSnaps *self)
 }
 
 static SoupMessage *
-generate_get_snaps_request (SnapdRequest *self)
+generate_get_snaps_request (SnapdRequest *request)
 {
-    SnapdGetSnaps *r = SNAPD_GET_SNAPS (self);
-    g_autoptr(GPtrArray) query_attributes = NULL;
-    g_autoptr(GString) path = NULL;
+    SnapdGetSnaps *self = SNAPD_GET_SNAPS (request);
 
-    query_attributes = g_ptr_array_new_with_free_func (g_free);
-    if (r->select != NULL)
-        g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", r->select));
-    if (r->names != NULL) {
-        g_autofree gchar *names_list = g_strjoinv (",", r->names);
+    g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
+    if (self->select != NULL)
+        g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", self->select));
+    if (self->names != NULL) {
+        g_autofree gchar *names_list = g_strjoinv (",", self->names);
         g_ptr_array_add (query_attributes, g_strdup_printf ("snaps=%s", names_list));
     }
 
-    path = g_string_new ("http://snapd/v2/snaps");
+    g_autoptr(GString) path = g_string_new ("http://snapd/v2/snaps");
     if (query_attributes->len > 0) {
-        guint i;
-
         g_string_append_c (path, '?');
-        for (i = 0; i < query_attributes->len; i++) {
+        for (guint i = 0; i < query_attributes->len; i++) {
             if (i != 0)
                 g_string_append_c (path, '&');
             g_string_append (path, (gchar *) query_attributes->pdata[i]);
@@ -81,23 +75,19 @@ generate_get_snaps_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_get_snaps_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_snaps_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetSnaps *r = SNAPD_GET_SNAPS (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) result = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    guint i;
+    SnapdGetSnaps *self = SNAPD_GET_SNAPS (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_a (response, error);
+    g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
     if (result == NULL)
         return FALSE;
 
-    snaps = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (result); i++) {
+    g_autoptr(GPtrArray) snaps = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (result); i++) {
         JsonNode *node = json_array_get_element (result, i);
         SnapdSnap *snap;
 
@@ -108,7 +98,7 @@ parse_get_snaps_response (SnapdRequest *self, SoupMessage *message, SnapdMainten
         g_ptr_array_add (snaps, snap);
     }
 
-    r->snaps = g_steal_pointer (&snaps);
+    self->snaps = g_steal_pointer (&snaps);
 
     return TRUE;
 }

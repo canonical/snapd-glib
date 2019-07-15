@@ -26,13 +26,11 @@ G_DEFINE_TYPE (SnapdPostChange, snapd_post_change, snapd_request_get_type ())
 SnapdPostChange *
 _snapd_post_change_new (const gchar *change_id, const gchar *action, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostChange *self;
-
-    self = SNAPD_POST_CHANGE (g_object_new (snapd_post_change_get_type (),
-                                              "cancellable", cancellable,
-                                              "ready-callback", callback,
-                                              "ready-callback-data", user_data,
-                                              NULL));
+    SnapdPostChange *self = SNAPD_POST_CHANGE (g_object_new (snapd_post_change_get_type (),
+                                                             "cancellable", cancellable,
+                                                             "ready-callback", callback,
+                                                             "ready-callback-data", user_data,
+                                                             NULL));
     self->change_id = g_strdup (change_id);
     self->action = g_strdup (action);
 
@@ -58,20 +56,17 @@ _snapd_post_change_get_data (SnapdPostChange *self)
 }
 
 static SoupMessage *
-generate_post_change_request (SnapdRequest *self)
+generate_post_change_request (SnapdRequest *request)
 {
-    SnapdPostChange *r = SNAPD_POST_CHANGE (self);
-    g_autofree gchar *path = NULL;
-    SoupMessage *message;
-    g_autoptr(JsonBuilder) builder = NULL;
+    SnapdPostChange *self = SNAPD_POST_CHANGE (request);
 
-    path = g_strdup_printf ("http://snapd/v2/changes/%s", r->change_id);
-    message = soup_message_new ("POST", path);
+    g_autofree gchar *path = g_strdup_printf ("http://snapd/v2/changes/%s", self->change_id);
+    SoupMessage *message = soup_message_new ("POST", path);
 
-    builder = json_builder_new ();
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "action");
-    json_builder_add_string_value (builder, r->action);
+    json_builder_add_string_value (builder, self->action);
     json_builder_end_object (builder);
     _snapd_json_set_body (message, builder);
 
@@ -79,27 +74,25 @@ generate_post_change_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_post_change_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_change_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdPostChange *r = SNAPD_POST_CHANGE (self);
-    g_autoptr(JsonObject) response = NULL;
-    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
-    /*g_autoptr(JsonNode) result = NULL;*/
-    JsonNode *result;
+    SnapdPostChange *self = SNAPD_POST_CHANGE (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result (response, error);
+    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
+    /*g_autoptr(JsonNode) result = NULL;*/
+    JsonNode *result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return FALSE;
 
-    r->change = _snapd_json_parse_change (result, error);
+    self->change = _snapd_json_parse_change (result, error);
     json_node_unref (result);
-    if (r->change == NULL)
+    if (self->change == NULL)
         return FALSE;
 
-    if (g_strcmp0 (r->change_id, snapd_change_get_id (r->change)) != 0) {
+    if (g_strcmp0 (self->change_id, snapd_change_get_id (self->change)) != 0) {
         g_set_error (error,
                      SNAPD_ERROR,
                      SNAPD_ERROR_READ_FAILED,
@@ -108,7 +101,7 @@ parse_post_change_response (SnapdRequest *self, SoupMessage *message, SnapdMaint
     }
 
     if (json_object_has_member (json_node_get_object (result), "data"))
-        r->data = json_node_ref (json_object_get_member (json_node_get_object (result), "data"));
+        self->data = json_node_ref (json_object_get_member (json_node_get_object (result), "data"));
 
     return TRUE;
 }

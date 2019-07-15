@@ -25,32 +25,28 @@ SnapdPostAssertions *
 _snapd_post_assertions_new (GStrv assertions,
                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostAssertions *self;
-
-    self = SNAPD_POST_ASSERTIONS (g_object_new (snapd_post_assertions_get_type (),
-                                                   "cancellable", cancellable,
-                                                   "ready-callback", callback,
-                                                   "ready-callback-data", user_data,
-                                                   NULL));
+    SnapdPostAssertions *self = SNAPD_POST_ASSERTIONS (g_object_new (snapd_post_assertions_get_type (),
+                                                                     "cancellable", cancellable,
+                                                                     "ready-callback", callback,
+                                                                     "ready-callback-data", user_data,
+                                                                     NULL));
     self->assertions = g_strdupv (assertions);
 
     return self;
 }
 
 static SoupMessage *
-generate_post_assertions_request (SnapdRequest *self)
+generate_post_assertions_request (SnapdRequest *request)
 {
-    SnapdPostAssertions *r = SNAPD_POST_ASSERTIONS (self);
-    SoupMessage *message;
-    int i;
+    SnapdPostAssertions *self = SNAPD_POST_ASSERTIONS (request);
 
-    message = soup_message_new ("POST", "http://snapd/v2/assertions");
+    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/assertions");
 
     soup_message_headers_set_content_type (message->request_headers, "application/x.ubuntu.assertion", NULL); //FIXME
-    for (i = 0; r->assertions[i]; i++) {
+    for (int i = 0; self->assertions[i]; i++) {
         if (i != 0)
             soup_message_body_append (message->request_body, SOUP_MEMORY_TEMPORARY, "\n\n", 2);
-        soup_message_body_append (message->request_body, SOUP_MEMORY_TEMPORARY, r->assertions[i], strlen (r->assertions[i]));
+        soup_message_body_append (message->request_body, SOUP_MEMORY_TEMPORARY, self->assertions[i], strlen (self->assertions[i]));
     }
     soup_message_headers_set_content_length (message->request_headers, message->request_body->length);
 
@@ -58,11 +54,9 @@ generate_post_assertions_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_post_assertions_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_assertions_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    g_autoptr(JsonObject) response = NULL;
-
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
 

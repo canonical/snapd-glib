@@ -28,15 +28,13 @@ _snapd_post_aliases_new (const gchar *action,
                          SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostAliases *self;
-
-    self = SNAPD_POST_ALIASES (g_object_new (snapd_post_aliases_get_type (),
-                                                "cancellable", cancellable,
-                                                "ready-callback", callback,
-                                                "ready-callback-data", user_data,
-                                                "progress-callback", progress_callback,
-                                                "progress-callback-data", progress_callback_data,
-                                                NULL));
+    SnapdPostAliases *self = SNAPD_POST_ALIASES (g_object_new (snapd_post_aliases_get_type (),
+                                                               "cancellable", cancellable,
+                                                               "ready-callback", callback,
+                                                               "ready-callback-data", user_data,
+                                                               "progress-callback", progress_callback,
+                                                               "progress-callback-data", progress_callback_data,
+                                                               NULL));
     self->action = g_strdup (action);
     self->snap = g_strdup (snap);
     self->app = g_strdup (app);
@@ -46,29 +44,27 @@ _snapd_post_aliases_new (const gchar *action,
 }
 
 static SoupMessage *
-generate_post_aliases_request (SnapdRequest *self)
+generate_post_aliases_request (SnapdRequest *request)
 {
-    SnapdPostAliases *r = SNAPD_POST_ALIASES (self);
-    SoupMessage *message;
-    g_autoptr(JsonBuilder) builder = NULL;
+    SnapdPostAliases *self = SNAPD_POST_ALIASES (request);
 
-    message = soup_message_new ("POST", "http://snapd/v2/aliases");
+    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/aliases");
 
-    builder = json_builder_new ();
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "action");
-    json_builder_add_string_value (builder, r->action);
-    if (r->snap != NULL) {
+    json_builder_add_string_value (builder, self->action);
+    if (self->snap != NULL) {
         json_builder_set_member_name (builder, "snap");
-        json_builder_add_string_value (builder, r->snap);
+        json_builder_add_string_value (builder, self->snap);
     }
-    if (r->app != NULL) {
+    if (self->app != NULL) {
         json_builder_set_member_name (builder, "app");
-        json_builder_add_string_value (builder, r->app);
+        json_builder_add_string_value (builder, self->app);
     }
-    if (r->alias != NULL) {
+    if (self->alias != NULL) {
         json_builder_set_member_name (builder, "alias");
-        json_builder_add_string_value (builder, r->alias);
+        json_builder_add_string_value (builder, self->alias);
     }
     json_builder_end_object (builder);
     _snapd_json_set_body (message, builder);

@@ -63,90 +63,75 @@ _snapd_get_connections_get_undesired (SnapdGetConnections *self)
 }
 
 static SoupMessage *
-generate_get_connections_request (SnapdRequest *self)
+generate_get_connections_request (SnapdRequest *request)
 {
     return soup_message_new ("GET", "http://snapd/v2/connections");
 }
 
 static gboolean
-parse_get_connections_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_connections_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetConnections *r = SNAPD_GET_CONNECTIONS (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonObject) result = NULL;
-    g_autoptr(JsonArray) established = NULL;
-    g_autoptr(JsonArray) undesired = NULL;
-    g_autoptr(JsonArray) plugs = NULL;
-    g_autoptr(JsonArray) slots = NULL;
-    g_autoptr(GPtrArray) established_array = NULL;
-    g_autoptr(GPtrArray) undesired_array = NULL;
-    g_autoptr(GPtrArray) plug_array = NULL;
-    g_autoptr(GPtrArray) slot_array = NULL;
-    guint i;
+    SnapdGetConnections *self = SNAPD_GET_CONNECTIONS (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_o (response, error);
+    g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);
     if (result == NULL)
         return FALSE;
 
-    established = _snapd_json_get_array (result, "established");
-    established_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (established); i++) {
+    g_autoptr(JsonArray) established = _snapd_json_get_array (result, "established");
+    g_autoptr(GPtrArray) established_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (established); i++) {
         JsonNode *node = json_array_get_element (established, i);
-        g_autoptr(SnapdConnection) connection = NULL;
 
-        connection = _snapd_json_parse_connection (node, error);
+        g_autoptr(SnapdConnection) connection = _snapd_json_parse_connection (node, error);
         if (connection == NULL)
             return FALSE;
 
         g_ptr_array_add (established_array, g_steal_pointer (&connection));
     }
 
-    undesired = _snapd_json_get_array (result, "undesired");
-    undesired_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (undesired); i++) {
+    g_autoptr(JsonArray) undesired = _snapd_json_get_array (result, "undesired");
+    g_autoptr(GPtrArray) undesired_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (undesired); i++) {
         JsonNode *node = json_array_get_element (undesired, i);
-        SnapdConnection *connection;
 
-        connection = _snapd_json_parse_connection (node, error);
+        SnapdConnection *connection = _snapd_json_parse_connection (node, error);
         if (connection == NULL)
             return FALSE;
 
         g_ptr_array_add (undesired_array, connection);
     }
 
-    plugs = _snapd_json_get_array (result, "plugs");
-    plug_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (plugs); i++) {
+    g_autoptr(JsonArray) plugs = _snapd_json_get_array (result, "plugs");
+    g_autoptr(GPtrArray) plug_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (plugs); i++) {
         JsonNode *node = json_array_get_element (plugs, i);
-        SnapdPlug *plug;
 
-        plug = _snapd_json_parse_plug (node, error);
+        SnapdPlug *plug = _snapd_json_parse_plug (node, error);
         if (plug == NULL)
             return FALSE;
 
         g_ptr_array_add (plug_array, plug);
     }
 
-    slots = _snapd_json_get_array (result, "slots");
-    slot_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (slots); i++) {
+    g_autoptr(JsonArray) slots = _snapd_json_get_array (result, "slots");
+    g_autoptr(GPtrArray) slot_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (slots); i++) {
         JsonNode *node = json_array_get_element (slots, i);
-        SnapdSlot *slot;
 
-        slot = _snapd_json_parse_slot (node, error);
+        SnapdSlot *slot = _snapd_json_parse_slot (node, error);
         if (slot == NULL)
             return FALSE;
 
         g_ptr_array_add (slot_array, slot);
     }
 
-    r->established = g_steal_pointer (&established_array);
-    r->undesired = g_steal_pointer (&undesired_array);
-    r->plugs = g_steal_pointer (&plug_array);
-    r->slots = g_steal_pointer (&slot_array);
+    self->established = g_steal_pointer (&established_array);
+    self->undesired = g_steal_pointer (&undesired_array);
+    self->plugs = g_steal_pointer (&plug_array);
+    self->slots = g_steal_pointer (&slot_array);
 
     return TRUE;
 }

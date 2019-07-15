@@ -65,7 +65,6 @@ static gboolean
 parse_paragraph (const gchar *line, gchar **text)
 {
     int i = 0;
-
     while (isspace (line[i]))
         i++;
 
@@ -79,7 +78,6 @@ static gboolean
 parse_bullet_list_item (const gchar *line, int *offset, gchar *symbol, gchar **bullet_text)
 {
     int i = 0;
-
     while (isspace (line[i]))
         i++;
     gchar symbol_ = line[i];
@@ -130,7 +128,6 @@ static gboolean
 parse_indented_code_block (const gchar *line, gchar **text)
 {
     int space_count = 0;
-
     while (line[space_count] == ' ')
         space_count++;
     if (space_count < 4)
@@ -242,11 +239,7 @@ typedef struct
 static EmphasisInfo *
 emphasis_info_new (void)
 {
-    EmphasisInfo *info;
-
-    info = g_new0 (EmphasisInfo, 1);
-
-    return info;
+    return g_new0 (EmphasisInfo, 1);
 }
 
 static void
@@ -277,14 +270,11 @@ make_text_node (const gchar *text, int length)
 SnapdMarkdownNode *
 make_paragraph_text_node (SnapdMarkdownParser *self, const gchar *text, int length)
 {
-    g_autoptr(GString) result = NULL;
-    gchar last_c;
-
     if (self->preserve_whitespace)
         return make_text_node (text, length);
 
-    result = g_string_new ("");
-    last_c = '\0';
+    g_autoptr(GString) result = g_string_new ("");
+    gchar last_c = '\0';
     for (int i = 0; text[i] != '\0' && (length == -1 || i < length); i++) {
         gchar c = text[i];
         if (isspace (c)) {
@@ -316,9 +306,7 @@ make_delimiter_node (EmphasisInfo *info)
 SnapdMarkdownNode *
 make_code_node (SnapdMarkdownNodeType type, const gchar *text)
 {
-    g_autoptr(GPtrArray) children = NULL;
-
-    children = g_ptr_array_new_with_free_func (g_object_unref);
+    g_autoptr(GPtrArray) children = g_ptr_array_new_with_free_func (g_object_unref);
     g_ptr_array_add (children, make_text_node (text, -1));
     return g_object_new (SNAPD_TYPE_MARKDOWN_NODE,
                          "node-type", type,
@@ -329,20 +317,16 @@ make_code_node (SnapdMarkdownNodeType type, const gchar *text)
 static void
 find_emphasis (GPtrArray *nodes, GHashTable *emphasis_info)
 {
-    int start_index, end_index;
-    EmphasisInfo *start_info, *end_info;
-    g_autoptr(GPtrArray) children = NULL;
-
-    for (end_index = 0; end_index < nodes->len; end_index++) {
-        SnapdMarkdownNode *start_node, *end_node;
-        SnapdMarkdownNodeType node_type;
-
-        end_node = g_ptr_array_index (nodes, end_index);
-        end_info = g_hash_table_lookup (emphasis_info, end_node);
+    for (int end_index = 0; end_index < nodes->len; end_index++) {
+        SnapdMarkdownNode *end_node = g_ptr_array_index (nodes, end_index);
+        EmphasisInfo *end_info = g_hash_table_lookup (emphasis_info, end_node);
         if (end_info == NULL || !end_info->can_close_emphasis)
             continue;
 
         /* Find a start emphasis that matches this end */
+        int start_index;
+        SnapdMarkdownNode *start_node;
+        EmphasisInfo *start_info;
         for (start_index = end_index - 1; start_index >= 0; start_index--) {
             start_node = g_ptr_array_index (nodes, start_index);
             start_info = g_hash_table_lookup (emphasis_info, start_node);
@@ -363,6 +347,7 @@ find_emphasis (GPtrArray *nodes, GHashTable *emphasis_info)
         g_assert (start_info->length > 0);
         g_assert (end_info->length > 0);
 
+        SnapdMarkdownNodeType node_type;
         if (start_info->length > 1 && end_info->length > 1) {
             node_type = SNAPD_MARKDOWN_NODE_TYPE_STRONG_EMPHASIS;
             start_info->length -= 2;
@@ -375,7 +360,7 @@ find_emphasis (GPtrArray *nodes, GHashTable *emphasis_info)
         }
 
         /* Replace nodes */
-        children = g_ptr_array_new_with_free_func (g_object_unref);
+        g_autoptr(GPtrArray) children = g_ptr_array_new_with_free_func (g_object_unref);
         for (int i = start_index + 1; i < end_index; i++) {
             SnapdMarkdownNode *node = g_ptr_array_index (nodes, i);
             g_ptr_array_add (children, g_object_ref (node));
@@ -389,18 +374,14 @@ find_emphasis (GPtrArray *nodes, GHashTable *emphasis_info)
         g_hash_table_steal (emphasis_info, start_node);
         g_hash_table_steal (emphasis_info, end_node);
         if (end_info->length > 0) {
-            SnapdMarkdownNode *node;
-
-            node = make_delimiter_node (end_info);
+            SnapdMarkdownNode *node = make_delimiter_node (end_info);
             g_hash_table_insert (emphasis_info, node, end_info);
             g_ptr_array_insert (nodes, start_index + 1, node);
         }
         else
             emphasis_info_free (end_info);
         if (start_info->length > 0) {
-            SnapdMarkdownNode *node;
-
-            node = make_delimiter_node (start_info);
+            SnapdMarkdownNode *node = make_delimiter_node (start_info);
             g_hash_table_insert (emphasis_info, node, start_info);
             g_ptr_array_insert (nodes, start_index, node);
         }
@@ -424,18 +405,16 @@ combine_text_nodes (GPtrArray *nodes)
 {
     for (int i = 0; i < nodes->len; i++) {
         SnapdMarkdownNode *node = g_ptr_array_index (nodes, i);
-        GPtrArray *children;
-        int node_count;
-        g_autoptr(GString) text = NULL;
 
-        children = snapd_markdown_node_get_children (node);
+        GPtrArray *children = snapd_markdown_node_get_children (node);
         if (children != NULL)
             combine_text_nodes (children);
 
         if (snapd_markdown_node_get_node_type (node) != SNAPD_MARKDOWN_NODE_TYPE_TEXT)
             continue;
 
-        node_count = 1;
+        int node_count = 1;
+        g_autoptr(GString) text = NULL;
         while (i + node_count < nodes->len) {
             SnapdMarkdownNode *n = g_ptr_array_index (nodes, i + node_count);
             if (snapd_markdown_node_get_node_type (n) != SNAPD_MARKDOWN_NODE_TYPE_TEXT)
@@ -480,8 +459,7 @@ is_valid_url_char (gchar c)
 static gboolean
 is_url (const gchar *text, int *length)
 {
-    int prefix_length, _length, bracket_count;
-
+    int prefix_length;
     if (g_str_has_prefix (text, "http://"))
         prefix_length = 7;
     else if (g_str_has_prefix (text, "https://"))
@@ -491,8 +469,8 @@ is_url (const gchar *text, int *length)
     else
         return FALSE;
 
-    _length = prefix_length;
-    bracket_count = 0;
+    int _length = prefix_length;
+    int bracket_count = 0;
     while (text[_length] != '\0' && is_valid_url_char (text[_length])) {
         if (text[_length] == '(')
             bracket_count++;
@@ -527,9 +505,7 @@ find_url (const gchar *text, int *url_length)
 SnapdMarkdownNode *
 make_url_node (const gchar *text, int length)
 {
-    g_autoptr(GPtrArray) children = NULL;
-
-    children = g_ptr_array_new_with_free_func (g_object_unref);
+    g_autoptr(GPtrArray) children = g_ptr_array_new_with_free_func (g_object_unref);
     g_ptr_array_add (children, make_text_node (text, length));
     return g_object_new (SNAPD_TYPE_MARKDOWN_NODE,
                          "node-type", SNAPD_MARKDOWN_NODE_TYPE_URL,
@@ -569,22 +545,16 @@ extract_urls (GPtrArray *nodes)
 static GPtrArray *
 markup_inline (SnapdMarkdownParser *self, const gchar *text)
 {
-    g_autoptr(GPtrArray) nodes = NULL;
-    g_autoptr(GHashTable) emphasis_info = NULL;
-
     /* Split into nodes */
-    nodes = g_ptr_array_new_with_free_func (g_object_unref);
-    emphasis_info = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) emphasis_info_free);
+    g_autoptr(GPtrArray) nodes = g_ptr_array_new_with_free_func (g_object_unref);
+    g_autoptr(GHashTable) emphasis_info = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) emphasis_info_free);
     for (int i = 0; text[i] != '\0';) {
         int start = i;
-        g_autoptr(EmphasisInfo) info = NULL;
 
         /* Extract code spans */
         if (text[start] == '`') {
-            int size, end;
-
-            size = backtick_count (text + start);
-            end = start + size;
+            int size = backtick_count (text + start);
+            int end = start + size;
             while (text[end] != '\0') {
                  int s = backtick_count (text + end);
                  if (s == size)
@@ -595,16 +565,12 @@ markup_inline (SnapdMarkdownParser *self, const gchar *text)
                      end += s;
             }
             if (text[end] != '\0') {
-                 g_autofree gchar *code_text = NULL;
-                 g_autofree gchar *stripped_code_text = NULL;
-
-                 code_text = g_strndup (text + start + size, end - start - size);
-                 stripped_code_text = strip_text (code_text);
+                 g_autofree gchar *code_text = g_strndup (text + start + size, end - start - size);
+                 g_autofree gchar *stripped_code_text = strip_text (code_text);
                  g_ptr_array_add (nodes, make_code_node (SNAPD_MARKDOWN_NODE_TYPE_CODE_SPAN, stripped_code_text));
                  i = end + size;
             }
-            else
-            {
+            else {
                  g_ptr_array_add (nodes, make_paragraph_text_node (self, text + start, size));
                  i = start + size;
             }
@@ -621,16 +587,13 @@ markup_inline (SnapdMarkdownParser *self, const gchar *text)
 
         /* Extract emphasis delimiters (we determine later if they are used) */
         if (text[start] == '*' || text[start] == '_') {
-            gboolean is_left_flanking, is_right_flanking;
-            SnapdMarkdownNode *node;
-
             while (text[i] == text[start])
                 i++;
 
-            is_left_flanking = is_left_flanking_delimiter_run (text, start);
-            is_right_flanking = is_right_flanking_delimiter_run (text, start);
+            gboolean is_left_flanking = is_left_flanking_delimiter_run (text, start);
+            gboolean is_right_flanking = is_right_flanking_delimiter_run (text, start);
 
-            info = emphasis_info_new ();
+            g_autoptr(EmphasisInfo) info = emphasis_info_new ();
             info->character = text[start];
             info->length = i - start;
             if (text[start] == '_') {
@@ -641,7 +604,7 @@ markup_inline (SnapdMarkdownParser *self, const gchar *text)
                 info->can_open_emphasis = is_left_flanking;
                 info->can_close_emphasis = is_right_flanking;
             }
-            node = make_paragraph_text_node (self, text + start, i - start);
+            SnapdMarkdownNode *node = make_paragraph_text_node (self, text + start, i - start);
             g_ptr_array_add (nodes, node);
             g_hash_table_insert (emphasis_info, node, g_steal_pointer (&info));
             continue;
@@ -675,8 +638,6 @@ markup_inline (SnapdMarkdownParser *self, const gchar *text)
 static GPtrArray *
 markdown_to_markup (SnapdMarkdownParser *self, const gchar *text)
 {
-    g_autoptr(GPtrArray) nodes = g_ptr_array_new_with_free_func (g_object_unref);
-
     /* Snap supports the following subset of CommonMark (https://commonmark.org/):
      *
      * Indented code blocks
@@ -709,6 +670,7 @@ markdown_to_markup (SnapdMarkdownParser *self, const gchar *text)
 
     /* 2. Split lines into blocks (paragraphs, lists, code) */
     int line_number = 0;
+    g_autoptr(GPtrArray) nodes = g_ptr_array_new_with_free_func (g_object_unref);
     while (lines[line_number] != NULL) {
         /* Skip empty lines */
         if (parse_empty_line (lines[line_number])) {

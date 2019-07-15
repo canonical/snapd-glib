@@ -23,13 +23,11 @@ G_DEFINE_TYPE (SnapdPutSnapConf, snapd_put_snap_conf, snapd_request_async_get_ty
 SnapdPutSnapConf *
 _snapd_put_snap_conf_new (const gchar *name, GHashTable *key_values, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPutSnapConf *self;
-
-    self = SNAPD_PUT_SNAP_CONF (g_object_new (snapd_put_snap_conf_get_type (),
-                                                 "cancellable", cancellable,
-                                                 "ready-callback", callback,
-                                                 "ready-callback-data", user_data,
-                                                 NULL));
+    SnapdPutSnapConf *self = SNAPD_PUT_SNAP_CONF (g_object_new (snapd_put_snap_conf_get_type (),
+                                                                "cancellable", cancellable,
+                                                                "ready-callback", callback,
+                                                                "ready-callback-data", user_data,
+                                                                NULL));
     self->name = g_strdup (name);
     self->key_values = g_hash_table_ref (key_values);
 
@@ -37,22 +35,19 @@ _snapd_put_snap_conf_new (const gchar *name, GHashTable *key_values, GCancellabl
 }
 
 static SoupMessage *
-generate_put_snap_conf_request (SnapdRequest *self)
+generate_put_snap_conf_request (SnapdRequest *request)
 {
-    SnapdPutSnapConf *r = SNAPD_PUT_SNAP_CONF (self);
-    g_autofree gchar *escaped = NULL, *path = NULL;
-    SoupMessage *message;
-    g_autoptr(JsonBuilder) builder = NULL;
-    GHashTableIter iter;
-    gpointer key, value;
+    SnapdPutSnapConf *self = SNAPD_PUT_SNAP_CONF (request);
 
-    escaped = soup_uri_encode (r->name, NULL);
-    path = g_strdup_printf ("http://snapd/v2/snaps/%s/conf", escaped);
-    message = soup_message_new ("PUT", path);
+    g_autofree gchar *escaped = soup_uri_encode (self->name, NULL);
+    g_autofree gchar *path = g_strdup_printf ("http://snapd/v2/snaps/%s/conf", escaped);
+    SoupMessage *message = soup_message_new ("PUT", path);
 
-    builder = json_builder_new ();
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
-    g_hash_table_iter_init (&iter, r->key_values);
+    GHashTableIter iter;
+    g_hash_table_iter_init (&iter, self->key_values);
+    gpointer key, value;
     while (g_hash_table_iter_next (&iter, &key, &value)) {
         const gchar *conf_key = key;
         GVariant *conf_value = value;

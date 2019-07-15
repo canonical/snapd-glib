@@ -26,13 +26,11 @@ SnapdPostBuy *
 _snapd_post_buy_new (const gchar *id, gdouble amount, const gchar *currency,
                      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostBuy *self;
-
-    self = SNAPD_POST_BUY (g_object_new (snapd_post_buy_get_type (),
-                                              "cancellable", cancellable,
-                                              "ready-callback", callback,
-                                              "ready-callback-data", user_data,
-                                              NULL));
+    SnapdPostBuy *self = SNAPD_POST_BUY (g_object_new (snapd_post_buy_get_type (),
+                                                       "cancellable", cancellable,
+                                                       "ready-callback", callback,
+                                                       "ready-callback-data", user_data,
+                                                       NULL));
     self->id = g_strdup (id);
     self->amount = amount;
     self->currency = g_strdup (currency);
@@ -41,22 +39,20 @@ _snapd_post_buy_new (const gchar *id, gdouble amount, const gchar *currency,
 }
 
 static SoupMessage *
-generate_post_buy_request (SnapdRequest *self)
+generate_post_buy_request (SnapdRequest *request)
 {
-    SnapdPostBuy *r = SNAPD_POST_BUY (self);
-    SoupMessage *message;
-    g_autoptr(JsonBuilder) builder = NULL;
+    SnapdPostBuy *self = SNAPD_POST_BUY (request);
 
-    message = soup_message_new ("POST", "http://snapd/v2/buy");
+    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/buy");
 
-    builder = json_builder_new ();
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "snap-id");
-    json_builder_add_string_value (builder, r->id);
+    json_builder_add_string_value (builder, self->id);
     json_builder_set_member_name (builder, "price");
-    json_builder_add_double_value (builder, r->amount);
+    json_builder_add_double_value (builder, self->amount);
     json_builder_set_member_name (builder, "currency");
-    json_builder_add_string_value (builder, r->currency);
+    json_builder_add_string_value (builder, self->currency);
     json_builder_end_object (builder);
     _snapd_json_set_body (message, builder);
 
@@ -64,11 +60,9 @@ generate_post_buy_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_post_buy_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_buy_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    g_autoptr(JsonObject) response = NULL;
-
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
 

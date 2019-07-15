@@ -54,13 +54,11 @@ parse_async_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance
 {
     SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (self);
     SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (r);
-    g_autoptr(JsonObject) response = NULL;
-    g_autofree gchar *change_id = NULL;
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    change_id = _snapd_json_get_async_result (response, error);
+    g_autofree gchar *change_id = _snapd_json_get_async_result (response, error);
     if (change_id == NULL)
         return FALSE;
 
@@ -94,23 +92,19 @@ tasks_equal (SnapdTask *task1, SnapdTask *task2)
 static gboolean
 changes_equal (SnapdChange *change1, SnapdChange *change2)
 {
-    GPtrArray *tasks1, *tasks2;
-
     if (change1 == NULL || change2 == NULL)
         return change1 == change2;
 
-    tasks1 = snapd_change_get_tasks (change1);
-    tasks2 = snapd_change_get_tasks (change2);
+    GPtrArray *tasks1 = snapd_change_get_tasks (change1);
+    GPtrArray *tasks2 = snapd_change_get_tasks (change2);
     if (tasks1 == NULL || tasks2 == NULL) {
         if (tasks1 != tasks2)
             return FALSE;
     }
     else {
-        int i;
-
         if (tasks1->len != tasks2->len)
             return FALSE;
-        for (i = 0; i < tasks1->len; i++) {
+        for (int i = 0; i < tasks1->len; i++) {
             SnapdTask *t1 = tasks1->pdata[i], *t2 = tasks2->pdata[i];
             if (!tasks_equal (t1, t2))
                 return FALSE;

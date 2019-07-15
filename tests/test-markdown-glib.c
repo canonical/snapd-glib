@@ -52,9 +52,9 @@ serialize_nodes (GPtrArray *nodes)
 static gchar *
 serialize_node (SnapdMarkdownNode *node)
 {
-   g_autofree gchar *contents = NULL;
    GPtrArray *children = snapd_markdown_node_get_children (node);
 
+   g_autofree gchar *contents = NULL;
    switch (snapd_markdown_node_get_node_type (node)) {
    case SNAPD_MARKDOWN_NODE_TYPE_TEXT:
        return escape_text (snapd_markdown_node_get_text (node));
@@ -758,7 +758,6 @@ static gchar *
 serialize_url_nodes (GPtrArray *nodes)
 {
     g_autoptr(GString) text = g_string_new ("");
-
     for (int i = 0; i < nodes->len; i++) {
         SnapdMarkdownNode *node = g_ptr_array_index (nodes, i);
         g_autofree gchar *node_text = serialize_url_node (node);
@@ -771,9 +770,9 @@ serialize_url_nodes (GPtrArray *nodes)
 static gchar *
 serialize_url_node (SnapdMarkdownNode *node)
 {
-   g_autofree gchar *contents = NULL;
    GPtrArray *children = snapd_markdown_node_get_children (node);
 
+   g_autofree gchar *contents = NULL;
    switch (snapd_markdown_node_get_node_type (node)) {
    case SNAPD_MARKDOWN_NODE_TYPE_TEXT:
        return g_strdup (snapd_markdown_node_get_text (node));

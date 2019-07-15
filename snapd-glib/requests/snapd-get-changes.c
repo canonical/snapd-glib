@@ -25,13 +25,11 @@ G_DEFINE_TYPE (SnapdGetChanges, snapd_get_changes, snapd_request_get_type ())
 SnapdGetChanges *
 _snapd_get_changes_new (const gchar *select, const gchar *snap_name, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetChanges *self;
-
-    self = SNAPD_GET_CHANGES (g_object_new (snapd_get_changes_get_type (),
-                                               "cancellable", cancellable,
-                                               "ready-callback", callback,
-                                               "ready-callback-data", user_data,
-                                               NULL));
+    SnapdGetChanges *self = SNAPD_GET_CHANGES (g_object_new (snapd_get_changes_get_type (),
+                                                             "cancellable", cancellable,
+                                                             "ready-callback", callback,
+                                                             "ready-callback-data", user_data,
+                                                             NULL));
     self->select = g_strdup (select);
     self->snap_name = g_strdup (snap_name);
 
@@ -45,28 +43,24 @@ _snapd_get_changes_get_changes (SnapdGetChanges *self)
 }
 
 static SoupMessage *
-generate_get_changes_request (SnapdRequest *self)
+generate_get_changes_request (SnapdRequest *request)
 {
-    SnapdGetChanges *r = SNAPD_GET_CHANGES (self);
-    g_autoptr(GPtrArray) query_attributes = NULL;
-    g_autoptr(GString) path = NULL;
+    SnapdGetChanges *self = SNAPD_GET_CHANGES (request);
 
-    query_attributes = g_ptr_array_new_with_free_func (g_free);
-    if (r->select != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (r->select, NULL);
+    g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
+    if (self->select != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (self->select, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", escaped));
     }
-    if (r->snap_name != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (r->snap_name, NULL);
+    if (self->snap_name != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (self->snap_name, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("for=%s", escaped));
     }
 
-    path = g_string_new ("http://snapd/v2/changes");
+    g_autoptr(GString) path = g_string_new ("http://snapd/v2/changes");
     if (query_attributes->len > 0) {
-        guint i;
-
         g_string_append_c (path, '?');
-        for (i = 0; i < query_attributes->len; i++) {
+        for (guint i = 0; i < query_attributes->len; i++) {
             if (i != 0)
                 g_string_append_c (path, '&');
             g_string_append (path, (gchar *) query_attributes->pdata[i]);
@@ -77,34 +71,29 @@ generate_get_changes_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_get_changes_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_changes_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetChanges *r = SNAPD_GET_CHANGES (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) result = NULL;
-    g_autoptr(GPtrArray) changes = NULL;
-    guint i;
+    SnapdGetChanges *self = SNAPD_GET_CHANGES (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_a (response, error);
+    g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
     if (result == NULL)
         return FALSE;
 
-    changes = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (result); i++) {
+    g_autoptr(GPtrArray) changes = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (result); i++) {
         JsonNode *node = json_array_get_element (result, i);
-        SnapdChange *change;
 
-        change = _snapd_json_parse_change (node, error);
+        SnapdChange *change = _snapd_json_parse_change (node, error);
         if (change == NULL)
             return FALSE;
 
         g_ptr_array_add (changes, change);
     }
 
-    r->changes = g_steal_pointer (&changes);
+    self->changes = g_steal_pointer (&changes);
 
     return TRUE;
 }

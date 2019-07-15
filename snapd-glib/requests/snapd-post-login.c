@@ -27,13 +27,11 @@ SnapdPostLogin *
 _snapd_post_login_new (const gchar *email, const gchar *password, const gchar *otp,
                        GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostLogin *self;
-
-    self = SNAPD_POST_LOGIN (g_object_new (snapd_post_login_get_type (),
-                                              "cancellable", cancellable,
-                                              "ready-callback", callback,
-                                              "ready-callback-data", user_data,
-                                              NULL));
+    SnapdPostLogin *self = SNAPD_POST_LOGIN (g_object_new (snapd_post_login_get_type (),
+                                                           "cancellable", cancellable,
+                                                           "ready-callback", callback,
+                                                           "ready-callback-data", user_data,
+                                                           NULL));
     self->email = g_strdup (email);
     self->password = g_strdup (password);
     self->otp = g_strdup (otp);
@@ -48,26 +46,24 @@ _snapd_post_login_get_user_information (SnapdPostLogin *self)
 }
 
 static SoupMessage *
-generate_post_login_request (SnapdRequest *self)
+generate_post_login_request (SnapdRequest *request)
 {
-    SnapdPostLogin *r = SNAPD_POST_LOGIN (self);
-    SoupMessage *message;
-    g_autoptr(JsonBuilder) builder = NULL;
+    SnapdPostLogin *self = SNAPD_POST_LOGIN (request);
 
-    message = soup_message_new ("POST", "http://snapd/v2/login");
+    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/login");
 
-    builder = json_builder_new ();
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "email");
-    json_builder_add_string_value (builder, r->email);
+    json_builder_add_string_value (builder, self->email);
     /* Send legacy username field for snapd < 2.16 */
     json_builder_set_member_name (builder, "username");
-    json_builder_add_string_value (builder, r->email);
+    json_builder_add_string_value (builder, self->email);
     json_builder_set_member_name (builder, "password");
-    json_builder_add_string_value (builder, r->password);
-    if (r->otp != NULL) {
+    json_builder_add_string_value (builder, self->password);
+    if (self->otp != NULL) {
         json_builder_set_member_name (builder, "otp");
-        json_builder_add_string_value (builder, r->otp);
+        json_builder_add_string_value (builder, self->otp);
     }
     json_builder_end_object (builder);
     _snapd_json_set_body (message, builder);
@@ -76,24 +72,22 @@ generate_post_login_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_post_login_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_login_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdPostLogin *r = SNAPD_POST_LOGIN (self);
-    g_autoptr(JsonObject) response = NULL;
-    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
-    /*g_autoptr(JsonNode) result = NULL;*/
-    JsonNode *result;
+    SnapdPostLogin *self = SNAPD_POST_LOGIN (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result (response, error);
+    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
+    /*g_autoptr(JsonNode) result = NULL;*/
+    JsonNode *result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return FALSE;
 
-    r->user_information = _snapd_json_parse_user_information (result, error);
+    self->user_information = _snapd_json_parse_user_information (result, error);
     json_node_unref (result);
-    if (r->user_information == NULL)
+    if (self->user_information == NULL)
         return FALSE;
 
     return TRUE;

@@ -66,9 +66,7 @@ G_DEFINE_TYPE (SnapdAssertion, snapd_assertion, G_TYPE_OBJECT)
 SnapdAssertion *
 snapd_assertion_new (const gchar *content)
 {
-    SnapdAssertion *self;
-
-    self = g_object_new (SNAPD_TYPE_ASSERTION, NULL);
+    SnapdAssertion *self = g_object_new (SNAPD_TYPE_ASSERTION, NULL);
     self->content = g_strdup (content);
 
     return self;
@@ -128,17 +126,13 @@ get_header (const gchar *content, gsize *offset, gsize *name_start, gsize *name_
 GStrv
 snapd_assertion_get_headers (SnapdAssertion *self)
 {
-    g_autoptr(GPtrArray) headers = NULL;
-    gsize offset;
-
     g_return_val_if_fail (SNAPD_IS_ASSERTION (self), NULL);
 
-    offset = 0;
-    headers = g_ptr_array_new ();
+    gsize offset = 0;
+    g_autoptr(GPtrArray) headers = g_ptr_array_new ();
     while (TRUE) {
-        gsize name_start, name_length;
-
         /* Headers terminated by double newline or EOF */
+        gsize name_start, name_length;
         if (self->content[offset] == '\0' ||
             self->content[offset] == '\n' ||
             !get_header (self->content, &offset, &name_start, &name_length, NULL, NULL))
@@ -165,19 +159,16 @@ snapd_assertion_get_headers (SnapdAssertion *self)
 gchar *
 snapd_assertion_get_header (SnapdAssertion *self, const gchar *name)
 {
-    gsize offset;
-
     g_return_val_if_fail (SNAPD_IS_ASSERTION (self), NULL);
     g_return_val_if_fail (name != NULL, NULL);
 
-    offset = 0;
+    gsize offset = 0;
     while (TRUE) {
-        gsize name_start, name_length, value_start, value_length;
-
         /* Headers terminated by double newline or EOF */
         if (self->content[offset] == '\0' || self->content[offset] == '\n')
             return NULL;
 
+        gsize name_start, name_length, value_start, value_length;
         if (!get_header (self->content, &offset, &name_start, &name_length, &value_start, &value_length))
             return NULL;
 
@@ -192,10 +183,8 @@ snapd_assertion_get_header (SnapdAssertion *self, const gchar *name)
 static gsize
 get_headers_length (SnapdAssertion *self)
 {
-    gchar *divider;
-
     /* Headers terminated by double newline */
-    divider = strstr (self->content, "\n\n");
+    gchar *divider = strstr (self->content, "\n\n");
     if (divider == NULL)
         return 0;
 
@@ -205,8 +194,7 @@ get_headers_length (SnapdAssertion *self)
 static gsize
 get_body_length (SnapdAssertion *self)
 {
-    g_autofree gchar *body_length_header = NULL;
-    body_length_header = snapd_assertion_get_header (self, "body-length");
+    g_autofree gchar *body_length_header = snapd_assertion_get_header (self, "body-length");
     if (body_length_header == NULL)
         return 0;
 
@@ -226,11 +214,9 @@ get_body_length (SnapdAssertion *self)
 gchar *
 snapd_assertion_get_body (SnapdAssertion *self)
 {
-    gsize body_length;
-
     g_return_val_if_fail (SNAPD_IS_ASSERTION (self), NULL);
 
-    body_length = get_body_length (self);
+    gsize body_length = get_body_length (self);
     if (body_length == 0)
         return NULL;
 
@@ -250,11 +236,9 @@ snapd_assertion_get_body (SnapdAssertion *self)
 gchar *
 snapd_assertion_get_signature (SnapdAssertion *self)
 {
-    int body_length;
-
     g_return_val_if_fail (SNAPD_IS_ASSERTION (self), NULL);
 
-    body_length = get_body_length (self);
+    gsize body_length = get_body_length (self);
     if (body_length > 0)
         return g_strdup (self->content + get_headers_length (self) + 2 + body_length + 2);
     else

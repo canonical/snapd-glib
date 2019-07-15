@@ -25,13 +25,11 @@ G_DEFINE_TYPE (SnapdPostSnapctl, snapd_post_snapctl, snapd_request_get_type ())
 SnapdPostSnapctl *
 _snapd_post_snapctl_new (const gchar *context_id, GStrv args, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostSnapctl *self;
-
-    self = SNAPD_POST_SNAPCTL (g_object_new (snapd_post_snapctl_get_type (),
-                                                "cancellable", cancellable,
-                                                "ready-callback", callback,
-                                                "ready-callback-data", user_data,
-                                                NULL));
+    SnapdPostSnapctl *self = SNAPD_POST_SNAPCTL (g_object_new (snapd_post_snapctl_get_type (),
+                                                               "cancellable", cancellable,
+                                                               "ready-callback", callback,
+                                                               "ready-callback-data", user_data,
+                                                               NULL));
     self->context_id = g_strdup (context_id);
     self->args = g_strdupv (args);
 
@@ -51,23 +49,20 @@ _snapd_post_snapctl_get_stderr_output (SnapdPostSnapctl *self)
 }
 
 static SoupMessage *
-generate_post_snapctl_request (SnapdRequest *self)
+generate_post_snapctl_request (SnapdRequest *request)
 {
-    SnapdPostSnapctl *r = SNAPD_POST_SNAPCTL (self);
-    SoupMessage *message;
-    g_autoptr(JsonBuilder) builder = NULL;
-    int i;
+    SnapdPostSnapctl *self = SNAPD_POST_SNAPCTL (request);
 
-    message = soup_message_new ("POST", "http://snapd/v2/snapctl");
+    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/snapctl");
 
-    builder = json_builder_new ();
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "context-id");
-    json_builder_add_string_value (builder, r->context_id);
+    json_builder_add_string_value (builder, self->context_id);
     json_builder_set_member_name (builder, "args");
     json_builder_begin_array (builder);
-    for (i = 0; r->args[i] != NULL; i++)
-        json_builder_add_string_value (builder, r->args[i]);
+    for (int i = 0; self->args[i] != NULL; i++)
+        json_builder_add_string_value (builder, self->args[i]);
     json_builder_end_array (builder);
     json_builder_end_object (builder);
     _snapd_json_set_body (message, builder);
@@ -76,21 +71,19 @@ generate_post_snapctl_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_post_snapctl_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_snapctl_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdPostSnapctl *r = SNAPD_POST_SNAPCTL (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonObject) result = NULL;
+    SnapdPostSnapctl *self = SNAPD_POST_SNAPCTL (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_o (response, error);
+    g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);
     if (result == NULL)
         return FALSE;
 
-    r->stdout_output = g_strdup (_snapd_json_get_string (result, "stdout", NULL));
-    r->stderr_output = g_strdup (_snapd_json_get_string (result, "stderr", NULL));
+    self->stdout_output = g_strdup (_snapd_json_get_string (result, "stdout", NULL));
+    self->stderr_output = g_strdup (_snapd_json_get_string (result, "stderr", NULL));
 
     return TRUE;
 }

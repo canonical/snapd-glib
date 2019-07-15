@@ -23,13 +23,11 @@ G_DEFINE_TYPE (SnapdGetSnap, snapd_get_snap, snapd_request_get_type ())
 SnapdGetSnap *
 _snapd_get_snap_new (const gchar *name, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetSnap *self;
-
-    self = SNAPD_GET_SNAP (g_object_new (snapd_get_snap_get_type (),
-                                            "cancellable", cancellable,
-                                            "ready-callback", callback,
-                                            "ready-callback-data", user_data,
-                                            NULL));
+    SnapdGetSnap *self = SNAPD_GET_SNAP (g_object_new (snapd_get_snap_get_type (),
+                                                       "cancellable", cancellable,
+                                                       "ready-callback", callback,
+                                                       "ready-callback-data", user_data,
+                                                       NULL));
     self->name = g_strdup (name);
 
     return self;
@@ -42,40 +40,36 @@ _snapd_get_snap_get_snap (SnapdGetSnap *self)
 }
 
 static SoupMessage *
-generate_get_snap_request (SnapdRequest *self)
+generate_get_snap_request (SnapdRequest *request)
 {
-    SnapdGetSnap *r = SNAPD_GET_SNAP (self);
-    g_autofree gchar *escaped = NULL, *path = NULL;
+    SnapdGetSnap *self = SNAPD_GET_SNAP (request);
 
-    escaped = soup_uri_encode (r->name, NULL);
-    path = g_strdup_printf ("http://snapd/v2/snaps/%s", escaped);
+    g_autofree gchar *escaped = soup_uri_encode (self->name, NULL);
+    g_autofree gchar *path = g_strdup_printf ("http://snapd/v2/snaps/%s", escaped);
 
     return soup_message_new ("GET", path);
 }
 
 static gboolean
-parse_get_snap_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_snap_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetSnap *r = SNAPD_GET_SNAP (self);
-    g_autoptr(JsonObject) response = NULL;
-    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
-    /*g_autoptr(JsonNode) result = NULL;*/
-    JsonNode *result;
-    g_autoptr(SnapdSnap) snap = NULL;
+    SnapdGetSnap *self = SNAPD_GET_SNAP (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result (response, error);
+    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
+    /*g_autoptr(JsonNode) result = NULL;*/
+    JsonNode *result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return FALSE;
 
-    snap = _snapd_json_parse_snap (result, error);
+    g_autoptr(SnapdSnap) snap = _snapd_json_parse_snap (result, error);
     json_node_unref (result);
     if (snap == NULL)
         return FALSE;
 
-    r->snap = g_steal_pointer (&snap);
+    self->snap = g_steal_pointer (&snap);
 
     return TRUE;
 }

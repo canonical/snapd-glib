@@ -253,8 +253,6 @@ is_risk (const gchar *risk)
 static void
 set_name (SnapdChannel *self, const gchar *name)
 {
-    g_auto(GStrv) tokens = NULL;
-
     g_free (self->name);
     self->name = g_strdup (name);
 
@@ -262,7 +260,7 @@ set_name (SnapdChannel *self, const gchar *name)
     g_clear_pointer (&self->risk, g_free);
     g_clear_pointer (&self->branch, g_free);
 
-    tokens = g_strsplit (name, "/", -1);
+    g_auto(GStrv) tokens = g_strsplit (name, "/", -1);
     switch (g_strv_length (tokens)) {
     case 1:
         if (is_risk (tokens[0])) {

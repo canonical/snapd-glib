@@ -37,14 +37,11 @@ _snapd_post_create_users_get_users_information (SnapdPostCreateUsers *self)
 }
 
 static SoupMessage *
-generate_post_create_users_request (SnapdRequest *self)
+generate_post_create_users_request (SnapdRequest *request)
 {
-    SoupMessage *message;
-    g_autoptr(JsonBuilder) builder = NULL;
+    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/create-user");
 
-    message = soup_message_new ("POST", "http://snapd/v2/create-user");
-
-    builder = json_builder_new ();
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "known");
     json_builder_add_boolean_value (builder, TRUE);
@@ -55,23 +52,19 @@ generate_post_create_users_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_post_create_users_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_create_users_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdPostCreateUsers *r = SNAPD_POST_CREATE_USERS (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) result = NULL;
-    g_autoptr(GPtrArray) users_information = NULL;
-    guint i;
+    SnapdPostCreateUsers *self = SNAPD_POST_CREATE_USERS (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_a (response, error);
+    g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
     if (result == NULL)
         return FALSE;
 
-    users_information = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (result); i++) {
+    g_autoptr(GPtrArray) users_information = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (result); i++) {
         JsonNode *node = json_array_get_element (result, i);
         SnapdUserInformation *user_information;
 
@@ -81,7 +74,7 @@ parse_post_create_users_response (SnapdRequest *self, SoupMessage *message, Snap
         g_ptr_array_add (users_information, user_information);
     }
 
-    r->users_information = g_steal_pointer (&users_information);
+    self->users_information = g_steal_pointer (&users_information);
 
     return TRUE;
 }

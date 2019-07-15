@@ -40,36 +40,29 @@ _snapd_get_aliases_get_aliases (SnapdGetAliases *self)
 }
 
 static SoupMessage *
-generate_get_aliases_request (SnapdRequest *self)
+generate_get_aliases_request (SnapdRequest *request)
 {
     return soup_message_new ("GET", "http://snapd/v2/aliases");
 }
 
 static gboolean
-parse_get_aliases_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetAliases *r = SNAPD_GET_ALIASES (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonObject) result = NULL;
-    g_autoptr(GPtrArray) aliases = NULL;
-    JsonObjectIter snap_iter;
-    const gchar *snap;
-    JsonNode *snap_node;
+    SnapdGetAliases *self = SNAPD_GET_ALIASES (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_o (response, error);
+    g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);
     if (result == NULL)
         return FALSE;
 
-    aliases = g_ptr_array_new_with_free_func (g_object_unref);
+    g_autoptr(GPtrArray) aliases = g_ptr_array_new_with_free_func (g_object_unref);
+    JsonObjectIter snap_iter;
     json_object_iter_init (&snap_iter, result);
+    const gchar *snap;
+    JsonNode *snap_node;
     while (json_object_iter_next (&snap_iter, &snap, &snap_node)) {
-        JsonObjectIter alias_iter;
-        const gchar *name;
-        JsonNode *alias_node;
-
         if (json_node_get_value_type (snap_node) != JSON_TYPE_OBJECT) {
             g_set_error (error,
                          SNAPD_ERROR,
@@ -78,11 +71,12 @@ parse_get_aliases_response (SnapdRequest *self, SoupMessage *message, SnapdMaint
             return FALSE;
         }
 
+        JsonObjectIter alias_iter;
         json_object_iter_init (&alias_iter, json_node_get_object (snap_node));
+        const gchar *name;
+        JsonNode *alias_node;
         while (json_object_iter_next (&alias_iter, &name, &alias_node)) {
-            SnapdAlias *alias;
-
-            alias = _snapd_json_parse_alias (alias_node, snap, name, error);
+            SnapdAlias *alias = _snapd_json_parse_alias (alias_node, snap, name, error);
             if (alias == NULL)
                 return FALSE;
 
@@ -90,7 +84,7 @@ parse_get_aliases_response (SnapdRequest *self, SoupMessage *message, SnapdMaint
         }
     }
 
-    r->aliases = g_steal_pointer (&aliases);
+    self->aliases = g_steal_pointer (&aliases);
 
     return TRUE;
 }

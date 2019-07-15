@@ -30,13 +30,11 @@ G_DEFINE_TYPE (SnapdGetFind, snapd_get_find, snapd_request_get_type ())
 SnapdGetFind *
 _snapd_get_find_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetFind *self;
-
-    self = SNAPD_GET_FIND (g_object_new (snapd_get_find_get_type (),
-                                            "cancellable", cancellable,
-                                            "ready-callback", callback,
-                                            "ready-callback-data", user_data,
-                                            NULL));
+    SnapdGetFind *self = SNAPD_GET_FIND (g_object_new (snapd_get_find_get_type (),
+                                                       "cancellable", cancellable,
+                                                       "ready-callback", callback,
+                                                       "ready-callback-data", user_data,
+                                                       NULL));
 
     return self;
 }
@@ -96,44 +94,40 @@ _snapd_get_find_get_suggested_currency (SnapdGetFind *self)
 }
 
 static SoupMessage *
-generate_get_find_request (SnapdRequest *self)
+generate_get_find_request (SnapdRequest *request)
 {
-    SnapdGetFind *r = SNAPD_GET_FIND (self);
-    g_autoptr(GPtrArray) query_attributes = NULL;
-    g_autoptr(GString) path = NULL;
+    SnapdGetFind *self = SNAPD_GET_FIND (request);
 
-    query_attributes = g_ptr_array_new_with_free_func (g_free);
-    if (r->common_id != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (r->common_id, NULL);
+    g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
+    if (self->common_id != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (self->common_id, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("common-id=%s", escaped));
     }
-    if (r->query != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (r->query, NULL);
+    if (self->query != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (self->query, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("q=%s", escaped));
     }
-    if (r->name != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (r->name, NULL);
+    if (self->name != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (self->name, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("name=%s", escaped));
     }
-    if (r->select != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (r->select, NULL);
+    if (self->select != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (self->select, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", escaped));
     }
-    if (r->section != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (r->section, NULL);
+    if (self->section != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (self->section, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("section=%s", escaped));
     }
-    if (r->scope != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (r->scope, NULL);
+    if (self->scope != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (self->scope, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("scope=%s", escaped));
     }
 
-    path = g_string_new ("http://snapd/v2/find");
+    g_autoptr(GString) path = g_string_new ("http://snapd/v2/find");
     if (query_attributes->len > 0) {
-        guint i;
-
         g_string_append_c (path, '?');
-        for (i = 0; i < query_attributes->len; i++) {
+        for (guint i = 0; i < query_attributes->len; i++) {
             if (i != 0)
                 g_string_append_c (path, '&');
             g_string_append (path, (gchar *) query_attributes->pdata[i]);
@@ -144,23 +138,19 @@ generate_get_find_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_get_find_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_find_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetFind *r = SNAPD_GET_FIND (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) result = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    guint i;
+    SnapdGetFind *self = SNAPD_GET_FIND (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_a (response, error);
+    g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
     if (result == NULL)
         return FALSE;
 
-    snaps = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (result); i++) {
+    g_autoptr(GPtrArray) snaps = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (result); i++) {
         JsonNode *node = json_array_get_element (result, i);
         SnapdSnap *snap;
 
@@ -171,8 +161,8 @@ parse_get_find_response (SnapdRequest *self, SoupMessage *message, SnapdMaintena
         g_ptr_array_add (snaps, snap);
     }
 
-    r->snaps = g_steal_pointer (&snaps);
-    r->suggested_currency = g_strdup (_snapd_json_get_string (response, "suggested-currency", NULL));
+    self->snaps = g_steal_pointer (&snaps);
+    self->suggested_currency = g_strdup (_snapd_json_get_string (response, "suggested-currency", NULL));
 
     return TRUE;
 }

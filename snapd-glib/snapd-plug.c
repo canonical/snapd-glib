@@ -126,16 +126,15 @@ snapd_plug_get_interface (SnapdPlug *self)
 GStrv
 snapd_plug_get_attribute_names (SnapdPlug *self, guint *length)
 {
-    GHashTableIter iter;
-    gpointer name;
-    GStrv names;
-    guint size, i;
-
     g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
 
+    guint size = g_hash_table_size (self->attributes);
+    GStrv names = g_malloc (sizeof (gchar *) * (size + 1));
+
+    GHashTableIter iter;
     g_hash_table_iter_init (&iter, self->attributes);
-    size = g_hash_table_size (self->attributes);
-    names = g_malloc (sizeof (gchar *) * (size + 1));
+    guint i;
+    gpointer name;
     for (i = 0; g_hash_table_iter_next (&iter, &name, NULL); i++)
         names[i] = g_strdup (name);
     names[i] = NULL;
@@ -214,20 +213,18 @@ snapd_plug_get_connections (SnapdPlug *self)
 {
     g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
 
-    if (self->legacy_connections == NULL) {
-        int i;
+    if (self->legacy_connections != NULL)
+        return self->legacy_connections;
 
-        self->legacy_connections = g_ptr_array_new_with_free_func (g_object_unref);
-        for (i = 0; i < self->connections->len; i++) {
-            SnapdSlotRef *slot_ref = g_ptr_array_index (self->connections, i);
-            SnapdConnection *connection;
+    self->legacy_connections = g_ptr_array_new_with_free_func (g_object_unref);
+    for (int i = 0; i < self->connections->len; i++) {
+        SnapdSlotRef *slot_ref = g_ptr_array_index (self->connections, i);
 
-            connection = g_object_new (SNAPD_TYPE_CONNECTION,
-                                       "name", snapd_slot_ref_get_slot (slot_ref),
-                                       "snap", snapd_slot_ref_get_snap (slot_ref),
-                                       NULL);
-            g_ptr_array_add (self->legacy_connections, connection);
-        }
+        SnapdConnection *connection = g_object_new (SNAPD_TYPE_CONNECTION,
+                                                    "name", snapd_slot_ref_get_slot (slot_ref),
+                                                    "snap", snapd_slot_ref_get_snap (slot_ref),
+                                                    NULL);
+        g_ptr_array_add (self->legacy_connections, connection);
     }
 
     return self->legacy_connections;

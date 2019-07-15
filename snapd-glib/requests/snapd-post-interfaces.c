@@ -30,15 +30,13 @@ _snapd_post_interfaces_new (const gchar *action,
                             SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostInterfaces *self;
-
-    self = SNAPD_POST_INTERFACES (g_object_new (snapd_post_interfaces_get_type (),
-                                                   "cancellable", cancellable,
-                                                   "ready-callback", callback,
-                                                   "ready-callback-data", user_data,
-                                                   "progress-callback", progress_callback,
-                                                   "progress-callback-data", progress_callback_data,
-                                                   NULL));
+    SnapdPostInterfaces *self = SNAPD_POST_INTERFACES (g_object_new (snapd_post_interfaces_get_type (),
+                                                                     "cancellable", cancellable,
+                                                                     "ready-callback", callback,
+                                                                     "ready-callback-data", user_data,
+                                                                     "progress-callback", progress_callback,
+                                                                     "progress-callback-data", progress_callback_data,
+                                                                     NULL));
     self->action = g_strdup (action);
     self->plug_snap = g_strdup (plug_snap);
     self->plug_name = g_strdup (plug_name);
@@ -49,34 +47,32 @@ _snapd_post_interfaces_new (const gchar *action,
 }
 
 static SoupMessage *
-generate_post_interfaces_request (SnapdRequest *self)
+generate_post_interfaces_request (SnapdRequest *request)
 {
-    SnapdPostInterfaces *r = SNAPD_POST_INTERFACES (self);
-    SoupMessage *message;
-    g_autoptr(JsonBuilder) builder = NULL;
+    SnapdPostInterfaces *self = SNAPD_POST_INTERFACES (request);
 
-    message = soup_message_new ("POST", "http://snapd/v2/interfaces");
+    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/interfaces");
 
-    builder = json_builder_new ();
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "action");
-    json_builder_add_string_value (builder, r->action);
+    json_builder_add_string_value (builder, self->action);
     json_builder_set_member_name (builder, "plugs");
     json_builder_begin_array (builder);
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "snap");
-    json_builder_add_string_value (builder, r->plug_snap);
+    json_builder_add_string_value (builder, self->plug_snap);
     json_builder_set_member_name (builder, "plug");
-    json_builder_add_string_value (builder, r->plug_name);
+    json_builder_add_string_value (builder, self->plug_name);
     json_builder_end_object (builder);
     json_builder_end_array (builder);
     json_builder_set_member_name (builder, "slots");
     json_builder_begin_array (builder);
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "snap");
-    json_builder_add_string_value (builder, r->slot_snap);
+    json_builder_add_string_value (builder, self->slot_snap);
     json_builder_set_member_name (builder, "slot");
-    json_builder_add_string_value (builder, r->slot_name);
+    json_builder_add_string_value (builder, self->slot_name);
     json_builder_end_object (builder);
     json_builder_end_array (builder);
     json_builder_end_object (builder);

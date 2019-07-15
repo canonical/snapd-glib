@@ -89,7 +89,6 @@ respond_cb (gpointer user_data)
 void
 _snapd_request_return (SnapdRequest *self, GError *error)
 {
-    g_autoptr(GSource) source = NULL;
     SnapdRequestPrivate *priv = snapd_request_get_instance_private (self);
 
     if (priv->responded)
@@ -98,7 +97,7 @@ _snapd_request_return (SnapdRequest *self, GError *error)
     if (error != NULL)
         priv->error = g_error_copy (error);
 
-    source = g_idle_source_new ();
+    g_autoptr(GSource) source = g_idle_source_new ();
     g_source_set_callback (source, respond_cb, g_object_ref (self), g_object_unref);
     g_source_attach (source, _snapd_request_get_context (self));
 }

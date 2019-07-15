@@ -44,14 +44,11 @@ SnapdAuthData *
 snapd_login_sync (const gchar *username, const gchar *password, const gchar *otp,
                   GCancellable *cancellable, GError **error)
 {
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-
     g_return_val_if_fail (username != NULL, NULL);
     g_return_val_if_fail (password != NULL, NULL);
 
-    client = snapd_client_new ();
-    user_information = snapd_client_login2_sync (client, username, password, otp, cancellable, error);
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, username, password, otp, cancellable, error);
     if (user_information == NULL)
         return NULL;
 
@@ -62,10 +59,9 @@ static void
 login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     GTask *task = user_data;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
 
-    user_information = snapd_client_login2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_finish (SNAPD_CLIENT (object), result, &error);
     if (user_information != NULL)
         g_task_return_pointer (task, g_object_ref (snapd_user_information_get_auth_data (user_information)), g_object_unref);
     else
@@ -91,14 +87,11 @@ void
 snapd_login_async (const gchar *username, const gchar *password, const gchar *otp,
                    GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    g_autoptr(GTask) task = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-
     g_return_if_fail (username != NULL);
     g_return_if_fail (password != NULL);
 
-    task = g_task_new (NULL, cancellable, callback, user_data);
-    client = snapd_client_new ();
+    g_autoptr(GTask) task = g_task_new (NULL, cancellable, callback, user_data);
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_login2_async (client, username, password, otp, cancellable, login_cb, task);
 }
 

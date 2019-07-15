@@ -24,13 +24,11 @@ G_DEFINE_TYPE (SnapdGetApps, snapd_get_apps, snapd_request_get_type ())
 SnapdGetApps *
 _snapd_get_apps_new (GStrv snaps, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetApps *self;
-
-    self = SNAPD_GET_APPS (g_object_new (snapd_get_apps_get_type (),
-                                            "cancellable", cancellable,
-                                            "ready-callback", callback,
-                                            "ready-callback-data", user_data,
-                                            NULL));
+    SnapdGetApps *self = SNAPD_GET_APPS (g_object_new (snapd_get_apps_get_type (),
+                                                       "cancellable", cancellable,
+                                                       "ready-callback", callback,
+                                                       "ready-callback-data", user_data,
+                                                       NULL));
    if (snaps != NULL && snaps[0] != NULL)
        self->snaps = g_strdupv (snaps);
 
@@ -51,28 +49,24 @@ _snapd_get_apps_get_apps (SnapdGetApps *self)
 }
 
 static SoupMessage *
-generate_get_apps_request (SnapdRequest *self)
+generate_get_apps_request (SnapdRequest *request)
 {
-    SnapdGetApps *r = SNAPD_GET_APPS (self);
-    g_autoptr(GPtrArray) query_attributes = NULL;
-    g_autoptr(GString) path = NULL;
+    SnapdGetApps *self = SNAPD_GET_APPS (request);
 
-    query_attributes = g_ptr_array_new_with_free_func (g_free);
-    if (r->select != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (r->select, NULL);
+    g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
+    if (self->select != NULL) {
+        g_autofree gchar *escaped = soup_uri_encode (self->select, NULL);
         g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", escaped));
     }
-    if (r->snaps != NULL) {
-        g_autofree gchar *snaps_list = g_strjoinv (",", r->snaps);
+    if (self->snaps != NULL) {
+        g_autofree gchar *snaps_list = g_strjoinv (",", self->snaps);
         g_ptr_array_add (query_attributes, g_strdup_printf ("names=%s", snaps_list));
     }
 
-    path = g_string_new ("http://snapd/v2/apps");
+    g_autoptr(GString) path = g_string_new ("http://snapd/v2/apps");
     if (query_attributes->len > 0) {
-        guint i;
-
         g_string_append_c (path, '?');
-        for (i = 0; i < query_attributes->len; i++) {
+        for (guint i = 0; i < query_attributes->len; i++) {
             if (i != 0)
                 g_string_append_c (path, '&');
             g_string_append (path, (gchar *) query_attributes->pdata[i]);
@@ -83,34 +77,29 @@ generate_get_apps_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_get_apps_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_apps_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetApps *r = SNAPD_GET_APPS (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) result = NULL;
-    g_autoptr(GPtrArray) apps = NULL;
-    guint i;
+    SnapdGetApps *self = SNAPD_GET_APPS (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_a (response, error);
+    g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
     if (result == NULL)
         return FALSE;
 
-    apps = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (result); i++) {
+    g_autoptr(GPtrArray) apps = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (result); i++) {
         JsonNode *node = json_array_get_element (result, i);
-        SnapdApp *app;
 
-        app = _snapd_json_parse_app (node, NULL, error);
+        SnapdApp *app = _snapd_json_parse_app (node, NULL, error);
         if (app == NULL)
             return FALSE;
 
         g_ptr_array_add (apps, app);
     }
 
-    r->apps = g_steal_pointer (&apps);
+    self->apps = g_steal_pointer (&apps);
 
     return TRUE;
 }

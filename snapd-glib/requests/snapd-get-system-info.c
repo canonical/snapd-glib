@@ -39,34 +39,31 @@ _snapd_get_system_info_get_system_information (SnapdGetSystemInfo *self)
 }
 
 static SoupMessage *
-generate_get_system_info_request (SnapdRequest *self)
+generate_get_system_info_request (SnapdRequest *request)
 {
     return soup_message_new ("GET", "http://snapd/v2/system-info");
 }
 
 static gboolean
-parse_get_system_info_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetSystemInfo *r = SNAPD_GET_SYSTEM_INFO (self);
-    g_autoptr(JsonObject) response = NULL;
-    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
-    /*g_autoptr(JsonNode) result = NULL;*/
-    JsonNode *result;
-    g_autoptr(SnapdSystemInformation) system_information = NULL;
+    SnapdGetSystemInfo *self = SNAPD_GET_SYSTEM_INFO (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result (response, error);
+    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
+    /*g_autoptr(JsonNode) result = NULL;*/
+    JsonNode *result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return FALSE;
 
-    system_information = _snapd_json_parse_system_information (result, error);
+    g_autoptr(SnapdSystemInformation) system_information = _snapd_json_parse_system_information (result, error);
     json_node_unref (result);
     if (system_information == NULL)
         return FALSE;
 
-    r->system_information = g_steal_pointer (&system_information);
+    self->system_information = g_steal_pointer (&system_information);
 
     return TRUE;
 }

@@ -27,13 +27,11 @@ G_DEFINE_TYPE (SnapdGetAssertions, snapd_get_assertions, snapd_request_get_type 
 SnapdGetAssertions *
 _snapd_get_assertions_new (const gchar *type, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetAssertions *self;
-
-    self = SNAPD_GET_ASSERTIONS (g_object_new (snapd_get_assertions_get_type (),
-                                                  "cancellable", cancellable,
-                                                  "ready-callback", callback,
-                                                  "ready-callback-data", user_data,
-                                                  NULL));
+    SnapdGetAssertions *self = SNAPD_GET_ASSERTIONS (g_object_new (snapd_get_assertions_get_type (),
+                                                                   "cancellable", cancellable,
+                                                                   "ready-callback", callback,
+                                                                   "ready-callback-data", user_data,
+                                                                   NULL));
     self->type = g_strdup (type);
 
     return self;
@@ -46,35 +44,27 @@ _snapd_get_assertions_get_assertions (SnapdGetAssertions *self)
 }
 
 static SoupMessage *
-generate_get_assertions_request (SnapdRequest *self)
+generate_get_assertions_request (SnapdRequest *request)
 {
-    SnapdGetAssertions *r = SNAPD_GET_ASSERTIONS (self);
-    g_autofree gchar *escaped = NULL, *path = NULL;
+    SnapdGetAssertions *self = SNAPD_GET_ASSERTIONS (request);
 
-    escaped = soup_uri_encode (r->type, NULL);
-    path = g_strdup_printf ("http://snapd/v2/assertions/%s", escaped);
+    g_autofree gchar *escaped = soup_uri_encode (self->type, NULL);
+    g_autofree gchar *path = g_strdup_printf ("http://snapd/v2/assertions/%s", escaped);
 
     return soup_message_new ("GET", path);
 }
 
 static gboolean
-parse_get_assertions_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetAssertions *r = SNAPD_GET_ASSERTIONS (self);
-    const gchar *content_type;
-    g_autoptr(GPtrArray) assertions = NULL;
-    g_autoptr(SoupBuffer) buffer = NULL;
-    gsize offset = 0;
+    SnapdGetAssertions *self = SNAPD_GET_ASSERTIONS (request);
 
-    content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
+    const gchar *content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
     if (g_strcmp0 (content_type, "application/json") == 0) {
-        g_autoptr(JsonObject) response = NULL;
-        g_autoptr(JsonObject) result = NULL;
-
-        response = _snapd_json_parse_response (message, maintenance, error);
+        g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
         if (response == NULL)
             return FALSE;
-        result = _snapd_json_get_sync_result_o (response, error);
+        g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);
         if (result == NULL)
             return FALSE;
 
@@ -101,41 +91,37 @@ parse_get_assertions_response (SnapdRequest *self, SoupMessage *message, SnapdMa
         return FALSE;
     }
 
-    assertions = g_ptr_array_new ();
-    buffer = soup_message_body_flatten (message->response_body);
+    g_autoptr(GPtrArray) assertions = g_ptr_array_new ();
+    g_autoptr(SoupBuffer) buffer = soup_message_body_flatten (message->response_body);
+    gsize offset = 0;
     while (offset < buffer->length) {
-        gsize assertion_start, assertion_end, body_length = 0;
-        g_autofree gchar *body_length_header = NULL;
-        g_autofree gchar *content = NULL;
-        g_autoptr(SnapdAssertion) assertion = NULL;
-
         /* Headers terminated by double newline */
-        assertion_start = offset;
+        gsize assertion_start = offset;
         while (offset < buffer->length && !g_str_has_prefix (buffer->data + offset, "\n\n"))
             offset++;
         offset += 2;
 
         /* Make a temporary assertion object to decode body length header */
-        content = g_strndup (buffer->data + assertion_start, offset - assertion_start);
-        assertion = snapd_assertion_new (content);
-        body_length_header = snapd_assertion_get_header (assertion, "body-length");
+        g_autofree gchar *content = g_strndup (buffer->data + assertion_start, offset - assertion_start);
+        g_autoptr(SnapdAssertion) assertion = snapd_assertion_new (content);
+        g_autofree gchar *body_length_header = snapd_assertion_get_header (assertion, "body-length");
 
         /* Skip over body */
-        body_length = body_length_header != NULL ? strtoul (body_length_header, NULL, 10) : 0;
+        gsize body_length = body_length_header != NULL ? strtoul (body_length_header, NULL, 10) : 0;
         if (body_length > 0)
             offset += body_length + 2;
 
         /* Find end of signature */
         while (offset < buffer->length && !g_str_has_prefix (buffer->data + offset, "\n\n"))
             offset++;
-        assertion_end = offset;
+        gsize assertion_end = offset;
         offset += 2;
 
         g_ptr_array_add (assertions, g_strndup (buffer->data + assertion_start, assertion_end - assertion_start));
     }
     g_ptr_array_add (assertions, NULL);
 
-    r->assertions = g_steal_pointer ((GStrv *)&assertions->pdata);
+    self->assertions = g_steal_pointer ((GStrv *)&assertions->pdata);
 
     return TRUE;
 }

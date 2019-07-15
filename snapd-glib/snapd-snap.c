@@ -231,20 +231,16 @@ parse_risk (const gchar *risk)
 SnapdChannel *
 snapd_snap_match_channel (SnapdSnap *self, const gchar *name)
 {
-    g_autoptr(SnapdChannel) c = NULL;
-    guint i;
-    SnapdChannel *matched_channel = NULL;
-    int matched_risk = -1;
-
     g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
     g_return_val_if_fail (name != NULL, NULL);
 
-    c = g_object_new (SNAPD_TYPE_CHANNEL,
-                      "name", name,
-                      NULL);
-    for (i = 0; i < self->channels->len; i++) {
+    g_autoptr(SnapdChannel) c = g_object_new (SNAPD_TYPE_CHANNEL,
+                                              "name", name,
+                                              NULL);
+    SnapdChannel *matched_channel = NULL;
+    int matched_risk = -1;
+    for (guint i = 0; i < self->channels->len; i++) {
         SnapdChannel *channel = self->channels->pdata[i];
-        int r;
 
         /* Must be same track and branch */
         if (g_strcmp0 (snapd_channel_get_track (channel), snapd_channel_get_track (c)) != 0 ||
@@ -252,7 +248,7 @@ snapd_snap_match_channel (SnapdSnap *self, const gchar *name)
             continue;
 
         /* Must be no riskier than requested */
-        r = parse_risk (snapd_channel_get_risk (channel));
+        int r = parse_risk (snapd_channel_get_risk (channel));
         if (r > parse_risk (snapd_channel_get_risk (c)))
             continue;
 

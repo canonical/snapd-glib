@@ -26,15 +26,13 @@ _snapd_post_snaps_new (const gchar *action,
                        SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                        GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostSnaps *self;
-
-    self = SNAPD_POST_SNAPS (g_object_new (snapd_post_snaps_get_type (),
-                                              "cancellable", cancellable,
-                                              "ready-callback", callback,
-                                              "ready-callback-data", user_data,
-                                              "progress-callback", progress_callback,
-                                              "progress-callback-data", progress_callback_data,
-                                              NULL));
+    SnapdPostSnaps *self = SNAPD_POST_SNAPS (g_object_new (snapd_post_snaps_get_type (),
+                                                           "cancellable", cancellable,
+                                                           "ready-callback", callback,
+                                                           "ready-callback-data", user_data,
+                                                           "progress-callback", progress_callback,
+                                                           "progress-callback-data", progress_callback_data,
+                                                           NULL));
     self->action = g_strdup (action);
 
     return self;
@@ -47,18 +45,16 @@ _snapd_post_snaps_get_snap_names (SnapdPostSnaps *self)
 }
 
 static SoupMessage *
-generate_post_snaps_request (SnapdRequest *self)
+generate_post_snaps_request (SnapdRequest *request)
 {
-    SnapdPostSnaps *r = SNAPD_POST_SNAPS (self);
-    SoupMessage *message;
-    g_autoptr(JsonBuilder) builder = NULL;
+    SnapdPostSnaps *self = SNAPD_POST_SNAPS (request);
 
-    message = soup_message_new ("POST", "http://snapd/v2/snaps");
+    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/snaps");
 
-    builder = json_builder_new ();
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
     json_builder_set_member_name (builder, "action");
-    json_builder_add_string_value (builder, r->action);
+    json_builder_add_string_value (builder, self->action);
     json_builder_end_object (builder);
     _snapd_json_set_body (message, builder);
 
@@ -66,13 +62,9 @@ generate_post_snaps_request (SnapdRequest *self)
 }
 
 static gboolean
-parse_post_snaps_result (SnapdRequestAsync *self, JsonNode *result, GError **error)
+parse_post_snaps_result (SnapdRequestAsync *request, JsonNode *result, GError **error)
 {
-    SnapdPostSnaps *r = SNAPD_POST_SNAPS (self);
-    g_autoptr(GPtrArray) snap_names = NULL;
-    JsonObject *o;
-    g_autoptr(JsonArray) a = NULL;
-    guint i;
+    SnapdPostSnaps *self = SNAPD_POST_SNAPS (request);
 
     if (result == NULL || json_node_get_value_type (result) != JSON_TYPE_OBJECT) {
         g_set_error_literal (error,
@@ -81,7 +73,7 @@ parse_post_snaps_result (SnapdRequestAsync *self, JsonNode *result, GError **err
                              "Unexpected result type");
         return FALSE;
     }
-    o = json_node_get_object (result);
+    JsonObject *o = json_node_get_object (result);
     if (o == NULL) {
         g_set_error_literal (error,
                              SNAPD_ERROR,
@@ -89,9 +81,9 @@ parse_post_snaps_result (SnapdRequestAsync *self, JsonNode *result, GError **err
                              "No result returned");
         return FALSE;
     }
-    a = _snapd_json_get_array (o, "snap-names");
-    snap_names = g_ptr_array_new ();
-    for (i = 0; i < json_array_get_length (a); i++) {
+    g_autoptr(JsonArray) a = _snapd_json_get_array (o, "snap-names");
+    g_autoptr(GPtrArray) snap_names = g_ptr_array_new ();
+    for (guint i = 0; i < json_array_get_length (a); i++) {
         JsonNode *node = json_array_get_element (a, i);
         if (json_node_get_value_type (node) != G_TYPE_STRING) {
             g_set_error_literal (error,
@@ -105,7 +97,7 @@ parse_post_snaps_result (SnapdRequestAsync *self, JsonNode *result, GError **err
     }
     g_ptr_array_add (snap_names, NULL);
 
-    r->snap_names = (GStrv) g_steal_pointer (&snap_names->pdata);
+    self->snap_names = (GStrv) g_steal_pointer (&snap_names->pdata);
 
     return TRUE;
 }

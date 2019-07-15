@@ -37,40 +37,35 @@ _snapd_get_users_get_users_information (SnapdGetUsers *self)
 }
 
 static SoupMessage *
-generate_get_users_request (SnapdRequest *self)
+generate_get_users_request (SnapdRequest *request)
 {
     return soup_message_new ("GET", "http://snapd/v2/users");
 }
 
 static gboolean
-parse_get_users_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_users_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetUsers *r = SNAPD_GET_USERS (self);
-    g_autoptr(JsonObject) response = NULL;
-    g_autoptr(JsonArray) result = NULL;
-    g_autoptr(GPtrArray) users_information = NULL;
-    guint i;
+    SnapdGetUsers *self = SNAPD_GET_USERS (request);
 
-    response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
     if (response == NULL)
         return FALSE;
-    result = _snapd_json_get_sync_result_a (response, error);
+    g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
     if (result == NULL)
         return FALSE;
 
-    users_information = g_ptr_array_new_with_free_func (g_object_unref);
-    for (i = 0; i < json_array_get_length (result); i++) {
+    g_autoptr(GPtrArray) users_information = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (result); i++) {
         JsonNode *node = json_array_get_element (result, i);
-        SnapdUserInformation *user_information;
 
-        user_information = _snapd_json_parse_user_information (node, error);
+        SnapdUserInformation *user_information = _snapd_json_parse_user_information (node, error);
         if (user_information == NULL)
             return FALSE;
 
         g_ptr_array_add (users_information, user_information);
     }
 
-    r->users_information = g_steal_pointer (&users_information);
+    self->users_information = g_steal_pointer (&users_information);
 
     return TRUE;
 }
