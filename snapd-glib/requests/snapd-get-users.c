@@ -31,21 +31,21 @@ _snapd_get_users_new (GCancellable *cancellable, GAsyncReadyCallback callback, g
 }
 
 GPtrArray *
-_snapd_get_users_get_users_information (SnapdGetUsers *request)
+_snapd_get_users_get_users_information (SnapdGetUsers *self)
 {
-    return request->users_information;
+    return self->users_information;
 }
 
 static SoupMessage *
-generate_get_users_request (SnapdRequest *request)
+generate_get_users_request (SnapdRequest *self)
 {
     return soup_message_new ("GET", "http://snapd/v2/users");
 }
 
 static gboolean
-parse_get_users_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_users_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetUsers *r = SNAPD_GET_USERS (request);
+    SnapdGetUsers *r = SNAPD_GET_USERS (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) users_information = NULL;
@@ -78,9 +78,9 @@ parse_get_users_response (SnapdRequest *request, SoupMessage *message, SnapdMain
 static void
 snapd_get_users_finalize (GObject *object)
 {
-    SnapdGetUsers *request = SNAPD_GET_USERS (object);
+    SnapdGetUsers *self = SNAPD_GET_USERS (object);
 
-    g_clear_pointer (&request->users_information, g_ptr_array_unref);
+    g_clear_pointer (&self->users_information, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_users_parent_class)->finalize (object);
 }
@@ -97,6 +97,6 @@ snapd_get_users_class_init (SnapdGetUsersClass *klass)
 }
 
 static void
-snapd_get_users_init (SnapdGetUsers *request)
+snapd_get_users_init (SnapdGetUsers *self)
 {
 }

@@ -85,10 +85,10 @@ snapd_auth_data_new (const gchar *macaroon, GStrv discharges)
  * Since: 1.0
  */
 const gchar *
-snapd_auth_data_get_macaroon (SnapdAuthData *auth_data)
+snapd_auth_data_get_macaroon (SnapdAuthData *self)
 {
-    g_return_val_if_fail (SNAPD_IS_AUTH_DATA (auth_data), NULL);
-    return auth_data->macaroon;
+    g_return_val_if_fail (SNAPD_IS_AUTH_DATA (self), NULL);
+    return self->macaroon;
 }
 
 /**
@@ -102,25 +102,25 @@ snapd_auth_data_get_macaroon (SnapdAuthData *auth_data)
  * Since: 1.0
  */
 GStrv
-snapd_auth_data_get_discharges (SnapdAuthData *auth_data)
+snapd_auth_data_get_discharges (SnapdAuthData *self)
 {
-    g_return_val_if_fail (SNAPD_IS_AUTH_DATA (auth_data), NULL);
-    return auth_data->discharges;
+    g_return_val_if_fail (SNAPD_IS_AUTH_DATA (self), NULL);
+    return self->discharges;
 }
 
 static void
 snapd_auth_data_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdAuthData *auth_data = SNAPD_AUTH_DATA (object);
+    SnapdAuthData *self = SNAPD_AUTH_DATA (object);
 
     switch (prop_id) {
     case PROP_MACAROON:
-        g_free (auth_data->macaroon);
-        auth_data->macaroon = g_strdup (g_value_get_string (value));
+        g_free (self->macaroon);
+        self->macaroon = g_strdup (g_value_get_string (value));
         break;
     case PROP_DISCHARGES:
-        g_strfreev (auth_data->discharges);
-        auth_data->discharges = g_strdupv (g_value_get_boxed (value));
+        g_strfreev (self->discharges);
+        self->discharges = g_strdupv (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -131,14 +131,14 @@ snapd_auth_data_set_property (GObject *object, guint prop_id, const GValue *valu
 static void
 snapd_auth_data_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdAuthData *auth_data = SNAPD_AUTH_DATA (object);
+    SnapdAuthData *self = SNAPD_AUTH_DATA (object);
 
     switch (prop_id) {
     case PROP_MACAROON:
-        g_value_set_string (value, auth_data->macaroon);
+        g_value_set_string (value, self->macaroon);
         break;
     case PROP_DISCHARGES:
-        g_value_set_boxed (value, auth_data->discharges);
+        g_value_set_boxed (value, self->discharges);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -149,10 +149,10 @@ snapd_auth_data_get_property (GObject *object, guint prop_id, GValue *value, GPa
 static void
 snapd_auth_data_finalize (GObject *object)
 {
-    SnapdAuthData *auth_data = SNAPD_AUTH_DATA (object);
+    SnapdAuthData *self = SNAPD_AUTH_DATA (object);
 
-    g_clear_pointer (&auth_data->macaroon, g_free);
-    g_clear_pointer (&auth_data->discharges, g_strfreev);
+    g_clear_pointer (&self->macaroon, g_free);
+    g_clear_pointer (&self->discharges, g_strfreev);
 
     G_OBJECT_CLASS (snapd_auth_data_parent_class)->finalize (object);
 }
@@ -183,6 +183,6 @@ snapd_auth_data_class_init (SnapdAuthDataClass *klass)
 }
 
 static void
-snapd_auth_data_init (SnapdAuthData *auth_data)
+snapd_auth_data_init (SnapdAuthData *self)
 {
 }

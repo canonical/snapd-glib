@@ -27,30 +27,30 @@ SnapdPostLogin *
 _snapd_post_login_new (const gchar *email, const gchar *password, const gchar *otp,
                        GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostLogin *request;
+    SnapdPostLogin *self;
 
-    request = SNAPD_POST_LOGIN (g_object_new (snapd_post_login_get_type (),
+    self = SNAPD_POST_LOGIN (g_object_new (snapd_post_login_get_type (),
                                               "cancellable", cancellable,
                                               "ready-callback", callback,
                                               "ready-callback-data", user_data,
                                               NULL));
-    request->email = g_strdup (email);
-    request->password = g_strdup (password);
-    request->otp = g_strdup (otp);
+    self->email = g_strdup (email);
+    self->password = g_strdup (password);
+    self->otp = g_strdup (otp);
 
-    return request;
+    return self;
 }
 
 SnapdUserInformation *
-_snapd_post_login_get_user_information (SnapdPostLogin *request)
+_snapd_post_login_get_user_information (SnapdPostLogin *self)
 {
-    return request->user_information;
+    return self->user_information;
 }
 
 static SoupMessage *
-generate_post_login_request (SnapdRequest *request)
+generate_post_login_request (SnapdRequest *self)
 {
-    SnapdPostLogin *r = SNAPD_POST_LOGIN (request);
+    SnapdPostLogin *r = SNAPD_POST_LOGIN (self);
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
 
@@ -76,9 +76,9 @@ generate_post_login_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_login_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_login_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdPostLogin *r = SNAPD_POST_LOGIN (request);
+    SnapdPostLogin *r = SNAPD_POST_LOGIN (self);
     g_autoptr(JsonObject) response = NULL;
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
     /*g_autoptr(JsonNode) result = NULL;*/
@@ -102,12 +102,12 @@ parse_post_login_response (SnapdRequest *request, SoupMessage *message, SnapdMai
 static void
 snapd_post_login_finalize (GObject *object)
 {
-    SnapdPostLogin *request = SNAPD_POST_LOGIN (object);
+    SnapdPostLogin *self = SNAPD_POST_LOGIN (object);
 
-    g_clear_pointer (&request->email, g_free);
-    g_clear_pointer (&request->password, g_free);
-    g_clear_pointer (&request->otp, g_free);
-    g_clear_object (&request->user_information);
+    g_clear_pointer (&self->email, g_free);
+    g_clear_pointer (&self->password, g_free);
+    g_clear_pointer (&self->otp, g_free);
+    g_clear_object (&self->user_information);
 
     G_OBJECT_CLASS (snapd_post_login_parent_class)->finalize (object);
 }
@@ -124,6 +124,6 @@ snapd_post_login_class_init (SnapdPostLoginClass *klass)
 }
 
 static void
-snapd_post_login_init (SnapdPostLogin *request)
+snapd_post_login_init (SnapdPostLogin *self)
 {
 }

@@ -72,10 +72,10 @@ G_DEFINE_TYPE (SnapdPlug, snapd_plug, G_TYPE_OBJECT)
  * Since: 1.0
  */
 const gchar *
-snapd_plug_get_name (SnapdPlug *plug)
+snapd_plug_get_name (SnapdPlug *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
-    return plug->name;
+    g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
+    return self->name;
 }
 
 /**
@@ -89,10 +89,10 @@ snapd_plug_get_name (SnapdPlug *plug)
  * Since: 1.0
  */
 const gchar *
-snapd_plug_get_snap (SnapdPlug *plug)
+snapd_plug_get_snap (SnapdPlug *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
-    return plug->snap;
+    g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
+    return self->snap;
 }
 
 /**
@@ -106,10 +106,10 @@ snapd_plug_get_snap (SnapdPlug *plug)
  * Since: 1.0
  */
 const gchar *
-snapd_plug_get_interface (SnapdPlug *plug)
+snapd_plug_get_interface (SnapdPlug *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
-    return plug->interface;
+    g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
+    return self->interface;
 }
 
 /**
@@ -124,17 +124,17 @@ snapd_plug_get_interface (SnapdPlug *plug)
  * Since: 1.3
  */
 GStrv
-snapd_plug_get_attribute_names (SnapdPlug *plug, guint *length)
+snapd_plug_get_attribute_names (SnapdPlug *self, guint *length)
 {
     GHashTableIter iter;
     gpointer name;
     GStrv names;
     guint size, i;
 
-    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
+    g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
 
-    g_hash_table_iter_init (&iter, plug->attributes);
-    size = g_hash_table_size (plug->attributes);
+    g_hash_table_iter_init (&iter, self->attributes);
+    size = g_hash_table_size (self->attributes);
     names = g_malloc (sizeof (gchar *) * (size + 1));
     for (i = 0; g_hash_table_iter_next (&iter, &name, NULL); i++)
         names[i] = g_strdup (name);
@@ -157,10 +157,10 @@ snapd_plug_get_attribute_names (SnapdPlug *plug, guint *length)
  * Since: 1.3
  */
 gboolean
-snapd_plug_has_attribute (SnapdPlug *plug, const gchar *name)
+snapd_plug_has_attribute (SnapdPlug *self, const gchar *name)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG (plug), FALSE);
-    return g_hash_table_contains (plug->attributes, name);
+    g_return_val_if_fail (SNAPD_IS_PLUG (self), FALSE);
+    return g_hash_table_contains (self->attributes, name);
 }
 
 /**
@@ -175,10 +175,10 @@ snapd_plug_has_attribute (SnapdPlug *plug, const gchar *name)
  * Since: 1.3
  */
 GVariant *
-snapd_plug_get_attribute (SnapdPlug *plug, const gchar *name)
+snapd_plug_get_attribute (SnapdPlug *self, const gchar *name)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
-    return g_hash_table_lookup (plug->attributes, name);
+    g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
+    return g_hash_table_lookup (self->attributes, name);
 }
 
 /**
@@ -192,10 +192,10 @@ snapd_plug_get_attribute (SnapdPlug *plug, const gchar *name)
  * Since: 1.0
  */
 const gchar *
-snapd_plug_get_label (SnapdPlug *plug)
+snapd_plug_get_label (SnapdPlug *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
-    return plug->label;
+    g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
+    return self->label;
 }
 
 /**
@@ -210,27 +210,27 @@ snapd_plug_get_label (SnapdPlug *plug)
  * Deprecated: 1.48: Use snapd_plug_get_connected_slots()
  */
 GPtrArray *
-snapd_plug_get_connections (SnapdPlug *plug)
+snapd_plug_get_connections (SnapdPlug *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
+    g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
 
-    if (plug->legacy_connections == NULL) {
+    if (self->legacy_connections == NULL) {
         int i;
 
-        plug->legacy_connections = g_ptr_array_new_with_free_func (g_object_unref);
-        for (i = 0; i < plug->connections->len; i++) {
-            SnapdSlotRef *slot_ref = g_ptr_array_index (plug->connections, i);
+        self->legacy_connections = g_ptr_array_new_with_free_func (g_object_unref);
+        for (i = 0; i < self->connections->len; i++) {
+            SnapdSlotRef *slot_ref = g_ptr_array_index (self->connections, i);
             SnapdConnection *connection;
 
             connection = g_object_new (SNAPD_TYPE_CONNECTION,
                                        "name", snapd_slot_ref_get_slot (slot_ref),
                                        "snap", snapd_slot_ref_get_snap (slot_ref),
                                        NULL);
-            g_ptr_array_add (plug->legacy_connections, connection);
+            g_ptr_array_add (self->legacy_connections, connection);
         }
     }
 
-    return plug->legacy_connections;
+    return self->legacy_connections;
 }
 
 /**
@@ -244,43 +244,43 @@ snapd_plug_get_connections (SnapdPlug *plug)
  * Since: 1.48
  */
 GPtrArray *
-snapd_plug_get_connected_slots (SnapdPlug *plug)
+snapd_plug_get_connected_slots (SnapdPlug *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG (plug), NULL);
-    return plug->connections;
+    g_return_val_if_fail (SNAPD_IS_PLUG (self), NULL);
+    return self->connections;
 }
 
 static void
 snapd_plug_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdPlug *plug = SNAPD_PLUG (object);
+    SnapdPlug *self = SNAPD_PLUG (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_free (plug->name);
-        plug->name = g_strdup (g_value_get_string (value));
+        g_free (self->name);
+        self->name = g_strdup (g_value_get_string (value));
         break;
     case PROP_SNAP:
-        g_free (plug->snap);
-        plug->snap = g_strdup (g_value_get_string (value));
+        g_free (self->snap);
+        self->snap = g_strdup (g_value_get_string (value));
         break;
     case PROP_INTERFACE:
-        g_free (plug->interface);
-        plug->interface = g_strdup (g_value_get_string (value));
+        g_free (self->interface);
+        self->interface = g_strdup (g_value_get_string (value));
         break;
     case PROP_LABEL:
-        g_free (plug->label);
-        plug->label = g_strdup (g_value_get_string (value));
+        g_free (self->label);
+        self->label = g_strdup (g_value_get_string (value));
         break;
     case PROP_CONNECTIONS:
-        g_clear_pointer (&plug->connections, g_ptr_array_unref);
+        g_clear_pointer (&self->connections, g_ptr_array_unref);
         if (g_value_get_boxed (value) != NULL)
-            plug->connections = g_ptr_array_ref (g_value_get_boxed (value));
+            self->connections = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_ATTRIBUTES:
-        g_clear_pointer (&plug->attributes, g_hash_table_unref);
+        g_clear_pointer (&self->attributes, g_hash_table_unref);
         if (g_value_get_boxed (value) != NULL)
-            plug->attributes = g_hash_table_ref (g_value_get_boxed (value));
+            self->attributes = g_hash_table_ref (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -291,26 +291,26 @@ snapd_plug_set_property (GObject *object, guint prop_id, const GValue *value, GP
 static void
 snapd_plug_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdPlug *plug = SNAPD_PLUG (object);
+    SnapdPlug *self = SNAPD_PLUG (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_value_set_string (value, plug->name);
+        g_value_set_string (value, self->name);
         break;
     case PROP_SNAP:
-        g_value_set_string (value, plug->snap);
+        g_value_set_string (value, self->snap);
         break;
     case PROP_INTERFACE:
-        g_value_set_string (value, plug->interface);
+        g_value_set_string (value, self->interface);
         break;
     case PROP_LABEL:
-        g_value_set_string (value, plug->label);
+        g_value_set_string (value, self->label);
         break;
     case PROP_CONNECTIONS:
-        g_value_set_boxed (value, plug->connections);
+        g_value_set_boxed (value, self->connections);
         break;
     case PROP_ATTRIBUTES:
-        g_value_set_boxed (value, plug->attributes);
+        g_value_set_boxed (value, self->attributes);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -321,15 +321,15 @@ snapd_plug_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
 static void
 snapd_plug_finalize (GObject *object)
 {
-    SnapdPlug *plug = SNAPD_PLUG (object);
+    SnapdPlug *self = SNAPD_PLUG (object);
 
-    g_clear_pointer (&plug->name, g_free);
-    g_clear_pointer (&plug->snap, g_free);
-    g_clear_pointer (&plug->interface, g_free);
-    g_clear_pointer (&plug->attributes, g_hash_table_unref);
-    g_clear_pointer (&plug->label, g_free);
-    g_clear_pointer (&plug->connections, g_ptr_array_unref);
-    g_clear_pointer (&plug->legacy_connections, g_ptr_array_unref);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_pointer (&self->snap, g_free);
+    g_clear_pointer (&self->interface, g_free);
+    g_clear_pointer (&self->attributes, g_hash_table_unref);
+    g_clear_pointer (&self->label, g_free);
+    g_clear_pointer (&self->connections, g_ptr_array_unref);
+    g_clear_pointer (&self->legacy_connections, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_plug_parent_class)->finalize (object);
 }
@@ -388,7 +388,7 @@ snapd_plug_class_init (SnapdPlugClass *klass)
 }
 
 static void
-snapd_plug_init (SnapdPlug *plug)
+snapd_plug_init (SnapdPlug *self)
 {
-    plug->attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
+    self->attributes = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_variant_unref);
 }

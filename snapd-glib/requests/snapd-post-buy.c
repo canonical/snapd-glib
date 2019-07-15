@@ -26,24 +26,24 @@ SnapdPostBuy *
 _snapd_post_buy_new (const gchar *id, gdouble amount, const gchar *currency,
                      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostBuy *request;
+    SnapdPostBuy *self;
 
-    request = SNAPD_POST_BUY (g_object_new (snapd_post_buy_get_type (),
+    self = SNAPD_POST_BUY (g_object_new (snapd_post_buy_get_type (),
                                               "cancellable", cancellable,
                                               "ready-callback", callback,
                                               "ready-callback-data", user_data,
                                               NULL));
-    request->id = g_strdup (id);
-    request->amount = amount;
-    request->currency = g_strdup (currency);
+    self->id = g_strdup (id);
+    self->amount = amount;
+    self->currency = g_strdup (currency);
 
-    return request;
+    return self;
 }
 
 static SoupMessage *
-generate_post_buy_request (SnapdRequest *request)
+generate_post_buy_request (SnapdRequest *self)
 {
-    SnapdPostBuy *r = SNAPD_POST_BUY (request);
+    SnapdPostBuy *r = SNAPD_POST_BUY (self);
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
 
@@ -64,7 +64,7 @@ generate_post_buy_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_buy_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_buy_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     g_autoptr(JsonObject) response = NULL;
 
@@ -78,10 +78,10 @@ parse_post_buy_response (SnapdRequest *request, SoupMessage *message, SnapdMaint
 static void
 snapd_post_buy_finalize (GObject *object)
 {
-    SnapdPostBuy *request = SNAPD_POST_BUY (object);
+    SnapdPostBuy *self = SNAPD_POST_BUY (object);
 
-    g_clear_pointer (&request->id, g_free);
-    g_clear_pointer (&request->currency, g_free);
+    g_clear_pointer (&self->id, g_free);
+    g_clear_pointer (&self->currency, g_free);
 
     G_OBJECT_CLASS (snapd_post_buy_parent_class)->finalize (object);
 }
@@ -98,6 +98,6 @@ snapd_post_buy_class_init (SnapdPostBuyClass *klass)
 }
 
 static void
-snapd_post_buy_init (SnapdPostBuy *request)
+snapd_post_buy_init (SnapdPostBuy *self)
 {
 }

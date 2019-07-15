@@ -24,36 +24,36 @@ G_DEFINE_TYPE (SnapdGetSnaps, snapd_get_snaps, snapd_request_get_type ())
 SnapdGetSnaps *
 _snapd_get_snaps_new (GCancellable *cancellable, GStrv names, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetSnaps *request;
+    SnapdGetSnaps *self;
 
-    request = SNAPD_GET_SNAPS (g_object_new (snapd_get_snaps_get_type (),
+    self = SNAPD_GET_SNAPS (g_object_new (snapd_get_snaps_get_type (),
                                              "cancellable", cancellable,
                                              "ready-callback", callback,
                                              "ready-callback-data", user_data,
                                              NULL));
    if (names != NULL && names[0] != NULL)
-       request->names = g_strdupv (names);
+       self->names = g_strdupv (names);
 
-   return request;
+   return self;
 }
 
 void
-_snapd_get_snaps_set_select (SnapdGetSnaps *request, const gchar *select)
+_snapd_get_snaps_set_select (SnapdGetSnaps *self, const gchar *select)
 {
-    g_free (request->select);
-    request->select = g_strdup (select);
+    g_free (self->select);
+    self->select = g_strdup (select);
 }
 
 GPtrArray *
-_snapd_get_snaps_get_snaps (SnapdGetSnaps *request)
+_snapd_get_snaps_get_snaps (SnapdGetSnaps *self)
 {
-    return request->snaps;
+    return self->snaps;
 }
 
 static SoupMessage *
-generate_get_snaps_request (SnapdRequest *request)
+generate_get_snaps_request (SnapdRequest *self)
 {
-    SnapdGetSnaps *r = SNAPD_GET_SNAPS (request);
+    SnapdGetSnaps *r = SNAPD_GET_SNAPS (self);
     g_autoptr(GPtrArray) query_attributes = NULL;
     g_autoptr(GString) path = NULL;
 
@@ -81,9 +81,9 @@ generate_get_snaps_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_snaps_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_snaps_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetSnaps *r = SNAPD_GET_SNAPS (request);
+    SnapdGetSnaps *r = SNAPD_GET_SNAPS (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
@@ -116,11 +116,11 @@ parse_get_snaps_response (SnapdRequest *request, SoupMessage *message, SnapdMain
 static void
 snapd_get_snaps_finalize (GObject *object)
 {
-    SnapdGetSnaps *request = SNAPD_GET_SNAPS (object);
+    SnapdGetSnaps *self = SNAPD_GET_SNAPS (object);
 
-    g_clear_pointer (&request->select, g_free);
-    g_clear_pointer (&request->names, g_strfreev);
-    g_clear_pointer (&request->snaps, g_ptr_array_unref);
+    g_clear_pointer (&self->select, g_free);
+    g_clear_pointer (&self->names, g_strfreev);
+    g_clear_pointer (&self->snaps, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_snaps_parent_class)->finalize (object);
 }
@@ -137,6 +137,6 @@ snapd_get_snaps_class_init (SnapdGetSnapsClass *klass)
 }
 
 static void
-snapd_get_snaps_init (SnapdGetSnaps *request)
+snapd_get_snaps_init (SnapdGetSnaps *self)
 {
 }

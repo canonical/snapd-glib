@@ -71,10 +71,10 @@ G_DEFINE_TYPE (SnapdApp, snapd_app, G_TYPE_OBJECT)
  * Since: 1.0
  */
 const gchar *
-snapd_app_get_name (SnapdApp *app)
+snapd_app_get_name (SnapdApp *self)
 {
-    g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
-    return app->name;
+    g_return_val_if_fail (SNAPD_IS_APP (self), NULL);
+    return self->name;
 }
 
 /**
@@ -88,10 +88,10 @@ snapd_app_get_name (SnapdApp *app)
  * Since: 1.25
  */
 gboolean
-snapd_app_get_active (SnapdApp *app)
+snapd_app_get_active (SnapdApp *self)
 {
-    g_return_val_if_fail (SNAPD_IS_APP (app), FALSE);
-    return app->active;
+    g_return_val_if_fail (SNAPD_IS_APP (self), FALSE);
+    return self->active;
 }
 
 /**
@@ -106,9 +106,9 @@ snapd_app_get_active (SnapdApp *app)
  * Deprecated: 1.25
  */
 GStrv
-snapd_app_get_aliases (SnapdApp *app)
+snapd_app_get_aliases (SnapdApp *self)
 {
-    g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
+    g_return_val_if_fail (SNAPD_IS_APP (self), NULL);
     return NULL;
 }
 
@@ -123,10 +123,10 @@ snapd_app_get_aliases (SnapdApp *app)
  * Since: 1.41
  */
 const gchar *
-snapd_app_get_common_id (SnapdApp *app)
+snapd_app_get_common_id (SnapdApp *self)
 {
-    g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
-    return app->common_id;
+    g_return_val_if_fail (SNAPD_IS_APP (self), NULL);
+    return self->common_id;
 }
 
 /**
@@ -140,10 +140,10 @@ snapd_app_get_common_id (SnapdApp *app)
  * Since: 1.9
  */
 SnapdDaemonType
-snapd_app_get_daemon_type (SnapdApp *app)
+snapd_app_get_daemon_type (SnapdApp *self)
 {
-    g_return_val_if_fail (SNAPD_IS_APP (app), SNAPD_DAEMON_TYPE_NONE);
-    return app->daemon_type;
+    g_return_val_if_fail (SNAPD_IS_APP (self), SNAPD_DAEMON_TYPE_NONE);
+    return self->daemon_type;
 }
 
 /**
@@ -157,10 +157,10 @@ snapd_app_get_daemon_type (SnapdApp *app)
  * Since: 1.14
  */
 const gchar *
-snapd_app_get_desktop_file (SnapdApp *app)
+snapd_app_get_desktop_file (SnapdApp *self)
 {
-    g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
-    return app->desktop_file;
+    g_return_val_if_fail (SNAPD_IS_APP (self), NULL);
+    return self->desktop_file;
 }
 
 /**
@@ -174,10 +174,10 @@ snapd_app_get_desktop_file (SnapdApp *app)
  * Since: 1.25
  */
 gboolean
-snapd_app_get_enabled (SnapdApp *app)
+snapd_app_get_enabled (SnapdApp *self)
 {
-    g_return_val_if_fail (SNAPD_IS_APP (app), FALSE);
-    return app->enabled;
+    g_return_val_if_fail (SNAPD_IS_APP (self), FALSE);
+    return self->enabled;
 }
 
 /**
@@ -191,44 +191,44 @@ snapd_app_get_enabled (SnapdApp *app)
  * Since: 1.25
  */
 const gchar *
-snapd_app_get_snap (SnapdApp *app)
+snapd_app_get_snap (SnapdApp *self)
 {
-    g_return_val_if_fail (SNAPD_IS_APP (app), NULL);
-    return app->snap;
+    g_return_val_if_fail (SNAPD_IS_APP (self), NULL);
+    return self->snap;
 }
 
 static void
 snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdApp *app = SNAPD_APP (object);
+    SnapdApp *self = SNAPD_APP (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_free (app->name);
-        app->name = g_strdup (g_value_get_string (value));
+        g_free (self->name);
+        self->name = g_strdup (g_value_get_string (value));
         break;
     case PROP_ALIASES:
         break;
     case PROP_COMMON_ID:
-        g_free (app->common_id);
-        app->common_id = g_strdup (g_value_get_string (value));
+        g_free (self->common_id);
+        self->common_id = g_strdup (g_value_get_string (value));
         break;
     case PROP_DAEMON_TYPE:
-        app->daemon_type = g_value_get_enum (value);
+        self->daemon_type = g_value_get_enum (value);
         break;
     case PROP_DESKTOP_FILE:
-        g_free (app->desktop_file);
-        app->desktop_file = g_strdup (g_value_get_string (value));
+        g_free (self->desktop_file);
+        self->desktop_file = g_strdup (g_value_get_string (value));
         break;
     case PROP_SNAP:
-        g_free (app->snap);
-        app->snap = g_strdup (g_value_get_string (value));
+        g_free (self->snap);
+        self->snap = g_strdup (g_value_get_string (value));
         break;
     case PROP_ACTIVE:
-        app->active = g_value_get_boolean (value);
+        self->active = g_value_get_boolean (value);
         break;
     case PROP_ENABLED:
-        app->enabled = g_value_get_boolean (value);
+        self->enabled = g_value_get_boolean (value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -239,32 +239,32 @@ snapd_app_set_property (GObject *object, guint prop_id, const GValue *value, GPa
 static void
 snapd_app_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdApp *app = SNAPD_APP (object);
+    SnapdApp *self = SNAPD_APP (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_value_set_string (value, app->name);
+        g_value_set_string (value, self->name);
         break;
     case PROP_ALIASES:
         g_value_set_boxed (value, NULL);
         break;
     case PROP_COMMON_ID:
-        g_value_set_string (value, app->common_id);
+        g_value_set_string (value, self->common_id);
         break;
     case PROP_DAEMON_TYPE:
-        g_value_set_enum (value, app->daemon_type);
+        g_value_set_enum (value, self->daemon_type);
         break;
     case PROP_DESKTOP_FILE:
-        g_value_set_string (value, app->desktop_file);
+        g_value_set_string (value, self->desktop_file);
         break;
     case PROP_SNAP:
-        g_value_set_string (value, app->snap);
+        g_value_set_string (value, self->snap);
         break;
     case PROP_ACTIVE:
-        g_value_set_boolean (value, app->active);
+        g_value_set_boolean (value, self->active);
         break;
     case PROP_ENABLED:
-        g_value_set_boolean (value, app->enabled);
+        g_value_set_boolean (value, self->enabled);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -275,12 +275,12 @@ snapd_app_get_property (GObject *object, guint prop_id, GValue *value, GParamSpe
 static void
 snapd_app_finalize (GObject *object)
 {
-    SnapdApp *app = SNAPD_APP (object);
+    SnapdApp *self = SNAPD_APP (object);
 
-    g_clear_pointer (&app->name, g_free);
-    g_clear_pointer (&app->common_id, g_free);
-    g_clear_pointer (&app->desktop_file, g_free);
-    g_clear_pointer (&app->snap, g_free);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_pointer (&self->common_id, g_free);
+    g_clear_pointer (&self->desktop_file, g_free);
+    g_clear_pointer (&self->snap, g_free);
 
     G_OBJECT_CLASS (snapd_app_parent_class)->finalize (object);
 }
@@ -353,6 +353,6 @@ snapd_app_class_init (SnapdAppClass *klass)
 }
 
 static void
-snapd_app_init (SnapdApp *app)
+snapd_app_init (SnapdApp *self)
 {
 }

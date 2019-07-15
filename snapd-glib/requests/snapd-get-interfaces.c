@@ -32,54 +32,54 @@ G_DEFINE_TYPE (SnapdGetInterfaces, snapd_get_interfaces, snapd_request_get_type 
 SnapdGetInterfaces *
 _snapd_get_interfaces_new (gchar **names, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetInterfaces *request;
+    SnapdGetInterfaces *self;
 
-    request = g_object_new (snapd_get_interfaces_get_type (),
+    self = g_object_new (snapd_get_interfaces_get_type (),
                             "cancellable", cancellable,
                             "ready-callback", callback,
                             "ready-callback-data", user_data,
                             NULL);
 
     if (names != NULL && names[0] != NULL)
-        request->names = g_strdupv (names);
+        self->names = g_strdupv (names);
 
-    return request;
+    return self;
 }
 
 void
-_snapd_get_interfaces_set_include_docs (SnapdGetInterfaces *request, gboolean include_docs)
+_snapd_get_interfaces_set_include_docs (SnapdGetInterfaces *self, gboolean include_docs)
 {
-    request->include_docs = include_docs;
+    self->include_docs = include_docs;
 }
 
 void
-_snapd_get_interfaces_set_include_plugs (SnapdGetInterfaces *request, gboolean include_plugs)
+_snapd_get_interfaces_set_include_plugs (SnapdGetInterfaces *self, gboolean include_plugs)
 {
-    request->include_plugs = include_plugs;
+    self->include_plugs = include_plugs;
 }
 
 void
-_snapd_get_interfaces_set_include_slots (SnapdGetInterfaces *request, gboolean include_slots)
+_snapd_get_interfaces_set_include_slots (SnapdGetInterfaces *self, gboolean include_slots)
 {
-    request->include_slots = include_slots;
+    self->include_slots = include_slots;
 }
 
 void
-_snapd_get_interfaces_set_only_connected (SnapdGetInterfaces *request, gboolean only_connected)
+_snapd_get_interfaces_set_only_connected (SnapdGetInterfaces *self, gboolean only_connected)
 {
-    request->only_connected = only_connected;
+    self->only_connected = only_connected;
 }
 
 GPtrArray *
-_snapd_get_interfaces_get_interfaces (SnapdGetInterfaces *request)
+_snapd_get_interfaces_get_interfaces (SnapdGetInterfaces *self)
 {
-    return request->interfaces;
+    return self->interfaces;
 }
 
 static SoupMessage *
-generate_get_interfaces_request (SnapdRequest *request)
+generate_get_interfaces_request (SnapdRequest *self)
 {
-    SnapdGetInterfaces *r = SNAPD_GET_INTERFACES (request);
+    SnapdGetInterfaces *r = SNAPD_GET_INTERFACES (self);
     g_autoptr(GPtrArray) query_attributes = NULL;
     g_autoptr(GString) path = NULL;
     guint i;
@@ -108,9 +108,9 @@ generate_get_interfaces_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_interfaces_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetInterfaces *r = SNAPD_GET_INTERFACES (request);
+    SnapdGetInterfaces *r = SNAPD_GET_INTERFACES (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) interfaces = NULL;
@@ -143,10 +143,10 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
 static void
 snapd_get_interfaces_finalize (GObject *object)
 {
-    SnapdGetInterfaces *request = SNAPD_GET_INTERFACES (object);
+    SnapdGetInterfaces *self = SNAPD_GET_INTERFACES (object);
 
-    g_clear_pointer (&request->names, g_strfreev);
-    g_clear_pointer (&request->interfaces, g_ptr_array_unref);
+    g_clear_pointer (&self->names, g_strfreev);
+    g_clear_pointer (&self->interfaces, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_interfaces_parent_class)->finalize (object);
 }
@@ -163,6 +163,6 @@ snapd_get_interfaces_class_init (SnapdGetInterfacesClass *klass)
 }
 
 static void
-snapd_get_interfaces_init (SnapdGetInterfaces *request)
+snapd_get_interfaces_init (SnapdGetInterfaces *self)
 {
 }

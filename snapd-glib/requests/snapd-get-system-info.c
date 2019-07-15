@@ -33,21 +33,21 @@ _snapd_get_system_info_new (GCancellable *cancellable, GAsyncReadyCallback callb
 }
 
 SnapdSystemInformation *
-_snapd_get_system_info_get_system_information (SnapdGetSystemInfo *request)
+_snapd_get_system_info_get_system_information (SnapdGetSystemInfo *self)
 {
-    return request->system_information;
+    return self->system_information;
 }
 
 static SoupMessage *
-generate_get_system_info_request (SnapdRequest *request)
+generate_get_system_info_request (SnapdRequest *self)
 {
     return soup_message_new ("GET", "http://snapd/v2/system-info");
 }
 
 static gboolean
-parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_system_info_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetSystemInfo *r = SNAPD_GET_SYSTEM_INFO (request);
+    SnapdGetSystemInfo *r = SNAPD_GET_SYSTEM_INFO (self);
     g_autoptr(JsonObject) response = NULL;
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
     /*g_autoptr(JsonNode) result = NULL;*/
@@ -74,9 +74,9 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, Sna
 static void
 snapd_get_system_info_finalize (GObject *object)
 {
-    SnapdGetSystemInfo *request = SNAPD_GET_SYSTEM_INFO (object);
+    SnapdGetSystemInfo *self = SNAPD_GET_SYSTEM_INFO (object);
 
-    g_clear_object (&request->system_information);
+    g_clear_object (&self->system_information);
 
     G_OBJECT_CLASS (snapd_get_system_info_parent_class)->finalize (object);
 }
@@ -93,6 +93,6 @@ snapd_get_system_info_class_init (SnapdGetSystemInfoClass *klass)
 }
 
 static void
-snapd_get_system_info_init (SnapdGetSystemInfo *request)
+snapd_get_system_info_init (SnapdGetSystemInfo *self)
 {
 }

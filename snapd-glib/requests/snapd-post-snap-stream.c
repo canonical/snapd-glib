@@ -29,9 +29,9 @@ SnapdPostSnapStream *
 _snapd_post_snap_stream_new (SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostSnapStream *request;
+    SnapdPostSnapStream *self;
 
-    request = SNAPD_POST_SNAP_STREAM (g_object_new (snapd_post_snap_stream_get_type (),
+    self = SNAPD_POST_SNAP_STREAM (g_object_new (snapd_post_snap_stream_get_type (),
                                                     "cancellable", cancellable,
                                                     "ready-callback", callback,
                                                     "ready-callback-data", user_data,
@@ -39,37 +39,37 @@ _snapd_post_snap_stream_new (SnapdProgressCallback progress_callback, gpointer p
                                                     "progress-callback-data", progress_callback_data,
                                                     NULL));
 
-    return request;
+    return self;
 }
 
 void
-_snapd_post_snap_stream_set_classic (SnapdPostSnapStream *request, gboolean classic)
+_snapd_post_snap_stream_set_classic (SnapdPostSnapStream *self, gboolean classic)
 {
-    request->classic = classic;
+    self->classic = classic;
 }
 
 void
-_snapd_post_snap_stream_set_dangerous (SnapdPostSnapStream *request, gboolean dangerous)
+_snapd_post_snap_stream_set_dangerous (SnapdPostSnapStream *self, gboolean dangerous)
 {
-    request->dangerous = dangerous;
+    self->dangerous = dangerous;
 }
 
 void
-_snapd_post_snap_stream_set_devmode (SnapdPostSnapStream *request, gboolean devmode)
+_snapd_post_snap_stream_set_devmode (SnapdPostSnapStream *self, gboolean devmode)
 {
-    request->devmode = devmode;
+    self->devmode = devmode;
 }
 
 void
-_snapd_post_snap_stream_set_jailmode (SnapdPostSnapStream *request, gboolean jailmode)
+_snapd_post_snap_stream_set_jailmode (SnapdPostSnapStream *self, gboolean jailmode)
 {
-    request->jailmode = jailmode;
+    self->jailmode = jailmode;
 }
 
 void
-_snapd_post_snap_stream_append_data (SnapdPostSnapStream *request, const guint8 *data, guint len)
+_snapd_post_snap_stream_append_data (SnapdPostSnapStream *self, const guint8 *data, guint len)
 {
-    g_byte_array_append (request->snap_contents, data, len);
+    g_byte_array_append (self->snap_contents, data, len);
 }
 
 static void
@@ -88,9 +88,9 @@ append_multipart_value (SoupMultipart *multipart, const gchar *name, const gchar
 }
 
 static SoupMessage *
-generate_post_snap_stream_request (SnapdRequest *request)
+generate_post_snap_stream_request (SnapdRequest *self)
 {
-    SnapdPostSnapStream *r = SNAPD_POST_SNAP_STREAM (request);
+    SnapdPostSnapStream *r = SNAPD_POST_SNAP_STREAM (self);
     SoupMessage *message;
     g_autoptr(GHashTable) params = NULL;
     g_autoptr(SoupBuffer) buffer = NULL;
@@ -124,9 +124,9 @@ generate_post_snap_stream_request (SnapdRequest *request)
 static void
 snapd_post_snap_stream_finalize (GObject *object)
 {
-    SnapdPostSnapStream *request = SNAPD_POST_SNAP_STREAM (object);
+    SnapdPostSnapStream *self = SNAPD_POST_SNAP_STREAM (object);
 
-    g_clear_pointer (&request->snap_contents, g_byte_array_unref);
+    g_clear_pointer (&self->snap_contents, g_byte_array_unref);
 
     G_OBJECT_CLASS (snapd_post_snap_stream_parent_class)->finalize (object);
 }
@@ -142,7 +142,7 @@ snapd_post_snap_stream_class_init (SnapdPostSnapStreamClass *klass)
 }
 
 static void
-snapd_post_snap_stream_init (SnapdPostSnapStream *request)
+snapd_post_snap_stream_init (SnapdPostSnapStream *self)
 {
-    request->snap_contents = g_byte_array_new ();
+    self->snap_contents = g_byte_array_new ();
 }

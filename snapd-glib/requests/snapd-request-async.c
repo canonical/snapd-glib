@@ -35,24 +35,24 @@ typedef struct
 G_DEFINE_TYPE_WITH_PRIVATE (SnapdRequestAsync, snapd_request_async, snapd_request_get_type ())
 
 const gchar *
-_snapd_request_async_get_change_id (SnapdRequestAsync *request)
+_snapd_request_async_get_change_id (SnapdRequestAsync *self)
 {
-    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (request);
+    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
     return priv->change_id;
 }
 
 gboolean
-_snapd_request_async_parse_result (SnapdRequestAsync *request, JsonNode *result, GError **error)
+_snapd_request_async_parse_result (SnapdRequestAsync *self, JsonNode *result, GError **error)
 {
-    if (SNAPD_REQUEST_ASYNC_GET_CLASS (request)->parse_result == NULL)
+    if (SNAPD_REQUEST_ASYNC_GET_CLASS (self)->parse_result == NULL)
         return TRUE;
-    return SNAPD_REQUEST_ASYNC_GET_CLASS (request)->parse_result (request, result, error);
+    return SNAPD_REQUEST_ASYNC_GET_CLASS (self)->parse_result (self, result, error);
 }
 
 static gboolean
-parse_async_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_async_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (request);
+    SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (self);
     SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (r);
     g_autoptr(JsonObject) response = NULL;
     g_autofree gchar *change_id = NULL;
@@ -129,9 +129,9 @@ changes_equal (SnapdChange *change1, SnapdChange *change2)
 }
 
 void
-_snapd_request_async_report_progress (SnapdRequestAsync *request, SnapdClient *client, SnapdChange *change)
+_snapd_request_async_report_progress (SnapdRequestAsync *self, SnapdClient *client, SnapdChange *change)
 {
-    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (request);
+    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
 
     if (!changes_equal (priv->change, change)) {
         g_set_object (&priv->change, change);
@@ -146,8 +146,8 @@ _snapd_request_async_report_progress (SnapdRequestAsync *request, SnapdClient *c
 static void
 snapd_request_async_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdRequestAsync *request = SNAPD_REQUEST_ASYNC (object);
-    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (request);
+    SnapdRequestAsync *self = SNAPD_REQUEST_ASYNC (object);
+    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
 
     switch (prop_id)
     {
@@ -166,8 +166,8 @@ snapd_request_async_set_property (GObject *object, guint prop_id, const GValue *
 static void
 snapd_request_async_finalize (GObject *object)
 {
-    SnapdRequestAsync *request = SNAPD_REQUEST_ASYNC (object);
-    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (request);
+    SnapdRequestAsync *self = SNAPD_REQUEST_ASYNC (object);
+    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
 
     g_clear_pointer (&priv->change_id, g_free);
     g_clear_object (&priv->change);
@@ -200,6 +200,6 @@ snapd_request_async_class_init (SnapdRequestAsyncClass *klass)
 }
 
 static void
-snapd_request_async_init (SnapdRequestAsync *request)
+snapd_request_async_init (SnapdRequestAsync *self)
 {
 }

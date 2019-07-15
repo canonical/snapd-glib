@@ -71,10 +71,10 @@ G_DEFINE_TYPE (SnapdChannel, snapd_channel, G_TYPE_OBJECT)
  * Since: 1.31
  */
 const gchar *
-snapd_channel_get_branch (SnapdChannel *channel)
+snapd_channel_get_branch (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
-    return channel->branch;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), NULL);
+    return self->branch;
 }
 
 /**
@@ -88,10 +88,10 @@ snapd_channel_get_branch (SnapdChannel *channel)
  * Since: 1.22
  */
 SnapdConfinement
-snapd_channel_get_confinement (SnapdChannel *channel)
+snapd_channel_get_confinement (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), SNAPD_CONFINEMENT_UNKNOWN);
-    return channel->confinement;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), SNAPD_CONFINEMENT_UNKNOWN);
+    return self->confinement;
 }
 
 /**
@@ -105,10 +105,10 @@ snapd_channel_get_confinement (SnapdChannel *channel)
  * Since: 1.22
  */
 const gchar *
-snapd_channel_get_epoch (SnapdChannel *channel)
+snapd_channel_get_epoch (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
-    return channel->epoch;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), NULL);
+    return self->epoch;
 }
 
 /**
@@ -134,10 +134,10 @@ snapd_channel_get_epoch (SnapdChannel *channel)
  * Since: 1.22
  */
 const gchar *
-snapd_channel_get_name (SnapdChannel *channel)
+snapd_channel_get_name (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
-    return channel->name;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), NULL);
+    return self->name;
 }
 
 /**
@@ -151,10 +151,10 @@ snapd_channel_get_name (SnapdChannel *channel)
  * Since: 1.46
  */
 GDateTime *
-snapd_channel_get_released_at (SnapdChannel *channel)
+snapd_channel_get_released_at (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
-    return channel->released_at;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), NULL);
+    return self->released_at;
 }
 
 /**
@@ -169,10 +169,10 @@ snapd_channel_get_released_at (SnapdChannel *channel)
  * Since: 1.22
  */
 const gchar *
-snapd_channel_get_revision (SnapdChannel *channel)
+snapd_channel_get_revision (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
-    return channel->revision;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), NULL);
+    return self->revision;
 }
 
 /**
@@ -186,10 +186,10 @@ snapd_channel_get_revision (SnapdChannel *channel)
  * Since: 1.31
  */
 const gchar *
-snapd_channel_get_risk (SnapdChannel *channel)
+snapd_channel_get_risk (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
-    return channel->risk;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), NULL);
+    return self->risk;
 }
 
 /**
@@ -203,10 +203,10 @@ snapd_channel_get_risk (SnapdChannel *channel)
  * Since: 1.22
  */
 gint64
-snapd_channel_get_size (SnapdChannel *channel)
+snapd_channel_get_size (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), 0);
-    return channel->size;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), 0);
+    return self->size;
 }
 
 /**
@@ -220,10 +220,10 @@ snapd_channel_get_size (SnapdChannel *channel)
  * Since: 1.31
  */
 const gchar *
-snapd_channel_get_track (SnapdChannel *channel)
+snapd_channel_get_track (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
-    return channel->track;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), NULL);
+    return self->track;
 }
 
 /**
@@ -238,10 +238,10 @@ snapd_channel_get_track (SnapdChannel *channel)
  * Since: 1.22
  */
 const gchar *
-snapd_channel_get_version (SnapdChannel *channel)
+snapd_channel_get_version (SnapdChannel *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANNEL (channel), NULL);
-    return channel->version;
+    g_return_val_if_fail (SNAPD_IS_CHANNEL (self), NULL);
+    return self->version;
 }
 
 static gboolean
@@ -251,44 +251,44 @@ is_risk (const gchar *risk)
 }
 
 static void
-set_name (SnapdChannel *channel, const gchar *name)
+set_name (SnapdChannel *self, const gchar *name)
 {
     g_auto(GStrv) tokens = NULL;
 
-    g_free (channel->name);
-    channel->name = g_strdup (name);
+    g_free (self->name);
+    self->name = g_strdup (name);
 
-    g_clear_pointer (&channel->track, g_free);
-    g_clear_pointer (&channel->risk, g_free);
-    g_clear_pointer (&channel->branch, g_free);
+    g_clear_pointer (&self->track, g_free);
+    g_clear_pointer (&self->risk, g_free);
+    g_clear_pointer (&self->branch, g_free);
 
     tokens = g_strsplit (name, "/", -1);
     switch (g_strv_length (tokens)) {
     case 1:
         if (is_risk (tokens[0])) {
-            channel->track = g_strdup ("latest");
-            channel->risk = g_strdup (tokens[0]);
+            self->track = g_strdup ("latest");
+            self->risk = g_strdup (tokens[0]);
         }
         else {
-            channel->track = g_strdup (tokens[0]);
-            channel->risk = g_strdup ("stable");
+            self->track = g_strdup (tokens[0]);
+            self->risk = g_strdup ("stable");
         }
         break;
     case 2:
         if (is_risk (tokens[0])) {
-            channel->track = g_strdup ("latest");
-            channel->risk = g_strdup (tokens[0]);
-            channel->branch = g_strdup (tokens[1]);
+            self->track = g_strdup ("latest");
+            self->risk = g_strdup (tokens[0]);
+            self->branch = g_strdup (tokens[1]);
         }
         else {
-            channel->track = g_strdup (tokens[0]);
-            channel->risk = g_strdup (tokens[1]);
+            self->track = g_strdup (tokens[0]);
+            self->risk = g_strdup (tokens[1]);
         }
         break;
     case 3:
-        channel->track = g_strdup (tokens[0]);
-        channel->risk = g_strdup (tokens[1]);
-        channel->branch = g_strdup (tokens[2]);
+        self->track = g_strdup (tokens[0]);
+        self->risk = g_strdup (tokens[1]);
+        self->branch = g_strdup (tokens[2]);
         break;
     default:
         break;
@@ -298,34 +298,34 @@ set_name (SnapdChannel *channel, const gchar *name)
 static void
 snapd_channel_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdChannel *channel = SNAPD_CHANNEL (object);
+    SnapdChannel *self = SNAPD_CHANNEL (object);
 
     switch (prop_id) {
     case PROP_CONFINEMENT:
-        channel->confinement = g_value_get_enum (value);
+        self->confinement = g_value_get_enum (value);
         break;
     case PROP_EPOCH:
-        g_free (channel->epoch);
-        channel->epoch = g_strdup (g_value_get_string (value));
+        g_free (self->epoch);
+        self->epoch = g_strdup (g_value_get_string (value));
         break;
     case PROP_NAME:
-        set_name (channel, g_value_get_string (value));
+        set_name (self, g_value_get_string (value));
         break;
     case PROP_RELEASED_AT:
-        g_clear_pointer (&channel->released_at, g_date_time_unref);
+        g_clear_pointer (&self->released_at, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
-            channel->released_at = g_date_time_ref (g_value_get_boxed (value));
+            self->released_at = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_REVISION:
-        g_free (channel->revision);
-        channel->revision = g_strdup (g_value_get_string (value));
+        g_free (self->revision);
+        self->revision = g_strdup (g_value_get_string (value));
         break;
     case PROP_SIZE:
-        channel->size = g_value_get_int64 (value);
+        self->size = g_value_get_int64 (value);
         break;
     case PROP_VERSION:
-        g_free (channel->version);
-        channel->version = g_strdup (g_value_get_string (value));
+        g_free (self->version);
+        self->version = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -336,29 +336,29 @@ snapd_channel_set_property (GObject *object, guint prop_id, const GValue *value,
 static void
 snapd_channel_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdChannel *channel = SNAPD_CHANNEL (object);
+    SnapdChannel *self = SNAPD_CHANNEL (object);
 
     switch (prop_id) {
     case PROP_CONFINEMENT:
-        g_value_set_enum (value, channel->confinement);
+        g_value_set_enum (value, self->confinement);
         break;
     case PROP_EPOCH:
-        g_value_set_string (value, channel->epoch);
+        g_value_set_string (value, self->epoch);
         break;
     case PROP_NAME:
-        g_value_set_string (value, channel->name);
+        g_value_set_string (value, self->name);
         break;
     case PROP_RELEASED_AT:
-        g_value_set_boxed (value, channel->released_at);
+        g_value_set_boxed (value, self->released_at);
         break;
     case PROP_REVISION:
-        g_value_set_string (value, channel->revision);
+        g_value_set_string (value, self->revision);
         break;
     case PROP_SIZE:
-        g_value_set_int64 (value, channel->size);
+        g_value_set_int64 (value, self->size);
         break;
     case PROP_VERSION:
-        g_value_set_string (value, channel->version);
+        g_value_set_string (value, self->version);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -369,16 +369,16 @@ snapd_channel_get_property (GObject *object, guint prop_id, GValue *value, GPara
 static void
 snapd_channel_finalize (GObject *object)
 {
-    SnapdChannel *channel = SNAPD_CHANNEL (object);
+    SnapdChannel *self = SNAPD_CHANNEL (object);
 
-    g_clear_pointer (&channel->branch, g_free);
-    g_clear_pointer (&channel->epoch, g_free);
-    g_clear_pointer (&channel->name, g_free);
-    g_clear_pointer (&channel->revision, g_free);
-    g_clear_pointer (&channel->released_at, g_date_time_unref);
-    g_clear_pointer (&channel->risk, g_free);
-    g_clear_pointer (&channel->track, g_free);
-    g_clear_pointer (&channel->version, g_free);
+    g_clear_pointer (&self->branch, g_free);
+    g_clear_pointer (&self->epoch, g_free);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_pointer (&self->revision, g_free);
+    g_clear_pointer (&self->released_at, g_date_time_unref);
+    g_clear_pointer (&self->risk, g_free);
+    g_clear_pointer (&self->track, g_free);
+    g_clear_pointer (&self->version, g_free);
 
     G_OBJECT_CLASS (snapd_channel_parent_class)->finalize (object);
 }
@@ -444,6 +444,6 @@ snapd_channel_class_init (SnapdChannelClass *klass)
 }
 
 static void
-snapd_channel_init (SnapdChannel *channel)
+snapd_channel_init (SnapdChannel *self)
 {
 }

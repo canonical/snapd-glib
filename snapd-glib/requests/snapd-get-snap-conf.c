@@ -24,30 +24,30 @@ G_DEFINE_TYPE (SnapdGetSnapConf, snapd_get_snap_conf, snapd_request_get_type ())
 SnapdGetSnapConf *
 _snapd_get_snap_conf_new (const gchar *name, GStrv keys, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetSnapConf *request;
+    SnapdGetSnapConf *self;
 
-    request = SNAPD_GET_SNAP_CONF (g_object_new (snapd_get_snap_conf_get_type (),
+    self = SNAPD_GET_SNAP_CONF (g_object_new (snapd_get_snap_conf_get_type (),
                                                  "cancellable", cancellable,
                                                  "ready-callback", callback,
                                                  "ready-callback-data", user_data,
                                                  NULL));
-    request->name = g_strdup (name);
+    self->name = g_strdup (name);
     if (keys != NULL && keys[0] != NULL)
-        request->keys = g_strdupv (keys);
+        self->keys = g_strdupv (keys);
 
-    return request;
+    return self;
 }
 
 GHashTable *
-_snapd_get_snap_conf_get_conf (SnapdGetSnapConf *request)
+_snapd_get_snap_conf_get_conf (SnapdGetSnapConf *self)
 {
-    return request->conf;
+    return self->conf;
 }
 
 static SoupMessage *
-generate_get_snap_conf_request (SnapdRequest *request)
+generate_get_snap_conf_request (SnapdRequest *self)
 {
-    SnapdGetSnapConf *r = SNAPD_GET_SNAP_CONF (request);
+    SnapdGetSnapConf *r = SNAPD_GET_SNAP_CONF (self);
     g_autoptr(GPtrArray) query_attributes = NULL;
     g_autofree gchar *escaped = NULL;
     g_autoptr(GString) path = NULL;
@@ -76,9 +76,9 @@ generate_get_snap_conf_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_snap_conf_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_snap_conf_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetSnapConf *r = SNAPD_GET_SNAP_CONF (request);
+    SnapdGetSnapConf *r = SNAPD_GET_SNAP_CONF (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
 
@@ -99,11 +99,11 @@ parse_get_snap_conf_response (SnapdRequest *request, SoupMessage *message, Snapd
 static void
 snapd_get_snap_conf_finalize (GObject *object)
 {
-    SnapdGetSnapConf *request = SNAPD_GET_SNAP_CONF (object);
+    SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF (object);
 
-    g_clear_pointer (&request->name, g_free);
-    g_clear_pointer (&request->keys, g_strfreev);
-    g_clear_pointer (&request->conf, g_hash_table_unref);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_pointer (&self->keys, g_strfreev);
+    g_clear_pointer (&self->conf, g_hash_table_unref);
 
     G_OBJECT_CLASS (snapd_get_snap_conf_parent_class)->finalize (object);
 }
@@ -120,6 +120,6 @@ snapd_get_snap_conf_class_init (SnapdGetSnapConfClass *klass)
 }
 
 static void
-snapd_get_snap_conf_init (SnapdGetSnapConf *request)
+snapd_get_snap_conf_init (SnapdGetSnapConf *self)
 {
 }

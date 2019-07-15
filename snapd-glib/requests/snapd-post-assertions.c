@@ -25,22 +25,22 @@ SnapdPostAssertions *
 _snapd_post_assertions_new (GStrv assertions,
                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostAssertions *request;
+    SnapdPostAssertions *self;
 
-    request = SNAPD_POST_ASSERTIONS (g_object_new (snapd_post_assertions_get_type (),
+    self = SNAPD_POST_ASSERTIONS (g_object_new (snapd_post_assertions_get_type (),
                                                    "cancellable", cancellable,
                                                    "ready-callback", callback,
                                                    "ready-callback-data", user_data,
                                                    NULL));
-    request->assertions = g_strdupv (assertions);
+    self->assertions = g_strdupv (assertions);
 
-    return request;
+    return self;
 }
 
 static SoupMessage *
-generate_post_assertions_request (SnapdRequest *request)
+generate_post_assertions_request (SnapdRequest *self)
 {
-    SnapdPostAssertions *r = SNAPD_POST_ASSERTIONS (request);
+    SnapdPostAssertions *r = SNAPD_POST_ASSERTIONS (self);
     SoupMessage *message;
     int i;
 
@@ -58,7 +58,7 @@ generate_post_assertions_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_assertions_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_assertions_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     g_autoptr(JsonObject) response = NULL;
 
@@ -72,9 +72,9 @@ parse_post_assertions_response (SnapdRequest *request, SoupMessage *message, Sna
 static void
 snapd_post_assertions_finalize (GObject *object)
 {
-    SnapdPostAssertions *request = SNAPD_POST_ASSERTIONS (object);
+    SnapdPostAssertions *self = SNAPD_POST_ASSERTIONS (object);
 
-    g_clear_pointer (&request->assertions, g_strfreev);
+    g_clear_pointer (&self->assertions, g_strfreev);
 
     G_OBJECT_CLASS (snapd_post_assertions_parent_class)->finalize (object);
 }
@@ -91,6 +91,6 @@ snapd_post_assertions_class_init (SnapdPostAssertionsClass *klass)
 }
 
 static void
-snapd_post_assertions_init (SnapdPostAssertions *request)
+snapd_post_assertions_init (SnapdPostAssertions *self)
 {
 }

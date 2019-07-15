@@ -36,27 +36,27 @@ _snapd_get_interfaces_legacy_new (GCancellable *cancellable, GAsyncReadyCallback
 }
 
 GPtrArray *
-_snapd_get_interfaces_legacy_get_plugs (SnapdGetInterfacesLegacy *request)
+_snapd_get_interfaces_legacy_get_plugs (SnapdGetInterfacesLegacy *self)
 {
-    return request->plugs;
+    return self->plugs;
 }
 
 GPtrArray *
-_snapd_get_interfaces_legacy_get_slots (SnapdGetInterfacesLegacy *request)
+_snapd_get_interfaces_legacy_get_slots (SnapdGetInterfacesLegacy *self)
 {
-    return request->slots;
+    return self->slots;
 }
 
 static SoupMessage *
-generate_get_interfaces_legacy_request (SnapdRequest *request)
+generate_get_interfaces_legacy_request (SnapdRequest *self)
 {
     return soup_message_new ("GET", "http://snapd/v2/interfaces");
 }
 
 static gboolean
-parse_get_interfaces_legacy_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_interfaces_legacy_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetInterfacesLegacy *r = SNAPD_GET_INTERFACES_LEGACY (request);
+    SnapdGetInterfacesLegacy *r = SNAPD_GET_INTERFACES_LEGACY (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(GPtrArray) plug_array = NULL;
@@ -106,10 +106,10 @@ parse_get_interfaces_legacy_response (SnapdRequest *request, SoupMessage *messag
 static void
 snapd_get_interfaces_legacy_finalize (GObject *object)
 {
-    SnapdGetInterfacesLegacy *request = SNAPD_GET_INTERFACES_LEGACY (object);
+    SnapdGetInterfacesLegacy *self = SNAPD_GET_INTERFACES_LEGACY (object);
 
-    g_clear_pointer (&request->plugs, g_ptr_array_unref);
-    g_clear_pointer (&request->slots, g_ptr_array_unref);
+    g_clear_pointer (&self->plugs, g_ptr_array_unref);
+    g_clear_pointer (&self->slots, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_interfaces_legacy_parent_class)->finalize (object);
 }
@@ -126,6 +126,6 @@ snapd_get_interfaces_legacy_class_init (SnapdGetInterfacesLegacyClass *klass)
 }
 
 static void
-snapd_get_interfaces_legacy_init (SnapdGetInterfacesLegacy *request)
+snapd_get_interfaces_legacy_init (SnapdGetInterfacesLegacy *self)
 {
 }

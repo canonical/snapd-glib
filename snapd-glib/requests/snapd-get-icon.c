@@ -24,28 +24,28 @@ G_DEFINE_TYPE (SnapdGetIcon, snapd_get_icon, snapd_request_get_type ())
 SnapdGetIcon *
 _snapd_get_icon_new (const gchar *name, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetIcon *request;
+    SnapdGetIcon *self;
 
-    request = SNAPD_GET_ICON (g_object_new (snapd_get_icon_get_type (),
+    self = SNAPD_GET_ICON (g_object_new (snapd_get_icon_get_type (),
                                             "cancellable", cancellable,
                                             "ready-callback", callback,
                                             "ready-callback-data", user_data,
                                             NULL));
-    request->name = g_strdup (name);
+    self->name = g_strdup (name);
 
-    return request;
+    return self;
 }
 
 SnapdIcon *
-_snapd_get_icon_get_icon (SnapdGetIcon *request)
+_snapd_get_icon_get_icon (SnapdGetIcon *self)
 {
-    return request->icon;
+    return self->icon;
 }
 
 static SoupMessage *
-generate_get_icon_request (SnapdRequest *request)
+generate_get_icon_request (SnapdRequest *self)
 {
-    SnapdGetIcon *r = SNAPD_GET_ICON (request);
+    SnapdGetIcon *r = SNAPD_GET_ICON (self);
     g_autofree gchar *escaped = NULL, *path = NULL;
 
     escaped = soup_uri_encode (r->name, NULL);
@@ -55,9 +55,9 @@ generate_get_icon_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_icon_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_icon_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetIcon *r = SNAPD_GET_ICON (request);
+    SnapdGetIcon *r = SNAPD_GET_ICON (self);
     const gchar *content_type;
     g_autoptr(SoupBuffer) buffer = NULL;
     g_autoptr(GBytes) data = NULL;
@@ -105,10 +105,10 @@ parse_get_icon_response (SnapdRequest *request, SoupMessage *message, SnapdMaint
 static void
 snapd_get_icon_finalize (GObject *object)
 {
-    SnapdGetIcon *request = SNAPD_GET_ICON (object);
+    SnapdGetIcon *self = SNAPD_GET_ICON (object);
 
-    g_clear_pointer (&request->name, g_free);
-    g_clear_object (&request->icon);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_object (&self->icon);
 
     G_OBJECT_CLASS (snapd_get_icon_parent_class)->finalize (object);
 }
@@ -125,6 +125,6 @@ snapd_get_icon_class_init (SnapdGetIconClass *klass)
 }
 
 static void
-snapd_get_icon_init (SnapdGetIcon *request)
+snapd_get_icon_init (SnapdGetIcon *self)
 {
 }

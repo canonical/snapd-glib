@@ -31,21 +31,21 @@ _snapd_get_sections_new (GCancellable *cancellable, GAsyncReadyCallback callback
 }
 
 GStrv
-_snapd_get_sections_get_sections (SnapdGetSections *request)
+_snapd_get_sections_get_sections (SnapdGetSections *self)
 {
-    return request->sections;
+    return self->sections;
 }
 
 static SoupMessage *
-generate_get_sections_request (SnapdRequest *request)
+generate_get_sections_request (SnapdRequest *self)
 {
     return soup_message_new ("GET", "http://snapd/v2/sections");
 }
 
 static gboolean
-parse_get_sections_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_sections_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetSections *r = SNAPD_GET_SECTIONS (request);
+    SnapdGetSections *r = SNAPD_GET_SECTIONS (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) sections = NULL;
@@ -81,9 +81,9 @@ parse_get_sections_response (SnapdRequest *request, SoupMessage *message, SnapdM
 static void
 snapd_get_sections_finalize (GObject *object)
 {
-    SnapdGetSections *request = SNAPD_GET_SECTIONS (object);
+    SnapdGetSections *self = SNAPD_GET_SECTIONS (object);
 
-    g_clear_pointer (&request->sections, g_strfreev);
+    g_clear_pointer (&self->sections, g_strfreev);
 
     G_OBJECT_CLASS (snapd_get_sections_parent_class)->finalize (object);
 }
@@ -100,6 +100,6 @@ snapd_get_sections_class_init (SnapdGetSectionsClass *klass)
 }
 
 static void
-snapd_get_sections_init (SnapdGetSections *request)
+snapd_get_sections_init (SnapdGetSections *self)
 {
 }

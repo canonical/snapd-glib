@@ -26,41 +26,41 @@ G_DEFINE_TYPE (SnapdPostChange, snapd_post_change, snapd_request_get_type ())
 SnapdPostChange *
 _snapd_post_change_new (const gchar *change_id, const gchar *action, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostChange *request;
+    SnapdPostChange *self;
 
-    request = SNAPD_POST_CHANGE (g_object_new (snapd_post_change_get_type (),
+    self = SNAPD_POST_CHANGE (g_object_new (snapd_post_change_get_type (),
                                               "cancellable", cancellable,
                                               "ready-callback", callback,
                                               "ready-callback-data", user_data,
                                               NULL));
-    request->change_id = g_strdup (change_id);
-    request->action = g_strdup (action);
+    self->change_id = g_strdup (change_id);
+    self->action = g_strdup (action);
 
-    return request;
+    return self;
 }
 
 const gchar *
-_snapd_post_change_get_change_id (SnapdPostChange *request)
+_snapd_post_change_get_change_id (SnapdPostChange *self)
 {
-    return request->change_id;
+    return self->change_id;
 }
 
 SnapdChange *
-_snapd_post_change_get_change (SnapdPostChange *request)
+_snapd_post_change_get_change (SnapdPostChange *self)
 {
-    return request->change;
+    return self->change;
 }
 
 JsonNode *
-_snapd_post_change_get_data (SnapdPostChange *request)
+_snapd_post_change_get_data (SnapdPostChange *self)
 {
-    return request->data;
+    return self->data;
 }
 
 static SoupMessage *
-generate_post_change_request (SnapdRequest *request)
+generate_post_change_request (SnapdRequest *self)
 {
-    SnapdPostChange *r = SNAPD_POST_CHANGE (request);
+    SnapdPostChange *r = SNAPD_POST_CHANGE (self);
     g_autofree gchar *path = NULL;
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
@@ -79,9 +79,9 @@ generate_post_change_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_change_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_change_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdPostChange *r = SNAPD_POST_CHANGE (request);
+    SnapdPostChange *r = SNAPD_POST_CHANGE (self);
     g_autoptr(JsonObject) response = NULL;
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
     /*g_autoptr(JsonNode) result = NULL;*/
@@ -116,12 +116,12 @@ parse_post_change_response (SnapdRequest *request, SoupMessage *message, SnapdMa
 static void
 snapd_post_change_finalize (GObject *object)
 {
-    SnapdPostChange *request = SNAPD_POST_CHANGE (object);
+    SnapdPostChange *self = SNAPD_POST_CHANGE (object);
 
-    g_clear_pointer (&request->change_id, g_free);
-    g_clear_pointer (&request->action, g_free);
-    g_clear_object (&request->change);
-    g_clear_pointer (&request->data, json_node_unref);
+    g_clear_pointer (&self->change_id, g_free);
+    g_clear_pointer (&self->action, g_free);
+    g_clear_object (&self->change);
+    g_clear_pointer (&self->data, json_node_unref);
 
     G_OBJECT_CLASS (snapd_post_change_parent_class)->finalize (object);
 }
@@ -138,6 +138,6 @@ snapd_post_change_class_init (SnapdPostChangeClass *klass)
 }
 
 static void
-snapd_post_change_init (SnapdPostChange *request)
+snapd_post_change_init (SnapdPostChange *self)
 {
 }

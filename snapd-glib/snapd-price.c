@@ -57,10 +57,10 @@ G_DEFINE_TYPE (SnapdPrice, snapd_price, G_TYPE_OBJECT)
  * Since: 1.0
  */
 gdouble
-snapd_price_get_amount (SnapdPrice *price)
+snapd_price_get_amount (SnapdPrice *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PRICE (price), 0.0);
-    return price->amount;
+    g_return_val_if_fail (SNAPD_IS_PRICE (self), 0.0);
+    return self->amount;
 }
 
 /**
@@ -74,24 +74,24 @@ snapd_price_get_amount (SnapdPrice *price)
  * Since: 1.0
  */
 const gchar *
-snapd_price_get_currency (SnapdPrice *price)
+snapd_price_get_currency (SnapdPrice *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PRICE (price), NULL);
-    return price->currency;
+    g_return_val_if_fail (SNAPD_IS_PRICE (self), NULL);
+    return self->currency;
 }
 
 static void
 snapd_price_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdPrice *price = SNAPD_PRICE (object);
+    SnapdPrice *self = SNAPD_PRICE (object);
 
     switch (prop_id) {
     case PROP_AMOUNT:
-        price->amount = g_value_get_double (value);
+        self->amount = g_value_get_double (value);
         break;
     case PROP_CURRENCY:
-        g_free (price->currency);
-        price->currency = g_strdup (g_value_get_string (value));
+        g_free (self->currency);
+        self->currency = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -102,14 +102,14 @@ snapd_price_set_property (GObject *object, guint prop_id, const GValue *value, G
 static void
 snapd_price_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdPrice *price = SNAPD_PRICE (object);
+    SnapdPrice *self = SNAPD_PRICE (object);
 
     switch (prop_id) {
     case PROP_AMOUNT:
-        g_value_set_double (value, price->amount);
+        g_value_set_double (value, self->amount);
         break;
     case PROP_CURRENCY:
-        g_value_set_string (value, price->currency);
+        g_value_set_string (value, self->currency);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -120,9 +120,9 @@ snapd_price_get_property (GObject *object, guint prop_id, GValue *value, GParamS
 static void
 snapd_price_finalize (GObject *object)
 {
-    SnapdPrice *price = SNAPD_PRICE (object);
+    SnapdPrice *self = SNAPD_PRICE (object);
 
-    g_clear_pointer (&price->currency, g_free);
+    g_clear_pointer (&self->currency, g_free);
 
     G_OBJECT_CLASS (snapd_price_parent_class)->finalize (object);
 }
@@ -153,6 +153,6 @@ snapd_price_class_init (SnapdPriceClass *klass)
 }
 
 static void
-snapd_price_init (SnapdPrice *price)
+snapd_price_init (SnapdPrice *self)
 {
 }

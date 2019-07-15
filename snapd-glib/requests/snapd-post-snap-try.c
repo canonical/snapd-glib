@@ -26,18 +26,18 @@ _snapd_post_snap_try_new (const gchar *path,
                       SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostSnapTry *request;
+    SnapdPostSnapTry *self;
 
-    request = SNAPD_POST_SNAP_TRY (g_object_new (snapd_post_snap_try_get_type (),
+    self = SNAPD_POST_SNAP_TRY (g_object_new (snapd_post_snap_try_get_type (),
                                                  "cancellable", cancellable,
                                                  "ready-callback", callback,
                                                  "ready-callback-data", user_data,
                                                  "progress-callback", progress_callback,
                                                  "progress-callback-data", progress_callback_data,
                                                  NULL));
-    request->path = g_strdup (path);
+    self->path = g_strdup (path);
 
-    return request;
+    return self;
 }
 
 static void
@@ -56,9 +56,9 @@ append_multipart_value (SoupMultipart *multipart, const gchar *name, const gchar
 }
 
 static SoupMessage *
-generate_post_snap_try_request (SnapdRequest *request)
+generate_post_snap_try_request (SnapdRequest *self)
 {
-    SnapdPostSnapTry *r = SNAPD_POST_SNAP_TRY (request);
+    SnapdPostSnapTry *r = SNAPD_POST_SNAP_TRY (self);
     SoupMessage *message;
     g_autoptr(SoupMultipart) multipart = NULL;
 
@@ -76,9 +76,9 @@ generate_post_snap_try_request (SnapdRequest *request)
 static void
 snapd_post_snap_try_finalize (GObject *object)
 {
-    SnapdPostSnapTry *request = SNAPD_POST_SNAP_TRY (object);
+    SnapdPostSnapTry *self = SNAPD_POST_SNAP_TRY (object);
 
-    g_clear_pointer (&request->path, g_free);
+    g_clear_pointer (&self->path, g_free);
 
     G_OBJECT_CLASS (snapd_post_snap_try_parent_class)->finalize (object);
 }
@@ -94,6 +94,6 @@ snapd_post_snap_try_class_init (SnapdPostSnapTryClass *klass)
 }
 
 static void
-snapd_post_snap_try_init (SnapdPostSnapTry *request)
+snapd_post_snap_try_init (SnapdPostSnapTry *self)
 {
 }

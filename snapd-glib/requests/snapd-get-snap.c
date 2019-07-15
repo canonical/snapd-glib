@@ -23,28 +23,28 @@ G_DEFINE_TYPE (SnapdGetSnap, snapd_get_snap, snapd_request_get_type ())
 SnapdGetSnap *
 _snapd_get_snap_new (const gchar *name, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetSnap *request;
+    SnapdGetSnap *self;
 
-    request = SNAPD_GET_SNAP (g_object_new (snapd_get_snap_get_type (),
+    self = SNAPD_GET_SNAP (g_object_new (snapd_get_snap_get_type (),
                                             "cancellable", cancellable,
                                             "ready-callback", callback,
                                             "ready-callback-data", user_data,
                                             NULL));
-    request->name = g_strdup (name);
+    self->name = g_strdup (name);
 
-    return request;
+    return self;
 }
 
 SnapdSnap *
-_snapd_get_snap_get_snap (SnapdGetSnap *request)
+_snapd_get_snap_get_snap (SnapdGetSnap *self)
 {
-    return request->snap;
+    return self->snap;
 }
 
 static SoupMessage *
-generate_get_snap_request (SnapdRequest *request)
+generate_get_snap_request (SnapdRequest *self)
 {
-    SnapdGetSnap *r = SNAPD_GET_SNAP (request);
+    SnapdGetSnap *r = SNAPD_GET_SNAP (self);
     g_autofree gchar *escaped = NULL, *path = NULL;
 
     escaped = soup_uri_encode (r->name, NULL);
@@ -54,9 +54,9 @@ generate_get_snap_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_snap_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_snap_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetSnap *r = SNAPD_GET_SNAP (request);
+    SnapdGetSnap *r = SNAPD_GET_SNAP (self);
     g_autoptr(JsonObject) response = NULL;
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
     /*g_autoptr(JsonNode) result = NULL;*/
@@ -83,10 +83,10 @@ parse_get_snap_response (SnapdRequest *request, SoupMessage *message, SnapdMaint
 static void
 snapd_get_snap_finalize (GObject *object)
 {
-    SnapdGetSnap *request = SNAPD_GET_SNAP (object);
+    SnapdGetSnap *self = SNAPD_GET_SNAP (object);
 
-    g_clear_pointer (&request->name, g_free);
-    g_clear_object (&request->snap);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_object (&self->snap);
 
     G_OBJECT_CLASS (snapd_get_snap_parent_class)->finalize (object);
 }
@@ -103,6 +103,6 @@ snapd_get_snap_class_init (SnapdGetSnapClass *klass)
 }
 
 static void
-snapd_get_snap_init (SnapdGetSnap *request)
+snapd_get_snap_init (SnapdGetSnap *self)
 {
 }

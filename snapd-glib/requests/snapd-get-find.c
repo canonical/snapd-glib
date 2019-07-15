@@ -30,75 +30,75 @@ G_DEFINE_TYPE (SnapdGetFind, snapd_get_find, snapd_request_get_type ())
 SnapdGetFind *
 _snapd_get_find_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetFind *request;
+    SnapdGetFind *self;
 
-    request = SNAPD_GET_FIND (g_object_new (snapd_get_find_get_type (),
+    self = SNAPD_GET_FIND (g_object_new (snapd_get_find_get_type (),
                                             "cancellable", cancellable,
                                             "ready-callback", callback,
                                             "ready-callback-data", user_data,
                                             NULL));
 
-    return request;
+    return self;
 }
 
 void
-_snapd_get_find_set_common_id (SnapdGetFind *request, const gchar *common_id)
+_snapd_get_find_set_common_id (SnapdGetFind *self, const gchar *common_id)
 {
-    g_free (request->common_id);
-    request->common_id = g_strdup (common_id);
+    g_free (self->common_id);
+    self->common_id = g_strdup (common_id);
 }
 
 void
-_snapd_get_find_set_query (SnapdGetFind *request, const gchar *query)
+_snapd_get_find_set_query (SnapdGetFind *self, const gchar *query)
 {
-    g_free (request->query);
-    request->query = g_strdup (query);
+    g_free (self->query);
+    self->query = g_strdup (query);
 }
 
 void
-_snapd_get_find_set_name (SnapdGetFind *request, const gchar *name)
+_snapd_get_find_set_name (SnapdGetFind *self, const gchar *name)
 {
-    g_free (request->name);
-    request->name = g_strdup (name);
+    g_free (self->name);
+    self->name = g_strdup (name);
 }
 
 void
-_snapd_get_find_set_select (SnapdGetFind *request, const gchar *select)
+_snapd_get_find_set_select (SnapdGetFind *self, const gchar *select)
 {
-    g_free (request->select);
-    request->select = g_strdup (select);
+    g_free (self->select);
+    self->select = g_strdup (select);
 }
 
 void
-_snapd_get_find_set_section (SnapdGetFind *request, const gchar *section)
+_snapd_get_find_set_section (SnapdGetFind *self, const gchar *section)
 {
-    g_free (request->section);
-    request->section = g_strdup (section);
+    g_free (self->section);
+    self->section = g_strdup (section);
 }
 
 void
-_snapd_get_find_set_scope (SnapdGetFind *request, const gchar *scope)
+_snapd_get_find_set_scope (SnapdGetFind *self, const gchar *scope)
 {
-    g_free (request->scope);
-    request->scope = g_strdup (scope);
+    g_free (self->scope);
+    self->scope = g_strdup (scope);
 }
 
 GPtrArray *
-_snapd_get_find_get_snaps (SnapdGetFind *request)
+_snapd_get_find_get_snaps (SnapdGetFind *self)
 {
-    return request->snaps;
+    return self->snaps;
 }
 
 const gchar *
-_snapd_get_find_get_suggested_currency (SnapdGetFind *request)
+_snapd_get_find_get_suggested_currency (SnapdGetFind *self)
 {
-    return request->suggested_currency;
+    return self->suggested_currency;
 }
 
 static SoupMessage *
-generate_get_find_request (SnapdRequest *request)
+generate_get_find_request (SnapdRequest *self)
 {
-    SnapdGetFind *r = SNAPD_GET_FIND (request);
+    SnapdGetFind *r = SNAPD_GET_FIND (self);
     g_autoptr(GPtrArray) query_attributes = NULL;
     g_autoptr(GString) path = NULL;
 
@@ -144,9 +144,9 @@ generate_get_find_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_find_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_find_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetFind *r = SNAPD_GET_FIND (request);
+    SnapdGetFind *r = SNAPD_GET_FIND (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) snaps = NULL;
@@ -180,16 +180,16 @@ parse_get_find_response (SnapdRequest *request, SoupMessage *message, SnapdMaint
 static void
 snapd_get_find_finalize (GObject *object)
 {
-    SnapdGetFind *request = SNAPD_GET_FIND (object);
+    SnapdGetFind *self = SNAPD_GET_FIND (object);
 
-    g_free (request->common_id);
-    g_free (request->query);
-    g_free (request->name);
-    g_free (request->select);
-    g_free (request->section);
-    g_free (request->scope);
-    g_free (request->suggested_currency);
-    g_clear_pointer (&request->snaps, g_ptr_array_unref);
+    g_free (self->common_id);
+    g_free (self->query);
+    g_free (self->name);
+    g_free (self->select);
+    g_free (self->section);
+    g_free (self->scope);
+    g_free (self->suggested_currency);
+    g_clear_pointer (&self->snaps, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_find_parent_class)->finalize (object);
 }
@@ -206,6 +206,6 @@ snapd_get_find_class_init (SnapdGetFindClass *klass)
 }
 
 static void
-snapd_get_find_init (SnapdGetFind *request)
+snapd_get_find_init (SnapdGetFind *self)
 {
 }

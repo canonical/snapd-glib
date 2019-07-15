@@ -57,10 +57,10 @@ G_DEFINE_TYPE (SnapdSlotRef, snapd_slot_ref, G_TYPE_OBJECT)
  * Since: 1.48
  */
 const gchar *
-snapd_slot_ref_get_slot (SnapdSlotRef *slot_ref)
+snapd_slot_ref_get_slot (SnapdSlotRef *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SLOT_REF (slot_ref), NULL);
-    return slot_ref->slot;
+    g_return_val_if_fail (SNAPD_IS_SLOT_REF (self), NULL);
+    return self->slot;
 }
 
 /**
@@ -74,25 +74,25 @@ snapd_slot_ref_get_slot (SnapdSlotRef *slot_ref)
  * Since: 1.48
  */
 const gchar *
-snapd_slot_ref_get_snap (SnapdSlotRef *slot_ref)
+snapd_slot_ref_get_snap (SnapdSlotRef *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SLOT_REF (slot_ref), NULL);
-    return slot_ref->snap;
+    g_return_val_if_fail (SNAPD_IS_SLOT_REF (self), NULL);
+    return self->snap;
 }
 
 static void
 snapd_slot_ref_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdSlotRef *slot_ref = SNAPD_SLOT_REF (object);
+    SnapdSlotRef *self = SNAPD_SLOT_REF (object);
 
     switch (prop_id) {
     case PROP_SLOT:
-        g_free (slot_ref->slot);
-        slot_ref->slot = g_strdup (g_value_get_string (value));
+        g_free (self->slot);
+        self->slot = g_strdup (g_value_get_string (value));
         break;
     case PROP_SNAP:
-        g_free (slot_ref->snap);
-        slot_ref->snap = g_strdup (g_value_get_string (value));
+        g_free (self->snap);
+        self->snap = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -103,14 +103,14 @@ snapd_slot_ref_set_property (GObject *object, guint prop_id, const GValue *value
 static void
 snapd_slot_ref_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdSlotRef *slot_ref = SNAPD_SLOT_REF (object);
+    SnapdSlotRef *self = SNAPD_SLOT_REF (object);
 
     switch (prop_id) {
     case PROP_SLOT:
-        g_value_set_string (value, slot_ref->slot);
+        g_value_set_string (value, self->slot);
         break;
     case PROP_SNAP:
-        g_value_set_string (value, slot_ref->snap);
+        g_value_set_string (value, self->snap);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -121,10 +121,10 @@ snapd_slot_ref_get_property (GObject *object, guint prop_id, GValue *value, GPar
 static void
 snapd_slot_ref_finalize (GObject *object)
 {
-    SnapdSlotRef *slot_ref = SNAPD_SLOT_REF (object);
+    SnapdSlotRef *self = SNAPD_SLOT_REF (object);
 
-    g_clear_pointer (&slot_ref->slot, g_free);
-    g_clear_pointer (&slot_ref->snap, g_free);
+    g_clear_pointer (&self->slot, g_free);
+    g_clear_pointer (&self->snap, g_free);
 
     G_OBJECT_CLASS (snapd_slot_ref_parent_class)->finalize (object);
 }
@@ -155,6 +155,6 @@ snapd_slot_ref_class_init (SnapdSlotRefClass *klass)
 }
 
 static void
-snapd_slot_ref_init (SnapdSlotRef *slot_ref)
+snapd_slot_ref_init (SnapdSlotRef *self)
 {
 }

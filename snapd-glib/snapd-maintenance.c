@@ -59,10 +59,10 @@ G_DEFINE_TYPE (SnapdMaintenance, snapd_maintenance, G_TYPE_OBJECT)
  * Since: 1.45
  */
 SnapdMaintenanceKind
-snapd_maintenance_get_kind (SnapdMaintenance *maintenance)
+snapd_maintenance_get_kind (SnapdMaintenance *self)
 {
-    g_return_val_if_fail (SNAPD_IS_MAINTENANCE (maintenance), SNAPD_MAINTENANCE_KIND_UNKNOWN);
-    return maintenance->kind;
+    g_return_val_if_fail (SNAPD_IS_MAINTENANCE (self), SNAPD_MAINTENANCE_KIND_UNKNOWN);
+    return self->kind;
 }
 
 /**
@@ -76,24 +76,24 @@ snapd_maintenance_get_kind (SnapdMaintenance *maintenance)
  * Since: 1.45
  */
 const gchar *
-snapd_maintenance_get_message (SnapdMaintenance *maintenance)
+snapd_maintenance_get_message (SnapdMaintenance *self)
 {
-    g_return_val_if_fail (SNAPD_IS_MAINTENANCE (maintenance), NULL);
-    return maintenance->message;
+    g_return_val_if_fail (SNAPD_IS_MAINTENANCE (self), NULL);
+    return self->message;
 }
 
 static void
 snapd_maintenance_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdMaintenance *maintenance = SNAPD_MAINTENANCE (object);
+    SnapdMaintenance *self = SNAPD_MAINTENANCE (object);
 
     switch (prop_id) {
     case PROP_KIND:
-        maintenance->kind = g_value_get_enum (value);
+        self->kind = g_value_get_enum (value);
         break;
     case PROP_MESSAGE:
-        g_free (maintenance->message);
-        maintenance->message = g_strdup (g_value_get_string (value));
+        g_free (self->message);
+        self->message = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -104,14 +104,14 @@ snapd_maintenance_set_property (GObject *object, guint prop_id, const GValue *va
 static void
 snapd_maintenance_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdMaintenance *maintenance = SNAPD_MAINTENANCE (object);
+    SnapdMaintenance *self = SNAPD_MAINTENANCE (object);
 
     switch (prop_id) {
     case PROP_KIND:
-        g_value_set_enum (value, maintenance->kind);
+        g_value_set_enum (value, self->kind);
         break;
     case PROP_MESSAGE:
-        g_value_set_boxed (value, maintenance->message);
+        g_value_set_boxed (value, self->message);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -122,9 +122,9 @@ snapd_maintenance_get_property (GObject *object, guint prop_id, GValue *value, G
 static void
 snapd_maintenance_finalize (GObject *object)
 {
-    SnapdMaintenance *maintenance = SNAPD_MAINTENANCE (object);
+    SnapdMaintenance *self = SNAPD_MAINTENANCE (object);
 
-    g_clear_pointer (&maintenance->message, g_free);
+    g_clear_pointer (&self->message, g_free);
 
     G_OBJECT_CLASS (snapd_maintenance_parent_class)->finalize (object);
 }
@@ -155,6 +155,6 @@ snapd_maintenance_class_init (SnapdMaintenanceClass *klass)
 }
 
 static void
-snapd_maintenance_init (SnapdMaintenance *maintenance)
+snapd_maintenance_init (SnapdMaintenance *self)
 {
 }

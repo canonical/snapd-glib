@@ -64,10 +64,10 @@ G_DEFINE_TYPE (SnapdUserInformation, snapd_user_information, G_TYPE_OBJECT)
  * Since: 1.26
  */
 gint64
-snapd_user_information_get_id (SnapdUserInformation *user_information)
+snapd_user_information_get_id (SnapdUserInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (user_information), -1);
-    return user_information->id;
+    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (self), -1);
+    return self->id;
 }
 
 /**
@@ -81,10 +81,10 @@ snapd_user_information_get_id (SnapdUserInformation *user_information)
  * Since: 1.3
  */
 const gchar *
-snapd_user_information_get_username (SnapdUserInformation *user_information)
+snapd_user_information_get_username (SnapdUserInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (user_information), NULL);
-    return user_information->username;
+    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (self), NULL);
+    return self->username;
 }
 
 /**
@@ -98,10 +98,10 @@ snapd_user_information_get_username (SnapdUserInformation *user_information)
  * Since: 1.26
  */
 const gchar *
-snapd_user_information_get_email (SnapdUserInformation *user_information)
+snapd_user_information_get_email (SnapdUserInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (user_information), NULL);
-    return user_information->email;
+    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (self), NULL);
+    return self->email;
 }
 
 /**
@@ -115,10 +115,10 @@ snapd_user_information_get_email (SnapdUserInformation *user_information)
  * Since: 1.3
  */
 GStrv
-snapd_user_information_get_ssh_keys (SnapdUserInformation *user_information)
+snapd_user_information_get_ssh_keys (SnapdUserInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (user_information), NULL);
-    return user_information->ssh_keys;
+    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (self), NULL);
+    return self->ssh_keys;
 }
 
 /**
@@ -132,36 +132,36 @@ snapd_user_information_get_ssh_keys (SnapdUserInformation *user_information)
  * Since: 1.26
  */
 SnapdAuthData *
-snapd_user_information_get_auth_data (SnapdUserInformation *user_information)
+snapd_user_information_get_auth_data (SnapdUserInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (user_information), NULL);
-    return user_information->auth_data;
+    g_return_val_if_fail (SNAPD_IS_USER_INFORMATION (self), NULL);
+    return self->auth_data;
 }
 
 static void
 snapd_user_information_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdUserInformation *user_information = SNAPD_USER_INFORMATION (object);
+    SnapdUserInformation *self = SNAPD_USER_INFORMATION (object);
 
     switch (prop_id) {
     case PROP_ID:
-        user_information->id = g_value_get_int64 (value);
+        self->id = g_value_get_int64 (value);
         break;
     case PROP_USERNAME:
-        g_free (user_information->username);
-        user_information->username = g_strdup (g_value_get_string (value));
+        g_free (self->username);
+        self->username = g_strdup (g_value_get_string (value));
         break;
     case PROP_EMAIL:
-        g_free (user_information->email);
-        user_information->email = g_strdup (g_value_get_string (value));
+        g_free (self->email);
+        self->email = g_strdup (g_value_get_string (value));
         break;
     case PROP_SSH_KEYS:
-        g_strfreev (user_information->ssh_keys);
-        user_information->ssh_keys = g_strdupv (g_value_get_boxed (value));
+        g_strfreev (self->ssh_keys);
+        self->ssh_keys = g_strdupv (g_value_get_boxed (value));
         break;
     case PROP_AUTH_DATA:
-        g_clear_object (&user_information->auth_data);
-        user_information->auth_data = g_value_dup_object (value);
+        g_clear_object (&self->auth_data);
+        self->auth_data = g_value_dup_object (value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -172,23 +172,23 @@ snapd_user_information_set_property (GObject *object, guint prop_id, const GValu
 static void
 snapd_user_information_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdUserInformation *user_information = SNAPD_USER_INFORMATION (object);
+    SnapdUserInformation *self = SNAPD_USER_INFORMATION (object);
 
     switch (prop_id) {
     case PROP_ID:
-        g_value_set_int64 (value, user_information->id);
+        g_value_set_int64 (value, self->id);
         break;
     case PROP_USERNAME:
-        g_value_set_string (value, user_information->username);
+        g_value_set_string (value, self->username);
         break;
     case PROP_EMAIL:
-        g_value_set_string (value, user_information->email);
+        g_value_set_string (value, self->email);
         break;
     case PROP_SSH_KEYS:
-        g_value_set_boxed (value, user_information->ssh_keys);
+        g_value_set_boxed (value, self->ssh_keys);
         break;
     case PROP_AUTH_DATA:
-        g_value_set_object (value, user_information->auth_data);
+        g_value_set_object (value, self->auth_data);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -199,12 +199,12 @@ snapd_user_information_get_property (GObject *object, guint prop_id, GValue *val
 static void
 snapd_user_information_finalize (GObject *object)
 {
-    SnapdUserInformation *user_information = SNAPD_USER_INFORMATION (object);
+    SnapdUserInformation *self = SNAPD_USER_INFORMATION (object);
 
-    g_clear_pointer (&user_information->username, g_free);
-    g_clear_pointer (&user_information->email, g_free);
-    g_clear_pointer (&user_information->ssh_keys, g_strfreev);
-    g_clear_object (&user_information->auth_data);
+    g_clear_pointer (&self->username, g_free);
+    g_clear_pointer (&self->email, g_free);
+    g_clear_pointer (&self->ssh_keys, g_strfreev);
+    g_clear_object (&self->auth_data);
 
     G_OBJECT_CLASS (snapd_user_information_parent_class)->finalize (object);
 }
@@ -256,7 +256,7 @@ snapd_user_information_class_init (SnapdUserInformationClass *klass)
 }
 
 static void
-snapd_user_information_init (SnapdUserInformation *user_information)
+snapd_user_information_init (SnapdUserInformation *self)
 {
-    user_information->id = -1;
+    self->id = -1;
 }

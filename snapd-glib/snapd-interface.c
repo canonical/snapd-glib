@@ -65,10 +65,10 @@ G_DEFINE_TYPE (SnapdInterface, snapd_interface, G_TYPE_OBJECT);
  * Since: 1.48
  */
 const gchar *
-snapd_interface_get_name (SnapdInterface *interface)
+snapd_interface_get_name (SnapdInterface *self)
 {
-    g_return_val_if_fail (SNAPD_IS_INTERFACE (interface), NULL);
-    return interface->name;
+    g_return_val_if_fail (SNAPD_IS_INTERFACE (self), NULL);
+    return self->name;
 }
 
 /**
@@ -82,10 +82,10 @@ snapd_interface_get_name (SnapdInterface *interface)
  * Since: 1.48
  */
 const gchar *
-snapd_interface_get_summary (SnapdInterface *interface)
+snapd_interface_get_summary (SnapdInterface *self)
 {
-    g_return_val_if_fail (SNAPD_IS_INTERFACE (interface), NULL);
-    return interface->summary;
+    g_return_val_if_fail (SNAPD_IS_INTERFACE (self), NULL);
+    return self->summary;
 }
 
 /**
@@ -99,10 +99,10 @@ snapd_interface_get_summary (SnapdInterface *interface)
  * Since: 1.48
  */
 const gchar *
-snapd_interface_get_doc_url (SnapdInterface *interface)
+snapd_interface_get_doc_url (SnapdInterface *self)
 {
-    g_return_val_if_fail (SNAPD_IS_INTERFACE (interface), NULL);
-    return interface->doc_url;
+    g_return_val_if_fail (SNAPD_IS_INTERFACE (self), NULL);
+    return self->doc_url;
 }
 
 /**
@@ -116,10 +116,10 @@ snapd_interface_get_doc_url (SnapdInterface *interface)
  * Since: 1.48
  */
 GPtrArray *
-snapd_interface_get_plugs (SnapdInterface *interface)
+snapd_interface_get_plugs (SnapdInterface *self)
 {
-    g_return_val_if_fail (SNAPD_IS_INTERFACE (interface), NULL);
-    return interface->plugs;
+    g_return_val_if_fail (SNAPD_IS_INTERFACE (self), NULL);
+    return self->plugs;
 }
 
 /**
@@ -133,10 +133,10 @@ snapd_interface_get_plugs (SnapdInterface *interface)
  * Since: 1.48
  */
 GPtrArray *
-snapd_interface_get_slots (SnapdInterface *interface)
+snapd_interface_get_slots (SnapdInterface *self)
 {
-    g_return_val_if_fail (SNAPD_IS_INTERFACE (interface), NULL);
-    return interface->slots;
+    g_return_val_if_fail (SNAPD_IS_INTERFACE (self), NULL);
+    return self->slots;
 }
 
 static void
@@ -145,28 +145,28 @@ snapd_interface_set_property (GObject *object,
                               const GValue *value,
                               GParamSpec *pspec)
 {
-    SnapdInterface *interface = SNAPD_INTERFACE (object);
+    SnapdInterface *self = SNAPD_INTERFACE (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_free (interface->name);
-        interface->name = g_strdup (g_value_get_string (value));
+        g_free (self->name);
+        self->name = g_strdup (g_value_get_string (value));
         break;
     case PROP_SUMMARY:
-        g_free (interface->summary);
-        interface->summary = g_strdup (g_value_get_string (value));
+        g_free (self->summary);
+        self->summary = g_strdup (g_value_get_string (value));
         break;
     case PROP_DOC_URL:
-        g_free (interface->doc_url);
-        interface->doc_url = g_strdup (g_value_get_string (value));
+        g_free (self->doc_url);
+        self->doc_url = g_strdup (g_value_get_string (value));
         break;
     case PROP_PLUGS:
-        g_clear_pointer (&interface->plugs, g_ptr_array_unref);
-        interface->plugs = g_value_dup_boxed (value);
+        g_clear_pointer (&self->plugs, g_ptr_array_unref);
+        self->plugs = g_value_dup_boxed (value);
         break;
     case PROP_SLOTS:
-        g_clear_pointer (&interface->slots, g_ptr_array_unref);
-        interface->slots = g_value_dup_boxed (value);
+        g_clear_pointer (&self->slots, g_ptr_array_unref);
+        self->slots = g_value_dup_boxed (value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -180,23 +180,23 @@ snapd_interface_get_property (GObject *object,
                               GValue *value,
                               GParamSpec *pspec)
 {
-    SnapdInterface *interface = SNAPD_INTERFACE (object);
+    SnapdInterface *self = SNAPD_INTERFACE (object);
 
     switch (prop_id) {
     case PROP_NAME:
-        g_value_set_string (value, interface->name);
+        g_value_set_string (value, self->name);
         break;
     case PROP_SUMMARY:
-        g_value_set_string (value, interface->summary);
+        g_value_set_string (value, self->summary);
         break;
     case PROP_DOC_URL:
-        g_value_set_string (value, interface->doc_url);
+        g_value_set_string (value, self->doc_url);
         break;
     case PROP_PLUGS:
-        g_value_set_boxed (value, interface->plugs);
+        g_value_set_boxed (value, self->plugs);
         break;
     case PROP_SLOTS:
-        g_value_set_boxed (value, interface->slots);
+        g_value_set_boxed (value, self->slots);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -207,13 +207,13 @@ snapd_interface_get_property (GObject *object,
 static void
 snapd_interface_finalize (GObject *object)
 {
-    SnapdInterface *interface = SNAPD_INTERFACE (object);
+    SnapdInterface *self = SNAPD_INTERFACE (object);
 
-    g_clear_pointer (&interface->name, g_free);
-    g_clear_pointer (&interface->summary, g_free);
-    g_clear_pointer (&interface->doc_url, g_free);
-    g_clear_pointer (&interface->plugs, g_ptr_array_unref);
-    g_clear_pointer (&interface->slots, g_ptr_array_unref);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_pointer (&self->summary, g_free);
+    g_clear_pointer (&self->doc_url, g_free);
+    g_clear_pointer (&self->plugs, g_ptr_array_unref);
+    g_clear_pointer (&self->slots, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_interface_parent_class)->finalize (object);
 }
@@ -265,6 +265,6 @@ snapd_interface_class_init (SnapdInterfaceClass *klass)
 }
 
 static void
-snapd_interface_init (SnapdInterface *interface)
+snapd_interface_init (SnapdInterface *self)
 {
 }

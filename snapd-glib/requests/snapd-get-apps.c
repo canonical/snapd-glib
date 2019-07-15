@@ -24,36 +24,36 @@ G_DEFINE_TYPE (SnapdGetApps, snapd_get_apps, snapd_request_get_type ())
 SnapdGetApps *
 _snapd_get_apps_new (GStrv snaps, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetApps *request;
+    SnapdGetApps *self;
 
-    request = SNAPD_GET_APPS (g_object_new (snapd_get_apps_get_type (),
+    self = SNAPD_GET_APPS (g_object_new (snapd_get_apps_get_type (),
                                             "cancellable", cancellable,
                                             "ready-callback", callback,
                                             "ready-callback-data", user_data,
                                             NULL));
    if (snaps != NULL && snaps[0] != NULL)
-       request->snaps = g_strdupv (snaps);
+       self->snaps = g_strdupv (snaps);
 
-    return request;
+    return self;
 }
 
 void
-_snapd_get_apps_set_select (SnapdGetApps *request, const gchar *select)
+_snapd_get_apps_set_select (SnapdGetApps *self, const gchar *select)
 {
-    g_free (request->select);
-    request->select = g_strdup (select);
+    g_free (self->select);
+    self->select = g_strdup (select);
 }
 
 GPtrArray *
-_snapd_get_apps_get_apps (SnapdGetApps *request)
+_snapd_get_apps_get_apps (SnapdGetApps *self)
 {
-    return request->apps;
+    return self->apps;
 }
 
 static SoupMessage *
-generate_get_apps_request (SnapdRequest *request)
+generate_get_apps_request (SnapdRequest *self)
 {
-    SnapdGetApps *r = SNAPD_GET_APPS (request);
+    SnapdGetApps *r = SNAPD_GET_APPS (self);
     g_autoptr(GPtrArray) query_attributes = NULL;
     g_autoptr(GString) path = NULL;
 
@@ -83,9 +83,9 @@ generate_get_apps_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_apps_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_apps_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetApps *r = SNAPD_GET_APPS (request);
+    SnapdGetApps *r = SNAPD_GET_APPS (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) apps = NULL;
@@ -118,11 +118,11 @@ parse_get_apps_response (SnapdRequest *request, SoupMessage *message, SnapdMaint
 static void
 snapd_get_apps_finalize (GObject *object)
 {
-    SnapdGetApps *request = SNAPD_GET_APPS (object);
+    SnapdGetApps *self = SNAPD_GET_APPS (object);
 
-    g_clear_pointer (&request->select, g_free);
-    g_clear_pointer (&request->snaps, g_strfreev);
-    g_clear_pointer (&request->apps, g_ptr_array_unref);
+    g_clear_pointer (&self->select, g_free);
+    g_clear_pointer (&self->snaps, g_strfreev);
+    g_clear_pointer (&self->apps, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_apps_parent_class)->finalize (object);
 }
@@ -139,6 +139,6 @@ snapd_get_apps_class_init (SnapdGetAppsClass *klass)
 }
 
 static void
-snapd_get_apps_init (SnapdGetApps *request)
+snapd_get_apps_init (SnapdGetApps *self)
 {
 }

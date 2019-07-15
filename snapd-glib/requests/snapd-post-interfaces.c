@@ -30,28 +30,28 @@ _snapd_post_interfaces_new (const gchar *action,
                             SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostInterfaces *request;
+    SnapdPostInterfaces *self;
 
-    request = SNAPD_POST_INTERFACES (g_object_new (snapd_post_interfaces_get_type (),
+    self = SNAPD_POST_INTERFACES (g_object_new (snapd_post_interfaces_get_type (),
                                                    "cancellable", cancellable,
                                                    "ready-callback", callback,
                                                    "ready-callback-data", user_data,
                                                    "progress-callback", progress_callback,
                                                    "progress-callback-data", progress_callback_data,
                                                    NULL));
-    request->action = g_strdup (action);
-    request->plug_snap = g_strdup (plug_snap);
-    request->plug_name = g_strdup (plug_name);
-    request->slot_snap = g_strdup (slot_snap);
-    request->slot_name = g_strdup (slot_name);
+    self->action = g_strdup (action);
+    self->plug_snap = g_strdup (plug_snap);
+    self->plug_name = g_strdup (plug_name);
+    self->slot_snap = g_strdup (slot_snap);
+    self->slot_name = g_strdup (slot_name);
 
-    return request;
+    return self;
 }
 
 static SoupMessage *
-generate_post_interfaces_request (SnapdRequest *request)
+generate_post_interfaces_request (SnapdRequest *self)
 {
-    SnapdPostInterfaces *r = SNAPD_POST_INTERFACES (request);
+    SnapdPostInterfaces *r = SNAPD_POST_INTERFACES (self);
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
 
@@ -88,13 +88,13 @@ generate_post_interfaces_request (SnapdRequest *request)
 static void
 snapd_post_interfaces_finalize (GObject *object)
 {
-    SnapdPostInterfaces *request = SNAPD_POST_INTERFACES (object);
+    SnapdPostInterfaces *self = SNAPD_POST_INTERFACES (object);
 
-    g_clear_pointer (&request->action, g_free);
-    g_clear_pointer (&request->plug_snap, g_free);
-    g_clear_pointer (&request->plug_name, g_free);
-    g_clear_pointer (&request->slot_snap, g_free);
-    g_clear_pointer (&request->slot_name, g_free);
+    g_clear_pointer (&self->action, g_free);
+    g_clear_pointer (&self->plug_snap, g_free);
+    g_clear_pointer (&self->plug_name, g_free);
+    g_clear_pointer (&self->slot_snap, g_free);
+    g_clear_pointer (&self->slot_name, g_free);
 
     G_OBJECT_CLASS (snapd_post_interfaces_parent_class)->finalize (object);
 }
@@ -110,6 +110,6 @@ snapd_post_interfaces_class_init (SnapdPostInterfacesClass *klass)
 }
 
 static void
-snapd_post_interfaces_init (SnapdPostInterfaces *request)
+snapd_post_interfaces_init (SnapdPostInterfaces *self)
 {
 }

@@ -29,13 +29,13 @@ _snapd_get_buy_ready_new (GCancellable *cancellable, GAsyncReadyCallback callbac
 }
 
 static SoupMessage *
-generate_get_buy_ready_request (SnapdRequest *request)
+generate_get_buy_ready_request (SnapdRequest *self)
 {
     return soup_message_new ("GET", "http://snapd/v2/buy/ready");
 }
 
 static gboolean
-parse_get_buy_ready_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_buy_ready_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     g_autoptr(JsonObject) response = NULL;
 
@@ -56,6 +56,6 @@ snapd_get_buy_ready_class_init (SnapdGetBuyReadyClass *klass)
 }
 
 static void
-snapd_get_buy_ready_init (SnapdGetBuyReady *request)
+snapd_get_buy_ready_init (SnapdGetBuyReady *self)
 {
 }

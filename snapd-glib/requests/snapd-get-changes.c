@@ -25,29 +25,29 @@ G_DEFINE_TYPE (SnapdGetChanges, snapd_get_changes, snapd_request_get_type ())
 SnapdGetChanges *
 _snapd_get_changes_new (const gchar *select, const gchar *snap_name, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetChanges *request;
+    SnapdGetChanges *self;
 
-    request = SNAPD_GET_CHANGES (g_object_new (snapd_get_changes_get_type (),
+    self = SNAPD_GET_CHANGES (g_object_new (snapd_get_changes_get_type (),
                                                "cancellable", cancellable,
                                                "ready-callback", callback,
                                                "ready-callback-data", user_data,
                                                NULL));
-    request->select = g_strdup (select);
-    request->snap_name = g_strdup (snap_name);
+    self->select = g_strdup (select);
+    self->snap_name = g_strdup (snap_name);
 
-    return request;
+    return self;
 }
 
 GPtrArray *
-_snapd_get_changes_get_changes (SnapdGetChanges *request)
+_snapd_get_changes_get_changes (SnapdGetChanges *self)
 {
-    return request->changes;
+    return self->changes;
 }
 
 static SoupMessage *
-generate_get_changes_request (SnapdRequest *request)
+generate_get_changes_request (SnapdRequest *self)
 {
-    SnapdGetChanges *r = SNAPD_GET_CHANGES (request);
+    SnapdGetChanges *r = SNAPD_GET_CHANGES (self);
     g_autoptr(GPtrArray) query_attributes = NULL;
     g_autoptr(GString) path = NULL;
 
@@ -77,9 +77,9 @@ generate_get_changes_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_changes_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_changes_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetChanges *r = SNAPD_GET_CHANGES (request);
+    SnapdGetChanges *r = SNAPD_GET_CHANGES (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) changes = NULL;
@@ -112,11 +112,11 @@ parse_get_changes_response (SnapdRequest *request, SoupMessage *message, SnapdMa
 static void
 snapd_get_changes_finalize (GObject *object)
 {
-    SnapdGetChanges *request = SNAPD_GET_CHANGES (object);
+    SnapdGetChanges *self = SNAPD_GET_CHANGES (object);
 
-    g_clear_pointer (&request->select, g_free);
-    g_clear_pointer (&request->snap_name, g_free);
-    g_clear_pointer (&request->changes, g_ptr_array_unref);
+    g_clear_pointer (&self->select, g_free);
+    g_clear_pointer (&self->snap_name, g_free);
+    g_clear_pointer (&self->changes, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_changes_parent_class)->finalize (object);
 }
@@ -133,6 +133,6 @@ snapd_get_changes_class_init (SnapdGetChangesClass *klass)
 }
 
 static void
-snapd_get_changes_init (SnapdGetChanges *request)
+snapd_get_changes_init (SnapdGetChanges *self)
 {
 }

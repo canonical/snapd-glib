@@ -31,63 +31,63 @@ _snapd_post_snap_new (const gchar *name, const gchar *action,
                       SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostSnap *request;
+    SnapdPostSnap *self;
 
-    request = SNAPD_POST_SNAP (g_object_new (snapd_post_snap_get_type (),
+    self = SNAPD_POST_SNAP (g_object_new (snapd_post_snap_get_type (),
                                              "cancellable", cancellable,
                                              "ready-callback", callback,
                                              "ready-callback-data", user_data,
                                              "progress-callback", progress_callback,
                                              "progress-callback-data", progress_callback_data,
                                              NULL));
-    request->name = g_strdup (name);
-    request->action = g_strdup (action);
+    self->name = g_strdup (name);
+    self->action = g_strdup (action);
 
-    return request;
+    return self;
 }
 
 void
-_snapd_post_snap_set_channel (SnapdPostSnap *request, const gchar *channel)
+_snapd_post_snap_set_channel (SnapdPostSnap *self, const gchar *channel)
 {
-    g_free (request->channel);
-    request->channel = g_strdup (channel);
+    g_free (self->channel);
+    self->channel = g_strdup (channel);
 }
 
 void
-_snapd_post_snap_set_revision (SnapdPostSnap *request, const gchar *revision)
+_snapd_post_snap_set_revision (SnapdPostSnap *self, const gchar *revision)
 {
-    g_free (request->revision);
-    request->revision = g_strdup (revision);
+    g_free (self->revision);
+    self->revision = g_strdup (revision);
 }
 
 void
-_snapd_post_snap_set_classic (SnapdPostSnap *request, gboolean classic)
+_snapd_post_snap_set_classic (SnapdPostSnap *self, gboolean classic)
 {
-    request->classic = classic;
+    self->classic = classic;
 }
 
 void
-_snapd_post_snap_set_dangerous (SnapdPostSnap *request, gboolean dangerous)
+_snapd_post_snap_set_dangerous (SnapdPostSnap *self, gboolean dangerous)
 {
-    request->dangerous = dangerous;
+    self->dangerous = dangerous;
 }
 
 void
-_snapd_post_snap_set_devmode (SnapdPostSnap *request, gboolean devmode)
+_snapd_post_snap_set_devmode (SnapdPostSnap *self, gboolean devmode)
 {
-    request->devmode = devmode;
+    self->devmode = devmode;
 }
 
 void
-_snapd_post_snap_set_jailmode (SnapdPostSnap *request, gboolean jailmode)
+_snapd_post_snap_set_jailmode (SnapdPostSnap *self, gboolean jailmode)
 {
-    request->jailmode = jailmode;
+    self->jailmode = jailmode;
 }
 
 static SoupMessage *
-generate_post_snap_request (SnapdRequest *request)
+generate_post_snap_request (SnapdRequest *self)
 {
-    SnapdPostSnap *r = SNAPD_POST_SNAP (request);
+    SnapdPostSnap *r = SNAPD_POST_SNAP (self);
     g_autofree gchar *escaped = NULL, *path = NULL;
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
@@ -133,12 +133,12 @@ generate_post_snap_request (SnapdRequest *request)
 static void
 snapd_post_snap_finalize (GObject *object)
 {
-    SnapdPostSnap *request = SNAPD_POST_SNAP (object);
+    SnapdPostSnap *self = SNAPD_POST_SNAP (object);
 
-    g_clear_pointer (&request->name, g_free);
-    g_clear_pointer (&request->action, g_free);
-    g_clear_pointer (&request->channel, g_free);
-    g_clear_pointer (&request->revision, g_free);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_pointer (&self->action, g_free);
+    g_clear_pointer (&self->channel, g_free);
+    g_clear_pointer (&self->revision, g_free);
 
     G_OBJECT_CLASS (snapd_post_snap_parent_class)->finalize (object);
 }
@@ -154,6 +154,6 @@ snapd_post_snap_class_init (SnapdPostSnapClass *klass)
 }
 
 static void
-snapd_post_snap_init (SnapdPostSnap *request)
+snapd_post_snap_init (SnapdPostSnap *self)
 {
 }

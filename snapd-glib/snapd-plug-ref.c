@@ -57,10 +57,10 @@ G_DEFINE_TYPE (SnapdPlugRef, snapd_plug_ref, G_TYPE_OBJECT)
  * Since: 1.48
  */
 const gchar *
-snapd_plug_ref_get_plug (SnapdPlugRef *plug_ref)
+snapd_plug_ref_get_plug (SnapdPlugRef *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG_REF (plug_ref), NULL);
-    return plug_ref->plug;
+    g_return_val_if_fail (SNAPD_IS_PLUG_REF (self), NULL);
+    return self->plug;
 }
 
 /**
@@ -74,25 +74,25 @@ snapd_plug_ref_get_plug (SnapdPlugRef *plug_ref)
  * Since: 1.48
  */
 const gchar *
-snapd_plug_ref_get_snap (SnapdPlugRef *plug_ref)
+snapd_plug_ref_get_snap (SnapdPlugRef *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PLUG_REF (plug_ref), NULL);
-    return plug_ref->snap;
+    g_return_val_if_fail (SNAPD_IS_PLUG_REF (self), NULL);
+    return self->snap;
 }
 
 static void
 snapd_plug_ref_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdPlugRef *plug_ref = SNAPD_PLUG_REF (object);
+    SnapdPlugRef *self = SNAPD_PLUG_REF (object);
 
     switch (prop_id) {
     case PROP_PLUG:
-        g_free (plug_ref->plug);
-        plug_ref->plug = g_strdup (g_value_get_string (value));
+        g_free (self->plug);
+        self->plug = g_strdup (g_value_get_string (value));
         break;
     case PROP_SNAP:
-        g_free (plug_ref->snap);
-        plug_ref->snap = g_strdup (g_value_get_string (value));
+        g_free (self->snap);
+        self->snap = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -103,14 +103,14 @@ snapd_plug_ref_set_property (GObject *object, guint prop_id, const GValue *value
 static void
 snapd_plug_ref_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdPlugRef *plug_ref = SNAPD_PLUG_REF (object);
+    SnapdPlugRef *self = SNAPD_PLUG_REF (object);
 
     switch (prop_id) {
     case PROP_PLUG:
-        g_value_set_string (value, plug_ref->plug);
+        g_value_set_string (value, self->plug);
         break;
     case PROP_SNAP:
-        g_value_set_string (value, plug_ref->snap);
+        g_value_set_string (value, self->snap);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -121,10 +121,10 @@ snapd_plug_ref_get_property (GObject *object, guint prop_id, GValue *value, GPar
 static void
 snapd_plug_ref_finalize (GObject *object)
 {
-    SnapdPlugRef *plug_ref = SNAPD_PLUG_REF (object);
+    SnapdPlugRef *self = SNAPD_PLUG_REF (object);
 
-    g_clear_pointer (&plug_ref->plug, g_free);
-    g_clear_pointer (&plug_ref->snap, g_free);
+    g_clear_pointer (&self->plug, g_free);
+    g_clear_pointer (&self->snap, g_free);
 
     G_OBJECT_CLASS (snapd_plug_ref_parent_class)->finalize (object);
 }
@@ -155,6 +155,6 @@ snapd_plug_ref_class_init (SnapdPlugRefClass *klass)
 }
 
 static void
-snapd_plug_ref_init (SnapdPlugRef *plug_ref)
+snapd_plug_ref_init (SnapdPlugRef *self)
 {
 }

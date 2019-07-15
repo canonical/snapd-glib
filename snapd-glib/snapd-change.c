@@ -72,10 +72,10 @@ G_DEFINE_TYPE (SnapdChange, snapd_change, G_TYPE_OBJECT)
  * Since: 1.5
  */
 const gchar *
-snapd_change_get_id (SnapdChange *change)
+snapd_change_get_id (SnapdChange *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANGE (change), NULL);
-    return change->id;
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
+    return self->id;
 }
 
 /**
@@ -89,10 +89,10 @@ snapd_change_get_id (SnapdChange *change)
  * Since: 1.5
  */
 const gchar *
-snapd_change_get_kind (SnapdChange *change)
+snapd_change_get_kind (SnapdChange *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANGE (change), NULL);
-    return change->kind;
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
+    return self->kind;
 }
 
 /**
@@ -106,10 +106,10 @@ snapd_change_get_kind (SnapdChange *change)
  * Since: 1.5
  */
 const gchar *
-snapd_change_get_summary (SnapdChange *change)
+snapd_change_get_summary (SnapdChange *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANGE (change), NULL);
-    return change->summary;
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
+    return self->summary;
 }
 
 /**
@@ -123,10 +123,10 @@ snapd_change_get_summary (SnapdChange *change)
  * Since: 1.5
  */
 const gchar *
-snapd_change_get_status (SnapdChange *change)
+snapd_change_get_status (SnapdChange *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANGE (change), NULL);
-    return change->status;
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
+    return self->status;
 }
 
 /**
@@ -140,10 +140,10 @@ snapd_change_get_status (SnapdChange *change)
  * Since: 1.5
  */
 GPtrArray *
-snapd_change_get_tasks (SnapdChange *change)
+snapd_change_get_tasks (SnapdChange *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANGE (change), NULL);
-    return change->tasks;
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
+    return self->tasks;
 }
 
 /**
@@ -157,10 +157,10 @@ snapd_change_get_tasks (SnapdChange *change)
  * Since: 1.5
  */
 gboolean
-snapd_change_get_ready (SnapdChange *change)
+snapd_change_get_ready (SnapdChange *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANGE (change), FALSE);
-    return change->ready;
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), FALSE);
+    return self->ready;
 }
 
 /**
@@ -174,10 +174,10 @@ snapd_change_get_ready (SnapdChange *change)
  * Since: 1.5
  */
 GDateTime *
-snapd_change_get_spawn_time (SnapdChange *change)
+snapd_change_get_spawn_time (SnapdChange *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANGE (change), NULL);
-    return change->spawn_time;
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
+    return self->spawn_time;
 }
 
 /**
@@ -191,10 +191,10 @@ snapd_change_get_spawn_time (SnapdChange *change)
  * Since: 1.5
  */
 GDateTime *
-snapd_change_get_ready_time (SnapdChange *change)
+snapd_change_get_ready_time (SnapdChange *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANGE (change), NULL);
-    return change->ready_time;
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
+    return self->ready_time;
 }
 
 /**
@@ -208,55 +208,55 @@ snapd_change_get_ready_time (SnapdChange *change)
  * Since: 1.30
  */
 const gchar *
-snapd_change_get_error (SnapdChange *change)
+snapd_change_get_error (SnapdChange *self)
 {
-    g_return_val_if_fail (SNAPD_IS_CHANGE (change), NULL);
-    return change->error;
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
+    return self->error;
 }
 
 static void
 snapd_change_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdChange *change = SNAPD_CHANGE (object);
+    SnapdChange *self = SNAPD_CHANGE (object);
 
     switch (prop_id) {
     case PROP_ID:
-        g_free (change->id);
-        change->id = g_strdup (g_value_get_string (value));
+        g_free (self->id);
+        self->id = g_strdup (g_value_get_string (value));
         break;
     case PROP_KIND:
-        g_free (change->kind);
-        change->kind = g_strdup (g_value_get_string (value));
+        g_free (self->kind);
+        self->kind = g_strdup (g_value_get_string (value));
         break;
     case PROP_SUMMARY:
-        g_free (change->summary);
-        change->summary = g_strdup (g_value_get_string (value));
+        g_free (self->summary);
+        self->summary = g_strdup (g_value_get_string (value));
         break;
     case PROP_STATUS:
-        g_free (change->status);
-        change->status = g_strdup (g_value_get_string (value));
+        g_free (self->status);
+        self->status = g_strdup (g_value_get_string (value));
         break;
     case PROP_TASKS:
-        g_clear_pointer (&change->tasks, g_ptr_array_unref);
+        g_clear_pointer (&self->tasks, g_ptr_array_unref);
         if (g_value_get_boxed (value) != NULL)
-            change->tasks = g_ptr_array_ref (g_value_get_boxed (value));
+            self->tasks = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_READY:
-        change->ready = g_value_get_boolean (value);
+        self->ready = g_value_get_boolean (value);
         break;
     case PROP_SPAWN_TIME:
-        g_clear_pointer (&change->spawn_time, g_date_time_unref);
+        g_clear_pointer (&self->spawn_time, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
-            change->spawn_time = g_date_time_ref (g_value_get_boxed (value));
+            self->spawn_time = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_READY_TIME:
-        g_clear_pointer (&change->ready_time, g_date_time_unref);
+        g_clear_pointer (&self->ready_time, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
-            change->ready_time = g_date_time_ref (g_value_get_boxed (value));
+            self->ready_time = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_ERROR:
-        g_free (change->error);
-        change->error = g_strdup (g_value_get_string (value));
+        g_free (self->error);
+        self->error = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -267,35 +267,35 @@ snapd_change_set_property (GObject *object, guint prop_id, const GValue *value, 
 static void
 snapd_change_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdChange *change = SNAPD_CHANGE (object);
+    SnapdChange *self = SNAPD_CHANGE (object);
 
     switch (prop_id) {
     case PROP_ID:
-        g_value_set_string (value, change->id);
+        g_value_set_string (value, self->id);
         break;
     case PROP_KIND:
-        g_value_set_string (value, change->kind);
+        g_value_set_string (value, self->kind);
         break;
     case PROP_SUMMARY:
-        g_value_set_string (value, change->summary);
+        g_value_set_string (value, self->summary);
         break;
     case PROP_STATUS:
-        g_value_set_string (value, change->status);
+        g_value_set_string (value, self->status);
         break;
     case PROP_TASKS:
-        g_value_set_boxed (value, change->tasks);
+        g_value_set_boxed (value, self->tasks);
         break;
     case PROP_READY:
-        g_value_set_boolean (value, change->ready);
+        g_value_set_boolean (value, self->ready);
         break;
     case PROP_SPAWN_TIME:
-        g_value_set_boxed (value, change->spawn_time);
+        g_value_set_boxed (value, self->spawn_time);
         break;
     case PROP_READY_TIME:
-        g_value_set_boxed (value, change->ready_time);
+        g_value_set_boxed (value, self->ready_time);
         break;
     case PROP_ERROR:
-        g_value_set_string (value, change->error);
+        g_value_set_string (value, self->error);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -306,16 +306,16 @@ snapd_change_get_property (GObject *object, guint prop_id, GValue *value, GParam
 static void
 snapd_change_finalize (GObject *object)
 {
-    SnapdChange *change = SNAPD_CHANGE (object);
+    SnapdChange *self = SNAPD_CHANGE (object);
 
-    g_clear_pointer (&change->id, g_free);
-    g_clear_pointer (&change->kind, g_free);
-    g_clear_pointer (&change->summary, g_free);
-    g_clear_pointer (&change->status, g_free);
-    g_clear_pointer (&change->tasks, g_ptr_array_unref);
-    g_clear_pointer (&change->spawn_time, g_date_time_unref);
-    g_clear_pointer (&change->ready_time, g_date_time_unref);
-    g_clear_pointer (&change->error, g_free);
+    g_clear_pointer (&self->id, g_free);
+    g_clear_pointer (&self->kind, g_free);
+    g_clear_pointer (&self->summary, g_free);
+    g_clear_pointer (&self->status, g_free);
+    g_clear_pointer (&self->tasks, g_ptr_array_unref);
+    g_clear_pointer (&self->spawn_time, g_date_time_unref);
+    g_clear_pointer (&self->ready_time, g_date_time_unref);
+    g_clear_pointer (&self->error, g_free);
 
     G_OBJECT_CLASS (snapd_change_parent_class)->finalize (object);
 }
@@ -395,6 +395,6 @@ snapd_change_class_init (SnapdChangeClass *klass)
 }
 
 static void
-snapd_change_init (SnapdChange *change)
+snapd_change_init (SnapdChange *self)
 {
 }

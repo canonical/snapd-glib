@@ -31,13 +31,13 @@ _snapd_post_create_users_new (GCancellable *cancellable, GAsyncReadyCallback cal
 }
 
 GPtrArray *
-_snapd_post_create_users_get_users_information (SnapdPostCreateUsers *request)
+_snapd_post_create_users_get_users_information (SnapdPostCreateUsers *self)
 {
-    return request->users_information;
+    return self->users_information;
 }
 
 static SoupMessage *
-generate_post_create_users_request (SnapdRequest *request)
+generate_post_create_users_request (SnapdRequest *self)
 {
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
@@ -55,9 +55,9 @@ generate_post_create_users_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_create_users_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_create_users_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdPostCreateUsers *r = SNAPD_POST_CREATE_USERS (request);
+    SnapdPostCreateUsers *r = SNAPD_POST_CREATE_USERS (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonArray) result = NULL;
     g_autoptr(GPtrArray) users_information = NULL;
@@ -89,9 +89,9 @@ parse_post_create_users_response (SnapdRequest *request, SoupMessage *message, S
 static void
 snapd_post_create_users_finalize (GObject *object)
 {
-    SnapdPostCreateUsers *request = SNAPD_POST_CREATE_USERS (object);
+    SnapdPostCreateUsers *self = SNAPD_POST_CREATE_USERS (object);
 
-    g_clear_pointer (&request->users_information, g_ptr_array_unref);
+    g_clear_pointer (&self->users_information, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_post_create_users_parent_class)->finalize (object);
 }
@@ -108,6 +108,6 @@ snapd_post_create_users_class_init (SnapdPostCreateUsersClass *klass)
 }
 
 static void
-snapd_post_create_users_init (SnapdPostCreateUsers *request)
+snapd_post_create_users_init (SnapdPostCreateUsers *self)
 {
 }

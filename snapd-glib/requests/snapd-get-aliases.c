@@ -34,21 +34,21 @@ _snapd_get_aliases_new (GCancellable *cancellable, GAsyncReadyCallback callback,
 }
 
 GPtrArray *
-_snapd_get_aliases_get_aliases (SnapdGetAliases *request)
+_snapd_get_aliases_get_aliases (SnapdGetAliases *self)
 {
-    return request->aliases;
+    return self->aliases;
 }
 
 static SoupMessage *
-generate_get_aliases_request (SnapdRequest *request)
+generate_get_aliases_request (SnapdRequest *self)
 {
     return soup_message_new ("GET", "http://snapd/v2/aliases");
 }
 
 static gboolean
-parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_aliases_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetAliases *r = SNAPD_GET_ALIASES (request);
+    SnapdGetAliases *r = SNAPD_GET_ALIASES (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(GPtrArray) aliases = NULL;
@@ -98,9 +98,9 @@ parse_get_aliases_response (SnapdRequest *request, SoupMessage *message, SnapdMa
 static void
 snapd_get_aliases_finalize (GObject *object)
 {
-    SnapdGetAliases *request = SNAPD_GET_ALIASES (object);
+    SnapdGetAliases *self = SNAPD_GET_ALIASES (object);
 
-    g_clear_pointer (&request->aliases, g_ptr_array_unref);
+    g_clear_pointer (&self->aliases, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_aliases_parent_class)->finalize (object);
 }
@@ -117,6 +117,6 @@ snapd_get_aliases_class_init (SnapdGetAliasesClass *klass)
 }
 
 static void
-snapd_get_aliases_init (SnapdGetAliases *request)
+snapd_get_aliases_init (SnapdGetAliases *self)
 {
 }

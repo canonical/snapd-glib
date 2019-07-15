@@ -27,28 +27,28 @@ G_DEFINE_TYPE (SnapdGetAssertions, snapd_get_assertions, snapd_request_get_type 
 SnapdGetAssertions *
 _snapd_get_assertions_new (const gchar *type, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdGetAssertions *request;
+    SnapdGetAssertions *self;
 
-    request = SNAPD_GET_ASSERTIONS (g_object_new (snapd_get_assertions_get_type (),
+    self = SNAPD_GET_ASSERTIONS (g_object_new (snapd_get_assertions_get_type (),
                                                   "cancellable", cancellable,
                                                   "ready-callback", callback,
                                                   "ready-callback-data", user_data,
                                                   NULL));
-    request->type = g_strdup (type);
+    self->type = g_strdup (type);
 
-    return request;
+    return self;
 }
 
 GStrv
-_snapd_get_assertions_get_assertions (SnapdGetAssertions *request)
+_snapd_get_assertions_get_assertions (SnapdGetAssertions *self)
 {
-    return request->assertions;
+    return self->assertions;
 }
 
 static SoupMessage *
-generate_get_assertions_request (SnapdRequest *request)
+generate_get_assertions_request (SnapdRequest *self)
 {
-    SnapdGetAssertions *r = SNAPD_GET_ASSERTIONS (request);
+    SnapdGetAssertions *r = SNAPD_GET_ASSERTIONS (self);
     g_autofree gchar *escaped = NULL, *path = NULL;
 
     escaped = soup_uri_encode (r->type, NULL);
@@ -58,9 +58,9 @@ generate_get_assertions_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_assertions_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetAssertions *r = SNAPD_GET_ASSERTIONS (request);
+    SnapdGetAssertions *r = SNAPD_GET_ASSERTIONS (self);
     const gchar *content_type;
     g_autoptr(GPtrArray) assertions = NULL;
     g_autoptr(SoupBuffer) buffer = NULL;
@@ -143,10 +143,10 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, Snap
 static void
 snapd_get_assertions_finalize (GObject *object)
 {
-    SnapdGetAssertions *request = SNAPD_GET_ASSERTIONS (object);
+    SnapdGetAssertions *self = SNAPD_GET_ASSERTIONS (object);
 
-    g_clear_pointer (&request->type, g_free);
-    g_clear_pointer (&request->assertions, g_strfreev);
+    g_clear_pointer (&self->type, g_free);
+    g_clear_pointer (&self->assertions, g_strfreev);
 
     G_OBJECT_CLASS (snapd_get_assertions_parent_class)->finalize (object);
 }
@@ -163,6 +163,6 @@ snapd_get_assertions_class_init (SnapdGetAssertionsClass *klass)
 }
 
 static void
-snapd_get_assertions_init (SnapdGetAssertions *request)
+snapd_get_assertions_init (SnapdGetAssertions *self)
 {
 }

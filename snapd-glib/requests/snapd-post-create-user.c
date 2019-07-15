@@ -27,40 +27,40 @@ SnapdPostCreateUser *
 _snapd_post_create_user_new (const gchar *email,
                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostCreateUser *request;
+    SnapdPostCreateUser *self;
 
-    request = SNAPD_POST_CREATE_USER (g_object_new (snapd_post_create_user_get_type (),
+    self = SNAPD_POST_CREATE_USER (g_object_new (snapd_post_create_user_get_type (),
                                                     "cancellable", cancellable,
                                                     "ready-callback", callback,
                                                     "ready-callback-data", user_data,
                                                     NULL));
-    request->email = g_strdup (email);
+    self->email = g_strdup (email);
 
-    return request;
+    return self;
 }
 
 void
-_snapd_post_create_user_set_sudoer (SnapdPostCreateUser *request, gboolean sudoer)
+_snapd_post_create_user_set_sudoer (SnapdPostCreateUser *self, gboolean sudoer)
 {
-    request->sudoer = sudoer;
+    self->sudoer = sudoer;
 }
 
 void
-_snapd_post_create_user_set_known (SnapdPostCreateUser *request, gboolean known)
+_snapd_post_create_user_set_known (SnapdPostCreateUser *self, gboolean known)
 {
-    request->known = known;
+    self->known = known;
 }
 
 SnapdUserInformation *
-_snapd_post_create_user_get_user_information (SnapdPostCreateUser *request)
+_snapd_post_create_user_get_user_information (SnapdPostCreateUser *self)
 {
-    return request->user_information;
+    return self->user_information;
 }
 
 static SoupMessage *
-generate_post_create_user_request (SnapdRequest *request)
+generate_post_create_user_request (SnapdRequest *self)
 {
-    SnapdPostCreateUser *r = SNAPD_POST_CREATE_USER (request);
+    SnapdPostCreateUser *r = SNAPD_POST_CREATE_USER (self);
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
 
@@ -85,9 +85,9 @@ generate_post_create_user_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_create_user_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_create_user_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdPostCreateUser *r = SNAPD_POST_CREATE_USER (request);
+    SnapdPostCreateUser *r = SNAPD_POST_CREATE_USER (self);
     g_autoptr(JsonObject) response = NULL;
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
     /*g_autoptr(JsonNode) result = NULL;*/
@@ -114,10 +114,10 @@ parse_post_create_user_response (SnapdRequest *request, SoupMessage *message, Sn
 static void
 snapd_post_create_user_finalize (GObject *object)
 {
-    SnapdPostCreateUser *request = SNAPD_POST_CREATE_USER (object);
+    SnapdPostCreateUser *self = SNAPD_POST_CREATE_USER (object);
 
-    g_clear_pointer (&request->email, g_free);
-    g_clear_object (&request->user_information);
+    g_clear_pointer (&self->email, g_free);
+    g_clear_object (&self->user_information);
 
     G_OBJECT_CLASS (snapd_post_create_user_parent_class)->finalize (object);
 }
@@ -134,6 +134,6 @@ snapd_post_create_user_class_init (SnapdPostCreateUserClass *klass)
 }
 
 static void
-snapd_post_create_user_init (SnapdPostCreateUser *request)
+snapd_post_create_user_init (SnapdPostCreateUser *self)
 {
 }

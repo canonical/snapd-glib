@@ -52,20 +52,20 @@ G_DEFINE_TYPE (SnapdMarkdownNode, snapd_markdown_node, G_TYPE_OBJECT)
 static void
 snapd_markdown_node_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdMarkdownNode *node = SNAPD_MARKDOWN_NODE (object);
+    SnapdMarkdownNode *self = SNAPD_MARKDOWN_NODE (object);
 
     switch (prop_id) {
     case PROP_NODE_TYPE:
-        node->node_type = g_value_get_enum (value);
+        self->node_type = g_value_get_enum (value);
         break;
     case PROP_TEXT:
-        g_free (node->text);
-        node->text = g_strdup (g_value_get_string (value));
+        g_free (self->text);
+        self->text = g_strdup (g_value_get_string (value));
         break;
     case PROP_CHILDREN:
-        g_clear_pointer (&node->children, g_ptr_array_unref);
+        g_clear_pointer (&self->children, g_ptr_array_unref);
         if (g_value_get_boxed (value) != NULL)
-            node->children = g_ptr_array_ref (g_value_get_boxed (value));
+            self->children = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -76,17 +76,17 @@ snapd_markdown_node_set_property (GObject *object, guint prop_id, const GValue *
 static void
 snapd_markdown_node_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdMarkdownNode *node = SNAPD_MARKDOWN_NODE (object);
+    SnapdMarkdownNode *self = SNAPD_MARKDOWN_NODE (object);
 
     switch (prop_id) {
     case PROP_NODE_TYPE:
-        g_value_set_enum (value, node->node_type);
+        g_value_set_enum (value, self->node_type);
         break;
     case PROP_TEXT:
-        g_value_set_string (value, node->text);
+        g_value_set_string (value, self->text);
         break;
     case PROP_CHILDREN:
-        g_value_set_boxed (value, node->children);
+        g_value_set_boxed (value, self->children);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -97,10 +97,10 @@ snapd_markdown_node_get_property (GObject *object, guint prop_id, GValue *value,
 static void
 snapd_markdown_node_finalize (GObject *object)
 {
-    SnapdMarkdownNode *node = SNAPD_MARKDOWN_NODE (object);
+    SnapdMarkdownNode *self = SNAPD_MARKDOWN_NODE (object);
 
-    g_clear_pointer (&node->text, g_free);
-    g_clear_pointer (&node->children, g_ptr_array_unref);
+    g_clear_pointer (&self->text, g_free);
+    g_clear_pointer (&self->children, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_markdown_node_parent_class)->finalize (object);
 }
@@ -138,7 +138,7 @@ snapd_markdown_node_class_init (SnapdMarkdownNodeClass *klass)
 }
 
 static void
-snapd_markdown_node_init (SnapdMarkdownNode *node)
+snapd_markdown_node_init (SnapdMarkdownNode *self)
 {
 }
 
@@ -153,10 +153,10 @@ snapd_markdown_node_init (SnapdMarkdownNode *node)
  * Since: 1.48
  */
 SnapdMarkdownNodeType
-snapd_markdown_node_get_node_type (SnapdMarkdownNode *node)
+snapd_markdown_node_get_node_type (SnapdMarkdownNode *self)
 {
-    g_return_val_if_fail (SNAPD_IS_MARKDOWN_NODE (node), 0);
-    return node->node_type;
+    g_return_val_if_fail (SNAPD_IS_MARKDOWN_NODE (self), 0);
+    return self->node_type;
 }
 
 /**
@@ -171,10 +171,10 @@ snapd_markdown_node_get_node_type (SnapdMarkdownNode *node)
  * Since: 1.48
  */
 const gchar *
-snapd_markdown_node_get_text (SnapdMarkdownNode *node)
+snapd_markdown_node_get_text (SnapdMarkdownNode *self)
 {
-    g_return_val_if_fail (SNAPD_IS_MARKDOWN_NODE (node), NULL);
-    return node->text;
+    g_return_val_if_fail (SNAPD_IS_MARKDOWN_NODE (self), NULL);
+    return self->text;
 }
 
 /**
@@ -187,8 +187,8 @@ snapd_markdown_node_get_text (SnapdMarkdownNode *node)
  * Since: 1.48
  */
 GPtrArray *
-snapd_markdown_node_get_children (SnapdMarkdownNode *node)
+snapd_markdown_node_get_children (SnapdMarkdownNode *self)
 {
-    g_return_val_if_fail (SNAPD_IS_MARKDOWN_NODE (node), NULL);
-    return node->children;
+    g_return_val_if_fail (SNAPD_IS_MARKDOWN_NODE (self), NULL);
+    return self->children;
 }

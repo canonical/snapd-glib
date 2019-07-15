@@ -127,10 +127,10 @@ G_DEFINE_TYPE (SnapdSnap, snapd_snap, G_TYPE_OBJECT)
  * Since: 1.0
  */
 GPtrArray *
-snapd_snap_get_apps (SnapdSnap *snap)
+snapd_snap_get_apps (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->apps;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->apps;
 }
 
 /**
@@ -144,10 +144,10 @@ snapd_snap_get_apps (SnapdSnap *snap)
  * Since: 1.45
  */
 const gchar *
-snapd_snap_get_base (SnapdSnap *snap)
+snapd_snap_get_base (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->base;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->base;
 }
 
 /**
@@ -161,10 +161,10 @@ snapd_snap_get_base (SnapdSnap *snap)
  * Since: 1.25
  */
 const gchar *
-snapd_snap_get_broken (SnapdSnap *snap)
+snapd_snap_get_broken (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->broken;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->broken;
 }
 
 /**
@@ -178,10 +178,10 @@ snapd_snap_get_broken (SnapdSnap *snap)
  * Since: 1.0
  */
 const gchar *
-snapd_snap_get_channel (SnapdSnap *snap)
+snapd_snap_get_channel (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->channel;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->channel;
 }
 
 /**
@@ -195,10 +195,10 @@ snapd_snap_get_channel (SnapdSnap *snap)
  * Since: 1.22
  */
 GPtrArray *
-snapd_snap_get_channels (SnapdSnap *snap)
+snapd_snap_get_channels (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->channels;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->channels;
 }
 
 static int
@@ -229,21 +229,21 @@ parse_risk (const gchar *risk)
  * Since: 1.22
  */
 SnapdChannel *
-snapd_snap_match_channel (SnapdSnap *snap, const gchar *name)
+snapd_snap_match_channel (SnapdSnap *self, const gchar *name)
 {
     g_autoptr(SnapdChannel) c = NULL;
     guint i;
     SnapdChannel *matched_channel = NULL;
     int matched_risk = -1;
 
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
     g_return_val_if_fail (name != NULL, NULL);
 
     c = g_object_new (SNAPD_TYPE_CHANNEL,
                       "name", name,
                       NULL);
-    for (i = 0; i < snap->channels->len; i++) {
-        SnapdChannel *channel = snap->channels->pdata[i];
+    for (i = 0; i < self->channels->len; i++) {
+        SnapdChannel *channel = self->channels->pdata[i];
         int r;
 
         /* Must be same track and branch */
@@ -277,10 +277,10 @@ snapd_snap_match_channel (SnapdSnap *snap, const gchar *name)
  * Since: 1.41
  */
 GStrv
-snapd_snap_get_common_ids (SnapdSnap *snap)
+snapd_snap_get_common_ids (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->common_ids;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->common_ids;
 }
 
 /**
@@ -294,10 +294,10 @@ snapd_snap_get_common_ids (SnapdSnap *snap)
  * Since: 1.0
  */
 SnapdConfinement
-snapd_snap_get_confinement (SnapdSnap *snap)
+snapd_snap_get_confinement (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), SNAPD_CONFINEMENT_UNKNOWN);
-    return snap->confinement;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), SNAPD_CONFINEMENT_UNKNOWN);
+    return self->confinement;
 }
 
 /**
@@ -311,10 +311,10 @@ snapd_snap_get_confinement (SnapdSnap *snap)
  * Since: 1.13
  */
 const gchar *
-snapd_snap_get_contact (SnapdSnap *snap)
+snapd_snap_get_contact (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->contact;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->contact;
 }
 
 /**
@@ -329,10 +329,10 @@ snapd_snap_get_contact (SnapdSnap *snap)
  * Since: 1.0
  */
 const gchar *
-snapd_snap_get_description (SnapdSnap *snap)
+snapd_snap_get_description (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->description;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->description;
 }
 
 /**
@@ -347,10 +347,10 @@ snapd_snap_get_description (SnapdSnap *snap)
  * Deprecated: 1.42: Use snapd_snap_get_publisher_username()
  */
 const gchar *
-snapd_snap_get_developer (SnapdSnap *snap)
+snapd_snap_get_developer (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->publisher_username;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->publisher_username;
 }
 
 /**
@@ -364,10 +364,10 @@ snapd_snap_get_developer (SnapdSnap *snap)
  * Since: 1.0
  */
 gboolean
-snapd_snap_get_devmode (SnapdSnap *snap)
+snapd_snap_get_devmode (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
-    return snap->devmode;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), FALSE);
+    return self->devmode;
 }
 
 /**
@@ -381,10 +381,10 @@ snapd_snap_get_devmode (SnapdSnap *snap)
  * Since: 1.0
  */
 gint64
-snapd_snap_get_download_size (SnapdSnap *snap)
+snapd_snap_get_download_size (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), 0);
-    return snap->download_size;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), 0);
+    return self->download_size;
 }
 
 /**
@@ -399,10 +399,10 @@ snapd_snap_get_download_size (SnapdSnap *snap)
  * Since: 1.0
  */
 const gchar *
-snapd_snap_get_icon (SnapdSnap *snap)
+snapd_snap_get_icon (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->icon;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->icon;
 }
 
 /**
@@ -416,10 +416,10 @@ snapd_snap_get_icon (SnapdSnap *snap)
  * Since: 1.0
  */
 const gchar *
-snapd_snap_get_id (SnapdSnap *snap)
+snapd_snap_get_id (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->id;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->id;
 }
 
 /**
@@ -433,10 +433,10 @@ snapd_snap_get_id (SnapdSnap *snap)
  * Since: 1.0
  */
 GDateTime *
-snapd_snap_get_install_date (SnapdSnap *snap)
+snapd_snap_get_install_date (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->install_date;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->install_date;
 }
 
 /**
@@ -450,10 +450,10 @@ snapd_snap_get_install_date (SnapdSnap *snap)
  * Since: 1.0
  */
 gint64
-snapd_snap_get_installed_size (SnapdSnap *snap)
+snapd_snap_get_installed_size (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), 0);
-    return snap->installed_size;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), 0);
+    return self->installed_size;
 }
 
 /**
@@ -467,10 +467,10 @@ snapd_snap_get_installed_size (SnapdSnap *snap)
  * Since: 1.8
  */
 gboolean
-snapd_snap_get_jailmode (SnapdSnap *snap)
+snapd_snap_get_jailmode (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
-    return snap->jailmode;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), FALSE);
+    return self->jailmode;
 }
 
 /**
@@ -484,10 +484,10 @@ snapd_snap_get_jailmode (SnapdSnap *snap)
  * Since: 1.19
  */
 const gchar *
-snapd_snap_get_license (SnapdSnap *snap)
+snapd_snap_get_license (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->license;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->license;
 }
 
 /**
@@ -501,10 +501,10 @@ snapd_snap_get_license (SnapdSnap *snap)
  * Since: 1.45
  */
 GPtrArray *
-snapd_snap_get_media (SnapdSnap *snap)
+snapd_snap_get_media (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->media;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->media;
 }
 
 /**
@@ -519,10 +519,10 @@ snapd_snap_get_media (SnapdSnap *snap)
  * Since: 1.45
  */
 const gchar *
-snapd_snap_get_mounted_from (SnapdSnap *snap)
+snapd_snap_get_mounted_from (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->mounted_from;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->mounted_from;
 }
 
 /**
@@ -536,10 +536,10 @@ snapd_snap_get_mounted_from (SnapdSnap *snap)
  * Since: 1.14
  */
 const gchar *
-snapd_snap_get_title (SnapdSnap *snap)
+snapd_snap_get_title (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->title;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->title;
 }
 
 /**
@@ -554,10 +554,10 @@ snapd_snap_get_title (SnapdSnap *snap)
  * Since: 1.0
  */
 const gchar *
-snapd_snap_get_name (SnapdSnap *snap)
+snapd_snap_get_name (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->name;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->name;
 }
 
 /**
@@ -571,10 +571,10 @@ snapd_snap_get_name (SnapdSnap *snap)
  * Since: 1.0
  */
 GPtrArray *
-snapd_snap_get_prices (SnapdSnap *snap)
+snapd_snap_get_prices (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->prices;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->prices;
 }
 
 /**
@@ -588,10 +588,10 @@ snapd_snap_get_prices (SnapdSnap *snap)
  * Since: 1.0
  */
 gboolean
-snapd_snap_get_private (SnapdSnap *snap)
+snapd_snap_get_private (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
-    return snap->private;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), FALSE);
+    return self->private;
 }
 
 /**
@@ -605,10 +605,10 @@ snapd_snap_get_private (SnapdSnap *snap)
  * Since: 1.42
  */
 const gchar *
-snapd_snap_get_publisher_display_name (SnapdSnap *snap)
+snapd_snap_get_publisher_display_name (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->publisher_display_name;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->publisher_display_name;
 }
 
 /**
@@ -622,10 +622,10 @@ snapd_snap_get_publisher_display_name (SnapdSnap *snap)
  * Since: 1.42
  */
 const gchar *
-snapd_snap_get_publisher_id (SnapdSnap *snap)
+snapd_snap_get_publisher_id (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->publisher_id;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->publisher_id;
 }
 
 /**
@@ -639,10 +639,10 @@ snapd_snap_get_publisher_id (SnapdSnap *snap)
  * Since: 1.42
  */
 const gchar *
-snapd_snap_get_publisher_username (SnapdSnap *snap)
+snapd_snap_get_publisher_username (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->publisher_username;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->publisher_username;
 }
 
 /**
@@ -656,10 +656,10 @@ snapd_snap_get_publisher_username (SnapdSnap *snap)
  * Since: 1.42
  */
 SnapdPublisherValidation
-snapd_snap_get_publisher_validation (SnapdSnap *snap)
+snapd_snap_get_publisher_validation (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
-    return snap->publisher_validation;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
+    return self->publisher_validation;
 }
 
 /**
@@ -674,10 +674,10 @@ snapd_snap_get_publisher_validation (SnapdSnap *snap)
  * Since: 1.0
  */
 const gchar *
-snapd_snap_get_revision (SnapdSnap *snap)
+snapd_snap_get_revision (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->revision;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->revision;
 }
 
 /**
@@ -692,10 +692,10 @@ snapd_snap_get_revision (SnapdSnap *snap)
  * Deprecated: 1.45: Use snapd_snap_get_media()
  */
 GPtrArray *
-snapd_snap_get_screenshots (SnapdSnap *snap)
+snapd_snap_get_screenshots (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->screenshots;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->screenshots;
 }
 
 /**
@@ -709,10 +709,10 @@ snapd_snap_get_screenshots (SnapdSnap *snap)
  * Since: 1.0
  */
 SnapdSnapType
-snapd_snap_get_snap_type (SnapdSnap *snap)
+snapd_snap_get_snap_type (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), SNAPD_SNAP_TYPE_UNKNOWN);
-    return snap->snap_type;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), SNAPD_SNAP_TYPE_UNKNOWN);
+    return self->snap_type;
 }
 
 /**
@@ -726,10 +726,10 @@ snapd_snap_get_snap_type (SnapdSnap *snap)
  * Since: 1.0
  */
 SnapdSnapStatus
-snapd_snap_get_status (SnapdSnap *snap)
+snapd_snap_get_status (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), SNAPD_SNAP_STATUS_UNKNOWN);
-    return snap->status;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), SNAPD_SNAP_STATUS_UNKNOWN);
+    return self->status;
 }
 
 /**
@@ -743,10 +743,10 @@ snapd_snap_get_status (SnapdSnap *snap)
  * Since: 1.0
  */
 const gchar *
-snapd_snap_get_summary (SnapdSnap *snap)
+snapd_snap_get_summary (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->summary;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->summary;
 }
 
 /**
@@ -760,10 +760,10 @@ snapd_snap_get_summary (SnapdSnap *snap)
  * Since: 1.7
  */
 const gchar *
-snapd_snap_get_tracking_channel (SnapdSnap *snap)
+snapd_snap_get_tracking_channel (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->tracking_channel;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->tracking_channel;
 }
 
 /**
@@ -777,10 +777,10 @@ snapd_snap_get_tracking_channel (SnapdSnap *snap)
  * Since: 1.22
  */
 GStrv
-snapd_snap_get_tracks (SnapdSnap *snap)
+snapd_snap_get_tracks (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->tracks;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->tracks;
 }
 
 /**
@@ -795,10 +795,10 @@ snapd_snap_get_tracks (SnapdSnap *snap)
  * Since: 1.0
  */
 gboolean
-snapd_snap_get_trymode (SnapdSnap *snap)
+snapd_snap_get_trymode (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), FALSE);
-    return snap->trymode;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), FALSE);
+    return self->trymode;
 }
 
 /**
@@ -813,158 +813,158 @@ snapd_snap_get_trymode (SnapdSnap *snap)
  * Since: 1.0
  */
 const gchar *
-snapd_snap_get_version (SnapdSnap *snap)
+snapd_snap_get_version (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (snap), NULL);
-    return snap->version;
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->version;
 }
 
 static void
 snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdSnap *snap = SNAPD_SNAP (object);
+    SnapdSnap *self = SNAPD_SNAP (object);
 
     switch (prop_id) {
     case PROP_APPS:
-        g_clear_pointer (&snap->apps, g_ptr_array_unref);
+        g_clear_pointer (&self->apps, g_ptr_array_unref);
         if (g_value_get_boxed (value) != NULL)
-            snap->apps = g_ptr_array_ref (g_value_get_boxed (value));
+            self->apps = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_BASE:
-        g_free (snap->base);
-        snap->base = g_strdup (g_value_get_string (value));
+        g_free (self->base);
+        self->base = g_strdup (g_value_get_string (value));
         break;
     case PROP_BROKEN:
-        g_free (snap->broken);
-        snap->broken = g_strdup (g_value_get_string (value));
+        g_free (self->broken);
+        self->broken = g_strdup (g_value_get_string (value));
         break;
     case PROP_CHANNEL:
-        g_free (snap->channel);
-        snap->channel = g_strdup (g_value_get_string (value));
+        g_free (self->channel);
+        self->channel = g_strdup (g_value_get_string (value));
         break;
     case PROP_CHANNELS:
-        g_clear_pointer (&snap->channels, g_ptr_array_unref);
+        g_clear_pointer (&self->channels, g_ptr_array_unref);
         if (g_value_get_boxed (value) != NULL)
-            snap->channels = g_ptr_array_ref (g_value_get_boxed (value));
+            self->channels = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_CONFINEMENT:
-        snap->confinement = g_value_get_enum (value);
+        self->confinement = g_value_get_enum (value);
         break;
     case PROP_CONTACT:
-        g_free (snap->contact);
-        snap->contact = g_strdup (g_value_get_string (value));
+        g_free (self->contact);
+        self->contact = g_strdup (g_value_get_string (value));
         break;
     case PROP_DESCRIPTION:
-        g_free (snap->description);
-        snap->description = g_strdup (g_value_get_string (value));
+        g_free (self->description);
+        self->description = g_strdup (g_value_get_string (value));
         break;
     case PROP_DEVMODE:
-        snap->devmode = g_value_get_boolean (value);
+        self->devmode = g_value_get_boolean (value);
         break;
     case PROP_DOWNLOAD_SIZE:
-        snap->download_size = g_value_get_int64 (value);
+        self->download_size = g_value_get_int64 (value);
         break;
     case PROP_ICON:
-        g_free (snap->icon);
-        snap->icon = g_strdup (g_value_get_string (value));
+        g_free (self->icon);
+        self->icon = g_strdup (g_value_get_string (value));
         break;
     case PROP_ID:
-        g_free (snap->id);
-        snap->id = g_strdup (g_value_get_string (value));
+        g_free (self->id);
+        self->id = g_strdup (g_value_get_string (value));
         break;
     case PROP_INSTALL_DATE:
-        g_clear_pointer (&snap->install_date, g_date_time_unref);
+        g_clear_pointer (&self->install_date, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
-            snap->install_date = g_date_time_ref (g_value_get_boxed (value));
+            self->install_date = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_INSTALLED_SIZE:
-        snap->installed_size = g_value_get_int64 (value);
+        self->installed_size = g_value_get_int64 (value);
         break;
     case PROP_JAILMODE:
-        snap->jailmode = g_value_get_boolean (value);
+        self->jailmode = g_value_get_boolean (value);
         break;
     case PROP_MOUNTED_FROM:
-        g_free (snap->mounted_from);
-        snap->mounted_from = g_strdup (g_value_get_string (value));
+        g_free (self->mounted_from);
+        self->mounted_from = g_strdup (g_value_get_string (value));
         break;
     case PROP_MEDIA:
-        g_clear_pointer (&snap->media, g_ptr_array_unref);
+        g_clear_pointer (&self->media, g_ptr_array_unref);
         if (g_value_get_boxed (value) != NULL)
-            snap->media = g_ptr_array_ref (g_value_get_boxed (value));
+            self->media = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_NAME:
-        g_free (snap->name);
-        snap->name = g_strdup (g_value_get_string (value));
+        g_free (self->name);
+        self->name = g_strdup (g_value_get_string (value));
         break;
     case PROP_PRICES:
-        g_clear_pointer (&snap->prices, g_ptr_array_unref);
+        g_clear_pointer (&self->prices, g_ptr_array_unref);
         if (g_value_get_boxed (value) != NULL)
-            snap->prices = g_ptr_array_ref (g_value_get_boxed (value));
+            self->prices = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_PRIVATE:
-        snap->private = g_value_get_boolean (value);
+        self->private = g_value_get_boolean (value);
         break;
     case PROP_PUBLISHER_DISPLAY_NAME:
-        g_free (snap->publisher_display_name);
-        snap->publisher_display_name = g_strdup (g_value_get_string (value));
+        g_free (self->publisher_display_name);
+        self->publisher_display_name = g_strdup (g_value_get_string (value));
         break;
     case PROP_PUBLISHER_ID:
-        g_free (snap->publisher_id);
-        snap->publisher_id = g_strdup (g_value_get_string (value));
+        g_free (self->publisher_id);
+        self->publisher_id = g_strdup (g_value_get_string (value));
         break;
     case PROP_PUBLISHER_USERNAME:
     case PROP_DEVELOPER:
-        g_free (snap->publisher_username);
-        snap->publisher_username = g_strdup (g_value_get_string (value));
+        g_free (self->publisher_username);
+        self->publisher_username = g_strdup (g_value_get_string (value));
         break;
     case PROP_PUBLISHER_VALIDATION:
-        snap->publisher_validation = g_value_get_enum (value);
+        self->publisher_validation = g_value_get_enum (value);
         break;
     case PROP_REVISION:
-        g_free (snap->revision);
-        snap->revision = g_strdup (g_value_get_string (value));
+        g_free (self->revision);
+        self->revision = g_strdup (g_value_get_string (value));
         break;
     case PROP_SCREENSHOTS:
-        g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
+        g_clear_pointer (&self->screenshots, g_ptr_array_unref);
         if (g_value_get_boxed (value) != NULL)
-            snap->screenshots = g_ptr_array_ref (g_value_get_boxed (value));
+            self->screenshots = g_ptr_array_ref (g_value_get_boxed (value));
         break;
     case PROP_SNAP_TYPE:
-        snap->snap_type = g_value_get_enum (value);
+        self->snap_type = g_value_get_enum (value);
         break;
     case PROP_STATUS:
-        snap->status = g_value_get_enum (value);
+        self->status = g_value_get_enum (value);
         break;
     case PROP_SUMMARY:
-        g_free (snap->summary);
-        snap->summary = g_strdup (g_value_get_string (value));
+        g_free (self->summary);
+        self->summary = g_strdup (g_value_get_string (value));
         break;
     case PROP_TITLE:
-        g_free (snap->title);
-        snap->title = g_strdup (g_value_get_string (value));
+        g_free (self->title);
+        self->title = g_strdup (g_value_get_string (value));
         break;
     case PROP_TRACKING_CHANNEL:
-        g_free (snap->tracking_channel);
-        snap->tracking_channel = g_strdup (g_value_get_string (value));
+        g_free (self->tracking_channel);
+        self->tracking_channel = g_strdup (g_value_get_string (value));
         break;
     case PROP_TRACKS:
-        g_strfreev (snap->tracks);
-        snap->tracks = g_strdupv (g_value_get_boxed (value));
+        g_strfreev (self->tracks);
+        self->tracks = g_strdupv (g_value_get_boxed (value));
         break;
     case PROP_TRYMODE:
-        snap->trymode = g_value_get_boolean (value);
+        self->trymode = g_value_get_boolean (value);
         break;
     case PROP_VERSION:
-        g_free (snap->version);
-        snap->version = g_strdup (g_value_get_string (value));
+        g_free (self->version);
+        self->version = g_strdup (g_value_get_string (value));
         break;
     case PROP_LICENSE:
-        g_free (snap->license);
-        snap->license = g_strdup (g_value_get_string (value));
+        g_free (self->license);
+        self->license = g_strdup (g_value_get_string (value));
         break;
     case PROP_COMMON_IDS:
-        g_strfreev (snap->common_ids);
-        snap->common_ids = g_strdupv (g_value_get_boxed (value));
+        g_strfreev (self->common_ids);
+        self->common_ids = g_strdupv (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -975,117 +975,117 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
 static void
 snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdSnap *snap = SNAPD_SNAP (object);
+    SnapdSnap *self = SNAPD_SNAP (object);
 
     switch (prop_id) {
     case PROP_APPS:
-        g_value_set_boxed (value, snap->apps);
+        g_value_set_boxed (value, self->apps);
         break;
     case PROP_BASE:
-        g_value_set_string (value, snap->base);
+        g_value_set_string (value, self->base);
         break;
     case PROP_BROKEN:
-        g_value_set_string (value, snap->broken);
+        g_value_set_string (value, self->broken);
         break;
     case PROP_CHANNEL:
-        g_value_set_string (value, snap->channel);
+        g_value_set_string (value, self->channel);
         break;
     case PROP_CHANNELS:
-        g_value_set_boxed (value, snap->channels);
+        g_value_set_boxed (value, self->channels);
         break;
     case PROP_CONFINEMENT:
-        g_value_set_enum (value, snap->confinement);
+        g_value_set_enum (value, self->confinement);
         break;
     case PROP_CONTACT:
-        g_value_set_string (value, snap->contact);
+        g_value_set_string (value, self->contact);
         break;
     case PROP_DESCRIPTION:
-        g_value_set_string (value, snap->description);
+        g_value_set_string (value, self->description);
         break;
     case PROP_DEVMODE:
-        g_value_set_boolean (value, snap->devmode);
+        g_value_set_boolean (value, self->devmode);
         break;
     case PROP_DOWNLOAD_SIZE:
-        g_value_set_int64 (value, snap->download_size);
+        g_value_set_int64 (value, self->download_size);
         break;
     case PROP_ICON:
-        g_value_set_string (value, snap->icon);
+        g_value_set_string (value, self->icon);
         break;
     case PROP_ID:
-        g_value_set_string (value, snap->id);
+        g_value_set_string (value, self->id);
         break;
     case PROP_INSTALL_DATE:
-        g_value_set_boxed (value, snap->install_date);
+        g_value_set_boxed (value, self->install_date);
         break;
     case PROP_INSTALLED_SIZE:
-        g_value_set_int64 (value, snap->installed_size);
+        g_value_set_int64 (value, self->installed_size);
         break;
     case PROP_JAILMODE:
-        g_value_set_boolean (value, snap->jailmode);
+        g_value_set_boolean (value, self->jailmode);
         break;
     case PROP_MEDIA:
-        g_value_set_boxed (value, snap->media);
+        g_value_set_boxed (value, self->media);
         break;
     case PROP_MOUNTED_FROM:
-        g_value_set_string (value, snap->mounted_from);
+        g_value_set_string (value, self->mounted_from);
         break;
     case PROP_NAME:
-        g_value_set_string (value, snap->name);
+        g_value_set_string (value, self->name);
         break;
     case PROP_PRICES:
-        g_value_set_boxed (value, snap->prices);
+        g_value_set_boxed (value, self->prices);
         break;
     case PROP_PRIVATE:
-        g_value_set_boolean (value, snap->private);
+        g_value_set_boolean (value, self->private);
         break;
     case PROP_PUBLISHER_DISPLAY_NAME:
-        g_value_set_string (value, snap->publisher_display_name);
+        g_value_set_string (value, self->publisher_display_name);
         break;
     case PROP_PUBLISHER_ID:
-        g_value_set_string (value, snap->publisher_id);
+        g_value_set_string (value, self->publisher_id);
         break;
     case PROP_PUBLISHER_USERNAME:
     case PROP_DEVELOPER:
-        g_value_set_string (value, snap->publisher_username);
+        g_value_set_string (value, self->publisher_username);
         break;
     case PROP_PUBLISHER_VALIDATION:
-        g_value_set_enum (value, snap->publisher_validation);
+        g_value_set_enum (value, self->publisher_validation);
         break;
     case PROP_REVISION:
-        g_value_set_string (value, snap->revision);
+        g_value_set_string (value, self->revision);
         break;
     case PROP_SCREENSHOTS:
-        g_value_set_boxed (value, snap->screenshots);
+        g_value_set_boxed (value, self->screenshots);
         break;
     case PROP_SNAP_TYPE:
-        g_value_set_enum (value, snap->snap_type);
+        g_value_set_enum (value, self->snap_type);
         break;
     case PROP_STATUS:
-        g_value_set_enum (value, snap->status);
+        g_value_set_enum (value, self->status);
         break;
     case PROP_SUMMARY:
-        g_value_set_string (value, snap->summary);
+        g_value_set_string (value, self->summary);
         break;
     case PROP_TITLE:
-        g_value_set_string (value, snap->title);
+        g_value_set_string (value, self->title);
         break;
     case PROP_TRACKING_CHANNEL:
-        g_value_set_string (value, snap->tracking_channel);
+        g_value_set_string (value, self->tracking_channel);
         break;
     case PROP_TRACKS:
-        g_value_set_boxed (value, snap->tracks);
+        g_value_set_boxed (value, self->tracks);
         break;
     case PROP_TRYMODE:
-        g_value_set_boolean (value, snap->trymode);
+        g_value_set_boolean (value, self->trymode);
         break;
     case PROP_VERSION:
-        g_value_set_string (value, snap->version);
+        g_value_set_string (value, self->version);
         break;
     case PROP_LICENSE:
-        g_value_set_string (value, snap->license);
+        g_value_set_string (value, self->license);
         break;
     case PROP_COMMON_IDS:
-        g_value_set_boxed (value, snap->common_ids);
+        g_value_set_boxed (value, self->common_ids);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1096,34 +1096,34 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
 static void
 snapd_snap_finalize (GObject *object)
 {
-    SnapdSnap *snap = SNAPD_SNAP (object);
+    SnapdSnap *self = SNAPD_SNAP (object);
 
-    g_clear_pointer (&snap->apps, g_ptr_array_unref);
-    g_clear_pointer (&snap->base, g_free);
-    g_clear_pointer (&snap->broken, g_free);
-    g_clear_pointer (&snap->channel, g_free);
-    g_clear_pointer (&snap->channels, g_ptr_array_unref);
-    g_clear_pointer (&snap->common_ids, g_strfreev);
-    g_clear_pointer (&snap->contact, g_free);
-    g_clear_pointer (&snap->description, g_free);
-    g_clear_pointer (&snap->icon, g_free);
-    g_clear_pointer (&snap->id, g_free);
-    g_clear_pointer (&snap->install_date, g_date_time_unref);
-    g_clear_pointer (&snap->name, g_free);
-    g_clear_pointer (&snap->license, g_free);
-    g_clear_pointer (&snap->media, g_ptr_array_unref);
-    g_clear_pointer (&snap->mounted_from, g_free);
-    g_clear_pointer (&snap->prices, g_ptr_array_unref);
-    g_clear_pointer (&snap->publisher_display_name, g_free);
-    g_clear_pointer (&snap->publisher_id, g_free);
-    g_clear_pointer (&snap->publisher_username, g_free);
-    g_clear_pointer (&snap->revision, g_free);
-    g_clear_pointer (&snap->screenshots, g_ptr_array_unref);
-    g_clear_pointer (&snap->summary, g_free);
-    g_clear_pointer (&snap->title, g_free);
-    g_clear_pointer (&snap->tracking_channel, g_free);
-    g_clear_pointer (&snap->tracks, g_strfreev);
-    g_clear_pointer (&snap->version, g_free);
+    g_clear_pointer (&self->apps, g_ptr_array_unref);
+    g_clear_pointer (&self->base, g_free);
+    g_clear_pointer (&self->broken, g_free);
+    g_clear_pointer (&self->channel, g_free);
+    g_clear_pointer (&self->channels, g_ptr_array_unref);
+    g_clear_pointer (&self->common_ids, g_strfreev);
+    g_clear_pointer (&self->contact, g_free);
+    g_clear_pointer (&self->description, g_free);
+    g_clear_pointer (&self->icon, g_free);
+    g_clear_pointer (&self->id, g_free);
+    g_clear_pointer (&self->install_date, g_date_time_unref);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_pointer (&self->license, g_free);
+    g_clear_pointer (&self->media, g_ptr_array_unref);
+    g_clear_pointer (&self->mounted_from, g_free);
+    g_clear_pointer (&self->prices, g_ptr_array_unref);
+    g_clear_pointer (&self->publisher_display_name, g_free);
+    g_clear_pointer (&self->publisher_id, g_free);
+    g_clear_pointer (&self->publisher_username, g_free);
+    g_clear_pointer (&self->revision, g_free);
+    g_clear_pointer (&self->screenshots, g_ptr_array_unref);
+    g_clear_pointer (&self->summary, g_free);
+    g_clear_pointer (&self->title, g_free);
+    g_clear_pointer (&self->tracking_channel, g_free);
+    g_clear_pointer (&self->tracks, g_strfreev);
+    g_clear_pointer (&self->version, g_free);
 
     G_OBJECT_CLASS (snapd_snap_parent_class)->finalize (object);
 }
@@ -1399,6 +1399,6 @@ snapd_snap_class_init (SnapdSnapClass *klass)
 }
 
 static void
-snapd_snap_init (SnapdSnap *snap)
+snapd_snap_init (SnapdSnap *self)
 {
 }

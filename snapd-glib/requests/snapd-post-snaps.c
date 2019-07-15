@@ -26,30 +26,30 @@ _snapd_post_snaps_new (const gchar *action,
                        SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                        GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostSnaps *request;
+    SnapdPostSnaps *self;
 
-    request = SNAPD_POST_SNAPS (g_object_new (snapd_post_snaps_get_type (),
+    self = SNAPD_POST_SNAPS (g_object_new (snapd_post_snaps_get_type (),
                                               "cancellable", cancellable,
                                               "ready-callback", callback,
                                               "ready-callback-data", user_data,
                                               "progress-callback", progress_callback,
                                               "progress-callback-data", progress_callback_data,
                                               NULL));
-    request->action = g_strdup (action);
+    self->action = g_strdup (action);
 
-    return request;
+    return self;
 }
 
 GStrv
-_snapd_post_snaps_get_snap_names (SnapdPostSnaps *request)
+_snapd_post_snaps_get_snap_names (SnapdPostSnaps *self)
 {
-    return request->snap_names;
+    return self->snap_names;
 }
 
 static SoupMessage *
-generate_post_snaps_request (SnapdRequest *request)
+generate_post_snaps_request (SnapdRequest *self)
 {
-    SnapdPostSnaps *r = SNAPD_POST_SNAPS (request);
+    SnapdPostSnaps *r = SNAPD_POST_SNAPS (self);
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
 
@@ -66,9 +66,9 @@ generate_post_snaps_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_snaps_result (SnapdRequestAsync *request, JsonNode *result, GError **error)
+parse_post_snaps_result (SnapdRequestAsync *self, JsonNode *result, GError **error)
 {
-    SnapdPostSnaps *r = SNAPD_POST_SNAPS (request);
+    SnapdPostSnaps *r = SNAPD_POST_SNAPS (self);
     g_autoptr(GPtrArray) snap_names = NULL;
     JsonObject *o;
     g_autoptr(JsonArray) a = NULL;
@@ -113,10 +113,10 @@ parse_post_snaps_result (SnapdRequestAsync *request, JsonNode *result, GError **
 static void
 snapd_post_snaps_finalize (GObject *object)
 {
-    SnapdPostSnaps *request = SNAPD_POST_SNAPS (object);
+    SnapdPostSnaps *self = SNAPD_POST_SNAPS (object);
 
-    g_clear_pointer (&request->action, g_free);
-    g_clear_pointer (&request->snap_names, g_strfreev);
+    g_clear_pointer (&self->action, g_free);
+    g_clear_pointer (&self->snap_names, g_strfreev);
 
     G_OBJECT_CLASS (snapd_post_snaps_parent_class)->finalize (object);
 }
@@ -134,6 +134,6 @@ snapd_post_snaps_class_init (SnapdPostSnapsClass *klass)
 }
 
 static void
-snapd_post_snaps_init (SnapdPostSnaps *request)
+snapd_post_snaps_init (SnapdPostSnaps *self)
 {
 }

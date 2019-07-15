@@ -39,39 +39,39 @@ _snapd_get_connections_new (GCancellable *cancellable, GAsyncReadyCallback callb
 }
 
 GPtrArray *
-_snapd_get_connections_get_established (SnapdGetConnections *request)
+_snapd_get_connections_get_established (SnapdGetConnections *self)
 {
-    return request->established;
+    return self->established;
 }
 
 GPtrArray *
-_snapd_get_connections_get_plugs (SnapdGetConnections *request)
+_snapd_get_connections_get_plugs (SnapdGetConnections *self)
 {
-    return request->plugs;
+    return self->plugs;
 }
 
 GPtrArray *
-_snapd_get_connections_get_slots (SnapdGetConnections *request)
+_snapd_get_connections_get_slots (SnapdGetConnections *self)
 {
-    return request->slots;
+    return self->slots;
 }
 
 GPtrArray *
-_snapd_get_connections_get_undesired (SnapdGetConnections *request)
+_snapd_get_connections_get_undesired (SnapdGetConnections *self)
 {
-    return request->undesired;
+    return self->undesired;
 }
 
 static SoupMessage *
-generate_get_connections_request (SnapdRequest *request)
+generate_get_connections_request (SnapdRequest *self)
 {
     return soup_message_new ("GET", "http://snapd/v2/connections");
 }
 
 static gboolean
-parse_get_connections_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_connections_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdGetConnections *r = SNAPD_GET_CONNECTIONS (request);
+    SnapdGetConnections *r = SNAPD_GET_CONNECTIONS (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
     g_autoptr(JsonArray) established = NULL;
@@ -154,12 +154,12 @@ parse_get_connections_response (SnapdRequest *request, SoupMessage *message, Sna
 static void
 snapd_get_connections_finalize (GObject *object)
 {
-    SnapdGetConnections *request = SNAPD_GET_CONNECTIONS (object);
+    SnapdGetConnections *self = SNAPD_GET_CONNECTIONS (object);
 
-    g_clear_pointer (&request->established, g_ptr_array_unref);
-    g_clear_pointer (&request->plugs, g_ptr_array_unref);
-    g_clear_pointer (&request->slots, g_ptr_array_unref);
-    g_clear_pointer (&request->undesired, g_ptr_array_unref);
+    g_clear_pointer (&self->established, g_ptr_array_unref);
+    g_clear_pointer (&self->plugs, g_ptr_array_unref);
+    g_clear_pointer (&self->slots, g_ptr_array_unref);
+    g_clear_pointer (&self->undesired, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_connections_parent_class)->finalize (object);
 }
@@ -176,6 +176,6 @@ snapd_get_connections_class_init (SnapdGetConnectionsClass *klass)
 }
 
 static void
-snapd_get_connections_init (SnapdGetConnections *request)
+snapd_get_connections_init (SnapdGetConnections *self)
 {
 }

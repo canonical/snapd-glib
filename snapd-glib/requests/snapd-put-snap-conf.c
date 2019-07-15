@@ -23,23 +23,23 @@ G_DEFINE_TYPE (SnapdPutSnapConf, snapd_put_snap_conf, snapd_request_async_get_ty
 SnapdPutSnapConf *
 _snapd_put_snap_conf_new (const gchar *name, GHashTable *key_values, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPutSnapConf *request;
+    SnapdPutSnapConf *self;
 
-    request = SNAPD_PUT_SNAP_CONF (g_object_new (snapd_put_snap_conf_get_type (),
+    self = SNAPD_PUT_SNAP_CONF (g_object_new (snapd_put_snap_conf_get_type (),
                                                  "cancellable", cancellable,
                                                  "ready-callback", callback,
                                                  "ready-callback-data", user_data,
                                                  NULL));
-    request->name = g_strdup (name);
-    request->key_values = g_hash_table_ref (key_values);
+    self->name = g_strdup (name);
+    self->key_values = g_hash_table_ref (key_values);
 
-    return request;
+    return self;
 }
 
 static SoupMessage *
-generate_put_snap_conf_request (SnapdRequest *request)
+generate_put_snap_conf_request (SnapdRequest *self)
 {
-    SnapdPutSnapConf *r = SNAPD_PUT_SNAP_CONF (request);
+    SnapdPutSnapConf *r = SNAPD_PUT_SNAP_CONF (self);
     g_autofree gchar *escaped = NULL, *path = NULL;
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
@@ -69,10 +69,10 @@ generate_put_snap_conf_request (SnapdRequest *request)
 static void
 snapd_put_snap_conf_finalize (GObject *object)
 {
-    SnapdPutSnapConf *request = SNAPD_PUT_SNAP_CONF (object);
+    SnapdPutSnapConf *self = SNAPD_PUT_SNAP_CONF (object);
 
-    g_clear_pointer (&request->name, g_free);
-    g_clear_pointer (&request->key_values, g_hash_table_unref);
+    g_clear_pointer (&self->name, g_free);
+    g_clear_pointer (&self->key_values, g_hash_table_unref);
 
     G_OBJECT_CLASS (snapd_put_snap_conf_parent_class)->finalize (object);
 }
@@ -88,6 +88,6 @@ snapd_put_snap_conf_class_init (SnapdPutSnapConfClass *klass)
 }
 
 static void
-snapd_put_snap_conf_init (SnapdPutSnapConf *request)
+snapd_put_snap_conf_init (SnapdPutSnapConf *self)
 {
 }

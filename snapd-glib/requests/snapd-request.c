@@ -11,7 +11,7 @@
 
 enum
 {
-    PROP_SOURCE_OBJECT = 1,  
+    PROP_SOURCE_OBJECT = 1,
     PROP_CANCELLABLE,
     PROP_READY_CALLBACK,
     PROP_READY_CALLBACK_DATA,
@@ -43,54 +43,54 @@ G_DEFINE_TYPE_WITH_CODE (SnapdRequest, snapd_request, G_TYPE_OBJECT,
                          G_ADD_PRIVATE (SnapdRequest))
 
 GMainContext *
-_snapd_request_get_context (SnapdRequest *request)
+_snapd_request_get_context (SnapdRequest *self)
 {
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (self);
     return priv->context;
 }
 
 GCancellable *
-_snapd_request_get_cancellable (SnapdRequest *request)
+_snapd_request_get_cancellable (SnapdRequest *self)
 {
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (request));
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (self));
     return priv->cancellable;
 }
 
 void
-_snapd_request_set_source_object (SnapdRequest *request, GObject *object)
+_snapd_request_set_source_object (SnapdRequest *self, GObject *object)
 {
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (request));  
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (self));
     priv->source_object = g_object_ref (object);
 }
 
 SoupMessage *
-_snapd_request_get_message (SnapdRequest *request)
+_snapd_request_get_message (SnapdRequest *self)
 {
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (request));
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (self));
 
     if (priv->message == NULL)
-        priv->message = SNAPD_REQUEST_GET_CLASS (request)->generate_request (request);
+        priv->message = SNAPD_REQUEST_GET_CLASS (self)->generate_request (self);
 
-    return priv->message;  
+    return priv->message;
 }
 
 static gboolean
 respond_cb (gpointer user_data)
 {
-    SnapdRequest *request = SNAPD_REQUEST (user_data);
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdRequest *self = SNAPD_REQUEST (user_data);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (self);
 
     if (priv->ready_callback != NULL)
-        priv->ready_callback (priv->source_object, G_ASYNC_RESULT (request), priv->ready_callback_data);
+        priv->ready_callback (priv->source_object, G_ASYNC_RESULT (self), priv->ready_callback_data);
 
     return G_SOURCE_REMOVE;
 }
 
 void
-_snapd_request_return (SnapdRequest *request, GError *error)
+_snapd_request_return (SnapdRequest *self, GError *error)
 {
     g_autoptr(GSource) source = NULL;
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (self);
 
     if (priv->responded)
         return;
@@ -99,14 +99,14 @@ _snapd_request_return (SnapdRequest *request, GError *error)
         priv->error = g_error_copy (error);
 
     source = g_idle_source_new ();
-    g_source_set_callback (source, respond_cb, g_object_ref (request), g_object_unref);
-    g_source_attach (source, _snapd_request_get_context (request));
+    g_source_set_callback (source, respond_cb, g_object_ref (self), g_object_unref);
+    g_source_attach (source, _snapd_request_get_context (self));
 }
 
 gboolean
-_snapd_request_propagate_error (SnapdRequest *request, GError **error)
+_snapd_request_propagate_error (SnapdRequest *self, GError **error)
 {
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (self);
 
     if (priv->error != NULL) {
         g_propagate_error (error, priv->error);
@@ -137,14 +137,14 @@ snapd_request_async_result_init (GAsyncResultIface *iface)
 static void
 snapd_request_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdRequest *request = SNAPD_REQUEST (object);
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdRequest *self = SNAPD_REQUEST (object);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (self);
 
     switch (prop_id)
     {
     case PROP_SOURCE_OBJECT:
         g_set_object (&priv->source_object, g_value_get_object (value));
-        break;      
+        break;
     case PROP_CANCELLABLE:
         g_set_object (&priv->cancellable, g_value_get_object (value));
         break;
@@ -163,8 +163,8 @@ snapd_request_set_property (GObject *object, guint prop_id, const GValue *value,
 static void
 snapd_request_finalize (GObject *object)
 {
-    SnapdRequest *request = SNAPD_REQUEST (object);
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdRequest *self = SNAPD_REQUEST (object);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (self);
 
     g_clear_object (&priv->source_object);
     g_clear_object (&priv->message);
@@ -212,9 +212,9 @@ snapd_request_class_init (SnapdRequestClass *klass)
 }
 
 static void
-snapd_request_init (SnapdRequest *request)
+snapd_request_init (SnapdRequest *self)
 {
-    SnapdRequestPrivate *priv = snapd_request_get_instance_private (request);
+    SnapdRequestPrivate *priv = snapd_request_get_instance_private (self);
 
     priv->context = g_main_context_ref_thread_default ();
 }

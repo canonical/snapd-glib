@@ -25,35 +25,35 @@ G_DEFINE_TYPE (SnapdPostSnapctl, snapd_post_snapctl, snapd_request_get_type ())
 SnapdPostSnapctl *
 _snapd_post_snapctl_new (const gchar *context_id, GStrv args, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostSnapctl *request;
+    SnapdPostSnapctl *self;
 
-    request = SNAPD_POST_SNAPCTL (g_object_new (snapd_post_snapctl_get_type (),
+    self = SNAPD_POST_SNAPCTL (g_object_new (snapd_post_snapctl_get_type (),
                                                 "cancellable", cancellable,
                                                 "ready-callback", callback,
                                                 "ready-callback-data", user_data,
                                                 NULL));
-    request->context_id = g_strdup (context_id);
-    request->args = g_strdupv (args);
+    self->context_id = g_strdup (context_id);
+    self->args = g_strdupv (args);
 
-    return request;
+    return self;
 }
 
 const gchar *
-_snapd_post_snapctl_get_stdout_output (SnapdPostSnapctl *request)
+_snapd_post_snapctl_get_stdout_output (SnapdPostSnapctl *self)
 {
-    return request->stdout_output;
+    return self->stdout_output;
 }
 
 const gchar *
-_snapd_post_snapctl_get_stderr_output (SnapdPostSnapctl *request)
+_snapd_post_snapctl_get_stderr_output (SnapdPostSnapctl *self)
 {
-    return request->stderr_output;
+    return self->stderr_output;
 }
 
 static SoupMessage *
-generate_post_snapctl_request (SnapdRequest *request)
+generate_post_snapctl_request (SnapdRequest *self)
 {
-    SnapdPostSnapctl *r = SNAPD_POST_SNAPCTL (request);
+    SnapdPostSnapctl *r = SNAPD_POST_SNAPCTL (self);
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
     int i;
@@ -76,9 +76,9 @@ generate_post_snapctl_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_snapctl_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_snapctl_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    SnapdPostSnapctl *r = SNAPD_POST_SNAPCTL (request);
+    SnapdPostSnapctl *r = SNAPD_POST_SNAPCTL (self);
     g_autoptr(JsonObject) response = NULL;
     g_autoptr(JsonObject) result = NULL;
 
@@ -98,12 +98,12 @@ parse_post_snapctl_response (SnapdRequest *request, SoupMessage *message, SnapdM
 static void
 snapd_post_snapctl_finalize (GObject *object)
 {
-    SnapdPostSnapctl *request = SNAPD_POST_SNAPCTL (object);
+    SnapdPostSnapctl *self = SNAPD_POST_SNAPCTL (object);
 
-    g_clear_pointer (&request->context_id, g_free);
-    g_clear_pointer (&request->args, g_strfreev);
-    g_clear_pointer (&request->stdout_output, g_free);
-    g_clear_pointer (&request->stderr_output, g_free);
+    g_clear_pointer (&self->context_id, g_free);
+    g_clear_pointer (&self->args, g_strfreev);
+    g_clear_pointer (&self->stdout_output, g_free);
+    g_clear_pointer (&self->stderr_output, g_free);
 
     G_OBJECT_CLASS (snapd_post_snapctl_parent_class)->finalize (object);
 }
@@ -120,6 +120,6 @@ snapd_post_snapctl_class_init (SnapdPostSnapctlClass *klass)
 }
 
 static void
-snapd_post_snapctl_init (SnapdPostSnapctl *request)
+snapd_post_snapctl_init (SnapdPostSnapctl *self)
 {
 }

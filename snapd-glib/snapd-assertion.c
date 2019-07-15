@@ -66,12 +66,12 @@ G_DEFINE_TYPE (SnapdAssertion, snapd_assertion, G_TYPE_OBJECT)
 SnapdAssertion *
 snapd_assertion_new (const gchar *content)
 {
-    SnapdAssertion *assertion;
+    SnapdAssertion *self;
 
-    assertion = g_object_new (SNAPD_TYPE_ASSERTION, NULL);
-    assertion->content = g_strdup (content);
+    self = g_object_new (SNAPD_TYPE_ASSERTION, NULL);
+    self->content = g_strdup (content);
 
-    return assertion;
+    return self;
 }
 
 static gboolean
@@ -126,12 +126,12 @@ get_header (const gchar *content, gsize *offset, gsize *name_start, gsize *name_
  * Since: 1.0
  */
 GStrv
-snapd_assertion_get_headers (SnapdAssertion *assertion)
+snapd_assertion_get_headers (SnapdAssertion *self)
 {
     g_autoptr(GPtrArray) headers = NULL;
     gsize offset;
 
-    g_return_val_if_fail (SNAPD_IS_ASSERTION (assertion), NULL);
+    g_return_val_if_fail (SNAPD_IS_ASSERTION (self), NULL);
 
     offset = 0;
     headers = g_ptr_array_new ();
@@ -139,12 +139,12 @@ snapd_assertion_get_headers (SnapdAssertion *assertion)
         gsize name_start, name_length;
 
         /* Headers terminated by double newline or EOF */
-        if (assertion->content[offset] == '\0' ||
-            assertion->content[offset] == '\n' ||
-            !get_header (assertion->content, &offset, &name_start, &name_length, NULL, NULL))
+        if (self->content[offset] == '\0' ||
+            self->content[offset] == '\n' ||
+            !get_header (self->content, &offset, &name_start, &name_length, NULL, NULL))
             break;
 
-        g_ptr_array_add (headers, g_strndup (assertion->content + name_start, name_length));
+        g_ptr_array_add (headers, g_strndup (self->content + name_start, name_length));
     }
     g_ptr_array_add (headers, NULL);
 
@@ -163,11 +163,11 @@ snapd_assertion_get_headers (SnapdAssertion *assertion)
  * Since: 1.0
  */
 gchar *
-snapd_assertion_get_header (SnapdAssertion *assertion, const gchar *name)
+snapd_assertion_get_header (SnapdAssertion *self, const gchar *name)
 {
     gsize offset;
 
-    g_return_val_if_fail (SNAPD_IS_ASSERTION (assertion), NULL);
+    g_return_val_if_fail (SNAPD_IS_ASSERTION (self), NULL);
     g_return_val_if_fail (name != NULL, NULL);
 
     offset = 0;
@@ -175,38 +175,38 @@ snapd_assertion_get_header (SnapdAssertion *assertion, const gchar *name)
         gsize name_start, name_length, value_start, value_length;
 
         /* Headers terminated by double newline or EOF */
-        if (assertion->content[offset] == '\0' || assertion->content[offset] == '\n')
+        if (self->content[offset] == '\0' || self->content[offset] == '\n')
             return NULL;
 
-        if (!get_header (assertion->content, &offset, &name_start, &name_length, &value_start, &value_length))
+        if (!get_header (self->content, &offset, &name_start, &name_length, &value_start, &value_length))
             return NULL;
 
         /* Return value if header we're looking for */
-        if (strncmp (assertion->content + name_start, name, name_length) == 0)
-            return g_strndup (assertion->content + value_start, value_length);
+        if (strncmp (self->content + name_start, name, name_length) == 0)
+            return g_strndup (self->content + value_start, value_length);
     }
 
     return NULL;
 }
 
 static gsize
-get_headers_length (SnapdAssertion *assertion)
+get_headers_length (SnapdAssertion *self)
 {
     gchar *divider;
 
     /* Headers terminated by double newline */
-    divider = strstr (assertion->content, "\n\n");
+    divider = strstr (self->content, "\n\n");
     if (divider == NULL)
         return 0;
 
-    return divider - assertion->content;
+    return divider - self->content;
 }
 
 static gsize
-get_body_length (SnapdAssertion *assertion)
+get_body_length (SnapdAssertion *self)
 {
     g_autofree gchar *body_length_header = NULL;
-    body_length_header = snapd_assertion_get_header (assertion, "body-length");
+    body_length_header = snapd_assertion_get_header (self, "body-length");
     if (body_length_header == NULL)
         return 0;
 
@@ -224,17 +224,17 @@ get_body_length (SnapdAssertion *assertion)
  * Since: 1.0
  */
 gchar *
-snapd_assertion_get_body (SnapdAssertion *assertion)
+snapd_assertion_get_body (SnapdAssertion *self)
 {
     gsize body_length;
 
-    g_return_val_if_fail (SNAPD_IS_ASSERTION (assertion), NULL);
+    g_return_val_if_fail (SNAPD_IS_ASSERTION (self), NULL);
 
-    body_length = get_body_length (assertion);
+    body_length = get_body_length (self);
     if (body_length == 0)
         return NULL;
 
-    return g_strndup (assertion->content + get_headers_length (assertion) + 2, body_length);
+    return g_strndup (self->content + get_headers_length (self) + 2, body_length);
 }
 
 /**
@@ -248,28 +248,28 @@ snapd_assertion_get_body (SnapdAssertion *assertion)
  * Since: 1.0
  */
 gchar *
-snapd_assertion_get_signature (SnapdAssertion *assertion)
+snapd_assertion_get_signature (SnapdAssertion *self)
 {
     int body_length;
 
-    g_return_val_if_fail (SNAPD_IS_ASSERTION (assertion), NULL);
+    g_return_val_if_fail (SNAPD_IS_ASSERTION (self), NULL);
 
-    body_length = get_body_length (assertion);
+    body_length = get_body_length (self);
     if (body_length > 0)
-        return g_strdup (assertion->content + get_headers_length (assertion) + 2 + body_length + 2);
+        return g_strdup (self->content + get_headers_length (self) + 2 + body_length + 2);
     else
-        return g_strdup (assertion->content + get_headers_length (assertion) + 2);
+        return g_strdup (self->content + get_headers_length (self) + 2);
 }
 
 static void
 snapd_assertion_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdAssertion *assertion = SNAPD_ASSERTION (object);
+    SnapdAssertion *self = SNAPD_ASSERTION (object);
 
     switch (prop_id) {
     case PROP_CONTENT:
-        g_free (assertion->content);
-        assertion->content = g_strdup (g_value_get_string (value));
+        g_free (self->content);
+        self->content = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -280,11 +280,11 @@ snapd_assertion_set_property (GObject *object, guint prop_id, const GValue *valu
 static void
 snapd_assertion_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdAssertion *assertion = SNAPD_ASSERTION (object);
+    SnapdAssertion *self = SNAPD_ASSERTION (object);
 
     switch (prop_id) {
     case PROP_CONTENT:
-        g_value_set_string (value, assertion->content);
+        g_value_set_string (value, self->content);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -295,9 +295,9 @@ snapd_assertion_get_property (GObject *object, guint prop_id, GValue *value, GPa
 static void
 snapd_assertion_finalize (GObject *object)
 {
-    SnapdAssertion *assertion = SNAPD_ASSERTION (object);
+    SnapdAssertion *self = SNAPD_ASSERTION (object);
 
-    g_clear_pointer (&assertion->content, g_free);
+    g_clear_pointer (&self->content, g_free);
 
     G_OBJECT_CLASS (snapd_assertion_parent_class)->finalize (object);
 }
@@ -321,6 +321,6 @@ snapd_assertion_class_init (SnapdAssertionClass *klass)
 }
 
 static void
-snapd_assertion_init (SnapdAssertion *assertion)
+snapd_assertion_init (SnapdAssertion *self)
 {
 }

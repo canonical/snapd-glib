@@ -66,7 +66,7 @@ sync_cb (GObject *object, GAsyncResult *result, gpointer user_data)
  * Since: 1.0
  */
 gboolean
-snapd_client_connect_sync (SnapdClient *client,
+snapd_client_connect_sync (SnapdClient *self,
                            GCancellable *cancellable, GError **error)
 {
     return TRUE;
@@ -89,24 +89,24 @@ snapd_client_connect_sync (SnapdClient *client,
  * Deprecated: 1.26: Use snapd_client_login2_sync()
  */
 SnapdAuthData *
-snapd_client_login_sync (SnapdClient *client,
+snapd_client_login_sync (SnapdClient *self,
                          const gchar *email, const gchar *password, const gchar *otp,
                          GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
     g_return_val_if_fail (email != NULL, NULL);
     g_return_val_if_fail (password != NULL, NULL);
 
     start_sync (&data);
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    snapd_client_login_async (client, email, password, otp, cancellable, sync_cb, &data);
+    snapd_client_login_async (self, email, password, otp, cancellable, sync_cb, &data);
 G_GNUC_END_IGNORE_DEPRECATIONS
     end_sync (&data);
 
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    return snapd_client_login_finish (client, data.result, error);
+    return snapd_client_login_finish (self, data.result, error);
 G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
@@ -126,21 +126,21 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  * Since: 1.26
  */
 SnapdUserInformation *
-snapd_client_login2_sync (SnapdClient *client,
+snapd_client_login2_sync (SnapdClient *self,
                          const gchar *email, const gchar *password, const gchar *otp,
                          GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
     g_return_val_if_fail (email != NULL, NULL);
     g_return_val_if_fail (password != NULL, NULL);
 
     start_sync (&data);
-    snapd_client_login2_async (client, email, password, otp, cancellable, sync_cb, &data);
+    snapd_client_login2_async (self, email, password, otp, cancellable, sync_cb, &data);
     end_sync (&data);
 
-    return snapd_client_login2_finish (client, data.result, error);
+    return snapd_client_login2_finish (self, data.result, error);
 }
 
 /**
@@ -158,19 +158,19 @@ snapd_client_login2_sync (SnapdClient *client,
  * Since: 1.29
  */
 GPtrArray *
-snapd_client_get_changes_sync (SnapdClient *client,
+snapd_client_get_changes_sync (SnapdClient *self,
                                SnapdChangeFilter filter, const gchar *snap_name,
                                GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_changes_async (client, filter, snap_name, cancellable, sync_cb, &data);
+    snapd_client_get_changes_async (self, filter, snap_name, cancellable, sync_cb, &data);
     end_sync (&data);
 
-    return snapd_client_get_changes_finish (client, data.result, error);
+    return snapd_client_get_changes_finish (self, data.result, error);
 }
 
 /**
@@ -187,20 +187,20 @@ snapd_client_get_changes_sync (SnapdClient *client,
  * Since: 1.29
  */
 SnapdChange *
-snapd_client_get_change_sync (SnapdClient *client,
+snapd_client_get_change_sync (SnapdClient *self,
                               const gchar *id,
                               GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
     g_return_val_if_fail (id != NULL, NULL);
 
     start_sync (&data);
-    snapd_client_get_change_async (client, id, cancellable, sync_cb, &data);
+    snapd_client_get_change_async (self, id, cancellable, sync_cb, &data);
     end_sync (&data);
 
-    return snapd_client_get_change_finish (client, data.result, error);
+    return snapd_client_get_change_finish (self, data.result, error);
 }
 
 /**
@@ -217,20 +217,20 @@ snapd_client_get_change_sync (SnapdClient *client,
  * Since: 1.30
  */
 SnapdChange *
-snapd_client_abort_change_sync (SnapdClient *client,
+snapd_client_abort_change_sync (SnapdClient *self,
                                 const gchar *id,
                                 GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
     g_return_val_if_fail (id != NULL, NULL);
 
     start_sync (&data);
-    snapd_client_abort_change_async (client, id, cancellable, sync_cb, &data);
+    snapd_client_abort_change_async (self, id, cancellable, sync_cb, &data);
     end_sync (&data);
 
-    return snapd_client_abort_change_finish (client, data.result, error);
+    return snapd_client_abort_change_finish (self, data.result, error);
 }
 
 /**
@@ -247,18 +247,18 @@ snapd_client_abort_change_sync (SnapdClient *client,
  * Since: 1.0
  */
 SnapdSystemInformation *
-snapd_client_get_system_information_sync (SnapdClient *client,
+snapd_client_get_system_information_sync (SnapdClient *self,
                                           GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_system_information_async (client, cancellable, sync_cb, &data);
+    snapd_client_get_system_information_async (self, cancellable, sync_cb, &data);
     end_sync (&data);
 
-    return snapd_client_get_system_information_finish (client, data.result, error);
+    return snapd_client_get_system_information_finish (self, data.result, error);
 }
 
 /**
@@ -276,11 +276,11 @@ snapd_client_get_system_information_sync (SnapdClient *client,
  * Deprecated: 1.42: Use snapd_client_get_snap_sync()
  */
 SnapdSnap *
-snapd_client_list_one_sync (SnapdClient *client,
+snapd_client_list_one_sync (SnapdClient *self,
                             const gchar *name,
                             GCancellable *cancellable, GError **error)
 {
-    return snapd_client_get_snap_sync (client, name, cancellable, error);
+    return snapd_client_get_snap_sync (self, name, cancellable, error);
 }
 
 /**
@@ -297,18 +297,18 @@ snapd_client_list_one_sync (SnapdClient *client,
  * Since: 1.42
  */
 SnapdSnap *
-snapd_client_get_snap_sync (SnapdClient *client,
+snapd_client_get_snap_sync (SnapdClient *self,
                             const gchar *name,
                             GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_snap_async (client, name, cancellable, sync_cb, &data);
+    snapd_client_get_snap_async (self, name, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_snap_finish (client, data.result, error);
+    return snapd_client_get_snap_finish (self, data.result, error);
 }
 
 /**
@@ -326,20 +326,20 @@ snapd_client_get_snap_sync (SnapdClient *client,
  * Since: 1.48
  */
 GHashTable *
-snapd_client_get_snap_conf_sync (SnapdClient *client,
+snapd_client_get_snap_conf_sync (SnapdClient *self,
                                  const gchar *name,
                                  GStrv keys,
                                  GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
     g_return_val_if_fail (name != NULL, NULL);
 
     start_sync (&data);
-    snapd_client_get_snap_conf_async (client, name, keys, cancellable, sync_cb, &data);
+    snapd_client_get_snap_conf_async (self, name, keys, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_snap_conf_finish (client, data.result, error);
+    return snapd_client_get_snap_conf_finish (self, data.result, error);
 }
 
 /**
@@ -357,21 +357,21 @@ snapd_client_get_snap_conf_sync (SnapdClient *client,
  * Since: 1.48
  */
 gboolean
-snapd_client_set_snap_conf_sync (SnapdClient *client,
+snapd_client_set_snap_conf_sync (SnapdClient *self,
                                  const gchar *name,
                                  GHashTable *key_values,
                                  GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
     g_return_val_if_fail (key_values != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_set_snap_conf_async (client, name, key_values, cancellable, sync_cb, &data);
+    snapd_client_set_snap_conf_async (self, name, key_values, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_set_snap_conf_finish (client, data.result, error);
+    return snapd_client_set_snap_conf_finish (self, data.result, error);
 }
 
 /**
@@ -389,11 +389,11 @@ snapd_client_set_snap_conf_sync (SnapdClient *client,
  * Deprecated: 1.45: Use snapd_client_get_apps2_sync()
  */
 GPtrArray *
-snapd_client_get_apps_sync (SnapdClient *client,
+snapd_client_get_apps_sync (SnapdClient *self,
                             SnapdGetAppsFlags flags,
                             GCancellable *cancellable, GError **error)
 {
-    return snapd_client_get_apps2_sync (client, flags, NULL, cancellable, error);
+    return snapd_client_get_apps2_sync (self, flags, NULL, cancellable, error);
 }
 
 /**
@@ -411,19 +411,19 @@ snapd_client_get_apps_sync (SnapdClient *client,
  * Since: 1.45
  */
 GPtrArray *
-snapd_client_get_apps2_sync (SnapdClient *client,
+snapd_client_get_apps2_sync (SnapdClient *self,
                              SnapdGetAppsFlags flags,
                              GStrv snaps,
                              GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_apps2_async (client, flags, snaps, cancellable, sync_cb, &data);
+    snapd_client_get_apps2_async (self, flags, snaps, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_apps2_finish (client, data.result, error);
+    return snapd_client_get_apps2_finish (self, data.result, error);
 }
 
 /**
@@ -440,18 +440,18 @@ snapd_client_get_apps2_sync (SnapdClient *client,
  * Since: 1.0
  */
 SnapdIcon *
-snapd_client_get_icon_sync (SnapdClient *client,
+snapd_client_get_icon_sync (SnapdClient *self,
                             const gchar *name,
                             GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_icon_async (client, name, cancellable, sync_cb, &data);
+    snapd_client_get_icon_async (self, name, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_icon_finish (client, data.result, error);
+    return snapd_client_get_icon_finish (self, data.result, error);
 }
 
 /**
@@ -468,21 +468,21 @@ snapd_client_get_icon_sync (SnapdClient *client,
  * Deprecated: 1.42: Use snapd_client_get_snaps_sync()
  */
 GPtrArray *
-snapd_client_list_sync (SnapdClient *client,
+snapd_client_list_sync (SnapdClient *self,
                         GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    snapd_client_list_async (client, cancellable, sync_cb, &data);
+    snapd_client_list_async (self, cancellable, sync_cb, &data);
 G_GNUC_END_IGNORE_DEPRECATIONS
     end_sync (&data);
 
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    return snapd_client_list_finish (client, data.result, error);
+    return snapd_client_list_finish (self, data.result, error);
 G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
@@ -506,18 +506,18 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  * Since: 1.42
  */
 GPtrArray *
-snapd_client_get_snaps_sync (SnapdClient *client,
+snapd_client_get_snaps_sync (SnapdClient *self,
                              SnapdGetSnapsFlags flags, GStrv names,
                              GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_snaps_async (client, flags, names, cancellable, sync_cb, &data);
+    snapd_client_get_snaps_async (self, flags, names, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_snaps_finish (client, data.result, error);
+    return snapd_client_get_snaps_finish (self, data.result, error);
 }
 
 /**
@@ -534,18 +534,18 @@ snapd_client_get_snaps_sync (SnapdClient *client,
  * Since: 1.8
  */
 GStrv
-snapd_client_get_assertions_sync (SnapdClient *client,
+snapd_client_get_assertions_sync (SnapdClient *self,
                                   const gchar *type,
                                   GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_assertions_async (client, type, cancellable, sync_cb, &data);
+    snapd_client_get_assertions_async (self, type, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_assertions_finish (client, data.result, error);
+    return snapd_client_get_assertions_finish (self, data.result, error);
 }
 
 /**
@@ -562,19 +562,19 @@ snapd_client_get_assertions_sync (SnapdClient *client,
  * Since: 1.8
  */
 gboolean
-snapd_client_add_assertions_sync (SnapdClient *client,
+snapd_client_add_assertions_sync (SnapdClient *self,
                                   GStrv assertions,
                                   GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (assertions != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_add_assertions_async (client, assertions, cancellable, sync_cb, &data);
+    snapd_client_add_assertions_async (self, assertions, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_add_assertions_finish (client, data.result, error);
+    return snapd_client_add_assertions_finish (self, data.result, error);
 }
 
 /**
@@ -593,21 +593,21 @@ snapd_client_add_assertions_sync (SnapdClient *client,
  * Deprecated: 1.48: Use snapd_client_get_connections_sync()
  */
 gboolean
-snapd_client_get_interfaces_sync (SnapdClient *client,
+snapd_client_get_interfaces_sync (SnapdClient *self,
                                   GPtrArray **plugs, GPtrArray **slots,
                                   GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
 
     start_sync (&data);
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    snapd_client_get_interfaces_async (client, cancellable, sync_cb, &data);
+    snapd_client_get_interfaces_async (self, cancellable, sync_cb, &data);
 G_GNUC_END_IGNORE_DEPRECATIONS
     end_sync (&data);
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    return snapd_client_get_interfaces_finish (client, data.result, plugs, slots, error);
+    return snapd_client_get_interfaces_finish (self, data.result, plugs, slots, error);
 G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
@@ -626,19 +626,19 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  * Since: 1.48
  */
 GPtrArray *
-snapd_client_get_interfaces2_sync (SnapdClient *client,
+snapd_client_get_interfaces2_sync (SnapdClient *self,
                                    SnapdGetInterfacesFlags flags,
                                    GStrv names,
                                    GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_interfaces2_async (client, flags, names, cancellable, sync_cb, &data);
+    snapd_client_get_interfaces2_async (self, flags, names, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_interfaces2_finish (client, data.result, error);
+    return snapd_client_get_interfaces2_finish (self, data.result, error);
 }
 
 /**
@@ -658,19 +658,19 @@ snapd_client_get_interfaces2_sync (SnapdClient *client,
  * Since: 1.48
  */
 gboolean
-snapd_client_get_connections_sync (SnapdClient *client,
+snapd_client_get_connections_sync (SnapdClient *self,
                                    GPtrArray **established, GPtrArray **undesired,
                                    GPtrArray **plugs, GPtrArray **slots,
                                    GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
 
     start_sync (&data);
-    snapd_client_get_connections_async (client, cancellable, sync_cb, &data);
+    snapd_client_get_connections_async (self, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_connections_finish (client, data.result, established, undesired, plugs, slots, error);
+    return snapd_client_get_connections_finish (self, data.result, established, undesired, plugs, slots, error);
 }
 
 /**
@@ -693,7 +693,7 @@ snapd_client_get_connections_sync (SnapdClient *client,
  * Since: 1.0
  */
 gboolean
-snapd_client_connect_interface_sync (SnapdClient *client,
+snapd_client_connect_interface_sync (SnapdClient *self,
                                      const gchar *plug_snap, const gchar *plug_name,
                                      const gchar *slot_snap, const gchar *slot_name,
                                      SnapdProgressCallback progress_callback, gpointer progress_callback_data,
@@ -701,12 +701,12 @@ snapd_client_connect_interface_sync (SnapdClient *client,
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
 
     start_sync (&data);
-    snapd_client_connect_interface_async (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_connect_interface_async (self, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_connect_interface_finish (client, data.result, error);
+    return snapd_client_connect_interface_finish (self, data.result, error);
 }
 
 /**
@@ -728,7 +728,7 @@ snapd_client_connect_interface_sync (SnapdClient *client,
  * Since: 1.0
  */
 gboolean
-snapd_client_disconnect_interface_sync (SnapdClient *client,
+snapd_client_disconnect_interface_sync (SnapdClient *self,
                                         const gchar *plug_snap, const gchar *plug_name,
                                         const gchar *slot_snap, const gchar *slot_name,
                                         SnapdProgressCallback progress_callback, gpointer progress_callback_data,
@@ -736,12 +736,12 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
 
     start_sync (&data);
-    snapd_client_disconnect_interface_async (client, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_disconnect_interface_async (self, plug_snap, plug_name, slot_snap, slot_name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_disconnect_interface_finish (client, data.result, error);
+    return snapd_client_disconnect_interface_finish (self, data.result, error);
 }
 
 /**
@@ -760,13 +760,13 @@ snapd_client_disconnect_interface_sync (SnapdClient *client,
  * Since: 1.0
  */
 GPtrArray *
-snapd_client_find_sync (SnapdClient *client,
+snapd_client_find_sync (SnapdClient *self,
                         SnapdFindFlags flags, const gchar *query,
                         gchar **suggested_currency,
                         GCancellable *cancellable, GError **error)
 {
     g_return_val_if_fail (query != NULL, NULL);
-    return snapd_client_find_section_sync (client, flags, NULL, query, suggested_currency, cancellable, error);
+    return snapd_client_find_section_sync (self, flags, NULL, query, suggested_currency, cancellable, error);
 }
 
 /**
@@ -786,19 +786,19 @@ snapd_client_find_sync (SnapdClient *client,
  * Since: 1.7
  */
 GPtrArray *
-snapd_client_find_section_sync (SnapdClient *client,
+snapd_client_find_section_sync (SnapdClient *self,
                                 SnapdFindFlags flags, const gchar *section, const gchar *query,
                                 gchar **suggested_currency,
                                 GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_find_section_async (client, flags, section, query, cancellable, sync_cb, &data);
+    snapd_client_find_section_async (self, flags, section, query, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_find_section_finish (client, data.result, suggested_currency, error);
+    return snapd_client_find_section_finish (self, data.result, suggested_currency, error);
 }
 
 /**
@@ -814,17 +814,17 @@ snapd_client_find_section_sync (SnapdClient *client,
  * Since: 1.8
  */
 GPtrArray *
-snapd_client_find_refreshable_sync (SnapdClient *client,
+snapd_client_find_refreshable_sync (SnapdClient *self,
                                     GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_find_refreshable_async (client, cancellable, sync_cb, &data);
+    snapd_client_find_refreshable_async (self, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_find_refreshable_finish (client, data.result, error);
+    return snapd_client_find_refreshable_finish (self, data.result, error);
 }
 
 /**
@@ -845,12 +845,12 @@ snapd_client_find_refreshable_sync (SnapdClient *client,
  * Deprecated: 1.12: Use snapd_client_install2_sync()
  */
 gboolean
-snapd_client_install_sync (SnapdClient *client,
+snapd_client_install_sync (SnapdClient *self,
                            const gchar *name, const gchar *channel,
                            SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                            GCancellable *cancellable, GError **error)
 {
-    return snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, name, channel, NULL, progress_callback, progress_callback_data, cancellable, error);
+    return snapd_client_install2_sync (self, SNAPD_INSTALL_FLAGS_NONE, name, channel, NULL, progress_callback, progress_callback_data, cancellable, error);
 }
 
 /**
@@ -872,7 +872,7 @@ snapd_client_install_sync (SnapdClient *client,
  * Since: 1.12
  */
 gboolean
-snapd_client_install2_sync (SnapdClient *client,
+snapd_client_install2_sync (SnapdClient *self,
                             SnapdInstallFlags flags,
                             const gchar *name, const gchar *channel, const gchar *revision,
                             SnapdProgressCallback progress_callback, gpointer progress_callback_data,
@@ -880,13 +880,13 @@ snapd_client_install2_sync (SnapdClient *client,
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_install2_async (client, flags, name, channel, revision, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_install2_async (self, flags, name, channel, revision, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_install2_finish (client, data.result, error);
+    return snapd_client_install2_finish (self, data.result, error);
 }
 
 /**
@@ -905,14 +905,14 @@ snapd_client_install2_sync (SnapdClient *client,
  * |[
  * g_autoptr(GFile) file = g_file_new_for_path (path_to_snap_file);
  * g_autoptr(GInputStream) stream = g_file_read (file, cancellable, &error);
- * snapd_client_install_stream_sync (client, stream, progress_cb, NULL, cancellable, &error);
+ * snapd_client_install_stream_sync (self, stream, progress_cb, NULL, cancellable, &error);
  * \]
  *
  * Or if you have the file in memory you can use:
  *
  * |[
  * g_autoptr(GInputStream) stream = g_memory_input_stream_new_from_data (data, data_length, free_data);
- * snapd_client_install_stream_sync (client, stream, progress_cb, NULL, cancellable, &error);
+ * snapd_client_install_stream_sync (self, stream, progress_cb, NULL, cancellable, &error);
  * \]
  *
  * Returns: %TRUE on success or %FALSE on error.
@@ -920,7 +920,7 @@ snapd_client_install2_sync (SnapdClient *client,
  * Since: 1.9
  */
 gboolean
-snapd_client_install_stream_sync (SnapdClient *client,
+snapd_client_install_stream_sync (SnapdClient *self,
                                   SnapdInstallFlags flags,
                                   GInputStream *stream,
                                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
@@ -928,13 +928,13 @@ snapd_client_install_stream_sync (SnapdClient *client,
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (G_IS_INPUT_STREAM (stream), FALSE);
 
     start_sync (&data);
-    snapd_client_install_stream_async (client, flags, stream, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_install_stream_async (self, flags, stream, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_install_stream_finish (client, data.result, error);
+    return snapd_client_install_stream_finish (self, data.result, error);
 }
 
 /**
@@ -953,20 +953,20 @@ snapd_client_install_stream_sync (SnapdClient *client,
  * Since: 1.9
  */
 gboolean
-snapd_client_try_sync (SnapdClient *client,
+snapd_client_try_sync (SnapdClient *self,
                        const gchar *path,
                        SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                        GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (path != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_try_async (client, path, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_try_async (self, path, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_try_finish (client, data.result, error);
+    return snapd_client_try_finish (self, data.result, error);
 }
 
 /**
@@ -986,20 +986,20 @@ snapd_client_try_sync (SnapdClient *client,
  * Since: 1.0
  */
 gboolean
-snapd_client_refresh_sync (SnapdClient *client,
+snapd_client_refresh_sync (SnapdClient *self,
                            const gchar *name, const gchar *channel,
                            SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                            GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_refresh_async (client, name, channel, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_refresh_async (self, name, channel, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_refresh_finish (client, data.result, error);
+    return snapd_client_refresh_finish (self, data.result, error);
 }
 
 /**
@@ -1017,18 +1017,18 @@ snapd_client_refresh_sync (SnapdClient *client,
  * Since: 1.5
  */
 GStrv
-snapd_client_refresh_all_sync (SnapdClient *client,
+snapd_client_refresh_all_sync (SnapdClient *self,
                                SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_refresh_all_async (client, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_refresh_all_async (self, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_refresh_all_finish (client, data.result, error);
+    return snapd_client_refresh_all_finish (self, data.result, error);
 }
 
 /**
@@ -1047,20 +1047,20 @@ snapd_client_refresh_all_sync (SnapdClient *client,
  * Since: 1.0
  */
 gboolean
-snapd_client_remove_sync (SnapdClient *client,
+snapd_client_remove_sync (SnapdClient *self,
                           const gchar *name,
                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                           GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_remove_async (client, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_remove_async (self, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_remove_finish (client, data.result, error);
+    return snapd_client_remove_finish (self, data.result, error);
 }
 
 /**
@@ -1079,20 +1079,20 @@ snapd_client_remove_sync (SnapdClient *client,
  * Since: 1.0
  */
 gboolean
-snapd_client_enable_sync (SnapdClient *client,
+snapd_client_enable_sync (SnapdClient *self,
                           const gchar *name,
                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                           GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_enable_async (client, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_enable_async (self, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_enable_finish (client, data.result, error);
+    return snapd_client_enable_finish (self, data.result, error);
 }
 
 /**
@@ -1111,20 +1111,20 @@ snapd_client_enable_sync (SnapdClient *client,
  * Since: 1.0
  */
 gboolean
-snapd_client_disable_sync (SnapdClient *client,
+snapd_client_disable_sync (SnapdClient *self,
                            const gchar *name,
                            SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                            GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_disable_async (client, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_disable_async (self, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_disable_finish (client, data.result, error);
+    return snapd_client_disable_finish (self, data.result, error);
 }
 
 /**
@@ -1144,20 +1144,20 @@ snapd_client_disable_sync (SnapdClient *client,
  * Since: 1.26
  */
 gboolean
-snapd_client_switch_sync (SnapdClient *client,
+snapd_client_switch_sync (SnapdClient *self,
                           const gchar *name, const gchar *channel,
                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                           GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_switch_async (client, name, channel, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_switch_async (self, name, channel, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_switch_finish (client, data.result, error);
+    return snapd_client_switch_finish (self, data.result, error);
 }
 
 /**
@@ -1174,17 +1174,17 @@ snapd_client_switch_sync (SnapdClient *client,
  * Since: 1.3
  */
 gboolean
-snapd_client_check_buy_sync (SnapdClient *client,
+snapd_client_check_buy_sync (SnapdClient *self,
                              GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
 
     start_sync (&data);
-    snapd_client_check_buy_async (client, cancellable, sync_cb, &data);
+    snapd_client_check_buy_async (self, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_check_buy_finish (client, data.result, error);
+    return snapd_client_check_buy_finish (self, data.result, error);
 }
 
 /**
@@ -1205,20 +1205,20 @@ snapd_client_check_buy_sync (SnapdClient *client,
  * Since: 1.3
  */
 gboolean
-snapd_client_buy_sync (SnapdClient *client,
+snapd_client_buy_sync (SnapdClient *self,
                        const gchar *id, gdouble amount, const gchar *currency,
                        GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (id != NULL, FALSE);
     g_return_val_if_fail (currency != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_buy_async (client, id, amount, currency, cancellable, sync_cb, &data);
+    snapd_client_buy_async (self, id, amount, currency, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_buy_finish (client, data.result, error);
+    return snapd_client_buy_finish (self, data.result, error);
 }
 
 /**
@@ -1237,19 +1237,19 @@ snapd_client_buy_sync (SnapdClient *client,
  * Since: 1.3
  */
 SnapdUserInformation *
-snapd_client_create_user_sync (SnapdClient *client,
+snapd_client_create_user_sync (SnapdClient *self,
                                const gchar *email, SnapdCreateUserFlags flags,
                                GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
     g_return_val_if_fail (email != NULL, NULL);
 
     start_sync (&data);
-    snapd_client_create_user_async (client, email, flags, cancellable, sync_cb, &data);
+    snapd_client_create_user_async (self, email, flags, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_create_user_finish (client, data.result, error);
+    return snapd_client_create_user_finish (self, data.result, error);
 }
 
 /**
@@ -1266,17 +1266,17 @@ snapd_client_create_user_sync (SnapdClient *client,
  * Since: 1.3
  */
 GPtrArray *
-snapd_client_create_users_sync (SnapdClient *client,
+snapd_client_create_users_sync (SnapdClient *self,
                                 GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_create_users_async (client, cancellable, sync_cb, &data);
+    snapd_client_create_users_async (self, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_create_users_finish (client, data.result, error);
+    return snapd_client_create_users_finish (self, data.result, error);
 }
 
 /**
@@ -1293,17 +1293,17 @@ snapd_client_create_users_sync (SnapdClient *client,
  * Since: 1.26
  */
 GPtrArray *
-snapd_client_get_users_sync (SnapdClient *client,
+snapd_client_get_users_sync (SnapdClient *self,
                              GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_users_async (client, cancellable, sync_cb, &data);
+    snapd_client_get_users_async (self, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_users_finish (client, data.result, error);
+    return snapd_client_get_users_finish (self, data.result, error);
 }
 
 /**
@@ -1320,17 +1320,17 @@ snapd_client_get_users_sync (SnapdClient *client,
  * Since: 1.7
  */
 GStrv
-snapd_client_get_sections_sync (SnapdClient *client,
+snapd_client_get_sections_sync (SnapdClient *self,
                                 GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_sections_async (client, cancellable, sync_cb, &data);
+    snapd_client_get_sections_async (self, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_sections_finish (client, data.result, error);
+    return snapd_client_get_sections_finish (self, data.result, error);
 }
 
 /**
@@ -1347,17 +1347,17 @@ snapd_client_get_sections_sync (SnapdClient *client,
  * Since: 1.8
  */
 GPtrArray *
-snapd_client_get_aliases_sync (SnapdClient *client,
+snapd_client_get_aliases_sync (SnapdClient *self,
                                GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
 
     start_sync (&data);
-    snapd_client_get_aliases_async (client, cancellable, sync_cb, &data);
+    snapd_client_get_aliases_async (self, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_aliases_finish (client, data.result, error);
+    return snapd_client_get_aliases_finish (self, data.result, error);
 }
 
 /**
@@ -1377,22 +1377,22 @@ snapd_client_get_aliases_sync (SnapdClient *client,
  * Since: 1.25
  */
 gboolean
-snapd_client_alias_sync (SnapdClient *client,
+snapd_client_alias_sync (SnapdClient *self,
                          const gchar *snap, const gchar *app, const gchar *alias,
                          SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                          GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (snap != NULL, FALSE);
     g_return_val_if_fail (app != NULL, FALSE);
     g_return_val_if_fail (alias != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_alias_async (client, snap, app, alias, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_alias_async (self, snap, app, alias, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_alias_finish (client, data.result, error);
+    return snapd_client_alias_finish (self, data.result, error);
 }
 
 /**
@@ -1411,20 +1411,20 @@ snapd_client_alias_sync (SnapdClient *client,
  * Since: 1.25
  */
 gboolean
-snapd_client_unalias_sync (SnapdClient *client,
+snapd_client_unalias_sync (SnapdClient *self,
                            const gchar *snap, const gchar *alias,
                            SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                            GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (alias != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_unalias_async (client, snap, alias, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_unalias_async (self, snap, alias, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_unalias_finish (client, data.result, error);
+    return snapd_client_unalias_finish (self, data.result, error);
 }
 
 /**
@@ -1442,20 +1442,20 @@ snapd_client_unalias_sync (SnapdClient *client,
  * Since: 1.25
  */
 gboolean
-snapd_client_prefer_sync (SnapdClient *client,
+snapd_client_prefer_sync (SnapdClient *self,
                           const gchar *snap,
                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                           GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (snap != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_prefer_async (client, snap, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_prefer_async (self, snap, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_prefer_finish (client, data.result, error);
+    return snapd_client_prefer_finish (self, data.result, error);
 }
 
 /**
@@ -1477,7 +1477,7 @@ snapd_client_prefer_sync (SnapdClient *client,
  * Deprecated: 1.25: Use snapd_client_alias_sync()
  */
 gboolean
-snapd_client_enable_aliases_sync (SnapdClient *client,
+snapd_client_enable_aliases_sync (SnapdClient *self,
                                   const gchar *snap, GStrv aliases,
                                   SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                   GCancellable *cancellable, GError **error)
@@ -1505,7 +1505,7 @@ snapd_client_enable_aliases_sync (SnapdClient *client,
  * Deprecated: 1.25: Use snapd_client_unalias_sync()
  */
 gboolean
-snapd_client_disable_aliases_sync (SnapdClient *client,
+snapd_client_disable_aliases_sync (SnapdClient *self,
                                    const gchar *snap, GStrv aliases,
                                    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                    GCancellable *cancellable, GError **error)
@@ -1533,7 +1533,7 @@ snapd_client_disable_aliases_sync (SnapdClient *client,
  * Deprecated: 1.25: Use snapd_client_disable_aliases_sync()
  */
 gboolean
-snapd_client_reset_aliases_sync (SnapdClient *client,
+snapd_client_reset_aliases_sync (SnapdClient *self,
                                  const gchar *snap, GStrv aliases,
                                  SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                                  GCancellable *cancellable, GError **error)
@@ -1560,19 +1560,19 @@ snapd_client_reset_aliases_sync (SnapdClient *client,
  * Since: 1.8
  */
 gboolean
-snapd_client_run_snapctl_sync (SnapdClient *client,
+snapd_client_run_snapctl_sync (SnapdClient *self,
                                const gchar *context_id, GStrv args,
                                gchar **stdout_output, gchar **stderr_output,
                                GCancellable *cancellable, GError **error)
 {
     g_auto(SyncData) data = { 0 };
 
-    g_return_val_if_fail (SNAPD_IS_CLIENT (client), FALSE);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (context_id != NULL, FALSE);
     g_return_val_if_fail (args != NULL, FALSE);
 
     start_sync (&data);
-    snapd_client_run_snapctl_async (client, context_id, args, cancellable, sync_cb, &data);
+    snapd_client_run_snapctl_async (self, context_id, args, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_run_snapctl_finish (client, data.result, stdout_output, stderr_output, error);
+    return snapd_client_run_snapctl_finish (self, data.result, stdout_output, stderr_output, error);
 }

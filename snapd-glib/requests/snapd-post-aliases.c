@@ -28,27 +28,27 @@ _snapd_post_aliases_new (const gchar *action,
                          SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    SnapdPostAliases *request;
+    SnapdPostAliases *self;
 
-    request = SNAPD_POST_ALIASES (g_object_new (snapd_post_aliases_get_type (),
+    self = SNAPD_POST_ALIASES (g_object_new (snapd_post_aliases_get_type (),
                                                 "cancellable", cancellable,
                                                 "ready-callback", callback,
                                                 "ready-callback-data", user_data,
                                                 "progress-callback", progress_callback,
                                                 "progress-callback-data", progress_callback_data,
                                                 NULL));
-    request->action = g_strdup (action);
-    request->snap = g_strdup (snap);
-    request->app = g_strdup (app);
-    request->alias = g_strdup (alias);
+    self->action = g_strdup (action);
+    self->snap = g_strdup (snap);
+    self->app = g_strdup (app);
+    self->alias = g_strdup (alias);
 
-    return request;
+    return self;
 }
 
 static SoupMessage *
-generate_post_aliases_request (SnapdRequest *request)
+generate_post_aliases_request (SnapdRequest *self)
 {
-    SnapdPostAliases *r = SNAPD_POST_ALIASES (request);
+    SnapdPostAliases *r = SNAPD_POST_ALIASES (self);
     SoupMessage *message;
     g_autoptr(JsonBuilder) builder = NULL;
 
@@ -79,12 +79,12 @@ generate_post_aliases_request (SnapdRequest *request)
 static void
 snapd_post_aliases_finalize (GObject *object)
 {
-    SnapdPostAliases *request = SNAPD_POST_ALIASES (object);
+    SnapdPostAliases *self = SNAPD_POST_ALIASES (object);
 
-    g_clear_pointer (&request->action, g_free);
-    g_clear_pointer (&request->snap, g_free);
-    g_clear_pointer (&request->app, g_free);
-    g_clear_pointer (&request->alias, g_free);
+    g_clear_pointer (&self->action, g_free);
+    g_clear_pointer (&self->snap, g_free);
+    g_clear_pointer (&self->app, g_free);
+    g_clear_pointer (&self->alias, g_free);
 
     G_OBJECT_CLASS (snapd_post_aliases_parent_class)->finalize (object);
 }
@@ -100,6 +100,6 @@ snapd_post_aliases_class_init (SnapdPostAliasesClass *klass)
 }
 
 static void
-snapd_post_aliases_init (SnapdPostAliases *request)
+snapd_post_aliases_init (SnapdPostAliases *self)
 {
 }

@@ -64,10 +64,10 @@ snapd_screenshot_new (void)
  * Since: 1.0
  */
 const gchar *
-snapd_screenshot_get_url (SnapdScreenshot *screenshot)
+snapd_screenshot_get_url (SnapdScreenshot *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SCREENSHOT (screenshot), NULL);
-    return screenshot->url;
+    g_return_val_if_fail (SNAPD_IS_SCREENSHOT (self), NULL);
+    return self->url;
 }
 
 /**
@@ -81,10 +81,10 @@ snapd_screenshot_get_url (SnapdScreenshot *screenshot)
  * Since: 1.0
  */
 guint
-snapd_screenshot_get_width (SnapdScreenshot *screenshot)
+snapd_screenshot_get_width (SnapdScreenshot *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SCREENSHOT (screenshot), 0);
-    return screenshot->width;
+    g_return_val_if_fail (SNAPD_IS_SCREENSHOT (self), 0);
+    return self->width;
 }
 
 /**
@@ -98,27 +98,27 @@ snapd_screenshot_get_width (SnapdScreenshot *screenshot)
  * Since: 1.0
  */
 guint
-snapd_screenshot_get_height (SnapdScreenshot *screenshot)
+snapd_screenshot_get_height (SnapdScreenshot *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SCREENSHOT (screenshot), 0);
-    return screenshot->height;
+    g_return_val_if_fail (SNAPD_IS_SCREENSHOT (self), 0);
+    return self->height;
 }
 
 static void
 snapd_screenshot_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdScreenshot *screenshot = SNAPD_SCREENSHOT (object);
+    SnapdScreenshot *self = SNAPD_SCREENSHOT (object);
 
     switch (prop_id) {
     case PROP_URL:
-        g_free (screenshot->url);
-        screenshot->url = g_strdup (g_value_get_string (value));
+        g_free (self->url);
+        self->url = g_strdup (g_value_get_string (value));
         break;
     case PROP_WIDTH:
-        screenshot->width = g_value_get_uint (value);
+        self->width = g_value_get_uint (value);
         break;
     case PROP_HEIGHT:
-        screenshot->height = g_value_get_uint (value);
+        self->height = g_value_get_uint (value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -129,17 +129,17 @@ snapd_screenshot_set_property (GObject *object, guint prop_id, const GValue *val
 static void
 snapd_screenshot_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdScreenshot *screenshot = SNAPD_SCREENSHOT (object);
+    SnapdScreenshot *self = SNAPD_SCREENSHOT (object);
 
     switch (prop_id) {
     case PROP_URL:
-        g_value_set_string (value, screenshot->url);
+        g_value_set_string (value, self->url);
         break;
     case PROP_WIDTH:
-        g_value_set_uint (value, screenshot->width);
+        g_value_set_uint (value, self->width);
         break;
     case PROP_HEIGHT:
-        g_value_set_uint (value, screenshot->height);
+        g_value_set_uint (value, self->height);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -150,9 +150,9 @@ snapd_screenshot_get_property (GObject *object, guint prop_id, GValue *value, GP
 static void
 snapd_screenshot_finalize (GObject *object)
 {
-    SnapdScreenshot *screenshot = SNAPD_SCREENSHOT (object);
+    SnapdScreenshot *self = SNAPD_SCREENSHOT (object);
 
-    g_clear_pointer (&screenshot->url, g_free);
+    g_clear_pointer (&self->url, g_free);
 
     G_OBJECT_CLASS (snapd_screenshot_parent_class)->finalize (object);
 }
@@ -190,6 +190,6 @@ snapd_screenshot_class_init (SnapdScreenshotClass *klass)
 }
 
 static void
-snapd_screenshot_init (SnapdScreenshot *screenshot)
+snapd_screenshot_init (SnapdScreenshot *self)
 {
 }

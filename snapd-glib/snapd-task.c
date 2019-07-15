@@ -73,14 +73,14 @@ G_DEFINE_TYPE (SnapdTask, snapd_task, G_TYPE_OBJECT)
  * Since: 1.0
  */
 const gchar *
-snapd_task_get_id (SnapdTask *task)
+snapd_task_get_id (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
-        return snapd_change_get_id (SNAPD_CHANGE (task));
+    if (SNAPD_IS_CHANGE (self))
+        return snapd_change_get_id (SNAPD_CHANGE (self));
 
-    g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
-    return task->id;
+    g_return_val_if_fail (SNAPD_IS_TASK (self), NULL);
+    return self->id;
 }
 
 /**
@@ -94,14 +94,14 @@ snapd_task_get_id (SnapdTask *task)
  * Since: 1.0
  */
 const gchar *
-snapd_task_get_kind (SnapdTask *task)
+snapd_task_get_kind (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
-        return snapd_change_get_kind (SNAPD_CHANGE (task));
+    if (SNAPD_IS_CHANGE (self))
+        return snapd_change_get_kind (SNAPD_CHANGE (self));
 
-    g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
-    return task->kind;
+    g_return_val_if_fail (SNAPD_IS_TASK (self), NULL);
+    return self->kind;
 }
 
 /**
@@ -115,14 +115,14 @@ snapd_task_get_kind (SnapdTask *task)
  * Since: 1.0
  */
 const gchar *
-snapd_task_get_summary (SnapdTask *task)
+snapd_task_get_summary (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
-        return snapd_change_get_summary (SNAPD_CHANGE (task));
+    if (SNAPD_IS_CHANGE (self))
+        return snapd_change_get_summary (SNAPD_CHANGE (self));
 
-    g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
-    return task->summary;
+    g_return_val_if_fail (SNAPD_IS_TASK (self), NULL);
+    return self->summary;
 }
 
 /**
@@ -136,14 +136,14 @@ snapd_task_get_summary (SnapdTask *task)
  * Since: 1.0
  */
 const gchar *
-snapd_task_get_status (SnapdTask *task)
+snapd_task_get_status (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
-        return snapd_change_get_status (SNAPD_CHANGE (task));
+    if (SNAPD_IS_CHANGE (self))
+        return snapd_change_get_status (SNAPD_CHANGE (self));
 
-    g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
-    return task->status;
+    g_return_val_if_fail (SNAPD_IS_TASK (self), NULL);
+    return self->status;
 }
 
 /**
@@ -159,11 +159,11 @@ snapd_task_get_status (SnapdTask *task)
  * Since: 1.0
  */
 gboolean
-snapd_task_get_ready (SnapdTask *task)
+snapd_task_get_ready (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
-        return snapd_change_get_ready (SNAPD_CHANGE (task));
+    if (SNAPD_IS_CHANGE (self))
+        return snapd_change_get_ready (SNAPD_CHANGE (self));
 
     return FALSE;
 }
@@ -179,14 +179,14 @@ snapd_task_get_ready (SnapdTask *task)
  * Since: 1.5
  */
 const gchar *
-snapd_task_get_progress_label (SnapdTask *task)
+snapd_task_get_progress_label (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
+    if (SNAPD_IS_CHANGE (self))
         return NULL;
 
-    g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
-    return task->progress_label;
+    g_return_val_if_fail (SNAPD_IS_TASK (self), NULL);
+    return self->progress_label;
 }
 
 /**
@@ -200,14 +200,14 @@ snapd_task_get_progress_label (SnapdTask *task)
  * Since: 1.0
  */
 gint64
-snapd_task_get_progress_done (SnapdTask *task)
+snapd_task_get_progress_done (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
+    if (SNAPD_IS_CHANGE (self))
         return 0;
 
-    g_return_val_if_fail (SNAPD_IS_TASK (task), 0);
-    return task->progress_done;
+    g_return_val_if_fail (SNAPD_IS_TASK (self), 0);
+    return self->progress_done;
 }
 
 /**
@@ -221,14 +221,14 @@ snapd_task_get_progress_done (SnapdTask *task)
  * Since: 1.0
  */
 gint64
-snapd_task_get_progress_total (SnapdTask *task)
+snapd_task_get_progress_total (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
+    if (SNAPD_IS_CHANGE (self))
         return 0;
 
-    g_return_val_if_fail (SNAPD_IS_TASK (task), 0);
-    return task->progress_total;
+    g_return_val_if_fail (SNAPD_IS_TASK (self), 0);
+    return self->progress_total;
 }
 
 /**
@@ -242,14 +242,14 @@ snapd_task_get_progress_total (SnapdTask *task)
  * Since: 1.0
  */
 GDateTime *
-snapd_task_get_spawn_time (SnapdTask *task)
+snapd_task_get_spawn_time (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
-        return snapd_change_get_spawn_time (SNAPD_CHANGE (task));
+    if (SNAPD_IS_CHANGE (self))
+        return snapd_change_get_spawn_time (SNAPD_CHANGE (self));
 
-    g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
-    return task->spawn_time;
+    g_return_val_if_fail (SNAPD_IS_TASK (self), NULL);
+    return self->spawn_time;
 }
 
 /**
@@ -263,60 +263,60 @@ snapd_task_get_spawn_time (SnapdTask *task)
  * Since: 1.0
  */
 GDateTime *
-snapd_task_get_ready_time (SnapdTask *task)
+snapd_task_get_ready_time (SnapdTask *self)
 {
     /* Workaround to handle API change in SnapdProgressCallback */
-    if (SNAPD_IS_CHANGE (task))
-        return snapd_change_get_ready_time (SNAPD_CHANGE (task));
+    if (SNAPD_IS_CHANGE (self))
+        return snapd_change_get_ready_time (SNAPD_CHANGE (self));
 
-    g_return_val_if_fail (SNAPD_IS_TASK (task), NULL);
-    return task->ready_time;
+    g_return_val_if_fail (SNAPD_IS_TASK (self), NULL);
+    return self->ready_time;
 }
 
 static void
 snapd_task_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdTask *task = SNAPD_TASK (object);
+    SnapdTask *self = SNAPD_TASK (object);
 
     switch (prop_id) {
     case PROP_ID:
-        g_free (task->id);
-        task->id = g_strdup (g_value_get_string (value));
+        g_free (self->id);
+        self->id = g_strdup (g_value_get_string (value));
         break;
     case PROP_KIND:
-        g_free (task->kind);
-        task->kind = g_strdup (g_value_get_string (value));
+        g_free (self->kind);
+        self->kind = g_strdup (g_value_get_string (value));
         break;
     case PROP_SUMMARY:
-        g_free (task->summary);
-        task->summary = g_strdup (g_value_get_string (value));
+        g_free (self->summary);
+        self->summary = g_strdup (g_value_get_string (value));
         break;
     case PROP_STATUS:
-        g_free (task->status);
-        task->status = g_strdup (g_value_get_string (value));
+        g_free (self->status);
+        self->status = g_strdup (g_value_get_string (value));
         break;
     case PROP_READY:
         // Deprecated
         break;
     case PROP_PROGRESS_LABEL:
-        g_free (task->progress_label);
-        task->progress_label = g_strdup (g_value_get_string (value));
+        g_free (self->progress_label);
+        self->progress_label = g_strdup (g_value_get_string (value));
         break;
     case PROP_PROGRESS_DONE:
-        task->progress_done = g_value_get_int64 (value);
+        self->progress_done = g_value_get_int64 (value);
         break;
     case PROP_PROGRESS_TOTAL:
-        task->progress_total = g_value_get_int64 (value);
+        self->progress_total = g_value_get_int64 (value);
         break;
     case PROP_SPAWN_TIME:
-        g_clear_pointer (&task->spawn_time, g_date_time_unref);
+        g_clear_pointer (&self->spawn_time, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
-            task->spawn_time = g_date_time_ref (g_value_get_boxed (value));
+            self->spawn_time = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_READY_TIME:
-        g_clear_pointer (&task->ready_time, g_date_time_unref);
+        g_clear_pointer (&self->ready_time, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
-            task->ready_time = g_date_time_ref (g_value_get_boxed (value));
+            self->ready_time = g_date_time_ref (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -327,38 +327,38 @@ snapd_task_set_property (GObject *object, guint prop_id, const GValue *value, GP
 static void
 snapd_task_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdTask *task = SNAPD_TASK (object);
+    SnapdTask *self = SNAPD_TASK (object);
 
     switch (prop_id) {
     case PROP_ID:
-        g_value_set_string (value, task->id);
+        g_value_set_string (value, self->id);
         break;
     case PROP_KIND:
-        g_value_set_string (value, task->kind);
+        g_value_set_string (value, self->kind);
         break;
     case PROP_SUMMARY:
-        g_value_set_string (value, task->summary);
+        g_value_set_string (value, self->summary);
         break;
     case PROP_STATUS:
-        g_value_set_string (value, task->status);
+        g_value_set_string (value, self->status);
         break;
     case PROP_PROGRESS_LABEL:
-        g_value_set_string (value, task->progress_label);
+        g_value_set_string (value, self->progress_label);
         break;
     case PROP_PROGRESS_DONE:
-        g_value_set_int64 (value, task->progress_done);
+        g_value_set_int64 (value, self->progress_done);
         break;
     case PROP_PROGRESS_TOTAL:
-        g_value_set_int64 (value, task->progress_total);
+        g_value_set_int64 (value, self->progress_total);
         break;
     case PROP_READY:
         g_value_set_boolean (value, FALSE);
         break;
     case PROP_SPAWN_TIME:
-        g_value_set_boxed (value, task->spawn_time);
+        g_value_set_boxed (value, self->spawn_time);
         break;
     case PROP_READY_TIME:
-        g_value_set_boxed (value, task->ready_time);
+        g_value_set_boxed (value, self->ready_time);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -369,15 +369,15 @@ snapd_task_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
 static void
 snapd_task_finalize (GObject *object)
 {
-    SnapdTask *task = SNAPD_TASK (object);
+    SnapdTask *self = SNAPD_TASK (object);
 
-    g_clear_pointer (&task->id, g_free);
-    g_clear_pointer (&task->kind, g_free);
-    g_clear_pointer (&task->summary, g_free);
-    g_clear_pointer (&task->status, g_free);
-    g_clear_pointer (&task->progress_label, g_free);
-    g_clear_pointer (&task->spawn_time, g_date_time_unref);
-    g_clear_pointer (&task->ready_time, g_date_time_unref);
+    g_clear_pointer (&self->id, g_free);
+    g_clear_pointer (&self->kind, g_free);
+    g_clear_pointer (&self->summary, g_free);
+    g_clear_pointer (&self->status, g_free);
+    g_clear_pointer (&self->progress_label, g_free);
+    g_clear_pointer (&self->spawn_time, g_date_time_unref);
+    g_clear_pointer (&self->ready_time, g_date_time_unref);
 
     G_OBJECT_CLASS (snapd_task_parent_class)->finalize (object);
 }
@@ -464,6 +464,6 @@ snapd_task_class_init (SnapdTaskClass *klass)
 }
 
 static void
-snapd_task_init (SnapdTask *task)
+snapd_task_init (SnapdTask *self)
 {
 }

@@ -89,10 +89,10 @@ G_DEFINE_TYPE (SnapdSystemInformation, snapd_system_information, G_TYPE_OBJECT)
  * Since: 1.11
  */
 const gchar *
-snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_information)
+snapd_system_information_get_binaries_directory (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->binaries_directory;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->binaries_directory;
 }
 
 /**
@@ -106,10 +106,10 @@ snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_
  * Since: 1.40
  */
 const gchar *
-snapd_system_information_get_build_id (SnapdSystemInformation *system_information)
+snapd_system_information_get_build_id (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->build_id;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->build_id;
 }
 
 /**
@@ -123,10 +123,10 @@ snapd_system_information_get_build_id (SnapdSystemInformation *system_informatio
  * Since: 1.15
  */
 SnapdSystemConfinement
-snapd_system_information_get_confinement (SnapdSystemInformation *system_information)
+snapd_system_information_get_confinement (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), SNAPD_SYSTEM_CONFINEMENT_UNKNOWN);
-    return system_information->confinement;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), SNAPD_SYSTEM_CONFINEMENT_UNKNOWN);
+    return self->confinement;
 }
 
 /**
@@ -140,10 +140,10 @@ snapd_system_information_get_confinement (SnapdSystemInformation *system_informa
  * Since: 1.11
  */
 const gchar *
-snapd_system_information_get_kernel_version (SnapdSystemInformation *system_information)
+snapd_system_information_get_kernel_version (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->kernel_version;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->kernel_version;
 }
 
 /**
@@ -157,10 +157,10 @@ snapd_system_information_get_kernel_version (SnapdSystemInformation *system_info
  * Since: 1.7
  */
 gboolean
-snapd_system_information_get_managed (SnapdSystemInformation *system_information)
+snapd_system_information_get_managed (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), FALSE);
-    return system_information->managed;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), FALSE);
+    return self->managed;
 }
 
 /**
@@ -174,10 +174,10 @@ snapd_system_information_get_managed (SnapdSystemInformation *system_information
  * Since: 1.11
  */
 const gchar *
-snapd_system_information_get_mount_directory (SnapdSystemInformation *system_information)
+snapd_system_information_get_mount_directory (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->mount_directory;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->mount_directory;
 }
 
 /**
@@ -191,10 +191,10 @@ snapd_system_information_get_mount_directory (SnapdSystemInformation *system_inf
  * Since: 1.0
  */
 gboolean
-snapd_system_information_get_on_classic (SnapdSystemInformation *system_information)
+snapd_system_information_get_on_classic (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), FALSE);
-    return system_information->on_classic;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), FALSE);
+    return self->on_classic;
 }
 
 /**
@@ -208,10 +208,10 @@ snapd_system_information_get_on_classic (SnapdSystemInformation *system_informat
  * Since: 1.0
  */
 const gchar *
-snapd_system_information_get_os_id (SnapdSystemInformation *system_information)
+snapd_system_information_get_os_id (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->os_id;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->os_id;
 }
 
 /**
@@ -225,10 +225,10 @@ snapd_system_information_get_os_id (SnapdSystemInformation *system_information)
  * Since: 1.0
  */
 const gchar *
-snapd_system_information_get_os_version (SnapdSystemInformation *system_information)
+snapd_system_information_get_os_version (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->os_version;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->os_version;
 }
 
 /**
@@ -242,10 +242,10 @@ snapd_system_information_get_os_version (SnapdSystemInformation *system_informat
  * Since: 1.42
  */
 GDateTime *
-snapd_system_information_get_refresh_hold (SnapdSystemInformation *system_information)
+snapd_system_information_get_refresh_hold (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->refresh_hold;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->refresh_hold;
 }
 
 /**
@@ -259,10 +259,10 @@ snapd_system_information_get_refresh_hold (SnapdSystemInformation *system_inform
  * Since: 1.42
  */
 GDateTime *
-snapd_system_information_get_refresh_last (SnapdSystemInformation *system_information)
+snapd_system_information_get_refresh_last (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->refresh_last;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->refresh_last;
 }
 
 /**
@@ -276,10 +276,10 @@ snapd_system_information_get_refresh_last (SnapdSystemInformation *system_inform
  * Since: 1.42
  */
 GDateTime *
-snapd_system_information_get_refresh_next (SnapdSystemInformation *system_information)
+snapd_system_information_get_refresh_next (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->refresh_next;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->refresh_next;
 }
 
 /**
@@ -293,10 +293,10 @@ snapd_system_information_get_refresh_next (SnapdSystemInformation *system_inform
  * Since: 1.42
  */
 const gchar *
-snapd_system_information_get_refresh_schedule (SnapdSystemInformation *system_information)
+snapd_system_information_get_refresh_schedule (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->refresh_schedule;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->refresh_schedule;
 }
 
 /**
@@ -310,10 +310,10 @@ snapd_system_information_get_refresh_schedule (SnapdSystemInformation *system_in
  * Since: 1.42
  */
 const gchar *
-snapd_system_information_get_refresh_timer (SnapdSystemInformation *system_information)
+snapd_system_information_get_refresh_timer (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->refresh_timer;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->refresh_timer;
 }
 
 /**
@@ -329,10 +329,10 @@ snapd_system_information_get_refresh_timer (SnapdSystemInformation *system_infor
  * Since: 1.42
  */
 GHashTable *
-snapd_system_information_get_sandbox_features (SnapdSystemInformation *system_information)
+snapd_system_information_get_sandbox_features (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->sandbox_features;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->sandbox_features;
 }
 
 /**
@@ -346,10 +346,10 @@ snapd_system_information_get_sandbox_features (SnapdSystemInformation *system_in
  * Since: 1.0
  */
 const gchar *
-snapd_system_information_get_series (SnapdSystemInformation *system_information)
+snapd_system_information_get_series (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->series;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->series;
 }
 
 /**
@@ -363,10 +363,10 @@ snapd_system_information_get_series (SnapdSystemInformation *system_information)
  * Since: 1.7
  */
 const gchar *
-snapd_system_information_get_store (SnapdSystemInformation *system_information)
+snapd_system_information_get_store (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->store;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->store;
 }
 
 /**
@@ -380,89 +380,89 @@ snapd_system_information_get_store (SnapdSystemInformation *system_information)
  * Since: 1.0
  */
 const gchar *
-snapd_system_information_get_version (SnapdSystemInformation *system_information)
+snapd_system_information_get_version (SnapdSystemInformation *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (system_information), NULL);
-    return system_information->version;
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->version;
 }
 
 static void
 snapd_system_information_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
+    SnapdSystemInformation *self = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
     case PROP_BINARIES_DIRECTORY:
-        g_free (system_information->binaries_directory);
-        system_information->binaries_directory = g_strdup (g_value_get_string (value));
+        g_free (self->binaries_directory);
+        self->binaries_directory = g_strdup (g_value_get_string (value));
         break;
     case PROP_BUILD_ID:
-        g_free (system_information->build_id);
-        system_information->build_id = g_strdup (g_value_get_string (value));
+        g_free (self->build_id);
+        self->build_id = g_strdup (g_value_get_string (value));
         break;
     case PROP_CONFINEMENT:
-        system_information->confinement = g_value_get_enum (value);
+        self->confinement = g_value_get_enum (value);
         break;
     case PROP_KERNEL_VERSION:
-        g_free (system_information->kernel_version);
-        system_information->kernel_version = g_strdup (g_value_get_string (value));
+        g_free (self->kernel_version);
+        self->kernel_version = g_strdup (g_value_get_string (value));
         break;
     case PROP_MANAGED:
-        system_information->managed = g_value_get_boolean (value);
+        self->managed = g_value_get_boolean (value);
         break;
     case PROP_MOUNT_DIRECTORY:
-        g_free (system_information->mount_directory);
-        system_information->mount_directory = g_strdup (g_value_get_string (value));
+        g_free (self->mount_directory);
+        self->mount_directory = g_strdup (g_value_get_string (value));
         break;
     case PROP_ON_CLASSIC:
-        system_information->on_classic = g_value_get_boolean (value);
+        self->on_classic = g_value_get_boolean (value);
         break;
     case PROP_OS_ID:
-        g_free (system_information->os_id);
-        system_information->os_id = g_strdup (g_value_get_string (value));
+        g_free (self->os_id);
+        self->os_id = g_strdup (g_value_get_string (value));
         break;
     case PROP_OS_VERSION:
-        g_free (system_information->os_version);
-        system_information->os_version = g_strdup (g_value_get_string (value));
+        g_free (self->os_version);
+        self->os_version = g_strdup (g_value_get_string (value));
         break;
     case PROP_REFRESH_HOLD:
-        g_clear_pointer (&system_information->refresh_hold, g_date_time_unref);
+        g_clear_pointer (&self->refresh_hold, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
-            system_information->refresh_hold = g_date_time_ref (g_value_get_boxed (value));
+            self->refresh_hold = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_REFRESH_LAST:
-        g_clear_pointer (&system_information->refresh_last, g_date_time_unref);
+        g_clear_pointer (&self->refresh_last, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
-            system_information->refresh_last = g_date_time_ref (g_value_get_boxed (value));
+            self->refresh_last = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_REFRESH_NEXT:
-        g_clear_pointer (&system_information->refresh_next, g_date_time_unref);
+        g_clear_pointer (&self->refresh_next, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
-            system_information->refresh_next = g_date_time_ref (g_value_get_boxed (value));
+            self->refresh_next = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_REFRESH_SCHEDULE:
-        g_free (system_information->refresh_schedule);
-        system_information->refresh_schedule = g_strdup (g_value_get_string (value));
+        g_free (self->refresh_schedule);
+        self->refresh_schedule = g_strdup (g_value_get_string (value));
         break;
     case PROP_REFRESH_TIMER:
-        g_free (system_information->refresh_timer);
-        system_information->refresh_timer = g_strdup (g_value_get_string (value));
+        g_free (self->refresh_timer);
+        self->refresh_timer = g_strdup (g_value_get_string (value));
         break;
     case PROP_SANDBOX_FEATURES:
-        g_hash_table_unref (system_information->sandbox_features);
-        system_information->sandbox_features = g_hash_table_ref (g_value_get_pointer (value));
+        g_hash_table_unref (self->sandbox_features);
+        self->sandbox_features = g_hash_table_ref (g_value_get_pointer (value));
         break;
     case PROP_SERIES:
-        g_free (system_information->series);
-        system_information->series = g_strdup (g_value_get_string (value));
+        g_free (self->series);
+        self->series = g_strdup (g_value_get_string (value));
         break;
     case PROP_STORE:
-        g_free (system_information->store);
-        system_information->store = g_strdup (g_value_get_string (value));
+        g_free (self->store);
+        self->store = g_strdup (g_value_get_string (value));
         break;
     case PROP_VERSION:
-        g_free (system_information->version);
-        system_information->version = g_strdup (g_value_get_string (value));
+        g_free (self->version);
+        self->version = g_strdup (g_value_get_string (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -473,62 +473,62 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
 static void
 snapd_system_information_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
+    SnapdSystemInformation *self = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
     case PROP_BINARIES_DIRECTORY:
-        g_value_set_string (value, system_information->binaries_directory);
+        g_value_set_string (value, self->binaries_directory);
         break;
     case PROP_BUILD_ID:
-        g_value_set_string (value, system_information->build_id);
+        g_value_set_string (value, self->build_id);
         break;
     case PROP_CONFINEMENT:
-        g_value_set_enum (value, system_information->confinement);
+        g_value_set_enum (value, self->confinement);
         break;
     case PROP_KERNEL_VERSION:
-        g_value_set_string (value, system_information->kernel_version);
+        g_value_set_string (value, self->kernel_version);
         break;
     case PROP_MANAGED:
-        g_value_set_boolean (value, system_information->managed);
+        g_value_set_boolean (value, self->managed);
         break;
     case PROP_MOUNT_DIRECTORY:
-        g_value_set_string (value, system_information->mount_directory);
+        g_value_set_string (value, self->mount_directory);
         break;
     case PROP_ON_CLASSIC:
-        g_value_set_boolean (value, system_information->on_classic);
+        g_value_set_boolean (value, self->on_classic);
         break;
     case PROP_OS_ID:
-        g_value_set_string (value, system_information->os_id);
+        g_value_set_string (value, self->os_id);
         break;
     case PROP_OS_VERSION:
-        g_value_set_string (value, system_information->os_version);
+        g_value_set_string (value, self->os_version);
         break;
     case PROP_REFRESH_HOLD:
-        g_value_set_boxed (value, system_information->refresh_hold);
+        g_value_set_boxed (value, self->refresh_hold);
         break;
     case PROP_REFRESH_LAST:
-        g_value_set_boxed (value, system_information->refresh_last);
+        g_value_set_boxed (value, self->refresh_last);
         break;
     case PROP_REFRESH_NEXT:
-        g_value_set_boxed (value, system_information->refresh_next);
+        g_value_set_boxed (value, self->refresh_next);
         break;
     case PROP_REFRESH_SCHEDULE:
-        g_value_set_string (value, system_information->refresh_schedule);
+        g_value_set_string (value, self->refresh_schedule);
         break;
     case PROP_REFRESH_TIMER:
-        g_value_set_string (value, system_information->refresh_timer);
+        g_value_set_string (value, self->refresh_timer);
         break;
     case PROP_SANDBOX_FEATURES:
-        g_value_set_pointer (value, system_information->sandbox_features);
+        g_value_set_pointer (value, self->sandbox_features);
         break;
     case PROP_SERIES:
-        g_value_set_string (value, system_information->series);
+        g_value_set_string (value, self->series);
         break;
     case PROP_STORE:
-        g_value_set_string (value, system_information->store);
+        g_value_set_string (value, self->store);
         break;
     case PROP_VERSION:
-        g_value_set_string (value, system_information->version);
+        g_value_set_string (value, self->version);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -539,23 +539,23 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
 static void
 snapd_system_information_finalize (GObject *object)
 {
-    SnapdSystemInformation *system_information = SNAPD_SYSTEM_INFORMATION (object);
+    SnapdSystemInformation *self = SNAPD_SYSTEM_INFORMATION (object);
 
-    g_clear_pointer (&system_information->binaries_directory, g_free);
-    g_clear_pointer (&system_information->build_id, g_free);
-    g_clear_pointer (&system_information->kernel_version, g_free);
-    g_clear_pointer (&system_information->mount_directory, g_free);
-    g_clear_pointer (&system_information->os_id, g_free);
-    g_clear_pointer (&system_information->os_version, g_free);
-    g_clear_pointer (&system_information->refresh_hold, g_date_time_unref);
-    g_clear_pointer (&system_information->refresh_last, g_date_time_unref);
-    g_clear_pointer (&system_information->refresh_next, g_date_time_unref);
-    g_clear_pointer (&system_information->refresh_schedule, g_free);
-    g_clear_pointer (&system_information->refresh_timer, g_free);
-    g_clear_pointer (&system_information->sandbox_features, g_hash_table_unref);
-    g_clear_pointer (&system_information->series, g_free);
-    g_clear_pointer (&system_information->store, g_free);
-    g_clear_pointer (&system_information->version, g_free);
+    g_clear_pointer (&self->binaries_directory, g_free);
+    g_clear_pointer (&self->build_id, g_free);
+    g_clear_pointer (&self->kernel_version, g_free);
+    g_clear_pointer (&self->mount_directory, g_free);
+    g_clear_pointer (&self->os_id, g_free);
+    g_clear_pointer (&self->os_version, g_free);
+    g_clear_pointer (&self->refresh_hold, g_date_time_unref);
+    g_clear_pointer (&self->refresh_last, g_date_time_unref);
+    g_clear_pointer (&self->refresh_next, g_date_time_unref);
+    g_clear_pointer (&self->refresh_schedule, g_free);
+    g_clear_pointer (&self->refresh_timer, g_free);
+    g_clear_pointer (&self->sandbox_features, g_hash_table_unref);
+    g_clear_pointer (&self->series, g_free);
+    g_clear_pointer (&self->store, g_free);
+    g_clear_pointer (&self->version, g_free);
 
     G_OBJECT_CLASS (snapd_system_information_parent_class)->finalize (object);
 }
@@ -697,7 +697,7 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
 }
 
 static void
-snapd_system_information_init (SnapdSystemInformation *system_information)
+snapd_system_information_init (SnapdSystemInformation *self)
 {
-    system_information->sandbox_features = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_strfreev);
+    self->sandbox_features = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_strfreev);
 }

@@ -66,10 +66,10 @@ snapd_media_new (void)
  * Since: 1.45
  */
 const gchar *
-snapd_media_get_media_type (SnapdMedia *media)
+snapd_media_get_media_type (SnapdMedia *self)
 {
-    g_return_val_if_fail (SNAPD_IS_MEDIA (media), NULL);
-    return media->type;
+    g_return_val_if_fail (SNAPD_IS_MEDIA (self), NULL);
+    return self->type;
 }
 
 /**
@@ -83,10 +83,10 @@ snapd_media_get_media_type (SnapdMedia *media)
  * Since: 1.45
  */
 const gchar *
-snapd_media_get_url (SnapdMedia *media)
+snapd_media_get_url (SnapdMedia *self)
 {
-    g_return_val_if_fail (SNAPD_IS_MEDIA (media), NULL);
-    return media->url;
+    g_return_val_if_fail (SNAPD_IS_MEDIA (self), NULL);
+    return self->url;
 }
 
 /**
@@ -100,10 +100,10 @@ snapd_media_get_url (SnapdMedia *media)
  * Since: 1.45
  */
 guint
-snapd_media_get_width (SnapdMedia *media)
+snapd_media_get_width (SnapdMedia *self)
 {
-    g_return_val_if_fail (SNAPD_IS_MEDIA (media), 0);
-    return media->width;
+    g_return_val_if_fail (SNAPD_IS_MEDIA (self), 0);
+    return self->width;
 }
 
 /**
@@ -117,31 +117,31 @@ snapd_media_get_width (SnapdMedia *media)
  * Since: 1.45
  */
 guint
-snapd_media_get_height (SnapdMedia *media)
+snapd_media_get_height (SnapdMedia *self)
 {
-    g_return_val_if_fail (SNAPD_IS_MEDIA (media), 0);
-    return media->height;
+    g_return_val_if_fail (SNAPD_IS_MEDIA (self), 0);
+    return self->height;
 }
 
 static void
 snapd_media_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdMedia *media = SNAPD_MEDIA (object);
+    SnapdMedia *self = SNAPD_MEDIA (object);
 
     switch (prop_id) {
     case PROP_TYPE:
-        g_free (media->type);
-        media->type = g_strdup (g_value_get_string (value));
+        g_free (self->type);
+        self->type = g_strdup (g_value_get_string (value));
         break;
     case PROP_URL:
-        g_free (media->url);
-        media->url = g_strdup (g_value_get_string (value));
+        g_free (self->url);
+        self->url = g_strdup (g_value_get_string (value));
         break;
     case PROP_WIDTH:
-        media->width = g_value_get_uint (value);
+        self->width = g_value_get_uint (value);
         break;
     case PROP_HEIGHT:
-        media->height = g_value_get_uint (value);
+        self->height = g_value_get_uint (value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -152,20 +152,20 @@ snapd_media_set_property (GObject *object, guint prop_id, const GValue *value, G
 static void
 snapd_media_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdMedia *media = SNAPD_MEDIA (object);
+    SnapdMedia *self = SNAPD_MEDIA (object);
 
     switch (prop_id) {
     case PROP_TYPE:
-        g_value_set_string (value, media->type);
+        g_value_set_string (value, self->type);
         break;
     case PROP_URL:
-        g_value_set_string (value, media->url);
+        g_value_set_string (value, self->url);
         break;
     case PROP_WIDTH:
-        g_value_set_uint (value, media->width);
+        g_value_set_uint (value, self->width);
         break;
     case PROP_HEIGHT:
-        g_value_set_uint (value, media->height);
+        g_value_set_uint (value, self->height);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -176,10 +176,10 @@ snapd_media_get_property (GObject *object, guint prop_id, GValue *value, GParamS
 static void
 snapd_media_finalize (GObject *object)
 {
-    SnapdMedia *media = SNAPD_MEDIA (object);
+    SnapdMedia *self = SNAPD_MEDIA (object);
 
-    g_clear_pointer (&media->type, g_free);
-    g_clear_pointer (&media->url, g_free);
+    g_clear_pointer (&self->type, g_free);
+    g_clear_pointer (&self->url, g_free);
 
     G_OBJECT_CLASS (snapd_media_parent_class)->finalize (object);
 }
@@ -224,6 +224,6 @@ snapd_media_class_init (SnapdMediaClass *klass)
 }
 
 static void
-snapd_media_init (SnapdMedia *media)
+snapd_media_init (SnapdMedia *self)
 {
 }
