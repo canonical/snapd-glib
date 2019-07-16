@@ -5,7 +5,7 @@ services:
 
 env:
   - IMAGE=ubuntu:rolling
-#  - IMAGE=fedora:latest
+  - IMAGE=fedora:latest
 
 language: c
 
