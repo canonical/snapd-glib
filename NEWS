@@ -1,3 +1,19 @@
+Overview of changes in snapd-glib 1.49
+
+    * New API:
+      - snapd_client_get_connections2_async
+      - snapd_client_get_connections2_finish
+      - snapd_client_get_connections2_sync
+      - SnapdGetConnectionsFlags
+    * Deprecated API:
+      - snapd_client_get_connections_async
+      - snapd_client_get_connections_finish
+      - snapd_client_get_connections_sync
+    * Fix memory leaks
+    * Add snapd_client_get_connections2 to add missing filter fields from
+      snapd_client_get_connections
+    * Use C99 variable style
+
 Overview of changes in snapd-glib 1.48
 
     * New API:
