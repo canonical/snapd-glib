@@ -1774,7 +1774,7 @@ setup_get_snap_conf (MockSnapd *snapd)
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
     mock_snap_set_conf (s, "number-key", "1.25");
-    mock_snap_set_conf (s, "array-key", "[ 1, \"two\", 3.0 ]");
+    mock_snap_set_conf (s, "array-key", "[ 1, \"two\", 3.25 ]");
     mock_snap_set_conf (s, "object-key", "{\"name\": \"foo\", \"value\": 42}");
 }
 
@@ -1884,7 +1884,7 @@ setup_set_snap_conf (MockSnapd *snapd)
     configuration["int-key"] = (qlonglong) 42;
     configuration["bool-key"] = true;
     configuration["number-key"] = 1.25;
-    configuration["array-key"] = QVariantList () << 1 << "two" << 3.0;
+    configuration["array-key"] = QVariantList () << 1 << "two" << 3.25;
     QHash<QString, QVariant> object;
     object["name"] = "foo";
     object["value"] = 42;
@@ -1902,7 +1902,7 @@ check_set_snap_conf_result (MockSnapd *snapd)
     g_assert_cmpstr (mock_snap_get_conf (snap, "int-key"), ==, "42");
     g_assert_cmpstr (mock_snap_get_conf (snap, "bool-key"), ==, "true");
     g_assert_cmpstr (mock_snap_get_conf (snap, "number-key"), ==, "1.25");
-    g_assert_cmpstr (mock_snap_get_conf (snap, "array-key"), ==, "[1,\"two\",3.0]");
+    g_assert_cmpstr (mock_snap_get_conf (snap, "array-key"), ==, "[1,\"two\",3.25]");
     g_assert_cmpstr (mock_snap_get_conf (snap, "object-key"), ==, "{\"name\":\"foo\",\"value\":42}");
 }
 
