@@ -42,20 +42,17 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(AsyncData, async_data_free)
 static void
 test_socket_closed_before_request (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     mock_snapd_stop (snapd);
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_null (info);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_CONNECTION_FAILED);
 }
@@ -63,19 +60,16 @@ test_socket_closed_before_request (void)
 static void
 test_socket_closed_after_request (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_close_on_request (snapd, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_null (info);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED);
 }
@@ -83,18 +77,15 @@ test_socket_closed_after_request (void)
 static void
 test_socket_closed_reconnect (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_clear_object (&info);
@@ -111,18 +102,15 @@ test_socket_closed_reconnect (void)
 static void
 test_socket_closed_reconnect_after_failure (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_clear_object (&info);
@@ -145,11 +133,8 @@ test_socket_closed_reconnect_after_failure (void)
 static void
 test_client_set_socket_path (void)
 {
-    g_autoptr(SnapdClient) client = NULL;
-    g_autofree gchar *default_path = NULL;
-
-    client = snapd_client_new ();
-    default_path = g_strdup (snapd_client_get_socket_path (client));
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    g_autofree gchar *default_path = g_strdup (snapd_client_get_socket_path (client));
 
     snapd_client_set_socket_path (client, "first.sock");
     g_assert_cmpstr (snapd_client_get_socket_path (client), ==, "first.sock");
@@ -164,20 +149,17 @@ test_client_set_socket_path (void)
 static void
 test_user_agent_default (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_cmpstr (snapd_client_get_user_agent (client), ==, "snapd-glib/" VERSION);
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (mock_snapd_get_last_user_agent (snapd), ==, "snapd-glib/" VERSION);
@@ -186,19 +168,16 @@ test_user_agent_default (void)
 static void
 test_user_agent_custom (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_set_user_agent (client, "Foo/1.0");
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (mock_snapd_get_last_user_agent (snapd), ==, "Foo/1.0");
@@ -207,19 +186,16 @@ test_user_agent_custom (void)
 static void
 test_user_agent_null (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_set_user_agent (client, NULL);
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (mock_snapd_get_last_user_agent (snapd), ==, NULL);
@@ -228,23 +204,20 @@ test_user_agent_null (void)
 static void
 test_accept_language (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-
     g_setenv ("LANG", "en_US.UTF-8", TRUE);
     g_setenv ("LANGUAGE", "en_US:fr", TRUE);
     g_setenv ("LC_ALL", "", TRUE);
     g_setenv ("LC_MESSAGES", "", TRUE);
 
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (mock_snapd_get_last_accept_language (snapd), ==, "en-us, en;q=0.9, fr;q=0.8");
@@ -253,23 +226,20 @@ test_accept_language (void)
 static void
 test_accept_language_empty (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-
     g_setenv ("LANG", "", TRUE);
     g_setenv ("LANGUAGE", "", TRUE);
     g_setenv ("LC_ALL", "", TRUE);
     g_setenv ("LC_MESSAGES", "", TRUE);
 
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (mock_snapd_get_last_accept_language (snapd), ==, "en");
@@ -278,23 +248,19 @@ test_accept_language_empty (void)
 static void
 test_allow_interaction (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info1 = NULL;
-    g_autoptr(SnapdSystemInformation) info2 = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     /* By default, interaction is allowed */
     g_assert_true (snapd_client_get_allow_interaction (client));
 
     /* ... which sends the X-Allow-Interaction header with requests */
-    info1 = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info1 = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info1);
     g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, "true");
@@ -302,7 +268,7 @@ test_allow_interaction (void)
     /* If interaction is not allowed, the header is not sent */
     snapd_client_set_allow_interaction (client, FALSE);
     g_assert_false (snapd_client_get_allow_interaction (client));
-    info2 = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info2 = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info2);
     g_assert_cmpstr (mock_snapd_get_last_allow_interaction (snapd), ==, NULL);
@@ -311,47 +277,39 @@ test_allow_interaction (void)
 static void
 test_maintenance_none (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    SnapdMaintenance *maintenance;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
 
-    maintenance = snapd_client_get_maintenance (client);
+    SnapdMaintenance *maintenance = snapd_client_get_maintenance (client);
     g_assert_null (maintenance);
 }
 
 static void
 test_maintenance_daemon_restart (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    SnapdMaintenance *maintenance;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_maintenance (snapd, "daemon-restart", "daemon is restarting");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
 
-    maintenance = snapd_client_get_maintenance (client);
+    SnapdMaintenance *maintenance = snapd_client_get_maintenance (client);
     g_assert_nonnull (maintenance);
     g_assert_cmpint (snapd_maintenance_get_kind (maintenance), ==, SNAPD_MAINTENANCE_KIND_DAEMON_RESTART);
     g_assert_cmpstr (snapd_maintenance_get_message (maintenance), ==, "daemon is restarting");
@@ -360,24 +318,20 @@ test_maintenance_daemon_restart (void)
 static void
 test_maintenance_system_restart (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    SnapdMaintenance *maintenance;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_maintenance (snapd, "system-restart", "system is restarting");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
 
-    maintenance = snapd_client_get_maintenance (client);
+    SnapdMaintenance *maintenance = snapd_client_get_maintenance (client);
     g_assert_nonnull (maintenance);
     g_assert_cmpint (snapd_maintenance_get_kind (maintenance), ==, SNAPD_MAINTENANCE_KIND_SYSTEM_RESTART);
     g_assert_cmpstr (snapd_maintenance_get_message (maintenance), ==, "system is restarting");
@@ -386,24 +340,20 @@ test_maintenance_system_restart (void)
 static void
 test_maintenance_unknown (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    SnapdMaintenance *maintenance;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_maintenance (snapd, "no-such-kind", "MESSAGE");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
 
-    maintenance = snapd_client_get_maintenance (client);
+    SnapdMaintenance *maintenance = snapd_client_get_maintenance (client);
     g_assert_nonnull (maintenance);
     g_assert_cmpint (snapd_maintenance_get_kind (maintenance), ==, SNAPD_MAINTENANCE_KIND_UNKNOWN);
     g_assert_cmpstr (snapd_maintenance_get_message (maintenance), ==, "MESSAGE");
@@ -421,14 +371,7 @@ date_matches (GDateTime *date, int year, int month, int day, int hour, int minut
 static void
 test_get_system_information_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-    GHashTable *sandbox_features;
-    GStrv backend_features;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
     mock_snapd_set_build_id (snapd, "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
@@ -436,12 +379,14 @@ test_get_system_information_sync (void)
     mock_snapd_add_sandbox_feature (snapd, "backend", "feature2");
     mock_snapd_set_refresh_timer (snapd, "00:00~24:00/4");
     mock_snapd_set_refresh_next (snapd, "2018-01-19T13:14:15Z");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (snapd_system_information_get_build_id (info), ==, "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
@@ -461,9 +406,9 @@ test_get_system_information_sync (void)
     g_assert_null (snapd_system_information_get_refresh_last (info));
     g_assert (date_matches (snapd_system_information_get_refresh_next (info), 2018, 1, 19, 13, 14, 15));
     g_assert_null (snapd_system_information_get_store (info));
-    sandbox_features = snapd_system_information_get_sandbox_features (info);
+    GHashTable *sandbox_features = snapd_system_information_get_sandbox_features (info);
     g_assert_nonnull (sandbox_features);
-    backend_features = g_hash_table_lookup (sandbox_features, "backend");
+    GStrv backend_features = g_hash_table_lookup (sandbox_features, "backend");
     g_assert_nonnull (backend_features);
     g_assert_cmpint (g_strv_length (backend_features), ==, 2);
     g_assert_cmpstr (backend_features[0], ==, "feature1");
@@ -473,11 +418,10 @@ test_get_system_information_sync (void)
 static void
 system_information_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    g_autoptr(SnapdSystemInformation) info = NULL;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    info = snapd_client_get_system_information_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_UNKNOWN);
@@ -498,19 +442,16 @@ system_information_cb (GObject *object, GAsyncResult *result, gpointer user_data
 static void
 test_get_system_information_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_system_information_async (client, NULL, system_information_cb, async_data_new (loop, snapd));
@@ -520,19 +461,16 @@ test_get_system_information_async (void)
 static void
 test_get_system_information_store (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_store (snapd, "store");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (snapd_system_information_get_store (info), ==, "store");
@@ -541,22 +479,19 @@ test_get_system_information_store (void)
 static void
 test_get_system_information_refresh (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_refresh_timer (snapd, "00:00~24:00/4");
     mock_snapd_set_refresh_hold (snapd, "2018-01-20T01:02:03Z");
     mock_snapd_set_refresh_last (snapd, "2018-01-19T01:02:03Z");
     mock_snapd_set_refresh_next (snapd, "2018-01-19T13:14:15Z");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_null (snapd_system_information_get_refresh_schedule (info));
@@ -569,19 +504,16 @@ test_get_system_information_refresh (void)
 static void
 test_get_system_information_refresh_schedule (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_refresh_schedule (snapd, "00:00-04:59/5:00-10:59/11:00-16:59/17:00-23:59");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (snapd_system_information_get_refresh_schedule (info), ==, "00:00-04:59/5:00-10:59/11:00-16:59/17:00-23:59");
@@ -591,19 +523,16 @@ test_get_system_information_refresh_schedule (void)
 static void
 test_get_system_information_confinement_strict (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "strict");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_STRICT);
@@ -612,19 +541,16 @@ test_get_system_information_confinement_strict (void)
 static void
 test_get_system_information_confinement_none (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "partial");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_PARTIAL);
@@ -633,19 +559,16 @@ test_get_system_information_confinement_none (void)
 static void
 test_get_system_information_confinement_unknown (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
-    g_autoptr(SnapdSystemInformation) info = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_confinement (snapd, "NOT_DEFINED");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    info = snapd_client_get_system_information_sync (client, NULL, &error);
+    g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_UNKNOWN);
@@ -654,39 +577,31 @@ test_get_system_information_confinement_unknown (void)
 static void
 test_login_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_auto(GStrv) keys = NULL;
-    GStrv ssh_keys = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    SnapdAuthData *auth_data;
-    int i;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    keys = g_strsplit ("KEY1;KEY2", ";", -1);
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_auto(GStrv) keys = g_strsplit ("KEY1;KEY2", ";", -1);
     mock_account_set_ssh_keys (a, keys);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     g_assert_cmpint (snapd_user_information_get_id (user_information), ==, 1);
     g_assert_cmpstr (snapd_user_information_get_email (user_information), ==, "test@example.com");
     g_assert_cmpstr (snapd_user_information_get_username (user_information), ==, "test");
-    ssh_keys = snapd_user_information_get_ssh_keys (user_information);
+    GStrv ssh_keys = snapd_user_information_get_ssh_keys (user_information);
     g_assert_nonnull (ssh_keys);
     g_assert_cmpint (g_strv_length (ssh_keys), ==, 0);
-    auth_data = snapd_user_information_get_auth_data (user_information);
+    SnapdAuthData *auth_data = snapd_user_information_get_auth_data (user_information);
     g_assert_nonnull (auth_data);
     g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, mock_account_get_macaroon (a));
     g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
-    for (i = 0; mock_account_get_discharges (a)[i]; i++)
+    for (int i = 0; mock_account_get_discharges (a)[i]; i++)
         g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
 }
 
@@ -694,29 +609,24 @@ static void
 login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    MockAccount *a;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    GStrv ssh_keys = NULL;
-    SnapdAuthData *auth_data;
-    int i;
+
+    MockAccount *a = mock_snapd_find_account_by_username (data->snapd, "test");
+
     g_autoptr(GError) error = NULL;
-
-    a = mock_snapd_find_account_by_username (data->snapd, "test");
-
-    user_information = snapd_client_login2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     g_assert_cmpint (snapd_user_information_get_id (user_information), ==, 1);
     g_assert_cmpstr (snapd_user_information_get_email (user_information), ==, "test@example.com");
     g_assert_cmpstr (snapd_user_information_get_username (user_information), ==, "test");
-    ssh_keys = snapd_user_information_get_ssh_keys (user_information);
+    GStrv ssh_keys = snapd_user_information_get_ssh_keys (user_information);
     g_assert_nonnull (ssh_keys);
     g_assert_cmpint (g_strv_length (ssh_keys), ==, 0);
-    auth_data = snapd_user_information_get_auth_data (user_information);
+    SnapdAuthData *auth_data = snapd_user_information_get_auth_data (user_information);
     g_assert_nonnull (auth_data);
     g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, mock_account_get_macaroon (a));
     g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
-    for (i = 0; mock_account_get_discharges (a)[i]; i++)
+    for (int i = 0; mock_account_get_discharges (a)[i]; i++)
         g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
 
     g_main_loop_quit (data->loop);
@@ -725,22 +635,17 @@ login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_login_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_auto(GStrv) keys = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
-    keys = g_strsplit ("KEY1;KEY2", ";", -1);
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_auto(GStrv) keys = g_strsplit ("KEY1;KEY2", ";", -1);
     mock_account_set_ssh_keys (a, keys);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_login2_async (client, "test@example.com", "secret", NULL, NULL, login_cb, async_data_new (loop, snapd));
@@ -750,18 +655,15 @@ test_login_async (void)
 static void
 test_login_invalid_email (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "not-an-email", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "not-an-email", "secret", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_INVALID);
     g_assert_null (user_information);
 }
@@ -769,19 +671,16 @@ test_login_invalid_email (void)
 static void
 test_login_invalid_password (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "invalid", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "invalid", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_REQUIRED);
     g_assert_null (user_information);
 }
@@ -789,21 +688,17 @@ test_login_invalid_password (void)
 static void
 test_login_otp_missing (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_otp (a, "1234");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_REQUIRED);
     g_assert_null (user_information);
 }
@@ -811,21 +706,17 @@ test_login_otp_missing (void)
 static void
 test_login_otp_invalid (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_otp (a, "1234");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", "0000", NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", "0000", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_TWO_FACTOR_INVALID);
     g_assert_null (user_information);
 }
@@ -833,47 +724,34 @@ test_login_otp_invalid (void)
 static void
 test_login_legacy (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdAuthData) auth_data = NULL;
-    int i;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
 
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdAuthData) auth_data = snapd_client_login_sync (client, "test@example.com", "secret", NULL, NULL, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (auth_data);
     g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, mock_account_get_macaroon (a));
     g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
-    for (i = 0; mock_account_get_discharges (a)[i]; i++)
+    for (int i = 0; mock_account_get_discharges (a)[i]; i++)
         g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
 }
 
 static void
 test_get_changes_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    MockTask *t;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) changes = NULL;
-    GPtrArray *tasks;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
+    MockChange *c = mock_snapd_add_change (snapd);
     mock_change_set_spawn_time (c, "2017-01-02T11:00:00Z");
-    t = mock_change_add_task (c, "download");
+    MockTask *t = mock_change_add_task (c, "download");
     mock_task_set_progress (t, 65535, 65535);
     mock_task_set_status (t, "Done");
     mock_task_set_spawn_time (t, "2017-01-02T11:00:00Z");
@@ -891,12 +769,13 @@ test_get_changes_sync (void)
     mock_task_set_progress (t, 0, 1);
     mock_task_set_spawn_time (t, "2017-01-02T11:15:00Z");
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_ALL, NULL, NULL, &error);
+    g_autoptr(GPtrArray) changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_ALL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (changes);
     g_assert_cmpint (changes->len, ==, 2);
@@ -909,7 +788,7 @@ test_get_changes_sync (void)
     g_assert (date_matches (snapd_change_get_spawn_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 0));
     g_assert (date_matches (snapd_change_get_ready_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 30));
     g_assert_null (snapd_change_get_error (changes->pdata[0]));
-    tasks = snapd_change_get_tasks (changes->pdata[0]);
+    GPtrArray *tasks = snapd_change_get_tasks (changes->pdata[0]);
     g_assert_cmpint (tasks->len, ==, 2);
 
     g_assert_cmpstr (snapd_task_get_id (tasks->pdata[0]), ==, "100");
@@ -958,11 +837,9 @@ static void
 get_changes_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GPtrArray) changes = NULL;
-    GPtrArray *tasks;
-    g_autoptr(GError) error = NULL;
 
-    changes = snapd_client_get_changes_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) changes = snapd_client_get_changes_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (changes);
     g_assert_cmpint (changes->len, ==, 2);
@@ -975,7 +852,7 @@ get_changes_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert (date_matches (snapd_change_get_spawn_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 0));
     g_assert (date_matches (snapd_change_get_ready_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 30));
     g_assert_null (snapd_change_get_error (changes->pdata[0]));
-    tasks = snapd_change_get_tasks (changes->pdata[0]);
+    GPtrArray *tasks = snapd_change_get_tasks (changes->pdata[0]);
     g_assert_cmpint (tasks->len, ==, 2);
 
     g_assert_cmpstr (snapd_task_get_id (tasks->pdata[0]), ==, "100");
@@ -1025,20 +902,13 @@ get_changes_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_get_changes_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    MockTask *t;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
+    MockChange *c = mock_snapd_add_change (snapd);
     mock_change_set_spawn_time (c, "2017-01-02T11:00:00Z");
-    t = mock_change_add_task (c, "download");
+    MockTask *t = mock_change_add_task (c, "download");
     mock_task_set_progress (t, 65535, 65535);
     mock_task_set_status (t, "Done");
     mock_task_set_spawn_time (t, "2017-01-02T11:00:00Z");
@@ -1056,9 +926,10 @@ test_get_changes_async (void)
     mock_task_set_progress (t, 0, 1);
     mock_task_set_spawn_time (t, "2017-01-02T11:15:00Z");
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_changes_async (client, SNAPD_CHANGE_FILTER_ALL, NULL, NULL, get_changes_cb, async_data_new (loop, snapd));
@@ -1068,32 +939,26 @@ test_get_changes_async (void)
 static void
 test_get_changes_filter_in_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    MockTask *t;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) changes = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    MockChange *c = mock_snapd_add_change (snapd);
+    MockTask *t = mock_change_add_task (c, "foo");
+    mock_task_set_status (t, "Done");
+
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "foo");
+
+    c = mock_snapd_add_change (snapd);
+    t = mock_change_add_task (c, "foo");
+    mock_task_set_status (t, "Done");
+
     g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
-    t = mock_change_add_task (c, "foo");
-    mock_task_set_status (t, "Done");
-
-    c = mock_snapd_add_change (snapd);
-    t = mock_change_add_task (c, "foo");
-
-    c = mock_snapd_add_change (snapd);
-    t = mock_change_add_task (c, "foo");
-    mock_task_set_status (t, "Done");
-
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_IN_PROGRESS, NULL, NULL, &error);
+    g_autoptr(GPtrArray) changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_IN_PROGRESS, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (changes);
     g_assert_cmpint (changes->len, ==, 1);
@@ -1103,17 +968,10 @@ test_get_changes_filter_in_progress (void)
 static void
 test_get_changes_filter_ready (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    MockTask *t;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) changes = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
-    t = mock_change_add_task (c, "foo");
+    MockChange *c = mock_snapd_add_change (snapd);
+    MockTask *t = mock_change_add_task (c, "foo");
 
     c = mock_snapd_add_change (snapd);
     t = mock_change_add_task (c, "foo");
@@ -1122,12 +980,13 @@ test_get_changes_filter_ready (void)
     c = mock_snapd_add_change (snapd);
     t = mock_change_add_task (c, "foo");
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_READY, NULL, NULL, &error);
+    g_autoptr(GPtrArray) changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_READY, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (changes);
     g_assert_cmpint (changes->len, ==, 1);
@@ -1137,17 +996,10 @@ test_get_changes_filter_ready (void)
 static void
 test_get_changes_filter_snap (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    MockTask *t;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) changes = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
-    t = mock_change_add_task (c, "install");
+    MockChange *c = mock_snapd_add_change (snapd);
+    MockTask *t = mock_change_add_task (c, "install");
     mock_task_set_snap_name (t, "snap1");
 
     c = mock_snapd_add_change (snapd);
@@ -1158,12 +1010,13 @@ test_get_changes_filter_snap (void)
     t = mock_change_add_task (c, "install");
     mock_task_set_snap_name (t, "snap3");
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_ALL, "snap2", NULL, &error);
+    g_autoptr(GPtrArray) changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_ALL, "snap2", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (changes);
     g_assert_cmpint (changes->len, ==, 1);
@@ -1173,17 +1026,10 @@ test_get_changes_filter_snap (void)
 static void
 test_get_changes_filter_ready_snap (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    MockTask *t;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) changes = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
-    t = mock_change_add_task (c, "install");
+    MockChange *c = mock_snapd_add_change (snapd);
+    MockTask *t = mock_change_add_task (c, "install");
     mock_task_set_snap_name (t, "snap1");
 
     c = mock_snapd_add_change (snapd);
@@ -1195,12 +1041,13 @@ test_get_changes_filter_ready_snap (void)
     t = mock_change_add_task (c, "install");
     mock_task_set_snap_name (t, "snap2");
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_READY, "snap2", NULL, &error);
+    g_autoptr(GPtrArray) changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_READY, "snap2", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (changes);
     g_assert_cmpint (changes->len, ==, 1);
@@ -1210,19 +1057,11 @@ test_get_changes_filter_ready_snap (void)
 static void
 test_get_change_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    MockTask *t;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdChange) change = NULL;
-    GPtrArray *tasks;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
+    MockChange *c = mock_snapd_add_change (snapd);
     mock_change_set_spawn_time (c, "2017-01-02T11:00:00Z");
-    t = mock_change_add_task (c, "download");
+    MockTask *t = mock_change_add_task (c, "download");
     mock_task_set_progress (t, 65535, 65535);
     mock_task_set_status (t, "Done");
     mock_task_set_spawn_time (t, "2017-01-02T11:00:00Z");
@@ -1240,12 +1079,13 @@ test_get_change_sync (void)
     mock_task_set_progress (t, 0, 1);
     mock_task_set_spawn_time (t, "2017-01-02T11:15:00Z");
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    change = snapd_client_get_change_sync (client, "1", NULL, &error);
+    g_autoptr(SnapdChange) change = snapd_client_get_change_sync (client, "1", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (change);
 
@@ -1257,7 +1097,7 @@ test_get_change_sync (void)
     g_assert (date_matches (snapd_change_get_spawn_time (change), 2017, 1, 2, 11, 0, 0));
     g_assert (date_matches (snapd_change_get_ready_time (change), 2017, 1, 2, 11, 0, 30));
     g_assert_null (snapd_change_get_error (change));
-    tasks = snapd_change_get_tasks (change);
+    GPtrArray *tasks = snapd_change_get_tasks (change);
     g_assert_cmpint (tasks->len, ==, 2);
 
     g_assert_cmpstr (snapd_task_get_id (tasks->pdata[0]), ==, "100");
@@ -1275,11 +1115,9 @@ static void
 get_change_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(SnapdChange) change = NULL;
-    GPtrArray *tasks;
-    g_autoptr(GError) error = NULL;
 
-    change = snapd_client_get_change_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdChange) change = snapd_client_get_change_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (change);
 
@@ -1291,7 +1129,7 @@ get_change_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert (date_matches (snapd_change_get_spawn_time (change), 2017, 1, 2, 11, 0, 0));
     g_assert (date_matches (snapd_change_get_ready_time (change), 2017, 1, 2, 11, 0, 30));
     g_assert_null (snapd_change_get_error (change));
-    tasks = snapd_change_get_tasks (change);
+    GPtrArray *tasks = snapd_change_get_tasks (change);
     g_assert_cmpint (tasks->len, ==, 2);
 
     g_assert_cmpstr (snapd_task_get_id (tasks->pdata[0]), ==, "100");
@@ -1310,20 +1148,13 @@ get_change_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_get_change_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    MockTask *t;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
+    MockChange *c = mock_snapd_add_change (snapd);
     mock_change_set_spawn_time (c, "2017-01-02T11:00:00Z");
-    t = mock_change_add_task (c, "download");
+    MockTask *t = mock_change_add_task (c, "download");
     mock_task_set_progress (t, 65535, 65535);
     mock_task_set_status (t, "Done");
     mock_task_set_spawn_time (t, "2017-01-02T11:00:00Z");
@@ -1341,9 +1172,10 @@ test_get_change_async (void)
     mock_task_set_progress (t, 0, 1);
     mock_task_set_spawn_time (t, "2017-01-02T11:15:00Z");
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_change_async (client, "1", NULL, get_change_cb, async_data_new (loop, snapd));
@@ -1353,30 +1185,24 @@ test_get_change_async (void)
 static void
 test_abort_change_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdChange) change = NULL;
-    GPtrArray *tasks;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
+    MockChange *c = mock_snapd_add_change (snapd);
     mock_change_add_task (c, "foo");
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    change = snapd_client_abort_change_sync (client, "1", NULL, &error);
+    g_autoptr(SnapdChange) change = snapd_client_abort_change_sync (client, "1", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (change);
     g_assert_true (snapd_change_get_ready (change));
     g_assert_cmpstr (snapd_change_get_status (change), ==, "Error");
     g_assert_cmpstr (snapd_change_get_error (change), ==, "cancelled");
-    tasks = snapd_change_get_tasks (change);
+    GPtrArray *tasks = snapd_change_get_tasks (change);
     g_assert_cmpint (tasks->len, ==, 1);
     g_assert_cmpstr (snapd_task_get_status (tasks->pdata[0]), ==, "Error");
 }
@@ -1385,17 +1211,15 @@ static void
 abort_change_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(SnapdChange) change = NULL;
-    GPtrArray *tasks;
-    g_autoptr(GError) error = NULL;
 
-    change = snapd_client_abort_change_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdChange) change = snapd_client_abort_change_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (change);
     g_assert_true (snapd_change_get_ready (change));
     g_assert_cmpstr (snapd_change_get_status (change), ==, "Error");
     g_assert_cmpstr (snapd_change_get_error (change), ==, "cancelled");
-    tasks = snapd_change_get_tasks (change);
+    GPtrArray *tasks = snapd_change_get_tasks (change);
     g_assert_cmpint (tasks->len, ==, 1);
     g_assert_cmpstr (snapd_task_get_status (tasks->pdata[0]), ==, "Error");
 
@@ -1405,22 +1229,17 @@ abort_change_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_abort_change_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockChange *c;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    c = mock_snapd_add_change (snapd);
+    MockChange *c = mock_snapd_add_change (snapd);
     mock_change_add_task (c, "foo");
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_abort_change_async (client, "1", NULL, abort_change_cb, async_data_new (loop, snapd));
@@ -1430,22 +1249,19 @@ test_abort_change_async (void)
 static void
 test_list_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    snaps = snapd_client_list_sync (client, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_list_sync (client, NULL, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
@@ -1458,12 +1274,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 list_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
+    g_autoptr(GError) error = NULL;
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    snaps = snapd_client_list_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_list_finish (SNAPD_CLIENT (object), result, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
@@ -1478,20 +1293,17 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_list_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
@@ -1503,24 +1315,20 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_snaps_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_set_status (s, "installed");
     mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_NONE, NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_NONE, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 3);
@@ -1532,11 +1340,10 @@ test_get_snaps_sync (void)
 static void
 get_snaps_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    snaps = snapd_client_get_snaps_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) snaps = snapd_client_get_snaps_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 3);
@@ -1550,23 +1357,19 @@ get_snaps_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_get_snaps_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_set_status (s, "installed");
     mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_snaps_async (client, SNAPD_GET_SNAPS_FLAGS_NONE, NULL, NULL, get_snaps_cb, async_data_new (loop, snapd));
@@ -1576,25 +1379,21 @@ test_get_snaps_async (void)
 static void
 test_get_snaps_filter (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    gchar *filter_snaps[] = { "snap1", NULL };
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_set_status (s, "installed");
     mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE, filter_snaps, NULL, &error);
+    gchar *filter_snaps[] = { "snap1", NULL };
+    g_autoptr(GPtrArray) snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE, filter_snaps, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 2);
@@ -1607,20 +1406,17 @@ test_get_snaps_filter (void)
 static void
 test_list_one_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    snap = snapd_client_list_one_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_list_one_sync (client, "snap", NULL, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snap);
@@ -1662,12 +1458,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 list_one_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    g_autoptr(SnapdSnap) snap = NULL;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
+    g_autoptr(GError) error = NULL;
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    snap = snapd_client_list_one_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_list_one_finish (SNAPD_CLIENT (object), result, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snap);
@@ -1713,18 +1508,15 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_list_one_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
@@ -1736,19 +1528,16 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_snap_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
@@ -1789,11 +1578,10 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 get_snap_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    g_autoptr(SnapdSnap) snap = NULL;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    snap = snapd_client_get_snap_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
@@ -1838,18 +1626,15 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_snap_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_snap_async (client, "snap", NULL, get_snap_cb, async_data_new (loop, snapd));
@@ -1859,17 +1644,9 @@ test_get_snap_async (void)
 static void
 test_get_snap_optional_fields (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    MockApp *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-    SnapdApp *app;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
     mock_app_add_auto_alias (a, "app2");
     mock_app_add_auto_alias (a, "app3");
     mock_app_set_desktop_file (a, "/var/lib/snapd/desktop/applications/app.desktop");
@@ -1888,16 +1665,18 @@ test_get_snap_optional_fields (void)
     mock_snap_set_mounted_from (s, "MOUNTED-FROM");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 1);
-    app = snapd_snap_get_apps (snap)->pdata[0];
+    SnapdApp *app = snapd_snap_get_apps (snap)->pdata[0];
     g_assert_cmpstr (snapd_app_get_name (app), ==, "app");
     g_assert_null (snapd_app_get_common_id (app));
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
@@ -1943,19 +1722,16 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_snap_deprecated_fields (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
@@ -1966,35 +1742,28 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_snap_common_ids (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    MockApp *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    GStrv common_ids;
-    g_autoptr(GError) error = NULL;
-    SnapdApp *app;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app1");
     mock_app_set_common_id (a, "ID1");
     a = mock_snap_add_app (s, "app2");
     mock_app_set_common_id (a, "ID2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
-    common_ids = snapd_snap_get_common_ids (snap);
+    GStrv common_ids = snapd_snap_get_common_ids (snap);
     g_assert_cmpint (g_strv_length (common_ids), ==, 2);
     g_assert_cmpstr (common_ids[0], ==, "ID1");
     g_assert_cmpstr (common_ids[1], ==, "ID2");
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 2);
-    app = snapd_snap_get_apps (snap)->pdata[0];
+    SnapdApp *app = snapd_snap_get_apps (snap)->pdata[0];
     g_assert_cmpstr (snapd_app_get_name (app), ==, "app1");
     g_assert_cmpstr (snapd_app_get_common_id (app), ==, "ID1");
     app = snapd_snap_get_apps (snap)->pdata[1];
@@ -2005,18 +1774,15 @@ test_get_snap_common_ids (void)
 static void
 test_get_snap_not_installed (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
     g_assert_null (snap);
 }
@@ -2024,21 +1790,17 @@ test_get_snap_not_installed (void)
 static void
 test_get_snap_classic_confinement (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_CLASSIC);
@@ -2047,21 +1809,17 @@ test_get_snap_classic_confinement (void)
 static void
 test_get_snap_devmode_confinement (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_confinement (s, "devmode");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_DEVMODE);
@@ -2070,17 +1828,9 @@ test_get_snap_devmode_confinement (void)
 static void
 test_get_snap_daemons (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    MockApp *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-    SnapdApp *app;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app1");
     mock_app_set_daemon (a, "simple");
     a = mock_snap_add_app (s, "app2");
     mock_app_set_daemon (a, "forking");
@@ -2092,16 +1842,18 @@ test_get_snap_daemons (void)
     mock_app_set_daemon (a, "dbus");
     a = mock_snap_add_app (s, "app6");
     mock_app_set_daemon (a, "INVALID");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 6);
-    app = snapd_snap_get_apps (snap)->pdata[0];
+    SnapdApp *app = snapd_snap_get_apps (snap)->pdata[0];
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_SIMPLE);
     app = snapd_snap_get_apps (snap)->pdata[1];
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_FORKING);
@@ -2118,21 +1870,17 @@ test_get_snap_daemons (void)
 static void
 test_get_snap_publisher_verified (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_publisher_validation (s, "verified");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_VERIFIED);
@@ -2141,21 +1889,17 @@ test_get_snap_publisher_verified (void)
 static void
 test_get_snap_publisher_unproven (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_publisher_validation (s, "unproven");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_UNPROVEN);
@@ -2164,21 +1908,17 @@ test_get_snap_publisher_unproven (void)
 static void
 test_get_snap_publisher_unknown_validation (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdSnap) snap = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_publisher_validation (s, "NOT-A-VALIDIATION");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_VERIFIED);
@@ -2187,9 +1927,7 @@ test_get_snap_publisher_unknown_validation (void)
 static void
 setup_get_snap_conf (MockSnapd *snapd)
 {
-    MockSnap *s;
-
-    s = mock_snapd_add_snap (snapd, "core");
+    MockSnap *s = mock_snapd_add_snap (snapd, "core");
     mock_snap_set_conf (s, "string-key", "\"value\"");
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
@@ -2201,10 +1939,8 @@ setup_get_snap_conf (MockSnapd *snapd)
 static void
 check_get_snap_conf_result (GHashTable *conf)
 {
-    GVariant *value;
-
     g_assert_cmpint (g_hash_table_size (conf), ==, 6);
-    value = g_hash_table_lookup (conf, "string-key");
+    GVariant *value = g_hash_table_lookup (conf, "string-key");
     g_assert_nonnull (value);
     g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
     g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
@@ -2225,19 +1961,16 @@ check_get_snap_conf_result (GHashTable *conf)
 static void
 test_get_snap_conf_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GHashTable) conf = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     setup_get_snap_conf (snapd);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    conf = snapd_client_get_snap_conf_sync (client, "system", NULL, NULL, &error);
+    g_autoptr(GHashTable) conf = snapd_client_get_snap_conf_sync (client, "system", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (conf);
 
@@ -2248,10 +1981,9 @@ static void
 get_snap_conf_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GHashTable) conf = NULL;
-    g_autoptr(GError) error = NULL;
 
-    conf = snapd_client_get_snap_conf_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GHashTable) conf = snapd_client_get_snap_conf_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (conf);
 
@@ -2263,18 +1995,15 @@ get_snap_conf_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_get_snap_conf_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     setup_get_snap_conf (snapd);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_snap_conf_async (client, "system", NULL, NULL, get_snap_conf_cb, async_data_new (loop, snapd));
@@ -2284,29 +2013,24 @@ test_get_snap_conf_async (void)
 static void
 test_get_snap_conf_key_filter (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gchar *filter_keys[] = { "int-key", NULL };
-    g_autoptr(GHashTable) conf = NULL;
-    GVariant *value;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "core");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "core");
     mock_snap_set_conf (s, "string-key", "\"value\"");
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    conf = snapd_client_get_snap_conf_sync (client, "system", filter_keys, NULL, &error);
+    gchar *filter_keys[] = { "int-key", NULL };
+    g_autoptr(GHashTable) conf = snapd_client_get_snap_conf_sync (client, "system", filter_keys, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (conf);
     g_assert_cmpint (g_hash_table_size (conf), ==, 1);
-    value = g_hash_table_lookup (conf, "int-key");
+    GVariant *value = g_hash_table_lookup (conf, "int-key");
     g_assert_nonnull (value);
     g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
     g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
@@ -2315,24 +2039,20 @@ test_get_snap_conf_key_filter (void)
 static void
 test_get_snap_conf_invalid_key (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gchar *filter_keys[] = { "invalid-key", NULL };
-    g_autoptr(GHashTable) conf = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "core");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "core");
     mock_snap_set_conf (s, "string-key", "\"value\"");
     mock_snap_set_conf (s, "int-key", "42");
     mock_snap_set_conf (s, "bool-key", "true");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    conf = snapd_client_get_snap_conf_sync (client, "system", filter_keys, NULL, &error);
+    gchar *filter_keys[] = { "invalid-key", NULL };
+    g_autoptr(GHashTable) conf = snapd_client_get_snap_conf_sync (client, "system", filter_keys, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_OPTION_NOT_FOUND);
     g_assert_null (conf);
 }
@@ -2340,23 +2060,19 @@ test_get_snap_conf_invalid_key (void)
 static GHashTable *
 setup_set_snap_conf (MockSnapd *snapd)
 {
-    g_autoptr(GHashTable) key_values = NULL;
-    g_autoptr(GVariantBuilder) array_builder = NULL;
-    g_autoptr(GVariantBuilder) object_builder = NULL;
-
     mock_snapd_add_snap (snapd, "core");
 
-    key_values = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_variant_unref);
+    g_autoptr(GHashTable) key_values = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_variant_unref);
     g_hash_table_insert (key_values, "string-key", g_variant_new_string ("value"));
     g_hash_table_insert (key_values, "int-key", g_variant_new_int64 (42));
     g_hash_table_insert (key_values, "bool-key", g_variant_new_boolean (TRUE));
     g_hash_table_insert (key_values, "number-key", g_variant_new_double (1.25));
-    array_builder = g_variant_builder_new (G_VARIANT_TYPE ("av"));
+    g_autoptr(GVariantBuilder) array_builder = g_variant_builder_new (G_VARIANT_TYPE ("av"));
     g_variant_builder_add (array_builder, "v", g_variant_new_int64 (1));
     g_variant_builder_add (array_builder, "v", g_variant_new_string ("two"));
     g_variant_builder_add (array_builder, "v", g_variant_new_double (3.25));
     g_hash_table_insert (key_values, "array-key", g_variant_builder_end (array_builder));
-    object_builder = g_variant_builder_new (G_VARIANT_TYPE ("a{sv}"));
+    g_autoptr(GVariantBuilder) object_builder = g_variant_builder_new (G_VARIANT_TYPE ("a{sv}"));
     g_variant_builder_add (object_builder, "{sv}", "name", g_variant_new_string ("foo"));
     g_variant_builder_add (object_builder, "{sv}", "value", g_variant_new_int64 (42));
     g_hash_table_insert (key_values, "object-key", g_variant_builder_end (object_builder));
@@ -2367,9 +2083,7 @@ setup_set_snap_conf (MockSnapd *snapd)
 static void
 check_set_snap_conf_result (MockSnapd *snapd)
 {
-    MockSnap *snap;
-
-    snap = mock_snapd_find_snap (snapd, "core");
+    MockSnap *snap = mock_snapd_find_snap (snapd, "core");
     g_assert_cmpint (mock_snap_get_conf_count (snap), ==, 6);
     g_assert_cmpstr (mock_snap_get_conf (snap, "string-key"), ==, "\"value\"");
     g_assert_cmpstr (mock_snap_get_conf (snap, "int-key"), ==, "42");
@@ -2382,20 +2096,16 @@ check_set_snap_conf_result (MockSnapd *snapd)
 static void
 test_set_snap_conf_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GHashTable) key_values = NULL;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_autoptr(GHashTable) key_values = setup_set_snap_conf (snapd);
 
-    snapd = mock_snapd_new ();
-    key_values = setup_set_snap_conf (snapd);
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    r = snapd_client_set_snap_conf_sync (client, "system", key_values, NULL, &error);
+    gboolean r = snapd_client_set_snap_conf_sync (client, "system", key_values, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
@@ -2406,10 +2116,9 @@ static void
 set_snap_conf_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_set_snap_conf_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_set_snap_conf_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
@@ -2421,19 +2130,15 @@ set_snap_conf_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_set_snap_conf_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GHashTable) key_values = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_autoptr(GHashTable) key_values = setup_set_snap_conf (snapd);
+
     g_autoptr(GError) error = NULL;
-
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    key_values = setup_set_snap_conf (snapd);
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_set_snap_conf_async (client, "system", key_values, NULL, set_snap_conf_cb, async_data_new (loop, snapd));
@@ -2443,22 +2148,18 @@ test_set_snap_conf_async (void)
 static void
 test_set_snap_conf_invalid (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GHashTable) key_values = NULL;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "core");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    key_values = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_variant_unref);
+    g_autoptr(GHashTable) key_values = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_variant_unref);
     g_hash_table_insert (key_values, "string-value", g_variant_new_string ("value"));
-    r = snapd_client_set_snap_conf_sync (client, "invalid", key_values, NULL, &error);
+    gboolean r = snapd_client_set_snap_conf_sync (client, "invalid", key_values, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_FOUND);
     g_assert_false (r);
 }
@@ -2466,33 +2167,27 @@ test_set_snap_conf_invalid (void)
 static void
 test_get_apps_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    MockApp *a;
-    g_autoptr(GPtrArray) apps = NULL;
-    SnapdApp *app;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app1");
     a = mock_snap_add_app (s, "app2");
     mock_app_set_desktop_file (a, "foo.desktop");
     a = mock_snap_add_app (s, "app3");
     mock_app_set_daemon (a, "simple");
     mock_app_set_active (a, TRUE);
     mock_app_set_enabled (a, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    apps = snapd_client_get_apps2_sync (client, SNAPD_GET_APPS_FLAGS_NONE, NULL, NULL, &error);
+    g_autoptr(GPtrArray) apps = snapd_client_get_apps2_sync (client, SNAPD_GET_APPS_FLAGS_NONE, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (apps);
     g_assert_cmpint (apps->len, ==, 3);
-    app = apps->pdata[0];
+    SnapdApp *app = apps->pdata[0];
     g_assert_cmpstr (snapd_app_get_name (app), ==, "app1");
     g_assert_cmpstr (snapd_app_get_snap (app), ==, "snap");
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
@@ -2516,15 +2211,13 @@ static void
 get_apps_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GPtrArray) apps = NULL;
-    SnapdApp *app;
-    g_autoptr(GError) error = NULL;
 
-    apps = snapd_client_get_apps2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) apps = snapd_client_get_apps2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (apps);
     g_assert_cmpint (apps->len, ==, 3);
-    app = apps->pdata[0];
+    SnapdApp *app = apps->pdata[0];
     g_assert_cmpstr (snapd_app_get_name (app), ==, "app1");
     g_assert_cmpstr (snapd_app_get_snap (app), ==, "snap");
     g_assert_cmpint (snapd_app_get_daemon_type (app), ==, SNAPD_DAEMON_TYPE_NONE);
@@ -2549,27 +2242,22 @@ get_apps_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_get_apps_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    MockApp *a;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app1");
     a = mock_snap_add_app (s, "app2");
     mock_app_set_desktop_file (a, "foo.desktop");
     a = mock_snap_add_app (s, "app3");
     mock_app_set_daemon (a, "simple");
     mock_app_set_active (a, TRUE);
     mock_app_set_enabled (a, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_apps2_async (client, SNAPD_GET_APPS_FLAGS_NONE, NULL, NULL, get_apps_cb, async_data_new (loop, snapd));
@@ -2579,24 +2267,19 @@ test_get_apps_async (void)
 static void
 test_get_apps_services (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    MockApp *a;
-    g_autoptr(GPtrArray) apps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_add_app (s, "app1");
-    a = mock_snap_add_app (s, "app2");
+    MockApp *a = mock_snap_add_app (s, "app2");
     mock_app_set_daemon (a, "simple");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    apps = snapd_client_get_apps2_sync (client, SNAPD_GET_APPS_FLAGS_SELECT_SERVICES, NULL, NULL, &error);
+    g_autoptr(GPtrArray) apps = snapd_client_get_apps2_sync (client, SNAPD_GET_APPS_FLAGS_SELECT_SERVICES, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (apps);
     g_assert_cmpint (apps->len, ==, 1);
@@ -2606,24 +2289,20 @@ test_get_apps_services (void)
 static void
 test_get_apps_filter (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    g_autoptr(GPtrArray) apps = NULL;
-    gchar *filter_snaps[] = { "snap1", NULL };
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_add_app (s, "app1");
     s = mock_snapd_add_snap (snapd, "snap2");
     mock_snap_add_app (s, "app2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    apps = snapd_client_get_apps2_sync (client, SNAPD_GET_APPS_FLAGS_NONE, filter_snaps, NULL, &error);
+    gchar *filter_snaps[] = { "snap1", NULL };
+    g_autoptr(GPtrArray) apps = snapd_client_get_apps2_sync (client, SNAPD_GET_APPS_FLAGS_NONE, filter_snaps, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (apps);
     g_assert_cmpint (apps->len, ==, 1);
@@ -2634,44 +2313,36 @@ test_get_apps_filter (void)
 static void
 test_icon_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(GBytes) icon_data = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdIcon) icon = NULL;
-    GBytes *data;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    icon_data = g_bytes_new ("ICON-DATA", 9);
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(GBytes) icon_data = g_bytes_new ("ICON-DATA", 9);
     mock_snap_set_icon_data (s, "image/png", icon_data);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    icon = snapd_client_get_icon_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdIcon) icon = snapd_client_get_icon_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (icon);
     g_assert_cmpstr (snapd_icon_get_mime_type (icon), ==, "image/png");
-    data = snapd_icon_get_data (icon);
+    GBytes *data = snapd_icon_get_data (icon);
     g_assert_cmpmem (g_bytes_get_data (data, NULL), g_bytes_get_size (data), "ICON-DATA", 9);
 }
 
 static void
 icon_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    g_autoptr(SnapdIcon) icon = NULL;
-    GBytes *icon_data;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    icon = snapd_client_get_icon_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdIcon) icon = snapd_client_get_icon_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (icon);
     g_assert_cmpstr (snapd_icon_get_mime_type (icon), ==, "image/png");
-    icon_data = snapd_icon_get_data (icon);
+    GBytes *icon_data = snapd_icon_get_data (icon);
     g_assert_cmpmem (g_bytes_get_data (icon_data, NULL), g_bytes_get_size (icon_data), "ICON-DATA", 9);
 
     g_main_loop_quit (data->loop);
@@ -2680,22 +2351,17 @@ icon_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_icon_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(GBytes) icon_data = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    icon_data = g_bytes_new ("ICON-DATA", 9);
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(GBytes) icon_data = g_bytes_new ("ICON-DATA", 9);
     mock_snap_set_icon_data (s, "image/png", icon_data);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_icon_async (client, "snap", NULL, icon_cb, async_data_new (loop, snapd));
@@ -2705,18 +2371,15 @@ test_icon_async (void)
 static void
 test_icon_not_installed (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdIcon) icon = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    icon = snapd_client_get_icon_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdIcon) icon = snapd_client_get_icon_sync (client, "snap", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
     g_assert_null (icon);
 }
@@ -2724,45 +2387,33 @@ test_icon_not_installed (void)
 static void
 test_icon_large (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autofree gchar *icon_buffer = NULL;
-    gsize i, icon_buffer_length = 1048576;
-    g_autoptr(GBytes) icon_data = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdIcon) icon = NULL;
-    GBytes *data;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    icon_buffer = g_malloc (icon_buffer_length);
-    for (i = 0; i < icon_buffer_length; i++)
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    gsize icon_buffer_length = 1048576;
+    g_autofree gchar *icon_buffer = g_malloc (icon_buffer_length);
+    for (gsize i = 0; i < icon_buffer_length; i++)
         icon_buffer[i] = i % 255;
-    icon_data = g_bytes_new (icon_buffer, icon_buffer_length);
+    g_autoptr(GBytes) icon_data = g_bytes_new (icon_buffer, icon_buffer_length);
     mock_snap_set_icon_data (s, "image/png", icon_data);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    icon = snapd_client_get_icon_sync (client, "snap", NULL, &error);
+    g_autoptr(SnapdIcon) icon = snapd_client_get_icon_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (icon);
     g_assert_cmpstr (snapd_icon_get_mime_type (icon), ==, "image/png");
-    data = snapd_icon_get_data (icon);
+    GBytes *data = snapd_icon_get_data (icon);
     g_assert_cmpmem (g_bytes_get_data (data, NULL), g_bytes_get_size (data), icon_buffer, icon_buffer_length);
 }
 
 static void
 test_get_assertions_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) assertions = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_assertion (snapd,
                               "type: account\n"
                               "list-header:\n"
@@ -2771,12 +2422,14 @@ test_get_assertions_sync (void)
                               "  map-value: foo\n"
                               "\n"
                               "SIGNATURE");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
+    g_auto(GStrv) assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (assertions);
     g_assert_cmpint (g_strv_length (assertions), ==, 1);
@@ -2792,12 +2445,7 @@ test_get_assertions_sync (void)
 static void
 test_get_assertions_body (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) assertions = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_assertion (snapd,
                               "type: account\n"
                               "body-length: 4\n"
@@ -2805,12 +2453,14 @@ test_get_assertions_body (void)
                               "BODY\n"
                               "\n"
                               "SIGNATURE");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
+    g_auto(GStrv) assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (assertions);
     g_assert_cmpint (g_strv_length (assertions), ==, 1);
@@ -2825,12 +2475,7 @@ test_get_assertions_body (void)
 static void
 test_get_assertions_multiple (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) assertions = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_assertion (snapd,
                               "type: account\n"
                               "\n"
@@ -2846,12 +2491,14 @@ test_get_assertions_multiple (void)
                               "type: account\n"
                               "\n"
                               "SIGNATURE3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
+    g_auto(GStrv) assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (assertions);
     g_assert_cmpint (g_strv_length (assertions), ==, 3);
@@ -2872,18 +2519,15 @@ test_get_assertions_multiple (void)
 static void
 test_get_assertions_invalid (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) assertions = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
+    g_auto(GStrv) assertions = snapd_client_get_assertions_sync (client, "account", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
     g_assert_null (assertions);
 }
@@ -2891,26 +2535,21 @@ test_get_assertions_invalid (void)
 static void
 test_add_assertions_sync (void)
 {
-    gchar *assertions[2];
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_get_assertions (snapd));
+    gchar *assertions[2];
     assertions[0] = "type: account\n"
                     "\n"
                     "SIGNATURE";
     assertions[1] = NULL;
-    result = snapd_client_add_assertions_sync (client,
-                                               assertions,
-                                               NULL, &error);
+    gboolean result = snapd_client_add_assertions_sync (client, assertions, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_cmpint (g_list_length (mock_snapd_get_assertions (snapd)), == , 1);
@@ -2920,81 +2559,60 @@ test_add_assertions_sync (void)
 static void
 test_assertions_sync (void)
 {
-    g_autoptr(SnapdAssertion) assertion = NULL;
-    g_auto(GStrv) headers = NULL;
-    g_autofree gchar *type = NULL;
-    g_autofree gchar *authority_id = NULL;
-    g_autofree gchar *invalid_header = NULL;
-    g_autofree gchar *body = NULL;
-    g_autofree gchar *signature = NULL;
-
-    assertion = snapd_assertion_new ("type: account\n"
-                                     "authority-id: canonical\n"
-                                     "\n"
-                                     "SIGNATURE");
-    headers = snapd_assertion_get_headers (assertion);
+    g_autoptr(SnapdAssertion) assertion = snapd_assertion_new ("type: account\n"
+                                                               "authority-id: canonical\n"
+                                                               "\n"
+                                                               "SIGNATURE");
+    g_auto(GStrv) headers = snapd_assertion_get_headers (assertion);
     g_assert_cmpint (g_strv_length (headers), ==, 2);
     g_assert_cmpstr (headers[0], ==, "type");
-    type = snapd_assertion_get_header (assertion, "type");
+    g_autofree gchar *type = snapd_assertion_get_header (assertion, "type");
     g_assert_cmpstr (type, ==, "account");
     g_assert_cmpstr (headers[1], ==, "authority-id");
-    authority_id = snapd_assertion_get_header (assertion, "authority-id");
+    g_autofree gchar *authority_id = snapd_assertion_get_header (assertion, "authority-id");
     g_assert_cmpstr (authority_id, ==, "canonical");
-    invalid_header = snapd_assertion_get_header (assertion, "invalid");
+    g_autofree gchar *invalid_header = snapd_assertion_get_header (assertion, "invalid");
     g_assert_cmpstr (invalid_header, ==, NULL);
-    body = snapd_assertion_get_body (assertion);
+    g_autofree gchar *body = snapd_assertion_get_body (assertion);
     g_assert_cmpstr (body, ==, NULL);
-    signature = snapd_assertion_get_signature (assertion);
+    g_autofree gchar *signature = snapd_assertion_get_signature (assertion);
     g_assert_cmpstr (signature, ==, "SIGNATURE");
 }
 
 static void
 test_assertions_body (void)
 {
-    g_autoptr(SnapdAssertion) assertion = NULL;
-    g_auto(GStrv) headers = NULL;
-    g_autofree gchar *type = NULL;
-    g_autofree gchar *body_length = NULL;
-    g_autofree gchar *invalid_header = NULL;
-    g_autofree gchar *body = NULL;
-    g_autofree gchar *signature = NULL;
-
-    assertion = snapd_assertion_new ("type: account\n"
-                                     "body-length: 4\n"
-                                     "\n"
-                                     "BODY\n"
-                                     "\n"
-                                     "SIGNATURE");
-    headers = snapd_assertion_get_headers (assertion);
+    g_autoptr(SnapdAssertion) assertion = snapd_assertion_new ("type: account\n"
+                                                               "body-length: 4\n"
+                                                               "\n"
+                                                               "BODY\n"
+                                                               "\n"
+                                                               "SIGNATURE");
+    g_auto(GStrv) headers = snapd_assertion_get_headers (assertion);
     g_assert_cmpint (g_strv_length (headers), ==, 2);
     g_assert_cmpstr (headers[0], ==, "type");
-    type = snapd_assertion_get_header (assertion, "type");
+    g_autofree gchar *type = snapd_assertion_get_header (assertion, "type");
     g_assert_cmpstr (type, ==, "account");
     g_assert_cmpstr (headers[1], ==, "body-length");
-    body_length = snapd_assertion_get_header (assertion, "body-length");
+    g_autofree gchar *body_length = snapd_assertion_get_header (assertion, "body-length");
     g_assert_cmpstr (body_length, ==, "4");
-    invalid_header = snapd_assertion_get_header (assertion, "invalid");
+    g_autofree gchar *invalid_header = snapd_assertion_get_header (assertion, "invalid");
     g_assert_cmpstr (invalid_header, ==, NULL);
-    body = snapd_assertion_get_body (assertion);
+    g_autofree gchar *body = snapd_assertion_get_body (assertion);
     g_assert_cmpstr (body, ==, "BODY");
-    signature = snapd_assertion_get_signature (assertion);
+    g_autofree gchar *signature = snapd_assertion_get_signature (assertion);
     g_assert_cmpstr (signature, ==, "SIGNATURE");
 }
 
 static void
 setup_get_connections (MockSnapd *snapd)
 {
-    MockInterface *i;
-    MockSnap *snap1, *snap2;
-    MockSlot *slot1;
-    MockPlug *plug;
-
-    i = mock_snapd_add_interface (snapd, "interface");
-    snap1 = mock_snapd_add_snap (snapd, "snap1");
-    slot1 = mock_snap_add_slot (snap1, i, "slot1");
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *snap1 = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot1 = mock_snap_add_slot (snap1, i, "slot1");
     mock_snap_add_slot (snap1, i, "slot2");
-    snap2 = mock_snapd_add_snap (snapd, "snap2");
-    plug = mock_snap_add_plug (snap2, i, "auto-plug");
+    MockSnap *snap2 = mock_snapd_add_snap (snapd, "snap2");
+    MockPlug *plug = mock_snap_add_plug (snap2, i, "auto-plug");
     mock_snapd_connect (snapd, plug, slot1, FALSE, FALSE);
     plug = mock_snap_add_plug (snap2, i, "manual-plug");
     mock_snapd_connect (snapd, plug, slot1, TRUE, FALSE);
@@ -3008,10 +2626,8 @@ setup_get_connections (MockSnapd *snapd)
 static void
 check_plug_no_attributes (SnapdPlug *plug)
 {
-    g_auto(GStrv) attribute_names = NULL;
     guint length;
-
-    attribute_names = snapd_plug_get_attribute_names (plug, &length);
+    g_auto(GStrv) attribute_names = snapd_plug_get_attribute_names (plug, &length);
     g_assert_cmpint (length, ==, 0);
     g_assert_cmpint (g_strv_length (attribute_names), ==, 0);
 }
@@ -3019,10 +2635,8 @@ check_plug_no_attributes (SnapdPlug *plug)
 static void
 check_slot_no_attributes (SnapdSlot *slot)
 {
-    g_auto(GStrv) attribute_names = NULL;
     guint length;
-
-    attribute_names = snapd_slot_get_attribute_names (slot, &length);
+    g_auto(GStrv) attribute_names = snapd_slot_get_attribute_names (slot, &length);
     g_assert_cmpint (length, ==, 0);
     g_assert_cmpint (g_strv_length (attribute_names), ==, 0);
 }
@@ -3030,10 +2644,8 @@ check_slot_no_attributes (SnapdSlot *slot)
 static void
 check_connection_no_plug_attributes (SnapdConnection *connection)
 {
-    g_auto(GStrv) attribute_names = NULL;
     guint length;
-
-    attribute_names = snapd_connection_get_plug_attribute_names (connection, &length);
+    g_auto(GStrv) attribute_names = snapd_connection_get_plug_attribute_names (connection, &length);
     g_assert_cmpint (length, ==, 0);
     g_assert_cmpint (g_strv_length (attribute_names), ==, 0);
 }
@@ -3041,10 +2653,8 @@ check_connection_no_plug_attributes (SnapdConnection *connection)
 static void
 check_connection_no_slot_attributes (SnapdConnection *connection)
 {
-    g_auto(GStrv) attribute_names = NULL;
     guint length;
-
-    attribute_names = snapd_connection_get_slot_attribute_names (connection, &length);
+    g_auto(GStrv) attribute_names = snapd_connection_get_slot_attribute_names (connection, &length);
     g_assert_cmpint (length, ==, 0);
     g_assert_cmpint (g_strv_length (attribute_names), ==, 0);
 }
@@ -3052,23 +2662,15 @@ check_connection_no_slot_attributes (SnapdConnection *connection)
 static void
 check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtrArray *plugs, GPtrArray *slots, gboolean select_all)
 {
-    SnapdConnection *connection;
-    SnapdPlug *plug;
-    SnapdSlot *slot;
-    GPtrArray *connected_plugs;
-    SnapdPlugRef *plug_ref;
-    GPtrArray *connected_slots;
-    SnapdSlotRef *slot_ref;
-
     g_assert_nonnull (established);
     g_assert_cmpint (established->len, ==, 3);
 
-    connection = established->pdata[0];
+    SnapdConnection *connection = established->pdata[0];
     g_assert_cmpstr (snapd_connection_get_interface (connection), ==, "interface");
-    slot_ref = snapd_connection_get_slot (connection);
+    SnapdSlotRef *slot_ref = snapd_connection_get_slot (connection);
     g_assert_cmpstr (snapd_slot_ref_get_snap (slot_ref), ==, "snap1");
     g_assert_cmpstr (snapd_slot_ref_get_slot (slot_ref), ==, "slot1");
-    plug_ref = snapd_connection_get_plug (connection);
+    SnapdPlugRef *plug_ref = snapd_connection_get_plug (connection);
     g_assert_cmpstr (snapd_plug_ref_get_snap (plug_ref), ==, "snap2");
     g_assert_cmpstr (snapd_plug_ref_get_plug (plug_ref), ==, "auto-plug");
     check_connection_no_slot_attributes (connection);
@@ -3129,13 +2731,13 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     else
         g_assert_cmpint (plugs->len, ==, 3);
 
-    plug = plugs->pdata[0];
+    SnapdPlug *plug = plugs->pdata[0];
     g_assert_cmpstr (snapd_plug_get_name (plug), ==, "auto-plug");
     g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
     g_assert_cmpstr (snapd_plug_get_interface (plug), ==, "interface");
     check_plug_no_attributes (plug);
     g_assert_cmpstr (snapd_plug_get_label (plug), ==, "LABEL");
-    connected_slots = snapd_plug_get_connected_slots (plug);
+    GPtrArray *connected_slots = snapd_plug_get_connected_slots (plug);
     g_assert_cmpint (connected_slots->len, ==, 1);
     slot_ref = connected_slots->pdata[0];
     g_assert_cmpstr (snapd_slot_ref_get_snap (slot_ref), ==, "snap1");
@@ -3182,13 +2784,13 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
     else
         g_assert_cmpint (slots->len, ==, 1);
 
-    slot = slots->pdata[0];
+    SnapdSlot *slot = slots->pdata[0];
     g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot1");
     g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
     g_assert_cmpstr (snapd_slot_get_interface (slot), ==, "interface");
     check_slot_no_attributes (slot);
     g_assert_cmpstr (snapd_slot_get_label (slot), ==, "LABEL");
-    connected_plugs = snapd_slot_get_connected_plugs (slot);
+    GPtrArray *connected_plugs = snapd_slot_get_connected_plugs (slot);
     g_assert_cmpint (connected_plugs->len, ==, 3);
     plug_ref = connected_plugs->pdata[0];
     g_assert_cmpstr (snapd_plug_ref_get_snap (plug_ref), ==, "snap2");
@@ -3213,23 +2815,20 @@ check_get_connections_result (GPtrArray *established, GPtrArray *undesired, GPtr
 static void
 test_get_connections_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    setup_get_connections (snapd);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
     g_autoptr(GPtrArray) established = NULL;
     g_autoptr(GPtrArray) undesired = NULL;
     g_autoptr(GPtrArray) plugs = NULL;
     g_autoptr(GPtrArray) slots = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    setup_get_connections (snapd);
-    g_assert_true (mock_snapd_start (snapd, &error));
-
-    client = snapd_client_new ();
-    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
-
-    result = snapd_client_get_connections2_sync (client, SNAPD_GET_CONNECTIONS_FLAGS_NONE, NULL, NULL, &established, &undesired, &plugs, &slots, NULL, &error);
+    gboolean result = snapd_client_get_connections2_sync (client, SNAPD_GET_CONNECTIONS_FLAGS_NONE, NULL, NULL, &established, &undesired, &plugs, &slots, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 
@@ -3239,15 +2838,14 @@ test_get_connections_sync (void)
 static void
 get_connections_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
+    g_autoptr(AsyncData) data = user_data;
+
     g_autoptr(GPtrArray) established = NULL;
     g_autoptr(GPtrArray) undesired = NULL;
     g_autoptr(GPtrArray) plugs = NULL;
     g_autoptr(GPtrArray) slots = NULL;
-    g_autoptr(AsyncData) data = user_data;
     g_autoptr(GError) error = NULL;
-
-    r = snapd_client_get_connections2_finish (SNAPD_CLIENT (object), result, &established, &undesired, &plugs, &slots, &error);
+    gboolean r = snapd_client_get_connections2_finish (SNAPD_CLIENT (object), result, &established, &undesired, &plugs, &slots, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
@@ -3259,18 +2857,14 @@ get_connections_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_get_connections_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     setup_get_connections (snapd);
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_connections2_async (client, SNAPD_GET_CONNECTIONS_FLAGS_NONE, NULL, NULL, NULL, get_connections_cb, async_data_new (loop, snapd));
@@ -3280,22 +2874,19 @@ test_get_connections_async (void)
 static void
 test_get_connections_empty (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
     g_autoptr(GPtrArray) established = NULL;
     g_autoptr(GPtrArray) undesired = NULL;
     g_autoptr(GPtrArray) plugs = NULL;
     g_autoptr(GPtrArray) slots = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    g_assert_true (mock_snapd_start (snapd, &error));
-
-    client = snapd_client_new ();
-    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
-
-    result = snapd_client_get_connections2_sync (client, SNAPD_GET_CONNECTIONS_FLAGS_NONE, NULL, NULL, &established, &undesired, &plugs, &slots, NULL, &error);
+    gboolean result = snapd_client_get_connections2_sync (client, SNAPD_GET_CONNECTIONS_FLAGS_NONE, NULL, NULL, &established, &undesired, &plugs, &slots, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 
@@ -3315,23 +2906,20 @@ test_get_connections_empty (void)
 static void
 test_get_connections_filter_all (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    setup_get_connections (snapd);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
     g_autoptr(GPtrArray) established = NULL;
     g_autoptr(GPtrArray) undesired = NULL;
     g_autoptr(GPtrArray) plugs = NULL;
     g_autoptr(GPtrArray) slots = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    setup_get_connections (snapd);
-    g_assert_true (mock_snapd_start (snapd, &error));
-
-    client = snapd_client_new ();
-    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
-
-    result = snapd_client_get_connections2_sync (client, SNAPD_GET_CONNECTIONS_FLAGS_SELECT_ALL, NULL, NULL, &established, &undesired, &plugs, &slots, NULL, &error);
+    gboolean result = snapd_client_get_connections2_sync (client, SNAPD_GET_CONNECTIONS_FLAGS_SELECT_ALL, NULL, NULL, &established, &undesired, &plugs, &slots, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 
@@ -3420,11 +3008,8 @@ compare_name (gconstpointer a, gconstpointer b)
 static GStrv
 sort_names (GStrv value)
 {
-    g_autoptr(GPtrArray) result = NULL;
-    int i;
-
-    result = g_ptr_array_new ();
-    for (i = 0; value[i] != NULL; i++)
+    g_autoptr(GPtrArray) result = g_ptr_array_new ();
+    for (int i = 0; value[i] != NULL; i++)
         g_ptr_array_add (result, g_strdup (value[i]));
     g_ptr_array_sort (result, compare_name);
     g_ptr_array_add (result, NULL);
@@ -3435,77 +3020,57 @@ sort_names (GStrv value)
 static void
 check_names_match (GStrv names, guint names_length, const gchar *expected)
 {
-    g_auto(GStrv) expected_names = NULL;
-    g_auto(GStrv) sorted_expected_names = NULL;
-    g_auto(GStrv) sorted_names = NULL;
-    int i;
-
     g_assert_cmpint (g_strv_length (names), ==, names_length);
-    expected_names = g_strsplit (expected, ",", -1);
-    sorted_expected_names = sort_names (expected_names);
+    g_auto(GStrv) expected_names = g_strsplit (expected, ",", -1);
+    g_auto(GStrv) sorted_expected_names = sort_names (expected_names);
     g_assert_cmpint (g_strv_length (expected_names), ==, names_length);
-    sorted_names = sort_names (names);
-    for (i = 0; i < names_length; i++)
+    g_auto(GStrv) sorted_names = sort_names (names);
+    for (guint i = 0; i < names_length; i++)
         g_assert_cmpstr (sorted_names[i], ==, sorted_expected_names[i]);
 }
 
 static void
 test_get_connections_attributes (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    MockSlot *sl;
-    MockPlug *p;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) established = NULL;
-    g_autoptr(GPtrArray) undesired = NULL;
-    g_autoptr(GPtrArray) plugs = NULL;
-    g_autoptr(GPtrArray) slots = NULL;
-    gboolean result;
-    SnapdConnection *connection;
-    SnapdPlug *plug;
-    SnapdSlot *slot;
-    g_auto(GStrv) plug_attribute_names = NULL;
-    g_auto(GStrv) slot_attribute_names = NULL;
-    g_auto(GStrv) plug_names = NULL;
-    g_auto(GStrv) slot_names = NULL;
-    guint names_length;
-    GVariant *value;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    sl = mock_snap_add_slot (s, i, "slot1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
     mock_slot_add_attribute (sl, "slot-string-key", "\"value\"");
     mock_slot_add_attribute (sl, "slot-int-key", "42");
     mock_slot_add_attribute (sl, "slot-bool-key", "true");
     mock_slot_add_attribute (sl, "slot-number-key", "1.25");
     s = mock_snapd_add_snap (snapd, "snap2");
-    p = mock_snap_add_plug (s, i, "plug1");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug1");
     mock_plug_add_attribute (p, "plug-string-key", "\"value\"");
     mock_plug_add_attribute (p, "plug-int-key", "42");
     mock_plug_add_attribute (p, "plug-bool-key", "true");
     mock_plug_add_attribute (p, "plug-number-key", "1.25");
     mock_snapd_connect (snapd, p, sl, FALSE, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_get_connections2_sync (client, SNAPD_GET_CONNECTIONS_FLAGS_NONE, NULL, NULL, &established, &undesired, &plugs, &slots, NULL, &error);
+    g_autoptr(GPtrArray) established = NULL;
+    g_autoptr(GPtrArray) undesired = NULL;
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots = NULL;
+    gboolean result = snapd_client_get_connections2_sync (client, SNAPD_GET_CONNECTIONS_FLAGS_NONE, NULL, NULL, &established, &undesired, &plugs, &slots, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 
     g_assert_nonnull (established);
     g_assert_cmpint (established->len, ==, 1);
 
-    connection = established->pdata[0];
-    plug_attribute_names = snapd_connection_get_plug_attribute_names (connection, &names_length);
+    SnapdConnection *connection = established->pdata[0];
+    guint names_length;
+    g_auto(GStrv) plug_attribute_names = snapd_connection_get_plug_attribute_names (connection, &names_length);
     check_names_match (plug_attribute_names, names_length, "plug-string-key,plug-int-key,plug-bool-key,plug-number-key");
     g_assert_true (snapd_connection_has_plug_attribute (connection, "plug-string-key"));
-    value = snapd_connection_get_plug_attribute (connection, "plug-string-key");
+    GVariant *value = snapd_connection_get_plug_attribute (connection, "plug-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
     g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
     g_assert_true (snapd_connection_has_plug_attribute (connection, "plug-int-key"));
@@ -3523,7 +3088,7 @@ test_get_connections_attributes (void)
     g_assert_false (snapd_connection_has_plug_attribute (connection, "plug-invalid-key"));
     g_assert_null (snapd_connection_get_plug_attribute (connection, "plug-invalid-key"));
 
-    slot_attribute_names = snapd_connection_get_slot_attribute_names (connection, &names_length);
+    g_auto(GStrv) slot_attribute_names = snapd_connection_get_slot_attribute_names (connection, &names_length);
     check_names_match (slot_attribute_names, names_length, "slot-string-key,slot-int-key,slot-bool-key,slot-number-key");
     g_assert_true (snapd_connection_has_slot_attribute (connection, "slot-string-key"));
     value = snapd_connection_get_slot_attribute (connection, "slot-string-key");
@@ -3546,8 +3111,8 @@ test_get_connections_attributes (void)
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 1);
 
-    plug = plugs->pdata[0];
-    plug_names = snapd_plug_get_attribute_names (plug, &names_length);
+    SnapdPlug *plug = plugs->pdata[0];
+    g_auto(GStrv) plug_names = snapd_plug_get_attribute_names (plug, &names_length);
     check_names_match (plug_names, names_length, "plug-string-key,plug-int-key,plug-bool-key,plug-number-key");
     g_assert_true (snapd_plug_has_attribute (plug, "plug-string-key"));
     value = snapd_plug_get_attribute (plug, "plug-string-key");
@@ -3572,8 +3137,8 @@ test_get_connections_attributes (void)
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 1);
 
-    slot = slots->pdata[0];
-    slot_names = snapd_slot_get_attribute_names (slot, &names_length);
+    SnapdSlot *slot = slots->pdata[0];
+    g_auto(GStrv) slot_names = snapd_slot_get_attribute_names (slot, &names_length);
     check_names_match (slot_names, names_length, "slot-string-key,slot-int-key,slot-bool-key,slot-number-key");
     g_assert_true (snapd_slot_has_attribute (slot, "slot-string-key"));
     value = snapd_slot_get_attribute (slot, "slot-string-key");
@@ -3599,57 +3164,45 @@ test_get_connections_attributes (void)
 static void
 setup_get_interfaces (MockSnapd *snapd)
 {
-    MockInterface *i;
-    MockSnap *snap1, *snap2;
-    MockSlot *slot1;
-    MockPlug *plug1;
-
-    i = mock_snapd_add_interface (snapd, "interface");
-    snap1 = mock_snapd_add_snap (snapd, "snap1");
-    slot1 = mock_snap_add_slot (snap1, i, "slot1");
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *snap1 = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot1 = mock_snap_add_slot (snap1, i, "slot1");
     mock_snap_add_slot (snap1, i, "slot2");
-    snap2 = mock_snapd_add_snap (snapd, "snap2");
-    plug1 = mock_snap_add_plug (snap2, i, "plug1");
+    MockSnap *snap2 = mock_snapd_add_snap (snapd, "snap2");
+    MockPlug *plug1 = mock_snap_add_plug (snap2, i, "plug1");
     mock_snapd_connect (snapd, plug1, slot1, TRUE, FALSE);
 }
 
 static void
 check_get_interfaces_result (GPtrArray *plugs, GPtrArray *slots)
 {
-    SnapdPlug *plug;
-    SnapdSlot *slot;
-    GPtrArray *connected_plugs;
-    SnapdPlugRef *plug_ref;
-    GPtrArray *connected_slots;
-    SnapdSlotRef *slot_ref;
-
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 1);
 
-    plug = plugs->pdata[0];
+    SnapdPlug *plug = plugs->pdata[0];
     g_assert_cmpstr (snapd_plug_get_name (plug), ==, "plug1");
     g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap2");
     g_assert_cmpstr (snapd_plug_get_interface (plug), ==, "interface");
     check_plug_no_attributes (plug);
     g_assert_cmpstr (snapd_plug_get_label (plug), ==, "LABEL");
-    connected_slots = snapd_plug_get_connected_slots (plug);
+    GPtrArray *connected_slots = snapd_plug_get_connected_slots (plug);
     g_assert_cmpint (connected_slots->len, ==, 1);
-    slot_ref = connected_slots->pdata[0];
+    SnapdSlotRef *slot_ref = connected_slots->pdata[0];
     g_assert_cmpstr (snapd_slot_ref_get_snap (slot_ref), ==, "snap1");
     g_assert_cmpstr (snapd_slot_ref_get_slot (slot_ref), ==, "slot1");
 
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 2);
 
-    slot = slots->pdata[0];
+    SnapdSlot *slot = slots->pdata[0];
     g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot1");
     g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
     g_assert_cmpstr (snapd_slot_get_interface (slot), ==, "interface");
     check_slot_no_attributes (slot);
     g_assert_cmpstr (snapd_slot_get_label (slot), ==, "LABEL");
-    connected_plugs = snapd_slot_get_connected_plugs (slot);
+    GPtrArray *connected_plugs = snapd_slot_get_connected_plugs (slot);
     g_assert_cmpint (connected_plugs->len, ==, 1);
-    plug_ref = connected_plugs->pdata[0];
+    SnapdPlugRef *plug_ref = connected_plugs->pdata[0];
     g_assert_cmpstr (snapd_plug_ref_get_snap (plug_ref), ==, "snap2");
     g_assert_cmpstr (snapd_plug_ref_get_plug (plug_ref), ==, "plug1");
 
@@ -3664,22 +3217,19 @@ check_get_interfaces_result (GPtrArray *plugs, GPtrArray *slots)
 static void
 test_get_interfaces_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) plugs = NULL;
-    g_autoptr(GPtrArray) slots = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     setup_get_interfaces (snapd);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots = NULL;
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
+    gboolean result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_true (result);
@@ -3690,14 +3240,13 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 get_interfaces_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
+    g_autoptr(AsyncData) data = user_data;
+
     g_autoptr(GPtrArray) plugs = NULL;
     g_autoptr(GPtrArray) slots = NULL;
-    g_autoptr(AsyncData) data = user_data;
     g_autoptr(GError) error = NULL;
-
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    r = snapd_client_get_interfaces_finish (SNAPD_CLIENT (object), result, &plugs, &slots, &error);
+    gboolean r = snapd_client_get_interfaces_finish (SNAPD_CLIENT (object), result, &plugs, &slots, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
 
     g_assert_no_error (error);
@@ -3711,18 +3260,15 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_interfaces_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     setup_get_interfaces (snapd);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
@@ -3734,21 +3280,18 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_interfaces_no_snaps (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) plugs = NULL;
-    g_autoptr(GPtrArray) slots = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots = NULL;
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
+    gboolean result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (plugs);
@@ -3761,42 +3304,29 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_interfaces_attributes (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    MockSlot *sl;
-    MockPlug *p;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) plugs = NULL;
-    g_autoptr(GPtrArray) slots = NULL;
-    gboolean result;
-    SnapdPlug *plug;
-    SnapdSlot *slot;
-    g_auto(GStrv) plug_names = NULL;
-    g_auto(GStrv) slot_names = NULL;
-    guint names_length;
-    GVariant *value;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    sl = mock_snap_add_slot (s, i, "slot1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
     mock_slot_add_attribute (sl, "slot-string-key", "\"value\"");
     mock_slot_add_attribute (sl, "slot-int-key", "42");
     mock_slot_add_attribute (sl, "slot-bool-key", "true");
     s = mock_snapd_add_snap (snapd, "snap2");
-    p = mock_snap_add_plug (s, i, "plug1");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug1");
     mock_plug_add_attribute (p, "plug-string-key", "\"value\"");
     mock_plug_add_attribute (p, "plug-int-key", "42");
     mock_plug_add_attribute (p, "plug-bool-key", "true");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots = NULL;
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
+    gboolean result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_true (result);
@@ -3804,11 +3334,12 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 1);
 
-    plug = plugs->pdata[0];
-    plug_names = snapd_plug_get_attribute_names (plug, &names_length);
+    SnapdPlug *plug = plugs->pdata[0];
+    guint names_length;
+    g_auto(GStrv) plug_names = snapd_plug_get_attribute_names (plug, &names_length);
     check_names_match (plug_names, names_length, "plug-string-key,plug-int-key,plug-bool-key");
     g_assert_true (snapd_plug_has_attribute (plug, "plug-string-key"));
-    value = snapd_plug_get_attribute (plug, "plug-string-key");
+    GVariant *value = snapd_plug_get_attribute (plug, "plug-string-key");
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
     g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
     g_assert_true (snapd_plug_has_attribute (plug, "plug-int-key"));
@@ -3826,8 +3357,8 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 1);
 
-    slot = slots->pdata[0];
-    slot_names = snapd_slot_get_attribute_names (slot, &names_length);
+    SnapdSlot *slot = slots->pdata[0];
+    g_auto(GStrv) slot_names = snapd_slot_get_attribute_names (slot, &names_length);
     check_names_match (slot_names, names_length, "slot-string-key,slot-int-key,slot-bool-key");
     g_assert_true (snapd_slot_has_attribute (slot, "slot-string-key"));
     value = snapd_slot_get_attribute (slot, "slot-string-key");
@@ -3849,36 +3380,25 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_interfaces_legacy (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    MockSlot *sl;
-    MockPlug *p;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) plugs = NULL;
-    g_autoptr(GPtrArray) slots = NULL;
-    SnapdPlug *plug;
-    SnapdSlot *slot;
-    GPtrArray *connections;
-    SnapdConnection *connection;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    sl = mock_snap_add_slot (s, i, "slot1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
     mock_snap_add_slot (s, i, "slot2");
     s = mock_snapd_add_snap (snapd, "snap2");
-    p = mock_snap_add_plug (s, i, "plug1");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug1");
     mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    g_autoptr(GPtrArray) plugs = NULL;
+    g_autoptr(GPtrArray) slots = NULL;
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
+    gboolean result = snapd_client_get_interfaces_sync (client, &plugs, &slots, NULL, &error);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_true (result);
@@ -3886,11 +3406,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 1);
 
-    plug = plugs->pdata[0];
+    SnapdPlug *plug = plugs->pdata[0];
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    connections = snapd_plug_get_connections (plug);
+    GPtrArray *connections = snapd_plug_get_connections (plug);
     g_assert_cmpint (connections->len, ==, 1);
-    connection = connections->pdata[0];
+    SnapdConnection *connection = connections->pdata[0];
     g_assert_cmpstr (snapd_connection_get_snap (connection), ==, "snap1");
     g_assert_cmpstr (snapd_connection_get_name (connection), ==, "slot1");
 G_GNUC_END_IGNORE_DEPRECATIONS
@@ -3898,7 +3418,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 2);
 
-    slot = slots->pdata[0];
+    SnapdSlot *slot = slots->pdata[0];
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     connections = snapd_slot_get_connections (slot);
     g_assert_cmpint (connections->len, ==, 1);
@@ -3917,43 +3437,35 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_get_interfaces2_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i1, *i2;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) ifaces = NULL;
-    SnapdInterface *iface;
-    GPtrArray *plugs;
-    GPtrArray *slots;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i1 = mock_snapd_add_interface (snapd, "interface1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i1 = mock_snapd_add_interface (snapd, "interface1");
     mock_interface_set_summary (i1, "summary1");
     mock_interface_set_doc_url (i1, "url1");
-    i2 = mock_snapd_add_interface (snapd, "interface2");
+    MockInterface *i2 = mock_snapd_add_interface (snapd, "interface2");
     mock_interface_set_summary (i2, "summary2");
     mock_interface_set_doc_url (i2, "url2");
-    s = mock_snapd_add_snap (snapd, "snap1");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_add_plug (s, i1, "plug1");
     mock_snap_add_slot (s, i2, "slot1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_NONE, NULL, NULL, &error);
+    g_autoptr(GPtrArray) ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_NONE, NULL, NULL, &error);
     g_assert_no_error (error);
 
     g_assert_nonnull (ifaces);
     g_assert_cmpint (ifaces->len, ==, 2);
 
-    iface = ifaces->pdata[0];
+    SnapdInterface *iface = ifaces->pdata[0];
     g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface1");
     g_assert_cmpstr (snapd_interface_get_summary (iface), ==, "summary1");
     g_assert_cmpstr (snapd_interface_get_doc_url (iface), ==, "url1");
-    plugs = snapd_interface_get_plugs (iface);
-    slots = snapd_interface_get_slots (iface);
+    GPtrArray *plugs = snapd_interface_get_plugs (iface);
+    GPtrArray *slots = snapd_interface_get_slots (iface);
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 0);
     g_assert_nonnull (slots);
@@ -3975,25 +3487,21 @@ static void
 get_interfaces2_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GPtrArray) ifaces = NULL;
-    g_autoptr(GError) error = NULL;
-    SnapdInterface *iface;
-    GPtrArray *plugs;
-    GPtrArray *slots;
 
-    ifaces = snapd_client_get_interfaces2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) ifaces = snapd_client_get_interfaces2_finish (SNAPD_CLIENT (object), result, &error);
 
     g_assert_no_error (error);
     g_assert_nonnull (ifaces);
 
     g_assert_cmpint (ifaces->len, ==, 2);
 
-    iface = ifaces->pdata[0];
+    SnapdInterface *iface = ifaces->pdata[0];
     g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface1");
     g_assert_cmpstr (snapd_interface_get_summary (iface), ==, "summary1");
     g_assert_cmpstr (snapd_interface_get_doc_url (iface), ==, "url1");
-    plugs = snapd_interface_get_plugs (iface);
-    slots = snapd_interface_get_slots (iface);
+    GPtrArray *plugs = snapd_interface_get_plugs (iface);
+    GPtrArray *slots = snapd_interface_get_slots (iface);
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 0);
     g_assert_nonnull (slots);
@@ -4016,29 +3524,23 @@ get_interfaces2_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_get_interfaces2_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(GError) error = NULL;
-    MockInterface *i1, *i2;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) ifaces = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    i1 = mock_snapd_add_interface (snapd, "interface1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i1 = mock_snapd_add_interface (snapd, "interface1");
     mock_interface_set_summary (i1, "summary1");
     mock_interface_set_doc_url (i1, "url1");
-    i2 = mock_snapd_add_interface (snapd, "interface2");
+    MockInterface *i2 = mock_snapd_add_interface (snapd, "interface2");
     mock_interface_set_summary (i2, "summary2");
     mock_interface_set_doc_url (i2, "url2");
-    s = mock_snapd_add_snap (snapd, "snap1");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_add_plug (s, i1, "plug1");
     mock_snap_add_slot (s, i2, "slot1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_interfaces2_async (client, SNAPD_GET_INTERFACES_FLAGS_NONE, NULL, NULL, get_interfaces2_cb, async_data_new (loop, snapd));
@@ -4048,43 +3550,33 @@ test_get_interfaces2_async (void)
 static void
 test_get_interfaces2_only_connected (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    MockSlot *sl;
-    MockPlug *p;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) ifaces = NULL;
-    SnapdInterface *iface;
-    GPtrArray *plugs;
-    GPtrArray *slots;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface1");
     mock_snapd_add_interface (snapd, "interface2");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    sl = mock_snap_add_slot (s, i, "slot1");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *sl = mock_snap_add_slot (s, i, "slot1");
     s = mock_snapd_add_snap (snapd, "snap2");
-    p = mock_snap_add_plug (s, i, "plug2");
+    MockPlug *p = mock_snap_add_plug (s, i, "plug2");
     mock_snapd_connect (snapd, p, sl, TRUE, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_ONLY_CONNECTED, NULL, NULL, &error);
+    g_autoptr(GPtrArray) ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_ONLY_CONNECTED, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (ifaces);
 
     g_assert_cmpint (ifaces->len, ==, 1);
 
-    iface = ifaces->pdata[0];
+    SnapdInterface *iface = ifaces->pdata[0];
     g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface1");
-    plugs = snapd_interface_get_plugs (iface);
+    GPtrArray *plugs = snapd_interface_get_plugs (iface);
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 0);
-    slots = snapd_interface_get_slots (iface);
+    GPtrArray *slots = snapd_interface_get_slots (iface);
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 0);
 }
@@ -4092,41 +3584,32 @@ test_get_interfaces2_only_connected (void)
 static void
 test_get_interfaces2_slots (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) ifaces = NULL;
-    SnapdInterface *iface;
-    GPtrArray *plugs;
-    GPtrArray *slots;
-    SnapdSlot *slot;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_add_slot (s, i, "slot1");
     mock_snap_add_plug (s, i, "plug1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_INCLUDE_SLOTS, NULL, NULL, &error);
+    g_autoptr(GPtrArray) ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_INCLUDE_SLOTS, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (ifaces);
 
     g_assert_cmpint (ifaces->len, ==, 1);
 
-    iface = ifaces->pdata[0];
-    plugs = snapd_interface_get_plugs (iface);
+    SnapdInterface *iface = ifaces->pdata[0];
+    GPtrArray *plugs = snapd_interface_get_plugs (iface);
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 0);
-    slots = snapd_interface_get_slots (iface);
+    GPtrArray *slots = snapd_interface_get_slots (iface);
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 1);
-    slot = slots->pdata[0];
+    SnapdSlot *slot = slots->pdata[0];
     g_assert_cmpstr (snapd_slot_get_name (slot), ==, "slot1");
     g_assert_cmpstr (snapd_slot_get_snap (slot), ==, "snap1");
 }
@@ -4134,41 +3617,32 @@ test_get_interfaces2_slots (void)
 static void
 test_get_interfaces2_plugs (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) ifaces = NULL;
-    SnapdInterface *iface;
-    GPtrArray *plugs;
-    GPtrArray *slots;
-    SnapdPlug *plug;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_add_slot (s, i, "slot1");
     mock_snap_add_plug (s, i, "plug1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_INCLUDE_PLUGS, NULL, NULL, &error);
+    g_autoptr(GPtrArray) ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_INCLUDE_PLUGS, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (ifaces);
 
     g_assert_cmpint (ifaces->len, ==, 1);
 
-    iface = ifaces->pdata[0];
-    plugs = snapd_interface_get_plugs (iface);
+    SnapdInterface *iface = ifaces->pdata[0];
+    GPtrArray *plugs = snapd_interface_get_plugs (iface);
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 1);
-    plug = plugs->pdata[0];
+    SnapdPlug *plug = plugs->pdata[0];
     g_assert_cmpstr (snapd_plug_get_name (plug), ==, "plug1");
     g_assert_cmpstr (snapd_plug_get_snap (plug), ==, "snap1");
-    slots = snapd_interface_get_slots (iface);
+    GPtrArray *slots = snapd_interface_get_slots (iface);
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 0);
 }
@@ -4176,35 +3650,29 @@ test_get_interfaces2_plugs (void)
 static void
 test_get_interfaces2_filter (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gchar *filter_names[] = { "interface2", NULL };
-    g_autoptr(GPtrArray) ifaces = NULL;
-    SnapdInterface *iface;
-    GPtrArray *plugs;
-    GPtrArray *slots;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_interface (snapd, "interface1");
     mock_snapd_add_interface (snapd, "interface2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_NONE, filter_names, NULL, &error);
+    gchar *filter_names[] = { "interface2", NULL };
+    g_autoptr(GPtrArray) ifaces = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_NONE, filter_names, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (ifaces);
 
     g_assert_cmpint (ifaces->len, ==, 1);
 
-    iface = ifaces->pdata[0];
+    SnapdInterface *iface = ifaces->pdata[0];
     g_assert_cmpstr (snapd_interface_get_name (iface), ==, "interface2");
-    plugs = snapd_interface_get_plugs (iface);
+    GPtrArray *plugs = snapd_interface_get_plugs (iface);
     g_assert_nonnull (plugs);
     g_assert_cmpint (plugs->len, ==, 0);
-    slots = snapd_interface_get_slots (iface);
+    GPtrArray *slots = snapd_interface_get_slots (iface);
     g_assert_nonnull (slots);
     g_assert_cmpint (slots->len, ==, 0);
 }
@@ -4212,27 +3680,20 @@ test_get_interfaces2_filter (void)
 static void
 test_connect_interface_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    MockSlot *slot;
-    MockPlug *plug;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    slot = mock_snap_add_slot (s, i, "slot");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    plug = mock_snap_add_plug (s, i, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert (mock_snapd_find_plug_connection (snapd, plug) == slot);
@@ -4242,18 +3703,14 @@ static void
 connect_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    MockSnap *s;
-    MockSlot *slot;
-    MockPlug *plug;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
 
-    s = mock_snapd_find_snap (data->snapd, "snap1");
-    slot = mock_snap_find_slot (s, "slot");
+    MockSnap *s = mock_snapd_find_snap (data->snapd, "snap1");
+    MockSlot *slot = mock_snap_find_slot (s, "slot");
     s = mock_snapd_find_snap (data->snapd, "snap2");
-    plug = mock_snap_find_plug (s, "plug");
+    MockPlug *plug = mock_snap_find_plug (s, "plug");
 
-    r = snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert (mock_snapd_find_plug_connection (data->snapd, plug) == slot);
@@ -4264,24 +3721,19 @@ connect_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_connect_interface_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
     mock_snap_add_plug (s, i, "plug");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_connect_interface_async (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, connect_cb, async_data_new (loop, snapd));
@@ -4303,29 +3755,22 @@ connect_interface_progress_cb (SnapdClient *client, SnapdChange *change, gpointe
 static void
 test_connect_interface_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    MockSlot *slot;
-    MockPlug *plug;
-    g_autoptr(SnapdClient) client = NULL;
-    ConnectInterfaceProgressData connect_interface_progress_data;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    slot = mock_snap_add_slot (s, i, "slot");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    plug = mock_snap_add_plug (s, i, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    ConnectInterfaceProgressData connect_interface_progress_data;
     connect_interface_progress_data.progress_done = 0;
-    result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", connect_interface_progress_cb, &connect_interface_progress_data, NULL, &error);
+    gboolean result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", connect_interface_progress_cb, &connect_interface_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert (mock_snapd_find_plug_connection (snapd, plug) == slot);
@@ -4335,18 +3780,15 @@ test_connect_interface_progress (void)
 static void
 test_connect_interface_invalid (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
     g_assert_false (result);
 }
@@ -4354,28 +3796,21 @@ test_connect_interface_invalid (void)
 static void
 test_disconnect_interface_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    MockSlot *slot;
-    MockPlug *plug;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    slot = mock_snap_add_slot (s, i, "slot");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    plug = mock_snap_add_plug (s, i, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
     mock_snapd_connect (snapd, plug, slot, TRUE, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_disconnect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_disconnect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_snapd_find_plug_connection (snapd, plug));
@@ -4385,15 +3820,12 @@ static void
 disconnect_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    MockSnap *s;
-    MockPlug *plug;
-    gboolean r;
+
+    MockSnap *s = mock_snapd_find_snap (data->snapd, "snap2");
+    MockPlug *plug = mock_snap_find_plug (s, "plug");
+
     g_autoptr(GError) error = NULL;
-
-    s = mock_snapd_find_snap (data->snapd, "snap2");
-    plug = mock_snap_find_plug (s, "plug");
-
-    r = snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
+    gboolean r = snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_null (mock_snapd_find_plug_connection (data->snapd, plug));
@@ -4404,27 +3836,20 @@ disconnect_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_disconnect_interface_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    MockSlot *slot;
-    MockPlug *plug;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    slot = mock_snap_add_slot (s, i, "slot");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    plug = mock_snap_add_plug (s, i, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
     mock_snapd_connect (snapd, plug, slot, TRUE, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_disconnect_interface_async (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, disconnect_cb, async_data_new (loop, snapd));
@@ -4446,30 +3871,23 @@ disconnect_interface_progress_cb (SnapdClient *client, SnapdChange *change, gpoi
 static void
 test_disconnect_interface_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockInterface *i;
-    MockSnap *s;
-    MockSlot *slot;
-    MockPlug *plug;
-    g_autoptr(SnapdClient) client = NULL;
-    DisconnectInterfaceProgressData disconnect_interface_progress_data;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    i = mock_snapd_add_interface (snapd, "interface");
-    s = mock_snapd_add_snap (snapd, "snap1");
-    slot = mock_snap_add_slot (s, i, "slot");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface");
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    MockSlot *slot = mock_snap_add_slot (s, i, "slot");
     s = mock_snapd_add_snap (snapd, "snap2");
-    plug = mock_snap_add_plug (s, i, "plug");
+    MockPlug *plug = mock_snap_add_plug (s, i, "plug");
     mock_snapd_connect (snapd, plug, slot, TRUE, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    DisconnectInterfaceProgressData disconnect_interface_progress_data;
     disconnect_interface_progress_data.progress_done = 0;
-    result = snapd_client_disconnect_interface_sync (client, "snap2", "plug", "snap1", "slot", disconnect_interface_progress_cb, &disconnect_interface_progress_data, NULL, &error);
+    gboolean result = snapd_client_disconnect_interface_sync (client, "snap2", "plug", "snap1", "slot", disconnect_interface_progress_cb, &disconnect_interface_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_snapd_find_plug_connection (snapd, plug));
@@ -4479,18 +3897,15 @@ test_disconnect_interface_progress (void)
 static void
 test_disconnect_interface_invalid (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_disconnect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_disconnect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
     g_assert_false (result);
 }
@@ -4498,22 +3913,11 @@ test_disconnect_interface_invalid (void)
 static void
 test_find_query (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autofree gchar *suggested_currency = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    SnapdSnap *snap;
-    GStrv tracks;
-    GPtrArray *channels, *media, *prices, *screenshots;
-    SnapdChannel *channel;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_suggested_currency (snapd, "NZD");
     mock_snapd_add_store_snap (snapd, "apple");
     mock_snapd_add_store_snap (snapd, "banana");
-    s = mock_snapd_add_store_snap (snapd, "carrot1");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "carrot1");
     mock_track_add_channel (mock_snap_add_track (s, "latest"), "stable", NULL);
     s = mock_snapd_add_store_snap (snapd, "carrot2");
     mock_track_add_channel (mock_snap_add_track (s, "latest"), "stable", NULL);
@@ -4528,25 +3932,28 @@ test_find_query (void)
     mock_snap_add_media (s, "screenshot", "screenshot1.png", 1024, 1024);
     mock_snap_add_media (s, "banner", "banner.png", 0, 0);
     mock_snap_set_trymode (s, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "carrot", &suggested_currency, NULL, &error);
+    g_autofree gchar *suggested_currency = NULL;
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "carrot", &suggested_currency, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 2);
     g_assert_cmpstr (suggested_currency, ==, "NZD");
-    snap = snaps->pdata[0];
+    SnapdSnap *snap = snaps->pdata[0];
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "carrot1");
     g_assert_null (snapd_snap_get_channel (snap));
-    tracks = snapd_snap_get_tracks (snap);
+    GStrv tracks = snapd_snap_get_tracks (snap);
     g_assert_cmpint (g_strv_length (tracks), ==, 1);
     g_assert_cmpstr (tracks[0], ==, "latest");
-    channels = snapd_snap_get_channels (snap);
+    GPtrArray *channels = snapd_snap_get_channels (snap);
     g_assert_cmpint (channels->len, ==, 1);
-    channel = channels->pdata[0];
+    SnapdChannel *channel = channels->pdata[0];
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable");
     g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_STRICT);
     g_assert_cmpstr (snapd_channel_get_revision (channel), ==, "REVISION");
@@ -4570,7 +3977,7 @@ test_find_query (void)
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
     g_assert_null (snapd_snap_get_install_date (snap));
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 0);
-    media = snapd_snap_get_media (snap);
+    GPtrArray *media = snapd_snap_get_media (snap);
     g_assert_cmpint (media->len, ==, 3);
     g_assert_cmpstr (snapd_media_get_media_type (media->pdata[0]), ==, "screenshot");
     g_assert_cmpstr (snapd_media_get_url (media->pdata[0]), ==, "screenshot0.png");
@@ -4581,7 +3988,7 @@ test_find_query (void)
     g_assert_cmpstr (snapd_media_get_media_type (media->pdata[2]), ==, "banner");
     g_assert_cmpstr (snapd_media_get_url (media->pdata[2]), ==, "banner.png");
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "carrot2");
-    prices = snapd_snap_get_prices (snap);
+    GPtrArray *prices = snapd_snap_get_prices (snap);
     g_assert_cmpint (prices->len, ==, 2);
     g_assert_cmpfloat (snapd_price_get_amount (prices->pdata[0]), ==, 1.20);
     g_assert_cmpstr (snapd_price_get_currency (prices->pdata[0]), ==, "NZD");
@@ -4590,7 +3997,7 @@ test_find_query (void)
     g_assert_false (snapd_snap_get_private (snap));
     g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    screenshots = snapd_snap_get_screenshots (snap);
+    GPtrArray *screenshots = snapd_snap_get_screenshots (snap);
     g_assert_cmpint (screenshots->len, ==, 2);
     g_assert_cmpstr (snapd_screenshot_get_url (screenshots->pdata[0]), ==, "screenshot0.png");
     g_assert_cmpstr (snapd_screenshot_get_url (screenshots->pdata[1]), ==, "screenshot1.png");
@@ -4607,28 +4014,23 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 static void
 test_find_query_private (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_account_add_private_snap (a, "snap2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
@@ -4639,18 +4041,15 @@ test_find_query_private (void)
 static void
 test_find_query_private_not_logged_in (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_REQUIRED);
     g_assert_null (snaps);
 }
@@ -4658,19 +4057,16 @@ test_find_query_private_not_logged_in (void)
 static void
 test_find_bad_query (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     // '?' is not allowed in queries
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "snap?", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "snap?", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_QUERY);
     g_assert_null (snaps);
 }
@@ -4678,18 +4074,15 @@ test_find_bad_query (void)
 static void
 test_find_network_timeout (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "network-timeout", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "network-timeout", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NETWORK_TIMEOUT);
     g_assert_null (snaps);
 }
@@ -4697,18 +4090,15 @@ test_find_network_timeout (void)
 static void
 test_find_dns_failure (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "dns-failure", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "dns-failure", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_DNS_FAILURE);
     g_assert_null (snaps);
 }
@@ -4716,21 +4106,18 @@ test_find_dns_failure (void)
 static void
 test_find_name (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
@@ -4740,27 +4127,22 @@ test_find_name (void)
 static void
 test_find_name_private (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_add_private_snap (a, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME | SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME | SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
@@ -4771,19 +4153,15 @@ test_find_name_private (void)
 static void
 test_find_name_private_not_logged_in (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME | SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME | SNAPD_FIND_FLAGS_SELECT_PRIVATE, "snap", NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_REQUIRED);
     g_assert_null (snaps);
 }
@@ -4791,25 +4169,12 @@ test_find_name_private_not_logged_in (void)
 static void
 test_find_channels (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    MockTrack *t;
-    MockChannel *c;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    SnapdSnap *snap;
-    GStrv tracks;
-    GPtrArray *channels;
-    guint i;
-    gboolean matched_stable = FALSE, matched_beta = FALSE, matched_branch = FALSE, matched_track = FALSE;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
 
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
-
-    t = mock_snap_add_track (s, "latest");
+    MockTrack *t = mock_snap_add_track (s, "latest");
     mock_track_add_channel (t, "stable", NULL);
-    c = mock_track_add_channel (t, "beta", NULL);
+    MockChannel *c = mock_track_add_channel (t, "beta", NULL);
     mock_channel_set_revision (c, "BETA-REVISION");
     mock_channel_set_version (c, "BETA-VERSION");
     mock_channel_set_epoch (c, "1");
@@ -4820,25 +4185,27 @@ test_find_channels (void)
     t = mock_snap_add_track (s, "insider");
     mock_track_add_channel (t, "stable", NULL);
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
-    snap = snaps->pdata[0];
+    SnapdSnap *snap = snaps->pdata[0];
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "snap");
-    tracks = snapd_snap_get_tracks (snap);
+    GStrv tracks = snapd_snap_get_tracks (snap);
     g_assert_cmpint (g_strv_length (tracks), ==, 2);
     g_assert_cmpstr (tracks[0], ==, "latest");
     g_assert_cmpstr (tracks[1], ==, "insider");
-    channels = snapd_snap_get_channels (snap);
+    GPtrArray *channels = snapd_snap_get_channels (snap);
     g_assert_cmpint (channels->len, ==, 4);
 
-    for (i = 0; i < channels->len; i++) {
+    gboolean matched_stable = FALSE, matched_beta = FALSE, matched_branch = FALSE, matched_track = FALSE;
+    for (guint i = 0; i < channels->len; i++) {
         SnapdChannel *channel = channels->pdata[i];
 
         if (strcmp (snapd_channel_get_name (channel), "stable") == 0) {
@@ -4889,23 +4256,10 @@ test_find_channels (void)
 static void
 test_find_channels_match (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    MockTrack *t;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps1 = NULL;
-    g_autoptr(GPtrArray) snaps2 = NULL;
-    g_autoptr(GPtrArray) snaps3 = NULL;
-    g_autoptr(GPtrArray) snaps4 = NULL;
-    g_autoptr(GPtrArray) snaps5 = NULL;
-    SnapdSnap *snap;
-    SnapdChannel *channel;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
-
-    s = mock_snapd_add_store_snap (snapd, "stable-snap");
-    t = mock_snap_add_track (s, "latest");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "stable-snap");
+    MockTrack *t = mock_snap_add_track (s, "latest");
     mock_track_add_channel (t, "stable", NULL);
 
     s = mock_snapd_add_store_snap (snapd, "full-snap");
@@ -4930,19 +4284,20 @@ test_find_channels_match (void)
     t = mock_snap_add_track (s, "insider");
     mock_track_add_channel (t, "stable", NULL);
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     /* All channels match to stable if only stable defined */
-    snaps1 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "stable-snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps1 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "stable-snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps1);
     g_assert_cmpint (snaps1->len, ==, 1);
-    snap = snaps1->pdata[0];
+    SnapdSnap *snap = snaps1->pdata[0];
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "stable-snap");
-    channel = snapd_snap_match_channel (snap, "stable");
+    SnapdChannel *channel = snapd_snap_match_channel (snap, "stable");
     g_assert_nonnull (channel);
     g_assert_cmpstr (snapd_channel_get_name (channel), ==, "stable");
     channel = snapd_snap_match_channel (snap, "candidate");
@@ -4958,7 +4313,7 @@ test_find_channels_match (void)
     g_assert_null (channel);
 
     /* All channels match if all defined */
-    snaps2 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "full-snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps2 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "full-snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps2);
     g_assert_cmpint (snaps2->len, ==, 1);
@@ -4980,7 +4335,7 @@ test_find_channels_match (void)
     g_assert_null (channel);
 
     /* Only match with more stable channels */
-    snaps3 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "beta-snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps3 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "beta-snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps3);
     g_assert_cmpint (snaps3->len, ==, 1);
@@ -5000,7 +4355,7 @@ test_find_channels_match (void)
     g_assert_null (channel);
 
     /* Match branches */
-    snaps4 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "branch-snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps4 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "branch-snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps4);
     g_assert_cmpint (snaps4->len, ==, 1);
@@ -5025,7 +4380,7 @@ test_find_channels_match (void)
     g_assert_null (channel);
 
     /* Match correct tracks */
-    snaps5 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "track-snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps5 = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "track-snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps5);
     g_assert_cmpint (snaps5->len, ==, 1);
@@ -5059,11 +4414,10 @@ cancel_cb (gpointer user_data)
 static void
 find_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    g_autoptr(GPtrArray) snaps = NULL;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    snaps = snapd_client_find_finish (SNAPD_CLIENT (object), result, NULL, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) snaps = snapd_client_find_finish (SNAPD_CLIENT (object), result, NULL, &error);
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
     g_assert_null (snaps);
 
@@ -5073,22 +4427,18 @@ find_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_find_cancel (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GCancellable) cancellable = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
     g_autoptr(GError) error = NULL;
-
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     /* Use a special query that never responds */
-    cancellable = g_cancellable_new ();
+    g_autoptr(GCancellable) cancellable = g_cancellable_new ();
     snapd_client_find_async (client, SNAPD_FIND_FLAGS_NONE, "do-not-respond", cancellable, find_cancel_cb, async_data_new (loop, snapd));
     g_idle_add (cancel_cb, cancellable);
 
@@ -5098,25 +4448,21 @@ test_find_cancel (void)
 static void
 test_find_section (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "apple");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "banana");
     s = mock_snapd_add_store_snap (snapd, "carrot1");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "carrot2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_NONE, "section", NULL, NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_NONE, "section", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 2);
@@ -5127,25 +4473,21 @@ test_find_section (void)
 static void
 test_find_section_query (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "apple");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "banana");
     s = mock_snapd_add_store_snap (snapd, "carrot1");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "carrot2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_NONE, "section", "carrot", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_NONE, "section", "carrot", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
@@ -5155,26 +4497,22 @@ test_find_section_query (void)
 static void
 test_find_section_name (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "apple");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
     mock_snap_add_store_section (s, "section");
     mock_snapd_add_store_snap (snapd, "banana");
     s = mock_snapd_add_store_snap (snapd, "carrot1");
     mock_snap_add_store_section (s, "section");
     s = mock_snapd_add_store_snap (snapd, "carrot2");
     mock_snap_add_store_section (s, "section");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "section", "carrot1", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "section", "carrot1", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
@@ -5184,22 +4522,18 @@ test_find_section_name (void)
 static void
 test_find_scope_narrow (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap1");
     s = mock_snapd_add_store_snap (snapd, "snap2");
     mock_snap_set_scope_is_wide (s, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_NONE, "snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
@@ -5209,22 +4543,18 @@ test_find_scope_narrow (void)
 static void
 test_find_scope_wide (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap1");
     s = mock_snapd_add_store_snap (snapd, "snap2");
     mock_snap_set_scope_is_wide (s, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_SCOPE_WIDE, "snap", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_SCOPE_WIDE, "snap", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 2);
@@ -5235,26 +4565,21 @@ test_find_scope_wide (void)
 static void
 test_find_common_id (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    MockApp *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap1");
-    a = mock_snap_add_app (s, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap1");
+    MockApp *a = mock_snap_add_app (s, "snap1");
     mock_app_set_common_id (a, "com.example.snap1");
     s = mock_snapd_add_store_snap (snapd, "snap2");
     a = mock_snap_add_app (s, "snap2");
     mock_app_set_common_id (a, "com.example.snap2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_COMMON_ID, "com.example.snap2", NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_COMMON_ID, "com.example.snap2", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
@@ -5264,14 +4589,8 @@ test_find_common_id (void)
 static void
 test_find_refreshable_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_snap (snapd, "snap2");
     mock_snap_set_revision (s, "0");
@@ -5281,12 +4600,14 @@ test_find_refreshable_sync (void)
     mock_snap_set_revision (s, "1");
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_refreshable_sync (client, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_refreshable_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 2);
@@ -5300,10 +4621,9 @@ static void
 find_refreshable_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
 
-    snaps = snapd_client_find_refreshable_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) snaps = snapd_client_find_refreshable_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 2);
@@ -5318,16 +4638,10 @@ find_refreshable_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_find_refreshable_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_snap (snapd, "snap2");
     mock_snap_set_revision (s, "0");
@@ -5337,9 +4651,11 @@ test_find_refreshable_async (void)
     mock_snap_set_revision (s, "1");
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_find_refreshable_async (client, NULL, find_refreshable_cb, async_data_new (loop, snapd));
@@ -5350,18 +4666,15 @@ test_find_refreshable_async (void)
 static void
 test_find_refreshable_no_updates (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) snaps = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snaps = snapd_client_find_refreshable_sync (client, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_refreshable_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 0);
@@ -5370,20 +4683,17 @@ test_find_refreshable_no_updates (void)
 static void
 test_install_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
@@ -5396,24 +4706,21 @@ test_install_sync (void)
 static void
 test_install_sync_multiple (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap1"));
     g_assert_null (mock_snapd_find_snap (snapd, "snap2"));
     g_assert_null (mock_snapd_find_snap (snapd, "snap3"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap2", NULL, NULL, NULL, NULL, NULL, &error);
@@ -5430,11 +4737,10 @@ test_install_sync_multiple (void)
 static void
 install_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_nonnull (mock_snapd_find_snap (data->snapd, "snap"));
@@ -5449,18 +4755,15 @@ install_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_install_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
@@ -5471,11 +4774,10 @@ test_install_async (void)
 static void
 install_multiple_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     AsyncData *data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
@@ -5494,27 +4796,23 @@ install_multiple_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_install_async_multiple (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    AsyncData *data;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap1"));
     g_assert_null (mock_snapd_find_snap (snapd, "snap2"));
     g_assert_null (mock_snapd_find_snap (snapd, "snap3"));
-    data = async_data_new (loop, snapd);
+    AsyncData *data = async_data_new (loop, snapd);
     data->counter = 3;
     snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL, NULL, NULL, NULL, NULL, install_multiple_cb, data);
     snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap2", NULL, NULL, NULL, NULL, NULL, install_multiple_cb, data);
@@ -5525,11 +4823,10 @@ test_install_async_multiple (void)
 static void
 install_failure_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
     g_assert_cmpstr (error->message, ==, "ERROR");
     g_assert_false (r);
@@ -5541,20 +4838,16 @@ install_failure_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_install_async_failure (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_error (s, "ERROR");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
@@ -5565,11 +4858,10 @@ test_install_async_failure (void)
 static void
 install_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
     g_assert_false (r);
     g_assert_null (mock_snapd_find_snap (data->snapd, "snap"));
@@ -5580,23 +4872,19 @@ install_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_install_async_cancel (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GCancellable) cancellable = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    cancellable = g_cancellable_new ();
+    g_autoptr(GCancellable) cancellable = g_cancellable_new ();
     snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, cancellable, install_cancel_cb, async_data_new (loop, snapd));
     g_idle_add (cancel_cb, cancellable);
     g_main_loop_run (loop);
@@ -5620,11 +4908,10 @@ complete_async_multiple_cancel_first (AsyncData *data)
 static void
 install_multiple_cancel_first_snap1_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     AsyncData *data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
     g_assert_false (r);
     g_assert_null (mock_snapd_find_snap (data->snapd, "snap1"));
@@ -5635,11 +4922,10 @@ install_multiple_cancel_first_snap1_cb (GObject *object, GAsyncResult *result, g
 static void
 install_multiple_cancel_first_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     AsyncData *data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
@@ -5649,29 +4935,24 @@ install_multiple_cancel_first_cb (GObject *object, GAsyncResult *result, gpointe
 static void
 test_install_async_multiple_cancel_first (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GCancellable) cancellable = NULL;
-    AsyncData *data;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap1"));
     g_assert_null (mock_snapd_find_snap (snapd, "snap2"));
     g_assert_null (mock_snapd_find_snap (snapd, "snap3"));
-    cancellable = g_cancellable_new ();
-    data = async_data_new (loop, snapd);
+    g_autoptr(GCancellable) cancellable = g_cancellable_new ();
+    AsyncData *data = async_data_new (loop, snapd);
     data->counter = 3;
     snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL, NULL, NULL, NULL, cancellable, install_multiple_cancel_first_snap1_cb, data);
     snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap2", NULL, NULL, NULL, NULL, NULL, install_multiple_cancel_first_cb, data);
@@ -5698,11 +4979,10 @@ complete_async_multiple_cancel_last (AsyncData *data)
 static void
 install_multiple_cancel_last_snap3_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     AsyncData *data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
     g_assert_false (r);
     g_assert_null (mock_snapd_find_snap (data->snapd, "snap3"));
@@ -5713,11 +4993,10 @@ install_multiple_cancel_last_snap3_cb (GObject *object, GAsyncResult *result, gp
 static void
 install_multiple_cancel_last_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     AsyncData *data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_install2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
@@ -5727,29 +5006,24 @@ install_multiple_cancel_last_cb (GObject *object, GAsyncResult *result, gpointer
 static void
 test_install_async_multiple_cancel_last (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GCancellable) cancellable = NULL;
-    AsyncData *data;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap1");
     mock_snapd_add_store_snap (snapd, "snap2");
     mock_snapd_add_store_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap1"));
     g_assert_null (mock_snapd_find_snap (snapd, "snap2"));
     g_assert_null (mock_snapd_find_snap (snapd, "snap3"));
-    cancellable = g_cancellable_new ();
-    data = async_data_new (loop, snapd);
+    g_autoptr(GCancellable) cancellable = g_cancellable_new ();
+    AsyncData *data = async_data_new (loop, snapd);
     data->counter = 3;
     snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL, NULL, NULL, NULL, NULL, install_multiple_cancel_last_cb, data);
     snapd_client_install2_async (client, SNAPD_INSTALL_FLAGS_NONE, "snap2", NULL, NULL, NULL, NULL, NULL, install_multiple_cancel_last_cb, data);
@@ -5778,23 +5052,21 @@ static void
 install_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data)
 {
     InstallProgressData *data = user_data;
-    int i, progress_done, progress_total;
-    GPtrArray *tasks;
-    g_autofree gchar *spawn_time = NULL, *ready_time = NULL;
 
     data->progress_done++;
 
     // Check we've been notified of all tasks
-    tasks = snapd_change_get_tasks (change);
-    for (progress_done = 0, progress_total = 0, i = 0; i < tasks->len; i++) {
+    GPtrArray *tasks = snapd_change_get_tasks (change);
+    int progress_done = 0, progress_total = 0;
+    for (guint i = 0; i < tasks->len; i++) {
         SnapdTask *task = tasks->pdata[i];
         progress_done += snapd_task_get_progress_done (task);
         progress_total += snapd_task_get_progress_total (task);
     }
     g_assert_cmpint (data->progress_done, ==, progress_done);
 
-    spawn_time = time_to_string (snapd_change_get_spawn_time (change));
-    ready_time = time_to_string (snapd_change_get_ready_time (change));
+    g_autofree gchar *spawn_time = time_to_string (snapd_change_get_spawn_time (change));
+    g_autofree gchar *ready_time = time_to_string (snapd_change_get_ready_time (change));
 
     g_assert_cmpstr (snapd_change_get_kind (change), ==, "KIND");
     g_assert_cmpstr (snapd_change_get_summary (change), ==, "SUMMARY");
@@ -5816,26 +5088,23 @@ install_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecat
 static void
 test_install_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
     InstallProgressData install_progress_data;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
     install_progress_data.progress_done = 0;
     install_progress_data.spawn_time = "2017-01-02T11:23:58Z";
     install_progress_data.ready_time = "2017-01-03T00:00:00Z";
 
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_spawn_time (snapd, install_progress_data.spawn_time);
     mock_snapd_set_ready_time (snapd, install_progress_data.ready_time);
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, install_progress_cb, &install_progress_data, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, install_progress_cb, &install_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_cmpint (install_progress_data.progress_done, >, 0);
@@ -5844,22 +5113,18 @@ test_install_progress (void)
 static void
 test_install_needs_classic (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NEEDS_CLASSIC);
     g_assert_false (result);
 }
@@ -5867,23 +5132,19 @@ test_install_needs_classic (void)
 static void
 test_install_classic (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_on_classic (snapd, TRUE);
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
@@ -5893,21 +5154,18 @@ test_install_classic (void)
 static void
 test_install_not_classic (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_on_classic (snapd, TRUE);
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_CLASSIC);
     g_assert_false (result);
 }
@@ -5915,22 +5173,18 @@ test_install_not_classic (void)
 static void
 test_install_needs_classic_system (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "classic");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NEEDS_CLASSIC_SYSTEM);
     g_assert_false (result);
 }
@@ -5938,22 +5192,18 @@ test_install_needs_classic_system (void)
 static void
 test_install_needs_devmode (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "devmode");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NEEDS_DEVMODE);
     g_assert_false (result);
 }
@@ -5961,22 +5211,18 @@ test_install_needs_devmode (void)
 static void
 test_install_devmode (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_confinement (s, "devmode");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_DEVMODE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_DEVMODE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
@@ -5986,20 +5232,17 @@ test_install_devmode (void)
 static void
 test_install_dangerous (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_DANGEROUS, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_DANGEROUS, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
@@ -6009,20 +5252,17 @@ test_install_dangerous (void)
 static void
 test_install_jailmode (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_JAILMODE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_JAILMODE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
@@ -6032,23 +5272,19 @@ test_install_jailmode (void)
 static void
 test_install_channel (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_channel (s, "channel1");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_channel (s, "channel2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", "channel2", NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", "channel2", NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
@@ -6058,23 +5294,19 @@ test_install_channel (void)
 static void
 test_install_revision (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1.2");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1.1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, "1.1", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, "1.1", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
@@ -6084,18 +5316,15 @@ test_install_revision (void)
 static void
 test_install_not_available (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_FOUND);
     g_assert_false (result);
 }
@@ -6103,19 +5332,16 @@ test_install_not_available (void)
 static void
 test_install_channel_not_available (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", "channel", NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", "channel", NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_CHANNEL_NOT_AVAILABLE);
     g_assert_false (result);
 }
@@ -6123,19 +5349,16 @@ test_install_channel_not_available (void)
 static void
 test_install_revision_not_available (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, "1.1", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, "1.1", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_REVISION_NOT_AVAILABLE);
     g_assert_false (result);
 }
@@ -6143,22 +5366,18 @@ test_install_revision_not_available (void)
 static void
 test_install_snapd_restart (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_restart_required (s, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 }
@@ -6166,20 +5385,16 @@ test_install_snapd_restart (void)
 static void
 test_install_async_snapd_restart (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_restart_required (s, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
@@ -6190,20 +5405,17 @@ test_install_async_snapd_restart (void)
 static void
 test_install_auth_cancelled (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
     mock_snapd_set_decline_auth (snapd, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_install2_sync (client, SNAPD_INSTALL_FLAGS_NONE, "snap", NULL, NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_CANCELLED);
     g_assert_false (result);
 }
@@ -6211,26 +5423,21 @@ test_install_auth_cancelled (void)
 static void
 test_install_stream_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GInputStream) stream = NULL;
-    gboolean result;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "sideload"));
-    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
-    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_NONE, stream, NULL, NULL, NULL, &error);
+    g_autoptr(GInputStream) stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    gboolean result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_NONE, stream, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    snap = mock_snapd_find_snap (snapd, "sideload");
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
     g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
@@ -6243,14 +5450,12 @@ static void
 install_stream_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_install_stream_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_install_stream_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
-    snap = mock_snapd_find_snap (data->snapd, "sideload");
+    MockSnap *snap = mock_snapd_find_snap (data->snapd, "sideload");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
     g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
@@ -6264,23 +5469,19 @@ install_stream_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_install_stream_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GInputStream) stream = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "sideload"));
-    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    g_autoptr(GInputStream) stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
     snapd_client_install_stream_async (client, SNAPD_INSTALL_FLAGS_NONE, stream, NULL, NULL, NULL, install_stream_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
@@ -6300,28 +5501,23 @@ install_stream_progress_cb (SnapdClient *client, SnapdChange *change, gpointer d
 static void
 test_install_stream_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    InstallStreamProgressData install_stream_progress_data;
-    g_autoptr(GInputStream) stream = NULL;
-    gboolean result;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "sideload"));
-    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    g_autoptr(GInputStream) stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    InstallStreamProgressData install_stream_progress_data;
     install_stream_progress_data.progress_done = 0;
-    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_NONE, stream, install_stream_progress_cb, &install_stream_progress_data, NULL, &error);
+    gboolean result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_NONE, stream, install_stream_progress_cb, &install_stream_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    snap = mock_snapd_find_snap (snapd, "sideload");
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
     g_assert_cmpint (install_stream_progress_data.progress_done, >, 0);
@@ -6330,26 +5526,21 @@ test_install_stream_progress (void)
 static void
 test_install_stream_classic (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GInputStream) stream = NULL;
-    gboolean result;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "sideload"));
-    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
-    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, stream, NULL, NULL, NULL, &error);
+    g_autoptr(GInputStream) stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    gboolean result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_CLASSIC, stream, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    snap = mock_snapd_find_snap (snapd, "sideload");
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
     g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "classic");
@@ -6361,26 +5552,21 @@ test_install_stream_classic (void)
 static void
 test_install_stream_dangerous (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GInputStream) stream = NULL;
-    gboolean result;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "sideload"));
-    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
-    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_DANGEROUS, stream, NULL, NULL, NULL, &error);
+    g_autoptr(GInputStream) stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    gboolean result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_DANGEROUS, stream, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    snap = mock_snapd_find_snap (snapd, "sideload");
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
     g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
@@ -6392,26 +5578,21 @@ test_install_stream_dangerous (void)
 static void
 test_install_stream_devmode (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GInputStream) stream = NULL;
-    gboolean result;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "sideload"));
-    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
-    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_DEVMODE, stream, NULL, NULL, NULL, &error);
+    g_autoptr(GInputStream) stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    gboolean result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_DEVMODE, stream, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    snap = mock_snapd_find_snap (snapd, "sideload");
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
     g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
@@ -6423,26 +5604,21 @@ test_install_stream_devmode (void)
 static void
 test_install_stream_jailmode (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GInputStream) stream = NULL;
-    gboolean result;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_snap (snapd, "sideload"));
-    stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
-    result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_JAILMODE, stream, NULL, NULL, NULL, &error);
+    g_autoptr(GInputStream) stream = g_memory_input_stream_new_from_data ("SNAP", 4, NULL);
+    gboolean result = snapd_client_install_stream_sync (client, SNAPD_INSTALL_FLAGS_JAILMODE, stream, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    snap = mock_snapd_find_snap (snapd, "sideload");
+    MockSnap *snap = mock_snapd_find_snap (snapd, "sideload");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_data (snap), ==, "SNAP");
     g_assert_cmpstr (mock_snap_get_confinement (snap), ==, "strict");
@@ -6454,23 +5630,18 @@ test_install_stream_jailmode (void)
 static void
 test_try_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GInputStream) stream = NULL;
-    gboolean result;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_try_sync (client, "/path/to/snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_try_sync (client, "/path/to/snap", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    snap = mock_snapd_find_snap (snapd, "try");
+    MockSnap *snap = mock_snapd_find_snap (snapd, "try");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_path (snap), ==, "/path/to/snap");
 }
@@ -6479,14 +5650,12 @@ static void
 try_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_try_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_try_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
-    snap = mock_snapd_find_snap (data->snapd, "try");
+    MockSnap *snap = mock_snapd_find_snap (data->snapd, "try");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_path (snap), ==, "/path/to/snap");
 
@@ -6496,18 +5665,14 @@ try_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_try_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GInputStream) stream = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
     g_autoptr(GError) error = NULL;
-
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_try_async (client, "/path/to/snap", NULL, NULL, NULL, try_cb, async_data_new (loop, snapd));
@@ -6529,25 +5694,20 @@ try_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecated, 
 static void
 test_try_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    TryProgressData try_progress_data;
-    g_autoptr(GInputStream) stream = NULL;
-    gboolean result;
-    MockSnap *snap;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    TryProgressData try_progress_data;
     try_progress_data.progress_done = 0;
-    result = snapd_client_try_sync (client, "/path/to/snap", try_progress_cb, &try_progress_data, NULL, &error);
+    gboolean result = snapd_client_try_sync (client, "/path/to/snap", try_progress_cb, &try_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    snap = mock_snapd_find_snap (snapd, "try");
+    MockSnap *snap = mock_snapd_find_snap (snapd, "try");
     g_assert_nonnull (snap);
     g_assert_cmpstr (mock_snap_get_path (snap), ==, "/path/to/snap");
     g_assert_cmpint (try_progress_data.progress_done, >, 0);
@@ -6556,19 +5716,15 @@ test_try_progress (void)
 static void
 test_try_not_a_snap (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GInputStream) stream = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_try_sync (client, "*", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_try_sync (client, "*", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_A_SNAP);
     g_assert_false (result);
 }
@@ -6576,23 +5732,19 @@ test_try_not_a_snap (void)
 static void
 test_refresh_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 }
@@ -6601,10 +5753,9 @@ static void
 refresh_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_refresh_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_refresh_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
@@ -6614,22 +5765,18 @@ refresh_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_refresh_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_refresh_async (client, "snap", NULL, NULL, NULL, NULL, refresh_cb, async_data_new (loop, snapd));
@@ -6651,25 +5798,21 @@ refresh_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecat
 static void
 test_refresh_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    RefreshProgressData refresh_progress_data;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    RefreshProgressData refresh_progress_data;
     refresh_progress_data.progress_done = 0;
-    result = snapd_client_refresh_sync (client, "snap", NULL, refresh_progress_cb, &refresh_progress_data, NULL, &error);
+    gboolean result = snapd_client_refresh_sync (client, "snap", NULL, refresh_progress_cb, &refresh_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_cmpint (refresh_progress_data.progress_done, >, 0);
@@ -6678,14 +5821,8 @@ test_refresh_progress (void)
 static void
 test_refresh_channel (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
@@ -6693,12 +5830,14 @@ test_refresh_channel (void)
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "1");
     mock_snap_set_channel (s, "channel2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_refresh_sync (client, "snap", "channel2", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_refresh_sync (client, "snap", "channel2", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_cmpstr (mock_snap_get_channel (mock_snapd_find_snap (snapd, "snap")), ==, "channel2");
@@ -6707,23 +5846,19 @@ test_refresh_channel (void)
 static void
 test_refresh_no_updates (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_revision (s, "0");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NO_UPDATE_AVAILABLE);
     g_assert_false (result);
 }
@@ -6731,18 +5866,15 @@ test_refresh_no_updates (void)
 static void
 test_refresh_not_installed (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
     g_assert_false (result);
 }
@@ -6750,21 +5882,17 @@ test_refresh_not_installed (void)
 static void
 test_refresh_not_in_store (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_revision (s, "0");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_refresh_sync (client, "snap", NULL, NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_IN_STORE);
     g_assert_false (result);
 }
@@ -6772,14 +5900,8 @@ test_refresh_not_in_store (void)
 static void
 test_refresh_all_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) snap_names = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_snap (snapd, "snap2");
     mock_snap_set_revision (s, "0");
@@ -6789,12 +5911,14 @@ test_refresh_all_sync (void)
     mock_snap_set_revision (s, "1");
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap_names = snapd_client_refresh_all_sync (client, NULL, NULL, NULL, &error);
+    g_auto(GStrv) snap_names = snapd_client_refresh_all_sync (client, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_cmpint (g_strv_length (snap_names), ==, 2);
     g_assert_cmpstr (snap_names[0], ==, "snap1");
@@ -6805,10 +5929,9 @@ static void
 refresh_all_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_auto(GStrv) snap_names = NULL;
-    g_autoptr(GError) error = NULL;
 
-    snap_names = snapd_client_refresh_all_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_auto(GStrv) snap_names = snapd_client_refresh_all_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_cmpint (g_strv_length (snap_names), ==, 2);
     g_assert_cmpstr (snap_names[0], ==, "snap1");
@@ -6820,16 +5943,10 @@ refresh_all_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_refresh_all_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_snap (snapd, "snap2");
     mock_snap_set_revision (s, "0");
@@ -6839,9 +5956,11 @@ test_refresh_all_async (void)
     mock_snap_set_revision (s, "1");
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_refresh_all_async (client, NULL, NULL, NULL, refresh_all_cb, async_data_new (loop, snapd));
@@ -6863,15 +5982,8 @@ refresh_all_progress_cb (SnapdClient *client, SnapdChange *change, gpointer depr
 static void
 test_refresh_all_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    RefreshAllProgressData refresh_all_progress_data;
-    g_auto(GStrv) snap_names = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap1");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
     mock_snap_set_revision (s, "0");
     s = mock_snapd_add_snap (snapd, "snap2");
     mock_snap_set_revision (s, "0");
@@ -6881,13 +5993,16 @@ test_refresh_all_progress (void)
     mock_snap_set_revision (s, "1");
     s = mock_snapd_add_store_snap (snapd, "snap3");
     mock_snap_set_revision (s, "1");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    RefreshAllProgressData refresh_all_progress_data;
     refresh_all_progress_data.progress_done = 0;
-    snap_names = snapd_client_refresh_all_sync (client, refresh_all_progress_cb, &refresh_all_progress_data, NULL, &error);
+    g_auto(GStrv) snap_names = snapd_client_refresh_all_sync (client, refresh_all_progress_cb, &refresh_all_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_cmpint (g_strv_length (snap_names), ==, 2);
     g_assert_cmpstr (snap_names[0], ==, "snap1");
@@ -6898,18 +6013,15 @@ test_refresh_all_progress (void)
 static void
 test_refresh_all_no_updates (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) snap_names = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snap_names = snapd_client_refresh_all_sync (client, NULL, NULL, NULL, &error);
+    g_auto(GStrv) snap_names = snapd_client_refresh_all_sync (client, NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_cmpint (g_strv_length (snap_names), ==, 0);
 }
@@ -6917,20 +6029,17 @@ test_refresh_all_no_updates (void)
 static void
 test_remove_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    result = snapd_client_remove_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_remove_sync (client, "snap", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
@@ -6939,11 +6048,10 @@ test_remove_sync (void)
 static void
 remove_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_null (mock_snapd_find_snap (data->snapd, "snap"));
@@ -6954,18 +6062,15 @@ remove_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_remove_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
@@ -6976,11 +6081,10 @@ test_remove_async (void)
 static void
 remove_failure_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
     g_assert_cmpstr (error->message, ==, "ERROR");
     g_assert_false (r);
@@ -6992,20 +6096,16 @@ remove_failure_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_remove_async_failure (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_error (s, "ERROR");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
@@ -7016,11 +6116,10 @@ test_remove_async_failure (void)
 static void
 remove_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
-    gboolean r;
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
     g_assert_false (r);
     g_assert_nonnull (mock_snapd_find_snap (data->snapd, "snap"));
@@ -7031,23 +6130,19 @@ remove_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_remove_async_cancel (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GCancellable) cancellable = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    cancellable = g_cancellable_new ();
+    g_autoptr(GCancellable) cancellable = g_cancellable_new ();
     snapd_client_remove_async (client, "snap", NULL, NULL, cancellable, remove_cancel_cb, async_data_new (loop, snapd));
     g_idle_add (cancel_cb, cancellable);
     g_main_loop_run (loop);
@@ -7068,22 +6163,19 @@ remove_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecate
 static void
 test_remove_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    RemoveProgressData remove_progress_data;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
+    RemoveProgressData remove_progress_data;
     remove_progress_data.progress_done = 0;
-    result = snapd_client_remove_sync (client, "snap", remove_progress_cb, &remove_progress_data, NULL, &error);
+    gboolean result = snapd_client_remove_sync (client, "snap", remove_progress_cb, &remove_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
@@ -7093,18 +6185,15 @@ test_remove_progress (void)
 static void
 test_remove_not_installed (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_remove_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_remove_sync (client, "snap", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
     g_assert_false (result);
 }
@@ -7112,21 +6201,17 @@ test_remove_not_installed (void)
 static void
 test_enable_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_disabled (s, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_enable_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_enable_sync (client, "snap", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_false (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
@@ -7136,10 +6221,9 @@ static void
 enable_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_enable_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_enable_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_false (mock_snap_get_disabled (mock_snapd_find_snap (data->snapd, "snap")));
@@ -7150,20 +6234,16 @@ enable_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_enable_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_disabled (s, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_enable_async (client, "snap", NULL, NULL, NULL, enable_cb, async_data_new (loop, snapd));
@@ -7185,23 +6265,19 @@ enable_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecate
 static void
 test_enable_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    EnableProgressData enable_progress_data;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_disabled (s, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    EnableProgressData enable_progress_data;
     enable_progress_data.progress_done = 0;
-    result = snapd_client_enable_sync (client, "snap", enable_progress_cb, &enable_progress_data, NULL, &error);
+    gboolean result = snapd_client_enable_sync (client, "snap", enable_progress_cb, &enable_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_false (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
@@ -7211,21 +6287,17 @@ test_enable_progress (void)
 static void
 test_enable_already_enabled (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_disabled (s, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_enable_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_enable_sync (client, "snap", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
     g_assert_false (result);
 }
@@ -7233,18 +6305,15 @@ test_enable_already_enabled (void)
 static void
 test_enable_not_installed (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_enable_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_enable_sync (client, "snap", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
     g_assert_false (result);
 }
@@ -7252,21 +6321,17 @@ test_enable_not_installed (void)
 static void
 test_disable_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_disabled (s, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_disable_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_disable_sync (client, "snap", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_true (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
@@ -7276,10 +6341,9 @@ static void
 disable_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_disable_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_disable_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_true (mock_snap_get_disabled (mock_snapd_find_snap (data->snapd, "snap")));
@@ -7290,20 +6354,16 @@ disable_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_disable_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_disabled (s, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_disable_async (client, "snap", NULL, NULL, NULL, disable_cb, async_data_new (loop, snapd));
@@ -7325,23 +6385,19 @@ disable_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecat
 static void
 test_disable_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    DisableProgressData disable_progress_data;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_disabled (s, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    DisableProgressData disable_progress_data;
     disable_progress_data.progress_done = 0;
-    result = snapd_client_disable_sync (client, "snap", disable_progress_cb, &disable_progress_data, NULL, &error);
+    gboolean result = snapd_client_disable_sync (client, "snap", disable_progress_cb, &disable_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_true (mock_snap_get_disabled (mock_snapd_find_snap (snapd, "snap")));
@@ -7351,21 +6407,17 @@ test_disable_progress (void)
 static void
 test_disable_already_disabled (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_disabled (s, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_disable_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_disable_sync (client, "snap", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
     g_assert_false (result);
 }
@@ -7373,18 +6425,15 @@ test_disable_already_disabled (void)
 static void
 test_disable_not_installed (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_disable_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_disable_sync (client, "snap", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
     g_assert_false (result);
 }
@@ -7392,21 +6441,17 @@ test_disable_not_installed (void)
 static void
 test_switch_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_tracking_channel (s, "stable");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_switch_sync (client, "snap", "beta", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_switch_sync (client, "snap", "beta", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_cmpstr (mock_snap_get_tracking_channel (mock_snapd_find_snap (snapd, "snap")), ==, "beta");
@@ -7416,10 +6461,9 @@ static void
 switch_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_switch_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_switch_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_cmpstr (mock_snap_get_tracking_channel (mock_snapd_find_snap (data->snapd, "snap")), ==, "beta");
@@ -7430,20 +6474,16 @@ switch_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_switch_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_tracking_channel (s, "stable");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_switch_async (client, "snap", "beta", NULL, NULL, NULL, switch_cb, async_data_new (loop, snapd));
@@ -7465,23 +6505,19 @@ switch_progress_cb (SnapdClient *client, SnapdChange *change, gpointer deprecate
 static void
 test_switch_progress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    SwitchProgressData switch_progress_data;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_set_tracking_channel (s, "stable");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+    SwitchProgressData switch_progress_data;
     switch_progress_data.progress_done = 0;
-    result = snapd_client_switch_sync (client, "snap", "beta", switch_progress_cb, &switch_progress_data, NULL, &error);
+    gboolean result = snapd_client_switch_sync (client, "snap", "beta", switch_progress_cb, &switch_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_cmpstr (mock_snap_get_tracking_channel (mock_snapd_find_snap (snapd, "snap")), ==, "beta");
@@ -7491,18 +6527,15 @@ test_switch_progress (void)
 static void
 test_switch_not_installed (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_switch_sync (client, "snap", "beta", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_switch_sync (client, "snap", "beta", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
     g_assert_false (result);
 }
@@ -7510,28 +6543,23 @@ test_switch_not_installed (void)
 static void
 test_check_buy_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, TRUE);
     mock_account_set_has_payment_methods (a, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    result = snapd_client_check_buy_sync (client, NULL, &error);
+    gboolean result = snapd_client_check_buy_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 }
@@ -7540,10 +6568,9 @@ static void
 check_buy_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_check_buy_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_check_buy_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
@@ -7553,25 +6580,20 @@ check_buy_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_check_buy_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, TRUE);
     mock_account_set_has_payment_methods (a, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
@@ -7583,28 +6605,23 @@ test_check_buy_async (void)
 static void
 test_check_buy_terms_not_accepted (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, FALSE);
     mock_account_set_has_payment_methods (a, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    result = snapd_client_check_buy_sync (client, NULL, &error);
+    gboolean result = snapd_client_check_buy_sync (client, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_TERMS_NOT_ACCEPTED);
     g_assert_false (result);
 }
@@ -7612,28 +6629,23 @@ test_check_buy_terms_not_accepted (void)
 static void
 test_check_buy_no_payment_methods (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, TRUE);
     mock_account_set_has_payment_methods (a, FALSE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    result = snapd_client_check_buy_sync (client, NULL, &error);
+    gboolean result = snapd_client_check_buy_sync (client, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_PAYMENT_NOT_SETUP);
     g_assert_false (result);
 }
@@ -7641,18 +6653,15 @@ test_check_buy_no_payment_methods (void)
 static void
 test_check_buy_not_logged_in (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_check_buy_sync (client, NULL, &error);
+    gboolean result = snapd_client_check_buy_sync (client, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_REQUIRED);
     g_assert_false (result);
 }
@@ -7660,32 +6669,26 @@ test_check_buy_not_logged_in (void)
 static void
 test_buy_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, TRUE);
     mock_account_set_has_payment_methods (a, TRUE);
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 }
@@ -7694,10 +6697,9 @@ static void
 buy_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
-    g_autoptr(GError) error = NULL;
 
-    r = snapd_client_buy_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_buy_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
 
@@ -7707,29 +6709,23 @@ buy_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_buy_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, TRUE);
     mock_account_set_has_payment_methods (a, TRUE);
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
@@ -7741,23 +6737,18 @@ test_buy_async (void)
 static void
 test_buy_not_logged_in (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_REQUIRED);
     g_assert_false (result);
 }
@@ -7765,28 +6756,23 @@ test_buy_not_logged_in (void)
 static void
 test_buy_not_available (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, TRUE);
     mock_account_set_has_payment_methods (a, TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
     g_assert_false (result);
 }
@@ -7794,32 +6780,26 @@ test_buy_not_available (void)
 static void
 test_buy_terms_not_accepted (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, FALSE);
     mock_account_set_has_payment_methods (a, FALSE);
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_TERMS_NOT_ACCEPTED);
     g_assert_false (result);
 }
@@ -7827,32 +6807,26 @@ test_buy_terms_not_accepted (void)
 static void
 test_buy_no_payment_methods (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, TRUE);
     mock_account_set_has_payment_methods (a, FALSE);
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_PAYMENT_NOT_SETUP);
     g_assert_false (result);
 }
@@ -7860,32 +6834,26 @@ test_buy_no_payment_methods (void)
 static void
 test_buy_invalid_price (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockAccount *a;
-    MockSnap *s;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) user_information = NULL;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockAccount *a = mock_snapd_add_account (snapd, "test@example.com", "test", "secret");
     mock_account_set_terms_accepted (a, TRUE);
     mock_account_set_has_payment_methods (a, TRUE);
-    s = mock_snapd_add_store_snap (snapd, "snap");
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
     mock_snap_add_price (s, 1.20, "NZD");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
+    g_autoptr(SnapdUserInformation) user_information = snapd_client_login2_sync (client, "test@example.com", "secret", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    result = snapd_client_buy_sync (client, "ABCDEF", 0.6, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 0.6, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_PAYMENT_DECLINED);
     g_assert_false (result);
 }
@@ -7893,30 +6861,25 @@ test_buy_invalid_price (void)
 static void
 test_create_user_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) info = NULL;
-    GStrv ssh_keys;
-    MockAccount *account;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_account_by_username (snapd, "user"));
-    info = snapd_client_create_user_sync (client, "user@example.com", SNAPD_CREATE_USER_FLAGS_NONE, NULL, &error);
+    g_autoptr(SnapdUserInformation) info = snapd_client_create_user_sync (client, "user@example.com", SNAPD_CREATE_USER_FLAGS_NONE, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
     g_assert_cmpstr (snapd_user_information_get_username (info), ==, "user");
-    ssh_keys = snapd_user_information_get_ssh_keys (info);
+    GStrv ssh_keys = snapd_user_information_get_ssh_keys (info);
     g_assert_nonnull (ssh_keys);
     g_assert_cmpint (g_strv_length (ssh_keys), ==, 2);
     g_assert_cmpstr (ssh_keys[0], ==, "KEY1");
     g_assert_cmpstr (ssh_keys[1], ==, "KEY2");
-    account = mock_snapd_find_account_by_username (snapd, "user");
+    MockAccount *account = mock_snapd_find_account_by_username (snapd, "user");
     g_assert_nonnull (account);
     g_assert_false (mock_account_get_sudoer (account));
     g_assert_false (mock_account_get_known (account));
@@ -7925,23 +6888,19 @@ test_create_user_sync (void)
 static void
 test_create_user_sudo (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) info = NULL;
-    MockAccount *account;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_account_by_username (snapd, "user"));
-    info = snapd_client_create_user_sync (client, "user@example.com", SNAPD_CREATE_USER_FLAGS_SUDO, NULL, &error);
+    g_autoptr(SnapdUserInformation) info = snapd_client_create_user_sync (client, "user@example.com", SNAPD_CREATE_USER_FLAGS_SUDO, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
-    account = mock_snapd_find_account_by_username (snapd, "user");
+    MockAccount *account = mock_snapd_find_account_by_username (snapd, "user");
     g_assert_nonnull (account);
     g_assert_true (mock_account_get_sudoer (account));
 }
@@ -7949,23 +6908,19 @@ test_create_user_sudo (void)
 static void
 test_create_user_known (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(SnapdUserInformation) info = NULL;
-    MockAccount *account;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_snapd_find_account_by_username (snapd, "user"));
-    info = snapd_client_create_user_sync (client, "user@example.com", SNAPD_CREATE_USER_FLAGS_KNOWN, NULL, &error);
+    g_autoptr(SnapdUserInformation) info = snapd_client_create_user_sync (client, "user@example.com", SNAPD_CREATE_USER_FLAGS_KNOWN, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
-    account = mock_snapd_find_account_by_username (snapd, "user");
+    MockAccount *account = mock_snapd_find_account_by_username (snapd, "user");
     g_assert_nonnull (account);
     g_assert_true (mock_account_get_known (account));
 }
@@ -7973,26 +6928,21 @@ test_create_user_known (void)
 static void
 test_create_users_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) users_info = NULL;
-    SnapdUserInformation *info;
-    GStrv ssh_keys;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    users_info = snapd_client_create_users_sync (client, NULL, &error);
+    g_autoptr(GPtrArray) users_info = snapd_client_create_users_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (users_info);
     g_assert_cmpint (users_info->len, ==, 3);
-    info = users_info->pdata[0];
+    SnapdUserInformation *info = users_info->pdata[0];
     g_assert_cmpstr (snapd_user_information_get_username (info), ==, "admin");
-    ssh_keys = snapd_user_information_get_ssh_keys (info);
+    GStrv ssh_keys = snapd_user_information_get_ssh_keys (info);
     g_assert_nonnull (ssh_keys);
     g_assert_cmpint (g_strv_length (ssh_keys), ==, 2);
     g_assert_cmpstr (ssh_keys[0], ==, "KEY1");
@@ -8009,25 +6959,21 @@ test_create_users_sync (void)
 static void
 test_get_users_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) users_info = NULL;
-    SnapdUserInformation *info;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_account (snapd, "alice@example.com", "alice", "secret");
     mock_snapd_add_account (snapd, "bob@example.com", "bob", "secret");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    users_info = snapd_client_get_users_sync (client, NULL, &error);
+    g_autoptr(GPtrArray) users_info = snapd_client_get_users_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (users_info);
     g_assert_cmpint (users_info->len, ==, 2);
-    info = users_info->pdata[0];
+    SnapdUserInformation *info = users_info->pdata[0];
     g_assert_cmpint (snapd_user_information_get_id (info), ==, 1);
     g_assert_cmpstr (snapd_user_information_get_username (info), ==, "alice");
     g_assert_cmpstr (snapd_user_information_get_email (info), ==, "alice@example.com");
@@ -8041,15 +6987,13 @@ static void
 get_users_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GPtrArray) users_info = NULL;
-    SnapdUserInformation *info;
-    g_autoptr(GError) error = NULL;
 
-    users_info = snapd_client_get_users_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) users_info = snapd_client_get_users_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (users_info);
     g_assert_cmpint (users_info->len, ==, 2);
-    info = users_info->pdata[0];
+    SnapdUserInformation *info = users_info->pdata[0];
     g_assert_cmpint (snapd_user_information_get_id (info), ==, 1);
     g_assert_cmpstr (snapd_user_information_get_username (info), ==, "alice");
     g_assert_cmpstr (snapd_user_information_get_email (info), ==, "alice@example.com");
@@ -8064,19 +7008,16 @@ get_users_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_get_users_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_account (snapd, "alice@example.com", "alice", "secret");
     mock_snapd_add_account (snapd, "bob@example.com", "bob", "secret");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_users_async (client, NULL, get_users_cb, async_data_new (loop, snapd));
@@ -8086,20 +7027,17 @@ test_get_users_async (void)
 static void
 test_get_sections_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) sections = NULL;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_section (snapd, "SECTION1");
     mock_snapd_add_store_section (snapd, "SECTION2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    sections = snapd_client_get_sections_sync (client, NULL, &error);
+    g_auto(GStrv) sections = snapd_client_get_sections_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (sections);
     g_assert_cmpint (g_strv_length (sections), ==, 2);
@@ -8111,10 +7049,9 @@ static void
 get_sections_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_auto(GStrv) sections = NULL;
-    g_autoptr(GError) error = NULL;
 
-    sections = snapd_client_get_sections_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_auto(GStrv) sections = snapd_client_get_sections_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (sections);
     g_assert_cmpint (g_strv_length (sections), ==, 2);
@@ -8127,19 +7064,16 @@ get_sections_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_get_sections_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_add_store_section (snapd, "SECTION1");
     mock_snapd_add_store_section (snapd, "SECTION2");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_sections_async (client, NULL, get_sections_cb, async_data_new (loop, snapd));
@@ -8157,17 +7091,9 @@ compare_alias_name (gconstpointer a, gconstpointer b)
 static void
 test_aliases_get_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    MockApp *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) aliases = NULL;
-    SnapdAlias *alias;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
 
     mock_app_add_auto_alias (a, "alias1");
 
@@ -8176,17 +7102,18 @@ test_aliases_get_sync (void)
     mock_app_add_auto_alias (a, "alias3");
     mock_app_add_manual_alias (a, "alias3", FALSE);
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    aliases = snapd_client_get_aliases_sync (client, NULL, &error);
+    g_autoptr(GPtrArray) aliases = snapd_client_get_aliases_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (aliases);
     g_assert_cmpint (aliases->len, ==, 3);
     g_ptr_array_sort (aliases, compare_alias_name);
-    alias = aliases->pdata[0];
+    SnapdAlias *alias = aliases->pdata[0];
     g_assert_cmpstr (snapd_alias_get_name (alias), ==, "alias1");
     g_assert_cmpstr (snapd_alias_get_snap (alias), ==, "snap");
     g_assert_cmpstr (snapd_alias_get_command (alias), ==, "snap.app");
@@ -8213,16 +7140,14 @@ static void
 get_aliases_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    g_autoptr(GPtrArray) aliases = NULL;
-    SnapdAlias *alias;
-    g_autoptr(GError) error = NULL;
 
-    aliases = snapd_client_get_aliases_finish (SNAPD_CLIENT (object), result, &error);
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) aliases = snapd_client_get_aliases_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (aliases);
     g_assert_cmpint (aliases->len, ==, 3);
     g_ptr_array_sort (aliases, compare_alias_name);
-    alias = aliases->pdata[0];
+    SnapdAlias *alias = aliases->pdata[0];
     g_assert_cmpstr (snapd_alias_get_name (alias), ==, "alias1");
     g_assert_cmpstr (snapd_alias_get_snap (alias), ==, "snap");
     g_assert_cmpstr (snapd_alias_get_command (alias), ==, "snap.app");
@@ -8250,18 +7175,11 @@ get_aliases_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_aliases_get_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    MockSnap *s;
-    MockApp *a;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
 
     mock_app_add_auto_alias (a, "alias1");
 
@@ -8270,9 +7188,10 @@ test_aliases_get_async (void)
     mock_app_add_auto_alias (a, "alias3");
     mock_app_add_manual_alias (a, "alias3", FALSE);
 
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_aliases_async (client, NULL, get_aliases_cb, async_data_new (loop, snapd));
@@ -8281,18 +7200,15 @@ test_aliases_get_async (void)
 static void
 test_aliases_get_empty (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_autoptr(GPtrArray) aliases = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    aliases = snapd_client_get_aliases_sync (client, NULL, &error);
+    g_autoptr(GPtrArray) aliases = snapd_client_get_aliases_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (aliases);
     g_assert_cmpint (aliases->len, ==, 0);
@@ -8301,23 +7217,18 @@ test_aliases_get_empty (void)
 static void
 test_aliases_alias_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    MockApp *a;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
 
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app");
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_app_find_alias (a, "foo"));
-    result = snapd_client_alias_sync (client, "snap", "app", "foo", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_alias_sync (client, "snap", "app", "foo", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_nonnull (mock_app_find_alias (a, "foo"));
@@ -8327,15 +7238,12 @@ static void
 alias_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    MockSnap *s;
-    MockApp *a;
-    gboolean r;
+
+    MockSnap *s = mock_snapd_find_snap (data->snapd, "snap");
+    MockApp *a = mock_snap_find_app (s, "app");
+
     g_autoptr(GError) error = NULL;
-
-    s = mock_snapd_find_snap (data->snapd, "snap");
-    a = mock_snap_find_app (s, "app");
-
-    r = snapd_client_alias_finish (SNAPD_CLIENT (object), result, &error);
+    gboolean r = snapd_client_alias_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_nonnull (mock_app_find_alias (a, "foo"));
@@ -8346,21 +7254,16 @@ alias_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_aliases_alias_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    MockApp *a;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
+
     g_autoptr(GError) error = NULL;
-
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app");
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_null (mock_app_find_alias (a, "foo"));
@@ -8371,23 +7274,18 @@ test_aliases_alias_async (void)
 static void
 test_aliases_unalias_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    MockApp *a;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
     mock_app_add_manual_alias (a, "foo", TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_unalias_sync (client, "snap", "foo", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_unalias_sync (client, "snap", "foo", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_app_find_alias (a, "foo"));
@@ -8397,15 +7295,12 @@ static void
 unalias_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    MockSnap *s;
-    MockApp *a;
-    gboolean r;
+
+    MockSnap *s = mock_snapd_find_snap (data->snapd, "snap");
+    MockApp *a = mock_snap_find_app (s, "app");
+
     g_autoptr(GError) error = NULL;
-
-    s = mock_snapd_find_snap (data->snapd, "snap");
-    a = mock_snap_find_app (s, "app");
-
-    r = snapd_client_unalias_finish (SNAPD_CLIENT (object), result, &error);
+    gboolean r = snapd_client_unalias_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_null (mock_app_find_alias (a, "foo"));
@@ -8416,20 +7311,16 @@ unalias_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_aliases_unalias_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
     mock_snap_add_app (s, "app");
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_unalias_async (client, "snap", "foo", NULL, NULL, NULL, unalias_cb, async_data_new (loop, snapd));
@@ -8439,23 +7330,18 @@ test_aliases_unalias_async (void)
 static void
 test_aliases_unalias_no_snap_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    MockApp *a;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
-    a = mock_snap_add_app (s, "app");
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    MockApp *a = mock_snap_add_app (s, "app");
     mock_app_add_manual_alias (a, "foo", TRUE);
+
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    result = snapd_client_unalias_sync (client, NULL, "foo", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_unalias_sync (client, NULL, "foo", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_app_find_alias (a, "foo"));
@@ -8464,21 +7350,17 @@ test_aliases_unalias_no_snap_sync (void)
 static void
 test_aliases_prefer_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
-    gboolean result;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
 
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_false (mock_snap_get_preferred (s));
-    result = snapd_client_prefer_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_prefer_sync (client, "snap", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_true (mock_snap_get_preferred (s));
@@ -8488,13 +7370,11 @@ static void
 prefer_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    MockSnap *s;
-    gboolean r;
+
+    MockSnap *s = mock_snapd_find_snap (data->snapd, "snap");
+
     g_autoptr(GError) error = NULL;
-
-    s = mock_snapd_find_snap (data->snapd, "snap");
-
-    r = snapd_client_prefer_finish (SNAPD_CLIENT (object), result, &error);
+    gboolean r = snapd_client_prefer_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_true (mock_snap_get_preferred (s));
@@ -8505,19 +7385,15 @@ prefer_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_aliases_prefer_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    MockSnap *s;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+
     g_autoptr(GError) error = NULL;
-
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
-    s = mock_snapd_add_snap (snapd, "snap");
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_false (mock_snap_get_preferred (s));
@@ -8528,22 +7404,18 @@ test_aliases_prefer_async (void)
 static void
 test_run_snapctl_sync (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) args = NULL;
-    gboolean result;
-    g_autofree gchar *stdout_output = NULL;
-    g_autofree gchar *stderr_output = NULL;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    args = g_strsplit ("arg1;arg2", ";", -1);
-    result = snapd_client_run_snapctl_sync (client, "ABC", args, &stdout_output, &stderr_output, NULL, &error);
+    g_auto(GStrv) args = g_strsplit ("arg1;arg2", ";", -1);
+    g_autofree gchar *stdout_output = NULL;
+    g_autofree gchar *stderr_output = NULL;
+    gboolean result = snapd_client_run_snapctl_sync (client, "ABC", args, &stdout_output, &stderr_output, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_cmpstr (stdout_output, ==, "STDOUT:ABC:arg1:arg2");
@@ -8554,12 +7426,11 @@ static void
 snapctl_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
-    gboolean r;
+
     g_autofree gchar *stdout_output = NULL;
     g_autofree gchar *stderr_output = NULL;
     g_autoptr(GError) error = NULL;
-
-    r = snapd_client_run_snapctl_finish (SNAPD_CLIENT (object), result, &stdout_output, &stderr_output, &error);
+    gboolean r = snapd_client_run_snapctl_finish (SNAPD_CLIENT (object), result, &stdout_output, &stderr_output, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_cmpstr (stdout_output, ==, "STDOUT:ABC:arg1:arg2");
@@ -8571,21 +7442,17 @@ snapctl_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 static void
 test_run_snapctl_async (void)
 {
-    g_autoptr(GMainLoop) loop = NULL;
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    g_auto(GStrv) args = NULL;
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
     g_autoptr(GError) error = NULL;
-
-    loop = g_main_loop_new (NULL, FALSE);
-
-    snapd = mock_snapd_new ();
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    args = g_strsplit ("arg1;arg2", ";", -1);
+    g_auto(GStrv) args = g_strsplit ("arg1;arg2", ";", -1);
     snapd_client_run_snapctl_async (client, "ABC", args, NULL, snapctl_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
@@ -8593,20 +7460,17 @@ test_run_snapctl_async (void)
 static void
 test_stress (void)
 {
-    g_autoptr(MockSnapd) snapd = NULL;
-    g_autoptr(SnapdClient) client = NULL;
-    gint i;
-    g_autoptr(GError) error = NULL;
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
 
-    snapd = mock_snapd_new ();
+    g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
 
-    client = snapd_client_new ();
+    g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    for (i = 0; i < 10000; i++) {
-        g_autoptr(SnapdSystemInformation) info = NULL;
-        info = snapd_client_get_system_information_sync (client, NULL, &error);
+    for (gint i = 0; i < 10000; i++) {
+        g_autoptr(GError) error = NULL;
+        g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
         g_assert_no_error (error);
         g_assert_nonnull (info);
         g_assert_cmpstr (snapd_system_information_get_version (info), ==, "VERSION");
