@@ -5317,6 +5317,7 @@ test_remove_sync ()
     removeRequest->runSync ();
     g_assert_cmpint (removeRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
+    g_assert_nonnull (mock_snapd_find_snapshot (snapd, "snap"));
 }
 
 void
@@ -5324,6 +5325,7 @@ RemoveHandler::onComplete ()
 {
     g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
+    g_assert_nonnull (mock_snapd_find_snapshot (snapd, "snap"));
 
     g_main_loop_quit (loop);
 }
@@ -5448,6 +5450,24 @@ test_remove_not_installed ()
     QScopedPointer<QSnapdRemoveRequest> removeRequest (client.remove ("snap"));
     removeRequest->runSync ();
     g_assert_cmpint (removeRequest->error (), ==, QSnapdRequest::NotInstalled);
+}
+
+static void
+test_remove_purge ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
+    QScopedPointer<QSnapdRemoveRequest> removeRequest (client.remove (QSnapdClient::Purge, "snap"));
+    removeRequest->runSync ();
+    g_assert_cmpint (removeRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_null (mock_snapd_find_snap (snapd, "snap"));
+    g_assert_null (mock_snapd_find_snapshot (snapd, "snap"));
 }
 
 static void
@@ -6740,6 +6760,7 @@ main (int argc, char **argv)
     g_test_add_func ("/remove/async-cancel", test_remove_async_cancel);
     g_test_add_func ("/remove/progress", test_remove_progress);
     g_test_add_func ("/remove/not-installed", test_remove_not_installed);
+    g_test_add_func ("/remove/purge", test_remove_purge);
     g_test_add_func ("/enable/sync", test_enable_sync);
     g_test_add_func ("/enable/async", test_enable_async);
     g_test_add_func ("/enable/progress", test_enable_progress);

@@ -37,6 +37,7 @@ typedef struct _MockPlug MockPlug;
 typedef struct _MockPrice MockPrice;
 typedef struct _MockSlot MockSlot;
 typedef struct _MockSnap MockSnap;
+typedef struct _MockSnapshot MockSnapshot;
 typedef struct _MockTask MockTask;
 typedef struct _MockTrack MockTrack;
 
@@ -179,6 +180,9 @@ MockSnap       *mock_snapd_add_snap               (MockSnapd     *snapd,
                                                    const gchar   *name);
 
 MockSnap       *mock_snapd_find_snap              (MockSnapd     *snapd,
+                                                   const gchar   *name);
+
+MockSnapshot   *mock_snapd_find_snapshot          (MockSnapd     *snapd,
                                                    const gchar   *name);
 
 void            mock_snapd_add_store_section      (MockSnapd     *snapd,

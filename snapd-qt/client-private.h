@@ -389,8 +389,9 @@ public:
 class QSnapdRemoveRequestPrivate
 {
 public:
-    QSnapdRemoveRequestPrivate (const QString& name) :
-        name(name) {}
+    QSnapdRemoveRequestPrivate (int flags, const QString& name) :
+        flags(flags), name(name) {}
+    int flags;
     QString name;
 };
 

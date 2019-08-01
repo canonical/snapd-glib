@@ -22,6 +22,7 @@ struct _SnapdPostSnap
     gboolean dangerous;
     gboolean devmode;
     gboolean jailmode;
+    gboolean purge;
 };
 
 G_DEFINE_TYPE (SnapdPostSnap, snapd_post_snap, snapd_request_async_get_type ())
@@ -82,6 +83,12 @@ _snapd_post_snap_set_jailmode (SnapdPostSnap *self, gboolean jailmode)
     self->jailmode = jailmode;
 }
 
+void
+_snapd_post_snap_set_purge (SnapdPostSnap *self, gboolean purge)
+{
+    self->purge = purge;
+}
+
 static SoupMessage *
 generate_post_snap_request (SnapdRequest *request)
 {
@@ -117,6 +124,10 @@ generate_post_snap_request (SnapdRequest *request)
     }
     if (self->jailmode) {
         json_builder_set_member_name (builder, "jailmode");
+        json_builder_add_boolean_value (builder, TRUE);
+    }
+    if (self->purge) {
+        json_builder_set_member_name (builder, "purge");
         json_builder_add_boolean_value (builder, TRUE);
     }
     json_builder_end_object (builder);

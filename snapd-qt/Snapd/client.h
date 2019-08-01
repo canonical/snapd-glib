@@ -546,7 +546,7 @@ class Q_DECL_EXPORT QSnapdRemoveRequest : public QSnapdRequest
     Q_OBJECT
 
 public:
-    explicit QSnapdRemoveRequest (const QString& name, void *snapd_client, QObject *parent = 0);
+    explicit QSnapdRemoveRequest (int flags, const QString& name, void *snapd_client, QObject *parent = 0);
     ~QSnapdRemoveRequest ();
     virtual void runSync ();
     virtual void runAsync ();
@@ -915,6 +915,11 @@ public:
         Jailmode       = 1 << 3
     };
     Q_DECLARE_FLAGS(InstallFlags, InstallFlag);
+    enum RemoveFlag
+    {
+        Purge          = 1 << 0,
+    };
+    Q_DECLARE_FLAGS(RemoveFlags, RemoveFlag);
     enum CreateUserFlag
     {
         Sudo           = 1 << 0,
@@ -1001,6 +1006,7 @@ public:
     Q_INVOKABLE QSnapdRefreshRequest *refresh (const QString &name, const QString &channel);
     Q_INVOKABLE QSnapdRefreshAllRequest *refreshAll ();
     Q_INVOKABLE QSnapdRemoveRequest *remove (const QString &name);
+    Q_INVOKABLE QSnapdRemoveRequest *remove (RemoveFlags flags, const QString &name);
     Q_INVOKABLE QSnapdEnableRequest *enable (const QString &name);
     Q_INVOKABLE QSnapdDisableRequest *disable (const QString &name);
     Q_INVOKABLE QSnapdSwitchChannelRequest *switchChannel (const QString &name, const QString &channel);
@@ -1029,6 +1035,7 @@ private:
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::GetAppsFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::FindFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::InstallFlags)
+Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::RemoveFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::CreateUserFlags)
 Q_DECLARE_OPERATORS_FOR_FLAGS(QSnapdClient::InterfaceFlags)
 

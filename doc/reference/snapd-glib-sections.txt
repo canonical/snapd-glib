@@ -104,6 +104,7 @@ SnapdGetAppsFlags
 SnapdGetConnectionsFlags
 SnapdFindFlags
 SnapdInstallFlags
+SnapdRemoveFlags
 SnapdCreateUserFlags
 SnapdGetInterfacesFlags
 SnapdProgressCallback
@@ -220,6 +221,9 @@ snapd_client_refresh_all_finish
 snapd_client_remove_sync
 snapd_client_remove_async
 snapd_client_remove_finish
+snapd_client_remove2_sync
+snapd_client_remove2_async
+snapd_client_remove2_finish
 snapd_client_enable_sync
 snapd_client_enable_async
 snapd_client_enable_finish
@@ -286,6 +290,8 @@ SNAPD_TYPE_FIND_FLAGS
 snapd_find_flags_get_type
 SNAPD_TYPE_INSTALL_FLAGS
 snapd_install_flags_get_type
+SNAPD_TYPE_REMOVE_FLAGS
+snapd_remove_flags_get_type
 SNAPD_TYPE_CREATE_USER_FLAGS
 snapd_create_user_flags_get_type
 SNAPD_TYPE_GET_INTERFACES_FLAGS
