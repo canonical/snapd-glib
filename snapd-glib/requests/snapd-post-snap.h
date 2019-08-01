@@ -44,6 +44,9 @@ void           _snapd_post_snap_set_devmode   (SnapdPostSnap         *request,
 void           _snapd_post_snap_set_jailmode  (SnapdPostSnap         *request,
                                                gboolean               jailmode);
 
+void           _snapd_post_snap_set_purge     (SnapdPostSnap         *request,
+                                               gboolean               purge);
+
 
 G_END_DECLS
 

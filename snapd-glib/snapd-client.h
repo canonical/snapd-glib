@@ -155,6 +155,21 @@ typedef enum
 } SnapdInstallFlags;
 
 /**
+ * SnapdRemoveFlags:
+ * @SNAPD_REMOVE_FLAGS_NONE: No flags, default behaviour.
+ * @SNAPD_REMOVE_FLAGS_PURGE: Don't save a snapshot the snap's data when removing.
+ *
+ * Flags to control remove options.
+ *
+ * Since: 1.50
+ */
+typedef enum
+{
+    SNAPD_REMOVE_FLAGS_NONE  = 0,
+    SNAPD_REMOVE_FLAGS_PURGE = 1 << 0,
+} SnapdRemoveFlags;
+
+/**
  * SnapdCreateUserFlags:
  * @SNAPD_CREATE_USER_FLAGS_NONE: No flags, default behaviour.
  * @SNAPD_CREATE_USER_FLAGS_SUDO: Gives sudo access to created user.
@@ -204,7 +219,7 @@ typedef enum
  * snapd_client_disconnect_interface_async(),
  * snapd_client_install2_sync(),
  * snapd_client_refresh_sync(),
- * snapd_client_remove_sync(),
+ * snapd_client_remove2_sync(),
  * snapd_client_enable_sync() and
  * snapd_client_disable_sync().
  *
@@ -775,15 +790,34 @@ gboolean                snapd_client_remove_sync                   (SnapdClient 
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_remove2_sync);
 void                    snapd_client_remove_async                  (SnapdClient          *client,
                                                                     const gchar          *name,
                                                                     SnapdProgressCallback progress_callback,
                                                                     gpointer              progress_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_remove2_async);
 gboolean                snapd_client_remove_finish                 (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_remove2_finish);
+
+gboolean                snapd_client_remove2_sync                  (SnapdClient          *client,
+                                                                    SnapdRemoveFlags      flags,
+                                                                    const gchar          *name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_remove2_async                 (SnapdClient          *client,
+                                                                    SnapdRemoveFlags      flags,
+                                                                    const gchar          *name,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_remove2_finish                (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

@@ -1058,6 +1058,7 @@ snapd_client_refresh_all_sync (SnapdClient *self,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.0
+ * Deprecated: 1.50: Use snapd_client_remove2_sync()
  */
 gboolean
 snapd_client_remove_sync (SnapdClient *self,
@@ -1065,14 +1066,40 @@ snapd_client_remove_sync (SnapdClient *self,
                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
                           GCancellable *cancellable, GError **error)
 {
+    return snapd_client_remove2_sync (self, SNAPD_REMOVE_FLAGS_NONE, name, progress_callback, progress_callback_data, cancellable, error);
+}
+
+/**
+ * snapd_client_remove2_sync:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdRemoveFlags to control remove options.
+ * @name: name of snap to remove.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Uninstall a snap.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.50
+ */
+gboolean
+snapd_client_remove2_sync (SnapdClient *self,
+                           SnapdRemoveFlags flags,
+                           const gchar *name,
+                           SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+                           GCancellable *cancellable, GError **error)
+{
     g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (name != NULL, FALSE);
 
     g_auto(SyncData) data = { 0 };
     start_sync (&data);
-    snapd_client_remove_async (self, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
+    snapd_client_remove2_async (self, flags, name, progress_callback, progress_callback_data, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_remove_finish (self, data.result, error);
+    return snapd_client_remove2_finish (self, data.result, error);
 }
 
 /**

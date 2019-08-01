@@ -598,7 +598,13 @@ QSnapdRemoveRequest::~QSnapdRemoveRequest ()
 QSnapdRemoveRequest *QSnapdClient::remove (const QString& name)
 {
     Q_D(QSnapdClient);
-    return new QSnapdRemoveRequest (name, d->client);
+    return new QSnapdRemoveRequest (0, name, d->client);
+}
+
+QSnapdRemoveRequest *QSnapdClient::remove (RemoveFlags flags, const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdRemoveRequest (flags, name, d->client);
 }
 
 QSnapdEnableRequest::~QSnapdEnableRequest ()
@@ -2312,18 +2318,29 @@ QStringList QSnapdRefreshAllRequest::snapNames () const
     return result;
 }
 
-QSnapdRemoveRequest::QSnapdRemoveRequest (const QString& name, void *snapd_client, QObject *parent) :
+static SnapdRemoveFlags convertRemoveFlags (int flags)
+{
+    int result = SNAPD_REMOVE_FLAGS_NONE;
+
+    if ((flags & QSnapdClient::RemoveFlag::Purge) != 0)
+        result |= SNAPD_REMOVE_FLAGS_PURGE;
+
+    return (SnapdRemoveFlags) result;
+}
+
+QSnapdRemoveRequest::QSnapdRemoveRequest (int flags, const QString& name, void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdRemoveRequestPrivate (name)) {}
+    d_ptr (new QSnapdRemoveRequestPrivate (flags, name)) {}
 
 void QSnapdRemoveRequest::runSync ()
 {
     Q_D(QSnapdRemoveRequest);
     g_autoptr(GError) error = NULL;
-    snapd_client_remove_sync (SNAPD_CLIENT (getClient ()),
-                              d->name.toStdString ().c_str (),
-                              progress_cb, this,
-                              G_CANCELLABLE (getCancellable ()), &error);
+    snapd_client_remove2_sync (SNAPD_CLIENT (getClient ()),
+                               convertRemoveFlags (d->flags),
+                               d->name.toStdString ().c_str (),
+                               progress_cb, this,
+                               G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -2331,7 +2348,7 @@ void QSnapdRemoveRequest::handleResult (void *object, void *result)
 {
     g_autoptr(GError) error = NULL;
 
-    snapd_client_remove_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    snapd_client_remove2_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
 
     finish (error);
 }
@@ -2345,10 +2362,11 @@ static void remove_ready_cb (GObject *object, GAsyncResult *result, gpointer dat
 void QSnapdRemoveRequest::runAsync ()
 {
     Q_D(QSnapdRemoveRequest);
-    snapd_client_remove_async (SNAPD_CLIENT (getClient ()),
-                               d->name.toStdString ().c_str (),
-                               progress_cb, this,
-                               G_CANCELLABLE (getCancellable ()), remove_ready_cb, (gpointer) this);
+    snapd_client_remove2_async (SNAPD_CLIENT (getClient ()),
+                                convertRemoveFlags (d->flags),
+                                d->name.toStdString ().c_str (),
+                                progress_cb, this,
+                                G_CANCELLABLE (getCancellable ()), remove_ready_cb, (gpointer) this);
 }
 
 QSnapdEnableRequest::QSnapdEnableRequest (const QString& name, void *snapd_client, QObject *parent) :

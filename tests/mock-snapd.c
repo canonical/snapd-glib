@@ -42,6 +42,7 @@ struct _MockSnapd
     GList *users;
     GList *interfaces;
     GList *snaps;
+    GList *snapshots;
     gchar *build_id;
     gchar *confinement;
     GHashTable *sandbox_features;
@@ -227,6 +228,11 @@ struct _MockSnap
     gboolean scope_is_wide;
 };
 
+struct _MockSnapshot
+{
+    gchar *name;
+};
+
 struct _MockTask
 {
     gchar *id;
@@ -241,6 +247,7 @@ struct _MockTask
     MockSnap *snap;
     gchar *snap_name;
     gchar *error;
+    gboolean purge;
 };
 
 struct _MockTrack
@@ -789,6 +796,22 @@ mock_snap_new (const gchar *name)
     return snap;
 }
 
+static void
+mock_snapshot_free (MockSnapshot *snapshot)
+{
+    g_free (snapshot->name);
+    g_slice_free (MockSnapshot, snapshot);
+}
+
+static MockSnapshot *
+mock_snapshot_new (const gchar *name)
+{
+    MockSnapshot *snapshot = g_slice_new0 (MockSnapshot);
+    snapshot->name = g_strdup (name);
+
+    return snapshot;
+}
+
 MockSnap *
 mock_account_add_private_snap (MockAccount *account, const gchar *name)
 {
@@ -911,6 +934,27 @@ mock_snapd_find_snap (MockSnapd *self, const gchar *name)
 
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
     return find_snap (self, name);
+}
+
+static MockSnapshot *
+find_snapshot (MockSnapd *self, const gchar *name)
+{
+    for (GList *link = self->snapshots; link; link = link->next) {
+        MockSnapshot *snapshot = link->data;
+        if (strcmp (snapshot->name, name) == 0)
+            return snapshot;
+    }
+
+    return NULL;
+}
+
+MockSnapshot *
+mock_snapd_find_snapshot (MockSnapd *self, const gchar *name)
+{
+    g_return_val_if_fail (MOCK_IS_SNAPD (self), NULL);
+
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
+    return find_snapshot (self, name);
 }
 
 void
@@ -2636,7 +2680,7 @@ handle_snap (MockSnapd *self, SoupMessage *message, const gchar *name)
         JsonObject *o = json_node_get_object (request);
         const gchar *action = json_object_get_string_member (o, "action");
         const gchar *channel = NULL, *revision = NULL;
-        gboolean classic = FALSE, dangerous = FALSE, devmode = FALSE, jailmode = FALSE;
+        gboolean classic = FALSE, dangerous = FALSE, devmode = FALSE, jailmode = FALSE, purge = FALSE;
         if (json_object_has_member (o, "channel"))
             channel = json_object_get_string_member (o, "channel");
         if (json_object_has_member (o, "revision"))
@@ -2649,6 +2693,8 @@ handle_snap (MockSnapd *self, SoupMessage *message, const gchar *name)
             devmode = json_object_get_boolean_member (o, "devmode");
         if (json_object_has_member (o, "jailmode"))
             jailmode = json_object_get_boolean_member (o, "jailmode");
+        if (json_object_has_member (o, "purge"))
+            purge = json_object_get_boolean_member (o, "purge");
 
         if (strcmp (action, "install") == 0) {
             if (self->decline_auth) {
@@ -2749,6 +2795,7 @@ handle_snap (MockSnapd *self, SoupMessage *message, const gchar *name)
                 mock_change_set_ready_time (change, self->ready_time);
                 MockTask *task = mock_change_add_task (change, "remove");
                 mock_task_set_snap_name (task, name);
+                task->purge = purge;
                 if (snap->error != NULL)
                     task->error = g_strdup (snap->error);
 
@@ -3755,6 +3802,10 @@ mock_task_complete (MockSnapd *self, MockTask *task)
         MockSnap *snap = find_snap (self, task->snap_name);
         self->snaps = g_list_remove (self->snaps, snap);
         mock_snap_free (snap);
+
+        /* Add a snapshot */
+        if (!task->purge && find_snapshot (self, task->snap_name) == NULL)
+            self->snapshots = g_list_append (self->snapshots, mock_snapshot_new (task->snap_name));
     }
     mock_task_set_status (task, "Done");
 }
@@ -4484,6 +4535,8 @@ mock_snapd_finalize (GObject *object)
     self->interfaces = NULL;
     g_list_free_full (self->snaps, (GDestroyNotify) mock_snap_free);
     self->snaps = NULL;
+    g_list_free_full (self->snapshots, (GDestroyNotify) mock_snapshot_free);
+    self->snapshots = NULL;
     g_free (self->build_id);
     g_free (self->confinement);
     g_clear_pointer (&self->sandbox_features, g_hash_table_unref);

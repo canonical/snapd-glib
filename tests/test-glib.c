@@ -6039,10 +6039,11 @@ test_remove_sync (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    gboolean result = snapd_client_remove_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_remove2_sync (client, SNAPD_REMOVE_FLAGS_NONE, "snap", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
+    g_assert_nonnull (mock_snapd_find_snapshot (snapd, "snap"));
 }
 
 static void
@@ -6051,10 +6052,11 @@ remove_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(AsyncData) data = user_data;
 
     g_autoptr(GError) error = NULL;
-    gboolean r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
+    gboolean r = snapd_client_remove2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_null (mock_snapd_find_snap (data->snapd, "snap"));
+    g_assert_nonnull (mock_snapd_find_snapshot (data->snapd, "snap"));
 
     g_main_loop_quit (data->loop);
 }
@@ -6074,7 +6076,7 @@ test_remove_async (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    snapd_client_remove_async (client, "snap", NULL, NULL, NULL, remove_cb, async_data_new (loop, snapd));
+    snapd_client_remove2_async (client, SNAPD_REMOVE_FLAGS_NONE, "snap", NULL, NULL, NULL, remove_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
@@ -6084,7 +6086,7 @@ remove_failure_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(AsyncData) data = user_data;
 
     g_autoptr(GError) error = NULL;
-    gboolean r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
+    gboolean r = snapd_client_remove2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
     g_assert_cmpstr (error->message, ==, "ERROR");
     g_assert_false (r);
@@ -6109,7 +6111,7 @@ test_remove_async_failure (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
-    snapd_client_remove_async (client, "snap", NULL, NULL, NULL, remove_failure_cb, async_data_new (loop, snapd));
+    snapd_client_remove2_async (client, SNAPD_REMOVE_FLAGS_NONE, "snap", NULL, NULL, NULL, remove_failure_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
@@ -6119,7 +6121,7 @@ remove_cancel_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(AsyncData) data = user_data;
 
     g_autoptr(GError) error = NULL;
-    gboolean r = snapd_client_remove_finish (SNAPD_CLIENT (object), result, &error);
+    gboolean r = snapd_client_remove2_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
     g_assert_false (r);
     g_assert_nonnull (mock_snapd_find_snap (data->snapd, "snap"));
@@ -6143,7 +6145,7 @@ test_remove_async_cancel (void)
 
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
     g_autoptr(GCancellable) cancellable = g_cancellable_new ();
-    snapd_client_remove_async (client, "snap", NULL, NULL, cancellable, remove_cancel_cb, async_data_new (loop, snapd));
+    snapd_client_remove2_async (client, SNAPD_REMOVE_FLAGS_NONE, "snap", NULL, NULL, cancellable, remove_cancel_cb, async_data_new (loop, snapd));
     g_idle_add (cancel_cb, cancellable);
     g_main_loop_run (loop);
 }
@@ -6175,7 +6177,7 @@ test_remove_progress (void)
     g_assert_nonnull (mock_snapd_find_snap (snapd, "snap"));
     RemoveProgressData remove_progress_data;
     remove_progress_data.progress_done = 0;
-    gboolean result = snapd_client_remove_sync (client, "snap", remove_progress_cb, &remove_progress_data, NULL, &error);
+    gboolean result = snapd_client_remove2_sync (client, SNAPD_REMOVE_FLAGS_NONE, "snap", remove_progress_cb, &remove_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_null (mock_snapd_find_snap (snapd, "snap"));
@@ -6193,9 +6195,28 @@ test_remove_not_installed (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    gboolean result = snapd_client_remove_sync (client, "snap", NULL, NULL, NULL, &error);
+    gboolean result = snapd_client_remove2_sync (client, SNAPD_REMOVE_FLAGS_NONE, "snap", NULL, NULL, NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_INSTALLED);
     g_assert_false (result);
+}
+
+static void
+test_remove_purge (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_snap (snapd, "snap");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    gboolean result = snapd_client_remove2_sync (client, SNAPD_REMOVE_FLAGS_PURGE, "snap", NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_true (result);
+    g_assert_null (mock_snapd_find_snap (snapd, "snap"));
+    g_assert_null (mock_snapd_find_snapshot (snapd, "snap"));
 }
 
 static void
@@ -7666,6 +7687,7 @@ main (int argc, char **argv)
     g_test_add_func ("/remove/async-cancel", test_remove_async_cancel);
     g_test_add_func ("/remove/progress", test_remove_progress);
     g_test_add_func ("/remove/not-installed", test_remove_not_installed);
+    g_test_add_func ("/remove/purge", test_remove_purge);
     g_test_add_func ("/enable/sync", test_enable_sync);
     g_test_add_func ("/enable/async", test_enable_async);
     g_test_add_func ("/enable/progress", test_enable_progress);
