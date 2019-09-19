@@ -1453,6 +1453,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+    g_assert_cmpstr (snapd_snap_get_website (snap), ==, NULL);
 }
 
 static void
@@ -1501,6 +1502,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+    g_assert_cmpstr (snapd_snap_get_website (snap), ==, NULL);
 
     g_main_loop_quit (data->loop);
 }
@@ -1573,6 +1575,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+    g_assert_cmpstr (snapd_snap_get_website (snap), ==, NULL);
 }
 
 static void
@@ -1619,6 +1622,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+    g_assert_cmpstr (snapd_snap_get_website (snap), ==, NULL);
 
     g_main_loop_quit (data->loop);
 }
@@ -1659,6 +1663,7 @@ test_get_snap_optional_fields (void)
     mock_snap_set_jailmode (s, TRUE);
     mock_snap_set_trymode (s, TRUE);
     mock_snap_set_contact (s, "CONTACT");
+    mock_snap_set_website (s, "WEBSITE");
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_license (s, "LICENSE");
@@ -1717,6 +1722,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, "CHANNEL");
     g_assert_true (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+    g_assert_cmpstr (snapd_snap_get_website (snap), ==, "WEBSITE");
 }
 
 static void
@@ -3923,6 +3929,7 @@ test_find_query (void)
     mock_track_add_channel (mock_snap_add_track (s, "latest"), "stable", NULL);
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_contact (s, "CONTACT");
+    mock_snap_set_website (s, "WEBSITE");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_download_size (s, 1024);
@@ -4009,6 +4016,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, "SUMMARY");
     g_assert_true (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
+    g_assert_cmpstr (snapd_snap_get_website (snap), ==, "WEBSITE");
 }
 
 static void

@@ -215,6 +215,7 @@ struct _MockSnap
     gboolean trymode;
     gchar *type;
     gchar *version;
+    gchar *website;
     GList *store_sections;
     GList *plugs;
     GList *slots_;
@@ -376,6 +377,7 @@ mock_snap_free (MockSnap *snap)
     g_list_free_full (snap->tracks, (GDestroyNotify) mock_track_free);
     g_free (snap->type);
     g_free (snap->version);
+    g_free (snap->website);
     g_list_free_full (snap->store_sections, g_free);
     g_list_free_full (snap->plugs, (GDestroyNotify) mock_plug_free);
     g_list_free_full (snap->slots_, (GDestroyNotify) mock_slot_free);
@@ -1522,6 +1524,13 @@ mock_snap_set_version (MockSnap *snap, const gchar *version)
 }
 
 void
+mock_snap_set_website (MockSnap *snap, const gchar *website)
+{
+    g_free (snap->website);
+    snap->website = g_strdup (website);
+}
+
+void
 mock_snap_add_store_section (MockSnap *snap, const gchar *name)
 {
     snap->store_sections = g_list_append (snap->store_sections, g_strdup (name));
@@ -2466,6 +2475,10 @@ make_snap_node (MockSnap *snap)
     json_builder_add_string_value (builder, snap->type);
     json_builder_set_member_name (builder, "version");
     json_builder_add_string_value (builder, snap->version);
+    if (snap->website) {
+        json_builder_set_member_name (builder, "website");
+        json_builder_add_string_value (builder, snap->website);
+    }
     json_builder_end_object (builder);
 
     return json_builder_get_root (builder);

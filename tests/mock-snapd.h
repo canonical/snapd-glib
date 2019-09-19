@@ -388,6 +388,9 @@ void            mock_snap_set_type                (MockSnap      *snap,
 void            mock_snap_set_version             (MockSnap      *snap,
                                                    const gchar   *version);
 
+void            mock_snap_set_website             (MockSnap      *snap,
+                                                   const gchar   *website);
+
 void            mock_snap_add_store_section       (MockSnap      *snap,
                                                    const gchar   *section);
 

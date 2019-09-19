@@ -345,3 +345,8 @@ QString QSnapdSnap::version () const
 {
     return snapd_snap_get_version (SNAPD_SNAP (wrapped_object));
 }
+
+QString QSnapdSnap::website () const
+{
+    return snapd_snap_get_website (SNAPD_SNAP (wrapped_object));
+}

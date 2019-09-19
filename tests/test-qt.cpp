@@ -1307,6 +1307,7 @@ QT_WARNING_POP
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
     g_assert (snap->version () == "VERSION");
+    g_assert_null (snap->website ());
 }
 
 void
@@ -1350,6 +1351,7 @@ QT_WARNING_POP
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
     g_assert (snap->version () == "VERSION");
+    g_assert_null (snap->website ());
 
     g_main_loop_quit (loop);
 }
@@ -1426,6 +1428,7 @@ QT_WARNING_POP
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
     g_assert (snap->version () == "VERSION");
+    g_assert_null (snap->website ());
 }
 
 void
@@ -1469,6 +1472,7 @@ QT_WARNING_POP
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
     g_assert (snap->version () == "VERSION");
+    g_assert_null (snap->website ());
 
     g_main_loop_quit (loop);
 }
@@ -1510,6 +1514,7 @@ test_get_snap_optional_fields ()
     mock_snap_set_jailmode (s, TRUE);
     mock_snap_set_trymode (s, TRUE);
     mock_snap_set_contact (s, "CONTACT");
+    mock_snap_set_website (s, "WEBSITE");
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_license (s, "LICENSE");
@@ -1539,6 +1544,7 @@ test_get_snap_optional_fields ()
     g_assert (snap->channel () == "CHANNEL");
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
     g_assert (snap->contact () == "CONTACT");
+    g_assert (snap->website () == "WEBSITE");
     g_assert (snap->description () == "DESCRIPTION");
     g_assert (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert (snap->publisherId () == "PUBLISHER-ID");
@@ -3386,6 +3392,7 @@ test_find_query ()
     mock_track_add_channel (mock_snap_add_track (s, "latest"), "stable", NULL);
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_contact (s, "CONTACT");
+    mock_snap_set_website (s, "WEBSITE");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_download_size (s, 1024);
@@ -3421,6 +3428,7 @@ test_find_query ()
     g_assert_cmpint (channel->size (), ==, 65535);
     g_assert_cmpint (snap1->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert (snap1->contact () == "CONTACT");
+    g_assert (snap1->website () == "WEBSITE");
     g_assert (snap1->description () == "DESCRIPTION");
     g_assert (snap1->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert (snap1->publisherId () == "PUBLISHER-ID");

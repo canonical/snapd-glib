@@ -70,6 +70,7 @@ struct _SnapdSnap
     gboolean trymode;
     SnapdSnapType snap_type;
     gchar *version;
+    gchar *website;
 };
 
 enum
@@ -111,6 +112,7 @@ enum
     PROP_BASE,
     PROP_MOUNTED_FROM,
     PROP_MEDIA,
+    PROP_WEBSITE,
     PROP_LAST
 };
 
@@ -815,6 +817,23 @@ snapd_snap_get_version (SnapdSnap *self)
     return self->version;
 }
 
+/**
+ * snapd_snap_get_website:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the website of the snap developer, e.g. "http://example.com".
+ *
+ * Returns: a website URL.
+ *
+ * Since: 1.50
+ */
+const gchar *
+snapd_snap_get_website (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->website;
+}
+
 static void
 snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
@@ -962,6 +981,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_strfreev (self->common_ids);
         self->common_ids = g_strdupv (g_value_get_boxed (value));
         break;
+    case PROP_WEBSITE:
+        g_free (self->website);
+        self->website = g_strdup (g_value_get_string (value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -1083,6 +1106,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_COMMON_IDS:
         g_value_set_boxed (value, self->common_ids);
         break;
+    case PROP_WEBSITE:
+        g_value_set_string (value, self->website);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -1120,6 +1146,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&self->tracking_channel, g_free);
     g_clear_pointer (&self->tracks, g_strfreev);
     g_clear_pointer (&self->version, g_free);
+    g_clear_pointer (&self->website, g_free);
 
     G_OBJECT_CLASS (snapd_snap_parent_class)->finalize (object);
 }
@@ -1390,6 +1417,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                      g_param_spec_string ("version",
                                                           "version",
                                                           "Snap version",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_WEBSITE,
+                                     g_param_spec_string ("website",
+                                                          "website",
+                                                          "Website of developer",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }

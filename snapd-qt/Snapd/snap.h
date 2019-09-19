@@ -59,6 +59,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QStringList tracks READ tracks)
     Q_PROPERTY(bool trymode READ trymode)
     Q_PROPERTY(QString version READ version)
+    Q_PROPERTY(QString website READ website)
 
 public:
     explicit QSnapdSnap (void* snapd_object, QObject* parent = 0);
@@ -106,6 +107,7 @@ public:
     QStringList tracks () const;
     bool trymode () const;
     QString version () const;
+    QString website () const;
 };
 
 #endif

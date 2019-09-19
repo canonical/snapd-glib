@@ -668,6 +668,7 @@ snapd_snap_get_tracking_channel
 snapd_snap_get_tracks
 snapd_snap_get_trymode
 snapd_snap_get_version
+snapd_snap_get_website
 SnapdSnap
 
 <SUBSECTION Private>

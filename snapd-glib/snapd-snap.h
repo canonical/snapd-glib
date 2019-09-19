@@ -160,6 +160,8 @@ gboolean                 snapd_snap_get_trymode                (SnapdSnap   *sna
 
 const gchar             *snapd_snap_get_version                (SnapdSnap   *snap);
 
+const gchar             *snapd_snap_get_website                (SnapdSnap   *snap);
+
 G_END_DECLS
 
 #endif /* __SNAPD_SNAP_H__ */

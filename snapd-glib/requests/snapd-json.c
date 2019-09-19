@@ -861,6 +861,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
                          "tracks", (GStrv) track_array->pdata,
                          "trymode", _snapd_json_get_bool (object, "trymode", FALSE),
                          "version", _snapd_json_get_string (object, "version", NULL),
+                         "website", _snapd_json_get_string (object, "website", NULL),
                          NULL);
 }
 
