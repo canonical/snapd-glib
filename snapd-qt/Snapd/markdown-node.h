@@ -36,6 +36,7 @@ public:
     Q_ENUM(NodeType)
     explicit QSnapdMarkdownNode (void* snapd_object, QObject* parent = 0);
     explicit QSnapdMarkdownNode (const QSnapdMarkdownNode &node);
+    QSnapdMarkdownNode& operator = (const QSnapdMarkdownNode &node);
 
     NodeType type () const;
     QString text () const;
