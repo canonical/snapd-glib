@@ -9,8 +9,6 @@
 
 #include <string.h>
 
-#include "config.h"
-
 #include "snapd-login.h"
 #include "snapd-client.h"
 #include "snapd-error.h"

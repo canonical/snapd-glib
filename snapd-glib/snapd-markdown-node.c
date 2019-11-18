@@ -9,8 +9,6 @@
 
 #include <ctype.h>
 
-#include "config.h"
-
 #include "snapd-markdown-node.h"
 #include "snapd-enum-types.h"
 

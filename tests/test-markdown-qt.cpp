@@ -12,8 +12,6 @@
 #include <Snapd/MarkdownParser>
 #include <QDebug>
 
-#include "config.h"
-
 static QString
 escape_text (const QString &text)
 {

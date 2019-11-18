@@ -7,8 +7,6 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#include "config.h"
-
 #include "snapd-client.h"
 #include "snapd-error.h"
 
