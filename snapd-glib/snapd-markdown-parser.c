@@ -10,8 +10,6 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "config.h"
-
 #include "snapd-markdown-parser.h"
 #include "snapd-markdown-node.h"
 

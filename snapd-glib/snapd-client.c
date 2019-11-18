@@ -7,8 +7,6 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#include "config.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <gio/gunixsocketaddress.h>
@@ -83,7 +81,7 @@
  * @include: snapd-glib/snapd-glib.h
  *
  * Programs can check if snapd-glib feature is enabled by checking for the
- * existence of a define called SNAPD_GLIB_VERSION_<version>, i.e.
+ * existence of a define called SNAPD_GLIB_VERSION_&lt;version&gt;, i.e.
  *
  * |[<!-- language="C" -->
  * #ifdef SNAPD_GLIB_VERSION_1_14

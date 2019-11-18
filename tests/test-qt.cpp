@@ -13,7 +13,6 @@
 #include <Snapd/Client>
 #include <Snapd/Assertion>
 
-#include "config.h"
 #include "test-qt.h"
 
 static void

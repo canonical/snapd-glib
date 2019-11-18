@@ -11,8 +11,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "config.h"
-
 #include "snapd-assertion.h"
 
 /**

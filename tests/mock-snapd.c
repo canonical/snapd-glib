@@ -7,8 +7,6 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#include "config.h"
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <string.h>

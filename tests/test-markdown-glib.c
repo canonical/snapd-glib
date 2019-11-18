@@ -10,8 +10,6 @@
 #include <string.h>
 #include <snapd-glib/snapd-glib.h>
 
-#include "config.h"
-
 static gchar *
 escape_text (const gchar *text)
 {

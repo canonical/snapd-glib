@@ -10,7 +10,6 @@
 #include <string.h>
 #include <snapd-glib/snapd-glib.h>
 
-#include "config.h"
 #include "mock-snapd.h"
 
 typedef struct
