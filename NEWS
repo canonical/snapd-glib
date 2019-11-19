@@ -1,3 +1,8 @@
+Overview of changes in snapd-glib 1.51
+
+   * Add back installed test functionality that was lost in the Autotools to
+     Meson migration
+
 Overview of changes in snapd-glib 1.50
 
    * New API:
