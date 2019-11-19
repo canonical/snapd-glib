@@ -1,3 +1,21 @@
+Overview of changes in snapd-glib 1.50
+
+   * New API:
+     - snapd_client_remove2_sync
+     - snapd_client_remove2_async
+     - snapd_client_remove2_finish
+     - snapd_snap_get_website
+   * Deprecated API:
+     - snapd_client_remove_sync
+     - snapd_client_remove_async
+     - snapd_client_remove_finish
+   * Add API to get snap website
+   * Add purge option to remove
+   * Switch build system to Meson
+   * Fix Qt build with optimisation disabled
+   * Fix tests breaking on json-glib < 1.2.4
+   * Use C99 style variable definitions
+
 Overview of changes in snapd-glib 1.49
 
     * New API:
