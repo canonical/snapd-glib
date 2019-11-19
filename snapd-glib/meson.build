@@ -150,6 +150,7 @@ snapd_glib_lib = library ('snapd-glib',
                           dependencies: [ glib_dep, gio_dep, gio_unix_dep, libsoup_dep, json_glib_dep ],
                           c_args: common_cflags,
                           link_depends: 'snapd-glib.map',
+                          link_args: '-Wl,--version-script,@0@/@1@'.format (meson.current_source_dir(), 'snapd-glib.map'),
                           install: true)
 
 snapd_glib_dep = declare_dependency (link_with: snapd_glib_lib,
