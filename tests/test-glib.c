@@ -3932,8 +3932,8 @@ test_find_query (void)
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_download_size (s, 1024);
-    mock_snap_add_price (s, 1.20, "NZD");
-    mock_snap_add_price (s, 0.87, "USD");
+    mock_snap_add_price (s, 1.25, "NZD");
+    mock_snap_add_price (s, 0.75, "USD");
     mock_snap_add_media (s, "screenshot", "screenshot0.png", 0, 0);
     mock_snap_add_media (s, "screenshot", "screenshot1.png", 1024, 1024);
     mock_snap_add_media (s, "banner", "banner.png", 0, 0);
@@ -3996,9 +3996,9 @@ test_find_query (void)
     g_assert_cmpstr (snapd_snap_get_name (snap), ==, "carrot2");
     GPtrArray *prices = snapd_snap_get_prices (snap);
     g_assert_cmpint (prices->len, ==, 2);
-    g_assert_cmpfloat (snapd_price_get_amount (prices->pdata[0]), ==, 1.20);
+    g_assert_cmpfloat (snapd_price_get_amount (prices->pdata[0]), ==, 1.25);
     g_assert_cmpstr (snapd_price_get_currency (prices->pdata[0]), ==, "NZD");
-    g_assert_cmpfloat (snapd_price_get_amount (prices->pdata[1]), ==, 0.87);
+    g_assert_cmpfloat (snapd_price_get_amount (prices->pdata[1]), ==, 0.75);
     g_assert_cmpstr (snapd_price_get_currency (prices->pdata[1]), ==, "USD");
     g_assert_false (snapd_snap_get_private (snap));
     g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
@@ -6703,7 +6703,7 @@ test_buy_sync (void)
     mock_account_set_has_payment_methods (a, TRUE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -6716,7 +6716,7 @@ test_buy_sync (void)
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.25, "NZD", NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 }
@@ -6745,7 +6745,7 @@ test_buy_async (void)
     mock_account_set_has_payment_methods (a, TRUE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -6758,7 +6758,7 @@ test_buy_async (void)
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    snapd_client_buy_async (client, "ABCDEF", 1.20, "NZD", NULL, buy_cb, async_data_new (loop, snapd));
+    snapd_client_buy_async (client, "ABCDEF", 1.25, "NZD", NULL, buy_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
@@ -6768,7 +6768,7 @@ test_buy_not_logged_in (void)
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -6776,7 +6776,7 @@ test_buy_not_logged_in (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.25, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_AUTH_DATA_REQUIRED);
     g_assert_false (result);
 }
@@ -6800,7 +6800,7 @@ test_buy_not_available (void)
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.25, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
     g_assert_false (result);
 }
@@ -6814,7 +6814,7 @@ test_buy_terms_not_accepted (void)
     mock_account_set_has_payment_methods (a, FALSE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -6827,7 +6827,7 @@ test_buy_terms_not_accepted (void)
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.25, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_TERMS_NOT_ACCEPTED);
     g_assert_false (result);
 }
@@ -6841,7 +6841,7 @@ test_buy_no_payment_methods (void)
     mock_account_set_has_payment_methods (a, FALSE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -6854,7 +6854,7 @@ test_buy_no_payment_methods (void)
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.20, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.25, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_PAYMENT_NOT_SETUP);
     g_assert_false (result);
 }
@@ -6868,7 +6868,7 @@ test_buy_invalid_price (void)
     mock_account_set_has_payment_methods (a, TRUE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -6881,7 +6881,7 @@ test_buy_invalid_price (void)
     g_assert_nonnull (user_information);
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
-    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 0.6, "NZD", NULL, &error);
+    gboolean result = snapd_client_buy_sync (client, "ABCDEF", 0.75, "NZD", NULL, &error);
     g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_PAYMENT_DECLINED);
     g_assert_false (result);
 }

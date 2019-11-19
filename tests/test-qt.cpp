@@ -3395,8 +3395,8 @@ test_find_query ()
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_download_size (s, 1024);
-    mock_snap_add_price (s, 1.20, "NZD");
-    mock_snap_add_price (s, 0.87, "USD");
+    mock_snap_add_price (s, 1.25, "NZD");
+    mock_snap_add_price (s, 0.75, "USD");
     mock_snap_add_media (s, "screenshot", "screenshot0.png", 0, 0);
     mock_snap_add_media (s, "screenshot", "screenshot1.png", 1024, 1024);
     mock_snap_add_media (s, "banner", "banner.png", 0, 0);
@@ -3453,10 +3453,10 @@ test_find_query ()
     g_assert (snap1->name () == "carrot2");
     g_assert_cmpint (snap1->priceCount (), ==, 2);
     QScopedPointer<QSnapdPrice> price0 (snap1->price (0));
-    g_assert_cmpfloat (price0->amount (), ==, 1.20);
+    g_assert_cmpfloat (price0->amount (), ==, 1.25);
     g_assert (price0->currency () == "NZD");
     QScopedPointer<QSnapdPrice> price1 (snap1->price (1));
-    g_assert_cmpfloat (price1->amount (), ==, 0.87);
+    g_assert_cmpfloat (price1->amount (), ==, 0.75);
     g_assert (price1->currency () == "USD");
     g_assert_false (snap1->isPrivate ());
     g_assert (snap1->revision () == "REVISION");
@@ -5872,7 +5872,7 @@ test_buy_sync ()
     mock_account_set_has_payment_methods (a, TRUE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -5884,7 +5884,7 @@ test_buy_sync ()
     QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
     client.setAuthData (authData.data ());
 
-    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
+    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.25, "NZD"));
     buyRequest->runSync ();
     g_assert_cmpint (buyRequest->error (), ==, QSnapdRequest::NoError);
 }
@@ -5908,7 +5908,7 @@ test_buy_async ()
     mock_account_set_has_payment_methods (a, TRUE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -5920,7 +5920,7 @@ test_buy_async ()
     QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
     client.setAuthData (authData.data ());
 
-    BuyHandler buyHandler (loop, snapd, client.buy ("ABCDEF", 1.20, "NZD"));
+    BuyHandler buyHandler (loop, snapd, client.buy ("ABCDEF", 1.25, "NZD"));
     QObject::connect (buyHandler.request, &QSnapdBuyRequest::complete, &buyHandler, &BuyHandler::onComplete);
     buyHandler.request->runAsync ();
     g_main_loop_run (loop);
@@ -5932,13 +5932,13 @@ test_buy_not_logged_in ()
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
-    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
+    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.25, "NZD"));
     buyRequest->runSync ();
     g_assert_cmpint (buyRequest->error (), ==, QSnapdRequest::AuthDataRequired);
 }
@@ -5961,7 +5961,7 @@ test_buy_not_available ()
     QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
     client.setAuthData (authData.data ());
 
-    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
+    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.25, "NZD"));
     buyRequest->runSync ();
     g_assert_cmpint (buyRequest->error (), ==, QSnapdRequest::Failed);
 }
@@ -5975,7 +5975,7 @@ test_buy_terms_not_accepted ()
     mock_account_set_has_payment_methods (a, FALSE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -5987,7 +5987,7 @@ test_buy_terms_not_accepted ()
     QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
     client.setAuthData (authData.data ());
 
-    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
+    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.25, "NZD"));
     buyRequest->runSync ();
     g_assert_cmpint (buyRequest->error (), ==, QSnapdRequest::TermsNotAccepted);
 }
@@ -6001,7 +6001,7 @@ test_buy_no_payment_methods ()
     mock_account_set_has_payment_methods (a, FALSE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -6013,7 +6013,7 @@ test_buy_no_payment_methods ()
     QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
     client.setAuthData (authData.data ());
 
-    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.20, "NZD"));
+    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.25, "NZD"));
     buyRequest->runSync ();
     g_assert_cmpint (buyRequest->error (), ==, QSnapdRequest::PaymentNotSetup);
 }
@@ -6027,7 +6027,7 @@ test_buy_invalid_price ()
     mock_account_set_has_payment_methods (a, TRUE);
     MockSnap *s = mock_snapd_add_store_snap (snapd, "snap");
     mock_snap_set_id (s, "ABCDEF");
-    mock_snap_add_price (s, 1.20, "NZD");
+    mock_snap_add_price (s, 1.25, "NZD");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
@@ -6039,7 +6039,7 @@ test_buy_invalid_price ()
     QScopedPointer<QSnapdAuthData> authData (loginRequest->authData ());
     client.setAuthData (authData.data ());
 
-    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 0.6, "NZD"));
+    QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 0.75, "NZD"));
     buyRequest->runSync ();
     g_assert_cmpint (buyRequest->error (), ==, QSnapdRequest::PaymentDeclined);
 }
