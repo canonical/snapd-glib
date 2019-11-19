@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 1.53
+
+   * Fix test failures on i386 due to floating point rounding.
+
 Overview of changes in snapd-glib 1.52
 
    * Fix private symbols not being hidden
