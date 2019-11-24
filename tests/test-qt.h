@@ -852,3 +852,20 @@ public:
 public slots:
     void onComplete ();
 };
+
+class DownloadHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    DownloadHandler (GMainLoop *loop, QSnapdDownloadRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdDownloadRequest *request;
+    ~DownloadHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};

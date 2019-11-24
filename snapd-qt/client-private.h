@@ -569,4 +569,20 @@ public:
     gchar *stderr_output = NULL;
 };
 
+class QSnapdDownloadRequestPrivate
+{
+public:
+    QSnapdDownloadRequestPrivate (const QString &name, const QString& channel, const QString& revision) :
+        name (name), channel (channel), revision (revision) {}
+    ~QSnapdDownloadRequestPrivate ()
+    {
+        if (data != NULL)
+            g_bytes_unref (data);
+    }
+    QString name;
+    QString channel;
+    QString revision;
+    GBytes *data = NULL;
+};
+
 #endif
