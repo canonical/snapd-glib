@@ -1599,3 +1599,34 @@ snapd_client_run_snapctl_sync (SnapdClient *self,
     end_sync (&data);
     return snapd_client_run_snapctl_finish (self, data.result, stdout_output, stderr_output, error);
 }
+
+/**
+ * snapd_client_download_sync:
+ * @client: a #SnapdClient.
+ * @name: name of snap to download.
+ * @channel: (allow-none): channel to download from.
+ * @revision: (allow-none): revision to download.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Download the given snap.
+ *
+ * Returns: the snap contents or %NULL on error.
+ *
+ * Since: 1.54
+ */
+GBytes *
+snapd_client_download_sync (SnapdClient *self,
+                            const gchar *name, const gchar *channel, const gchar *revision,
+                            GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (name != NULL, NULL);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_download_async (self, name, channel, revision, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_download_finish (self, data.result, error);
+}

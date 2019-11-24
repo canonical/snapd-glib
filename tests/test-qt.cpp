@@ -6563,6 +6563,66 @@ test_run_snapctl_async ()
 }
 
 static void
+test_download_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdDownloadRequest> downloadRequest (client.download ("test"));
+    downloadRequest->runSync ();
+    g_assert_cmpint (downloadRequest->error (), ==, QSnapdRequest::NoError);
+    QByteArray data = downloadRequest->data ();
+    g_assert_cmpmem (data.data (), data.size (), "SNAP:name=test", 14);
+}
+
+void
+DownloadHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+
+    QByteArray data = request->data ();
+    g_assert_cmpmem (data.data (), data.size (), "SNAP:name=test", 14);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_download_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    DownloadHandler downloadHandler (loop, client.download ("test"));
+    QObject::connect (downloadHandler.request, &QSnapdDownloadRequest::complete, &downloadHandler, &DownloadHandler::onComplete);
+    downloadHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
+static void
+test_download_channel_revision ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdDownloadRequest> downloadRequest (client.download ("test", "CHANNEL", "REVISION"));
+    downloadRequest->runSync ();
+    g_assert_cmpint (downloadRequest->error (), ==, QSnapdRequest::NoError);
+    QByteArray data = downloadRequest->data ();
+    g_assert_cmpmem (data.data (), data.size (), "SNAP:name=test:channel=CHANNEL:revision=REVISION", 48);
+}
+
+static void
 test_stress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -6816,6 +6876,9 @@ main (int argc, char **argv)
     g_test_add_func ("/aliases/prefer-async", test_aliases_prefer_async);
     g_test_add_func ("/run-snapctl/sync", test_run_snapctl_sync);
     g_test_add_func ("/run-snapctl/async", test_run_snapctl_async);
+    g_test_add_func ("/download/sync", test_download_sync);
+    g_test_add_func ("/download/async", test_download_async);
+    g_test_add_func ("/download/channel-revision", test_download_channel_revision);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();

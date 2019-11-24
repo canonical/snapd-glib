@@ -7486,6 +7486,74 @@ test_run_snapctl_async (void)
 }
 
 static void
+test_download_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GBytes) snap_data = snapd_client_download_sync (client, "test", NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snap_data);
+
+    g_assert_cmpmem (g_bytes_get_data (snap_data, NULL), g_bytes_get_size (snap_data), "SNAP:name=test", 14);
+}
+
+static void
+download_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GBytes) snap_data = snapd_client_download_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snap_data);
+
+    g_assert_cmpmem (g_bytes_get_data (snap_data, NULL), g_bytes_get_size (snap_data), "SNAP:name=test", 14);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_download_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_download_async (client, "test", NULL, NULL, NULL, download_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
+test_download_channel_revision (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GBytes) snap_data = snapd_client_download_sync (client, "test", "CHANNEL", "REVISION", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snap_data);
+
+    g_assert_cmpmem (g_bytes_get_data (snap_data, NULL), g_bytes_get_size (snap_data), "SNAP:name=test:channel=CHANNEL:revision=REVISION", 48);
+}
+
+static void
 test_stress (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -7743,6 +7811,9 @@ main (int argc, char **argv)
     g_test_add_func ("/aliases/prefer-async", test_aliases_prefer_async);
     g_test_add_func ("/run-snapctl/sync", test_run_snapctl_sync);
     g_test_add_func ("/run-snapctl/async", test_run_snapctl_async);
+    g_test_add_func ("/download/sync", test_download_sync);
+    g_test_add_func ("/download/async", test_download_async);
+    g_test_add_func ("/download/channel-revision", test_download_channel_revision);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();

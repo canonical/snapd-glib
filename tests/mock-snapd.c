@@ -4443,6 +4443,39 @@ handle_users (MockSnapd *self, SoupMessage *message)
 }
 
 static void
+handle_download (MockSnapd *self, SoupMessage *message)
+{
+    if (strcmp (message->method, "POST") != 0) {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+
+    g_autoptr(JsonNode) request = get_json (message);
+    if (request == NULL) {
+        send_error_bad_request (self, message, "unknown content type", NULL);
+        return;
+    }
+
+    JsonObject *o = json_node_get_object (request);
+    const gchar *snap_name = json_object_get_string_member (o, "snap-name");
+    const gchar *channel = NULL;
+    if (json_object_has_member (o, "channel"))
+        channel = json_object_get_string_member (o, "channel");
+    const gchar *revision = NULL;
+    if (json_object_has_member (o, "revision"))
+        revision = json_object_get_string_member (o, "revision");
+
+    g_autoptr(GString) contents = g_string_new ("SNAP");
+    g_string_append_printf (contents, ":name=%s", snap_name);
+    if (channel != NULL)
+        g_string_append_printf (contents, ":channel=%s", channel);
+    if (revision != NULL)
+        g_string_append_printf (contents, ":revision=%s", revision);
+
+    send_response (message, 200, "application/octet-stream", (const guint8 *) contents->str, contents->len);
+}
+
+static void
 handle_request (SoupServer        *server,
                 SoupMessage       *message,
                 const char        *path,
@@ -4511,6 +4544,8 @@ handle_request (SoupServer        *server,
         handle_create_user (self, message);
     else if (strcmp (path, "/v2/users") == 0)
         handle_users (self, message);
+    else if (strcmp (path, "/v2/download") == 0)
+        handle_download (self, message);
     else
         send_error_not_found (self, message, "not found", NULL);
 }

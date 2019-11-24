@@ -861,6 +861,24 @@ private:
     Q_DECLARE_PRIVATE(QSnapdRunSnapCtlRequest)
 };
 
+class QSnapdDownloadRequestPrivate;
+class Q_DECL_EXPORT QSnapdDownloadRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdDownloadRequest (const QString& name, const QString& channel, const QString& revision, void *snapd_client, QObject *parent = 0);
+    ~QSnapdDownloadRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE QByteArray data () const;
+    void handleResult (void *, void *);
+
+private:
+    QSnapdDownloadRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdDownloadRequest)
+};
+
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password);
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password, const QString& otp);
 
@@ -1026,6 +1044,8 @@ public:
     Q_INVOKABLE Q_DECL_DEPRECATED QSnapdDisableAliasesRequest *disableAliases (const QString snap, const QStringList &aliases);
     Q_INVOKABLE Q_DECL_DEPRECATED QSnapdResetAliasesRequest *resetAliases (const QString snap, const QStringList &aliases);
     Q_INVOKABLE QSnapdRunSnapCtlRequest *runSnapCtl (const QString contextId, const QStringList &args);
+    Q_INVOKABLE QSnapdDownloadRequest *download (const QString &name);
+    Q_INVOKABLE QSnapdDownloadRequest *download (const QString &name, const QString &channel, const QString &revision);
 
 private:
     QSnapdClientPrivate *d_ptr;

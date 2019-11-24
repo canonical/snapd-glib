@@ -38,6 +38,7 @@
 #include "requests/snapd-post-change.h"
 #include "requests/snapd-post-create-user.h"
 #include "requests/snapd-post-create-users.h"
+#include "requests/snapd-post-download.h"
 #include "requests/snapd-post-interfaces.h"
 #include "requests/snapd-post-login.h"
 #include "requests/snapd-post-snap.h"
@@ -3797,6 +3798,60 @@ snapd_client_run_snapctl_finish (SnapdClient *self, GAsyncResult *result,
         *stderr_output = g_strdup (_snapd_post_snapctl_get_stderr_output (request));
 
     return TRUE;
+}
+
+/**
+ * snapd_client_download_async:
+ * @client: a #SnapdClient.
+ * @name: name of snap to download.
+ * @channel: (allow-none): channel to download from.
+ * @revision: (allow-none): revision to download.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously download a snap.
+ * See snapd_client_download_sync() for more information.
+ *
+ * Since: 1.54
+ */
+void
+snapd_client_download_async (SnapdClient *self,
+                             const gchar *name, const gchar *channel, const gchar *revision,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+    g_return_if_fail (name != NULL);
+
+    g_autoptr(SnapdPostDownload) request = _snapd_post_download_new (name, channel, revision, cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_download_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_download_async().
+ * See snapd_client_download_sync() for more information.
+ *
+ * Returns: the snap contents or %NULL on error.
+ *
+ * Since: 1.54
+ */
+GBytes *
+snapd_client_download_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_POST_DOWNLOAD (result), NULL);
+
+    SnapdPostDownload *request = SNAPD_POST_DOWNLOAD (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+
+    return g_bytes_ref (_snapd_post_download_get_data (request));
 }
 
 /**

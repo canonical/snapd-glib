@@ -1094,6 +1094,23 @@ gboolean                snapd_client_run_snapctl_finish            (SnapdClient 
                                                                     gchar               **stderr_output,
                                                                     GError              **error);
 
+GBytes                 *snapd_client_download_sync                 (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    const gchar          *channel,
+                                                                    const gchar          *revision,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_download_async                (SnapdClient          *client,
+                                                                    const gchar          *name,
+                                                                    const gchar          *channel,
+                                                                    const gchar          *revision,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GBytes                 *snapd_client_download_finish               (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 G_END_DECLS
 
 #endif /* __SNAPD_CLIENT_H__ */

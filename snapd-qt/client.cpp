@@ -806,6 +806,23 @@ QSnapdRunSnapCtlRequest *QSnapdClient::runSnapCtl (const QString contextId, cons
     return new QSnapdRunSnapCtlRequest (contextId, args, d->client);
 }
 
+QSnapdDownloadRequest::~QSnapdDownloadRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdDownloadRequest *QSnapdClient::download (const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdDownloadRequest (name, NULL, NULL, d->client);
+}
+
+QSnapdDownloadRequest *QSnapdClient::download (const QString& name, const QString& channel, const QString& revision)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdDownloadRequest (name, channel, revision, d->client);
+}
+
 QSnapdConnectRequest::QSnapdConnectRequest (void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
     d_ptr (new QSnapdConnectRequestPrivate()) {}
@@ -3150,4 +3167,56 @@ QString QSnapdRunSnapCtlRequest::stderr () const
 {
     Q_D(const QSnapdRunSnapCtlRequest);
     return d->stderr_output;
+}
+
+QSnapdDownloadRequest::QSnapdDownloadRequest (const QString& name, const QString &channel, const QString &revision, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdDownloadRequestPrivate (name, channel, revision)) {}
+
+void QSnapdDownloadRequest::runSync ()
+{
+    Q_D(QSnapdDownloadRequest);
+    g_autoptr(GError) error = NULL;
+
+    d->data = snapd_client_download_sync (SNAPD_CLIENT (getClient ()),
+                                          d->name.toStdString ().c_str (),
+                                          d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
+                                          d->revision.isNull () ? NULL : d->revision.toStdString ().c_str (),
+                                          G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdDownloadRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GError) error = NULL;
+    Q_D(QSnapdDownloadRequest);
+
+    d->data = snapd_client_download_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+
+    finish (error);
+}
+
+static void download_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdDownloadRequest *request = static_cast<QSnapdDownloadRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdDownloadRequest::runAsync ()
+{
+    Q_D(QSnapdDownloadRequest);
+
+    snapd_client_download_async (SNAPD_CLIENT (getClient ()),
+                                 d->name.toStdString ().c_str (),
+                                 d->channel.isNull () ? NULL : d->channel.toStdString ().c_str (),
+                                 d->revision.isNull () ? NULL : d->revision.toStdString ().c_str (),
+                                 G_CANCELLABLE (getCancellable ()), download_ready_cb, (gpointer) this);
+}
+
+QByteArray QSnapdDownloadRequest::data () const
+{
+    Q_D(const QSnapdDownloadRequest);
+    gsize length;
+    gchar *raw_data = (gchar *) g_bytes_get_data (d->data, &length);
+    return QByteArray::fromRawData (raw_data, length);
 }
