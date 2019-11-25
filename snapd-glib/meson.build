@@ -165,7 +165,8 @@ pc.generate (libraries: [ snapd_glib_lib ],
              filebase: 'snapd-glib',
              name: 'Snapd GLib',
              description: 'Libary for accessing snapd',
-             version: meson.project_version ())
+             version: meson.project_version (),
+             subdirs: 'snapd-glib')
 
 if get_option ('introspection')
   snapd_glib_gir = gnome.generate_gir (snapd_glib_lib,
