@@ -2385,7 +2385,7 @@ test_icon_not_installed (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_autoptr(SnapdIcon) icon = snapd_client_get_icon_sync (client, "snap", NULL, &error);
-    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_FOUND);
     g_assert_null (icon);
 }
 
@@ -6801,7 +6801,7 @@ test_buy_not_available (void)
     snapd_client_set_auth_data (client, snapd_user_information_get_auth_data (user_information));
 
     gboolean result = snapd_client_buy_sync (client, "ABCDEF", 1.25, "NZD", NULL, &error);
-    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_FOUND);
     g_assert_false (result);
 }
 

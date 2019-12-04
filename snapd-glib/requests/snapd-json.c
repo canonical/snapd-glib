@@ -328,8 +328,13 @@ parse_error_response (JsonObject *root, GError **error)
                                  SNAPD_ERROR_PERMISSION_DENIED,
                                  message);
             break;
-        /* Other response codes currently produced by snapd:
         case SOUP_STATUS_NOT_FOUND:
+            g_set_error_literal (error,
+                                 SNAPD_ERROR,
+                                 SNAPD_ERROR_NOT_FOUND,
+                                 message);
+            break;
+        /* Other response codes currently produced by snapd:
         case SOUP_STATUS_METHOD_NOT_ALLOWED:
         case SOUP_STATUS_NOT_IMPLEMENTED:
         case SOUP_STATUS_CONFLICT:

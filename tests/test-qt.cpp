@@ -2168,7 +2168,7 @@ test_icon_not_installed ()
 
     QScopedPointer<QSnapdGetIconRequest> getIconRequest (client.getIcon ("snap"));
     getIconRequest->runSync ();
-    g_assert_cmpint (getIconRequest->error (), ==, QSnapdRequest::Failed);
+    g_assert_cmpint (getIconRequest->error (), ==, QSnapdRequest::NotFound);
 }
 
 static void
@@ -5963,7 +5963,7 @@ test_buy_not_available ()
 
     QScopedPointer<QSnapdBuyRequest> buyRequest (client.buy ("ABCDEF", 1.25, "NZD"));
     buyRequest->runSync ();
-    g_assert_cmpint (buyRequest->error (), ==, QSnapdRequest::Failed);
+    g_assert_cmpint (buyRequest->error (), ==, QSnapdRequest::NotFound);
 }
 
 static void
