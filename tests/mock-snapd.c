@@ -2679,7 +2679,7 @@ handle_snap (MockSnapd *self, SoupMessage *message, const gchar *name)
         if (snap != NULL)
             send_sync_response (self, message, 200, make_snap_node (snap), NULL);
         else
-            send_error_not_found (self, message, "cannot find snap", NULL);
+            send_error_not_found (self, message, "cannot find snap", "snap-not-found");
     }
     else if (strcmp (message->method, "POST") == 0) {
         g_autoptr(JsonNode) request = get_json (message);

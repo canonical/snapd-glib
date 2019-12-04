@@ -1788,7 +1788,7 @@ test_get_snap_not_installed (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
-    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_FAILED);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_NOT_FOUND);
     g_assert_null (snap);
 }
 

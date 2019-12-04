@@ -1637,7 +1637,7 @@ test_get_snap_not_installed ()
 
     QScopedPointer<QSnapdGetSnapRequest> getSnapRequest (client.getSnap ("snap"));
     getSnapRequest->runSync ();
-    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::Failed);
+    g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NotFound);
 }
 
 static void
