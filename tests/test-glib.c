@@ -4003,12 +4003,7 @@ test_find_query (void)
     g_assert_false (snapd_snap_get_private (snap));
     g_assert_cmpstr (snapd_snap_get_revision (snap), ==, "REVISION");
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    GPtrArray *screenshots = snapd_snap_get_screenshots (snap);
-    g_assert_cmpint (screenshots->len, ==, 2);
-    g_assert_cmpstr (snapd_screenshot_get_url (screenshots->pdata[0]), ==, "screenshot0.png");
-    g_assert_cmpstr (snapd_screenshot_get_url (screenshots->pdata[1]), ==, "screenshot1.png");
-    g_assert_cmpint (snapd_screenshot_get_width (screenshots->pdata[1]), ==, 1024);
-    g_assert_cmpint (snapd_screenshot_get_height (screenshots->pdata[1]), ==, 1024);
+    g_assert_cmpint (snapd_snap_get_screenshots (snap)->len, ==, 0);
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);

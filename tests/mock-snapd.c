@@ -2422,28 +2422,13 @@ make_snap_node (MockSnap *snap)
     json_builder_add_string_value (builder, resource);
     json_builder_set_member_name (builder, "revision");
     json_builder_add_string_value (builder, snap->revision);
-    if (screenshot_count > 0) {
-        json_builder_set_member_name (builder, "screenshots");
-        json_builder_begin_array (builder);
-        for (GList *link = snap->media; link; link = link->next) {
-            MockMedia *media = link->data;
-
-            if (strcmp (media->type, "screenshot") != 0)
-                continue;
-
-            json_builder_begin_object (builder);
-            json_builder_set_member_name (builder, "url");
-            json_builder_add_string_value (builder, media->url);
-            if (media->width > 0 && media->height > 0) {
-                json_builder_set_member_name (builder, "width");
-                json_builder_add_int_value (builder, media->width);
-                json_builder_set_member_name (builder, "height");
-                json_builder_add_int_value (builder, media->height);
-            }
-            json_builder_end_object (builder);
-        }
-        json_builder_end_array (builder);
-    }
+    json_builder_set_member_name (builder, "screenshots");
+    json_builder_begin_array (builder);
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "note");
+    json_builder_add_string_value (builder, "'screenshots' is deprecated; use 'media' instead. More info at https://forum.snapcraft.io/t/8086");
+    json_builder_end_object (builder);
+    json_builder_end_array (builder);
     json_builder_set_member_name (builder, "status");
     json_builder_add_string_value (builder, snap->status);
     if (snap->summary) {
