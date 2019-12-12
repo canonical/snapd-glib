@@ -3462,13 +3462,7 @@ test_find_query ()
     g_assert (snap1->revision () == "REVISION");
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
-    g_assert_cmpint (snap1->screenshotCount (), ==, 2);
-    QScopedPointer<QSnapdScreenshot> screenshot0 (snap1->screenshot (0));
-    g_assert (screenshot0->url () == "screenshot0.png");
-    QScopedPointer<QSnapdScreenshot> screenshot1 (snap1->screenshot (1));
-    g_assert (screenshot1->url () == "screenshot1.png");
-    g_assert_cmpint (screenshot1->width (), ==, 1024);
-    g_assert_cmpint (screenshot1->height (), ==, 1024);
+    g_assert_cmpint (snap1->screenshotCount (), ==, 0);
 QT_WARNING_POP
     g_assert_cmpint (snap1->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap1->status (), ==, QSnapdEnums::SnapStatusActive);

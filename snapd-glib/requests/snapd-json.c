@@ -769,24 +769,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
         g_ptr_array_add (media_array, g_steal_pointer (&media));
     }
 
-    g_autoptr(JsonArray) screenshots = _snapd_json_get_array (object, "screenshots");
     g_autoptr(GPtrArray) screenshots_array = g_ptr_array_new_with_free_func (g_object_unref);
-    for (guint i = 0; i < json_array_get_length (screenshots); i++) {
-        JsonNode *node = json_array_get_element (screenshots, i);
-
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
-            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected screenshot type");
-            return NULL;
-        }
-
-        JsonObject *s = json_node_get_object (node);
-        g_autoptr(SnapdScreenshot) screenshot = g_object_new (SNAPD_TYPE_SCREENSHOT,
-                                                              "url", _snapd_json_get_string (s, "url", NULL),
-                                                              "width", (guint) _snapd_json_get_int (s, "width", 0),
-                                                              "height", (guint) _snapd_json_get_int (s, "height", 0),
-                                                              NULL);
-        g_ptr_array_add (screenshots_array, g_steal_pointer (&screenshot));
-    }
 
     /* The tracks field was originally incorrectly named, fixed in snapd 61ad9ed (2.29.5) */
     g_autoptr(JsonArray) tracks = NULL;
