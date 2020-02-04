@@ -140,6 +140,34 @@ snapd_client_login2_sync (SnapdClient *self,
 }
 
 /**
+ * snapd_client_logout_sync:
+ * @client: a #SnapdClient.
+ * @id: login ID to use.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Log out from snapd.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.55
+ */
+gboolean
+snapd_client_logout_sync (SnapdClient *self,
+                          gint64 id,
+                          GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_logout_async (self, id, cancellable, sync_cb, &data);
+    end_sync (&data);
+
+    return snapd_client_logout_finish (self, data.result, error);
+}
+
+/**
  * snapd_client_get_changes_sync:
  * @client: a #SnapdClient.
  * @filter: changes to filter on.

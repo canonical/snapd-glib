@@ -124,6 +124,9 @@ snapd_client_login_finish
 snapd_client_login2_sync
 snapd_client_login2_async
 snapd_client_login2_finish
+snapd_client_logout_sync
+snapd_client_logout_async
+snapd_client_logout_finish
 snapd_client_set_user_agent
 snapd_client_get_user_agent
 snapd_client_set_auth_data
@@ -321,6 +324,7 @@ SnapdPostCreateUser
 SnapdPostCreateUsers
 SnapdPostInterfaces
 SnapdPostLogin
+SnapdPostLogout
 SnapdPostSnap
 SnapdPostSnapStream
 SnapdPostSnapTry

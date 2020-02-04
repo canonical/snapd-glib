@@ -17,6 +17,7 @@ typedef struct
     GMainLoop *loop;
     MockSnapd *snapd;
     int counter;
+    gint64 id;
 } AsyncData;
 
 static AsyncData *
@@ -741,6 +742,94 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
     for (int i = 0; mock_account_get_discharges (a)[i]; i++)
         g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
+}
+
+static void
+test_logout_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_account (snapd, "test1@example.com", "test1", "secret");
+    MockAccount *a = mock_snapd_add_account (snapd, "test2@example.com", "test2", "secret");
+    mock_snapd_add_account (snapd, "test3@example.com", "test3", "secret");
+    gint64 id = mock_account_get_id (a);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(SnapdAuthData) auth_data = snapd_auth_data_new (mock_account_get_macaroon (a), mock_account_get_discharges (a));
+    snapd_client_set_auth_data (client, auth_data);
+
+    g_assert_nonnull (mock_snapd_find_account_by_id (snapd, id));
+    gboolean result = snapd_client_logout_sync (client, id, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_true (result);
+    g_assert_null (mock_snapd_find_account_by_id (snapd, id));
+}
+
+static void
+logout_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_logout_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    g_assert_null (mock_snapd_find_account_by_id (data->snapd, data->id));
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_logout_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_account (snapd, "test1@example.com", "test1", "secret");
+    MockAccount *a = mock_snapd_add_account (snapd, "test2@example.com", "test2", "secret");
+    mock_snapd_add_account (snapd, "test3@example.com", "test3", "secret");
+    gint64 id = mock_account_get_id (a);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(SnapdAuthData) auth_data = snapd_auth_data_new (mock_account_get_macaroon (a), mock_account_get_discharges (a));
+    snapd_client_set_auth_data (client, auth_data);
+
+    g_assert_nonnull (mock_snapd_find_account_by_id (snapd, id));
+    AsyncData *data = async_data_new (loop, snapd);
+    data->id = id;
+    snapd_client_logout_async (client, id, NULL, logout_cb, data);
+    g_main_loop_run (loop);
+}
+
+static void
+test_logout_no_auth (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_account (snapd, "test1@example.com", "test1", "secret");
+    MockAccount *a = mock_snapd_add_account (snapd, "test2@example.com", "test2", "secret");
+    mock_snapd_add_account (snapd, "test3@example.com", "test3", "secret");
+    gint64 id = mock_account_get_id (a);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_assert_nonnull (mock_snapd_find_account_by_id (snapd, id));
+    gboolean result = snapd_client_logout_sync (client, id, NULL, &error);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_REQUEST);
+    g_assert_false (result);
+    g_assert_nonnull (mock_snapd_find_account_by_id (snapd, id));
 }
 
 static void
@@ -7603,6 +7692,9 @@ main (int argc, char **argv)
     g_test_add_func ("/login/otp-missing", test_login_otp_missing);
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
     g_test_add_func ("/login/legacy", test_login_legacy);
+    g_test_add_func ("/logout/sync", test_logout_sync);
+    g_test_add_func ("/logout/async", test_logout_async);
+    g_test_add_func ("/logout/no-auth", test_logout_no_auth);
     g_test_add_func ("/get-changes/sync", test_get_changes_sync);
     g_test_add_func ("/get-changes/async", test_get_changes_async);
     g_test_add_func ("/get-changes/filter-in-progress", test_get_changes_filter_in_progress);

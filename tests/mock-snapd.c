@@ -71,7 +71,7 @@ G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
 
 struct _MockAccount
 {
-    int id;
+    gint64 id;
     gchar *email;
     gchar *username;
     gchar *password;
@@ -605,6 +605,12 @@ mock_account_set_has_payment_methods (MockAccount *account, gboolean has_payment
     account->has_payment_methods = has_payment_methods;
 }
 
+gint64
+mock_account_get_id (MockAccount *account)
+{
+    return account->id;
+}
+
 const gchar *
 mock_account_get_macaroon (MockAccount *account)
 {
@@ -641,6 +647,28 @@ mock_account_set_ssh_keys (MockAccount *account, GStrv ssh_keys)
 {
     g_clear_pointer (&account->ssh_keys, g_strfreev);
     account->ssh_keys = g_strdupv (ssh_keys);
+}
+
+static MockAccount *
+find_account_by_id (MockSnapd *self, int id)
+{
+    for (GList *link = self->accounts; link; link = link->next) {
+        MockAccount *account = link->data;
+        if (account->id == id)
+            return account;
+    }
+
+    return NULL;
+}
+
+MockAccount *
+mock_snapd_find_account_by_id (MockSnapd *self, gint64 id)
+{
+    g_return_val_if_fail (MOCK_IS_SNAPD (self), NULL);
+
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
+
+    return find_account_by_id (self, id);
 }
 
 static MockAccount *
@@ -2192,6 +2220,34 @@ handle_login (MockSnapd *self, SoupMessage *message)
     g_autoptr(JsonBuilder) builder = json_builder_new ();
     add_user_response (builder, account, TRUE, FALSE, TRUE);
     send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+}
+
+static void
+handle_logout (MockSnapd *self, SoupMessage *message)
+{
+    if (strcmp (message->method, "POST") != 0) {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+
+    g_autoptr(JsonNode) request = get_json (message);
+    if (request == NULL) {
+        send_error_bad_request (self, message, "unknown content type", NULL);
+        return;
+    }
+
+    JsonObject *o = json_node_get_object (request);
+    int id = json_object_get_int_member (o, "id");
+
+    MockAccount *account = find_account_by_id (self, id);
+    if (account == NULL || get_account (self, message) != account) {
+        send_error_bad_request (self, message, "not logged in", NULL);
+        return;
+    }
+
+    self->accounts = g_list_remove (self->accounts, account);
+
+    send_sync_response (self, message, 200, NULL, NULL);
 }
 
 static JsonNode *
@@ -4487,6 +4543,8 @@ handle_request (SoupServer        *server,
         handle_system_info (self, message);
     else if (strcmp (path, "/v2/login") == 0)
         handle_login (self, message);
+    else if (strcmp (path, "/v2/logout") == 0)
+        handle_logout (self, message);
     else if (strcmp (path, "/v2/snaps") == 0)
         handle_snaps (self, message, query);
     else if (g_str_has_prefix (path, "/v2/snaps/")) {

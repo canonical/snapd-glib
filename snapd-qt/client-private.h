@@ -41,6 +41,14 @@ public:
     SnapdAuthData *auth_data = NULL;
 };
 
+class QSnapdLogoutRequestPrivate
+{
+public:
+    QSnapdLogoutRequestPrivate (qint64 id) :
+        id (id) {}
+    qint64 id;
+};
+
 class QSnapdGetChangesRequestPrivate
 {
 public:

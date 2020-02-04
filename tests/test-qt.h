@@ -77,6 +77,25 @@ public slots:
     void onComplete ();
 };
 
+class LogoutHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    LogoutHandler (GMainLoop *loop, MockSnapd *snapd, qint64 id, QSnapdLogoutRequest *request) : loop (loop), snapd (snapd), id (id), request (request) {}
+    GMainLoop *loop;
+    MockSnapd *snapd;
+    qint64 id;
+    QSnapdLogoutRequest *request;
+    ~LogoutHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class GetChangesHandler: public QObject
 {
     Q_OBJECT

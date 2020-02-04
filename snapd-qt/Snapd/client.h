@@ -64,6 +64,23 @@ private:
     Q_DECLARE_PRIVATE(QSnapdLoginRequest)
 };
 
+class QSnapdLogoutRequestPrivate;
+class Q_DECL_EXPORT QSnapdLogoutRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdLogoutRequest (void *snapd_client, qint64 id, QObject *parent = 0);
+    ~QSnapdLogoutRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QSnapdLogoutRequestPrivate *d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdLogoutRequest)
+};
+
 class QSnapdGetChangesRequestPrivate;
 class Q_DECL_EXPORT QSnapdGetChangesRequest : public QSnapdRequest
 {
@@ -958,6 +975,7 @@ public:
     Q_INVOKABLE Q_DECL_DEPRECATED QSnapdConnectRequest *connect ();
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& email, const QString& password);
     Q_INVOKABLE QSnapdLoginRequest *login (const QString& email, const QString& password, const QString& otp);
+    Q_INVOKABLE QSnapdLogoutRequest *logout (qint64 id);
     Q_INVOKABLE void setSocketPath (const QString &socketPath);
     Q_INVOKABLE QString socketPath () const;
     Q_INVOKABLE void setUserAgent (const QString &userAgent);

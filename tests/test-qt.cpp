@@ -992,6 +992,96 @@ GetChangeHandler::onComplete ()
 }
 
 static void
+test_logout_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_account (snapd, "test1@example.com", "test1", "secret");
+    MockAccount *a = mock_snapd_add_account (snapd, "test2@example.com", "test2", "secret");
+    mock_snapd_add_account (snapd, "test3@example.com", "test3", "secret");
+    gint64 id = mock_account_get_id (a);
+
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GStrv d = mock_account_get_discharges (a);
+    QStringList discharges;
+    for (int i = 0; d[i] != NULL; i++)
+        discharges << d[i];
+    qDebug() << discharges;
+    QSnapdAuthData authData (mock_account_get_macaroon (a), discharges);
+    client.setAuthData (&authData);
+
+    g_assert_nonnull (mock_snapd_find_account_by_id (snapd, id));
+    QScopedPointer<QSnapdLogoutRequest> logoutRequest (client.logout (id));
+    logoutRequest->runSync ();
+    g_assert_cmpint (logoutRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_null (mock_snapd_find_account_by_id (snapd, id));
+}
+
+void
+LogoutHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_null (mock_snapd_find_account_by_id (snapd, id));
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_logout_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_account (snapd, "test1@example.com", "test1", "secret");
+    MockAccount *a = mock_snapd_add_account (snapd, "test2@example.com", "test2", "secret");
+    mock_snapd_add_account (snapd, "test3@example.com", "test3", "secret");
+    gint64 id = mock_account_get_id (a);
+
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GStrv d = mock_account_get_discharges (a);
+    QStringList discharges;
+    for (int i = 0; d[i] != NULL; i++)
+        discharges << d[i];
+    QSnapdAuthData authData (mock_account_get_macaroon (a), discharges);
+    client.setAuthData (&authData);
+
+    g_assert_nonnull (mock_snapd_find_account_by_id (snapd, id));
+    LogoutHandler logoutHandler (loop, snapd, id, client.logout (id));
+    QObject::connect (logoutHandler.request, &QSnapdLogoutRequest::complete, &logoutHandler, &LogoutHandler::onComplete);
+    logoutHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
+static void
+test_logout_no_auth ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_account (snapd, "test1@example.com", "test1", "secret");
+    MockAccount *a = mock_snapd_add_account (snapd, "test2@example.com", "test2", "secret");
+    mock_snapd_add_account (snapd, "test3@example.com", "test3", "secret");
+    gint64 id = mock_account_get_id (a);
+
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    g_assert_nonnull (mock_snapd_find_account_by_id (snapd, id));
+    QScopedPointer<QSnapdLogoutRequest> logoutRequest (client.logout (id));
+    logoutRequest->runSync ();
+    g_assert_cmpint (logoutRequest->error (), ==, QSnapdRequest::BadRequest);
+    g_assert_nonnull (mock_snapd_find_account_by_id (snapd, id));
+}
+
+static void
 test_get_change_async ()
 {
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
@@ -6668,6 +6758,9 @@ main (int argc, char **argv)
     g_test_add_func ("/login/invalid-password", test_login_invalid_password);
     g_test_add_func ("/login/otp-missing", test_login_otp_missing);
     g_test_add_func ("/login/otp-invalid", test_login_otp_invalid);
+    g_test_add_func ("/logout/sync", test_logout_sync);
+    g_test_add_func ("/logout/async", test_logout_async);
+    g_test_add_func ("/logout/no-auth", test_logout_no_auth);
     g_test_add_func ("/get-changes/sync", test_get_changes_sync);
     g_test_add_func ("/get-changes/async", test_get_changes_async);
     g_test_add_func ("/get-changes/filter-in-progress", test_get_changes_filter_in_progress);

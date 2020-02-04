@@ -117,6 +117,8 @@ void            mock_account_set_terms_accepted   (MockAccount   *account,
 void            mock_account_set_has_payment_methods (MockAccount   *account,
                                                       gboolean       has_payment_methods);
 
+gint64          mock_account_get_id               (MockAccount   *account);
+
 const gchar    *mock_account_get_macaroon         (MockAccount   *account);
 
 GStrv           mock_account_get_discharges       (MockAccount   *account);
@@ -130,6 +132,9 @@ void            mock_account_set_otp              (MockAccount   *account,
 
 void            mock_account_set_ssh_keys         (MockAccount   *account,
                                                    GStrv          ssh_keys);
+
+MockAccount    *mock_snapd_find_account_by_id     (MockSnapd     *snapd,
+                                                   gint64         id);
 
 MockAccount    *mock_snapd_find_account_by_username (MockSnapd     *snapd,
                                                      const gchar   *username);
