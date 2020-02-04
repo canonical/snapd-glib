@@ -2006,7 +2006,7 @@ handle_system_info (MockSnapd *self, SoupMessage *message)
 }
 
 static gboolean
-parse_macaroon (const gchar *authorization, GStrv macaroon, GStrv *discharges)
+parse_macaroon (const gchar *authorization, gchar **macaroon, GStrv *discharges)
 {
     if (authorization == NULL)
         return FALSE;
