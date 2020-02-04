@@ -87,6 +87,17 @@ QSnapdLoginRequest *QSnapdClient::login (const QString& email, const QString& pa
     return new QSnapdLoginRequest (d->client, email, password, otp);
 }
 
+QSnapdLogoutRequest::~QSnapdLogoutRequest ()
+{
+    delete d_ptr;
+}
+
+QSnapdLogoutRequest *QSnapdClient::logout (qint64 id)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdLogoutRequest (d->client, id);
+}
+
 void QSnapdClient::setSocketPath (const QString &socketPath)
 {
     Q_D(QSnapdClient);
@@ -906,6 +917,41 @@ QSnapdAuthData *QSnapdLoginRequest::authData ()
         return new QSnapdAuthData (d->auth_data);
     else
         return new QSnapdAuthData (snapd_user_information_get_auth_data (d->user_information));
+}
+
+QSnapdLogoutRequest::QSnapdLogoutRequest (void *snapd_client, qint64 id, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdLogoutRequestPrivate(id))
+{
+}
+
+void QSnapdLogoutRequest::runSync ()
+{
+    Q_D(QSnapdLogoutRequest);
+    g_autoptr(GError) error = NULL;
+
+    snapd_client_logout_sync (SNAPD_CLIENT (getClient ()), d->id, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdLogoutRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GError) error = NULL;
+
+    snapd_client_logout_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    finish (error);
+}
+
+static void logout_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    QSnapdLogoutRequest *request = static_cast<QSnapdLogoutRequest*>(data);
+    request->handleResult (object, result);
+}
+
+void QSnapdLogoutRequest::runAsync ()
+{
+    Q_D(QSnapdLogoutRequest);
+    snapd_client_logout_async (SNAPD_CLIENT (getClient ()), d->id, G_CANCELLABLE (getCancellable ()), logout_ready_cb, (gpointer) this);
 }
 
 static SnapdChangeFilter convertChangeFilter (int filter)

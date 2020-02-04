@@ -295,6 +295,19 @@ SnapdUserInformation   *snapd_client_login2_finish                 (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+gboolean                snapd_client_logout_sync                   (SnapdClient          *client,
+                                                                    gint64                id,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_logout_async                  (SnapdClient          *client,
+                                                                    gint64                id,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_logout_finish                 (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 void                    snapd_client_set_auth_data                 (SnapdClient          *client,
                                                                     SnapdAuthData        *auth_data);
 SnapdAuthData          *snapd_client_get_auth_data                 (SnapdClient          *client);

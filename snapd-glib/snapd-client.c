@@ -41,6 +41,7 @@
 #include "requests/snapd-post-download.h"
 #include "requests/snapd-post-interfaces.h"
 #include "requests/snapd-post-login.h"
+#include "requests/snapd-post-logout.h"
 #include "requests/snapd-post-snap.h"
 #include "requests/snapd-post-snap-stream.h"
 #include "requests/snapd-post-snap-try.h"
@@ -1150,6 +1151,56 @@ snapd_client_login2_finish (SnapdClient *self, GAsyncResult *result, GError **er
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_object_ref (_snapd_post_login_get_user_information (request));
+}
+
+/**
+ * snapd_client_logout_async:
+ * @client: a #SnapdClient.
+ * @id: login ID to use.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously log out from the snap store.
+ * See snapd_client_logout_sync() for more information.
+ *
+ * Since: 1.55
+ */
+void
+snapd_client_logout_async (SnapdClient *self,
+                           gint64 id,
+                           GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdPostLogout) request = _snapd_post_logout_new (id, cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_logout_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_logout_async().
+ * See snapd_client_logout_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.55
+ */
+gboolean
+snapd_client_logout_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+    g_return_val_if_fail (SNAPD_IS_POST_LOGOUT (result), FALSE);
+
+    SnapdPostLogout *request = SNAPD_POST_LOGOUT (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return FALSE;
+    return TRUE;
 }
 
 /**
