@@ -1,3 +1,17 @@
+Overview of changes in snapd-glib 1.55
+
+   * New API:
+     - snapd_client_download_sync
+     - snapd_client_download_async
+     - snapd_client_download_finish
+     - snapd_client_logout_sync
+     - snapd_client_logout_async
+     - snapd_client_logout_finish
+   * Add support for snap store logout
+   * Fix QSnapdAuthData () constructor not copying discharge strings correctly
+   * Remove obsolete screenshot parsing code
+   * Make all snapd 404 errors return SNAPD_ERROR_NOT_FOUND
+
 Overview of changes in snapd-glib 1.54
 
    * Fix snapd-glib pkg-config file not having correct include
