@@ -275,6 +275,9 @@ snapd_client_disable_aliases_sync
 snapd_client_reset_aliases_async
 snapd_client_reset_aliases_finish
 snapd_client_reset_aliases_sync
+snapd_client_download_async
+snapd_client_download_finish
+snapd_client_download_sync
 snapd_client_run_snapctl_async
 snapd_client_run_snapctl_finish
 snapd_client_run_snapctl_sync
@@ -322,6 +325,7 @@ SnapdPostBuy
 SnapdPostChange
 SnapdPostCreateUser
 SnapdPostCreateUsers
+SnapdPostDownload
 SnapdPostInterfaces
 SnapdPostLogin
 SnapdPostLogout
