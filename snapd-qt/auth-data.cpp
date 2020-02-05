@@ -17,10 +17,10 @@ QSnapdAuthData::QSnapdAuthData (QObject *parent) : QSnapdWrappedObject (snapd_au
 
 QSnapdAuthData::QSnapdAuthData (const QString& macaroon, const QStringList& discharges, QObject *parent) : QSnapdWrappedObject (NULL, g_object_unref, parent)
 {
-    char *strv[discharges.size () + 1];
+    g_auto(GStrv) strv = g_new (gchar *, discharges.size () + 1);
     int i;
     for (i = 0; i < discharges.size (); i++)
-        strv[i] = (char *) discharges.at (i).toStdString ().c_str ();
+        strv[i] = g_strdup ((char *) discharges.at (i).toStdString ().c_str ());
     strv[i] = NULL;
     wrapped_object = snapd_auth_data_new (macaroon.toStdString ().c_str (), strv);
 }
