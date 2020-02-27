@@ -13,7 +13,7 @@
 
 /*** BEGIN file-production ***/
 
-/* enumerations from "@filename@" */
+/* enumerations from "@basename@" */
 #include "@filename@"
 
 /*** END file-production ***/
