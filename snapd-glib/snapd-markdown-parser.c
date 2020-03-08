@@ -652,7 +652,7 @@ markdown_to_markup (SnapdMarkdownParser *self, const gchar *text)
      */
 
     /* 1. Split into lines */
-    g_autoptr(GPtrArray) line_array = g_ptr_array_new ();
+    g_autoptr(GPtrArray) line_array = g_ptr_array_new_with_free_func (g_free);
     int line_start = 0;
     for (int i = 0; text[i] != '\0'; i++) {
         if (text[i] == '\n' || text[i] == '\r') {
