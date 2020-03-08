@@ -1,3 +1,9 @@
+Overview of changes in snapd-glib 1.56
+
+   * Fix leak in markdown parser
+   * Fix leak in logout code
+   * Make build reproducible by fixing comment in generated file
+
 Overview of changes in snapd-glib 1.55
 
    * New API:
