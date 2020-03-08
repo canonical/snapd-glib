@@ -62,6 +62,7 @@ parse_post_logout_response (SnapdRequest *request, SoupMessage *message, SnapdMa
     JsonNode *result = _snapd_json_get_sync_result (response, error);
     if (result == NULL)
         return FALSE;
+    json_node_unref (result);
 
     return TRUE;
 }
