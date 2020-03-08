@@ -2246,6 +2246,7 @@ handle_logout (MockSnapd *self, SoupMessage *message)
     }
 
     self->accounts = g_list_remove (self->accounts, account);
+    mock_account_free (account);
 
     send_sync_response (self, message, 200, NULL, NULL);
 }
