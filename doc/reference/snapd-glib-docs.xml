@@ -4,11 +4,12 @@
 [
   <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
   <!ENTITY % gtkdocentities SYSTEM "xml/gtkdocentities.ent">
+  %gtkdocentities;
 ]>
 <book id="index">
   <bookinfo>
     <title>snapd-glib Reference Manual</title>
-    <releaseinfo>for snapd-glib @VERSION@.</releaseinfo>
+    <releaseinfo>for snapd-glib &package_version;.</releaseinfo>
     <copyright>
       <year>2019</year>
       <holder>Canonical Ltd.</holder>
