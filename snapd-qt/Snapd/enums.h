@@ -55,7 +55,10 @@ public:
         SnapTypeApp,
         SnapTypeKernel,
         SnapTypeGadget,
-        SnapTypeOperatingSystem
+        SnapTypeOperatingSystem,
+        SnapTypeCore,
+        SnapTypeBase,
+        SnapTypeSnapd
     };
     Q_ENUM(SnapType)
 

@@ -31,6 +31,9 @@ G_DECLARE_FINAL_TYPE (SnapdSnap, snapd_snap, SNAPD, SNAP, GObject)
  * @SNAPD_SNAP_TYPE_KERNEL: the snap is a kernel.
  * @SNAPD_SNAP_TYPE_GADGET: the snapd is a gadget.
  * @SNAPD_SNAP_TYPE_OS: the snap is an operating system.
+ * @SNAPD_SNAP_TYPE_CORE: the snap is a core snap.
+ * @SNAPD_SNAP_TYPE_BASE: the snap is a base snap.
+ * @SNAPD_SNAP_TYPE_SNAPD: the snap is the snap daemon.
  *
  * Type of snap.
  *
@@ -42,7 +45,10 @@ typedef enum
     SNAPD_SNAP_TYPE_APP,
     SNAPD_SNAP_TYPE_KERNEL,
     SNAPD_SNAP_TYPE_GADGET,
-    SNAPD_SNAP_TYPE_OS
+    SNAPD_SNAP_TYPE_OS,
+    SNAPD_SNAP_TYPE_CORE,
+    SNAPD_SNAP_TYPE_BASE,
+    SNAPD_SNAP_TYPE_SNAPD
 } SnapdSnapType;
 
 /**

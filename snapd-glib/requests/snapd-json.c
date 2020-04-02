@@ -658,6 +658,12 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
         snap_type = SNAPD_SNAP_TYPE_GADGET;
     else if (strcmp (snap_type_string, "os") == 0)
         snap_type = SNAPD_SNAP_TYPE_OS;
+    else if (strcmp (snap_type_string, "core") == 0)
+        snap_type = SNAPD_SNAP_TYPE_CORE;
+    else if (strcmp (snap_type_string, "base") == 0)
+        snap_type = SNAPD_SNAP_TYPE_BASE;
+    else if (strcmp (snap_type_string, "snapd") == 0)
+        snap_type = SNAPD_SNAP_TYPE_SNAPD;
 
     const gchar *snap_status_string = _snapd_json_get_string (object, "status", "");
     SnapdSnapStatus snap_status = SNAPD_SNAP_STATUS_UNKNOWN;

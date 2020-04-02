@@ -288,6 +288,12 @@ QSnapdEnums::SnapType QSnapdSnap::snapType () const
         return QSnapdEnums::SnapTypeGadget;
     case SNAPD_SNAP_TYPE_OS:
         return QSnapdEnums::SnapTypeOperatingSystem;
+    case SNAPD_SNAP_TYPE_CORE:
+        return QSnapdEnums::SnapTypeCore;
+    case SNAPD_SNAP_TYPE_BASE:
+        return QSnapdEnums::SnapTypeBase;
+    case SNAPD_SNAP_TYPE_SNAPD:
+        return QSnapdEnums::SnapTypeSnapd;
     case SNAPD_SNAP_TYPE_UNKNOWN:
     default:
         return QSnapdEnums::SnapTypeUnknown;
