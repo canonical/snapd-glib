@@ -1734,6 +1734,61 @@ test_get_snap_async (void)
 }
 
 static void
+test_get_snap_types (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "kernel");
+    mock_snap_set_type (s, "kernel");
+    s = mock_snapd_add_snap (snapd, "gadget");
+    mock_snap_set_type (s, "gadget");
+    s = mock_snapd_add_snap (snapd, "os");
+    mock_snap_set_type (s, "os");
+    s = mock_snapd_add_snap (snapd, "core");
+    mock_snap_set_type (s, "core");
+    s = mock_snapd_add_snap (snapd, "base");
+    mock_snap_set_type (s, "base");
+    s = mock_snapd_add_snap (snapd, "snapd");
+    mock_snap_set_type (s, "snapd");
+    s = mock_snapd_add_snap (snapd, "app");
+    mock_snap_set_type (s, "app");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(SnapdSnap) kernel_snap = snapd_client_get_snap_sync (client, "kernel", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (kernel_snap);
+    g_assert_cmpint (snapd_snap_get_snap_type (kernel_snap), ==, SNAPD_SNAP_TYPE_KERNEL);
+    g_autoptr(SnapdSnap) gadget_snap = snapd_client_get_snap_sync (client, "gadget", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (gadget_snap);
+    g_assert_cmpint (snapd_snap_get_snap_type (gadget_snap), ==, SNAPD_SNAP_TYPE_GADGET);
+    g_autoptr(SnapdSnap) os_snap = snapd_client_get_snap_sync (client, "os", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (os_snap);
+    g_assert_cmpint (snapd_snap_get_snap_type (os_snap), ==, SNAPD_SNAP_TYPE_OS);
+    g_autoptr(SnapdSnap) core_snap = snapd_client_get_snap_sync (client, "core", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (core_snap);
+    g_assert_cmpint (snapd_snap_get_snap_type (core_snap), ==, SNAPD_SNAP_TYPE_CORE);
+    g_autoptr(SnapdSnap) base_snap = snapd_client_get_snap_sync (client, "base", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (base_snap);
+    g_assert_cmpint (snapd_snap_get_snap_type (base_snap), ==, SNAPD_SNAP_TYPE_BASE);
+    g_autoptr(SnapdSnap) snapd_snap = snapd_client_get_snap_sync (client, "snapd", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snapd_snap);
+    g_assert_cmpint (snapd_snap_get_snap_type (snapd_snap), ==, SNAPD_SNAP_TYPE_SNAPD);
+    g_autoptr(SnapdSnap) app_snap = snapd_client_get_snap_sync (client, "app", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (app_snap);
+    g_assert_cmpint (snapd_snap_get_snap_type (app_snap), ==, SNAPD_SNAP_TYPE_APP);
+}
+
+static void
 test_get_snap_optional_fields (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -7714,6 +7769,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/async", test_list_one_async);
     g_test_add_func ("/get-snap/sync", test_get_snap_sync);
     g_test_add_func ("/get-snap/async", test_get_snap_async);
+    g_test_add_func ("/get-snap/types", test_get_snap_types);
     g_test_add_func ("/get-snap/optional-fields", test_get_snap_optional_fields);
     g_test_add_func ("/get-snap/deprecated-fields", test_get_snap_deprecated_fields);
     g_test_add_func ("/get-snap/common-ids", test_get_snap_common_ids);

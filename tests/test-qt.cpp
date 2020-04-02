@@ -1586,6 +1586,59 @@ test_get_snap_async ()
 }
 
 static void
+test_get_snap_types ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "kernel");
+    mock_snap_set_type (s, "kernel");
+    s = mock_snapd_add_snap (snapd, "gadget");
+    mock_snap_set_type (s, "gadget");
+    s = mock_snapd_add_snap (snapd, "os");
+    mock_snap_set_type (s, "os");
+    s = mock_snapd_add_snap (snapd, "core");
+    mock_snap_set_type (s, "core");
+    s = mock_snapd_add_snap (snapd, "base");
+    mock_snap_set_type (s, "base");
+    s = mock_snapd_add_snap (snapd, "snapd");
+    mock_snap_set_type (s, "snapd");
+    s = mock_snapd_add_snap (snapd, "app");
+    mock_snap_set_type (s, "app");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSnapRequest> getKernelSnapRequest (client.getSnap ("kernel"));
+    getKernelSnapRequest->runSync ();
+    g_assert_cmpint (getKernelSnapRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getKernelSnapRequest->snap ()->snapType (), ==, QSnapdEnums::SnapTypeKernel);
+    QScopedPointer<QSnapdGetSnapRequest> getGadgetSnapRequest (client.getSnap ("gadget"));
+    getGadgetSnapRequest->runSync ();
+    g_assert_cmpint (getGadgetSnapRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getGadgetSnapRequest->snap ()->snapType (), ==, QSnapdEnums::SnapTypeGadget);
+    QScopedPointer<QSnapdGetSnapRequest> getOsSnapRequest (client.getSnap ("os"));
+    getOsSnapRequest->runSync ();
+    g_assert_cmpint (getOsSnapRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getOsSnapRequest->snap ()->snapType (), ==, QSnapdEnums::SnapTypeOperatingSystem);
+    QScopedPointer<QSnapdGetSnapRequest> getCoreSnapRequest (client.getSnap ("core"));
+    getCoreSnapRequest->runSync ();
+    g_assert_cmpint (getCoreSnapRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getCoreSnapRequest->snap ()->snapType (), ==, QSnapdEnums::SnapTypeCore);
+    QScopedPointer<QSnapdGetSnapRequest> getBaseSnapRequest (client.getSnap ("base"));
+    getBaseSnapRequest->runSync ();
+    g_assert_cmpint (getBaseSnapRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getBaseSnapRequest->snap ()->snapType (), ==, QSnapdEnums::SnapTypeBase);
+    QScopedPointer<QSnapdGetSnapRequest> getSnapdSnapRequest (client.getSnap ("snapd"));
+    getSnapdSnapRequest->runSync ();
+    g_assert_cmpint (getSnapdSnapRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getSnapdSnapRequest->snap ()->snapType (), ==, QSnapdEnums::SnapTypeSnapd);
+    QScopedPointer<QSnapdGetSnapRequest> getAppSnapRequest (client.getSnap ("app"));
+    getAppSnapRequest->runSync ();
+    g_assert_cmpint (getAppSnapRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getAppSnapRequest->snap ()->snapType (), ==, QSnapdEnums::SnapTypeApp);
+}
+
+static void
 test_get_snap_optional_fields ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -6780,6 +6833,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list-one/async", test_list_one_async);
     g_test_add_func ("/get-snap/sync", test_get_snap_sync);
     g_test_add_func ("/get-snap/async", test_get_snap_async);
+    g_test_add_func ("/get-snap/types", test_get_snap_types);
     g_test_add_func ("/get-snap/optional-fields", test_get_snap_optional_fields);
     g_test_add_func ("/get-snap/deprecated-fields", test_get_snap_deprecated_fields);
     g_test_add_func ("/get-snap/common-ids", test_get_snap_common_ids);
