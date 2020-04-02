@@ -897,8 +897,6 @@ mock_interface_new (const gchar *name)
 {
     MockInterface *interface = g_slice_new0 (MockInterface);
     interface->name = g_strdup (name);
-    interface->summary = g_strdup ("SUMMARY");
-    interface->doc_url = g_strdup ("URL");
 
     return interface;
 }

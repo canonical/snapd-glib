@@ -3360,6 +3360,41 @@ test_get_interfaces2_filter ()
 }
 
 static void
+test_get_interfaces2_make_label ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_interface (snapd, "camera");
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface-without-translation");
+    mock_interface_set_summary (i, "SUMMARY");
+    mock_snapd_add_interface (snapd, "interface-without-summary");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetInterfaces2Request> getInterfacesRequest1 (client.getInterfaces2 (QStringList ("camera")));
+    getInterfacesRequest1->runSync ();
+    g_assert_cmpint (getInterfacesRequest1->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getInterfacesRequest1->interfaceCount (), ==, 1);
+    QScopedPointer<QSnapdInterface> iface1 (getInterfacesRequest1->interface (0));
+    g_assert (iface1->makeLabel () == "Use your camera"); // FIXME: Won't work if translated
+
+    QScopedPointer<QSnapdGetInterfaces2Request> getInterfacesRequest2 (client.getInterfaces2 (QStringList ("interface-without-translation")));
+    getInterfacesRequest2->runSync ();
+    g_assert_cmpint (getInterfacesRequest2->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getInterfacesRequest2->interfaceCount (), ==, 1);
+    QScopedPointer<QSnapdInterface> iface2 (getInterfacesRequest2->interface (0));
+    g_assert (iface2->makeLabel () == "interface-without-translation: SUMMARY");
+
+    QScopedPointer<QSnapdGetInterfaces2Request> getInterfacesRequest3 (client.getInterfaces2 (QStringList ("interface-without-summary")));
+    getInterfacesRequest3->runSync ();
+    g_assert_cmpint (getInterfacesRequest3->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getInterfacesRequest3->interfaceCount (), ==, 1);
+    QScopedPointer<QSnapdInterface> iface3 (getInterfacesRequest3->interface (0));
+    g_assert (iface3->makeLabel () == "interface-without-summary");
+}
+
+static void
 test_connect_interface_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -6910,6 +6945,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-interfaces2/slots", test_get_interfaces2_slots);
     g_test_add_func ("/get-interfaces2/plugs", test_get_interfaces2_plugs);
     g_test_add_func ("/get-interfaces2/filter", test_get_interfaces2_filter);
+    g_test_add_func ("/get-interfaces2/make-label", test_get_interfaces2_make_label);
     g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
     g_test_add_func ("/connect-interface/async", test_connect_interface_async);
     g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);

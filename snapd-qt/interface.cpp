@@ -63,3 +63,9 @@ QSnapdPlug *QSnapdInterface::plug (int n) const
         return NULL;
     return new QSnapdPlug (plugs->pdata[n]);
 }
+
+QString QSnapdInterface::makeLabel () const
+{
+    g_autofree gchar *label = snapd_interface_make_label (SNAPD_INTERFACE (wrapped_object));
+    return label;
+}

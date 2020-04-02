@@ -3827,6 +3827,49 @@ test_get_interfaces2_filter (void)
 }
 
 static void
+test_get_interfaces2_make_label (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_interface (snapd, "camera");
+    MockInterface *i = mock_snapd_add_interface (snapd, "interface-without-translation");
+    mock_interface_set_summary (i, "SUMMARY");
+    mock_snapd_add_interface (snapd, "interface-without-summary");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    gchar *filter1[] = { "camera", NULL };
+    g_autoptr(GPtrArray) ifaces1 = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_NONE, filter1, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces1);
+    g_assert_cmpint (ifaces1->len, ==, 1);
+    SnapdInterface *iface1 = ifaces1->pdata[0];
+    g_autofree gchar *label1 = snapd_interface_make_label (iface1);
+    g_assert_cmpstr (label1, ==, "Use your camera"); // FIXME: Won't work if translated
+
+    gchar *filter2[] = { "interface-without-translation", NULL };
+    g_autoptr(GPtrArray) ifaces2 = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_NONE, filter2, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces2);
+    g_assert_cmpint (ifaces2->len, ==, 1);
+    SnapdInterface *iface2 = ifaces2->pdata[0];
+    g_autofree gchar *label2 = snapd_interface_make_label (iface2);
+    g_assert_cmpstr (label2, ==, "interface-without-translation: SUMMARY");
+
+    gchar *filter3[] = { "interface-without-summary", NULL };
+    g_autoptr(GPtrArray) ifaces3 = snapd_client_get_interfaces2_sync (client, SNAPD_GET_INTERFACES_FLAGS_NONE, filter3, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (ifaces3);
+    g_assert_cmpint (ifaces3->len, ==, 1);
+    SnapdInterface *iface3 = ifaces3->pdata[0];
+    g_autofree gchar *label3 = snapd_interface_make_label (iface3);
+    g_assert_cmpstr (label3, ==, "interface-without-summary");
+}
+
+static void
 test_connect_interface_sync (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -7823,6 +7866,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-interfaces2/slots", test_get_interfaces2_slots);
     g_test_add_func ("/get-interfaces2/plugs", test_get_interfaces2_plugs);
     g_test_add_func ("/get-interfaces2/filter", test_get_interfaces2_filter);
+    g_test_add_func ("/get-interfaces2/make-label", test_get_interfaces2_make_label);
     g_test_add_func ("/connect-interface/sync", test_connect_interface_sync);
     g_test_add_func ("/connect-interface/async", test_connect_interface_async);
     g_test_add_func ("/connect-interface/progress", test_connect_interface_progress);

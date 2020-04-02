@@ -484,6 +484,7 @@ snapd_interface_get_summary
 snapd_interface_get_doc_url
 snapd_interface_get_plugs
 snapd_interface_get_slots
+snapd_interface_make_label
 
 <SUBSECTION Private>
 SnapdInterfaceClass

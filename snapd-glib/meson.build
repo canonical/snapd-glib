@@ -138,7 +138,7 @@ source_private_c = [
   'requests/snapd-request-async.c',
 ]
 
-common_cflags = [ '-DSNAPD_COMPILATION=1', '-DVERSION="@0@"'.format (meson.project_version ()), '-DG_LOG_DOMAIN="Snapd"' ]
+common_cflags = [ '-DSNAPD_COMPILATION=1', '-DVERSION="@0@"'.format (meson.project_version ()), '-DG_LOG_DOMAIN="Snapd"', '-DGETTEXT_PACKAGE="snapd-glib"' ]
 
 gnome = import ('gnome')
 snapd_glib_enums = gnome.mkenums ('snapd-enum-types',
