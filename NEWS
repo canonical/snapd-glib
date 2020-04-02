@@ -1,3 +1,11 @@
+Overview of changes in snapd-glib 1.57
+
+   * New API:
+     - snapd_interface_make_label
+   * Add snapd_interface_make_label
+   * Add support for new snap types: "core", "base" and "snapd"
+   * Change way GTK documentation is generated to avoid a Meson bug
+
 Overview of changes in snapd-glib 1.56
 
    * Fix leak in markdown parser
