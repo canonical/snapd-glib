@@ -35,6 +35,7 @@ public:
     Q_INVOKABLE QSnapdPlug *plug (int) const;
     int slotCount () const;
     Q_INVOKABLE QSnapdSlot *slot (int) const;
+    Q_INVOKABLE QString makeLabel () const;
 };
 
 #endif

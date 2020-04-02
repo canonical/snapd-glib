@@ -32,6 +32,8 @@ GPtrArray   *snapd_interface_get_plugs   (SnapdInterface *interface);
 
 GPtrArray   *snapd_interface_get_slots   (SnapdInterface *interface);
 
+gchar       *snapd_interface_make_label  (SnapdInterface *interface);
+
 G_END_DECLS
 
 #endif /* __SNAPD_INTERFACE_H__ */
