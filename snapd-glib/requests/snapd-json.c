@@ -311,28 +311,28 @@ parse_error_response (JsonObject *root, GError **error)
     else {
         switch (status_code) {
         case SOUP_STATUS_BAD_REQUEST:
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_BAD_REQUEST,
-                                 message);
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_BAD_REQUEST,
+                         "%s: %s", kind, message);
             break;
         case SOUP_STATUS_UNAUTHORIZED:
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_AUTH_DATA_REQUIRED,
-                                 message);
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_AUTH_DATA_REQUIRED,
+                         "%s: %s", kind, message);
             break;
         case SOUP_STATUS_FORBIDDEN:
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_PERMISSION_DENIED,
-                                 message);
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_PERMISSION_DENIED,
+                         "%s: %s", kind, message);
             break;
         case SOUP_STATUS_NOT_FOUND:
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_NOT_FOUND,
-                                 message);
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_NOT_FOUND,
+                         "%s: %s", kind, message);
             break;
         /* Other response codes currently produced by snapd:
         case SOUP_STATUS_METHOD_NOT_ALLOWED:
@@ -340,10 +340,10 @@ parse_error_response (JsonObject *root, GError **error)
         case SOUP_STATUS_CONFLICT:
          */
         default:
-            g_set_error_literal (error,
-                                 SNAPD_ERROR,
-                                 SNAPD_ERROR_FAILED,
-                                 message);
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_FAILED,
+                         "status-code=%" G_GINT64_FORMAT " kind=%s message=%s", status_code, kind, message);
         }
     }
 }
