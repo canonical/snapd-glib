@@ -1588,7 +1588,7 @@ snapd_client_get_snap_conf_async (SnapdClient *self,
  * Complete request started with snapd_client_get_snap_conf_async().
  * See snapd_client_get_snap_conf_sync() for more information.
  *
- * Returns: (transfer full) (element-type utf8 GVariant): a table of configuration values or %NULL on error.
+ * Returns: (transfer container) (element-type utf8 GVariant): a table of configuration values or %NULL on error.
  *
  * Since: 1.48
  */

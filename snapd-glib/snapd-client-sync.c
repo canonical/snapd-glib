@@ -340,7 +340,7 @@ snapd_client_get_snap_sync (SnapdClient *self,
  *
  * Get configuration for a snap. System configuration is stored using the name "system".
  *
- * Returns: (transfer full) (element-type utf8 GVariant): a table of configuration values or %NULL on error.
+ * Returns: (transfer container) (element-type utf8 GVariant): a table of configuration values or %NULL on error.
  *
  * Since: 1.48
  */
