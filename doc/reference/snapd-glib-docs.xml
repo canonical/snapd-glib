@@ -276,6 +276,10 @@
     <title>Index of new symbols in 1.58</title>
     <xi:include href="xml/api-index-1.58.xml"><xi:fallback /></xi:include>
   </index>
+  <index id="api-index-1-59" role="1.59">
+    <title>Index of new symbols in 1.59</title>
+    <xi:include href="xml/api-index-1.59.xml"><xi:fallback /></xi:include>
+  </index>
 
   <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
 </book>
