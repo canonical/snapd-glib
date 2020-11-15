@@ -2961,7 +2961,7 @@ handle_snap_conf (MockSnapd *self, SoupMessage *message, const gchar *name, GHas
 
             g_autoptr(JsonParser) parser = json_parser_new ();
             gboolean result = json_parser_load_from_data (parser, value, -1, NULL);
-            g_assert (result);
+            g_assert_true (result);
 
             json_builder_set_member_name (builder, key);
             json_builder_add_value (builder, json_node_ref (json_parser_get_root (parser)));
@@ -3128,7 +3128,7 @@ make_attributes (GHashTable *attributes, JsonBuilder *builder)
 
         g_autoptr(JsonParser) parser = json_parser_new ();
         gboolean result = json_parser_load_from_data (parser, value, -1, NULL);
-        g_assert (result);
+        g_assert_true (result);
 
         json_builder_set_member_name (builder, key);
         json_builder_add_value (builder, json_node_ref (json_parser_get_root (parser)));
