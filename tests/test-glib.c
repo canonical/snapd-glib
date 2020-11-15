@@ -404,7 +404,7 @@ test_get_system_information_sync (void)
     g_assert_cmpstr (snapd_system_information_get_refresh_timer (info), ==, "00:00~24:00/4");
     g_assert_null (snapd_system_information_get_refresh_hold (info));
     g_assert_null (snapd_system_information_get_refresh_last (info));
-    g_assert (date_matches (snapd_system_information_get_refresh_next (info), 2018, 1, 19, 13, 14, 15));
+    g_assert_true (date_matches (snapd_system_information_get_refresh_next (info), 2018, 1, 19, 13, 14, 15));
     g_assert_null (snapd_system_information_get_store (info));
     GHashTable *sandbox_features = snapd_system_information_get_sandbox_features (info);
     g_assert_nonnull (sandbox_features);
@@ -496,9 +496,9 @@ test_get_system_information_refresh (void)
     g_assert_nonnull (info);
     g_assert_null (snapd_system_information_get_refresh_schedule (info));
     g_assert_cmpstr (snapd_system_information_get_refresh_timer (info), ==, "00:00~24:00/4");
-    g_assert (date_matches (snapd_system_information_get_refresh_hold (info), 2018, 1, 20, 1, 2, 3));
-    g_assert (date_matches (snapd_system_information_get_refresh_last (info), 2018, 1, 19, 1, 2, 3));
-    g_assert (date_matches (snapd_system_information_get_refresh_next (info), 2018, 1, 19, 13, 14, 15));
+    g_assert_true (date_matches (snapd_system_information_get_refresh_hold (info), 2018, 1, 20, 1, 2, 3));
+    g_assert_true (date_matches (snapd_system_information_get_refresh_last (info), 2018, 1, 19, 1, 2, 3));
+    g_assert_true (date_matches (snapd_system_information_get_refresh_next (info), 2018, 1, 19, 13, 14, 15));
 }
 
 static void
@@ -600,7 +600,7 @@ test_login_sync (void)
     SnapdAuthData *auth_data = snapd_user_information_get_auth_data (user_information);
     g_assert_nonnull (auth_data);
     g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, mock_account_get_macaroon (a));
-    g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
+    g_assert_true (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
     for (int i = 0; mock_account_get_discharges (a)[i]; i++)
         g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
 }
@@ -625,7 +625,7 @@ login_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     SnapdAuthData *auth_data = snapd_user_information_get_auth_data (user_information);
     g_assert_nonnull (auth_data);
     g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, mock_account_get_macaroon (a));
-    g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
+    g_assert_true (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
     for (int i = 0; mock_account_get_discharges (a)[i]; i++)
         g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
 
@@ -739,7 +739,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (auth_data);
     g_assert_cmpstr (snapd_auth_data_get_macaroon (auth_data), ==, mock_account_get_macaroon (a));
-    g_assert (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
+    g_assert_true (g_strv_length (snapd_auth_data_get_discharges (auth_data)) == g_strv_length (mock_account_get_discharges (a)));
     for (int i = 0; mock_account_get_discharges (a)[i]; i++)
         g_assert_cmpstr (snapd_auth_data_get_discharges (auth_data)[i], ==, mock_account_get_discharges (a)[i]);
 }
@@ -873,8 +873,8 @@ test_get_changes_sync (void)
     g_assert_cmpstr (snapd_change_get_summary (changes->pdata[0]), ==, "SUMMARY");
     g_assert_cmpstr (snapd_change_get_status (changes->pdata[0]), ==, "Done");
     g_assert_true (snapd_change_get_ready (changes->pdata[0]));
-    g_assert (date_matches (snapd_change_get_spawn_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 0));
-    g_assert (date_matches (snapd_change_get_ready_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 30));
+    g_assert_true (date_matches (snapd_change_get_spawn_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 0));
+    g_assert_true (date_matches (snapd_change_get_ready_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 30));
     g_assert_null (snapd_change_get_error (changes->pdata[0]));
     GPtrArray *tasks = snapd_change_get_tasks (changes->pdata[0]);
     g_assert_cmpint (tasks->len, ==, 2);
@@ -886,8 +886,8 @@ test_get_changes_sync (void)
     g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[0]), ==, "LABEL");
     g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[0]), ==, 65535);
     g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[0]), ==, 65535);
-    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 0));
-    g_assert (date_matches (snapd_task_get_ready_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 10));
+    g_assert_true (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 0));
+    g_assert_true (date_matches (snapd_task_get_ready_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 10));
 
     g_assert_cmpstr (snapd_task_get_id (tasks->pdata[1]), ==, "101");
     g_assert_cmpstr (snapd_task_get_kind (tasks->pdata[1]), ==, "install");
@@ -896,15 +896,15 @@ test_get_changes_sync (void)
     g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[1]), ==, "LABEL");
     g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[1]), ==, 1);
     g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[1]), ==, 1);
-    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 10));
-    g_assert (date_matches (snapd_task_get_ready_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 30));
+    g_assert_true (date_matches (snapd_task_get_spawn_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 10));
+    g_assert_true (date_matches (snapd_task_get_ready_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 30));
 
     g_assert_cmpstr (snapd_change_get_id (changes->pdata[1]), ==, "2");
     g_assert_cmpstr (snapd_change_get_kind (changes->pdata[1]), ==, "KIND");
     g_assert_cmpstr (snapd_change_get_summary (changes->pdata[1]), ==, "SUMMARY");
     g_assert_cmpstr (snapd_change_get_status (changes->pdata[1]), ==, "Do");
     g_assert_false (snapd_change_get_ready (changes->pdata[1]));
-    g_assert (date_matches (snapd_change_get_spawn_time (changes->pdata[1]), 2017, 1, 2, 11, 15, 0));
+    g_assert_true (date_matches (snapd_change_get_spawn_time (changes->pdata[1]), 2017, 1, 2, 11, 15, 0));
     g_assert_null (snapd_change_get_ready_time (changes->pdata[1]));
     g_assert_null (snapd_change_get_error (changes->pdata[1]));
     tasks = snapd_change_get_tasks (changes->pdata[1]);
@@ -917,7 +917,7 @@ test_get_changes_sync (void)
     g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[0]), ==, "LABEL");
     g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[0]), ==, 0);
     g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[0]), ==, 1);
-    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 15, 0));
+    g_assert_true (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 15, 0));
     g_assert_null (snapd_task_get_ready_time (tasks->pdata[0]));
 }
 
@@ -937,8 +937,8 @@ get_changes_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpstr (snapd_change_get_summary (changes->pdata[0]), ==, "SUMMARY");
     g_assert_cmpstr (snapd_change_get_status (changes->pdata[0]), ==, "Done");
     g_assert_true (snapd_change_get_ready (changes->pdata[0]));
-    g_assert (date_matches (snapd_change_get_spawn_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 0));
-    g_assert (date_matches (snapd_change_get_ready_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 30));
+    g_assert_true (date_matches (snapd_change_get_spawn_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 0));
+    g_assert_true (date_matches (snapd_change_get_ready_time (changes->pdata[0]), 2017, 1, 2, 11, 0, 30));
     g_assert_null (snapd_change_get_error (changes->pdata[0]));
     GPtrArray *tasks = snapd_change_get_tasks (changes->pdata[0]);
     g_assert_cmpint (tasks->len, ==, 2);
@@ -950,8 +950,8 @@ get_changes_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[0]), ==, "LABEL");
     g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[0]), ==, 65535);
     g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[0]), ==, 65535);
-    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 0));
-    g_assert (date_matches (snapd_task_get_ready_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 10));
+    g_assert_true (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 0));
+    g_assert_true (date_matches (snapd_task_get_ready_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 10));
 
     g_assert_cmpstr (snapd_task_get_id (tasks->pdata[1]), ==, "101");
     g_assert_cmpstr (snapd_task_get_kind (tasks->pdata[1]), ==, "install");
@@ -960,15 +960,15 @@ get_changes_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[1]), ==, "LABEL");
     g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[1]), ==, 1);
     g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[1]), ==, 1);
-    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 10));
-    g_assert (date_matches (snapd_task_get_ready_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 30));
+    g_assert_true (date_matches (snapd_task_get_spawn_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 10));
+    g_assert_true (date_matches (snapd_task_get_ready_time (tasks->pdata[1]), 2017, 1, 2, 11, 0, 30));
 
     g_assert_cmpstr (snapd_change_get_id (changes->pdata[1]), ==, "2");
     g_assert_cmpstr (snapd_change_get_kind (changes->pdata[1]), ==, "KIND");
     g_assert_cmpstr (snapd_change_get_summary (changes->pdata[1]), ==, "SUMMARY");
     g_assert_cmpstr (snapd_change_get_status (changes->pdata[1]), ==, "Do");
     g_assert_false (snapd_change_get_ready (changes->pdata[1]));
-    g_assert (date_matches (snapd_change_get_spawn_time (changes->pdata[1]), 2017, 1, 2, 11, 15, 0));
+    g_assert_true (date_matches (snapd_change_get_spawn_time (changes->pdata[1]), 2017, 1, 2, 11, 15, 0));
     g_assert_null (snapd_change_get_ready_time (changes->pdata[1]));
     g_assert_null (snapd_change_get_error (changes->pdata[1]));
     tasks = snapd_change_get_tasks (changes->pdata[1]);
@@ -981,7 +981,7 @@ get_changes_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[0]), ==, "LABEL");
     g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[0]), ==, 0);
     g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[0]), ==, 1);
-    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 15, 0));
+    g_assert_true (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 15, 0));
     g_assert_null (snapd_task_get_ready_time (tasks->pdata[0]));
 
     g_main_loop_quit (data->loop);
@@ -1182,8 +1182,8 @@ test_get_change_sync (void)
     g_assert_cmpstr (snapd_change_get_summary (change), ==, "SUMMARY");
     g_assert_cmpstr (snapd_change_get_status (change), ==, "Done");
     g_assert_true (snapd_change_get_ready (change));
-    g_assert (date_matches (snapd_change_get_spawn_time (change), 2017, 1, 2, 11, 0, 0));
-    g_assert (date_matches (snapd_change_get_ready_time (change), 2017, 1, 2, 11, 0, 30));
+    g_assert_true (date_matches (snapd_change_get_spawn_time (change), 2017, 1, 2, 11, 0, 0));
+    g_assert_true (date_matches (snapd_change_get_ready_time (change), 2017, 1, 2, 11, 0, 30));
     g_assert_null (snapd_change_get_error (change));
     GPtrArray *tasks = snapd_change_get_tasks (change);
     g_assert_cmpint (tasks->len, ==, 2);
@@ -1195,8 +1195,8 @@ test_get_change_sync (void)
     g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[0]), ==, "LABEL");
     g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[0]), ==, 65535);
     g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[0]), ==, 65535);
-    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 0));
-    g_assert (date_matches (snapd_task_get_ready_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 10));
+    g_assert_true (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 0));
+    g_assert_true (date_matches (snapd_task_get_ready_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 10));
 }
 
 static void
@@ -1214,8 +1214,8 @@ get_change_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpstr (snapd_change_get_summary (change), ==, "SUMMARY");
     g_assert_cmpstr (snapd_change_get_status (change), ==, "Done");
     g_assert_true (snapd_change_get_ready (change));
-    g_assert (date_matches (snapd_change_get_spawn_time (change), 2017, 1, 2, 11, 0, 0));
-    g_assert (date_matches (snapd_change_get_ready_time (change), 2017, 1, 2, 11, 0, 30));
+    g_assert_true (date_matches (snapd_change_get_spawn_time (change), 2017, 1, 2, 11, 0, 0));
+    g_assert_true (date_matches (snapd_change_get_ready_time (change), 2017, 1, 2, 11, 0, 30));
     g_assert_null (snapd_change_get_error (change));
     GPtrArray *tasks = snapd_change_get_tasks (change);
     g_assert_cmpint (tasks->len, ==, 2);
@@ -1227,8 +1227,8 @@ get_change_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpstr (snapd_task_get_progress_label (tasks->pdata[0]), ==, "LABEL");
     g_assert_cmpint (snapd_task_get_progress_done (tasks->pdata[0]), ==, 65535);
     g_assert_cmpint (snapd_task_get_progress_total (tasks->pdata[0]), ==, 65535);
-    g_assert (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 0));
-    g_assert (date_matches (snapd_task_get_ready_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 10));
+    g_assert_true (date_matches (snapd_task_get_spawn_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 0));
+    g_assert_true (date_matches (snapd_task_get_ready_time (tasks->pdata[0]), 2017, 1, 2, 11, 0, 10));
 
     g_main_loop_quit (data->loop);
 }
@@ -1846,7 +1846,7 @@ test_get_snap_optional_fields (void)
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
-    g_assert (date_matches (snapd_snap_get_install_date (snap), 2017, 1, 2, 11, 23, 58));
+    g_assert_true (date_matches (snapd_snap_get_install_date (snap), 2017, 1, 2, 11, 23, 58));
     g_assert_cmpint (snapd_snap_get_installed_size (snap), ==, 1024);
     g_assert_true (snapd_snap_get_jailmode (snap));
     g_assert_cmpstr (snapd_snap_get_license (snap), ==, "LICENSE");
@@ -2091,19 +2091,19 @@ check_get_snap_conf_result (GHashTable *conf)
     g_assert_cmpint (g_hash_table_size (conf), ==, 6);
     GVariant *value = g_hash_table_lookup (conf, "string-key");
     g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING));
     g_assert_cmpstr (g_variant_get_string (value, NULL), ==, "value");
     value = g_hash_table_lookup (conf, "int-key");
     g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
     g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
     value = g_hash_table_lookup (conf, "bool-key");
     g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
     g_assert_true (g_variant_get_boolean (value));
     value = g_hash_table_lookup (conf, "number-key");
     g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
     g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
 }
 
@@ -2181,7 +2181,7 @@ test_get_snap_conf_key_filter (void)
     g_assert_cmpint (g_hash_table_size (conf), ==, 1);
     GVariant *value = g_hash_table_lookup (conf, "int-key");
     g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_INT64));
     g_assert_cmpint (g_variant_get_int64 (value), ==, 42);
 }
 
@@ -3232,7 +3232,7 @@ test_get_connections_attributes (void)
     g_assert_true (g_variant_get_boolean (value));
     value = snapd_connection_get_plug_attribute (connection, "plug-number-key");
     g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
     g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
     g_assert_false (snapd_connection_has_plug_attribute (connection, "plug-invalid-key"));
     g_assert_null (snapd_connection_get_plug_attribute (connection, "plug-invalid-key"));
@@ -3252,7 +3252,7 @@ test_get_connections_attributes (void)
     g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_BOOLEAN));
     value = snapd_connection_get_slot_attribute (connection, "slot-number-key");
     g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
     g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
     g_assert_false (snapd_connection_has_slot_attribute (connection, "slot-invalid-key"));
     g_assert_null (snapd_connection_get_slot_attribute (connection, "slot-invalid-key"));
@@ -3277,7 +3277,7 @@ test_get_connections_attributes (void)
     g_assert_true (g_variant_get_boolean (value));
     value = snapd_plug_get_attribute (plug, "plug-number-key");
     g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
     g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
     value = snapd_plug_get_attribute (plug, "plug-invalid-key");
     g_assert_false (snapd_plug_has_attribute (plug, "plug-invalid-key"));
@@ -3303,7 +3303,7 @@ test_get_connections_attributes (void)
     g_assert_true (g_variant_get_boolean (value));
     value = snapd_slot_get_attribute (slot, "slot-number-key");
     g_assert_nonnull (value);
-    g_assert (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
+    g_assert_true (g_variant_is_of_type (value, G_VARIANT_TYPE_DOUBLE));
     g_assert_cmpfloat (g_variant_get_double (value), ==, 1.25);
     value = snapd_slot_get_attribute (slot, "slot-invalid-key");
     g_assert_false (snapd_slot_has_attribute (slot, "slot-invalid-key"));
@@ -3888,7 +3888,7 @@ test_connect_interface_sync (void)
     gboolean result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", NULL, NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    g_assert (mock_snapd_find_plug_connection (snapd, plug) == slot);
+    g_assert_true (mock_snapd_find_plug_connection (snapd, plug) == slot);
 }
 
 static void
@@ -3905,7 +3905,7 @@ connect_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     gboolean r = snapd_client_connect_interface_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_true (r);
-    g_assert (mock_snapd_find_plug_connection (data->snapd, plug) == slot);
+    g_assert_true (mock_snapd_find_plug_connection (data->snapd, plug) == slot);
 
     g_main_loop_quit (data->loop);
 }
@@ -3965,7 +3965,7 @@ test_connect_interface_progress (void)
     gboolean result = snapd_client_connect_interface_sync (client, "snap2", "plug", "snap1", "slot", connect_interface_progress_cb, &connect_interface_progress_data, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
-    g_assert (mock_snapd_find_plug_connection (snapd, plug) == slot);
+    g_assert_true (mock_snapd_find_plug_connection (snapd, plug) == slot);
     g_assert_cmpint (connect_interface_progress_data.progress_done, >, 0);
 }
 
@@ -4418,7 +4418,7 @@ test_find_channels (void)
             g_assert_cmpstr (snapd_channel_get_epoch (channel), ==, "1");
             g_assert_cmpint (snapd_channel_get_confinement (channel), ==, SNAPD_CONFINEMENT_CLASSIC);
             g_assert_cmpint (snapd_channel_get_size (channel), ==, 10000);
-            g_assert (date_matches (snapd_channel_get_released_at (channel), 2018, 1, 19, 13, 14, 15));
+            g_assert_true (date_matches (snapd_channel_get_released_at (channel), 2018, 1, 19, 13, 14, 15));
             matched_beta = TRUE;
         }
         if (strcmp (snapd_channel_get_name (channel), "stable/branch") == 0) {

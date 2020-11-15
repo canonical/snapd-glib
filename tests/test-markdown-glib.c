@@ -98,7 +98,7 @@ serialize_node (SnapdMarkdownNode *node)
        return serialize_nodes (children);
 
    default:
-       g_assert (FALSE);
+       g_assert_not_reached ();
        return g_strdup ("");
    }
 }
@@ -784,7 +784,7 @@ serialize_url_node (SnapdMarkdownNode *node)
        return g_strdup_printf ("<url>%s</url>", contents);
 
    default:
-       g_assert (FALSE);
+       g_assert_not_reached ();
        return NULL;
    }
 }
