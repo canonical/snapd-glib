@@ -5,8 +5,8 @@ services:
 
 env:
   - IMAGE=ubuntu:rolling
+  - IMAGE=ubuntu:20.04
   - IMAGE=ubuntu:18.04
-  - IMAGE=ubuntu:16.04
   - IMAGE=fedora:latest
 
 language: c
@@ -14,12 +14,10 @@ language: c
 script:
   - docker pull $IMAGE
   - cid=`docker run --tty --detach --volume $TRAVIS_BUILD_DIR:/snapd-glib --workdir /snapd-glib $IMAGE bash`
-  - if [ $IMAGE = "ubuntu:rolling" -o $IMAGE = "ubuntu:18.04" -o $IMAGE = "ubuntu:16.04" ]; then docker exec $cid apt-get update; fi
-  - if [ $IMAGE = "ubuntu:rolling" -o $IMAGE = "ubuntu:18.04" -o $IMAGE = "ubuntu:16.04" ]; then docker exec $cid apt-get install -y --no-install-recommends gtk-doc-tools libgirepository1.0-dev libglib2.0-dev libjson-glib-dev libsoup2.4-dev ninja-build python3-pip python3-setuptools python3-wheel valac; fi
-  - if [ $IMAGE = "ubuntu:rolling" -o $IMAGE = "ubuntu:18.04" ]; then docker exec $cid apt-get install -y --no-install-recommends qtbase5-dev qtdeclarative5-dev; fi
-  - if [ $IMAGE = "fedora:latest" ]; then docker exec $cid dnf install -y gcc gcc-c++ gobject-introspection-devel glib2-devel gtk-doc json-glib-devel libsoup-devel ninja-build python3-pip qt5-qtbase-devel qt5-qtdeclarative-devel redhat-rpm-config vala; fi
+  - if [[ $IMAGE =~ ^ubuntu:.*$ ]]; then docker exec $cid apt-get update; fi
+  - if [[ $IMAGE =~ ^ubuntu:.*$ ]]; then docker exec -e DEBIAN_FRONTEND=noninteractive $cid apt-get install -y --no-install-recommends gtk-doc-tools libgirepository1.0-dev libglib2.0-dev libjson-glib-dev libsoup2.4-dev ninja-build python3-pip python3-setuptools python3-wheel qtbase5-dev qtdeclarative5-dev valac; fi
+  - if [[ $IMAGE =~ ^fedora:.*$ ]]; then docker exec $cid dnf install -y gcc gcc-c++ gobject-introspection-devel glib2-devel gtk-doc json-glib-devel libsoup-devel ninja-build python3-pip qt5-qtbase-devel qt5-qtdeclarative-devel redhat-rpm-config vala; fi
   - docker exec $cid pip3 install meson
-  - if [ $IMAGE = "ubuntu:16.04" ]; then docker exec $cid meson _build -Dqt-bindings=false -Dqml-bindings=false ; fi
-  - if [ $IMAGE = "ubuntu:rolling" -o $IMAGE = "ubuntu:18.04" -o $IMAGE = "fedora:latest" ]; then docker exec $cid meson _build ; fi
+  - docker exec $cid meson _build
   - docker exec $cid ninja -C _build
   - docker exec $cid ninja -C _build snapd-glib-doc
