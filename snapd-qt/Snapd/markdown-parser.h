@@ -11,6 +11,7 @@
 #define SNAPD_MARKDOWN_PARSER_H
 
 #include <QtCore/QObject>
+#include <QtCore/QScopedPointer>
 #include <Snapd/MarkdownNode>
 
 class QSnapdMarkdownParserPrivate;
@@ -27,13 +28,14 @@ public:
     };
     Q_ENUM(MarkdownVersion)
     explicit QSnapdMarkdownParser (MarkdownVersion version, QObject* parent = 0);
+    ~QSnapdMarkdownParser();
 
     void setPreserveWhitespace (bool preserveWhitespace) const;
     bool preserveWhitespace () const;
     QList<QSnapdMarkdownNode> parse (const QString &text) const;
 
 private:
-    QSnapdMarkdownParserPrivate *d_ptr;
+    QScopedPointer<QSnapdMarkdownParserPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdMarkdownParser)
 };
 
