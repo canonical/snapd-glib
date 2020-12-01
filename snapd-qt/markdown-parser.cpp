@@ -38,6 +38,9 @@ QSnapdMarkdownParser::QSnapdMarkdownParser (QSnapdMarkdownParser::MarkdownVersio
      QObject (parent),
      d_ptr (new QSnapdMarkdownParserPrivate (version)) {}
 
+QSnapdMarkdownParser::~QSnapdMarkdownParser()
+{}
+
 void QSnapdMarkdownParser::setPreserveWhitespace (bool preserveWhitespace) const
 {
     Q_D(const QSnapdMarkdownParser);
