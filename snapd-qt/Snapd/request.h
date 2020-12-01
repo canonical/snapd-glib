@@ -11,6 +11,7 @@
 #define SNAPD_REQUEST_H
 
 #include <QtCore/QObject>
+#include <QtCore/QScopedPointer>
 #include <Snapd/Change>
 
 class QSnapdRequestPrivate;
@@ -86,7 +87,7 @@ Q_SIGNALS:
     void complete ();
 
 private:
-    QSnapdRequestPrivate *d_ptr;
+    QScopedPtr<QSnapdRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE (QSnapdRequest);
 };
 

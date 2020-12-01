@@ -45,14 +45,10 @@ QSnapdClient::QSnapdClient(int fd, QObject *parent) :
     d_ptr (new QSnapdClientPrivate(fd)) {}
 
 QSnapdClient::~QSnapdClient()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdConnectRequest::~QSnapdConnectRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdConnectRequest *QSnapdClient::connect ()
 {
@@ -61,9 +57,7 @@ QSnapdConnectRequest *QSnapdClient::connect ()
 }
 
 QSnapdLoginRequest::~QSnapdLoginRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdLoginRequest *login (const QString& email, const QString& password)
 {
@@ -88,9 +82,7 @@ QSnapdLoginRequest *QSnapdClient::login (const QString& email, const QString& pa
 }
 
 QSnapdLogoutRequest::~QSnapdLogoutRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdLogoutRequest *QSnapdClient::logout (qint64 id)
 {
@@ -158,9 +150,7 @@ QSnapdAuthData *QSnapdClient::authData ()
 }
 
 QSnapdGetChangesRequest::~QSnapdGetChangesRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetChangesRequest *QSnapdClient::getChanges ()
 {
@@ -187,9 +177,7 @@ QSnapdGetChangesRequest *QSnapdClient::getChanges (ChangeFilter filter, const QS
 }
 
 QSnapdGetChangeRequest::~QSnapdGetChangeRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetChangeRequest *QSnapdClient::getChange (const QString& id)
 {
@@ -198,9 +186,7 @@ QSnapdGetChangeRequest *QSnapdClient::getChange (const QString& id)
 }
 
 QSnapdAbortChangeRequest::~QSnapdAbortChangeRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdAbortChangeRequest *QSnapdClient::abortChange (const QString& id)
 {
@@ -209,9 +195,7 @@ QSnapdAbortChangeRequest *QSnapdClient::abortChange (const QString& id)
 }
 
 QSnapdGetSystemInformationRequest::~QSnapdGetSystemInformationRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetSystemInformationRequest *QSnapdClient::getSystemInformation ()
 {
@@ -220,9 +204,7 @@ QSnapdGetSystemInformationRequest *QSnapdClient::getSystemInformation ()
 }
 
 QSnapdListRequest::~QSnapdListRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdListRequest *QSnapdClient::list ()
 {
@@ -231,9 +213,7 @@ QSnapdListRequest *QSnapdClient::list ()
 }
 
 QSnapdGetSnapsRequest::~QSnapdGetSnapsRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetSnapsRequest *QSnapdClient::getSnaps (GetSnapsFlags flags, const QStringList &snaps)
 {
@@ -262,9 +242,7 @@ QSnapdGetSnapsRequest *QSnapdClient::getSnaps ()
 }
 
 QSnapdListOneRequest::~QSnapdListOneRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdListOneRequest *QSnapdClient::listOne (const QString& name)
 {
@@ -273,9 +251,7 @@ QSnapdListOneRequest *QSnapdClient::listOne (const QString& name)
 }
 
 QSnapdGetSnapRequest::~QSnapdGetSnapRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetSnapRequest *QSnapdClient::getSnap (const QString& name)
 {
@@ -284,9 +260,7 @@ QSnapdGetSnapRequest *QSnapdClient::getSnap (const QString& name)
 }
 
 QSnapdGetSnapConfRequest::~QSnapdGetSnapConfRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetSnapConfRequest *QSnapdClient::getSnapConf (const QString &name, const QStringList &keys)
 {
@@ -301,9 +275,7 @@ QSnapdGetSnapConfRequest *QSnapdClient::getSnapConf (const QString &name)
 }
 
 QSnapdSetSnapConfRequest::~QSnapdSetSnapConfRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdSetSnapConfRequest *QSnapdClient::setSnapConf (const QString &name, const QHash<QString, QVariant> &configuration)
 {
@@ -312,9 +284,7 @@ QSnapdSetSnapConfRequest *QSnapdClient::setSnapConf (const QString &name, const 
 }
 
 QSnapdGetAppsRequest::~QSnapdGetAppsRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetAppsRequest *QSnapdClient::getApps (GetAppsFlags flags, const QStringList &snaps)
 {
@@ -348,9 +318,7 @@ QSnapdGetAppsRequest *QSnapdClient::getApps ()
 }
 
 QSnapdGetIconRequest::~QSnapdGetIconRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetIconRequest *QSnapdClient::getIcon (const QString& name)
 {
@@ -359,9 +327,7 @@ QSnapdGetIconRequest *QSnapdClient::getIcon (const QString& name)
 }
 
 QSnapdGetAssertionsRequest::~QSnapdGetAssertionsRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetAssertionsRequest *QSnapdClient::getAssertions (const QString& type)
 {
@@ -370,9 +336,7 @@ QSnapdGetAssertionsRequest *QSnapdClient::getAssertions (const QString& type)
 }
 
 QSnapdAddAssertionsRequest::~QSnapdAddAssertionsRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdAddAssertionsRequest *QSnapdClient::addAssertions (const QStringList& assertions)
 {
@@ -381,9 +345,7 @@ QSnapdAddAssertionsRequest *QSnapdClient::addAssertions (const QStringList& asse
 }
 
 QSnapdGetConnectionsRequest::~QSnapdGetConnectionsRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetConnectionsRequest *QSnapdClient::getConnections ()
 {
@@ -410,9 +372,7 @@ QSnapdGetConnectionsRequest *QSnapdClient::getConnections (GetConnectionsFlags f
 }
 
 QSnapdGetInterfacesRequest::~QSnapdGetInterfacesRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetInterfacesRequest *QSnapdClient::getInterfaces ()
 {
@@ -421,9 +381,7 @@ QSnapdGetInterfacesRequest *QSnapdClient::getInterfaces ()
 }
 
 QSnapdGetInterfaces2Request::~QSnapdGetInterfaces2Request ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 ()
 {
@@ -447,9 +405,7 @@ QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 (InterfaceFlags flags,
 }
 
 QSnapdConnectInterfaceRequest::~QSnapdConnectInterfaceRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdConnectInterfaceRequest *QSnapdClient::connectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name)
 {
@@ -458,9 +414,7 @@ QSnapdConnectInterfaceRequest *QSnapdClient::connectInterface (const QString &pl
 }
 
 QSnapdDisconnectInterfaceRequest::~QSnapdDisconnectInterfaceRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdDisconnectInterfaceRequest *QSnapdClient::disconnectInterface (const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name)
 {
@@ -469,9 +423,7 @@ QSnapdDisconnectInterfaceRequest *QSnapdClient::disconnectInterface (const QStri
 }
 
 QSnapdFindRequest::~QSnapdFindRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdFindRequest *QSnapdClient::find (const QString& name)
 {
@@ -504,9 +456,7 @@ QSnapdFindRequest *QSnapdClient::findSection (FindFlags flags, const QString &se
 }
 
 QSnapdFindRefreshableRequest::~QSnapdFindRefreshableRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdFindRefreshableRequest *QSnapdClient::findRefreshable ()
 {
@@ -515,9 +465,7 @@ QSnapdFindRefreshableRequest *QSnapdClient::findRefreshable ()
 }
 
 QSnapdInstallRequest::~QSnapdInstallRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdInstallRequest *QSnapdClient::install (const QString& name)
 {
@@ -574,9 +522,7 @@ QSnapdTryRequest *QSnapdClient::trySnap (const QString& path)
 }
 
 QSnapdRefreshRequest::~QSnapdRefreshRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdRefreshRequest *QSnapdClient::refresh (const QString& name)
 {
@@ -591,9 +537,7 @@ QSnapdRefreshRequest *QSnapdClient::refresh (const QString& name, const QString&
 }
 
 QSnapdRefreshAllRequest::~QSnapdRefreshAllRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdRefreshAllRequest *QSnapdClient::refreshAll ()
 {
@@ -602,9 +546,7 @@ QSnapdRefreshAllRequest *QSnapdClient::refreshAll ()
 }
 
 QSnapdRemoveRequest::~QSnapdRemoveRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdRemoveRequest *QSnapdClient::remove (const QString& name)
 {
@@ -619,9 +561,7 @@ QSnapdRemoveRequest *QSnapdClient::remove (RemoveFlags flags, const QString& nam
 }
 
 QSnapdEnableRequest::~QSnapdEnableRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdEnableRequest *QSnapdClient::enable (const QString& name)
 {
@@ -630,9 +570,7 @@ QSnapdEnableRequest *QSnapdClient::enable (const QString& name)
 }
 
 QSnapdDisableRequest::~QSnapdDisableRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdDisableRequest *QSnapdClient::disable (const QString& name)
 {
@@ -641,9 +579,7 @@ QSnapdDisableRequest *QSnapdClient::disable (const QString& name)
 }
 
 QSnapdSwitchChannelRequest::~QSnapdSwitchChannelRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdSwitchChannelRequest *QSnapdClient::switchChannel (const QString& name, const QString& channel)
 {
@@ -652,9 +588,7 @@ QSnapdSwitchChannelRequest *QSnapdClient::switchChannel (const QString& name, co
 }
 
 QSnapdCheckBuyRequest::~QSnapdCheckBuyRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdCheckBuyRequest *QSnapdClient::checkBuy ()
 {
@@ -663,9 +597,7 @@ QSnapdCheckBuyRequest *QSnapdClient::checkBuy ()
 }
 
 QSnapdBuyRequest::~QSnapdBuyRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdBuyRequest *QSnapdClient::buy (const QString& id, double amount, const QString& currency)
 {
@@ -674,9 +606,7 @@ QSnapdBuyRequest *QSnapdClient::buy (const QString& id, double amount, const QSt
 }
 
 QSnapdCreateUserRequest::~QSnapdCreateUserRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdCreateUserRequest *QSnapdClient::createUser (const QString& email)
 {
@@ -691,9 +621,7 @@ QSnapdCreateUserRequest *QSnapdClient::createUser (const QString& email, CreateU
 }
 
 QSnapdCreateUsersRequest::~QSnapdCreateUsersRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdCreateUsersRequest *QSnapdClient::createUsers ()
 {
@@ -702,9 +630,7 @@ QSnapdCreateUsersRequest *QSnapdClient::createUsers ()
 }
 
 QSnapdGetUsersRequest::~QSnapdGetUsersRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetUsersRequest *QSnapdClient::getUsers ()
 {
@@ -713,9 +639,7 @@ QSnapdGetUsersRequest *QSnapdClient::getUsers ()
 }
 
 QSnapdGetSectionsRequest::~QSnapdGetSectionsRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetSectionsRequest *QSnapdClient::getSections ()
 {
@@ -724,9 +648,7 @@ QSnapdGetSectionsRequest *QSnapdClient::getSections ()
 }
 
 QSnapdGetAliasesRequest::~QSnapdGetAliasesRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdGetAliasesRequest *QSnapdClient::getAliases ()
 {
@@ -735,9 +657,7 @@ QSnapdGetAliasesRequest *QSnapdClient::getAliases ()
 }
 
 QSnapdAliasRequest::~QSnapdAliasRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdAliasRequest *QSnapdClient::alias (const QString &snap, const QString &app, const QString &alias)
 {
@@ -746,9 +666,7 @@ QSnapdAliasRequest *QSnapdClient::alias (const QString &snap, const QString &app
 }
 
 QSnapdUnaliasRequest::~QSnapdUnaliasRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdUnaliasRequest *QSnapdClient::unalias (const QString &snap, const QString &alias)
 {
@@ -763,9 +681,7 @@ QSnapdUnaliasRequest *QSnapdClient::unalias (const QString &alias)
 }
 
 QSnapdPreferRequest::~QSnapdPreferRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdPreferRequest *QSnapdClient::prefer (const QString &snap)
 {
@@ -774,9 +690,7 @@ QSnapdPreferRequest *QSnapdClient::prefer (const QString &snap)
 }
 
 QSnapdEnableAliasesRequest::~QSnapdEnableAliasesRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdEnableAliasesRequest *QSnapdClient::enableAliases (const QString snap, const QStringList &aliases)
 {
@@ -785,9 +699,7 @@ QSnapdEnableAliasesRequest *QSnapdClient::enableAliases (const QString snap, con
 }
 
 QSnapdDisableAliasesRequest::~QSnapdDisableAliasesRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdDisableAliasesRequest *QSnapdClient::disableAliases (const QString snap, const QStringList &aliases)
 {
@@ -796,9 +708,7 @@ QSnapdDisableAliasesRequest *QSnapdClient::disableAliases (const QString snap, c
 }
 
 QSnapdResetAliasesRequest::~QSnapdResetAliasesRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdResetAliasesRequest *QSnapdClient::resetAliases (const QString snap, const QStringList &aliases)
 {
@@ -807,9 +717,7 @@ QSnapdResetAliasesRequest *QSnapdClient::resetAliases (const QString snap, const
 }
 
 QSnapdRunSnapCtlRequest::~QSnapdRunSnapCtlRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdRunSnapCtlRequest *QSnapdClient::runSnapCtl (const QString contextId, const QStringList &args)
 {
@@ -818,9 +726,7 @@ QSnapdRunSnapCtlRequest *QSnapdClient::runSnapCtl (const QString contextId, cons
 }
 
 QSnapdDownloadRequest::~QSnapdDownloadRequest ()
-{
-    delete d_ptr;
-}
+{}
 
 QSnapdDownloadRequest *QSnapdClient::download (const QString& name)
 {
