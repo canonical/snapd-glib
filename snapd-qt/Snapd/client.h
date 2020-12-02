@@ -40,7 +40,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdConnectRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdConnectRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdConnectRequest)
 };
 
@@ -61,7 +61,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdLoginRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdLoginRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdLoginRequest)
 };
 
@@ -78,7 +78,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdLogoutRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdLogoutRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdLogoutRequest)
 };
 
@@ -98,7 +98,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetChangesRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetChangesRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetChangesRequest)
 };
 
@@ -116,7 +116,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetChangeRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetChangeRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetChangeRequest)
 };
 
@@ -134,7 +134,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdAbortChangeRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdAbortChangeRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdAbortChangeRequest)
 };
 
@@ -153,7 +153,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetSystemInformationRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetSystemInformationRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetSystemInformationRequest)
 };
 
@@ -173,7 +173,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdListRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdListRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdListRequest)
 };
 
@@ -193,7 +193,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetSnapsRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetSnapsRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetSnapsRequest)
 };
 
@@ -211,7 +211,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdListOneRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdListOneRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdListOneRequest)
 };
 
@@ -229,7 +229,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetSnapRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetSnapRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetSnapRequest)
 };
 
@@ -247,7 +247,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetSnapConfRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetSnapConfRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetSnapConfRequest)
 };
 
@@ -264,7 +264,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdSetSnapConfRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdSetSnapConfRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdSetSnapConfRequest)
 };
 
@@ -285,7 +285,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetAppsRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetAppsRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetAppsRequest)
 };
 
@@ -303,7 +303,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetIconRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetIconRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetIconRequest)
 };
 
@@ -322,7 +322,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetAssertionsRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetAssertionsRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetAssertionsRequest)
 };
 
@@ -339,7 +339,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdAddAssertionsRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdAddAssertionsRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdAddAssertionsRequest)
 };
 
@@ -366,7 +366,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetConnectionsRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetConnectionsRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetConnectionsRequest)
 };
 
@@ -389,7 +389,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetInterfacesRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetInterfacesRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetInterfacesRequest)
 };
 
@@ -409,7 +409,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetInterfaces2RequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetInterfaces2RequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetInterfaces2Request)
 };
 
@@ -426,7 +426,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdConnectInterfaceRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdConnectInterfaceRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdConnectInterfaceRequest)
 };
 
@@ -443,7 +443,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdDisconnectInterfaceRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdDisconnectInterfaceRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdDisconnectInterfaceRequest)
 };
 
@@ -465,7 +465,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdFindRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdFindRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdFindRequest)
 };
 
@@ -485,7 +485,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdFindRefreshableRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdFindRefreshableRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdFindRefreshableRequest)
 };
 
@@ -502,7 +502,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdInstallRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdInstallRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdInstallRequest)
 };
 
@@ -513,12 +513,13 @@ class Q_DECL_EXPORT QSnapdTryRequest : public QSnapdRequest
 
 public:
     explicit QSnapdTryRequest (const QString& path, void *snapd_client, QObject *parent = 0);
+    ~QSnapdTryRequest ();
     virtual void runSync ();
     virtual void runAsync ();
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdTryRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdTryRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdTryRequest)
 };
 
@@ -535,7 +536,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdRefreshRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdRefreshRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdRefreshRequest)
 };
 
@@ -554,7 +555,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdRefreshAllRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdRefreshAllRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdRefreshAllRequest)
 };
 
@@ -571,7 +572,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdRemoveRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdRemoveRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdRemoveRequest)
 };
 
@@ -588,7 +589,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdEnableRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdEnableRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdEnableRequest)
 };
 
@@ -605,7 +606,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdDisableRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdDisableRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdDisableRequest)
 };
 
@@ -622,7 +623,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdSwitchChannelRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdSwitchChannelRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdSwitchChannelRequest)
 };
 
@@ -641,7 +642,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdCheckBuyRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdCheckBuyRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdCheckBuyRequest)
 };
 
@@ -658,7 +659,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdBuyRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdBuyRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdBuyRequest)
 };
 
@@ -676,7 +677,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdCreateUserRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdCreateUserRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdCreateUserRequest)
 };
 
@@ -696,7 +697,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdCreateUsersRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdCreateUsersRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdCreateUsersRequest)
 };
 
@@ -716,7 +717,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetUsersRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetUsersRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetUsersRequest)
 };
 
@@ -734,7 +735,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetSectionsRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetSectionsRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetSectionsRequest)
 };
 
@@ -754,7 +755,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdGetAliasesRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdGetAliasesRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetAliasesRequest)
 };
 
@@ -771,7 +772,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdAliasRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdAliasRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdAliasRequest)
 };
 
@@ -788,7 +789,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdUnaliasRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdUnaliasRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdUnaliasRequest)
 };
 
@@ -805,7 +806,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdPreferRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdPreferRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdPreferRequest)
 };
 
@@ -822,7 +823,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdEnableAliasesRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdEnableAliasesRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdEnableAliasesRequest)
 };
 
@@ -839,7 +840,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdDisableAliasesRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdDisableAliasesRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdDisableAliasesRequest)
 };
 
@@ -856,7 +857,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdResetAliasesRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdResetAliasesRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdResetAliasesRequest)
 };
 
@@ -875,7 +876,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdRunSnapCtlRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdRunSnapCtlRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdRunSnapCtlRequest)
 };
 
@@ -893,7 +894,7 @@ public:
     void handleResult (void *, void *);
 
 private:
-    QScopedPtr<QSnapdDownloadRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdDownloadRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdDownloadRequest)
 };
 
@@ -1067,7 +1068,7 @@ public:
     Q_INVOKABLE QSnapdDownloadRequest *download (const QString &name, const QString &channel, const QString &revision);
 
 private:
-    QScopedPtr<QSnapdClientPrivate> d_ptr;
+    QScopedPointer<QSnapdClientPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdClient)
 };
 

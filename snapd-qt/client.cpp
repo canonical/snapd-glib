@@ -515,6 +515,9 @@ QSnapdInstallRequest *QSnapdClient::install (InstallFlags flags, QIODevice *ioDe
     return new QSnapdInstallRequest (flags, NULL, NULL, NULL, ioDevice, d->client);
 }
 
+QSnapdTryRequest::~QSnapdTryRequest ()
+{}
+
 QSnapdTryRequest *QSnapdClient::trySnap (const QString& path)
 {
     Q_D(QSnapdClient);

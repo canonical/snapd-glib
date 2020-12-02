@@ -87,7 +87,7 @@ Q_SIGNALS:
     void complete ();
 
 private:
-    QScopedPtr<QSnapdRequestPrivate> d_ptr;
+    QScopedPointer<QSnapdRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE (QSnapdRequest);
 };
 
