@@ -49,7 +49,7 @@ parse_get_system_info_response (SnapdRequest *request, SoupMessage *message, Sna
 {
     SnapdGetSystemInfo *self = SNAPD_GET_SYSTEM_INFO (request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */

@@ -102,7 +102,7 @@ parse_get_connections_response (SnapdRequest *request, SoupMessage *message, Sna
 {
     SnapdGetConnections *self = SNAPD_GET_CONNECTIONS (request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);

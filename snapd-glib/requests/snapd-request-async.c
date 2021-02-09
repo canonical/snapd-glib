@@ -55,7 +55,7 @@ parse_async_response (SnapdRequest *self, SoupMessage *message, SnapdMaintenance
     SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (self);
     SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (r);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     g_autofree gchar *change_id = _snapd_json_get_async_result (response, error);

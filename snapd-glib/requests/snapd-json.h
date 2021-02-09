@@ -55,6 +55,7 @@ GDateTime            *_snapd_json_get_date_time          (JsonObject         *ob
 
 JsonObject           *_snapd_json_parse_response         (SoupMessage        *message,
                                                           SnapdMaintenance **maintenance,
+                                                          JsonNode          **error_value,
                                                           GError            **error);
 
 JsonNode             *_snapd_json_get_sync_result        (JsonObject         *response,

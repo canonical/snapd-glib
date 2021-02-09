@@ -176,12 +176,17 @@ _snapd_json_get_date_time (JsonObject *object, const gchar *name)
 }
 
 static void
-parse_error_response (JsonObject *root, GError **error)
+parse_error_response (JsonObject *root, JsonNode **error_value, GError **error)
 {
     JsonObject *result = _snapd_json_get_object (root, "result");
     gint64 status_code = _snapd_json_get_int (root, "status-code", 0);
     const gchar *kind = result != NULL ? _snapd_json_get_string (result, "kind", NULL) : NULL;
     const gchar *message = result != NULL ? _snapd_json_get_string (result, "message", NULL) : NULL;
+
+    if (error_value != NULL) {
+        *error_value = result != NULL ? json_object_get_member (result, "value") : NULL;
+        json_node_ref (*error_value);
+    }
 
     if (g_strcmp0 (kind, "login-required") == 0)
         g_set_error_literal (error,
@@ -349,7 +354,7 @@ parse_error_response (JsonObject *root, GError **error)
 }
 
 JsonObject *
-_snapd_json_parse_response (SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+_snapd_json_parse_response (SoupMessage *message, SnapdMaintenance **maintenance, JsonNode **error_value, GError **error)
 {
     const gchar *content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
     if (content_type == NULL) {
@@ -398,7 +403,7 @@ _snapd_json_parse_response (SoupMessage *message, SnapdMaintenance **maintenance
     }
 
     if (strcmp (json_node_get_string (type_node), "error") == 0) {
-        parse_error_response (root, error);
+        parse_error_response (root, error_value, error);
         return NULL;
     }
 

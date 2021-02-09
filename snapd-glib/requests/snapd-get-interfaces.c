@@ -107,7 +107,7 @@ parse_get_interfaces_response (SnapdRequest *request, SoupMessage *message, Snap
 {
     SnapdGetInterfaces *self = SNAPD_GET_INTERFACES (request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, NULL, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, NULL, NULL, error);
     if (response == NULL)
         return FALSE;
     g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);

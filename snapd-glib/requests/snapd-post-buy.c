@@ -62,7 +62,7 @@ generate_post_buy_request (SnapdRequest *request)
 static gboolean
 parse_post_buy_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
 

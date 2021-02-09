@@ -81,7 +81,7 @@ parse_get_apps_response (SnapdRequest *request, SoupMessage *message, SnapdMaint
 {
     SnapdGetApps *self = SNAPD_GET_APPS (request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
