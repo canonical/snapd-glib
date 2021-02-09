@@ -41,3 +41,6 @@ jobs:
           meson _build
           ninja -C _build
           ninja -C _build snapd-glib-doc
+
+      - name: Test
+        run: ninja -C _build test
