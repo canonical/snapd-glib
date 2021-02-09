@@ -61,7 +61,7 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, Snap
 
     const gchar *content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
     if (g_strcmp0 (content_type, "application/json") == 0) {
-        g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, error);
+        g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
         if (response == NULL)
             return FALSE;
         g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);
