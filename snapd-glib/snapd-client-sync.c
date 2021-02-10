@@ -1610,6 +1610,7 @@ snapd_client_reset_aliases_sync (SnapdClient *self,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.8
+ * Deprecated: 1.60: Use snapd_client_run_snapctl2_async()
  */
 gboolean
 snapd_client_run_snapctl_sync (SnapdClient *self,
@@ -1623,9 +1624,47 @@ snapd_client_run_snapctl_sync (SnapdClient *self,
 
     g_auto(SyncData) data = { 0 };
     start_sync (&data);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_run_snapctl_async (self, context_id, args, cancellable, sync_cb, &data);
     end_sync (&data);
     return snapd_client_run_snapctl_finish (self, data.result, stdout_output, stderr_output, error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+/**
+ * snapd_client_run_snapctl2_sync:
+ * @client: a #SnapdClient.
+ * @context_id: context for this call.
+ * @args: the arguments to pass to snapctl.
+ * @stdout_output: (out) (allow-none): the location to write the stdout from the command or %NULL.
+ * @stderr_output: (out) (allow-none): the location to write the stderr from the command or %NULL.
+ * @exit_code: (out) (allow-none): the location to write the exit code of the command or %NULL.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Run a snapctl command.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.60
+ */
+gboolean
+snapd_client_run_snapctl2_sync (SnapdClient *self,
+                                const gchar *context_id, GStrv args,
+                                gchar **stdout_output, gchar **stderr_output,
+                                int *exit_code,
+                                GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+    g_return_val_if_fail (context_id != NULL, FALSE);
+    g_return_val_if_fail (args != NULL, FALSE);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_run_snapctl2_async (self, context_id, args, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_run_snapctl2_finish (self, data.result, stdout_output, stderr_output, exit_code, error);
 }
 
 /**
