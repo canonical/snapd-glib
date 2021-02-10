@@ -1091,20 +1091,40 @@ gboolean                snapd_client_reset_aliases_finish          (SnapdClient 
 gboolean                snapd_client_run_snapctl_sync              (SnapdClient          *client,
                                                                     const gchar          *context_id,
                                                                     GStrv                 args,
-                                                                    GStrv                 stdout_output,
-                                                                    GStrv                 stderr_output,
+                                                                    gchar               **stdout_output,
+                                                                    gchar               **stderr_output,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_run_snapctl2_sync);
 void                    snapd_client_run_snapctl_async             (SnapdClient          *client,
                                                                     const gchar          *context_id,
                                                                     GStrv                 args,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_run_snapctl2_async);
 gboolean                snapd_client_run_snapctl_finish            (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     gchar               **stdout_output,
                                                                     gchar               **stderr_output,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_run_snapctl2_finish);
+gboolean                snapd_client_run_snapctl2_sync             (SnapdClient          *client,
+                                                                    const gchar          *context_id,
+                                                                    GStrv                 args,
+                                                                    gchar               **stdout_output,
+                                                                    gchar               **stderr_output,
+                                                                    int                  *exit_code,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_run_snapctl2_async            (SnapdClient          *client,
+                                                                    const gchar          *context_id,
+                                                                    GStrv                 args,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_run_snapctl2_finish           (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    gchar               **stdout_output,
+                                                                    gchar               **stderr_output,
+                                                                    int                  *exit_code,
                                                                     GError              **error);
 
 GBytes                 *snapd_client_download_sync                 (SnapdClient          *client,

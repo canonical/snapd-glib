@@ -3801,18 +3801,14 @@ snapd_client_reset_aliases_finish (SnapdClient *self, GAsyncResult *result, GErr
  * See snapd_client_run_snapctl_sync() for more information.
  *
  * Since: 1.8
+ * Deprecated: 1.60: Use snapd_client_run_snapctl2_async()
  */
 void
 snapd_client_run_snapctl_async (SnapdClient *self,
                                 const gchar *context_id, GStrv args,
                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    g_return_if_fail (SNAPD_IS_CLIENT (self));
-    g_return_if_fail (context_id != NULL);
-    g_return_if_fail (args != NULL);
-
-    g_autoptr(SnapdPostSnapctl) request = _snapd_post_snapctl_new (context_id, args, cancellable, callback, user_data);
-    send_request (self, SNAPD_REQUEST (request));
+    return snapd_client_run_snapctl2_async (self, context_id, args, cancellable, callback, user_data);
 }
 
 /**
@@ -3829,24 +3825,93 @@ snapd_client_run_snapctl_async (SnapdClient *self,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.8
+ * Deprecated: 1.60: Use snapd_client_run_snapctl2_finish()
  */
 gboolean
 snapd_client_run_snapctl_finish (SnapdClient *self, GAsyncResult *result,
                                  gchar **stdout_output, gchar **stderr_output,
                                  GError **error)
 {
+    g_return_val_if_fail (SNAPD_IS_POST_SNAPCTL (result), FALSE);
+
+    SnapdPostSnapctl *request = SNAPD_POST_SNAPCTL (result);
+
+    /* We need to return an error for unsuccessful commands to match old API */
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return FALSE;
+
+    return snapd_client_run_snapctl2_finish (self, result, stdout_output, stderr_output, NULL, error);
+}
+
+/**
+ * snapd_client_run_snapctl2_async:
+ * @client: a #SnapdClient.
+ * @context_id: context for this call.
+ * @args: the arguments to pass to snapctl.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously run a snapctl command.
+ * See snapd_client_run_snapctl_sync() for more information.
+ *
+ * Since: 1.60
+ */
+void
+snapd_client_run_snapctl2_async (SnapdClient *self,
+                                 const gchar *context_id, GStrv args,
+                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+    g_return_if_fail (context_id != NULL);
+    g_return_if_fail (args != NULL);
+
+    g_autoptr(SnapdPostSnapctl) request = _snapd_post_snapctl_new (context_id, args, cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_run_snapctl2_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @stdout_output: (out) (allow-none): the location to write the stdout from the command or %NULL.
+ * @stderr_output: (out) (allow-none): the location to write the stderr from the command or %NULL.
+ * @exit_code: (out) (allow-none): the location to write the exit code of the command or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_run_snapctl2_async().
+ * See snapd_client_run_snapctl2_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.60
+ */
+gboolean
+snapd_client_run_snapctl2_finish (SnapdClient *self, GAsyncResult *result,
+                                  gchar **stdout_output, gchar **stderr_output,
+                                  int *exit_code,
+                                  GError **error)
+{
     g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
     g_return_val_if_fail (SNAPD_IS_POST_SNAPCTL (result), FALSE);
 
     SnapdPostSnapctl *request = SNAPD_POST_SNAPCTL (result);
 
-    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
-        return FALSE;
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error)) {
+        if (g_error_matches (*error, SNAPD_ERROR, SNAPD_ERROR_UNSUCCESSFUL)) {
+            /* Ignore unsuccessful errors */
+            g_clear_error (error);
+        } else {
+            return FALSE;
+        }
+    }
 
     if (stdout_output)
         *stdout_output = g_strdup (_snapd_post_snapctl_get_stdout_output (request));
     if (stderr_output)
         *stderr_output = g_strdup (_snapd_post_snapctl_get_stderr_output (request));
+    if (exit_code)
+        *exit_code = _snapd_post_snapctl_get_exit_code (request);
 
     return TRUE;
 }
