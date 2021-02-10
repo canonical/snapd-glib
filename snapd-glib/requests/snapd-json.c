@@ -314,6 +314,11 @@ parse_error_response (JsonObject *root, JsonNode **error_value, GError **error)
                              SNAPD_ERROR,
                              SNAPD_ERROR_OPTION_NOT_FOUND,
                              message);
+    else if (g_strcmp0 (kind, "unsuccessful") == 0)
+        g_set_error_literal (error,
+                             SNAPD_ERROR,
+                             SNAPD_ERROR_UNSUCCESSFUL,
+                             message);
     else {
         switch (status_code) {
         case SOUP_STATUS_BAD_REQUEST:

@@ -62,6 +62,7 @@ G_BEGIN_DECLS
  * @SNAPD_ERROR_NOT_A_SNAP: the given snap or directory does not look like a snap.
  * @SNAPD_ERROR_DNS_FAILURE: A hostname failed to resolve during the request.
  * @SNAPD_ERROR_OPTION_NOT_FOUND: A requested configuration option is not set.
+ * @SNAPD_ERROR_UNSUCCESSFUL: A snapctl command was unsuccessful.
  *
  * Error codes returned by snapd operations.
  *
@@ -100,7 +101,8 @@ typedef enum
     SNAPD_ERROR_CHANNEL_NOT_AVAILABLE,
     SNAPD_ERROR_NOT_A_SNAP,
     SNAPD_ERROR_DNS_FAILURE,
-    SNAPD_ERROR_OPTION_NOT_FOUND
+    SNAPD_ERROR_OPTION_NOT_FOUND,
+    SNAPD_ERROR_UNSUCCESSFUL,
 } SnapdError;
 
 /**
