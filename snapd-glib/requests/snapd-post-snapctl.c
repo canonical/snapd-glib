@@ -9,6 +9,7 @@
 
 #include "snapd-post-snapctl.h"
 
+#include "snapd-error.h"
 #include "snapd-json.h"
 
 struct _SnapdPostSnapctl
@@ -18,6 +19,7 @@ struct _SnapdPostSnapctl
     GStrv args;
     gchar *stdout_output;
     gchar *stderr_output;
+    int exit_code;
 };
 
 G_DEFINE_TYPE (SnapdPostSnapctl, snapd_post_snapctl, snapd_request_get_type ())
@@ -48,6 +50,12 @@ _snapd_post_snapctl_get_stderr_output (SnapdPostSnapctl *self)
     return self->stderr_output;
 }
 
+int
+_snapd_post_snapctl_get_exit_code (SnapdPostSnapctl *self)
+{
+    return self->exit_code;
+}
+
 static SoupMessage *
 generate_post_snapctl_request (SnapdRequest *request)
 {
@@ -74,10 +82,20 @@ static gboolean
 parse_post_snapctl_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdPostSnapctl *self = SNAPD_POST_SNAPCTL (request);
+    g_autoptr(JsonNode) error_value = NULL;
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
-    if (response == NULL)
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, &error_value, error);
+    if (response == NULL) {
+        if (g_error_matches (*error, SNAPD_ERROR, SNAPD_ERROR_UNSUCCESSFUL) &&
+            error_value != NULL && json_node_get_value_type (error_value) == JSON_TYPE_OBJECT) {
+            JsonObject *object = json_node_get_object (error_value);
+
+            self->stdout_output = g_strdup (_snapd_json_get_string (object, "stdout", NULL));
+            self->stderr_output = g_strdup (_snapd_json_get_string (object, "stderr", NULL));
+            self->exit_code = _snapd_json_get_int (object, "exit-code", 0);
+        }
         return FALSE;
+    }
     g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);
     if (result == NULL)
         return FALSE;

@@ -26,6 +26,8 @@ const gchar      *_snapd_post_snapctl_get_stdout_output (SnapdPostSnapctl *reque
 
 const gchar      *_snapd_post_snapctl_get_stderr_output (SnapdPostSnapctl *request);
 
+int               _snapd_post_snapctl_get_exit_code     (SnapdPostSnapctl *request);
+
 G_END_DECLS
 
 #endif /* __SNAPD_POST_SNAPCTL_H__ */
