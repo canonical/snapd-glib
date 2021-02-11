@@ -1893,7 +1893,7 @@ send_async_response (MockSnapd *self, SoupMessage *message, guint status_code, c
 }
 
 static void
-send_error_response (MockSnapd *self, SoupMessage *message, guint status_code, const gchar *error_message, const gchar *kind)
+send_error_response (MockSnapd *self, SoupMessage *message, guint status_code, const gchar *error_message, const gchar *kind, JsonNode *error_value)
 {
     g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -1902,6 +1902,10 @@ send_error_response (MockSnapd *self, SoupMessage *message, guint status_code, c
     if (kind != NULL) {
         json_builder_set_member_name (builder, "kind");
         json_builder_add_string_value (builder, kind);
+    }
+    if (error_value != NULL) {
+        json_builder_set_member_name (builder, "value");
+        json_builder_add_value (builder, error_value);
     }
     json_builder_end_object (builder);
 
@@ -1912,31 +1916,31 @@ send_error_response (MockSnapd *self, SoupMessage *message, guint status_code, c
 static void
 send_error_bad_request (MockSnapd *self, SoupMessage *message, const gchar *error_message, const gchar *kind)
 {
-    send_error_response (self, message, 400, error_message, kind);
+    send_error_response (self, message, 400, error_message, kind, NULL);
 }
 
 static void
 send_error_unauthorized (MockSnapd *self, SoupMessage *message, const gchar *error_message, const gchar *kind)
 {
-    send_error_response (self, message, 401, error_message, kind);
+    send_error_response (self, message, 401, error_message, kind, NULL);
 }
 
 static void
 send_error_forbidden (MockSnapd *self, SoupMessage *message, const gchar *error_message, const gchar *kind)
 {
-    send_error_response (self, message, 403, error_message, kind);
+    send_error_response (self, message, 403, error_message, kind, NULL);
 }
 
 static void
 send_error_not_found (MockSnapd *self, SoupMessage *message, const gchar *error_message, const gchar *kind)
 {
-    send_error_response (self, message, 404, error_message, kind);
+    send_error_response (self, message, 404, error_message, kind, NULL);
 }
 
 static void
 send_error_method_not_allowed (MockSnapd *self, SoupMessage *message, const gchar *error_message)
 {
-    send_error_response (self, message, 405, error_message, NULL);
+    send_error_response (self, message, 405, error_message, NULL, NULL);
 }
 
 static void
@@ -4382,6 +4386,21 @@ handle_snapctl (MockSnapd *self, SoupMessage *message)
     for (int i = 0; i < json_array_get_length (args); i++) {
         const gchar *arg = json_array_get_string_element (args, i);
         g_string_append_printf (stdout_text, ":%s", arg);
+    }
+
+    if (!g_strcmp0 (context_id, "return-error")) {
+        g_autoptr(JsonBuilder) builder = json_builder_new ();
+        json_builder_begin_object (builder);
+        json_builder_set_member_name (builder, "stdout");
+        json_builder_add_string_value (builder, stdout_text->str);
+        json_builder_set_member_name (builder, "stderr");
+        json_builder_add_string_value (builder, "STDERR");
+        json_builder_set_member_name (builder, "exit-code");
+        json_builder_add_int_value (builder, 1);
+        json_builder_end_object (builder);
+
+        send_error_response (self, message, 200, "unsuccessful with exit code: 1", "unsuccessful", json_builder_get_root (builder));
+        return;
     }
 
     g_autoptr(JsonBuilder) builder = json_builder_new ();
