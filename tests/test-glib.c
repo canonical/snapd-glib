@@ -7625,11 +7625,13 @@ test_run_snapctl_sync (void)
     g_auto(GStrv) args = g_strsplit ("arg1;arg2", ";", -1);
     g_autofree gchar *stdout_output = NULL;
     g_autofree gchar *stderr_output = NULL;
-    gboolean result = snapd_client_run_snapctl_sync (client, "ABC", args, &stdout_output, &stderr_output, NULL, &error);
+    int exit_code = 0;
+    gboolean result = snapd_client_run_snapctl2_sync (client, "ABC", args, &stdout_output, &stderr_output, &exit_code, NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_cmpstr (stdout_output, ==, "STDOUT:ABC:arg1:arg2");
     g_assert_cmpstr (stderr_output, ==, "STDERR");
+    g_assert_cmpint (exit_code, ==, 0);
 }
 
 static void
@@ -7639,12 +7641,14 @@ snapctl_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
     g_autofree gchar *stdout_output = NULL;
     g_autofree gchar *stderr_output = NULL;
+    int exit_code = 0;
     g_autoptr(GError) error = NULL;
-    gboolean r = snapd_client_run_snapctl_finish (SNAPD_CLIENT (object), result, &stdout_output, &stderr_output, &error);
+    gboolean r = snapd_client_run_snapctl2_finish (SNAPD_CLIENT (object), result, &stdout_output, &stderr_output, &exit_code, &error);
     g_assert_no_error (error);
     g_assert_true (r);
     g_assert_cmpstr (stdout_output, ==, "STDOUT:ABC:arg1:arg2");
     g_assert_cmpstr (stderr_output, ==, "STDERR");
+    g_assert_cmpint (exit_code, ==, 0);
 
     g_main_loop_quit (data->loop);
 }
@@ -7663,8 +7667,63 @@ test_run_snapctl_async (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     g_auto(GStrv) args = g_strsplit ("arg1;arg2", ";", -1);
-    snapd_client_run_snapctl_async (client, "ABC", args, NULL, snapctl_cb, async_data_new (loop, snapd));
+    snapd_client_run_snapctl2_async (client, "ABC", args, NULL, snapctl_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
+}
+
+static void
+test_run_snapctl_unsuccessful (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_auto(GStrv) args = g_strsplit ("arg1;arg2", ";", -1);
+    g_autofree gchar *stdout_output = NULL;
+    g_autofree gchar *stderr_output = NULL;
+    int exit_code = 0;
+    gboolean result = snapd_client_run_snapctl2_sync (client, "return-error", args, &stdout_output, &stderr_output, &exit_code, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_true (result);
+    g_assert_cmpstr (stdout_output, ==, "STDOUT:return-error:arg1:arg2");
+    g_assert_cmpstr (stderr_output, ==, "STDERR");
+    g_assert_cmpint (exit_code, ==, 1);
+}
+
+static void
+test_run_snapctl_legacy (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_auto(GStrv) args = g_strsplit ("arg1;arg2", ";", -1);
+    g_autofree gchar *stdout_output = NULL;
+    g_autofree gchar *stderr_output = NULL;
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    gboolean result = snapd_client_run_snapctl_sync (client, "ABC", args, &stdout_output, &stderr_output, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    g_assert_no_error (error);
+    g_assert_true (result);
+    g_assert_cmpstr (stdout_output, ==, "STDOUT:ABC:arg1:arg2");
+    g_assert_cmpstr (stderr_output, ==, "STDERR");
+
+    /* Unsuccessful exit codes are still reported as errors by the old API */
+    g_clear_pointer (&stdout_output, g_free);
+    g_clear_pointer (&stderr_output, g_free);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    result = snapd_client_run_snapctl_sync (client, "return-error", args, &stdout_output, &stderr_output, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    g_assert_false (result);
+    g_assert_error (error, SNAPD_ERROR, SNAPD_ERROR_UNSUCCESSFUL);
 }
 
 static void
@@ -7998,6 +8057,8 @@ main (int argc, char **argv)
     g_test_add_func ("/aliases/prefer-async", test_aliases_prefer_async);
     g_test_add_func ("/run-snapctl/sync", test_run_snapctl_sync);
     g_test_add_func ("/run-snapctl/async", test_run_snapctl_async);
+    g_test_add_func ("/run-snapctl/unsuccessful", test_run_snapctl_unsuccessful);
+    g_test_add_func ("/run-snapctl/legacy", test_run_snapctl_legacy);
     g_test_add_func ("/download/sync", test_download_sync);
     g_test_add_func ("/download/async", test_download_async);
     g_test_add_func ("/download/channel-revision", test_download_channel_revision);
