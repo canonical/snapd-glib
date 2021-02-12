@@ -22,6 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Initialise parameters
+        id: params
+        run: |
+          artifact_name="logs-$(echo "${{ matrix.image }}" | sed "s/:/-/")"
+          echo "::set-output name=artifact::$artifact_name"
+
       - name: Install dependencies (Ubuntu)
         if: startsWith(matrix.image, 'ubuntu:')
         run: |
@@ -49,5 +55,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.image }} logs
+          name: ${{ steps.params.outputs.artifact }}
           path: _build/meson-logs
