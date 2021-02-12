@@ -185,7 +185,8 @@ parse_error_response (JsonObject *root, JsonNode **error_value, GError **error)
 
     if (error_value != NULL) {
         *error_value = result != NULL ? json_object_get_member (result, "value") : NULL;
-        json_node_ref (*error_value);
+        if (*error_value != NULL)
+            json_node_ref (*error_value);
     }
 
     if (g_strcmp0 (kind, "login-required") == 0)
