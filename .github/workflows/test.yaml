@@ -44,3 +44,10 @@ jobs:
 
       - name: Test
         run: ninja -C _build test
+
+      - name: Collect logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.image }} logs
+          path: _build/meson-logs
