@@ -26,12 +26,12 @@ jobs:
         if: startsWith(matrix.image, 'ubuntu:')
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gtk-doc-tools libgirepository1.0-dev libglib2.0-dev libjson-glib-dev libsoup2.4-dev meson ninja-build qtbase5-dev qtdeclarative5-dev valac
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gettext gtk-doc-tools libgirepository1.0-dev libglib2.0-dev libjson-glib-dev libsoup2.4-dev meson ninja-build qtbase5-dev qtdeclarative5-dev valac
 
       - name: Install dependencies (Fedora)
         if: startsWith(matrix.image, 'fedora:')
         run: |
-          dnf install -y gcc gcc-c++ gobject-introspection-devel glib2-devel gtk-doc json-glib-devel libsoup-devel meson ninja-build qt5-qtbase-devel qt5-qtdeclarative-devel redhat-rpm-config vala
+          dnf install -y gcc gcc-c++ gettext gobject-introspection-devel glib2-devel gtk-doc json-glib-devel libsoup-devel meson ninja-build qt5-qtbase-devel qt5-qtdeclarative-devel redhat-rpm-config vala
 
       - name: Build
         run: |
