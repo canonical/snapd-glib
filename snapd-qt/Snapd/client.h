@@ -873,6 +873,7 @@ public:
     virtual void runAsync ();
     Q_INVOKABLE QString stdout () const;
     Q_INVOKABLE QString stderr () const;
+    Q_INVOKABLE int exit_code () const;
     void handleResult (void *, void *);
 
 private:
