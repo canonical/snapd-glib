@@ -3078,10 +3078,11 @@ void QSnapdRunSnapCtlRequest::runSync ()
     g_autoptr(GError) error = NULL;
 
     aliases = string_list_to_strv (d->args);
-    snapd_client_run_snapctl_sync (SNAPD_CLIENT (getClient ()),
-                                   d->contextId.toStdString ().c_str (), aliases,
-                                   &d->stdout_output, &d->stderr_output,
-                                   G_CANCELLABLE (getCancellable ()), &error);
+    snapd_client_run_snapctl2_sync (SNAPD_CLIENT (getClient ()),
+                                    d->contextId.toStdString ().c_str (), aliases,
+                                    &d->stdout_output, &d->stderr_output,
+                                    &d->exit_code,
+                                    G_CANCELLABLE (getCancellable ()), &error);
     finish (error);
 }
 
@@ -3090,7 +3091,7 @@ void QSnapdRunSnapCtlRequest::handleResult (void *object, void *result)
     g_autoptr(GError) error = NULL;
     Q_D(QSnapdRunSnapCtlRequest);
 
-    snapd_client_run_snapctl_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &d->stdout_output, &d->stderr_output, &error);
+    snapd_client_run_snapctl2_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &d->stdout_output, &d->stderr_output, &d->exit_code, &error);
 
     finish (error);
 }
@@ -3107,9 +3108,9 @@ void QSnapdRunSnapCtlRequest::runAsync ()
     g_auto(GStrv) aliases = NULL;
 
     aliases = string_list_to_strv (d->args);
-    snapd_client_run_snapctl_async (SNAPD_CLIENT (getClient ()),
-                                    d->contextId.toStdString ().c_str (), aliases,
-                                    G_CANCELLABLE (getCancellable ()), run_snapctl_ready_cb, (gpointer) this);
+    snapd_client_run_snapctl2_async (SNAPD_CLIENT (getClient ()),
+                                     d->contextId.toStdString ().c_str (), aliases,
+                                     G_CANCELLABLE (getCancellable ()), run_snapctl_ready_cb, (gpointer) this);
 }
 
 QString QSnapdRunSnapCtlRequest::stdout () const
@@ -3122,6 +3123,12 @@ QString QSnapdRunSnapCtlRequest::stderr () const
 {
     Q_D(const QSnapdRunSnapCtlRequest);
     return d->stderr_output;
+}
+
+int QSnapdRunSnapCtlRequest::exit_code () const
+{
+    Q_D(const QSnapdRunSnapCtlRequest);
+    return d->exit_code;
 }
 
 QSnapdDownloadRequest::QSnapdDownloadRequest (const QString& name, const QString &channel, const QString &revision, void *snapd_client, QObject *parent) :

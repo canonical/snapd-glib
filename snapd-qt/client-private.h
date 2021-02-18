@@ -575,6 +575,7 @@ public:
     QStringList args;
     gchar *stdout_output = NULL;
     gchar *stderr_output = NULL;
+    int exit_code = 0;
 };
 
 class QSnapdDownloadRequestPrivate
