@@ -3125,7 +3125,7 @@ QString QSnapdRunSnapCtlRequest::stderr () const
     return d->stderr_output;
 }
 
-int QSnapdRunSnapCtlRequest::exit_code () const
+int QSnapdRunSnapCtlRequest::exitCode () const
 {
     Q_D(const QSnapdRunSnapCtlRequest);
     return d->exit_code;
