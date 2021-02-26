@@ -37,14 +37,14 @@ int main (int argc, char **argv)
         args[i] = argv[i+1];
 
     if (!snapd_client_run_snapctl2_sync (client, context, args, &stdout_output, &stderr_output, &exit_code, NULL, &error)) {
-        fprintf(stderr, "error: %s\n", error->message);
+        fprintf (stderr, "error: %s\n", error->message);
         return 1;
     }
     if (stdout_output) {
-        fputs(stdout_output, stdout);
+        fputs (stdout_output, stdout);
     }
     if (stderr_output) {
-        fputs(stderr_output, stderr);
+        fputs (stderr_output, stderr);
     }
     return exit_code;
 }

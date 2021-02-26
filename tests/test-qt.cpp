@@ -6728,7 +6728,7 @@ test_run_snapctl_sync ()
     g_assert_cmpint (runSnapCtlRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_true (runSnapCtlRequest->stdout () == "STDOUT:ABC:arg1:arg2");
     g_assert_true (runSnapCtlRequest->stderr () == "STDERR");
-    g_assert_cmpint (runSnapCtlRequest->exit_code (), ==, 0);
+    g_assert_cmpint (runSnapCtlRequest->exitCode (), ==, 0);
 }
 
 static void
@@ -6745,7 +6745,7 @@ test_run_snapctl_unsuccessful ()
     g_assert_cmpint (runSnapCtlRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_true (runSnapCtlRequest->stdout () == "STDOUT:return-error:arg1:arg2");
     g_assert_true (runSnapCtlRequest->stderr () == "STDERR");
-    g_assert_cmpint (runSnapCtlRequest->exit_code (), ==, 1);
+    g_assert_cmpint (runSnapCtlRequest->exitCode (), ==, 1);
 }
 
 void
@@ -6754,7 +6754,7 @@ RunSnapCtlHandler::onComplete ()
     g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
     g_assert_true (request->stdout () == "STDOUT:ABC:arg1:arg2");
     g_assert_true (request->stderr () == "STDERR");
-    g_assert_cmpint (request->exit_code (), ==, 0);
+    g_assert_cmpint (request->exitCode (), ==, 0);
 
     g_main_loop_quit (loop);
 }
