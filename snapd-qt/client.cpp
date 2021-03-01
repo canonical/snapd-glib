@@ -228,17 +228,17 @@ QSnapdGetSnapsRequest *QSnapdClient::getSnaps (GetSnapsFlags flags, const QStrin
 
 QSnapdGetSnapsRequest *QSnapdClient::getSnaps (const QStringList &snaps)
 {
-    return getSnaps (0, snaps);
+    return getSnaps (GetSnapsFlags(), snaps);
 }
 
 QSnapdGetSnapsRequest *QSnapdClient::getSnaps (const QString &snap)
 {
-    return getSnaps (0, QStringList(snap));
+    return getSnaps (GetSnapsFlags(), QStringList(snap));
 }
 
 QSnapdGetSnapsRequest *QSnapdClient::getSnaps ()
 {
-    return getSnaps (0, QStringList ());
+    return getSnaps (GetSnapsFlags(), QStringList ());
 }
 
 QSnapdListOneRequest::~QSnapdListOneRequest ()
@@ -304,17 +304,17 @@ QSnapdGetAppsRequest *QSnapdClient::getApps (GetAppsFlags flags)
 
 QSnapdGetAppsRequest *QSnapdClient::getApps (const QStringList &snaps)
 {
-    return getApps (0, snaps);
+    return getApps (GetAppsFlags(), snaps);
 }
 
 QSnapdGetAppsRequest *QSnapdClient::getApps (const QString &snap)
 {
-    return getApps (0, QStringList (snap));
+    return getApps (GetAppsFlags(), QStringList (snap));
 }
 
 QSnapdGetAppsRequest *QSnapdClient::getApps ()
 {
-    return getApps (0, QStringList ());
+    return getApps (GetAppsFlags(), QStringList ());
 }
 
 QSnapdGetIconRequest::~QSnapdGetIconRequest ()
@@ -385,7 +385,7 @@ QSnapdGetInterfaces2Request::~QSnapdGetInterfaces2Request ()
 
 QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 ()
 {
-    return getInterfaces2 (0, QStringList ());
+    return getInterfaces2 (InterfaceFlags(), QStringList ());
 }
 
 QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 (InterfaceFlags flags)
@@ -395,7 +395,7 @@ QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 (InterfaceFlags flags)
 
 QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 (const QStringList &names)
 {
-    return getInterfaces2 (0, names);
+    return getInterfaces2 (InterfaceFlags(), names);
 }
 
 QSnapdGetInterfaces2Request *QSnapdClient::getInterfaces2 (InterfaceFlags flags, const QStringList &names)
