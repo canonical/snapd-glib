@@ -159,8 +159,15 @@ _snapd_json_get_date_time (JsonObject *object, const gchar *name)
         timezone_start = tokens[1];
         while (*timezone_start != '\0' && !is_timezone_prefix (*timezone_start))
             timezone_start++;
-        if (*timezone_start != '\0')
+        if (*timezone_start != '\0') {
+#ifdef GLIB_VERSION_2_68
+            timezone = g_time_zone_new_identifier (timezone_start);
+            if (timezone == NULL)
+                timezone = g_time_zone_new_utc ();
+#else
             timezone = g_time_zone_new (timezone_start);
+#endif
+        }
 
         /* Strip off timezone */
         *timezone_start = '\0';
