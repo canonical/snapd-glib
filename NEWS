@@ -1,3 +1,14 @@
+Overview of changes in snapd-glib 1.59
+
+   * New API:
+     - snapd_client_run_snapctl2_async
+     - snapd_client_run_snapctl2_finish
+     - snapd_client_run_snapctl2_sync
+   * Support getting snapctl exit code
+   * Fix d_ptr leak in QSnapdMarkdownParser
+   * Stop using g_assert() in tests
+   * Fix deprecation warning using g_time_zone_new
+
 Overview of changes in snapd-glib 1.58
 
    * Fix GIR annotations on snapd_client_get_snap_conf
