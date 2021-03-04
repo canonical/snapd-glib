@@ -3801,7 +3801,7 @@ snapd_client_reset_aliases_finish (SnapdClient *self, GAsyncResult *result, GErr
  * See snapd_client_run_snapctl_sync() for more information.
  *
  * Since: 1.8
- * Deprecated: 1.60: Use snapd_client_run_snapctl2_async()
+ * Deprecated: 1.59: Use snapd_client_run_snapctl2_async()
  */
 void
 snapd_client_run_snapctl_async (SnapdClient *self,
@@ -3825,7 +3825,7 @@ snapd_client_run_snapctl_async (SnapdClient *self,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.8
- * Deprecated: 1.60: Use snapd_client_run_snapctl2_finish()
+ * Deprecated: 1.59: Use snapd_client_run_snapctl2_finish()
  */
 gboolean
 snapd_client_run_snapctl_finish (SnapdClient *self, GAsyncResult *result,
@@ -3855,7 +3855,7 @@ snapd_client_run_snapctl_finish (SnapdClient *self, GAsyncResult *result,
  * Asynchronously run a snapctl command.
  * See snapd_client_run_snapctl_sync() for more information.
  *
- * Since: 1.60
+ * Since: 1.59
  */
 void
 snapd_client_run_snapctl2_async (SnapdClient *self,
@@ -3884,7 +3884,7 @@ snapd_client_run_snapctl2_async (SnapdClient *self,
  *
  * Returns: %TRUE on success or %FALSE on error.
  *
- * Since: 1.60
+ * Since: 1.59
  */
 gboolean
 snapd_client_run_snapctl2_finish (SnapdClient *self, GAsyncResult *result,

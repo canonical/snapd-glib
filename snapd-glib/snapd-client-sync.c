@@ -1610,7 +1610,7 @@ snapd_client_reset_aliases_sync (SnapdClient *self,
  * Returns: %TRUE on success or %FALSE on error.
  *
  * Since: 1.8
- * Deprecated: 1.60: Use snapd_client_run_snapctl2_async()
+ * Deprecated: 1.59: Use snapd_client_run_snapctl2_async()
  */
 gboolean
 snapd_client_run_snapctl_sync (SnapdClient *self,
@@ -1647,7 +1647,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  *
  * Returns: %TRUE on success or %FALSE on error.
  *
- * Since: 1.60
+ * Since: 1.59
  */
 gboolean
 snapd_client_run_snapctl2_sync (SnapdClient *self,
