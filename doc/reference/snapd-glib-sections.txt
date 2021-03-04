@@ -281,6 +281,9 @@ snapd_client_download_sync
 snapd_client_run_snapctl_async
 snapd_client_run_snapctl_finish
 snapd_client_run_snapctl_sync
+snapd_client_run_snapctl2_async
+snapd_client_run_snapctl2_finish
+snapd_client_run_snapctl2_sync
 
 <SUBSECTION Private>
 SNAPD_TYPE_CLIENT
