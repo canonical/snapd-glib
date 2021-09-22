@@ -373,6 +373,9 @@ MockMedia      *mock_snap_add_media               (MockSnap      *snap,
 void            mock_snap_set_status              (MockSnap      *snap,
                                                    const gchar   *status);
 
+void            mock_snap_set_store_url           (MockSnap      *snap,
+                                                   const gchar   *store_url);
+
 void            mock_snap_set_summary             (MockSnap      *snap,
                                                    const gchar   *summary);
 

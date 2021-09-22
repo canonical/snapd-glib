@@ -1392,6 +1392,7 @@ QT_WARNING_DISABLE_DEPRECATED
 QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
+    g_assert_null (snap->storeUrl ());
     g_assert_null (snap->summary ());
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
@@ -1436,6 +1437,7 @@ QT_WARNING_DISABLE_DEPRECATED
 QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
+    g_assert_null (snap->storeUrl ());
     g_assert_null (snap->summary ());
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
@@ -1513,6 +1515,7 @@ QT_WARNING_DISABLE_DEPRECATED
 QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
+    g_assert_null (snap->storeUrl ());
     g_assert_null (snap->summary ());
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
@@ -1557,6 +1560,7 @@ QT_WARNING_DISABLE_DEPRECATED
 QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
+    g_assert_null (snap->storeUrl ());
     g_assert_null (snap->summary ());
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
@@ -1661,6 +1665,7 @@ test_get_snap_optional_fields ()
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_license (s, "LICENSE");
     mock_snap_set_mounted_from (s, "MOUNTED-FROM");
+    mock_snap_set_store_url (s, "https://snapcraft.io/snap");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
     g_assert_true (mock_snapd_start (snapd, NULL));
@@ -1713,6 +1718,7 @@ QT_WARNING_DISABLE_DEPRECATED
 QT_WARNING_POP
     g_assert_cmpint (snap->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap->status (), ==, QSnapdEnums::SnapStatusActive);
+    g_assert_true (snap->storeUrl () == "https://snapcraft.io/snap");
     g_assert_true (snap->summary () == "SUMMARY");
     g_assert_true (snap->trackingChannel () == "CHANNEL");
     g_assert_true (snap->trymode ());
@@ -3594,6 +3600,7 @@ test_find_query ()
     mock_snap_set_contact (s, "CONTACT");
     mock_snap_set_website (s, "WEBSITE");
     mock_snap_set_description (s, "DESCRIPTION");
+    mock_snap_set_store_url (s, "https://snapcraft.io/snap");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_download_size (s, 1024);
     mock_snap_add_price (s, 1.25, "NZD");
@@ -3667,6 +3674,7 @@ QT_WARNING_DISABLE_DEPRECATED
 QT_WARNING_POP
     g_assert_cmpint (snap1->snapType (), ==, QSnapdEnums::SnapTypeApp);
     g_assert_cmpint (snap1->status (), ==, QSnapdEnums::SnapStatusActive);
+    g_assert_true (snap1->storeUrl () == "https://snapcraft.io/snap");
     g_assert_true (snap1->summary () == "SUMMARY");
     g_assert_true (snap1->trymode ());
     g_assert_true (snap1->version () == "VERSION");

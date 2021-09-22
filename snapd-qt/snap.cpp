@@ -318,6 +318,11 @@ QSnapdEnums::SnapStatus QSnapdSnap::status () const
     }
 }
 
+QString QSnapdSnap::storeUrl () const
+{
+    return snapd_snap_get_store_url (SNAPD_SNAP (wrapped_object));
+}
+
 QString QSnapdSnap::summary () const
 {
     return snapd_snap_get_summary (SNAPD_SNAP (wrapped_object));

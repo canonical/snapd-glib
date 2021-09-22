@@ -53,6 +53,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString revision READ revision)
     Q_PROPERTY(QSnapdEnums::SnapType snapType READ snapType)
     Q_PROPERTY(QSnapdEnums::SnapStatus status READ status)
+    Q_PROPERTY(QString storeUrl READ summary)
     Q_PROPERTY(QString summary READ summary)
     Q_PROPERTY(QString title READ title)
     Q_PROPERTY(QString trackingChannel READ trackingChannel)
@@ -101,6 +102,7 @@ public:
     Q_DECL_DEPRECATED_X("Use media()") QSnapdScreenshot *screenshot (int) const;
     QSnapdEnums::SnapType snapType () const;
     QSnapdEnums::SnapStatus status () const;
+    QString storeUrl () const;
     QString summary () const;
     QString title () const;
     QString trackingChannel () const;
