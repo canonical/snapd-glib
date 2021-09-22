@@ -154,6 +154,8 @@ SnapdSnapType            snapd_snap_get_snap_type              (SnapdSnap   *sna
 
 SnapdSnapStatus          snapd_snap_get_status                 (SnapdSnap   *snap);
 
+const gchar             *snapd_snap_get_store_url              (SnapdSnap   *snap);
+
 const gchar             *snapd_snap_get_summary                (SnapdSnap   *snap);
 
 const gchar             *snapd_snap_get_title                  (SnapdSnap   *snap);

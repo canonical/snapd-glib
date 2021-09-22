@@ -1537,6 +1537,7 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
+    g_assert_cmpstr (snapd_snap_get_store_url (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
@@ -1586,6 +1587,7 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
+    g_assert_cmpstr (snapd_snap_get_store_url (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
@@ -1659,6 +1661,7 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
+    g_assert_cmpstr (snapd_snap_get_store_url (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
@@ -1706,6 +1709,7 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
+    g_assert_cmpstr (snapd_snap_get_store_url (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
@@ -1811,6 +1815,7 @@ test_get_snap_optional_fields (void)
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_license (s, "LICENSE");
     mock_snap_set_mounted_from (s, "MOUNTED-FROM");
+    mock_snap_set_store_url (s, "https://snapcraft.io/snap");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_tracking_channel (s, "CHANNEL");
 
@@ -1861,6 +1866,7 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
+    g_assert_cmpstr (snapd_snap_get_store_url (snap), ==, "https://snapcraft.io/snap");
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, "SUMMARY");
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, "CHANNEL");
     g_assert_true (snapd_snap_get_trymode (snap));
@@ -4117,6 +4123,7 @@ test_find_query (void)
     mock_snap_set_contact (s, "CONTACT");
     mock_snap_set_website (s, "WEBSITE");
     mock_snap_set_description (s, "DESCRIPTION");
+    mock_snap_set_store_url (s, "https://snapcraft.io/snap");
     mock_snap_set_summary (s, "SUMMARY");
     mock_snap_set_download_size (s, 1024);
     mock_snap_add_price (s, 1.25, "NZD");
@@ -4155,6 +4162,7 @@ test_find_query (void)
     g_assert_cmpint (snapd_channel_get_size (channel), ==, 65535);
     g_assert_null (snapd_snap_get_contact (snap));
     g_assert_null (snapd_snap_get_description (snap));
+    g_assert_null (snapd_snap_get_store_url (snap));
     g_assert_null (snapd_snap_get_summary (snap));
     snap = snaps->pdata[1];
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, "CHANNEL");
@@ -4194,6 +4202,7 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_snap_type (snap), ==, SNAPD_SNAP_TYPE_APP);
     g_assert_cmpint (snapd_snap_get_status (snap), ==, SNAPD_SNAP_STATUS_ACTIVE);
+    g_assert_cmpstr (snapd_snap_get_store_url (snap), ==, "https://snapcraft.io/snap");
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, "SUMMARY");
     g_assert_true (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");

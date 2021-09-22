@@ -867,6 +867,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
                          "screenshots", screenshots_array,
                          "snap-type", snap_type,
                          "status", snap_status,
+                         "store-url", _snapd_json_get_string (object, "store-url", NULL),
                          "summary", _snapd_json_get_string (object, "summary", NULL),
                          "title", _snapd_json_get_string (object, "title", NULL),
                          "tracking-channel", _snapd_json_get_string (object, "tracking-channel", NULL),

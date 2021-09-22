@@ -61,6 +61,7 @@ struct _SnapdSnap
     gchar *revision;
     GPtrArray *screenshots;
     SnapdSnapStatus status;
+    gchar *store_url;
     gchar *summary;
     gchar *title;
     gchar *tracking_channel;
@@ -92,6 +93,7 @@ enum
     PROP_REVISION,
     PROP_SCREENSHOTS,
     PROP_STATUS,
+    PROP_STORE_URL,
     PROP_SUMMARY,
     PROP_TRYMODE,
     PROP_SNAP_TYPE,
@@ -729,6 +731,23 @@ snapd_snap_get_status (SnapdSnap *self)
 }
 
 /**
+ * snapd_snap_get_store_url:
+ * @snap: a #SnapdSnap.
+ *
+ * Get a URL to the web snap store, e.g. "https://snapcraft.io/example"
+ *
+ * Returns: (allow-none): a URL or %NULL.
+ *
+ * Since: 1.60
+ */
+const gchar *
+snapd_snap_get_store_url (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->store_url;
+}
+
+/**
  * snapd_snap_get_summary:
  * @snap: a #SnapdSnap.
  *
@@ -948,6 +967,10 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_STATUS:
         self->status = g_value_get_enum (value);
         break;
+    case PROP_STORE_URL:
+        g_free (self->store_url);
+        self->store_url = g_strdup (g_value_get_string (value));
+        break;
     case PROP_SUMMARY:
         g_free (self->summary);
         self->summary = g_strdup (g_value_get_string (value));
@@ -1080,6 +1103,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_STATUS:
         g_value_set_enum (value, self->status);
         break;
+    case PROP_STORE_URL:
+        g_value_set_string (value, self->store_url);
+        break;
     case PROP_SUMMARY:
         g_value_set_string (value, self->summary);
         break;
@@ -1139,6 +1165,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&self->publisher_username, g_free);
     g_clear_pointer (&self->revision, g_free);
     g_clear_pointer (&self->screenshots, g_ptr_array_unref);
+    g_clear_pointer (&self->store_url, g_free);
     g_clear_pointer (&self->summary, g_free);
     g_clear_pointer (&self->title, g_free);
     g_clear_pointer (&self->tracking_channel, g_free);
@@ -1373,6 +1400,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                      g_param_spec_string ("summary",
                                                           "summary",
                                                           "One line description",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_STORE_URL,
+                                     g_param_spec_string ("store-url",
+                                                          "store-url",
+                                                          "Web store URL",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,

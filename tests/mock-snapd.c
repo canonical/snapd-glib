@@ -206,6 +206,7 @@ struct _MockSnap
     gchar *publisher_validation;
     gchar *revision;
     gchar *status;
+    gchar *store_url;
     gchar *summary;
     gchar *title;
     gchar *tracking_channel;
@@ -369,6 +370,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->publisher_validation);
     g_free (snap->revision);
     g_free (snap->status);
+    g_free (snap->store_url);
     g_free (snap->summary);
     g_free (snap->title);
     g_free (snap->tracking_channel);
@@ -1501,6 +1503,13 @@ mock_snap_set_status (MockSnap *snap, const gchar *status)
 }
 
 void
+mock_snap_set_store_url (MockSnap *snap, const gchar *store_url)
+{
+    g_free (snap->store_url);
+    snap->store_url = g_strdup (store_url);
+}
+
+void
 mock_snap_set_summary (MockSnap *snap, const gchar *summary)
 {
     g_free (snap->summary);
@@ -2490,6 +2499,10 @@ make_snap_node (MockSnap *snap)
     json_builder_end_array (builder);
     json_builder_set_member_name (builder, "status");
     json_builder_add_string_value (builder, snap->status);
+    if (snap->store_url) {
+        json_builder_set_member_name (builder, "store-url");
+        json_builder_add_string_value (builder, snap->store_url);
+    }
     if (snap->summary) {
         json_builder_set_member_name (builder, "summary");
         json_builder_add_string_value (builder, snap->summary);
