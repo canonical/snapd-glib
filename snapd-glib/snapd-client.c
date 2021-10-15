@@ -31,6 +31,7 @@
 #include "requests/snapd-get-snap-conf.h"
 #include "requests/snapd-get-snaps.h"
 #include "requests/snapd-get-system-info.h"
+#include "requests/snapd-get-themes.h"
 #include "requests/snapd-get-users.h"
 #include "requests/snapd-post-aliases.h"
 #include "requests/snapd-post-assertions.h"
@@ -3968,6 +3969,73 @@ snapd_client_download_finish (SnapdClient *self, GAsyncResult *result, GError **
         return NULL;
 
     return g_bytes_ref (_snapd_post_download_get_data (request));
+}
+
+/**
+ * snapd_client_check_themes_async:
+ * @client: a #SnapdClient.
+ * @gtk_theme_names: (allow-none): a list of GTK theme names.
+ * @icon_theme_names: (allow-none): a list of icon theme names.
+ * @sound_theme_names: (allow-none): a list of sound theme names.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously check for snaps providing the requested desktop themes.
+ * See snapd_client_check_themes_sync() for more information.
+ *
+ * Since: 1.60
+ */
+void
+snapd_client_check_themes_async (SnapdClient *self,
+                                 GStrv gtk_theme_names,
+                                 GStrv icon_theme_names,
+                                 GStrv sound_theme_names,
+                                 GCancellable *cancellable,
+                                 GAsyncReadyCallback callback,
+                                 gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdGetThemes) request = _snapd_get_themes_new (gtk_theme_names, icon_theme_names, sound_theme_names, cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_check_themes_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @gtk_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of GTK themes.
+ * @icon_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of icon themes.
+ * @sound_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of sound themes.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_check_themes_async().
+ * See snapd_client_check_themes_sync() for more information.
+ *
+ * Returns: %TRUE on success.
+ *
+ * Since: 1.54
+ */
+gboolean
+snapd_client_check_themes_finish (SnapdClient *self, GAsyncResult *result, GHashTable **gtk_theme_status, GHashTable **icon_theme_status, GHashTable **sound_theme_status, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+    g_return_val_if_fail (SNAPD_IS_GET_THEMES (result), FALSE);
+
+    SnapdGetThemes *request = SNAPD_GET_THEMES (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return FALSE;
+
+    if (gtk_theme_status)
+        *gtk_theme_status = g_hash_table_ref (_snapd_get_themes_get_gtk_theme_status (request));
+    if (icon_theme_status)
+        *icon_theme_status = g_hash_table_ref (_snapd_get_themes_get_icon_theme_status (request));
+    if (sound_theme_status)
+        *sound_theme_status = g_hash_table_ref (_snapd_get_themes_get_sound_theme_status (request));
+
+    return TRUE;
 }
 
 /**

@@ -7804,6 +7804,121 @@ test_download_channel_revision (void)
 }
 
 static void
+test_themes_get_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme1", "installed");
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme2", "available");
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme3", "unavailable");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme1", "installed");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme2", "available");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme3", "unavailable");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme1", "installed");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme2", "available");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme3", "unavailable");
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    char *gtk_themes[] = { "gtktheme1", "gtktheme2", "gtktheme3", NULL };
+    char *icon_themes[] = { "icontheme1", "icontheme2", "icontheme3", NULL };
+    char *sound_themes[] = { "soundtheme1", "soundtheme2", "soundtheme3", NULL };
+    g_autoptr(GHashTable) gtk_status = NULL;
+    g_autoptr(GHashTable) icon_status = NULL;
+    g_autoptr(GHashTable) sound_status = NULL;
+
+    gboolean result = snapd_client_check_themes_sync (client, gtk_themes, icon_themes, sound_themes, &gtk_status, &icon_status, &sound_status, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_true (result);
+    g_assert_nonnull (gtk_status);
+    g_assert_nonnull (icon_status);
+    g_assert_nonnull (sound_status);
+
+    g_assert_cmpint (g_hash_table_size (gtk_status), ==, 3);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (gtk_status, "gtktheme1")), ==, SNAPD_THEME_STATUS_INSTALLED);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (gtk_status, "gtktheme2")), ==, SNAPD_THEME_STATUS_AVAILABLE);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (gtk_status, "gtktheme3")), ==, SNAPD_THEME_STATUS_UNAVAILABLE);
+
+    g_assert_cmpint (g_hash_table_size (icon_status), ==, 3);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (icon_status, "icontheme1")), ==, SNAPD_THEME_STATUS_INSTALLED);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (icon_status, "icontheme2")), ==, SNAPD_THEME_STATUS_AVAILABLE);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (icon_status, "icontheme3")), ==, SNAPD_THEME_STATUS_UNAVAILABLE);
+
+    g_assert_cmpint (g_hash_table_size (sound_status), ==, 3);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (sound_status, "soundtheme1")), ==, SNAPD_THEME_STATUS_INSTALLED);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (sound_status, "soundtheme2")), ==, SNAPD_THEME_STATUS_AVAILABLE);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (sound_status, "soundtheme3")), ==, SNAPD_THEME_STATUS_UNAVAILABLE);
+}
+
+static void
+check_themes_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GHashTable) gtk_status = NULL;
+    g_autoptr(GHashTable) icon_status = NULL;
+    g_autoptr(GHashTable) sound_status = NULL;
+    gboolean res = snapd_client_check_themes_finish (SNAPD_CLIENT (object), result, &gtk_status, &icon_status, &sound_status, &error);
+    g_assert_no_error (error);
+    g_assert_true (res);
+    g_assert_nonnull (gtk_status);
+    g_assert_nonnull (icon_status);
+    g_assert_nonnull (sound_status);
+
+    g_assert_cmpint (g_hash_table_size (gtk_status), ==, 3);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (gtk_status, "gtktheme1")), ==, SNAPD_THEME_STATUS_INSTALLED);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (gtk_status, "gtktheme2")), ==, SNAPD_THEME_STATUS_AVAILABLE);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (gtk_status, "gtktheme3")), ==, SNAPD_THEME_STATUS_UNAVAILABLE);
+
+    g_assert_cmpint (g_hash_table_size (icon_status), ==, 3);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (icon_status, "icontheme1")), ==, SNAPD_THEME_STATUS_INSTALLED);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (icon_status, "icontheme2")), ==, SNAPD_THEME_STATUS_AVAILABLE);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (icon_status, "icontheme3")), ==, SNAPD_THEME_STATUS_UNAVAILABLE);
+
+    g_assert_cmpint (g_hash_table_size (sound_status), ==, 3);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (sound_status, "soundtheme1")), ==, SNAPD_THEME_STATUS_INSTALLED);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (sound_status, "soundtheme2")), ==, SNAPD_THEME_STATUS_AVAILABLE);
+    g_assert_cmpint (GPOINTER_TO_INT (g_hash_table_lookup (sound_status, "soundtheme3")), ==, SNAPD_THEME_STATUS_UNAVAILABLE);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_themes_get_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme1", "installed");
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme2", "available");
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme3", "unavailable");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme1", "installed");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme2", "available");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme3", "unavailable");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme1", "installed");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme2", "available");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme3", "unavailable");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    char *gtk_themes[] = { "gtktheme1", "gtktheme2", "gtktheme3", NULL };
+    char *icon_themes[] = { "icontheme1", "icontheme2", "icontheme3", NULL };
+    char *sound_themes[] = { "soundtheme1", "soundtheme2", "soundtheme3", NULL };
+    snapd_client_check_themes_async (client, gtk_themes, icon_themes, sound_themes, NULL, check_themes_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
 test_stress (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -8071,6 +8186,8 @@ main (int argc, char **argv)
     g_test_add_func ("/download/sync", test_download_sync);
     g_test_add_func ("/download/async", test_download_async);
     g_test_add_func ("/download/channel-revision", test_download_channel_revision);
+    g_test_add_func ("/themes/get-sync", test_themes_get_sync);
+    g_test_add_func ("/themes/get-async", test_themes_get_async);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();
