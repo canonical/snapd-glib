@@ -1697,3 +1697,33 @@ snapd_client_download_sync (SnapdClient *self,
     end_sync (&data);
     return snapd_client_download_finish (self, data.result, error);
 }
+
+/**
+ * snapd_client_check_themes_sync:
+ * @client: a #SnapdClient.
+ * @gtk_theme_names: (allow-none): a list of GTK theme names.
+ * @icon_theme_names: (allow-none): a list of icon theme names.
+ * @sound_theme_names: (allow-none): a list of sound theme names.
+ * @gtk_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of GTK themes.
+ * @icon_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of icon themes.
+ * @sound_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of sound themes.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Check whether the status of snap packaged versions of named desktop
+ * themes. For each theme, it will determine whether it is already
+ * installed, uninstalled but available on the store, or unavailable.
+ *
+ * Since: 1.60
+ */
+gboolean
+snapd_client_check_themes_sync (SnapdClient *self, GStrv gtk_theme_names, GStrv icon_theme_names, GStrv sound_theme_names, GHashTable **gtk_theme_status, GHashTable **icon_theme_status, GHashTable **sound_theme_status, GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_check_themes_async (self, gtk_theme_names, icon_theme_names, sound_theme_names, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_check_themes_finish (self, data.result, gtk_theme_status, icon_theme_status, sound_theme_status, error);
+}

@@ -447,6 +447,18 @@ const gchar    *mock_snapd_get_last_accept_language (MockSnapd     *snapd);
 
 const gchar    *mock_snapd_get_last_allow_interaction (MockSnapd *snapd);
 
+void            mock_snapd_set_gtk_theme_status   (MockSnapd     *snapd,
+                                                   const gchar   *name,
+                                                   const gchar   *status);
+
+void            mock_snapd_set_icon_theme_status  (MockSnapd     *snapd,
+                                                   const gchar   *name,
+                                                   const gchar   *status);
+
+void            mock_snapd_set_sound_theme_status (MockSnapd     *snapd,
+                                                   const gchar   *name,
+                                                   const gchar   *status);
+
 G_END_DECLS
 
 #endif /* __MOCK_SNAPD_H__ */

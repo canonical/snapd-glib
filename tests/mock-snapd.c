@@ -65,6 +65,9 @@ struct _MockSnapd
     gchar *spawn_time;
     gchar *ready_time;
     SoupMessageHeaders *last_request_headers;
+    GHashTable *gtk_theme_status;
+    GHashTable *icon_theme_status;
+    GHashTable *sound_theme_status;
 };
 
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
@@ -1780,6 +1783,24 @@ mock_snapd_get_last_allow_interaction (MockSnapd *self)
         return NULL;
 
     return soup_message_headers_get_one (self->last_request_headers, "X-Allow-Interaction");
+}
+
+void
+mock_snapd_set_gtk_theme_status (MockSnapd *self, const gchar *name, const gchar *status)
+{
+    g_hash_table_insert (self->gtk_theme_status, g_strdup (name), g_strdup (status));
+}
+
+void
+mock_snapd_set_icon_theme_status (MockSnapd *self, const gchar *name, const gchar *status)
+{
+    g_hash_table_insert (self->icon_theme_status, g_strdup (name), g_strdup (status));
+}
+
+void
+mock_snapd_set_sound_theme_status (MockSnapd *self, const gchar *name, const gchar *status)
+{
+    g_hash_table_insert (self->sound_theme_status, g_strdup (name), g_strdup (status));
 }
 
 static MockChange *
@@ -4548,6 +4569,63 @@ handle_download (MockSnapd *self, SoupMessage *message)
 }
 
 static void
+handle_theme_status (MockSnapd *self, SoupMessage *message)
+{
+    if (strcmp (message->method, "GET") == 0) {
+        SoupURI *uri = soup_message_get_uri (message);
+        GUriParamsIter iter;
+        char *attr, *value;
+        g_autoptr(GError) error = NULL;
+        g_autoptr(JsonBuilder) gtk_themes = json_builder_new ();
+        g_autoptr(JsonBuilder) icon_themes = json_builder_new ();
+        g_autoptr(JsonBuilder) sound_themes = json_builder_new ();
+
+        json_builder_begin_object (gtk_themes);
+        json_builder_begin_object (icon_themes);
+        json_builder_begin_object (sound_themes);
+        /* We are parsing the query parameters manually because the
+         * GHashTable API loses duplicate values */
+        g_uri_params_iter_init (&iter, soup_uri_get_query (uri), -1, "&", G_URI_PARAMS_NONE);
+        while (g_uri_params_iter_next (&iter, &attr, &value, &error)) {
+            if (strcmp (attr, "gtk-theme") == 0) {
+                const char *status = g_hash_table_lookup (self->gtk_theme_status, value);
+                json_builder_set_member_name (gtk_themes, value);
+                json_builder_add_string_value (gtk_themes, status ? status : "unavailable");
+            } else if (strcmp (attr, "icon-theme") == 0) {
+                const char *status = g_hash_table_lookup (self->icon_theme_status, value);
+                json_builder_set_member_name (icon_themes, value);
+                json_builder_add_string_value (icon_themes, status ? status : "unavailable");
+            } else if (strcmp (attr, "sound-theme") == 0) {
+                const char *status = g_hash_table_lookup (self->sound_theme_status, value);
+                json_builder_set_member_name (sound_themes, value);
+                json_builder_add_string_value (sound_themes, status ? status : "unavailable");
+            }
+        }
+        if (error) {
+            g_warning ("Error parsing query parameters: %s", error->message);
+        }
+        json_builder_end_object (gtk_themes);
+        json_builder_end_object (icon_themes);
+        json_builder_end_object (sound_themes);
+
+        g_autoptr(JsonBuilder) builder = json_builder_new ();
+        json_builder_begin_object (builder);
+        json_builder_set_member_name (builder, "gtk-themes");
+        json_builder_add_value (builder, json_builder_get_root (gtk_themes));
+        json_builder_set_member_name (builder, "icon-themes");
+        json_builder_add_value (builder, json_builder_get_root (icon_themes));
+        json_builder_set_member_name (builder, "sound-themes");
+        json_builder_add_value (builder, json_builder_get_root (sound_themes));
+        json_builder_end_object (builder);
+
+        send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+    } else {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+}
+
+static void
 handle_request (SoupServer        *server,
                 SoupMessage       *message,
                 const char        *path,
@@ -4620,6 +4698,8 @@ handle_request (SoupServer        *server,
         handle_users (self, message);
     else if (strcmp (path, "/v2/download") == 0)
         handle_download (self, message);
+    else if (strcmp (path, "/v2/accessories/themes") == 0)
+        handle_theme_status (self, message);
     else
         send_error_not_found (self, message, "not found", NULL);
 }
@@ -4684,6 +4764,9 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&self->spawn_time, g_free);
     g_clear_pointer (&self->ready_time, g_free);
     g_clear_pointer (&self->last_request_headers, soup_message_headers_free);
+    g_clear_pointer (&self->gtk_theme_status, g_hash_table_unref);
+    g_clear_pointer (&self->icon_theme_status, g_hash_table_unref);
+    g_clear_pointer (&self->sound_theme_status, g_hash_table_unref);
     g_clear_pointer (&self->context, g_main_context_unref);
     g_clear_pointer (&self->loop, g_main_loop_unref);
 
@@ -4820,6 +4903,9 @@ mock_snapd_init (MockSnapd *self)
     g_cond_init (&self->condition);
 
     self->sandbox_features = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) g_ptr_array_unref);
+    self->gtk_theme_status = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    self->icon_theme_status = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    self->sound_theme_status = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_autoptr(GError) error = NULL;
     self->dir_path = g_dir_make_tmp ("mock-snapd-XXXXXX", &error);
     if (self->dir_path == NULL)

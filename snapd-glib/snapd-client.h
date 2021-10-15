@@ -208,6 +208,23 @@ typedef enum
 } SnapdGetInterfacesFlags;
 
 /**
+ * SnapdThemeStatus:
+ * @SNAPD_THEME_STATUS_INSTALLED: the theme is installed.
+ * @SNAPD_THEME_STATUS_AVAILABLE: the theme is not installed but a package is available.
+ * @SNAPD_THEME_STATUS_UNAVAILABLE: the theme is not available.
+ *
+ * The status of a snap-packaged desktop theme.
+ *
+ * Since: 1.60
+ */
+typedef enum
+{
+    SNAPD_THEME_STATUS_INSTALLED = 1,
+    SNAPD_THEME_STATUS_AVAILABLE,
+    SNAPD_THEME_STATUS_UNAVAILABLE,
+} SnapdThemeStatus;
+
+/**
  * SnapdProgressCallback:
  * @client: a #SnapdClient
  * @change: a #SnapdChange describing the change in progress
@@ -1142,6 +1159,29 @@ void                    snapd_client_download_async                (SnapdClient 
                                                                     gpointer              user_data);
 GBytes                 *snapd_client_download_finish               (SnapdClient          *client,
                                                                     GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_check_themes_sync             (SnapdClient          *client,
+                                                                    GStrv                 gtk_theme_names,
+                                                                    GStrv                 icon_theme_names,
+                                                                    GStrv                 sound_theme_names,
+                                                                    GHashTable          **gtk_theme_status,
+                                                                    GHashTable          **icon_theme_status,
+                                                                    GHashTable          **sound_theme_status,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_check_themes_async            (SnapdClient          *client,
+                                                                    GStrv                 gtk_theme_names,
+                                                                    GStrv                 icon_theme_names,
+                                                                    GStrv                 sound_theme_names,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_check_themes_finish           (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GHashTable          **gtk_theme_status,
+                                                                    GHashTable          **icon_theme_status,
+                                                                    GHashTable          **sound_theme_status,
                                                                     GError              **error);
 
 G_END_DECLS
