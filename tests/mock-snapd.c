@@ -4568,8 +4568,28 @@ handle_download (MockSnapd *self, SoupMessage *message)
     send_response (message, 200, "application/octet-stream", (const guint8 *) contents->str, contents->len);
 }
 
+static int
+count_available_themes (JsonObject *o, const char *theme_type, GHashTable *theme_status) {
+    guint i, length;
+    int available = 0;
+    JsonArray *themes = json_object_get_array_member (o, theme_type);
+
+    if (themes == NULL)
+        return 0;
+
+    length = json_array_get_length (themes);
+    for (i = 0; i < length; i++) {
+        const char *theme_name = json_array_get_string_element (themes, i);
+        if (theme_name == NULL)
+            continue;
+        if (g_strcmp0 (g_hash_table_lookup (theme_status, theme_name), "available") == 0)
+            available++;
+    }
+    return available;
+}
+
 static void
-handle_theme_status (MockSnapd *self, SoupMessage *message)
+handle_themes (MockSnapd *self, SoupMessage *message)
 {
     if (strcmp (message->method, "GET") == 0) {
         SoupURI *uri = soup_message_get_uri (message);
@@ -4619,9 +4639,33 @@ handle_theme_status (MockSnapd *self, SoupMessage *message)
         json_builder_end_object (builder);
 
         send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+    } else if (strcmp (message->method, "POST") == 0) {
+        g_autoptr(JsonNode) request = get_json (message);
+        if (request == NULL) {
+            send_error_bad_request (self, message, "unknown content type", NULL);
+            return;
+        }
+        JsonObject *o = json_node_get_object (request);
+        int available = 0;
+
+        available += count_available_themes (o, "gtk-themes", self->gtk_theme_status);
+        available += count_available_themes (o, "icon-themes", self->icon_theme_status);
+        available += count_available_themes (o, "sound-themes", self->sound_theme_status);
+        if (available == 0) {
+            send_error_bad_request (self, message, "no snaps to install", NULL);
+            return;
+        }
+
+        MockChange *change = add_change (self);
+        mock_change_set_spawn_time (change, self->spawn_time);
+        mock_change_set_ready_time (change, self->ready_time);
+        MockTask *task = mock_change_add_task (change, "install");
+        task->snap = mock_snap_new ("theme-snap");
+        mock_snap_set_channel (task->snap, "stable");
+        mock_snap_set_revision (task->snap, "1");
+        send_async_response (self, message, 202, change->id);
     } else {
         send_error_method_not_allowed (self, message, "method not allowed");
-        return;
     }
 }
 
@@ -4699,7 +4743,7 @@ handle_request (SoupServer        *server,
     else if (strcmp (path, "/v2/download") == 0)
         handle_download (self, message);
     else if (strcmp (path, "/v2/accessories/themes") == 0)
-        handle_theme_status (self, message);
+        handle_themes (self, message);
     else
         send_error_not_found (self, message, "not found", NULL);
 }

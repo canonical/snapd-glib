@@ -48,6 +48,7 @@
 #include "requests/snapd-post-snap-try.h"
 #include "requests/snapd-post-snaps.h"
 #include "requests/snapd-post-snapctl.h"
+#include "requests/snapd-post-themes.h"
 #include "requests/snapd-put-snap-conf.h"
 
 /**
@@ -4015,7 +4016,7 @@ snapd_client_check_themes_async (SnapdClient *self,
  *
  * Returns: %TRUE on success.
  *
- * Since: 1.54
+ * Since: 1.60
  */
 gboolean
 snapd_client_check_themes_finish (SnapdClient *self, GAsyncResult *result, GHashTable **gtk_theme_status, GHashTable **icon_theme_status, GHashTable **sound_theme_status, GError **error)
@@ -4036,6 +4037,54 @@ snapd_client_check_themes_finish (SnapdClient *self, GAsyncResult *result, GHash
         *sound_theme_status = g_hash_table_ref (_snapd_get_themes_get_sound_theme_status (request));
 
     return TRUE;
+}
+
+/**
+ * snapd_client_install_themes_async:
+ * @client: a #SnapdClient.
+ * @gtk_theme_names: (allow-none): a list of GTK theme names.
+ * @icon_theme_names: (allow-none): a list of icon theme names.
+ * @sound_theme_names: (allow-none): a list of sound theme names.
+ * @progress_callback: (allow-none) (scope call): function to callback with progress.
+ * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously install snaps that provide the requested desktop themes.
+ * See snapd_client_install_themes_sync() for more information.
+ *
+ * Since: 1.60
+ */
+void
+snapd_client_install_themes_async (SnapdClient *self, GStrv gtk_theme_names, GStrv icon_theme_names, GStrv sound_theme_names, SnapdProgressCallback progress_callback, gpointer progress_callback_data, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdPostThemes) request = _snapd_post_themes_new (gtk_theme_names, icon_theme_names, sound_theme_names, progress_callback, progress_callback_data, cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_install_themes_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_install_themes_async().
+ * See snapd_client_install_themes_sync() for more information.
+ *
+ * Returns: %TRUE on success.
+ *
+ * Since: 1.60
+ */
+gboolean
+snapd_client_install_themes_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+    g_return_val_if_fail (SNAPD_IS_POST_THEMES (result), FALSE);
+
+    return _snapd_request_propagate_error (SNAPD_REQUEST (result), error);
 }
 
 /**
