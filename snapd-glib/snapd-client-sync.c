@@ -1704,9 +1704,9 @@ snapd_client_download_sync (SnapdClient *self,
  * @gtk_theme_names: (allow-none): a list of GTK theme names.
  * @icon_theme_names: (allow-none): a list of icon theme names.
  * @sound_theme_names: (allow-none): a list of sound theme names.
- * @gtk_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of GTK themes.
- * @icon_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of icon themes.
- * @sound_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of sound themes.
+ * @gtk_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus): status of GTK themes.
+ * @icon_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus): status of icon themes.
+ * @sound_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus): status of sound themes.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *

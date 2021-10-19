@@ -4006,9 +4006,9 @@ snapd_client_check_themes_async (SnapdClient *self,
  * snapd_client_check_themes_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
- * @gtk_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of GTK themes.
- * @icon_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of icon themes.
- * @sound_theme_status: (transfer container) (element-type utf8 SnapdThemeStatus): status of sound themes.
+ * @gtk_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus): status of GTK themes.
+ * @icon_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus): status of icon themes.
+ * @sound_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus): status of sound themes.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Complete request started with snapd_client_check_themes_async().
