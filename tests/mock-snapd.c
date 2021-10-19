@@ -4593,9 +4593,6 @@ handle_themes (MockSnapd *self, SoupMessage *message)
 {
     if (strcmp (message->method, "GET") == 0) {
         SoupURI *uri = soup_message_get_uri (message);
-        GUriParamsIter iter;
-        char *attr, *value;
-        g_autoptr(GError) error = NULL;
         g_autoptr(JsonBuilder) gtk_themes = json_builder_new ();
         g_autoptr(JsonBuilder) icon_themes = json_builder_new ();
         g_autoptr(JsonBuilder) sound_themes = json_builder_new ();
@@ -4605,8 +4602,15 @@ handle_themes (MockSnapd *self, SoupMessage *message)
         json_builder_begin_object (sound_themes);
         /* We are parsing the query parameters manually because the
          * GHashTable API loses duplicate values */
-        g_uri_params_iter_init (&iter, soup_uri_get_query (uri), -1, "&", G_URI_PARAMS_NONE);
-        while (g_uri_params_iter_next (&iter, &attr, &value, &error)) {
+        g_auto(GStrv) pairs = g_strsplit (soup_uri_get_query (uri), "&", -1);
+        char *const *pair;
+        for (pair = pairs; *pair != NULL; pair++) {
+            char *eq = strchr (*pair, '=');
+            if (!eq)
+                continue;
+            *eq = '\0';
+            g_autofree char *attr = soup_uri_decode (*pair);
+            g_autofree char *value = soup_uri_decode (eq + 1);
             if (strcmp (attr, "gtk-theme") == 0) {
                 const char *status = g_hash_table_lookup (self->gtk_theme_status, value);
                 json_builder_set_member_name (gtk_themes, value);
@@ -4620,9 +4624,6 @@ handle_themes (MockSnapd *self, SoupMessage *message)
                 json_builder_set_member_name (sound_themes, value);
                 json_builder_add_string_value (sound_themes, status ? status : "unavailable");
             }
-        }
-        if (error) {
-            g_warning ("Error parsing query parameters: %s", error->message);
         }
         json_builder_end_object (gtk_themes);
         json_builder_end_object (icon_themes);
