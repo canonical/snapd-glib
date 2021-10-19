@@ -1184,6 +1184,27 @@ gboolean                snapd_client_check_themes_finish           (SnapdClient 
                                                                     GHashTable          **sound_theme_status,
                                                                     GError              **error);
 
+gboolean                snapd_client_install_themes_sync           (SnapdClient          *client,
+                                                                    GStrv                 gtk_theme_names,
+                                                                    GStrv                 icon_theme_names,
+                                                                    GStrv                 sound_theme_names,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_install_themes_async          (SnapdClient          *client,
+                                                                    GStrv                 gtk_theme_names,
+                                                                    GStrv                 icon_theme_names,
+                                                                    GStrv                 sound_theme_names,
+                                                                    SnapdProgressCallback progress_callback,
+                                                                    gpointer              progress_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_install_themes_finish         (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 G_END_DECLS
 
 #endif /* __SNAPD_CLIENT_H__ */

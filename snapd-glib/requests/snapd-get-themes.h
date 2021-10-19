@@ -12,8 +12,6 @@
 
 #include "snapd-request.h"
 
-#include "snapd-snap.h"
-
 G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdGetThemes, snapd_get_themes, SNAPD, GET_THEMES, SnapdRequest)
