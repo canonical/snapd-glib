@@ -1710,7 +1710,7 @@ snapd_client_download_sync (SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Check whether the status of snap packaged versions of named desktop
+ * Check the status of snap packaged versions of named desktop
  * themes. For each theme, it will determine whether it is already
  * installed, uninstalled but available on the store, or unavailable.
  *
@@ -1739,9 +1739,9 @@ snapd_client_check_themes_sync (SnapdClient *self, GStrv gtk_theme_names, GStrv 
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Check whether the status of snap packaged versions of named desktop
- * themes. For each theme, it will determine whether it is already
- * installed, uninstalled but available on the store, or unavailable.
+ * Install snaps that provide the named desktop themes. If all the
+ * named themes are in the "installed" or "unavailable" states, then
+ * an error will be returned.
  *
  * Since: 1.60
  */
