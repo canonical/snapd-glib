@@ -794,7 +794,7 @@ snapd_client_disconnect_interface_sync (SnapdClient *self,
  * snapd_client_find_sync:
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
- * @query: query string to send.
+ * @query: (allow-none): query string to send or %NULL to return featured snaps.
  * @suggested_currency: (out) (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
@@ -811,7 +811,6 @@ snapd_client_find_sync (SnapdClient *self,
                         gchar **suggested_currency,
                         GCancellable *cancellable, GError **error)
 {
-    g_return_val_if_fail (query != NULL, NULL);
     return snapd_client_find_section_sync (self, flags, NULL, query, suggested_currency, cancellable, error);
 }
 
