@@ -2346,7 +2346,7 @@ snapd_client_disconnect_interface_finish (SnapdClient *self,
  * snapd_client_find_async:
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdFindFlags to control how the find is performed.
- * @query: query string to send.
+ * @query: (allow-none): query string to send or %NULL to return featured snaps.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -2406,7 +2406,6 @@ snapd_client_find_section_async (SnapdClient *self,
                                  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (self));
-    g_return_if_fail (section != NULL || query != NULL);
 
     g_autoptr(SnapdGetFind) request = _snapd_get_find_new (cancellable, callback, user_data);
     if ((flags & SNAPD_FIND_FLAGS_MATCH_NAME) != 0)
