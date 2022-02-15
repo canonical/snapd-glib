@@ -758,6 +758,24 @@ QSnapdDownloadRequest *QSnapdClient::download (const QString& name, const QStrin
     return new QSnapdDownloadRequest (name, channel, revision, d->client);
 }
 
+QSnapdCheckThemesRequest::~QSnapdCheckThemesRequest ()
+{}
+
+QSnapdCheckThemesRequest *QSnapdClient::checkThemes (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdCheckThemesRequest (gtkThemeNames, iconThemeNames, soundThemeNames, d->client);
+}
+
+QSnapdInstallThemesRequest::~QSnapdInstallThemesRequest ()
+{}
+
+QSnapdInstallThemesRequest *QSnapdClient::installThemes (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdInstallThemesRequest (gtkThemeNames, iconThemeNames, soundThemeNames, d->client);
+}
+
 QSnapdConnectRequest::QSnapdConnectRequest (void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
     d_ptr (new QSnapdConnectRequestPrivate (this)) {}
@@ -3316,4 +3334,146 @@ QByteArray QSnapdDownloadRequest::data () const
     gsize length;
     gchar *raw_data = (gchar *) g_bytes_get_data (d->data, &length);
     return QByteArray::fromRawData (raw_data, length);
+}
+
+QSnapdCheckThemesRequest::QSnapdCheckThemesRequest (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdCheckThemesRequestPrivate (this, gtkThemeNames, iconThemeNames, soundThemeNames)) {}
+
+void QSnapdCheckThemesRequest::runSync ()
+{
+    Q_D(QSnapdCheckThemesRequest);
+
+    g_auto(GStrv) gtk_theme_names = string_list_to_strv (d->gtkThemeNames);
+    g_auto(GStrv) icon_theme_names = string_list_to_strv (d->iconThemeNames);
+    g_auto(GStrv) sound_theme_names = string_list_to_strv (d->soundThemeNames);
+    g_autoptr(GError) error = NULL;
+    snapd_client_check_themes_sync (SNAPD_CLIENT (getClient ()),
+                                    gtk_theme_names,
+                                    icon_theme_names,
+                                    sound_theme_names,
+                                    &d->gtk_theme_status,
+                                    &d->icon_theme_status,
+                                    &d->sound_theme_status,
+                                    G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdCheckThemesRequest::handleResult (void *object, void *result)
+{
+    Q_D(QSnapdCheckThemesRequest);
+
+    g_autoptr(GError) error = NULL;
+    snapd_client_check_themes_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &d->gtk_theme_status, &d->icon_theme_status, &d->sound_theme_status, &error);
+    finish (error);
+}
+
+static void check_themes_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    g_autoptr(CallbackData) callback_data = (CallbackData *) data;
+      if (callback_data->request != NULL) {
+        QSnapdCheckThemesRequest *request = static_cast<QSnapdCheckThemesRequest*>(callback_data->request);
+        request->handleResult (object, result);
+    }
+}
+
+void QSnapdCheckThemesRequest::runAsync ()
+{
+    Q_D(QSnapdCheckThemesRequest);
+
+    g_auto(GStrv) gtk_theme_names = string_list_to_strv (d->gtkThemeNames);
+    g_auto(GStrv) icon_theme_names = string_list_to_strv (d->iconThemeNames);
+    g_auto(GStrv) sound_theme_names = string_list_to_strv (d->soundThemeNames);
+    snapd_client_check_themes_async (SNAPD_CLIENT (getClient ()),
+                                     gtk_theme_names,
+                                     icon_theme_names,
+                                     sound_theme_names,
+                                     G_CANCELLABLE (getCancellable ()), check_themes_ready_cb, g_object_ref (d->callback_data));
+}
+
+static QSnapdCheckThemesRequest::ThemeStatus convertThemeStatus (int status)
+{
+    switch (status)
+    {
+    case SNAPD_THEME_STATUS_INSTALLED:
+        return QSnapdCheckThemesRequest::ThemeInstalled;
+    case SNAPD_THEME_STATUS_AVAILABLE:
+        return QSnapdCheckThemesRequest::ThemeAvailable;
+    default:
+    case SNAPD_THEME_STATUS_UNAVAILABLE:
+        return QSnapdCheckThemesRequest::ThemeUnavailable;
+    }
+}
+
+QSnapdCheckThemesRequest::ThemeStatus QSnapdCheckThemesRequest::gtkThemeStatus (const QString& name) const
+{
+    Q_D(const QSnapdCheckThemesRequest);
+
+    return convertThemeStatus (GPOINTER_TO_INT (g_hash_table_lookup (d->gtk_theme_status, name.toStdString ().c_str ())));
+}
+
+QSnapdCheckThemesRequest::ThemeStatus QSnapdCheckThemesRequest::iconThemeStatus (const QString& name) const
+{
+    Q_D(const QSnapdCheckThemesRequest);
+
+    return convertThemeStatus (GPOINTER_TO_INT (g_hash_table_lookup (d->icon_theme_status, name.toStdString ().c_str ())));
+}
+
+QSnapdCheckThemesRequest::ThemeStatus QSnapdCheckThemesRequest::soundThemeStatus (const QString& name) const
+{
+    Q_D(const QSnapdCheckThemesRequest);
+
+    return convertThemeStatus (GPOINTER_TO_INT (g_hash_table_lookup (d->sound_theme_status, name.toStdString ().c_str ())));
+}
+
+QSnapdInstallThemesRequest::QSnapdInstallThemesRequest (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames, void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdInstallThemesRequestPrivate (this, gtkThemeNames, iconThemeNames, soundThemeNames)) {}
+
+void QSnapdInstallThemesRequest::runSync ()
+{
+    Q_D(QSnapdInstallThemesRequest);
+
+    g_auto(GStrv) gtk_theme_names = string_list_to_strv (d->gtkThemeNames);
+    g_auto(GStrv) icon_theme_names = string_list_to_strv (d->iconThemeNames);
+    g_auto(GStrv) sound_theme_names = string_list_to_strv (d->soundThemeNames);
+    g_autoptr(GError) error = NULL;
+    snapd_client_install_themes_sync (SNAPD_CLIENT (getClient ()),
+                                      gtk_theme_names,
+                                      icon_theme_names,
+                                      sound_theme_names,
+                                      progress_cb, d->callback_data,
+                                      G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdInstallThemesRequest::handleResult (void *object, void *result)
+{
+    g_autoptr(GError) error = NULL;
+    snapd_client_install_themes_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    finish (error);
+}
+
+static void install_themes_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    g_autoptr(CallbackData) callback_data = (CallbackData *) data;
+      if (callback_data->request != NULL) {
+        QSnapdInstallThemesRequest *request = static_cast<QSnapdInstallThemesRequest*>(callback_data->request);
+        request->handleResult (object, result);
+    }
+}
+
+void QSnapdInstallThemesRequest::runAsync ()
+{
+    Q_D(QSnapdInstallThemesRequest);
+
+    g_auto(GStrv) gtk_theme_names = string_list_to_strv (d->gtkThemeNames);
+    g_auto(GStrv) icon_theme_names = string_list_to_strv (d->iconThemeNames);
+    g_auto(GStrv) sound_theme_names = string_list_to_strv (d->soundThemeNames);
+    snapd_client_install_themes_async (SNAPD_CLIENT (getClient ()),
+                                       gtk_theme_names,
+                                       icon_theme_names,
+                                       sound_theme_names,
+                                       progress_cb, d->callback_data,
+                                       G_CANCELLABLE (getCancellable ()), install_themes_ready_cb, g_object_ref (d->callback_data));
 }
