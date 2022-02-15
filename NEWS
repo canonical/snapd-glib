@@ -1,3 +1,18 @@
+Overview of changes in snapd-glib 1.60
+
+    * New API:
+      - snapd_client_check_themes_async
+      - snapd_client_check_themes_finish
+      - snapd_client_check_themes_sync
+      - snapd_client_install_themes_async
+      - snapd_client_install_themes_finish
+      - snapd_client_install_themes_sync
+      - snapd_snap_get_store_url
+    * Support store-url snap field.
+    * Ensure async callbacks don't try to access destroyed Qt request objects.
+    * Add new themes API.
+    * Allow empty query in searches.
+
 Overview of changes in snapd-glib 1.59
 
    * New API:
