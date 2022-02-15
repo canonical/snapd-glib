@@ -903,4 +903,49 @@ public:
     GBytes *data = NULL;
 };
 
+class QSnapdCheckThemesRequestPrivate
+{
+public:
+    QSnapdCheckThemesRequestPrivate (gpointer request, const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames) :
+        gtkThemeNames (gtkThemeNames), iconThemeNames (iconThemeNames), soundThemeNames (soundThemeNames) {
+        callback_data = callback_data_new (request);
+    }
+    ~QSnapdCheckThemesRequestPrivate ()
+    {
+        callback_data->request = NULL;
+        g_object_unref (callback_data);
+        if (gtk_theme_status != NULL)
+            g_hash_table_unref (gtk_theme_status);
+        if (icon_theme_status != NULL)
+            g_hash_table_unref (icon_theme_status);
+        if (sound_theme_status != NULL)
+            g_hash_table_unref (sound_theme_status);
+    }
+    QStringList gtkThemeNames;
+    QStringList iconThemeNames;
+    QStringList soundThemeNames;
+    CallbackData *callback_data;
+    GHashTable *gtk_theme_status;
+    GHashTable *icon_theme_status;
+    GHashTable *sound_theme_status;
+};
+
+class QSnapdInstallThemesRequestPrivate
+{
+public:
+    QSnapdInstallThemesRequestPrivate (gpointer request, const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames) :
+        gtkThemeNames (gtkThemeNames), iconThemeNames (iconThemeNames), soundThemeNames (soundThemeNames) {
+        callback_data = callback_data_new (request);
+    }
+    ~QSnapdInstallThemesRequestPrivate ()
+    {
+        callback_data->request = NULL;
+        g_object_unref (callback_data);
+    }
+    QStringList gtkThemeNames;
+    QStringList iconThemeNames;
+    QStringList soundThemeNames;
+    CallbackData *callback_data;
+};
+
 #endif

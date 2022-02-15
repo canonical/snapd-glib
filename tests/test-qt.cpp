@@ -6845,6 +6845,181 @@ test_download_channel_revision ()
 }
 
 static void
+test_themes_check_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme1", "installed");
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme2", "available");
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme3", "unavailable");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme1", "installed");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme2", "available");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme3", "unavailable");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme1", "installed");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme2", "available");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme3", "unavailable");
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdCheckThemesRequest> checkThemesRequest (client.checkThemes (QStringList () << "gtktheme1" << "gtktheme2" << "gtktheme3", QStringList () << "icontheme1" << "icontheme2" << "icontheme3", QStringList() << "soundtheme1" << "soundtheme2" << "soundtheme3"));
+    checkThemesRequest->runSync ();
+    g_assert_cmpint (checkThemesRequest->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (checkThemesRequest->gtkThemeStatus ("gtktheme1"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeInstalled);
+    g_assert_cmpint (checkThemesRequest->gtkThemeStatus ("gtktheme2"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeAvailable);
+    g_assert_cmpint (checkThemesRequest->gtkThemeStatus ("gtktheme3"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeUnavailable);
+
+    g_assert_cmpint (checkThemesRequest->iconThemeStatus ("icontheme1"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeInstalled);
+    g_assert_cmpint (checkThemesRequest->iconThemeStatus ("icontheme2"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeAvailable);
+    g_assert_cmpint (checkThemesRequest->iconThemeStatus ("icontheme3"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeUnavailable);
+
+    g_assert_cmpint (checkThemesRequest->soundThemeStatus ("soundtheme1"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeInstalled);
+    g_assert_cmpint (checkThemesRequest->soundThemeStatus ("soundtheme2"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeAvailable);
+    g_assert_cmpint (checkThemesRequest->soundThemeStatus ("soundtheme3"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeUnavailable);
+}
+
+void
+CheckThemesHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+
+    g_assert_cmpint (request->gtkThemeStatus ("gtktheme1"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeInstalled);
+    g_assert_cmpint (request->gtkThemeStatus ("gtktheme2"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeAvailable);
+    g_assert_cmpint (request->gtkThemeStatus ("gtktheme3"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeUnavailable);
+
+    g_assert_cmpint (request->iconThemeStatus ("icontheme1"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeInstalled);
+    g_assert_cmpint (request->iconThemeStatus ("icontheme2"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeAvailable);
+    g_assert_cmpint (request->iconThemeStatus ("icontheme3"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeUnavailable);
+
+    g_assert_cmpint (request->soundThemeStatus ("soundtheme1"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeInstalled);
+    g_assert_cmpint (request->soundThemeStatus ("soundtheme2"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeAvailable);
+    g_assert_cmpint (request->soundThemeStatus ("soundtheme3"), ==, QSnapdCheckThemesRequest::ThemeStatus::ThemeUnavailable);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_themes_check_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme1", "installed");
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme2", "available");
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme3", "unavailable");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme1", "installed");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme2", "available");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme3", "unavailable");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme1", "installed");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme2", "available");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme3", "unavailable");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    CheckThemesHandler checkThemesHandler (loop, client.checkThemes (QStringList () << "gtktheme1" << "gtktheme2" << "gtktheme3", QStringList () << "icontheme1" << "icontheme2" << "icontheme3", QStringList() << "soundtheme1" << "soundtheme2" << "soundtheme3"));
+    QObject::connect (checkThemesHandler.request, &QSnapdCheckThemesRequest::complete, &checkThemesHandler, &CheckThemesHandler::onComplete);
+    checkThemesHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
+static void
+test_themes_install_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme1", "available");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme1", "available");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme1", "available");
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdInstallThemesRequest> installThemesRequest (client.installThemes (QStringList ("gtktheme1"), QStringList ("icontheme1"), QStringList("soundtheme1")));
+    installThemesRequest->runSync ();
+    g_assert_cmpint (installThemesRequest->error (), ==, QSnapdRequest::NoError);
+}
+
+void
+InstallThemesHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_themes_install_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme1", "available");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme1", "available");
+    mock_snapd_set_sound_theme_status (snapd, "soundtheme1", "available");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    InstallThemesHandler installThemesHandler (loop, client.installThemes (QStringList ("gtktheme1"), QStringList ("icontheme1"), QStringList("soundtheme1")));
+    QObject::connect (installThemesHandler.request, &QSnapdInstallThemesRequest::complete, &installThemesHandler, &InstallThemesHandler::onComplete);
+    installThemesHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
+static void
+test_themes_install_no_snaps (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme1", "installed");
+    mock_snapd_set_icon_theme_status (snapd, "icontheme1", "unavailable");
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdInstallThemesRequest> installThemesRequest (client.installThemes (QStringList ("gtktheme1"), QStringList ("icontheme1"), QStringList()));
+    installThemesRequest->runSync ();
+    g_assert_cmpint (installThemesRequest->error (), ==, QSnapdRequest::BadRequest);
+}
+
+static void
+test_themes_install_progress (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_set_spawn_time (snapd, "2017-01-02T11:23:58Z");
+    mock_snapd_set_ready_time (snapd, "2017-01-03T00:00:00Z");
+    mock_snapd_set_gtk_theme_status (snapd, "gtktheme1", "available");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdInstallThemesRequest> installThemesRequest (client.installThemes (QStringList ("gtktheme1"), QStringList ("icontheme1"), QStringList()));
+    ProgressCounter counter;
+    QObject::connect (installThemesRequest.data (), SIGNAL (progress ()), &counter, SLOT (progress ()));
+    installThemesRequest->runSync ();
+    g_assert_cmpint (installThemesRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (counter.progressDone, >, 0);
+}
+
+static void
 test_stress ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -7108,6 +7283,12 @@ main (int argc, char **argv)
     g_test_add_func ("/download/sync", test_download_sync);
     g_test_add_func ("/download/async", test_download_async);
     g_test_add_func ("/download/channel-revision", test_download_channel_revision);
+    g_test_add_func ("/themes/check/sync", test_themes_check_sync);
+    g_test_add_func ("/themes/check/async", test_themes_check_async);
+    g_test_add_func ("/themes/install/sync", test_themes_install_sync);
+    g_test_add_func ("/themes/install/async", test_themes_install_async);
+    g_test_add_func ("/themes/install/no-snaps", test_themes_install_no_snaps);
+    g_test_add_func ("/themes/install/progress", test_themes_install_progress);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();

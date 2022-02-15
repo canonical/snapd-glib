@@ -888,3 +888,37 @@ public:
 public slots:
     void onComplete ();
 };
+
+class CheckThemesHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    CheckThemesHandler (GMainLoop *loop, QSnapdCheckThemesRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdCheckThemesRequest *request;
+    ~CheckThemesHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class InstallThemesHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    InstallThemesHandler (GMainLoop *loop, QSnapdInstallThemesRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdInstallThemesRequest *request;
+    ~InstallThemesHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};

@@ -899,6 +899,51 @@ private:
     Q_DECLARE_PRIVATE(QSnapdDownloadRequest)
 };
 
+class QSnapdCheckThemesRequestPrivate;
+class Q_DECL_EXPORT QSnapdCheckThemesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    enum ThemeStatus
+    {
+       ThemeInstalled,
+       ThemeAvailable,
+       ThemeUnavailable
+    };
+    Q_ENUM(ThemeStatus)
+
+    explicit QSnapdCheckThemesRequest (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames, void *snapd_client, QObject *parent = 0);
+    ~QSnapdCheckThemesRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE ThemeStatus gtkThemeStatus (const QString& name) const;
+    Q_INVOKABLE ThemeStatus iconThemeStatus (const QString& name) const;
+    Q_INVOKABLE ThemeStatus soundThemeStatus (const QString& name) const;
+    void handleResult (void *, void *);
+
+private:
+    QScopedPointer<QSnapdCheckThemesRequestPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdCheckThemesRequest)
+};
+
+class QSnapdInstallThemesRequestPrivate;
+class Q_DECL_EXPORT QSnapdInstallThemesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdInstallThemesRequest (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames, void *snapd_client, QObject *parent = 0);
+    ~QSnapdInstallThemesRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    void handleResult (void *, void *);
+
+private:
+    QScopedPointer<QSnapdInstallThemesRequestPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdInstallThemesRequest)
+};
+
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password);
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password, const QString& otp);
 
@@ -1067,6 +1112,8 @@ public:
     Q_INVOKABLE QSnapdRunSnapCtlRequest *runSnapCtl (const QString contextId, const QStringList &args);
     Q_INVOKABLE QSnapdDownloadRequest *download (const QString &name);
     Q_INVOKABLE QSnapdDownloadRequest *download (const QString &name, const QString &channel, const QString &revision);
+    Q_INVOKABLE QSnapdCheckThemesRequest *checkThemes (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames);
+    Q_INVOKABLE QSnapdInstallThemesRequest *installThemes (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames);
 
 private:
     QScopedPointer<QSnapdClientPrivate> d_ptr;

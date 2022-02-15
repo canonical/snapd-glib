@@ -8023,7 +8023,6 @@ test_themes_install_progress (void)
     char *icon_themes[] = { "icontheme1", NULL };
     char *sound_themes[] = { NULL };
     gboolean result = snapd_client_install_themes_sync (client, gtk_themes, icon_themes, sound_themes, install_progress_cb, &install_progress_data, NULL, &error);
-;
     g_assert_no_error (error);
     g_assert_true (result);
     g_assert_cmpint (install_progress_data.progress_done, >, 0);
