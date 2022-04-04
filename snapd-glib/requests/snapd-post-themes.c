@@ -32,6 +32,7 @@ _snapd_post_themes_new (GStrv gtk_theme_names, GStrv icon_theme_names, GStrv sou
                                                              "ready-callback-data", user_data,
                                                              "progress-callback", progress_callback,
                                                              "progress-callback-data", progress_callback_data,
+                                                             "accessories-change", TRUE,
                                                              NULL));
     self->gtk_theme_names = g_strdupv (gtk_theme_names);
     self->icon_theme_names = g_strdupv (icon_theme_names);
