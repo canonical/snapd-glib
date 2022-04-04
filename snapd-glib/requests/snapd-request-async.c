@@ -137,6 +137,20 @@ _snapd_request_async_report_progress (SnapdRequestAsync *self, SnapdClient *clie
     }
 }
 
+SnapdGetChange *
+_snapd_request_async_make_get_change_request (SnapdRequestAsync *self)
+{
+    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
+    return _snapd_get_change_new (priv->change_id, NULL, NULL, NULL);
+}
+
+SnapdPostChange *
+_snapd_request_async_make_post_change_request (SnapdRequestAsync *self)
+{
+    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
+    return _snapd_post_change_new (priv->change_id, "abort", NULL, NULL, NULL);
+}
+
 static void
 snapd_request_async_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {

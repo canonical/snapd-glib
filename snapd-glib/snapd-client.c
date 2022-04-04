@@ -227,7 +227,7 @@ async_poll_cb (gpointer data)
 {
     RequestData *d = data;
 
-    g_autoptr(SnapdGetChange) change_request = _snapd_get_change_new (_snapd_request_async_get_change_id (SNAPD_REQUEST_ASYNC (d->request)), NULL, NULL, NULL);
+    g_autoptr(SnapdGetChange) change_request = _snapd_request_async_make_get_change_request (SNAPD_REQUEST_ASYNC (d->request));
     send_request (d->client, SNAPD_REQUEST (change_request));
 
     if (d->poll_source != NULL)
@@ -371,7 +371,7 @@ send_cancel (SnapdClient *self, SnapdRequestAsync *request)
     if (change_request != NULL)
         return;
 
-    change_request = _snapd_post_change_new (_snapd_request_async_get_change_id (request), "abort", NULL, NULL, NULL);
+    change_request = _snapd_request_async_make_post_change_request (request);
     send_request (self, SNAPD_REQUEST (change_request));
 }
 
