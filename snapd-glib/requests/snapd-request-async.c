@@ -17,6 +17,7 @@ enum
 {
     PROP_PROGRESS_CALLBACK = 1,
     PROP_PROGRESS_CALLBACK_DATA,
+    PROP_ACCESSORIES_CHANGE,
     PROP_LAST
 };
 
@@ -24,6 +25,7 @@ typedef struct
 {
     SnapdProgressCallback progress_callback;
     gpointer progress_callback_data;
+    gboolean accessories_change;
 
     /* Returned change ID for this request */
     gchar *change_id;
@@ -141,14 +143,20 @@ SnapdGetChange *
 _snapd_request_async_make_get_change_request (SnapdRequestAsync *self)
 {
     SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
-    return _snapd_get_change_new (priv->change_id, NULL, NULL, NULL);
+    SnapdGetChange *request = _snapd_get_change_new (priv->change_id, NULL, NULL, NULL);
+
+    _snapd_get_change_set_accessories_change (request, priv->accessories_change);
+    return request;
 }
 
 SnapdPostChange *
 _snapd_request_async_make_post_change_request (SnapdRequestAsync *self)
 {
     SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
-    return _snapd_post_change_new (priv->change_id, "abort", NULL, NULL, NULL);
+    SnapdPostChange *request = _snapd_post_change_new (priv->change_id, "abort", NULL, NULL, NULL);
+
+    _snapd_post_change_set_accessories_change (request, priv->accessories_change);
+    return request;
 }
 
 static void
@@ -164,6 +172,9 @@ snapd_request_async_set_property (GObject *object, guint prop_id, const GValue *
         break;
     case PROP_PROGRESS_CALLBACK_DATA:
         priv->progress_callback_data = g_value_get_pointer (value);
+        break;
+    case PROP_ACCESSORIES_CHANGE:
+        priv->accessories_change = g_value_get_boolean (value);;
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -204,6 +215,13 @@ snapd_request_async_class_init (SnapdRequestAsyncClass *klass)
                                     g_param_spec_pointer ("progress-callback-data",
                                                           "progress-callback-data",
                                                           "Data for progress callback",
+                                                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+   g_object_class_install_property (gobject_class,
+                                    PROP_ACCESSORIES_CHANGE,
+                                    g_param_spec_boolean ("accessories-change",
+                                                          "accessories-change",
+                                                          "accessories-change",
+                                                          FALSE,
                                                           G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 }
 

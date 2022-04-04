@@ -19,6 +19,7 @@ struct _SnapdPostChange
     gchar *action;
     SnapdChange *change;
     JsonNode *data;
+    gboolean accessories_change;
 };
 
 G_DEFINE_TYPE (SnapdPostChange, snapd_post_change, snapd_request_get_type ())
@@ -55,12 +56,19 @@ _snapd_post_change_get_data (SnapdPostChange *self)
     return self->data;
 }
 
+void
+_snapd_post_change_set_accessories_change (SnapdPostChange *self,
+                                           gboolean accessories_change)
+{
+    self->accessories_change = accessories_change;
+}
+
 static SoupMessage *
 generate_post_change_request (SnapdRequest *request)
 {
     SnapdPostChange *self = SNAPD_POST_CHANGE (request);
 
-    g_autofree gchar *path = g_strdup_printf ("http://snapd/v2/changes/%s", self->change_id);
+    g_autofree gchar *path = g_strdup_printf ("http://snapd%s/%s", self->accessories_change ? "/v2/accessories/changes" : "/v2/changes", self->change_id);
     SoupMessage *message = soup_message_new ("POST", path);
 
     g_autoptr(JsonBuilder) builder = json_builder_new ();

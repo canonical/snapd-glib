@@ -30,6 +30,9 @@ SnapdChange    *_snapd_get_change_get_change    (SnapdGetChange *request);
 
 JsonNode       *_snapd_get_change_get_data      (SnapdGetChange *request);
 
+void            _snapd_get_change_set_accessories_change (SnapdGetChange *request,
+                                                          gboolean        accessories_change);
+
 G_END_DECLS
 
 #endif /* __SNAPD_GET_CHANGE_H__ */
