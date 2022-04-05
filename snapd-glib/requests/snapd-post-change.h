@@ -31,8 +31,8 @@ SnapdChange     *_snapd_post_change_get_change    (SnapdPostChange *request);
 
 JsonNode        *_snapd_post_change_get_data      (SnapdPostChange *request);
 
-void             _snapd_post_change_set_accessories_change (SnapdPostChange *request,
-                                                            gboolean        accessories_change);
+void             _snapd_post_change_set_api_path  (SnapdPostChange *request,
+                                                   const gchar     *api_path);
 
 G_END_DECLS
 
