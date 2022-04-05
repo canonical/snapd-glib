@@ -17,6 +17,7 @@ enum
 {
     PROP_PROGRESS_CALLBACK = 1,
     PROP_PROGRESS_CALLBACK_DATA,
+    PROP_CHANGE_API_PATH,
     PROP_LAST
 };
 
@@ -24,6 +25,7 @@ typedef struct
 {
     SnapdProgressCallback progress_callback;
     gpointer progress_callback_data;
+    gchar *change_api_path;
 
     /* Returned change ID for this request */
     gchar *change_id;
@@ -137,6 +139,26 @@ _snapd_request_async_report_progress (SnapdRequestAsync *self, SnapdClient *clie
     }
 }
 
+SnapdGetChange *
+_snapd_request_async_make_get_change_request (SnapdRequestAsync *self)
+{
+    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
+    SnapdGetChange *request = _snapd_get_change_new (priv->change_id, NULL, NULL, NULL);
+
+    _snapd_get_change_set_api_path (request, priv->change_api_path);
+    return request;
+}
+
+SnapdPostChange *
+_snapd_request_async_make_post_change_request (SnapdRequestAsync *self)
+{
+    SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
+    SnapdPostChange *request = _snapd_post_change_new (priv->change_id, "abort", NULL, NULL, NULL);
+
+    _snapd_post_change_set_api_path (request, priv->change_api_path);
+    return request;
+}
+
 static void
 snapd_request_async_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
@@ -150,6 +172,10 @@ snapd_request_async_set_property (GObject *object, guint prop_id, const GValue *
         break;
     case PROP_PROGRESS_CALLBACK_DATA:
         priv->progress_callback_data = g_value_get_pointer (value);
+        break;
+    case PROP_CHANGE_API_PATH:
+        g_free (priv->change_api_path);
+        priv->change_api_path = g_value_dup_string (value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -190,6 +216,13 @@ snapd_request_async_class_init (SnapdRequestAsyncClass *klass)
                                     g_param_spec_pointer ("progress-callback-data",
                                                           "progress-callback-data",
                                                           "Data for progress callback",
+                                                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+   g_object_class_install_property (gobject_class,
+                                    PROP_CHANGE_API_PATH,
+                                    g_param_spec_string ("change-api-path",
+                                                          "change-api-path",
+                                                          "change-api-path",
+                                                          NULL,
                                                           G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
 }
 

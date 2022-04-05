@@ -4745,6 +4745,8 @@ handle_request (SoupServer        *server,
         handle_download (self, message);
     else if (strcmp (path, "/v2/accessories/themes") == 0)
         handle_themes (self, message);
+    else if (g_str_has_prefix (path, "/v2/accessories/changes/"))
+        handle_change (self, message, path + strlen ("/v2/accessories/changes/"));
     else
         send_error_not_found (self, message, "not found", NULL);
 }

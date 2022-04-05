@@ -19,6 +19,7 @@ struct _SnapdPostChange
     gchar *action;
     SnapdChange *change;
     JsonNode *data;
+    gchar *api_path;
 };
 
 G_DEFINE_TYPE (SnapdPostChange, snapd_post_change, snapd_request_get_type ())
@@ -55,12 +56,19 @@ _snapd_post_change_get_data (SnapdPostChange *self)
     return self->data;
 }
 
+void
+_snapd_post_change_set_api_path (SnapdPostChange *self, const gchar *api_path)
+{
+    g_free (self->api_path);
+    self->api_path = g_strdup (api_path);
+}
+
 static SoupMessage *
 generate_post_change_request (SnapdRequest *request)
 {
     SnapdPostChange *self = SNAPD_POST_CHANGE (request);
 
-    g_autofree gchar *path = g_strdup_printf ("http://snapd/v2/changes/%s", self->change_id);
+    g_autofree gchar *path = g_strdup_printf ("http://snapd%s/%s", self->api_path ? self->api_path : "/v2/changes", self->change_id);
     SoupMessage *message = soup_message_new ("POST", path);
 
     g_autoptr(JsonBuilder) builder = json_builder_new ();
@@ -115,6 +123,7 @@ snapd_post_change_finalize (GObject *object)
     g_clear_pointer (&self->action, g_free);
     g_clear_object (&self->change);
     g_clear_pointer (&self->data, json_node_unref);
+    g_clear_pointer (&self->api_path, g_free);
 
     G_OBJECT_CLASS (snapd_post_change_parent_class)->finalize (object);
 }
