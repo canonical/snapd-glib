@@ -381,8 +381,9 @@ _snapd_json_parse_response (SoupMessage *message, SnapdMaintenance **maintenance
 
     g_autoptr(JsonParser) parser = json_parser_new ();
     g_autoptr(SoupBuffer) buffer = soup_message_body_flatten (message->response_body);
+    g_autoptr(GBytes) body = g_bytes_new (buffer->data, buffer->length);
     g_autoptr(GError) error_local = NULL;
-    if (!json_parser_load_from_data (parser, buffer->data, buffer->length, &error_local)) {
+    if (!json_parser_load_from_data (parser, g_bytes_get_data (body, NULL), g_bytes_get_size (body), &error_local)) {
         g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_RESPONSE, "Unable to parse snapd response: %s", error_local->message);
         return NULL;
     }

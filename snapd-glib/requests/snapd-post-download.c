@@ -79,8 +79,7 @@ parse_post_download_response (SnapdRequest *request, SoupMessage *message, Snapd
     }
 
     g_autoptr(SoupBuffer) buffer = soup_message_body_flatten (message->response_body);
-    g_autoptr(GBytes) data = soup_buffer_get_as_bytes (buffer);
-    self->data = g_steal_pointer (&data);
+    self->data = soup_buffer_get_as_bytes (buffer);
 
     return TRUE;
 }
