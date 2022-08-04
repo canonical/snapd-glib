@@ -1014,7 +1014,7 @@ mock_snapd_add_store_snap (MockSnapd *self, const gchar *name)
 }
 
 static MockSnap *
-find_store_snap_by_name (MockSnapd *self, const gchar *name, const gchar *channel,  const gchar *revision)
+find_store_snap_by_name (MockSnapd *self, const gchar *name, const gchar *channel, const gchar *revision)
 {
     for (GList *link = self->store_snaps; link; link = link->next) {
         MockSnap *snap = link->data;
