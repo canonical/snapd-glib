@@ -45,10 +45,11 @@ generate_get_icon_request (SnapdRequest *request)
 {
     SnapdGetIcon *self = SNAPD_GET_ICON (request);
 
-    g_autofree gchar *escaped = soup_uri_encode (self->name, NULL);
-    g_autofree gchar *path = g_strdup_printf ("http://snapd/v2/icons/%s/icon", escaped);
+    g_autoptr(GString) path = g_string_new ("http://snapd/v2/icons/");
+    g_string_append_uri_escaped (path, self->name, NULL, TRUE);
+    g_string_append (path, "/icon");
 
-    return soup_message_new ("GET", path);
+    return soup_message_new ("GET", path->str);
 }
 
 static gboolean

@@ -64,18 +64,14 @@ _snapd_get_themes_get_sound_theme_status (SnapdGetThemes *self)
 static void
 add_theme_names (GString *path, gboolean *first_param, const char *theme_type, GStrv theme_names)
 {
-    char *const *name;
-
     if (theme_names == NULL)
         return;
 
-    for (name = theme_names; *name != NULL; name++) {
-        g_autofree gchar *escaped = soup_uri_encode (*name, NULL);
-
+    for (gchar * const *name = theme_names; *name != NULL; name++) {
         g_string_append_c (path, *first_param ? '?' : '&');
         *first_param = FALSE;
         g_string_append (path, theme_type);
-        g_string_append (path, escaped);
+        g_string_append_uri_escaped (path, *name, NULL, TRUE);
     }
 }
 
