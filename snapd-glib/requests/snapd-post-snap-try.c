@@ -45,7 +45,11 @@ append_multipart_value (SoupMultipart *multipart, const gchar *name, const gchar
     g_autoptr(GHashTable) params = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_hash_table_insert (params, g_strdup ("name"), g_strdup (name));
     soup_message_headers_set_content_disposition (headers, "form-data", params);
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    g_autoptr(GBytes) buffer = g_bytes_new (value, strlen (value));
+#else
     g_autoptr(SoupBuffer) buffer = soup_buffer_new_take ((guchar *) g_strdup (value), strlen (value));
+#endif
     soup_multipart_append_part (multipart, headers, buffer);
 }
 
@@ -59,10 +63,14 @@ generate_post_snap_try_request (SnapdRequest *request, GBytes **body)
     g_autoptr(SoupMultipart) multipart = soup_multipart_new ("multipart/form-data");
     append_multipart_value (multipart, "action", "try");
     append_multipart_value (multipart, "snap-path", self->path);
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    soup_multipart_to_message (multipart, soup_message_get_request_headers (message), body);
+#else
     g_autoptr(SoupMessageBody) b = soup_message_body_new ();
     soup_multipart_to_message (multipart, message->request_headers, b);
     g_autoptr(SoupBuffer) buffer = soup_message_body_flatten (b);
     *body = g_bytes_new (buffer->data, buffer->length);
+#endif
 
     return message;
 }

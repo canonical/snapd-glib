@@ -21,7 +21,11 @@
 void
 _snapd_json_set_body (SoupMessage *message, JsonBuilder *builder, GBytes **body)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    SoupMessageHeaders *request_headers = soup_message_get_request_headers (message);
+#else
     SoupMessageHeaders *request_headers = message->request_headers;
+#endif
     soup_message_headers_set_content_type (request_headers, "application/json", NULL);
 
     g_autoptr(JsonNode) json_root = json_builder_get_root (builder);

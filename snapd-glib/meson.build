@@ -1,4 +1,9 @@
-install_header_dir = join_paths (includedir, 'snapd-glib', 'snapd-glib')
+library_name = 'snapd-glib'
+if not get_option('soup2')
+  library_name += '-2'
+endif
+
+install_header_dir = join_paths (includedir, library_name, 'snapd-glib')
 
 source_h = [
   'snapd-alias.h',
@@ -151,7 +156,7 @@ snapd_glib_enums = gnome.mkenums ('snapd-enum-types',
                                   h_template: 'snapd-enum-types.h.in',
                                   install_header: true,
                                   install_dir: install_header_dir)
-snapd_glib_lib = library ('snapd-glib',
+snapd_glib_lib = library (library_name,
                           source_private_c + source_c + source_private_h + source_h, snapd_glib_enums,
                           version: '1.0.0',
                           include_directories: include_directories ('..'),
@@ -170,17 +175,21 @@ install_headers (source_h + [ 'snapd-glib.h' ],
 
 pc = import ('pkgconfig')
 pc.generate (libraries: [ snapd_glib_lib ],
-             filebase: 'snapd-glib',
+             filebase: library_name,
              name: 'Snapd GLib',
              description: 'Libary for accessing snapd',
              version: meson.project_version (),
              subdirs: 'snapd-glib')
 
 if get_option ('introspection')
+  nsversion = '2'
+  if get_option('soup2')
+    nsversion = '1'
+  endif
   snapd_glib_gir = gnome.generate_gir (snapd_glib_lib,
                                        sources: source_c + source_h + snapd_glib_enums,
                                        namespace: 'Snapd',
-                                       nsversion: '1',
+                                       nsversion: nsversion,
                                        export_packages: 'snapd-glib',
                                        header: 'snapd-glib/snapd-glib.h',
                                        includes: [ 'GObject-2.0', 'Gio-2.0' ],
@@ -188,7 +197,7 @@ if get_option ('introspection')
                                        extra_args: [ '-DSNAPD_COMPILATION=1' ])
 
   if get_option ('vala-bindings')
-    gnome.generate_vapi ('snapd-glib',
+    gnome.generate_vapi (library_name,
                          sources: snapd_glib_gir[0],
                          packages: 'gio-2.0',
                          install: true)

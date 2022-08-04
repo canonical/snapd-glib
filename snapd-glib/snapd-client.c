@@ -784,7 +784,11 @@ send_request (SnapdClient *self, SnapdRequest *request)
 
     g_autoptr(GBytes) body = NULL;
     SoupMessage *message = _snapd_request_get_message (request, &body);
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    SoupMessageHeaders *request_headers = soup_message_get_request_headers (message);
+#else
     SoupMessageHeaders *request_headers = message->request_headers;
+#endif
     soup_message_headers_append (request_headers, "Host", "");
     soup_message_headers_append (request_headers, "Connection", "keep-alive");
     if (priv->user_agent != NULL)
@@ -807,13 +811,23 @@ send_request (SnapdClient *self, SnapdRequest *request)
     if (body != NULL)
         soup_message_headers_set_content_length (request_headers, g_bytes_get_size (body));
 
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
     g_autoptr(GByteArray) request_data = g_byte_array_new ();
     append_string (request_data, method);
     append_string (request_data, " ");
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    GUri *uri = soup_message_get_uri (message);
+    const gchar *uri_path = g_uri_get_path (uri);
+    const gchar *uri_query = g_uri_get_query (uri);
+#else
     SoupURI *uri = soup_message_get_uri (message);
     const gchar *uri_path = uri->path;
     const gchar *uri_query = uri->query;
+#endif
     append_string (request_data, uri_path);
     if (uri_query != NULL) {
         append_string (request_data, "?");

@@ -13,3 +13,6 @@ option('qt-bindings',
 option('qml-bindings',
        type: 'boolean', value: true,
        description: 'Build the QML bindings (requires the Qt bindings)')
+option('soup2',
+       type: 'boolean', value: false,
+       description: 'Whether to build with libsoup2')

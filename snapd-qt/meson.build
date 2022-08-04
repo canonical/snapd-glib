@@ -1,6 +1,16 @@
-install_header_dir = join_paths (includedir, 'snapd-qt', 'Snapd')
-qml_dir = join_paths (libdir, 'qt5', 'qml', 'Snapd')
-cmake_dir = join_paths (libdir, 'cmake', 'Snapd')
+library_name = 'snapd-qt'
+if not get_option('soup2')
+  library_name += '-2'
+endif
+
+qt_name= 'Snapd'
+if not get_option('soup2')
+  qt_name += '2'
+endif
+
+install_header_dir = join_paths (includedir, library_name, 'Snapd')
+qml_dir = join_paths (libdir, 'qt5', 'qml', qt_name)
+cmake_dir = join_paths (libdir, 'cmake', qt_name)
 
 source_cpp = [
   'alias.cpp',
@@ -102,7 +112,7 @@ if get_option ('qt-bindings')
   moc_files = qt5.preprocess (moc_headers: [ source_h, source_private_h ],
                               dependencies: [ qt5_core_dep, qt5_network_dep ])
 
-  snapd_qt_lib = library ('snapd-qt',
+  snapd_qt_lib = library (library_name,
                           source_cpp, moc_files,
                           version: '1.0.0',
                           dependencies: [ qt5_core_dep, qt5_network_dep, glib_dep, gio_dep, snapd_glib_dep ],
@@ -118,7 +128,7 @@ if get_option ('qt-bindings')
 
   pc = import ('pkgconfig')
   pc.generate (libraries: snapd_qt_lib,
-               filebase: 'snapd-qt',
+               filebase: library_name,
                name: 'Snapd Qt',
                description: 'Libary for accessing snapd',
                version: meson.project_version ())
@@ -130,6 +140,7 @@ if get_option ('qt-bindings')
   cmake_conf.set ('libdir', libdir)
   cmake_conf.set ('includedir', includedir)
   cmake_conf.set ('version', meson.project_version ())
+  cmake_conf.set ('library_name', library_name)
   cmake_file = configure_file (input: 'SnapdConfig.cmake.in',
                                output: 'SnapdConfig.cmake',
                                configuration: cmake_conf)
@@ -145,7 +156,7 @@ if get_option ('qt-bindings')
 
     qml_moc_files = qt5.preprocess (moc_headers: 'qml-plugin.h',
                                     dependencies: qml_dep)
-    library ('Snapd',
+    library (qt_name,
              'qml-plugin.cpp', qml_moc_files,
              dependencies: [ qml_dep, snapd_qt_dep ],
              build_rpath: qml_dir,

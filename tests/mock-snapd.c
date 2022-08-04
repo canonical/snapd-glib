@@ -20,6 +20,11 @@
 
 #include "mock-snapd.h"
 
+/* For soup 2 pretend to use the new server API */
+#if !SOUP_CHECK_VERSION (2, 99, 2)
+typedef SoupMessage SoupServerMessage;
+#endif
+
 struct _MockSnapd
 {
     GObject parent_instance;
@@ -1847,19 +1852,24 @@ mock_change_free (MockChange *change)
 }
 
 static void
-send_response (SoupMessage *message, guint status_code, const gchar *content_type, const guint8 *content, gsize content_length)
+send_response (SoupServerMessage *message, guint status_code, const gchar *content_type, const guint8 *content, gsize content_length)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    soup_server_message_set_status (message, status_code, NULL);
+    SoupMessageHeaders *response_headers = soup_server_message_get_response_headers(message);
+    SoupMessageBody *response_body = soup_server_message_get_response_body (message);
+#else
+    soup_message_set_status (message, status_code);
     SoupMessageHeaders *response_headers = message->response_headers;
     SoupMessageBody *response_body = message->response_body;
-    soup_message_set_status (message, status_code);
-    soup_message_headers_set_content_type (response_headers, content_type, NULL);
+#endif
     soup_message_headers_set_content_length (response_headers, content_length);
-
+    soup_message_headers_set_content_type (response_headers, content_type, NULL);
     soup_message_body_append (response_body, SOUP_MEMORY_COPY, content, content_length);
 }
 
 static void
-send_json_response (SoupMessage *message, guint status_code, JsonNode *node)
+send_json_response (SoupServerMessage *message, guint status_code, JsonNode *node)
 {
     g_autoptr(JsonGenerator) generator = json_generator_new ();
     json_generator_set_root (generator, node);
@@ -1908,21 +1918,21 @@ make_response (MockSnapd *self, const gchar *type, guint status_code, JsonNode *
 }
 
 static void
-send_sync_response (MockSnapd *self, SoupMessage *message, guint status_code, JsonNode *result, const gchar *suggested_currency)
+send_sync_response (MockSnapd *self, SoupServerMessage *message, guint status_code, JsonNode *result, const gchar *suggested_currency)
 {
     g_autoptr(JsonNode) response = make_response (self, "sync", status_code, result, NULL, suggested_currency);
     send_json_response (message, status_code, response);
 }
 
 static void
-send_async_response (MockSnapd *self, SoupMessage *message, guint status_code, const gchar *change_id)
+send_async_response (MockSnapd *self, SoupServerMessage *message, guint status_code, const gchar *change_id)
 {
     g_autoptr(JsonNode) response = make_response (self, "async", status_code, NULL, change_id, NULL);
     send_json_response (message, status_code, response);
 }
 
 static void
-send_error_response (MockSnapd *self, SoupMessage *message, guint status_code, const gchar *error_message, const gchar *kind, JsonNode *error_value)
+send_error_response (MockSnapd *self, SoupServerMessage *message, guint status_code, const gchar *error_message, const gchar *kind, JsonNode *error_value)
 {
     g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
@@ -1943,39 +1953,43 @@ send_error_response (MockSnapd *self, SoupMessage *message, guint status_code, c
 }
 
 static void
-send_error_bad_request (MockSnapd *self, SoupMessage *message, const gchar *error_message, const gchar *kind)
+send_error_bad_request (MockSnapd *self, SoupServerMessage *message, const gchar *error_message, const gchar *kind)
 {
     send_error_response (self, message, 400, error_message, kind, NULL);
 }
 
 static void
-send_error_unauthorized (MockSnapd *self, SoupMessage *message, const gchar *error_message, const gchar *kind)
+send_error_unauthorized (MockSnapd *self, SoupServerMessage *message, const gchar *error_message, const gchar *kind)
 {
     send_error_response (self, message, 401, error_message, kind, NULL);
 }
 
 static void
-send_error_forbidden (MockSnapd *self, SoupMessage *message, const gchar *error_message, const gchar *kind)
+send_error_forbidden (MockSnapd *self, SoupServerMessage *message, const gchar *error_message, const gchar *kind)
 {
     send_error_response (self, message, 403, error_message, kind, NULL);
 }
 
 static void
-send_error_not_found (MockSnapd *self, SoupMessage *message, const gchar *error_message, const gchar *kind)
+send_error_not_found (MockSnapd *self, SoupServerMessage *message, const gchar *error_message, const gchar *kind)
 {
     send_error_response (self, message, 404, error_message, kind, NULL);
 }
 
 static void
-send_error_method_not_allowed (MockSnapd *self, SoupMessage *message, const gchar *error_message)
+send_error_method_not_allowed (MockSnapd *self, SoupServerMessage *message, const gchar *error_message)
 {
     send_error_response (self, message, 405, error_message, NULL, NULL);
 }
 
 static void
-handle_system_info (MockSnapd *self, SoupMessage *message)
+handle_system_info (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -2138,9 +2152,13 @@ parse_macaroon (const gchar *authorization, gchar **macaroon, GStrv *discharges)
 }
 
 static MockAccount *
-get_account (MockSnapd *self, SoupMessage *message)
+get_account (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    SoupMessageHeaders *request_headers = soup_server_message_get_request_headers (message);
+#else
     SoupMessageHeaders *request_headers = message->request_headers;
+#endif
     const gchar *authorization = soup_message_headers_get_one (request_headers, "Authorization");
     if (authorization == NULL)
         return NULL;
@@ -2154,10 +2172,15 @@ get_account (MockSnapd *self, SoupMessage *message)
 }
 
 static JsonNode *
-get_json (SoupMessage *message)
+get_json (SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    SoupMessageHeaders *request_headers = soup_server_message_get_request_headers (message);
+    SoupMessageBody *request_body = soup_server_message_get_request_body (message);
+#else
     SoupMessageHeaders *request_headers = message->request_headers;
     SoupMessageBody *request_body = message->request_body;
+#endif
     const gchar *content_type = soup_message_headers_get_content_type (request_headers, NULL);
     if (content_type == NULL)
         return NULL;
@@ -2204,9 +2227,13 @@ add_user_response (JsonBuilder *builder, MockAccount *account, gboolean send_mac
 }
 
 static void
-handle_login (MockSnapd *self, SoupMessage *message)
+handle_login (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "POST") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -2261,9 +2288,13 @@ handle_login (MockSnapd *self, SoupMessage *message)
 }
 
 static void
-handle_logout (MockSnapd *self, SoupMessage *message)
+handle_logout (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "POST") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -2600,11 +2631,17 @@ filter_snaps (GStrv selected_snaps, MockSnap *snap)
 }
 
 static void
-handle_snaps (MockSnapd *self, SoupMessage *message, GHashTable *query)
+handle_snaps (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+    SoupMessageHeaders *request_headers = soup_server_message_get_request_headers (message);
+    SoupMessageBody *request_body = soup_server_message_get_request_body (message);
+#else
     const gchar *method = message->method;
     SoupMessageHeaders *request_headers = message->request_headers;
     SoupMessageBody *request_body = message->request_body;
+#endif
     const gchar *content_type = soup_message_headers_get_content_type (request_headers, NULL);
 
     if (strcmp (method, "GET") == 0) {
@@ -2670,7 +2707,12 @@ handle_snaps (MockSnapd *self, SoupMessage *message, GHashTable *query)
         }
     }
     else if (strcmp (method, "POST") == 0 && g_str_has_prefix (content_type, "multipart/")) {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+        g_autoptr(GBytes) b = g_bytes_new (request_body->data, request_body->length);
+        g_autoptr(SoupMultipart) multipart = soup_multipart_new_from_message (request_headers, b);
+#else
         g_autoptr(SoupMultipart) multipart = soup_multipart_new_from_message (request_headers, request_body);
+#endif
         if (multipart == NULL) {
             send_error_bad_request (self, message, "cannot read POST form", NULL);
             return;
@@ -2682,7 +2724,11 @@ handle_snaps (MockSnapd *self, SoupMessage *message, GHashTable *query)
         g_autofree gchar *snap_path = NULL;
         for (int i = 0; i < soup_multipart_get_length (multipart); i++) {
             SoupMessageHeaders *part_headers;
+#if SOUP_CHECK_VERSION (2, 99, 2)
+            GBytes *part_body;
+#else
             SoupBuffer *part_body;
+#endif
             g_autofree gchar *disposition = NULL;
             g_autoptr(GHashTable) params = NULL;
 
@@ -2693,7 +2739,11 @@ handle_snaps (MockSnapd *self, SoupMessage *message, GHashTable *query)
 
             if (strcmp (disposition, "form-data") == 0) {
                 const gchar *name = g_hash_table_lookup (params, "name");
+#if SOUP_CHECK_VERSION (2, 99, 2)
+                const gchar *value = g_strndup (g_bytes_get_data (part_body, NULL), g_bytes_get_size (part_body));
+#else
                 const gchar *value = g_strndup (part_body->data, part_body->length);
+#endif
 
                 if (g_strcmp0 (name, "action") == 0)
                     action = g_strdup (value);
@@ -2762,9 +2812,13 @@ handle_snaps (MockSnapd *self, SoupMessage *message, GHashTable *query)
 }
 
 static void
-handle_snap (MockSnapd *self, SoupMessage *message, const gchar *name)
+handle_snap (MockSnapd *self, SoupServerMessage *message, const gchar *name)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") == 0) {
         MockSnap *snap = find_snap (self, name);
@@ -2971,9 +3025,13 @@ compare_keys (gconstpointer a, gconstpointer b)
 }
 
 static void
-handle_snap_conf (MockSnapd *self, SoupMessage *message, const gchar *name, GHashTable *query)
+handle_snap_conf (MockSnapd *self, SoupServerMessage *message, const gchar *name, GHashTable *query)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") == 0) {
         MockSnap *snap;
@@ -3062,9 +3120,13 @@ handle_snap_conf (MockSnapd *self, SoupMessage *message, const gchar *name, GHas
 }
 
 static void
-handle_apps (MockSnapd *self, SoupMessage *message, GHashTable *query)
+handle_apps (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -3106,9 +3168,13 @@ handle_apps (MockSnapd *self, SoupMessage *message, GHashTable *query)
 }
 
 static void
-handle_icon (MockSnapd *self, SoupMessage *message, const gchar *path)
+handle_icon (MockSnapd *self, SoupServerMessage *message, const gchar *path)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -3133,10 +3199,15 @@ handle_icon (MockSnapd *self, SoupMessage *message, const gchar *path)
 }
 
 static void
-handle_assertions (MockSnapd *self, SoupMessage *message, const gchar *type)
+handle_assertions (MockSnapd *self, SoupServerMessage *message, const gchar *type)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+    SoupMessageBody *request_body = soup_server_message_get_request_body (message);
+#else
     const gchar *method = message->method;
     SoupMessageBody *request_body = message->request_body;
+#endif
 
     if (strcmp (method, "GET") == 0) {
         g_autoptr(GString) response_content = g_string_new (NULL);
@@ -3419,9 +3490,13 @@ make_interfaces (MockSnapd *self, GHashTable *query, JsonBuilder *builder)
 }
 
 static void
-handle_interfaces (MockSnapd *self, SoupMessage *message, GHashTable *query)
+handle_interfaces (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") == 0) {
         g_autoptr(JsonBuilder) builder = json_builder_new ();
@@ -3583,9 +3658,13 @@ matches_interface_name (MockInterface *interface, const gchar *name)
 }
 
 static void
-handle_connections (MockSnapd *self, SoupMessage *message, GHashTable *query)
+handle_connections (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -3878,9 +3957,13 @@ change_relates_to_snap (MockChange *change, const gchar *snap_name)
 }
 
 static void
-handle_changes (MockSnapd *self, SoupMessage *message, GHashTable *query)
+handle_changes (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -3950,9 +4033,13 @@ mock_change_progress (MockSnapd *self, MockChange *change)
 }
 
 static void
-handle_change (MockSnapd *self, SoupMessage *message, const gchar *change_id)
+handle_change (MockSnapd *self, SoupServerMessage *message, const gchar *change_id)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") == 0) {
         MockChange *change = get_change (self, change_id);
@@ -4044,9 +4131,13 @@ in_section (MockSnap *snap, const gchar *section)
 }
 
 static void
-handle_find (MockSnapd *self, SoupMessage *message, GHashTable *query)
+handle_find (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -4162,9 +4253,13 @@ handle_find (MockSnapd *self, SoupMessage *message, GHashTable *query)
 }
 
 static void
-handle_buy_ready (MockSnapd *self, SoupMessage *message)
+handle_buy_ready (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -4194,9 +4289,13 @@ handle_buy_ready (MockSnapd *self, SoupMessage *message)
 }
 
 static void
-handle_buy (MockSnapd *self, SoupMessage *message)
+handle_buy (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "POST") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -4250,9 +4349,13 @@ handle_buy (MockSnapd *self, SoupMessage *message)
 }
 
 static void
-handle_sections (MockSnapd *self, SoupMessage *message)
+handle_sections (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -4314,9 +4417,13 @@ unalias (MockSnapd *self, const gchar *name)
 }
 
 static void
-handle_aliases (MockSnapd *self, SoupMessage *message)
+handle_aliases (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") == 0) {
         g_autoptr(JsonBuilder) builder = json_builder_new ();
@@ -4439,9 +4546,13 @@ handle_aliases (MockSnapd *self, SoupMessage *message)
 }
 
 static void
-handle_snapctl (MockSnapd *self, SoupMessage *message)
+handle_snapctl (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "POST") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -4492,9 +4603,13 @@ handle_snapctl (MockSnapd *self, SoupMessage *message)
 }
 
 static void
-handle_create_user (MockSnapd *self, SoupMessage *message)
+handle_create_user (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "POST") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -4563,9 +4678,13 @@ handle_create_user (MockSnapd *self, SoupMessage *message)
 }
 
 static void
-handle_users (MockSnapd *self, SoupMessage *message)
+handle_users (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -4583,9 +4702,13 @@ handle_users (MockSnapd *self, SoupMessage *message)
 }
 
 static void
-handle_download (MockSnapd *self, SoupMessage *message)
+handle_download (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "POST") != 0) {
         send_error_method_not_allowed (self, message, "method not allowed");
@@ -4638,13 +4761,22 @@ count_available_themes (JsonObject *o, const char *theme_type, GHashTable *theme
 }
 
 static void
-handle_themes (MockSnapd *self, SoupMessage *message)
+handle_themes (MockSnapd *self, SoupServerMessage *message)
 {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
     const gchar *method = message->method;
+#endif
 
     if (strcmp (method, "GET") == 0) {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+        GUri *uri = soup_server_message_get_uri (message);
+        const gchar *query = g_uri_get_query (uri);
+#else
         SoupURI *uri = soup_message_get_uri (message);
         const char *query = soup_uri_get_query (uri);
+#endif
         g_autoptr(JsonBuilder) gtk_themes = json_builder_new ();
         g_autoptr(JsonBuilder) icon_themes = json_builder_new ();
         g_autoptr(JsonBuilder) sound_themes = json_builder_new ();
@@ -4724,17 +4856,23 @@ handle_themes (MockSnapd *self, SoupMessage *message)
 
 static void
 handle_request (SoupServer        *server,
-                SoupMessage       *message,
+                SoupServerMessage *message,
                 const char        *path,
                 GHashTable        *query,
+#if !SOUP_CHECK_VERSION (2, 99, 2)
                 SoupClientContext *client,
+#endif
                 gpointer           user_data)
 {
     MockSnapd *self = MOCK_SNAPD (user_data);
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
 
     if (self->close_on_request) {
+#if SOUP_CHECK_VERSION (2, 99, 2)
+        g_autoptr(GIOStream) stream = soup_server_message_steal_connection (message);
+#else
         g_autoptr(GIOStream) stream = soup_client_context_steal_connection (client);
+#endif
         g_autoptr(GError) error = NULL;
 
         if (!g_io_stream_close (stream, NULL, &error))
@@ -4742,9 +4880,15 @@ handle_request (SoupServer        *server,
         return;
     }
 
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    SoupMessageHeaders *request_headers = soup_server_message_get_request_headers (message);
+    g_clear_pointer (&self->last_request_headers, soup_message_headers_unref);
+    self->last_request_headers = soup_message_headers_ref (request_headers);
+#else
     SoupMessageHeaders *request_headers = message->request_headers;
     g_clear_pointer (&self->last_request_headers, soup_message_headers_free);
     self->last_request_headers = g_boxed_copy (SOUP_TYPE_MESSAGE_HEADERS, request_headers);
+#endif
 
     if (strcmp (path, "/v2/system-info") == 0)
         handle_system_info (self, message);
@@ -4863,7 +5007,11 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&self->suggested_currency, g_free);
     g_clear_pointer (&self->spawn_time, g_free);
     g_clear_pointer (&self->ready_time, g_free);
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    g_clear_pointer (&self->last_request_headers, soup_message_headers_unref);
+#else
     g_clear_pointer (&self->last_request_headers, soup_message_headers_free);
+#endif
     g_clear_pointer (&self->gtk_theme_status, g_hash_table_unref);
     g_clear_pointer (&self->icon_theme_status, g_hash_table_unref);
     g_clear_pointer (&self->sound_theme_status, g_hash_table_unref);

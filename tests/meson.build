@@ -1,6 +1,11 @@
 installed_tests_exec_dir = join_paths (get_option ('libexecdir'), 'installed-tests', meson.project_name())
 installed_tests_data_dir = join_paths (get_option ('datadir'), 'installed-tests', meson.project_name())
 
+if not get_option('soup2')
+  installed_tests_exec_dir += '-2'
+  installed_tests_data_dir += '-2'
+endif
+
 test_data_conf = configuration_data ()
 test_data_conf.set ('installed_tests_exec_dir', join_paths (get_option ('prefix'), installed_tests_exec_dir))
 
