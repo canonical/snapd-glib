@@ -53,9 +53,9 @@ generate_get_snap_conf_request (SnapdRequest *request)
         g_ptr_array_add (query_attributes, g_strdup_printf ("keys=%s", keys_list));
     }
 
-    g_autoptr(GString) path = g_string_new ("");
-    g_autofree gchar *escaped = soup_uri_encode (self->name, NULL);
-    g_string_append_printf (path, "http://snapd/v2/snaps/%s/conf", escaped);
+    g_autoptr(GString) path = g_string_new ("http://snapd/v2/snaps/");
+    g_string_append_uri_escaped (path, self->name, NULL, TRUE);
+    g_string_append (path, "/conf");
     if (query_attributes->len > 0) {
         g_string_append_c (path, '?');
         for (guint i = 0; i < query_attributes->len; i++) {

@@ -49,12 +49,14 @@ generate_get_changes_request (SnapdRequest *request)
 
     g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
     if (self->select != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (self->select, NULL);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", escaped));
+        g_autoptr(GString) attr = g_string_new ("select=");
+        g_string_append_uri_escaped (attr, self->select, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
     if (self->snap_name != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (self->snap_name, NULL);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("for=%s", escaped));
+        g_autoptr(GString) attr = g_string_new ("for=");
+        g_string_append_uri_escaped (attr, self->snap_name, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
 
     g_autoptr(GString) path = g_string_new ("http://snapd/v2/changes");

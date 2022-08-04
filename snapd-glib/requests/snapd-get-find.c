@@ -100,28 +100,34 @@ generate_get_find_request (SnapdRequest *request)
 
     g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
     if (self->common_id != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (self->common_id, NULL);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("common-id=%s", escaped));
+        g_autoptr(GString) attr = g_string_new ("common-id=");
+        g_string_append_uri_escaped (attr, self->common_id, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
     if (self->query != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (self->query, NULL);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("q=%s", escaped));
+        g_autoptr(GString) attr = g_string_new ("q=");
+        g_string_append_uri_escaped (attr, self->query, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
     if (self->name != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (self->name, NULL);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("name=%s", escaped));
+        g_autoptr(GString) attr = g_string_new ("name=");
+        g_string_append_uri_escaped (attr, self->name, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
     if (self->select != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (self->select, NULL);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", escaped));
+        g_autoptr(GString) attr = g_string_new ("select=");
+        g_string_append_uri_escaped (attr, self->select, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
     if (self->section != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (self->section, NULL);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("section=%s", escaped));
+        g_autoptr(GString) attr = g_string_new ("section=");
+        g_string_append_uri_escaped (attr, self->section, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
     if (self->scope != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (self->scope, NULL);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("scope=%s", escaped));
+        g_autoptr(GString) attr = g_string_new ("scope=");
+        g_string_append_uri_escaped (attr, self->scope, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
 
     g_autoptr(GString) path = g_string_new ("http://snapd/v2/find");

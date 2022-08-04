@@ -55,12 +55,18 @@ generate_get_apps_request (SnapdRequest *request)
 
     g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
     if (self->select != NULL) {
-        g_autofree gchar *escaped = soup_uri_encode (self->select, NULL);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("select=%s", escaped));
+        g_autoptr(GString) attr = g_string_new("select=");
+        g_string_append_uri_escaped (attr, self->select, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
     if (self->snaps != NULL) {
-        g_autofree gchar *snaps_list = g_strjoinv (",", self->snaps);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("names=%s", snaps_list));
+        g_autoptr(GString) attr = g_string_new("names=");
+        for (guint i = 0; self->snaps[i] != NULL; i++) {
+            if (i != 0)
+                g_string_append (attr, ",");
+            g_string_append_uri_escaped (attr, self->snaps[i], NULL, TRUE);
+        }
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
 
     g_autoptr(GString) path = g_string_new ("http://snapd/v2/apps");

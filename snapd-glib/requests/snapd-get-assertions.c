@@ -48,10 +48,10 @@ generate_get_assertions_request (SnapdRequest *request)
 {
     SnapdGetAssertions *self = SNAPD_GET_ASSERTIONS (request);
 
-    g_autofree gchar *escaped = soup_uri_encode (self->type, NULL);
-    g_autofree gchar *path = g_strdup_printf ("http://snapd/v2/assertions/%s", escaped);
+    g_autoptr(GString) path = g_string_new ("http://snapd/v2/assertions/");
+    g_string_append_uri_escaped (path, self->type, NULL, TRUE);
 
-    return soup_message_new ("GET", path);
+    return soup_message_new ("GET", path->str);
 }
 
 static gboolean
