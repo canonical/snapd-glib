@@ -13,6 +13,7 @@ jobs:
       matrix:
         image:
           - ubuntu:rolling
+          - ubuntu:22.04
           - ubuntu:20.04
           - ubuntu:18.04
           - fedora:latest
