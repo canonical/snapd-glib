@@ -2095,7 +2095,7 @@ test_get_snap_publisher_unknown_validation (void)
     g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snap);
-    g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_VERIFIED);
+    g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
 }
 
 static void
