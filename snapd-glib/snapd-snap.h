@@ -76,7 +76,8 @@ typedef enum
  * SnapdPublisherValidation:
  * @SNAPD_PUBLISHER_VALIDATION_UNKNOWN: the validation state of the publisher is unknown.
  * @SNAPD_PUBLISHER_VALIDATION_UNPROVEN: the publisher has not proven their identity.
- * @SNAPD_PUBLISHER_VALIDATION_VERIFIED: the publisher has had their identity verified.
+ * @SNAPD_PUBLISHER_VALIDATION_VERIFIED: the publisher is a star developer.
+ * @SNAPD_PUBLISHER_VALIDATION_STARRED: the publisher has had their identity verified.
  *
  * State of validation for a publisher.
  *
@@ -86,7 +87,8 @@ typedef enum
 {
     SNAPD_PUBLISHER_VALIDATION_UNKNOWN,
     SNAPD_PUBLISHER_VALIDATION_UNPROVEN,
-    SNAPD_PUBLISHER_VALIDATION_VERIFIED
+    SNAPD_PUBLISHER_VALIDATION_VERIFIED,
+    SNAPD_PUBLISHER_VALIDATION_STARRED
 } SnapdPublisherValidation;
 
 GPtrArray               *snapd_snap_get_apps                   (SnapdSnap   *snap);

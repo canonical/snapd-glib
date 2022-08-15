@@ -2023,6 +2023,25 @@ test_get_snap_daemons (void)
 }
 
 static void
+test_get_snap_publisher_starred (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap");
+    mock_snap_set_publisher_validation (s, "starred");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(SnapdSnap) snap = snapd_client_get_snap_sync (client, "snap", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snap);
+    g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_STARRED);
+}
+
+static void
 test_get_snap_publisher_verified (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -8113,6 +8132,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-snap/classic-confinement", test_get_snap_classic_confinement);
     g_test_add_func ("/get-snap/devmode-confinement", test_get_snap_devmode_confinement);
     g_test_add_func ("/get-snap/daemons", test_get_snap_daemons);
+    g_test_add_func ("/get-snap/publisher-starred", test_get_snap_publisher_starred);
     g_test_add_func ("/get-snap/publisher-verified", test_get_snap_publisher_verified);
     g_test_add_func ("/get-snap/publisher-unproven", test_get_snap_publisher_unproven);
     g_test_add_func ("/get-snap/publisher-unknown-validation", test_get_snap_publisher_unknown_validation);

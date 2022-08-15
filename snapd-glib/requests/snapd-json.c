@@ -830,6 +830,8 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
             publisher_validation = SNAPD_PUBLISHER_VALIDATION_UNKNOWN;
         else if (g_strcmp0 (validation, "unproven") == 0)
             publisher_validation = SNAPD_PUBLISHER_VALIDATION_UNPROVEN;
+        else if (g_strcmp0 (validation, "starred") == 0)
+            publisher_validation = SNAPD_PUBLISHER_VALIDATION_STARRED;
         else if (g_strcmp0 (validation, "verified") == 0)
             publisher_validation = SNAPD_PUBLISHER_VALIDATION_VERIFIED;
         /* Any unknown validation is treated as verified for forwards compatibility */

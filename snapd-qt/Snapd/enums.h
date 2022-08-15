@@ -84,7 +84,8 @@ public:
     {
         PublisherValidationUnknown,
         PublisherValidationUnproven,
-        PublisherValidationVerified
+        PublisherValidationVerified,
+        PublisherValidationStarred
     };
     Q_ENUM(PublisherValidation)
 
