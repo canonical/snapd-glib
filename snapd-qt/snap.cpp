@@ -241,6 +241,8 @@ QSnapdEnums::PublisherValidation QSnapdSnap::publisherValidation () const
     {
     case SNAPD_PUBLISHER_VALIDATION_UNPROVEN:
         return QSnapdEnums::PublisherValidationUnproven;
+    case SNAPD_PUBLISHER_VALIDATION_STARRED:
+        return QSnapdEnums::PublisherValidationStarred;
     case SNAPD_PUBLISHER_VALIDATION_VERIFIED:
         return QSnapdEnums::PublisherValidationVerified;
     case SNAPD_PUBLISHER_VALIDATION_UNKNOWN:
