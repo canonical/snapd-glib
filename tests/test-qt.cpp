@@ -1935,7 +1935,7 @@ test_get_snap_publisher_unknown_validation ()
     getSnapRequest->runSync ();
     g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
-    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationVerified);
+    g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
 }
 
 static void

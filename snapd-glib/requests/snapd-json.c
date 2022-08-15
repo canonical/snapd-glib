@@ -826,17 +826,14 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
         publisher_id = _snapd_json_get_string (publisher, "id", NULL);
         publisher_username = _snapd_json_get_string (publisher, "username", publisher_username);
         const gchar *validation = _snapd_json_get_string (publisher, "validation", NULL);
-        if (validation == NULL || g_strcmp0 (validation, "") == 0)
-            publisher_validation = SNAPD_PUBLISHER_VALIDATION_UNKNOWN;
-        else if (g_strcmp0 (validation, "unproven") == 0)
+        if (g_strcmp0 (validation, "unproven") == 0)
             publisher_validation = SNAPD_PUBLISHER_VALIDATION_UNPROVEN;
         else if (g_strcmp0 (validation, "starred") == 0)
             publisher_validation = SNAPD_PUBLISHER_VALIDATION_STARRED;
         else if (g_strcmp0 (validation, "verified") == 0)
             publisher_validation = SNAPD_PUBLISHER_VALIDATION_VERIFIED;
-        /* Any unknown validation is treated as verified for forwards compatibility */
         else
-            publisher_validation = SNAPD_PUBLISHER_VALIDATION_VERIFIED;
+            publisher_validation = SNAPD_PUBLISHER_VALIDATION_UNKNOWN;
     }
 
     return g_object_new (SNAPD_TYPE_SNAP,
