@@ -55,13 +55,12 @@ generate_get_assertions_request (SnapdRequest *request, GBytes **body)
 }
 
 static gboolean
-parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
+parse_get_assertions_response (SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetAssertions *self = SNAPD_GET_ASSERTIONS (request);
 
-    const gchar *content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
     if (g_strcmp0 (content_type, "application/json") == 0) {
-        g_autoptr(JsonObject) response = _snapd_json_parse_response (message, body, maintenance, NULL, error);
+        g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, maintenance, NULL, error);
         if (response == NULL)
             return FALSE;
         g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);
@@ -75,11 +74,11 @@ parse_get_assertions_response (SnapdRequest *request, SoupMessage *message, GByt
         return FALSE;
     }
 
-    if (message->status_code != SOUP_STATUS_OK) {
+    if (status_code != SOUP_STATUS_OK) {
         g_set_error (error,
                      SNAPD_ERROR,
                      SNAPD_ERROR_READ_FAILED,
-                     "Got response %u retrieving assertions", message->status_code);
+                     "Got response %u retrieving assertions", status_code);
         return FALSE;
     }
 

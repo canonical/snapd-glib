@@ -366,9 +366,8 @@ parse_error_response (JsonObject *root, JsonNode **error_value, GError **error)
 }
 
 JsonObject *
-_snapd_json_parse_response (SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, JsonNode **error_value, GError **error)
+_snapd_json_parse_response (const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, JsonNode **error_value, GError **error)
 {
-    const gchar *content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
     if (content_type == NULL) {
         g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_BAD_RESPONSE, "snapd returned no content type");
         return NULL;

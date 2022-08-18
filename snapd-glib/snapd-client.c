@@ -518,13 +518,13 @@ update_changes (SnapdClient *self, SnapdChange *change, JsonNode *data)
 }
 
 static void
-parse_response (SnapdClient *self, SnapdRequest *request, SoupMessage *message, GBytes *body)
+parse_response (SnapdClient *self, SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
 
     g_clear_object (&priv->maintenance);
     g_autoptr(GError) error = NULL;
-    if (!SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, message, body, &priv->maintenance, &error)) {
+    if (!SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, status_code, content_type, body, &priv->maintenance, &error)) {
         if (SNAPD_IS_GET_CHANGE (request)) {
             complete_change (self, _snapd_get_change_get_change_id (SNAPD_GET_CHANGE (request)), error);
             complete_request (self, request, NULL);
@@ -610,12 +610,10 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             return G_SOURCE_REMOVE;
         }
 
-        SoupMessage *message = _snapd_request_get_message (request, NULL);
-
         /* Parse headers */
-        g_clear_pointer (&message->reason_phrase, g_free);
-        if (!soup_headers_parse_response ((gchar *) priv->buffer->data, header_length, message->response_headers,
-                                          NULL, &message->status_code, &message->reason_phrase)) {
+        guint status_code;
+        g_autoptr(SoupMessageHeaders) response_headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_RESPONSE);
+        if (!soup_headers_parse_response ((gchar *) priv->buffer->data, header_length, response_headers, NULL, &status_code, NULL)) {
             g_autoptr(GError) e = g_error_new (SNAPD_ERROR,
                                                SNAPD_ERROR_READ_FAILED,
                                                "Failed to parse headers from snapd");
@@ -626,7 +624,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
         /* Read content and process content */
         gsize content_length;
         g_autoptr(GBytes) b = NULL;
-        switch (soup_message_headers_get_encoding (message->response_headers)) {
+        switch (soup_message_headers_get_encoding (response_headers)) {
         case SOUP_ENCODING_EOF:
             if (!g_socket_is_closed (priv->snapd_socket))
                 return G_SOURCE_CONTINUE;
@@ -647,7 +645,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             break;
 
         case SOUP_ENCODING_CONTENT_LENGTH:
-            content_length = soup_message_headers_get_content_length (message->response_headers);
+            content_length = soup_message_headers_get_content_length (response_headers);
             if (priv->n_read < header_length + content_length)
                 return G_SOURCE_CONTINUE;
 
@@ -664,7 +662,8 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             return G_SOURCE_REMOVE;
         }
 
-        parse_response (self, request, message, b);
+        const gchar *content_type = soup_message_headers_get_content_type (response_headers, NULL);
+        parse_response (self, request, status_code, content_type, b);
 
         /* Move remaining data to the start of the buffer */
         g_byte_array_remove_range (priv->buffer, 0, header_length + content_length);

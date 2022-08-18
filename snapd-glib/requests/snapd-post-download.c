@@ -65,11 +65,10 @@ generate_post_download_request (SnapdRequest *request, GBytes **body)
 }
 
 static gboolean
-parse_post_download_response (SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
+parse_post_download_response (SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdPostDownload *self = SNAPD_POST_DOWNLOAD (request);
 
-    const gchar *content_type = soup_message_headers_get_content_type (message->response_headers, NULL);
     if (g_strcmp0 (content_type, "application/octet-stream") != 0) {
         g_set_error (error,
                      SNAPD_ERROR,

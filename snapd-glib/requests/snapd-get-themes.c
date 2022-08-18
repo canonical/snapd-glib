@@ -119,11 +119,11 @@ parse_theme_status(JsonNode *status_object) {
 }
 
 static gboolean
-parse_get_themes_response (SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
+parse_get_themes_response (SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetThemes *self = SNAPD_GET_THEMES (request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, body, maintenance, NULL, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
