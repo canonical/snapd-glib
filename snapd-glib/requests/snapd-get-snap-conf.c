@@ -69,11 +69,11 @@ generate_get_snap_conf_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_snap_conf_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_snap_conf_response (SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF (request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, body, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);

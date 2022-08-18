@@ -51,11 +51,11 @@ generate_get_snap_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_snap_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_snap_response (SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetSnap *self = SNAPD_GET_SNAP (request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, body, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */

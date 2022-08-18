@@ -518,13 +518,13 @@ update_changes (SnapdClient *self, SnapdChange *change, JsonNode *data)
 }
 
 static void
-parse_response (SnapdClient *self, SnapdRequest *request, SoupMessage *message)
+parse_response (SnapdClient *self, SnapdRequest *request, SoupMessage *message, GBytes *body)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
 
     g_clear_object (&priv->maintenance);
     g_autoptr(GError) error = NULL;
-    if (!SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, message, &priv->maintenance, &error)) {
+    if (!SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, message, body, &priv->maintenance, &error)) {
         if (SNAPD_IS_GET_CHANGE (request)) {
             complete_change (self, _snapd_get_change_get_change_id (SNAPD_GET_CHANGE (request)), error);
             complete_request (self, request, NULL);
@@ -625,14 +625,14 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
 
         /* Read content and process content */
         gsize content_length;
+        g_autoptr(GBytes) b = NULL;
         switch (soup_message_headers_get_encoding (message->response_headers)) {
         case SOUP_ENCODING_EOF:
             if (!g_socket_is_closed (priv->snapd_socket))
                 return G_SOURCE_CONTINUE;
 
             content_length = priv->n_read - header_length;
-            soup_message_body_append (message->response_body, SOUP_MEMORY_COPY, body, content_length);
-            parse_response (self, request, message);
+            b = g_bytes_new (body, content_length);
             break;
 
         case SOUP_ENCODING_CHUNKED:
@@ -643,8 +643,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             gchar *combined_start;
             gsize combined_length;
             compress_chunks (body, priv->n_read - header_length, &combined_start, &combined_length, &content_length);
-            soup_message_body_append (message->response_body, SOUP_MEMORY_COPY, combined_start, combined_length);
-            parse_response (self, request, message);
+            b = g_bytes_new (combined_start, combined_length);
             break;
 
         case SOUP_ENCODING_CONTENT_LENGTH:
@@ -652,8 +651,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             if (priv->n_read < header_length + content_length)
                 return G_SOURCE_CONTINUE;
 
-            soup_message_body_append (message->response_body, SOUP_MEMORY_COPY, body, content_length);
-            parse_response (self, request, message);
+            b = g_bytes_new (body, content_length);
             break;
 
         default:
@@ -665,6 +663,8 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             }
             return G_SOURCE_REMOVE;
         }
+
+        parse_response (self, request, message, b);
 
         /* Move remaining data to the start of the buffer */
         g_byte_array_remove_range (priv->buffer, 0, header_length + content_length);
