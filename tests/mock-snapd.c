@@ -1849,14 +1849,13 @@ mock_change_free (MockChange *change)
 static void
 send_response (SoupMessage *message, guint status_code, const gchar *content_type, const guint8 *content, gsize content_length)
 {
+    SoupMessageHeaders *response_headers = message->response_headers;
+    SoupMessageBody *response_body = message->response_body;
     soup_message_set_status (message, status_code);
-    soup_message_headers_set_content_type (message->response_headers,
-                                           content_type, NULL);
-    soup_message_headers_set_content_length (message->response_headers,
-                                             content_length);
+    soup_message_headers_set_content_type (response_headers, content_type, NULL);
+    soup_message_headers_set_content_length (response_headers, content_length);
 
-    soup_message_body_append (message->response_body, SOUP_MEMORY_COPY,
-                              content, content_length);
+    soup_message_body_append (response_body, SOUP_MEMORY_COPY, content, content_length);
 }
 
 static void
@@ -2141,7 +2140,8 @@ parse_macaroon (const gchar *authorization, gchar **macaroon, GStrv *discharges)
 static MockAccount *
 get_account (MockSnapd *self, SoupMessage *message)
 {
-    const gchar *authorization = soup_message_headers_get_one (message->request_headers, "Authorization");
+    SoupMessageHeaders *request_headers = message->request_headers;
+    const gchar *authorization = soup_message_headers_get_one (request_headers, "Authorization");
     if (authorization == NULL)
         return NULL;
 
@@ -2156,13 +2156,15 @@ get_account (MockSnapd *self, SoupMessage *message)
 static JsonNode *
 get_json (SoupMessage *message)
 {
-    const gchar *content_type = soup_message_headers_get_content_type (message->request_headers, NULL);
+    SoupMessageHeaders *request_headers = message->request_headers;
+    SoupMessageBody *request_body = message->request_body;
+    const gchar *content_type = soup_message_headers_get_content_type (request_headers, NULL);
     if (content_type == NULL)
         return NULL;
 
     g_autoptr(JsonParser) parser = json_parser_new ();
     g_autoptr(GError) error = NULL;
-    if (!json_parser_load_from_data (parser, message->request_body->data, message->request_body->length, &error)) {
+    if (!json_parser_load_from_data (parser, request_body->data, request_body->length, &error)) {
         g_warning ("Failed to parse request: %s", error->message);
         return NULL;
     }
@@ -2601,7 +2603,9 @@ static void
 handle_snaps (MockSnapd *self, SoupMessage *message, GHashTable *query)
 {
     const gchar *method = message->method;
-    const gchar *content_type = soup_message_headers_get_content_type (message->request_headers, NULL);
+    SoupMessageHeaders *request_headers = message->request_headers;
+    SoupMessageBody *request_body = message->request_body;
+    const gchar *content_type = soup_message_headers_get_content_type (request_headers, NULL);
 
     if (strcmp (method, "GET") == 0) {
         const gchar *select_param = NULL;
@@ -2666,7 +2670,7 @@ handle_snaps (MockSnapd *self, SoupMessage *message, GHashTable *query)
         }
     }
     else if (strcmp (method, "POST") == 0 && g_str_has_prefix (content_type, "multipart/")) {
-        g_autoptr(SoupMultipart) multipart = soup_multipart_new_from_message (message->request_headers, message->request_body);
+        g_autoptr(SoupMultipart) multipart = soup_multipart_new_from_message (request_headers, request_body);
         if (multipart == NULL) {
             send_error_bad_request (self, message, "cannot read POST form", NULL);
             return;
@@ -2689,21 +2693,22 @@ handle_snaps (MockSnapd *self, SoupMessage *message, GHashTable *query)
 
             if (strcmp (disposition, "form-data") == 0) {
                 const gchar *name = g_hash_table_lookup (params, "name");
+                const gchar *value = g_strndup (part_body->data, part_body->length);
 
                 if (g_strcmp0 (name, "action") == 0)
-                    action = g_strndup (part_body->data, part_body->length);
+                    action = g_strdup (value);
                 else if (g_strcmp0 (name, "classic") == 0)
-                    classic = strncmp (part_body->data, "true", part_body->length) == 0;
+                    classic = strcmp (value, "true") == 0;
                 else if (g_strcmp0 (name, "dangerous") == 0)
-                    dangerous = strncmp (part_body->data, "true", part_body->length) == 0;
+                    dangerous = strcmp (value, "true") == 0;
                 else if (g_strcmp0 (name, "devmode") == 0)
-                    devmode = strncmp (part_body->data, "true", part_body->length) == 0;
+                    devmode = strcmp (value, "true") == 0;
                 else if (g_strcmp0 (name, "jailmode") == 0)
-                    jailmode = strncmp (part_body->data, "true", part_body->length) == 0;
+                    jailmode = strcmp (value, "true") == 0;
                 else if (g_strcmp0 (name, "snap") == 0)
-                    snap = g_strndup (part_body->data, part_body->length);
+                    snap = g_strdup (value);
                 else if (g_strcmp0 (name, "snap-path") == 0)
-                    snap_path = g_strndup (part_body->data, part_body->length);
+                    snap_path = g_strdup (value);
             }
         }
 
@@ -3131,6 +3136,7 @@ static void
 handle_assertions (MockSnapd *self, SoupMessage *message, const gchar *type)
 {
     const gchar *method = message->method;
+    SoupMessageBody *request_body = message->request_body;
 
     if (strcmp (method, "GET") == 0) {
         g_autoptr(GString) response_content = g_string_new (NULL);
@@ -3157,7 +3163,7 @@ handle_assertions (MockSnapd *self, SoupMessage *message, const gchar *type)
         send_response (message, 200, "application/x.ubuntu.assertion; bundle=y", (guint8*) response_content->str, response_content->len);
     }
     else if (strcmp (method, "POST") == 0) {
-        g_autofree gchar *assertion = g_strndup (message->request_body->data, message->request_body->length);
+        g_autofree gchar *assertion = g_strndup (request_body->data, request_body->length);
         add_assertion (self, assertion);
         send_sync_response (self, message, 200, NULL, NULL);
     }
@@ -4736,8 +4742,9 @@ handle_request (SoupServer        *server,
         return;
     }
 
+    SoupMessageHeaders *request_headers = message->request_headers;
     g_clear_pointer (&self->last_request_headers, soup_message_headers_free);
-    self->last_request_headers = g_boxed_copy (SOUP_TYPE_MESSAGE_HEADERS, message->request_headers);
+    self->last_request_headers = g_boxed_copy (SOUP_TYPE_MESSAGE_HEADERS, request_headers);
 
     if (strcmp (path, "/v2/system-info") == 0)
         handle_system_info (self, message);

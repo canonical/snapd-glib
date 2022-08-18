@@ -784,15 +784,16 @@ send_request (SnapdClient *self, SnapdRequest *request)
 
     g_autoptr(GBytes) body = NULL;
     SoupMessage *message = _snapd_request_get_message (request, &body);
-    soup_message_headers_append (message->request_headers, "Host", "");
-    soup_message_headers_append (message->request_headers, "Connection", "keep-alive");
+    SoupMessageHeaders *request_headers = message->request_headers;
+    soup_message_headers_append (request_headers, "Host", "");
+    soup_message_headers_append (request_headers, "Connection", "keep-alive");
     if (priv->user_agent != NULL)
-        soup_message_headers_append (message->request_headers, "User-Agent", priv->user_agent);
+        soup_message_headers_append (request_headers, "User-Agent", priv->user_agent);
     if (priv->allow_interaction)
-        soup_message_headers_append (message->request_headers, "X-Allow-Interaction", "true");
+        soup_message_headers_append (request_headers, "X-Allow-Interaction", "true");
 
     g_autofree gchar *accept_languages = get_accept_languages ();
-    soup_message_headers_append (message->request_headers, "Accept-Language", accept_languages);
+    soup_message_headers_append (request_headers, "Accept-Language", accept_languages);
 
     if (priv->auth_data != NULL) {
         g_autoptr(GString) authorization = g_string_new ("");
@@ -801,23 +802,26 @@ send_request (SnapdClient *self, SnapdRequest *request)
         if (discharges != NULL)
             for (gsize i = 0; discharges[i] != NULL; i++)
                 g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
-        soup_message_headers_append (message->request_headers, "Authorization", authorization->str);
+        soup_message_headers_append (request_headers, "Authorization", authorization->str);
     }
     if (body != NULL)
-        soup_message_headers_set_content_length (message->request_headers, g_bytes_get_size (body));
+        soup_message_headers_set_content_length (request_headers, g_bytes_get_size (body));
 
+    const gchar *method = message->method;
     g_autoptr(GByteArray) request_data = g_byte_array_new ();
-    append_string (request_data, message->method);
+    append_string (request_data, method);
     append_string (request_data, " ");
     SoupURI *uri = soup_message_get_uri (message);
-    append_string (request_data, uri->path);
-    if (uri->query != NULL) {
+    const gchar *uri_path = uri->path;
+    const gchar *uri_query = uri->query;
+    append_string (request_data, uri_path);
+    if (uri_query != NULL) {
         append_string (request_data, "?");
-        append_string (request_data, uri->query);
+        append_string (request_data, uri_query);
     }
     append_string (request_data, " HTTP/1.1\r\n");
     SoupMessageHeadersIter iter;
-    soup_message_headers_iter_init (&iter, message->request_headers);
+    soup_message_headers_iter_init (&iter, request_headers);
     const char *name, *value;
     while (soup_message_headers_iter_next (&iter, &name, &value)) {
         append_string (request_data, name);

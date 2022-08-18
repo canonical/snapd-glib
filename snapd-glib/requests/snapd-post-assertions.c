@@ -42,7 +42,8 @@ generate_post_assertions_request (SnapdRequest *request, GBytes **body)
 
     SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/assertions");
 
-    soup_message_headers_set_content_type (message->request_headers, "application/x.ubuntu.assertion", NULL); //FIXME
+    SoupMessageHeaders *request_headers = message->request_headers;
+    soup_message_headers_set_content_type (request_headers, "application/x.ubuntu.assertion", NULL); //FIXME
     g_autofree gchar *assertions = g_strjoinv ("\n\n", self->assertions);
     *body = g_bytes_new (assertions, strlen (assertions));
 
