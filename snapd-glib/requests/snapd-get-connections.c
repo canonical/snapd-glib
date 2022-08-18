@@ -98,11 +98,11 @@ generate_get_connections_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_get_connections_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_get_connections_response (SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdGetConnections *self = SNAPD_GET_CONNECTIONS (request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, maintenance, NULL, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, body, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);

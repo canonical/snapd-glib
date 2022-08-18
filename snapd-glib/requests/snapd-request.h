@@ -24,7 +24,7 @@ struct _SnapdRequestClass
     GObjectClass parent_class;
 
     SoupMessage *(*generate_request)(SnapdRequest *request);
-    gboolean (*parse_response)(SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error);
+    gboolean (*parse_response)(SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error);
 };
 
 void          _snapd_request_set_source_object (SnapdRequest *request,

@@ -65,7 +65,7 @@ generate_post_download_request (SnapdRequest *request)
 }
 
 static gboolean
-parse_post_download_response (SnapdRequest *request, SoupMessage *message, SnapdMaintenance **maintenance, GError **error)
+parse_post_download_response (SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdPostDownload *self = SNAPD_POST_DOWNLOAD (request);
 
@@ -78,8 +78,7 @@ parse_post_download_response (SnapdRequest *request, SoupMessage *message, Snapd
         return FALSE;
     }
 
-    g_autoptr(SoupBuffer) buffer = soup_message_body_flatten (message->response_body);
-    self->data = soup_buffer_get_as_bytes (buffer);
+    self->data = g_bytes_ref (body);
 
     return TRUE;
 }
