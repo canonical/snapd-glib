@@ -101,12 +101,13 @@ generate_post_snap_stream_request (SnapdRequest *request, GBytes **body)
     g_autoptr(GHashTable) params = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
     g_hash_table_insert (params, g_strdup ("name"), g_strdup ("snap"));
     g_hash_table_insert (params, g_strdup ("filename"), g_strdup ("x"));
-    soup_message_headers_set_content_disposition (message->request_headers, "form-data", params);
-    soup_message_headers_set_content_type (message->request_headers, "application/vnd.snap", NULL);
+    SoupMessageHeaders *request_headers = message->request_headers;
+    soup_message_headers_set_content_disposition (request_headers, "form-data", params);
+    soup_message_headers_set_content_type (request_headers, "application/vnd.snap", NULL);
     g_autoptr(SoupBuffer) part_buffer = soup_buffer_new (SOUP_MEMORY_TEMPORARY, self->snap_contents->data, self->snap_contents->len);
-    soup_multipart_append_part (multipart, message->request_headers, part_buffer);
+    soup_multipart_append_part (multipart, request_headers, part_buffer);
     g_autoptr(SoupMessageBody) b = soup_message_body_new ();
-    soup_multipart_to_message (multipart, message->request_headers, b);
+    soup_multipart_to_message (multipart, request_headers, b);
     g_autoptr(SoupBuffer) buffer = soup_message_body_flatten (b);
     *body = g_bytes_new (buffer->data, buffer->length);
 

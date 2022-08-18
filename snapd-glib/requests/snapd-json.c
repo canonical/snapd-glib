@@ -21,7 +21,8 @@
 void
 _snapd_json_set_body (SoupMessage *message, JsonBuilder *builder, GBytes **body)
 {
-    soup_message_headers_set_content_type (message->request_headers, "application/json", NULL);
+    SoupMessageHeaders *request_headers = message->request_headers;
+    soup_message_headers_set_content_type (request_headers, "application/json", NULL);
 
     g_autoptr(JsonNode) json_root = json_builder_get_root (builder);
     g_autoptr(JsonGenerator) json_generator = json_generator_new ();
