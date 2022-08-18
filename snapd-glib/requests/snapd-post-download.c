@@ -40,7 +40,7 @@ _snapd_post_download_new (const gchar *name, const gchar *channel, const gchar *
 }
 
 static SoupMessage *
-generate_post_download_request (SnapdRequest *request)
+generate_post_download_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostDownload *self = SNAPD_POST_DOWNLOAD (request);
 
@@ -59,7 +59,7 @@ generate_post_download_request (SnapdRequest *request)
         json_builder_add_string_value (builder, self->revision);
     }
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

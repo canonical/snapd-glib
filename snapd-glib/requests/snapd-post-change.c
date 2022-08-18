@@ -64,7 +64,7 @@ _snapd_post_change_set_api_path (SnapdPostChange *self, const gchar *api_path)
 }
 
 static SoupMessage *
-generate_post_change_request (SnapdRequest *request)
+generate_post_change_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostChange *self = SNAPD_POST_CHANGE (request);
 
@@ -76,7 +76,7 @@ generate_post_change_request (SnapdRequest *request)
     json_builder_set_member_name (builder, "action");
     json_builder_add_string_value (builder, self->action);
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

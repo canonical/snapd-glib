@@ -39,7 +39,7 @@ _snapd_get_system_info_get_system_information (SnapdGetSystemInfo *self)
 }
 
 static SoupMessage *
-generate_get_system_info_request (SnapdRequest *request)
+generate_get_system_info_request (SnapdRequest *request, GBytes **body)
 {
     return soup_message_new ("GET", "http://snapd/v2/system-info");
 }

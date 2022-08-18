@@ -19,18 +19,17 @@
 #include "snapd-task.h"
 
 void
-_snapd_json_set_body (SoupMessage *message, JsonBuilder *builder)
+_snapd_json_set_body (SoupMessage *message, JsonBuilder *builder, GBytes **body)
 {
+    soup_message_headers_set_content_type (message->request_headers, "application/json", NULL);
+
     g_autoptr(JsonNode) json_root = json_builder_get_root (builder);
     g_autoptr(JsonGenerator) json_generator = json_generator_new ();
     json_generator_set_pretty (json_generator, TRUE);
     json_generator_set_root (json_generator, json_root);
     gsize data_length;
     g_autofree guchar *data = (guchar *) json_generator_to_data (json_generator, &data_length);
-
-    soup_message_headers_set_content_type (message->request_headers, "application/json", NULL);
-    soup_message_body_append_take (message->request_body, g_steal_pointer (&data), data_length);
-    soup_message_headers_set_content_length (message->request_headers, message->request_body->length);
+    *body = g_bytes_new_take (g_steal_pointer (&data), data_length);
 }
 
 gboolean

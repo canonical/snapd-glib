@@ -37,7 +37,7 @@ _snapd_post_create_users_get_users_information (SnapdPostCreateUsers *self)
 }
 
 static SoupMessage *
-generate_post_create_users_request (SnapdRequest *request)
+generate_post_create_users_request (SnapdRequest *request, GBytes **body)
 {
     SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/create-user");
 
@@ -46,7 +46,7 @@ generate_post_create_users_request (SnapdRequest *request)
     json_builder_set_member_name (builder, "known");
     json_builder_add_boolean_value (builder, TRUE);
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

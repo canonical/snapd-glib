@@ -37,7 +37,7 @@ _snapd_get_users_get_users_information (SnapdGetUsers *self)
 }
 
 static SoupMessage *
-generate_get_users_request (SnapdRequest *request)
+generate_get_users_request (SnapdRequest *request, GBytes **body)
 {
     return soup_message_new ("GET", "http://snapd/v2/users");
 }

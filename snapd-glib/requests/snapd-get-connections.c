@@ -72,7 +72,7 @@ _snapd_get_connections_get_undesired (SnapdGetConnections *self)
 }
 
 static SoupMessage *
-generate_get_connections_request (SnapdRequest *request)
+generate_get_connections_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetConnections *self = SNAPD_GET_CONNECTIONS (request);
 

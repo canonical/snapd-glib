@@ -57,7 +57,7 @@ _snapd_post_snapctl_get_exit_code (SnapdPostSnapctl *self)
 }
 
 static SoupMessage *
-generate_post_snapctl_request (SnapdRequest *request)
+generate_post_snapctl_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostSnapctl *self = SNAPD_POST_SNAPCTL (request);
 
@@ -73,7 +73,7 @@ generate_post_snapctl_request (SnapdRequest *request)
         json_builder_add_string_value (builder, self->args[i]);
     json_builder_end_array (builder);
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

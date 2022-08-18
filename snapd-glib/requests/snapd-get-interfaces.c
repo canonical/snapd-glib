@@ -75,7 +75,7 @@ _snapd_get_interfaces_get_interfaces (SnapdGetInterfaces *self)
 }
 
 static SoupMessage *
-generate_get_interfaces_request (SnapdRequest *request)
+generate_get_interfaces_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetInterfaces *self = SNAPD_GET_INTERFACES (request);
 

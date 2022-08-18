@@ -610,7 +610,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             return G_SOURCE_REMOVE;
         }
 
-        SoupMessage *message = _snapd_request_get_message (request);
+        SoupMessage *message = _snapd_request_get_message (request, NULL);
 
         /* Parse headers */
         g_clear_pointer (&message->reason_phrase, g_free);
@@ -783,7 +783,8 @@ send_request (SnapdClient *self, SnapdRequest *request)
     if (cancellable != NULL)
         data->cancelled_id = g_cancellable_connect (cancellable, G_CALLBACK (request_cancelled_cb), request_data_new (self, request), (GDestroyNotify) request_data_unref);
 
-    SoupMessage *message = _snapd_request_get_message (request);
+    g_autoptr(GBytes) body = NULL;
+    SoupMessage *message = _snapd_request_get_message (request, &body);
     soup_message_headers_append (message->request_headers, "Host", "");
     soup_message_headers_append (message->request_headers, "Connection", "keep-alive");
     if (priv->user_agent != NULL)
@@ -803,6 +804,8 @@ send_request (SnapdClient *self, SnapdRequest *request)
                 g_string_append_printf (authorization, ",discharge=\"%s\"", discharges[i]);
         soup_message_headers_append (message->request_headers, "Authorization", authorization->str);
     }
+    if (body != NULL)
+        soup_message_headers_set_content_length (message->request_headers, g_bytes_get_size (body));
 
     g_autoptr(GByteArray) request_data = g_byte_array_new ();
     append_string (request_data, message->method);
@@ -825,8 +828,8 @@ send_request (SnapdClient *self, SnapdRequest *request)
     }
     append_string (request_data, "\r\n");
 
-    g_autoptr(SoupBuffer) buffer = soup_message_body_flatten (message->request_body);
-    g_byte_array_append (request_data, (const guint8 *) buffer->data, buffer->length);
+    if (body != NULL)
+        g_byte_array_append (request_data, g_bytes_get_data (body, NULL), g_bytes_get_size (body));
 
     gboolean new_socket = FALSE;
     if (priv->snapd_socket == NULL) {

@@ -49,7 +49,7 @@ _snapd_get_apps_get_apps (SnapdGetApps *self)
 }
 
 static SoupMessage *
-generate_get_apps_request (SnapdRequest *request)
+generate_get_apps_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetApps *self = SNAPD_GET_APPS (request);
 

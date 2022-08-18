@@ -39,7 +39,7 @@ _snapd_post_buy_new (const gchar *id, gdouble amount, const gchar *currency,
 }
 
 static SoupMessage *
-generate_post_buy_request (SnapdRequest *request)
+generate_post_buy_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostBuy *self = SNAPD_POST_BUY (request);
 
@@ -54,7 +54,7 @@ generate_post_buy_request (SnapdRequest *request)
     json_builder_set_member_name (builder, "currency");
     json_builder_add_string_value (builder, self->currency);
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

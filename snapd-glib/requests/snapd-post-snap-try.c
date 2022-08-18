@@ -50,7 +50,7 @@ append_multipart_value (SoupMultipart *multipart, const gchar *name, const gchar
 }
 
 static SoupMessage *
-generate_post_snap_try_request (SnapdRequest *request)
+generate_post_snap_try_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostSnapTry *self = SNAPD_POST_SNAP_TRY (request);
 
@@ -59,8 +59,10 @@ generate_post_snap_try_request (SnapdRequest *request)
     g_autoptr(SoupMultipart) multipart = soup_multipart_new ("multipart/form-data");
     append_multipart_value (multipart, "action", "try");
     append_multipart_value (multipart, "snap-path", self->path);
-    soup_multipart_to_message (multipart, message->request_headers, message->request_body);
-    soup_message_headers_set_content_length (message->request_headers, message->request_body->length);
+    g_autoptr(SoupMessageBody) b = soup_message_body_new ();
+    soup_multipart_to_message (multipart, message->request_headers, b);
+    g_autoptr(SoupBuffer) buffer = soup_message_body_flatten (b);
+    *body = g_bytes_new (buffer->data, buffer->length);
 
     return message;
 }

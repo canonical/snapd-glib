@@ -47,7 +47,7 @@ _snapd_post_interfaces_new (const gchar *action,
 }
 
 static SoupMessage *
-generate_post_interfaces_request (SnapdRequest *request)
+generate_post_interfaces_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostInterfaces *self = SNAPD_POST_INTERFACES (request);
 
@@ -76,7 +76,7 @@ generate_post_interfaces_request (SnapdRequest *request)
     json_builder_end_object (builder);
     json_builder_end_array (builder);
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

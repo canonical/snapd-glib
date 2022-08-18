@@ -40,7 +40,7 @@ _snapd_get_aliases_get_aliases (SnapdGetAliases *self)
 }
 
 static SoupMessage *
-generate_get_aliases_request (SnapdRequest *request)
+generate_get_aliases_request (SnapdRequest *request, GBytes **body)
 {
     return soup_message_new ("GET", "http://snapd/v2/aliases");
 }

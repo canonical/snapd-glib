@@ -41,7 +41,7 @@ _snapd_get_icon_get_icon (SnapdGetIcon *self)
 }
 
 static SoupMessage *
-generate_get_icon_request (SnapdRequest *request)
+generate_get_icon_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetIcon *self = SNAPD_GET_ICON (request);
 

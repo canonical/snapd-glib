@@ -40,7 +40,7 @@ _snapd_get_snap_get_snap (SnapdGetSnap *self)
 }
 
 static SoupMessage *
-generate_get_snap_request (SnapdRequest *request)
+generate_get_snap_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetSnap *self = SNAPD_GET_SNAP (request);
 

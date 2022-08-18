@@ -43,7 +43,7 @@ _snapd_get_snap_conf_get_conf (SnapdGetSnapConf *self)
 }
 
 static SoupMessage *
-generate_get_snap_conf_request (SnapdRequest *request)
+generate_get_snap_conf_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF (request);
 

@@ -26,6 +26,7 @@ typedef struct
     GMainContext *context;
 
     SoupMessage *message;
+    GBytes *body;
 
     GCancellable *cancellable;
 
@@ -64,13 +65,17 @@ _snapd_request_set_source_object (SnapdRequest *self, GObject *object)
 }
 
 SoupMessage *
-_snapd_request_get_message (SnapdRequest *self)
+_snapd_request_get_message (SnapdRequest *self, GBytes **body)
 {
     SnapdRequestPrivate *priv = snapd_request_get_instance_private (SNAPD_REQUEST (self));
 
-    if (priv->message == NULL)
-        priv->message = SNAPD_REQUEST_GET_CLASS (self)->generate_request (self);
+    if (priv->message == NULL) {
+        g_clear_object (&priv->body);
+        priv->message = SNAPD_REQUEST_GET_CLASS (self)->generate_request (self, &priv->body);
+    }
 
+    if (body != NULL)
+        *body = priv->body != NULL ? g_bytes_ref (priv->body) : NULL;
     return priv->message;
 }
 
@@ -167,6 +172,7 @@ snapd_request_finalize (GObject *object)
 
     g_clear_object (&priv->source_object);
     g_clear_object (&priv->message);
+    g_clear_pointer (&priv->body, g_bytes_unref);
     g_clear_object (&priv->cancellable);
     g_clear_pointer (&priv->error, g_error_free);
     g_clear_pointer (&priv->context, g_main_context_unref);

@@ -46,7 +46,7 @@ _snapd_post_login_get_user_information (SnapdPostLogin *self)
 }
 
 static SoupMessage *
-generate_post_login_request (SnapdRequest *request)
+generate_post_login_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostLogin *self = SNAPD_POST_LOGIN (request);
 
@@ -66,7 +66,7 @@ generate_post_login_request (SnapdRequest *request)
         json_builder_add_string_value (builder, self->otp);
     }
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }
