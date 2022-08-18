@@ -43,7 +43,7 @@ _snapd_get_changes_get_changes (SnapdGetChanges *self)
 }
 
 static SoupMessage *
-generate_get_changes_request (SnapdRequest *request)
+generate_get_changes_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetChanges *self = SNAPD_GET_CHANGES (request);
 

@@ -36,19 +36,15 @@ _snapd_post_assertions_new (GStrv assertions,
 }
 
 static SoupMessage *
-generate_post_assertions_request (SnapdRequest *request)
+generate_post_assertions_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostAssertions *self = SNAPD_POST_ASSERTIONS (request);
 
     SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/assertions");
 
     soup_message_headers_set_content_type (message->request_headers, "application/x.ubuntu.assertion", NULL); //FIXME
-    for (int i = 0; self->assertions[i]; i++) {
-        if (i != 0)
-            soup_message_body_append (message->request_body, SOUP_MEMORY_TEMPORARY, "\n\n", 2);
-        soup_message_body_append (message->request_body, SOUP_MEMORY_TEMPORARY, self->assertions[i], strlen (self->assertions[i]));
-    }
-    soup_message_headers_set_content_length (message->request_headers, message->request_body->length);
+    g_autofree gchar *assertions = g_strjoinv ("\n\n", self->assertions);
+    *body = g_bytes_new (assertions, strlen (assertions));
 
     return message;
 }

@@ -44,7 +44,7 @@ _snapd_get_assertions_get_assertions (SnapdGetAssertions *self)
 }
 
 static SoupMessage *
-generate_get_assertions_request (SnapdRequest *request)
+generate_get_assertions_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetAssertions *self = SNAPD_GET_ASSERTIONS (request);
 

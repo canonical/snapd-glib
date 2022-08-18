@@ -23,7 +23,7 @@ struct _SnapdRequestClass
 {
     GObjectClass parent_class;
 
-    SoupMessage *(*generate_request)(SnapdRequest *request);
+    SoupMessage *(*generate_request)(SnapdRequest *request, GBytes **body);
     gboolean (*parse_response)(SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error);
 };
 
@@ -36,7 +36,8 @@ GCancellable *_snapd_request_get_cancellable   (SnapdRequest *request);
 
 void          _snapd_request_generate          (SnapdRequest *request);
 
-SoupMessage  *_snapd_request_get_message       (SnapdRequest *request);
+SoupMessage  *_snapd_request_get_message       (SnapdRequest *request,
+                                                GBytes      **body);
 
 void          _snapd_request_return            (SnapdRequest *request,
                                                 GError       *error);

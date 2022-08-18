@@ -37,7 +37,7 @@ _snapd_get_sections_get_sections (SnapdGetSections *self)
 }
 
 static SoupMessage *
-generate_get_sections_request (SnapdRequest *request)
+generate_get_sections_request (SnapdRequest *request, GBytes **body)
 {
     return soup_message_new ("GET", "http://snapd/v2/sections");
 }

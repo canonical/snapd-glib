@@ -62,7 +62,7 @@ _snapd_get_change_set_api_path (SnapdGetChange *self, const gchar *api_path)
 }
 
 static SoupMessage *
-generate_get_change_request (SnapdRequest *request)
+generate_get_change_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetChange *self = SNAPD_GET_CHANGE (request);
 

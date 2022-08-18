@@ -44,7 +44,7 @@ _snapd_post_aliases_new (const gchar *action,
 }
 
 static SoupMessage *
-generate_post_aliases_request (SnapdRequest *request)
+generate_post_aliases_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostAliases *self = SNAPD_POST_ALIASES (request);
 
@@ -67,7 +67,7 @@ generate_post_aliases_request (SnapdRequest *request)
         json_builder_add_string_value (builder, self->alias);
     }
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

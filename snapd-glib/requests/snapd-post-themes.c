@@ -57,7 +57,7 @@ add_themes (JsonBuilder *builder, const char *member_name, GStrv theme_names) {
 }
 
 static SoupMessage *
-generate_post_themes_request (SnapdRequest *request)
+generate_post_themes_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostThemes *self = SNAPD_POST_THEMES (request);
 
@@ -69,7 +69,7 @@ generate_post_themes_request (SnapdRequest *request)
     add_themes (builder, "icon-themes", self->icon_theme_names);
     add_themes (builder, "sound-themes", self->sound_theme_names);
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

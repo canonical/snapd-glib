@@ -35,7 +35,7 @@ _snapd_put_snap_conf_new (const gchar *name, GHashTable *key_values, GCancellabl
 }
 
 static SoupMessage *
-generate_put_snap_conf_request (SnapdRequest *request)
+generate_put_snap_conf_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPutSnapConf *self = SNAPD_PUT_SNAP_CONF (request);
 
@@ -57,7 +57,7 @@ generate_put_snap_conf_request (SnapdRequest *request)
         json_builder_add_value (builder, json_gvariant_serialize (conf_value));
     }
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

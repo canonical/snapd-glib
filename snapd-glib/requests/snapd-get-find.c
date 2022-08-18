@@ -94,7 +94,7 @@ _snapd_get_find_get_suggested_currency (SnapdGetFind *self)
 }
 
 static SoupMessage *
-generate_get_find_request (SnapdRequest *request)
+generate_get_find_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetFind *self = SNAPD_GET_FIND (request);
 

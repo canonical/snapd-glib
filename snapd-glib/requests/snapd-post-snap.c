@@ -90,7 +90,7 @@ _snapd_post_snap_set_purge (SnapdPostSnap *self, gboolean purge)
 }
 
 static SoupMessage *
-generate_post_snap_request (SnapdRequest *request)
+generate_post_snap_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostSnap *self = SNAPD_POST_SNAP (request);
 
@@ -131,7 +131,7 @@ generate_post_snap_request (SnapdRequest *request)
         json_builder_add_boolean_value (builder, TRUE);
     }
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

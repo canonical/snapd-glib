@@ -35,7 +35,7 @@ _snapd_post_logout_new (gint64 id,
 }
 
 static SoupMessage *
-generate_post_logout_request (SnapdRequest *request)
+generate_post_logout_request (SnapdRequest *request, GBytes **body)
 {
     SnapdPostLogout *self = SNAPD_POST_LOGOUT (request);
 
@@ -46,7 +46,7 @@ generate_post_logout_request (SnapdRequest *request)
     json_builder_set_member_name (builder, "id");
     json_builder_add_int_value (builder, self->id);
     json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder);
+    _snapd_json_set_body (message, builder, body);
 
     return message;
 }

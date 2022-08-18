@@ -48,7 +48,7 @@ _snapd_get_interfaces_legacy_get_slots (SnapdGetInterfacesLegacy *self)
 }
 
 static SoupMessage *
-generate_get_interfaces_legacy_request (SnapdRequest *request)
+generate_get_interfaces_legacy_request (SnapdRequest *request, GBytes **body)
 {
     return soup_message_new ("GET", "http://snapd/v2/interfaces");
 }

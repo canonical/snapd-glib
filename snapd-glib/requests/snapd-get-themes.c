@@ -76,7 +76,7 @@ add_theme_names (GString *path, gboolean *first_param, const char *theme_type, G
 }
 
 static SoupMessage *
-generate_get_themes_request (SnapdRequest *request)
+generate_get_themes_request (SnapdRequest *request, GBytes **body)
 {
     SnapdGetThemes *self = SNAPD_GET_THEMES (request);
 
