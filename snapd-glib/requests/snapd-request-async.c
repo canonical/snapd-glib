@@ -52,12 +52,12 @@ _snapd_request_async_parse_result (SnapdRequestAsync *self, JsonNode *result, GE
 }
 
 static gboolean
-parse_async_response (SnapdRequest *self, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
+parse_async_response (SnapdRequest *self, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdRequestAsync *r = SNAPD_REQUEST_ASYNC (self);
     SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (r);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, body, maintenance, NULL, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     g_autofree gchar *change_id = _snapd_json_get_async_result (response, error);

@@ -79,12 +79,12 @@ generate_post_snapctl_request (SnapdRequest *request, GBytes **body)
 }
 
 static gboolean
-parse_post_snapctl_response (SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
+parse_post_snapctl_response (SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
     SnapdPostSnapctl *self = SNAPD_POST_SNAPCTL (request);
     g_autoptr(JsonNode) error_value = NULL;
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, body, maintenance, &error_value, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, maintenance, &error_value, error);
     if (response == NULL) {
         if (g_error_matches (*error, SNAPD_ERROR, SNAPD_ERROR_UNSUCCESSFUL) &&
             error_value != NULL && json_node_get_value_type (error_value) == JSON_TYPE_OBJECT) {

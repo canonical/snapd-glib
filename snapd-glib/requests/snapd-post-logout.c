@@ -52,9 +52,9 @@ generate_post_logout_request (SnapdRequest *request, GBytes **body)
 }
 
 static gboolean
-parse_post_logout_response (SnapdRequest *request, SoupMessage *message, GBytes *body, SnapdMaintenance **maintenance, GError **error)
+parse_post_logout_response (SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (message, body, maintenance, NULL, error);
+    g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, maintenance, NULL, error);
     if (response == NULL)
         return FALSE;
     /* FIXME: Needs json-glib to be fixed to use json_node_unref */
