@@ -767,8 +767,8 @@ send_request (SnapdClient *self, SnapdRequest *request)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
 
-    // NOTE: Would love to use libsoup but it doesn't support unix sockets
-    // https://bugzilla.gnome.org/show_bug.cgi?id=727563
+    // This code can be replaced with support in libsoup3 at some point.
+    // https://gitlab.gnome.org/GNOME/libsoup/-/issues/75
 
     _snapd_request_set_source_object (request, G_OBJECT (self));
 
