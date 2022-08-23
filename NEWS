@@ -1,3 +1,14 @@
+Overview of changes in snapd-glib 1.61
+
+    * New API:
+      - SNAPD_PUBLISHER_VALIDATION_STARRED
+    * Build with soup3 by default, support soup2.
+    * Fix theme installation getting status.
+    * Don't treat unknown publisher validation as verified.
+    * Add support for starred developers.
+    * Add an example that reimplements the snap command line tool.
+    * Add Qt implementation of themes API.
+
 Overview of changes in snapd-glib 1.60
 
     * New API:
