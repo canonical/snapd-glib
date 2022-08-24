@@ -179,7 +179,7 @@ pc.generate (libraries: [ snapd_glib_lib ],
              name: 'Snapd GLib',
              description: 'Libary for accessing snapd',
              version: meson.project_version (),
-             subdirs: 'snapd-glib')
+             subdirs: library_name)
 
 if get_option ('introspection')
   nsversion = '2'
