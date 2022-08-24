@@ -1,3 +1,7 @@
+Overview of changes in snapd-glib 1.63
+
+    * Fix snapd-qt cmake configuration.
+
 Overview of changes in snapd-glib 1.62
 
     * Fix pkg-config file for new snapd-glib version.
