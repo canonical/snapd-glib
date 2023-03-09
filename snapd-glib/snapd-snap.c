@@ -43,6 +43,7 @@ struct _SnapdSnap
     gchar *description;
     gboolean devmode;
     gint64 download_size;
+    GDateTime *hold;
     gchar *icon;
     gchar *id;
     GDateTime *install_date;
@@ -113,6 +114,7 @@ enum
     PROP_MOUNTED_FROM,
     PROP_MEDIA,
     PROP_WEBSITE,
+    PROP_HOLD,
     PROP_LAST
 };
 
@@ -384,6 +386,24 @@ snapd_snap_get_download_size (SnapdSnap *self)
     g_return_val_if_fail (SNAPD_IS_SNAP (self), 0);
     return self->download_size;
 }
+
+/**
+ * snapd_snap_get_hold:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the date this snap will re-enable automatic refreshing or %NULL if no hold is present.
+ *
+ * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
+ *
+ * Since: 1.0
+ */
+GDateTime *
+snapd_snap_get_hold (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->hold;
+}
+
 
 /**
  * snapd_snap_get_icon:
@@ -896,6 +916,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_DOWNLOAD_SIZE:
         self->download_size = g_value_get_int64 (value);
         break;
+    case PROP_HOLD:
+        g_clear_pointer (&self->hold, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL)
+            self->hold = g_date_time_ref (g_value_get_boxed (value));
+        break;
     case PROP_ICON:
         g_free (self->icon);
         self->icon = g_strdup (g_value_get_string (value));
@@ -1048,6 +1073,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_DOWNLOAD_SIZE:
         g_value_set_int64 (value, self->download_size);
         break;
+    case PROP_HOLD:
+        g_value_set_boxed (value, self->hold);
+        break;
     case PROP_ICON:
         g_value_set_string (value, self->icon);
         break;
@@ -1152,6 +1180,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&self->common_ids, g_strfreev);
     g_clear_pointer (&self->contact, g_free);
     g_clear_pointer (&self->description, g_free);
+    g_clear_pointer (&self->hold, g_date_time_unref);
     g_clear_pointer (&self->icon, g_free);
     g_clear_pointer (&self->id, g_free);
     g_clear_pointer (&self->install_date, g_date_time_unref);
@@ -1268,6 +1297,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          "download-size",
                                                          "Download size in bytes",
                                                          G_MININT64, G_MAXINT64, 0,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_HOLD,
+                                     g_param_spec_boxed ("hold",
+                                                         "hold",
+                                                         "Date this snap will re-enable automatic refreshing",
+                                                         G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_ICON,
