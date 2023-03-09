@@ -454,8 +454,8 @@ public:
 class QSnapdFindRequestPrivate
 {
 public:
-    QSnapdFindRequestPrivate (gpointer request, int flags, const QString& section, const QString& name) :
-        flags (flags), section (section), name (name) {
+    QSnapdFindRequestPrivate (gpointer request, int flags, const QString& section, const QString& category, const QString& name) :
+        flags (flags), section (section), category (category), name (name) {
         callback_data = callback_data_new (request);
     }
     ~QSnapdFindRequestPrivate ()
@@ -467,6 +467,7 @@ public:
     }
     int flags;
     QString section;
+    QString category;
     QString name;
     CallbackData *callback_data;
     GPtrArray *snaps = NULL;
@@ -735,6 +736,23 @@ public:
     }
     CallbackData *callback_data;
     GStrv sections = NULL;
+};
+
+class QSnapdGetCategoriesRequestPrivate
+{
+public:
+    QSnapdGetCategoriesRequestPrivate (gpointer request) {
+        callback_data = callback_data_new (request);
+    }
+    ~QSnapdGetCategoriesRequestPrivate ()
+    {
+        callback_data->request = NULL;
+        g_object_unref (callback_data);
+        if (categories != NULL)
+            g_ptr_array_unref (categories);
+    }
+    CallbackData *callback_data;
+    GPtrArray *categories = NULL;
 };
 
 class QSnapdGetAliasesRequestPrivate

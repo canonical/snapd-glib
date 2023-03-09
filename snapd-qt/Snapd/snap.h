@@ -15,6 +15,7 @@
 #include <Snapd/WrappedObject>
 #include <Snapd/Enums>
 #include <Snapd/App>
+#include <Snapd/Category>
 #include <Snapd/Channel>
 #include <Snapd/Media>
 #include <Snapd/Price>
@@ -27,6 +28,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(int appCount READ appCount)
     Q_PROPERTY(QString base READ base)
     Q_PROPERTY(QString broken READ broken)
+    Q_PROPERTY(int categoryCount READ categoryCount)
     Q_PROPERTY(QString channel READ channel)
     Q_PROPERTY(int channelCount READ channelCount)
     Q_PROPERTY(QStringList commonIds READ commonIds)
@@ -70,6 +72,8 @@ public:
     Q_INVOKABLE QSnapdApp *app (int) const;
     QString base () const;
     QString broken () const;
+    int categoryCount () const;
+    Q_INVOKABLE QSnapdCategory *category (int) const;
     QString channel () const;
     int channelCount () const;
     Q_INVOKABLE QSnapdChannel *channel (int) const;

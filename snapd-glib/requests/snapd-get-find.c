@@ -20,6 +20,7 @@ struct _SnapdGetFind
     gchar *name;
     gchar *select;
     gchar *section;
+    gchar *category;
     gchar *scope;
     gchar *suggested_currency;
     GPtrArray *snaps;
@@ -75,6 +76,13 @@ _snapd_get_find_set_section (SnapdGetFind *self, const gchar *section)
 }
 
 void
+_snapd_get_find_set_category (SnapdGetFind *self, const gchar *category)
+{
+    g_free (self->category);
+    self->category = g_strdup (category);
+}
+
+void
 _snapd_get_find_set_scope (SnapdGetFind *self, const gchar *scope)
 {
     g_free (self->scope);
@@ -122,6 +130,11 @@ generate_get_find_request (SnapdRequest *request, GBytes **body)
     if (self->section != NULL) {
         g_autoptr(GString) attr = g_string_new ("section=");
         g_string_append_uri_escaped (attr, self->section, NULL, TRUE);
+        g_ptr_array_add (query_attributes, g_strdup (attr->str));
+    }
+    if (self->category != NULL) {
+        g_autoptr(GString) attr = g_string_new ("category=");
+        g_string_append_uri_escaped (attr, self->category, NULL, TRUE);
         g_ptr_array_add (query_attributes, g_strdup (attr->str));
     }
     if (self->scope != NULL) {
@@ -183,6 +196,7 @@ snapd_get_find_finalize (GObject *object)
     g_free (self->name);
     g_free (self->select);
     g_free (self->section);
+    g_free (self->category);
     g_free (self->scope);
     g_free (self->suggested_currency);
     g_clear_pointer (&self->snaps, g_ptr_array_unref);

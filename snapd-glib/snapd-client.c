@@ -19,6 +19,7 @@
 #include "requests/snapd-get-apps.h"
 #include "requests/snapd-get-assertions.h"
 #include "requests/snapd-get-buy-ready.h"
+#include "requests/snapd-get-categories.h"
 #include "requests/snapd-get-change.h"
 #include "requests/snapd-get-changes.h"
 #include "requests/snapd-get-connections.h"
@@ -2382,7 +2383,7 @@ snapd_client_find_async (SnapdClient *self,
                          GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     g_return_if_fail (query != NULL);
-    snapd_client_find_section_async (self, flags, NULL, query, cancellable, callback, user_data);
+    snapd_client_find_category_async (self, flags, NULL, query, cancellable, callback, user_data);
 }
 
 /**
@@ -2402,7 +2403,7 @@ snapd_client_find_async (SnapdClient *self,
 GPtrArray *
 snapd_client_find_finish (SnapdClient *self, GAsyncResult *result, gchar **suggested_currency, GError **error)
 {
-    return snapd_client_find_section_finish (self, result, suggested_currency, error);
+    return snapd_client_find_category_finish (self, result, suggested_currency, error);
 }
 
 /**
@@ -2419,6 +2420,7 @@ snapd_client_find_finish (SnapdClient *self, GAsyncResult *result, gchar **sugge
  * See snapd_client_find_section_sync() for more information.
  *
  * Since: 1.7
+ * Deprecated: 1.64: Use snapd_client_find_category_async()
  */
 void
 snapd_client_find_section_async (SnapdClient *self,
@@ -2457,9 +2459,79 @@ snapd_client_find_section_async (SnapdClient *self,
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  *
  * Since: 1.7
+ * Deprecated: 1.64: Use snapd_client_find_category_finish()
  */
 GPtrArray *
 snapd_client_find_section_finish (SnapdClient *self, GAsyncResult *result, gchar **suggested_currency, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_FIND (result), NULL);
+
+    SnapdGetFind *request = SNAPD_GET_FIND (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+
+    if (suggested_currency != NULL)
+        *suggested_currency = g_strdup (_snapd_get_find_get_suggested_currency (request));
+    return g_ptr_array_ref (_snapd_get_find_get_snaps (request));
+}
+
+/**
+ * snapd_client_find_category_async:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdFindFlags to control how the find is performed.
+ * @category: (allow-none): store category to search in or %NULL to search in all categories.
+ * @query: (allow-none): query string to send or %NULL to get all snaps from the given category.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously find snaps in the store.
+ * See snapd_client_find_category_sync() for more information.
+ *
+ * Since: 1.64
+ */
+void
+snapd_client_find_category_async (SnapdClient *self,
+                                 SnapdFindFlags flags, const gchar *category, const gchar *query,
+                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdGetFind) request = _snapd_get_find_new (cancellable, callback, user_data);
+    if ((flags & SNAPD_FIND_FLAGS_MATCH_NAME) != 0)
+        _snapd_get_find_set_name (request, query);
+    else if ((flags & SNAPD_FIND_FLAGS_MATCH_COMMON_ID) != 0)
+        _snapd_get_find_set_common_id (request, query);
+    else
+        _snapd_get_find_set_query (request, query);
+    if ((flags & SNAPD_FIND_FLAGS_SELECT_PRIVATE) != 0)
+        _snapd_get_find_set_select (request, "private");
+    else if ((flags & SNAPD_FIND_FLAGS_SELECT_REFRESH) != 0)
+        _snapd_get_find_set_select (request, "refresh");
+    else if ((flags & SNAPD_FIND_FLAGS_SCOPE_WIDE) != 0)
+        _snapd_get_find_set_scope (request, "wide");
+    _snapd_get_find_set_category (request, category);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_find_category_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @suggested_currency: (out) (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_find_async().
+ * See snapd_client_find_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.64
+ */
+GPtrArray *
+snapd_client_find_category_finish (SnapdClient *self, GAsyncResult *result, gchar **suggested_currency, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
     g_return_val_if_fail (SNAPD_IS_GET_FIND (result), NULL);
@@ -3408,6 +3480,7 @@ snapd_client_get_users_finish (SnapdClient *self, GAsyncResult *result, GError *
  * See snapd_client_get_sections_sync() for more information.
  *
  * Since: 1.7
+ * Deprecated: 1.64: Use snapd_client_get_categories_async()
  */
 void
 snapd_client_get_sections_async (SnapdClient *self,
@@ -3431,6 +3504,7 @@ snapd_client_get_sections_async (SnapdClient *self,
  * Returns: (transfer full) (array zero-terminated=1): an array of section names or %NULL on error.
  *
  * Since: 1.7
+ * Deprecated: 1.64: Use snapd_client_get_categories_finish()
  */
 GStrv
 snapd_client_get_sections_finish (SnapdClient *self, GAsyncResult *result, GError **error)
@@ -3443,6 +3517,54 @@ snapd_client_get_sections_finish (SnapdClient *self, GAsyncResult *result, GErro
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_strdupv (_snapd_get_sections_get_sections (request));
+}
+
+/**
+ * snapd_client_get_categories_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get the store categories.
+ * See snapd_client_get_categories_sync() for more information.
+ *
+ * Since: 1.64
+ */
+void
+snapd_client_get_categories_async (SnapdClient *self,
+                                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdGetCategories) request = _snapd_get_categories_new (cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_categories_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_categories_async().
+ * See snapd_client_get_categories_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdCategoryDetails): an array of #SnapdCategoryDetails or %NULL on error.
+ *
+ * Since: 1.64
+ */
+GPtrArray *
+snapd_client_get_categories_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_CATEGORIES (result), NULL);
+
+    SnapdGetCategories *request = SNAPD_GET_CATEGORIES (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_ptr_array_ref (_snapd_get_categories_get_categories (request));
 }
 
 /**

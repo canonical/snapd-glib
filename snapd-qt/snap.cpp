@@ -41,6 +41,24 @@ QString QSnapdSnap::broken () const
     return snapd_snap_get_broken (SNAPD_SNAP (wrapped_object));
 }
 
+int QSnapdSnap::categoryCount () const
+{
+    GPtrArray *categories;
+
+    categories = snapd_snap_get_categories (SNAPD_SNAP (wrapped_object));
+    return categories != NULL ? categories->len : 0;
+}
+
+QSnapdCategory *QSnapdSnap::category (int n) const
+{
+    GPtrArray *categories;
+
+    categories = snapd_snap_get_categories (SNAPD_SNAP (wrapped_object));
+    if (categories == NULL || n < 0 || (guint) n >= categories->len)
+        return NULL;
+    return new QSnapdCategory (categories->pdata[n]);
+}
+
 QString QSnapdSnap::channel () const
 {
     return snapd_snap_get_channel (SNAPD_SNAP (wrapped_object));

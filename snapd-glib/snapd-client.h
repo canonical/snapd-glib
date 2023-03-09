@@ -679,15 +679,34 @@ GPtrArray              *snapd_client_find_section_sync             (SnapdClient 
                                                                     const gchar          *query,
                                                                     gchar               **suggested_currency,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_find_category_sync);
 void                    snapd_client_find_section_async            (SnapdClient          *client,
                                                                     SnapdFindFlags        flags,
                                                                     const gchar          *section,
                                                                     const gchar          *query,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED_FOR(snapd_client_find_category_async);
 GPtrArray              *snapd_client_find_section_finish           (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    gchar               **suggested_currency,
+                                                                    GError              **error) G_DEPRECATED_FOR(snapd_client_find_category_finish);
+
+GPtrArray              *snapd_client_find_category_sync            (SnapdClient          *client,
+                                                                    SnapdFindFlags        flags,
+                                                                    const gchar          *category,
+                                                                    const gchar          *query,
+                                                                    gchar               **suggested_currency,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_find_category_async           (SnapdClient          *client,
+                                                                    SnapdFindFlags        flags,
+                                                                    const gchar          *category,
+                                                                    const gchar          *query,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_find_category_finish          (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     gchar               **suggested_currency,
                                                                     GError              **error);
@@ -971,12 +990,23 @@ GPtrArray              *snapd_client_get_users_finish              (SnapdClient 
 
 GStrv                   snapd_client_get_sections_sync             (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
-                                                                    GError              **error);
+                                                                    GError              **error) G_DEPRECATED;
 void                    snapd_client_get_sections_async            (SnapdClient          *client,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
+                                                                    gpointer              user_data) G_DEPRECATED;
 GStrv                   snapd_client_get_sections_finish           (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error) G_DEPRECATED;
+
+GPtrArray              *snapd_client_get_categories_sync           (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_categories_async          (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_get_categories_finish         (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

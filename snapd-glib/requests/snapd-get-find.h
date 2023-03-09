@@ -35,6 +35,9 @@ void          _snapd_get_find_set_select             (SnapdGetFind        *reque
 void          _snapd_get_find_set_section            (SnapdGetFind        *request,
                                                       const gchar         *section);
 
+void          _snapd_get_find_set_category           (SnapdGetFind        *request,
+                                                      const gchar         *category);
+
 void          _snapd_get_find_set_scope              (SnapdGetFind        *request,
                                                       const gchar         *scope);
 

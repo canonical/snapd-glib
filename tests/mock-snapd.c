@@ -59,7 +59,7 @@ struct _MockSnapd
     gchar *refresh_next;
     gchar *refresh_schedule;
     gchar *refresh_timer;
-    GList *store_sections;
+    GList *store_categories;
     GList *store_snaps;
     GList *established_connections;
     GList *undesired_connections;
@@ -111,6 +111,12 @@ struct _MockApp
     gboolean active;
     GList *aliases;
 };
+
+typedef struct
+{
+    gchar *name;
+    gboolean featured;
+} MockCategory;
 
 struct _MockChange
 {
@@ -188,6 +194,7 @@ struct _MockSnap
     GList *apps;
     gchar *base;
     gchar *broken;
+    GList *categories;
     gchar *channel;
     GHashTable *configuration;
     gchar *confinement;
@@ -224,7 +231,7 @@ struct _MockSnap
     gchar *type;
     gchar *version;
     gchar *website;
-    GList *store_sections;
+    GList *store_categories;
     GList *plugs;
     GList *slots_;
     gboolean disabled;
@@ -281,6 +288,13 @@ mock_app_free (MockApp *app)
     g_free (app->desktop_file);
     g_list_free_full (app->aliases, (GDestroyNotify) mock_alias_free);
     g_slice_free (MockApp, app);
+}
+
+static void
+mock_category_free (MockCategory *category)
+{
+    g_free (category->name);
+    g_slice_free (MockCategory, category);
 }
 
 static void
@@ -358,6 +372,7 @@ mock_snap_free (MockSnap *snap)
     g_list_free_full (snap->apps, (GDestroyNotify) mock_app_free);
     g_free (snap->base);
     g_free (snap->broken);
+    g_list_free_full (snap->categories, (GDestroyNotify) mock_category_free);
     g_free (snap->channel);
     g_hash_table_unref (snap->configuration);
     g_free (snap->confinement);
@@ -388,7 +403,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->type);
     g_free (snap->version);
     g_free (snap->website);
-    g_list_free_full (snap->store_sections, g_free);
+    g_list_free_full (snap->store_categories, g_free);
     g_list_free_full (snap->plugs, (GDestroyNotify) mock_plug_free);
     g_list_free_full (snap->slots_, (GDestroyNotify) mock_slot_free);
     g_free (snap->snap_data);
@@ -996,12 +1011,12 @@ mock_snapd_find_snapshot (MockSnapd *self, const gchar *name)
 }
 
 void
-mock_snapd_add_store_section (MockSnapd *self, const gchar *name)
+mock_snapd_add_store_category (MockSnapd *self, const gchar *name)
 {
     g_return_if_fail (MOCK_IS_SNAPD (self));
 
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
-    self->store_sections = g_list_append (self->store_sections, g_strdup (name));
+    self->store_categories = g_list_append (self->store_categories, g_strdup (name));
 }
 
 MockSnap *
@@ -1153,6 +1168,15 @@ mock_snap_set_broken (MockSnap *snap, const gchar *broken)
 {
     g_free (snap->broken);
     snap->broken = g_strdup (broken);
+}
+
+void
+mock_snap_add_category (MockSnap *snap, const gchar *name, gboolean featured)
+{
+    MockCategory *category = g_slice_new0 (MockCategory);
+    category->name = g_strdup (name);
+    category->featured = featured;
+    snap->categories = g_list_append (snap->categories, category);
 }
 
 void
@@ -1581,9 +1605,9 @@ mock_snap_set_website (MockSnap *snap, const gchar *website)
 }
 
 void
-mock_snap_add_store_section (MockSnap *snap, const gchar *name)
+mock_snap_add_store_category (MockSnap *snap, const gchar *name, gboolean featured)
 {
-    snap->store_sections = g_list_append (snap->store_sections, g_strdup (name));
+    snap->store_categories = g_list_append (snap->store_categories, g_strdup (name));
 }
 
 MockPlug *
@@ -2390,6 +2414,20 @@ make_snap_node (MockSnap *snap)
     if (snap->base) {
         json_builder_set_member_name (builder, "base");
         json_builder_add_string_value (builder, snap->base);
+    }
+    if (snap->categories) {
+        json_builder_set_member_name (builder, "categories");
+        json_builder_begin_array (builder);
+        for (GList *link = snap->categories; link; link = link->next) {
+            MockCategory *category = link->data;
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "name");
+            json_builder_add_string_value (builder, category->name);
+            json_builder_set_member_name (builder, "featured");
+            json_builder_add_boolean_value (builder, category->featured);
+            json_builder_end_object (builder);
+        }
+        json_builder_end_array (builder);
     }
     if (snap->channel) {
         json_builder_set_member_name (builder, "channel");
@@ -4131,13 +4169,13 @@ has_common_id (MockSnap *snap, const gchar *common_id)
 }
 
 static gboolean
-in_section (MockSnap *snap, const gchar *section)
+in_category (MockSnap *snap, const gchar *category)
 {
-    if (section == NULL)
+    if (category == NULL)
         return TRUE;
 
-    for (GList *link = snap->store_sections; link; link = link->next)
-        if (strcmp (link->data, section) == 0)
+    for (GList *link = snap->store_categories; link; link = link->next)
+        if (strcmp (link->data, category) == 0)
             return TRUE;
 
     return FALSE;
@@ -4162,6 +4200,7 @@ handle_find (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
     const gchar *name_param = g_hash_table_lookup (query, "name");
     const gchar *select_param = g_hash_table_lookup (query, "select");
     const gchar *section_param = g_hash_table_lookup (query, "section");
+    const gchar *category_param = g_hash_table_lookup (query, "category");
     const gchar *scope_param = g_hash_table_lookup (query, "scope");
 
     if (common_id_param && strcmp (common_id_param, "") == 0)
@@ -4174,6 +4213,8 @@ handle_find (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         select_param = NULL;
     if (section_param && strcmp (section_param, "") == 0)
         section_param = NULL;
+    if (category_param && strcmp (category_param, "") == 0)
+        category_param = NULL;
     if (scope_param && strcmp (scope_param, "") == 0)
         scope_param = NULL;
 
@@ -4246,7 +4287,9 @@ handle_find (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         if (!has_common_id (snap, common_id_param))
             continue;
 
-        if (!in_section (snap, section_param))
+        if (!in_category (snap, category_param))
+            continue;
+        if (!in_category (snap, section_param))
             continue;
 
         if (!matches_query (snap, query_param))
@@ -4377,8 +4420,35 @@ handle_sections (MockSnapd *self, SoupServerMessage *message)
 
     g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_array (builder);
-    for (GList *link = self->store_sections; link; link = link->next)
+    for (GList *link = self->store_categories; link; link = link->next)
         json_builder_add_string_value (builder, link->data);
+    json_builder_end_array (builder);
+
+    send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+}
+
+static void
+handle_categories (MockSnapd *self, SoupServerMessage *message)
+{
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
+    const gchar *method = message->method;
+#endif
+
+    if (strcmp (method, "GET") != 0) {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
+    json_builder_begin_array (builder);
+    for (GList *link = self->store_categories; link; link = link->next) {
+        json_builder_begin_object (builder);
+        json_builder_set_member_name (builder, "name");
+        json_builder_add_string_value (builder, link->data);
+        json_builder_end_object (builder);
+    }
     json_builder_end_array (builder);
 
     send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
@@ -4943,6 +5013,8 @@ handle_request (SoupServer        *server,
         handle_buy (self, message);
     else if (strcmp (path, "/v2/sections") == 0)
         handle_sections (self, message);
+    else if (strcmp (path, "/v2/categories") == 0)
+        handle_categories (self, message);
     else if (strcmp (path, "/v2/aliases") == 0)
         handle_aliases (self, message);
     else if (strcmp (path, "/v2/snapctl") == 0)
@@ -5005,8 +5077,8 @@ mock_snapd_finalize (GObject *object)
     g_free (self->refresh_next);
     g_free (self->refresh_schedule);
     g_free (self->refresh_timer);
-    g_list_free_full (self->store_sections, g_free);
-    self->store_sections = NULL;
+    g_list_free_full (self->store_categories, g_free);
+    self->store_categories = NULL;
     g_list_free_full (self->store_snaps, (GDestroyNotify) mock_snap_free);
     self->store_snaps = NULL;
     g_list_free_full (self->established_connections, (GDestroyNotify) mock_connection_free);
