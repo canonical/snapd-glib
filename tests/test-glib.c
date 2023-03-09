@@ -1522,6 +1522,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
     g_assert_false (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
+    g_assert_null (snapd_snap_get_hold (snap));
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
     g_assert_null (snapd_snap_get_install_date (snap));
@@ -1570,6 +1571,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
     g_assert_false (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
+    g_assert_null (snapd_snap_get_hold (snap));
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
     g_assert_null (snapd_snap_get_install_date (snap));
@@ -1646,6 +1648,7 @@ test_get_snap_sync (void)
     g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
     g_assert_false (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
+    g_assert_null (snapd_snap_get_hold (snap));
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
     g_assert_null (snapd_snap_get_install_date (snap));
@@ -1692,6 +1695,7 @@ get_snap_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
     g_assert_false (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
+    g_assert_null (snapd_snap_get_hold (snap));
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
     g_assert_null (snapd_snap_get_install_date (snap));
@@ -1805,6 +1809,7 @@ test_get_snap_optional_fields (void)
     mock_snap_set_broken (s, "BROKEN");
     mock_snap_set_confinement (s, "classic");
     mock_snap_set_devmode (s, TRUE);
+    mock_snap_set_hold (s, "2315-06-19T13:00:37Z");
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
     mock_snap_set_installed_size (s, 1024);
     mock_snap_set_jailmode (s, TRUE);
@@ -1849,6 +1854,7 @@ test_get_snap_optional_fields (void)
     g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
     g_assert_true (snapd_snap_get_devmode (snap));
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 0);
+    g_assert_true (date_matches (snapd_snap_get_hold (snap), 2315, 6, 19, 13, 00, 37));
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
     g_assert_true (date_matches (snapd_snap_get_install_date (snap), 2017, 1, 2, 11, 23, 58));
@@ -4193,6 +4199,7 @@ test_find_query (void)
     g_assert_cmpstr (snapd_snap_get_publisher_username (snap), ==, "PUBLISHER-USERNAME");
     g_assert_cmpint (snapd_snap_get_publisher_validation (snap), ==, SNAPD_PUBLISHER_VALIDATION_UNKNOWN);
     g_assert_cmpint (snapd_snap_get_download_size (snap), ==, 1024);
+    g_assert_null (snapd_snap_get_hold (snap));
     g_assert_cmpstr (snapd_snap_get_icon (snap), ==, "ICON");
     g_assert_cmpstr (snapd_snap_get_id (snap), ==, "ID");
     g_assert_null (snapd_snap_get_install_date (snap));

@@ -1374,6 +1374,7 @@ QT_WARNING_POP
     g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
+    g_assert_true (snap->hold ().isNull ());
     g_assert_true (snap->icon () == "ICON");
     g_assert_true (snap->id () == "ID");
     g_assert_true (snap->installDate ().isNull ());
@@ -1421,6 +1422,7 @@ ListOneHandler::onComplete ()
     g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
+    g_assert_true (snap->hold ().isNull ());
     g_assert_true (snap->icon () == "ICON");
     g_assert_true (snap->id () == "ID");
     g_assert_true (snap->installDate ().isNull ());
@@ -1497,6 +1499,7 @@ test_get_snap_sync ()
     g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
+    g_assert_true (snap->hold ().isNull ());
     g_assert_true (snap->icon () == "ICON");
     g_assert_true (snap->id () == "ID");
     g_assert_true (snap->installDate ().isNull ());
@@ -1544,6 +1547,7 @@ GetSnapHandler::onComplete ()
     g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_false (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
+    g_assert_true (snap->hold ().isNull ());
     g_assert_true (snap->icon () == "ICON");
     g_assert_true (snap->id () == "ID");
     g_assert_true (snap->installDate ().isNull ());
@@ -1655,6 +1659,7 @@ test_get_snap_optional_fields ()
     mock_snap_set_broken (s, "BROKEN");
     mock_snap_set_confinement (s, "classic");
     mock_snap_set_devmode (s, TRUE);
+    mock_snap_set_hold (s, "2315-06-19T13:00:37Z");
     mock_snap_set_install_date (s, "2017-01-02T11:23:58Z");
     mock_snap_set_installed_size (s, 1024);
     mock_snap_set_jailmode (s, TRUE);
@@ -1699,9 +1704,11 @@ test_get_snap_optional_fields ()
     g_assert_cmpint (snap->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_true (snap->devmode ());
     g_assert_cmpint (snap->downloadSize (), ==, 0);
+    QDateTime date = QDateTime (QDate (2315, 6, 19), QTime (13, 00, 37), Qt::UTC);
+    g_assert_true (snap->hold () == date);
     g_assert_true (snap->icon () == "ICON");
     g_assert_true (snap->id () == "ID");
-    QDateTime date = QDateTime (QDate (2017, 1, 2), QTime (11, 23, 58), Qt::UTC);
+    date = QDateTime (QDate (2017, 1, 2), QTime (11, 23, 58), Qt::UTC);
     g_assert_true (snap->installDate () == date);
     g_assert_cmpint (snap->installedSize (), ==, 1024);
     g_assert_true (snap->jailmode ());
@@ -3660,9 +3667,10 @@ test_find_query ()
     g_assert_true (snap1->publisherUsername () == "PUBLISHER-USERNAME");
     g_assert_cmpint (snap1->publisherValidation (), ==, QSnapdEnums::PublisherValidationUnknown);
     g_assert_cmpint (snap1->downloadSize (), ==, 1024);
+    g_assert_true (snap1->hold ().isNull ());
     g_assert_true (snap1->icon () == "ICON");
     g_assert_true (snap1->id () == "ID");
-    g_assert_false (snap1->installDate ().isValid ());
+    g_assert_true (snap1->installDate ().isNull ());
     g_assert_cmpint (snap1->installedSize (), ==, 0);
     g_assert_cmpint (snap1->mediaCount (), ==, 3);
     QScopedPointer<QSnapdMedia> media0 (snap1->media (0));

@@ -124,16 +124,6 @@ qint64 QSnapdSnap::downloadSize () const
     return snapd_snap_get_download_size (SNAPD_SNAP (wrapped_object));
 }
 
-QString QSnapdSnap::icon () const
-{
-    return snapd_snap_get_icon (SNAPD_SNAP (wrapped_object));
-}
-
-QString QSnapdSnap::id () const
-{
-    return snapd_snap_get_id (SNAPD_SNAP (wrapped_object));
-}
-
 static QDateTime convertDateTime (GDateTime *datetime)
 {
     if (datetime == NULL)
@@ -147,6 +137,21 @@ static QDateTime convertDateTime (GDateTime *datetime)
                 g_date_time_get_second (datetime),
                 g_date_time_get_microsecond (datetime) / 1000);
     return QDateTime (date, time, Qt::OffsetFromUTC, g_date_time_get_utc_offset (datetime) / 1000000);
+}
+
+QDateTime QSnapdSnap::hold () const
+{
+    return convertDateTime (snapd_snap_get_hold (SNAPD_SNAP (wrapped_object)));
+}
+
+QString QSnapdSnap::icon () const
+{
+    return snapd_snap_get_icon (SNAPD_SNAP (wrapped_object));
+}
+
+QString QSnapdSnap::id () const
+{
+    return snapd_snap_get_id (SNAPD_SNAP (wrapped_object));
 }
 
 QDateTime QSnapdSnap::installDate () const

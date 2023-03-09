@@ -306,6 +306,9 @@ void            mock_snap_set_download_size       (MockSnap      *snap,
 void            mock_snap_set_error               (MockSnap      *snap,
                                                    const gchar   *error);
 
+void            mock_snap_set_hold                (MockSnap      *snap,
+                                                   const gchar   *hold);
+
 void            mock_snap_set_icon                (MockSnap      *snap,
                                                    const gchar   *icon);
 

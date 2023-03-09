@@ -36,6 +36,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString developer READ developer)
     Q_PROPERTY(bool devmode READ devmode)
     Q_PROPERTY(qint64 downloadSize READ downloadSize)
+    Q_PROPERTY(QDateTime hold READ hold)
     Q_PROPERTY(QString icon READ icon)
     Q_PROPERTY(QString id READ id)
     Q_PROPERTY(QDateTime installDate READ installDate)
@@ -80,6 +81,7 @@ public:
     Q_DECL_DEPRECATED_X("Use publisherUsername()") QString developer () const;
     bool devmode () const;
     qint64 downloadSize () const;
+    QDateTime hold () const;
     QString icon () const;
     QString id () const;
     QDateTime installDate () const;

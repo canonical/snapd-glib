@@ -195,6 +195,7 @@ struct _MockSnap
     gchar *description;
     gboolean devmode;
     int download_size;
+    gchar *hold;
     gchar *icon;
     gchar *icon_mime_type;
     GBytes *icon_data;
@@ -362,6 +363,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->confinement);
     g_free (snap->contact);
     g_free (snap->description);
+    g_free (snap->hold);
     g_free (snap->icon);
     g_free (snap->icon_mime_type);
     g_bytes_unref (snap->icon_data);
@@ -1344,6 +1346,13 @@ mock_snap_set_error (MockSnap *snap, const gchar *error)
 {
     g_free (snap->error);
     snap->error = g_strdup (error);
+}
+
+void
+mock_snap_set_hold (MockSnap *snap, const gchar *hold)
+{
+    g_free (snap->hold);
+    snap->hold = g_strdup (hold);
 }
 
 void
@@ -2467,6 +2476,10 @@ make_snap_node (MockSnap *snap)
     if (snap->download_size > 0) {
         json_builder_set_member_name (builder, "download-size");
         json_builder_add_int_value (builder, snap->download_size);
+    }
+    if (snap->hold != NULL) {
+        json_builder_set_member_name (builder, "hold");
+        json_builder_add_string_value (builder, snap->hold);
     }
     json_builder_set_member_name (builder, "icon");
     json_builder_add_string_value (builder, snap->icon);

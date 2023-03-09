@@ -118,6 +118,8 @@ gboolean                 snapd_snap_get_devmode                (SnapdSnap   *sna
 
 gint64                   snapd_snap_get_download_size          (SnapdSnap   *snap);
 
+GDateTime               *snapd_snap_get_hold                   (SnapdSnap   *snap);
+
 const gchar             *snapd_snap_get_icon                   (SnapdSnap   *snap);
 
 const gchar             *snapd_snap_get_id                     (SnapdSnap   *snap);

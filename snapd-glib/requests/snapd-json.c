@@ -753,6 +753,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
     g_ptr_array_add (common_ids_array, NULL);
 
     g_autoptr(GDateTime) install_date = _snapd_json_get_date_time (object, "install-date");
+    g_autoptr(GDateTime) hold = _snapd_json_get_date_time (object, "hold");
 
     JsonObject *prices = _snapd_json_get_object (object, "prices");
     g_autoptr(GPtrArray) prices_array = g_ptr_array_new_with_free_func (g_object_unref);
@@ -849,6 +850,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
                          "description", _snapd_json_get_string (object, "description", NULL),
                          "devmode", _snapd_json_get_bool (object, "devmode", FALSE),
                          "download-size", _snapd_json_get_int (object, "download-size", 0),
+                         "hold", hold,
                          "icon", _snapd_json_get_string (object, "icon", NULL),
                          "id", _snapd_json_get_string (object, "id", NULL),
                          "install-date", install_date,
