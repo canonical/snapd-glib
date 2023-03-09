@@ -14,6 +14,7 @@
 
 #include "snapd-error.h"
 #include "snapd-app.h"
+#include "snapd-category.h"
 #include "snapd-media.h"
 #include "snapd-screenshot.h"
 #include "snapd-task.h"
@@ -708,6 +709,24 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
         g_ptr_array_add (apps_array, app);
     }
 
+    g_autoptr(JsonArray) categories = _snapd_json_get_array (object, "categories");
+    g_autoptr(GPtrArray) categories_array = g_ptr_array_new_with_free_func (g_object_unref);
+    for (guint i = 0; i < json_array_get_length (categories); i++) {
+        JsonNode *node = json_array_get_element (categories, i);
+
+        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+            g_set_error (error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED, "Unexpected categories type");
+            return NULL;
+        }
+
+        JsonObject *c = json_node_get_object (node);
+        g_autoptr(SnapdCategory) category = g_object_new (SNAPD_TYPE_CATEGORY,
+                                                          "featured", _snapd_json_get_bool (c, "featured", FALSE),
+                                                          "name", _snapd_json_get_string (c, "name", NULL),
+                                                          NULL);
+        g_ptr_array_add (categories_array, g_steal_pointer (&category));
+    }
+
     JsonObject *channels = _snapd_json_get_object (object, "channels");
     g_autoptr(GPtrArray) channels_array = g_ptr_array_new_with_free_func (g_object_unref);
     if (channels != NULL) {
@@ -842,6 +861,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
                          "apps", apps_array,
                          "base", _snapd_json_get_string (object, "base", NULL),
                          "broken", _snapd_json_get_string (object, "broken", NULL),
+                         "categories", categories_array,
                          "channel", _snapd_json_get_string (object, "channel", NULL),
                          "channels", channels_array,
                          "common-ids", (GStrv) common_ids_array->pdata,

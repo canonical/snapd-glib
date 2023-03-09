@@ -16,6 +16,7 @@
 #include <QLocalSocket>
 #include <Snapd/Alias>
 #include <Snapd/AuthData>
+#include <Snapd/CategoryDetails>
 #include <Snapd/Connection>
 #include <Snapd/Icon>
 #include <Snapd/Interface>
@@ -455,7 +456,7 @@ class Q_DECL_EXPORT QSnapdFindRequest : public QSnapdRequest
     Q_PROPERTY(QString suggestedCurrency READ suggestedCurrency)
 
 public:
-    explicit QSnapdFindRequest (int flags, const QString& section, const QString& name, void *snapd_client, QObject *parent = 0);
+    explicit QSnapdFindRequest (int flags, const QString& section, const QString& category, const QString& name, void *snapd_client, QObject *parent = 0);
     ~QSnapdFindRequest ();
     virtual void runSync ();
     virtual void runAsync ();
@@ -737,6 +738,25 @@ public:
 private:
     QScopedPointer<QSnapdGetSectionsRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdGetSectionsRequest)
+};
+
+class QSnapdGetCategoriesRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetCategoriesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdGetCategoriesRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetCategoriesRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int categoryCount () const;
+    Q_INVOKABLE QSnapdCategoryDetails *category (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QScopedPointer<QSnapdGetCategoriesRequestPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetCategoriesRequest)
 };
 
 class QSnapdGetAliasesRequestPrivate;
@@ -1074,8 +1094,10 @@ public:
     Q_INVOKABLE QSnapdFindRequest *find (const QString &query);
     Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags);
     Q_INVOKABLE QSnapdFindRequest *find (FindFlags flags, const QString &query);
-    Q_INVOKABLE QSnapdFindRequest *findSection (const QString &section, const QString &query);
-    Q_INVOKABLE QSnapdFindRequest *findSection (FindFlags flags, const QString &section, const QString &query);
+    Q_INVOKABLE Q_DECL_DEPRECATED_X("Use findCategory()") QSnapdFindRequest *findSection (const QString &section, const QString &query);
+    Q_INVOKABLE Q_DECL_DEPRECATED_X("Use findCategory()") QSnapdFindRequest *findSection (FindFlags flags, const QString &section, const QString &query);
+    Q_INVOKABLE QSnapdFindRequest *findCategory (const QString &category, const QString &query);
+    Q_INVOKABLE QSnapdFindRequest *findCategory (FindFlags flags, const QString &category, const QString &query);
     Q_INVOKABLE QSnapdFindRefreshableRequest *findRefreshable ();
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name);
     Q_INVOKABLE QSnapdInstallRequest *install (const QString &name, const QString &channel);
@@ -1100,7 +1122,8 @@ public:
     Q_INVOKABLE QSnapdCreateUserRequest *createUser (const QString& email, CreateUserFlags flags);
     Q_INVOKABLE QSnapdCreateUsersRequest *createUsers ();
     Q_INVOKABLE QSnapdGetUsersRequest *getUsers ();
-    Q_INVOKABLE QSnapdGetSectionsRequest *getSections ();
+    Q_INVOKABLE Q_DECL_DEPRECATED_X("Use getCategories()") QSnapdGetSectionsRequest *getSections ();
+    Q_INVOKABLE QSnapdGetCategoriesRequest *getCategories ();
     Q_INVOKABLE QSnapdGetAliasesRequest *getAliases ();
     Q_INVOKABLE QSnapdAliasRequest *alias (const QString &snap, const QString &app, const QString &alias);
     Q_INVOKABLE QSnapdUnaliasRequest *unalias (const QString &snap, const QString &alias);

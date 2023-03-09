@@ -784,6 +784,23 @@ public slots:
     void onComplete ();
 };
 
+class GetCategoriesHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetCategoriesHandler (GMainLoop *loop, QSnapdGetCategoriesRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetCategoriesRequest *request;
+    ~GetCategoriesHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
 class GetAliasesHandler: public QObject
 {
     Q_OBJECT

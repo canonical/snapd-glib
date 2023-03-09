@@ -811,7 +811,7 @@ snapd_client_find_sync (SnapdClient *self,
                         gchar **suggested_currency,
                         GCancellable *cancellable, GError **error)
 {
-    return snapd_client_find_section_sync (self, flags, NULL, query, suggested_currency, cancellable, error);
+    return snapd_client_find_category_sync (self, flags, NULL, query, suggested_currency, cancellable, error);
 }
 
 /**
@@ -829,6 +829,7 @@ snapd_client_find_sync (SnapdClient *self,
  * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  *
  * Since: 1.7
+ * Deprecated: 1.64: Use snapd_client_find_category_sync()
  */
 GPtrArray *
 snapd_client_find_section_sync (SnapdClient *self,
@@ -840,9 +841,44 @@ snapd_client_find_section_sync (SnapdClient *self,
 
     g_auto(SyncData) data = { 0 };
     start_sync (&data);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_find_section_async (self, flags, section, query, cancellable, sync_cb, &data);
+G_GNUC_END_IGNORE_DEPRECATIONS
     end_sync (&data);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     return snapd_client_find_section_finish (self, data.result, suggested_currency, error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+/**
+ * snapd_client_find_category_sync:
+ * @client: a #SnapdClient.
+ * @flags: a set of #SnapdFindFlags to control how the find is performed.
+ * @category: (allow-none): store category to search in or %NULL to search in all categories.
+ * @query: (allow-none): query string to send or %NULL to get all snaps from the given category.
+ * @suggested_currency: (out) (allow-none): location to store the ISO 4217 currency that is suggested to purchase with.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Find snaps in the store.
+ *
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ *
+ * Since: 1.64
+ */
+GPtrArray *
+snapd_client_find_category_sync (SnapdClient *self,
+                                 SnapdFindFlags flags, const gchar *category, const gchar *query,
+                                 gchar **suggested_currency,
+                                 GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_find_category_async (self, flags, category, query, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_find_category_finish (self, data.result, suggested_currency, error);
 }
 
 /**
@@ -1374,6 +1410,7 @@ snapd_client_get_users_sync (SnapdClient *self,
  * Returns: (transfer full) (array zero-terminated=1): an array of section names or %NULL on error.
  *
  * Since: 1.7
+ * Deprecated: 1.64: Use snapd_client_get_categories_sync()
  */
 GStrv
 snapd_client_get_sections_sync (SnapdClient *self,
@@ -1383,9 +1420,39 @@ snapd_client_get_sections_sync (SnapdClient *self,
 
     g_auto(SyncData) data = { 0 };
     start_sync (&data);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_get_sections_async (self, cancellable, sync_cb, &data);
+G_GNUC_END_IGNORE_DEPRECATIONS
     end_sync (&data);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     return snapd_client_get_sections_finish (self, data.result, error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+}
+
+/**
+ * snapd_client_get_categories_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Get the store categories.
+ *
+ * Returns: (transfer container) (element-type SnapdCategoryDetails): an array of #SnapdCategoryDetails or %NULL on error.
+ *
+ * Since: 1.64
+ */
+GPtrArray *
+snapd_client_get_categories_sync (SnapdClient *self,
+                                  GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_get_categories_async (self, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_categories_finish (self, data.result, error);
 }
 
 /**

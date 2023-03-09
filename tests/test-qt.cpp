@@ -1361,6 +1361,7 @@ QT_WARNING_POP
     g_assert_cmpint (listOneRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (listOneRequest->snap ());
     g_assert_cmpint (snap->appCount (), ==, 0);
+    g_assert_cmpint (snap->categoryCount (), ==, 0);
     g_assert_null (snap->channel ());
     g_assert_cmpint (snap->tracks ().count (), ==, 0);
     g_assert_cmpint (snap->channelCount (), ==, 0);
@@ -1409,6 +1410,7 @@ ListOneHandler::onComplete ()
     g_assert_cmpint (snap->appCount (), ==, 0);
     g_assert_null (snap->base ());
     g_assert_null (snap->broken ());
+    g_assert_cmpint (snap->categoryCount (), ==, 0);
     g_assert_null (snap->channel ());
     g_assert_cmpint (snap->tracks ().count (), ==, 0);
     g_assert_cmpint (snap->channelCount (), ==, 0);
@@ -1486,6 +1488,7 @@ test_get_snap_sync ()
     g_assert_cmpint (getSnapRequest->error (), ==, QSnapdRequest::NoError);
     QScopedPointer<QSnapdSnap> snap (getSnapRequest->snap ());
     g_assert_cmpint (snap->appCount (), ==, 0);
+    g_assert_cmpint (snap->categoryCount (), ==, 0);
     g_assert_null (snap->channel ());
     g_assert_cmpint (snap->tracks ().count (), ==, 0);
     g_assert_cmpint (snap->channelCount (), ==, 0);
@@ -1534,6 +1537,7 @@ GetSnapHandler::onComplete ()
     g_assert_cmpint (snap->appCount (), ==, 0);
     g_assert_null (snap->base ());
     g_assert_null (snap->broken ());
+    g_assert_cmpint (snap->categoryCount (), ==, 0);
     g_assert_null (snap->channel ());
     g_assert_cmpint (snap->tracks ().count (), ==, 0);
     g_assert_cmpint (snap->channelCount (), ==, 0);
@@ -4121,17 +4125,20 @@ test_find_section ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "banana");
     s = mock_snapd_add_store_snap (snapd, "carrot1");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "carrot2");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     QScopedPointer<QSnapdFindRequest> findRequest (client.findSection ("section", NULL));
+QT_WARNING_POP
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 2);
@@ -4146,17 +4153,20 @@ test_find_section_query ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "banana");
     s = mock_snapd_add_store_snap (snapd, "carrot1");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "carrot2");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     QScopedPointer<QSnapdFindRequest> findRequest (client.findSection ("section", "carrot"));
+QT_WARNING_POP
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 1);
@@ -4169,18 +4179,93 @@ test_find_section_name ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "banana");
     s = mock_snapd_add_store_snap (snapd, "carrot1");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     s = mock_snapd_add_store_snap (snapd, "carrot2");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     QScopedPointer<QSnapdFindRequest> findRequest (client.findSection (QSnapdClient::MatchName, "section", "carrot1"));
+QT_WARNING_POP
+    findRequest->runSync ();
+    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert_true (snap->name () == "carrot1");
+}
+
+static void
+test_find_category ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "banana");
+    s = mock_snapd_add_store_snap (snapd, "carrot1");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "carrot2");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdFindRequest> findRequest (client.findCategory ("category", NULL));
+    findRequest->runSync ();
+    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest->snapCount (), ==, 2);
+    QScopedPointer<QSnapdSnap> snap0 (findRequest->snap (0));
+    g_assert_true (snap0->name () == "apple");
+    QScopedPointer<QSnapdSnap> snap1 (findRequest->snap (1));
+    g_assert_true (snap1->name () == "carrot1");
+}
+
+static void
+test_find_category_query ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "banana");
+    s = mock_snapd_add_store_snap (snapd, "carrot1");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "carrot2");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdFindRequest> findRequest (client.findCategory ("category", "carrot"));
+    findRequest->runSync ();
+    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert_true (snap->name () == "carrot1");
+}
+
+static void
+test_find_category_name ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "banana");
+    s = mock_snapd_add_store_snap (snapd, "carrot1");
+    mock_snap_add_store_category (s, "category", FALSE);
+    s = mock_snapd_add_store_snap (snapd, "carrot2");
+    mock_snap_add_store_category (s, "category", FALSE);
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdFindRequest> findRequest (client.findCategory (QSnapdClient::MatchName, "category", "carrot1"));
     findRequest->runSync ();
     g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (findRequest->snapCount (), ==, 1);
@@ -4253,6 +4338,31 @@ test_find_common_id ()
     g_assert_cmpint (findRequest->snapCount (), ==, 1);
     QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
     g_assert_true (snap->name () == "snap2");
+}
+
+static void
+test_find_categories (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
+    mock_snap_add_category (s, "fruit", TRUE);
+    mock_snap_add_category (s, "food", FALSE);
+
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdFindRequest> findRequest (client.find (QSnapdClient::MatchName, "apple"));
+    findRequest->runSync ();
+    g_assert_cmpint (findRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (findRequest->snapCount (), ==, 1);
+    QScopedPointer<QSnapdSnap> snap (findRequest->snap (0));
+    g_assert_cmpint (snap->categoryCount (), ==, 2);
+    g_assert_true (snap->category (0)->name () == "fruit");
+    g_assert_true (snap->category (0)->featured ());
+    g_assert_true (snap->category (1)->name () == "food");
+    g_assert_false (snap->category (1)->featured ());
 }
 
 static void
@@ -6421,14 +6531,17 @@ static void
 test_get_sections_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_store_section (snapd, "SECTION1");
-    mock_snapd_add_store_section (snapd, "SECTION2");
+    mock_snapd_add_store_category (snapd, "SECTION1");
+    mock_snapd_add_store_category (snapd, "SECTION2");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     QScopedPointer<QSnapdGetSectionsRequest> getSectionsRequest (client.getSections ());
+QT_WARNING_POP
     getSectionsRequest->runSync ();
     g_assert_cmpint (getSectionsRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (getSectionsRequest->sections ().count (), ==, 2);
@@ -6454,16 +6567,75 @@ test_get_sections_async ()
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_store_section (snapd, "SECTION1");
-    mock_snapd_add_store_section (snapd, "SECTION2");
+    mock_snapd_add_store_category (snapd, "SECTION1");
+    mock_snapd_add_store_category (snapd, "SECTION2");
     g_assert_true (mock_snapd_start (snapd, NULL));
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
     GetSectionsHandler getSectionsHandler (loop, client.getSections ());
+QT_WARNING_POP
     QObject::connect (getSectionsHandler.request, &QSnapdGetSectionsRequest::complete, &getSectionsHandler, &GetSectionsHandler::onComplete);
     getSectionsHandler.request->runAsync ();
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_categories_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_category (snapd, "CATEGORY1");
+    mock_snapd_add_store_category (snapd, "CATEGORY2");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+    QScopedPointer<QSnapdGetCategoriesRequest> getCategoriesRequest (client.getCategories ());
+QT_WARNING_POP
+    getCategoriesRequest->runSync ();
+    g_assert_cmpint (getCategoriesRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (getCategoriesRequest->categoryCount (), ==, 2);
+    g_assert_true (getCategoriesRequest->category (0)->name () == "CATEGORY1");
+    g_assert_true (getCategoriesRequest->category (1)->name () == "CATEGORY2");
+}
+
+void
+GetCategoriesHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (request->categoryCount (), ==, 2);
+    g_assert_true (request->category (0)->name () == "CATEGORY1");
+    g_assert_true (request->category (1)->name () == "CATEGORY2");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_categories_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_category (snapd, "CATEGORY1");
+    mock_snapd_add_store_category (snapd, "CATEGORY2");
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+    GetCategoriesHandler getCategoriesHandler (loop, client.getCategories ());
+QT_WARNING_POP
+    QObject::connect (getCategoriesHandler.request, &QSnapdGetCategoriesRequest::complete, &getCategoriesHandler, &GetCategoriesHandler::onComplete);
+    getCategoriesHandler.request->runAsync ();
     g_main_loop_run (loop);
 }
 
@@ -7198,9 +7370,13 @@ main (int argc, char **argv)
     g_test_add_func ("/find/section", test_find_section);
     g_test_add_func ("/find/section-query", test_find_section_query);
     g_test_add_func ("/find/section-name", test_find_section_name);
+    g_test_add_func ("/find/category", test_find_category);
+    g_test_add_func ("/find/category-query", test_find_category_query);
+    g_test_add_func ("/find/category-name", test_find_category_name);
     g_test_add_func ("/find/scope-narrow", test_find_scope_narrow);
     g_test_add_func ("/find/scope-wide", test_find_scope_wide);
     g_test_add_func ("/find/common-id", test_find_common_id);
+    g_test_add_func ("/find/categories", test_find_categories);
     g_test_add_func ("/find-refreshable/sync", test_find_refreshable_sync);
     g_test_add_func ("/find-refreshable/async", test_find_refreshable_async);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
@@ -7294,6 +7470,8 @@ main (int argc, char **argv)
     g_test_add_func ("/get-users/async", test_get_users_async);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
     g_test_add_func ("/get-sections/async", test_get_sections_async);
+    g_test_add_func ("/get-categories/sync", test_get_categories_sync);
+    g_test_add_func ("/get-categories/async", test_get_categories_async);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
     g_test_add_func ("/aliases/get-async", test_aliases_get_async);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);

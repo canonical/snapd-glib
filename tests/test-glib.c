@@ -1509,6 +1509,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
+    g_assert_cmpint (snapd_snap_get_categories (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
     g_assert_cmpint (g_strv_length (snapd_snap_get_tracks (snap)), ==, 0);
     g_assert_cmpint (snapd_snap_get_channels (snap)->len, ==, 0);
@@ -1560,6 +1561,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_base (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_broken (snap), ==, NULL);
+    g_assert_cmpint (snapd_snap_get_categories (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
     g_assert_cmpint (g_strv_length (snapd_snap_get_common_ids (snap)), ==, 0);
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
@@ -1635,6 +1637,7 @@ test_get_snap_sync (void)
     g_assert_no_error (error);
     g_assert_nonnull (snap);
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
+    g_assert_cmpint (snapd_snap_get_categories (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
     g_assert_cmpint (g_strv_length (snapd_snap_get_tracks (snap)), ==, 0);
     g_assert_cmpint (snapd_snap_get_channels (snap)->len, ==, 0);
@@ -1684,6 +1687,7 @@ get_snap_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_cmpint (snapd_snap_get_apps (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_base (snap), ==, NULL);
     g_assert_cmpstr (snapd_snap_get_broken (snap), ==, NULL);
+    g_assert_cmpint (snapd_snap_get_categories (snap)->len, ==, 0);
     g_assert_cmpstr (snapd_snap_get_channel (snap), ==, NULL);
     g_assert_cmpint (g_strv_length (snapd_snap_get_common_ids (snap)), ==, 0);
     g_assert_cmpint (snapd_snap_get_confinement (snap), ==, SNAPD_CONFINEMENT_STRICT);
@@ -4674,10 +4678,10 @@ test_find_section (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "banana");
     s = mock_snapd_add_store_snap (snapd, "carrot1");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "carrot2");
 
     g_autoptr(GError) error = NULL;
@@ -4686,7 +4690,9 @@ test_find_section (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_autoptr(GPtrArray) snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_NONE, "section", NULL, NULL, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 2);
@@ -4699,10 +4705,10 @@ test_find_section_query (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "banana");
     s = mock_snapd_add_store_snap (snapd, "carrot1");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "carrot2");
 
     g_autoptr(GError) error = NULL;
@@ -4711,7 +4717,9 @@ test_find_section_query (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_autoptr(GPtrArray) snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_NONE, "section", "carrot", NULL, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
@@ -4723,12 +4731,12 @@ test_find_section_name (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     mock_snapd_add_store_snap (snapd, "banana");
     s = mock_snapd_add_store_snap (snapd, "carrot1");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
     s = mock_snapd_add_store_snap (snapd, "carrot2");
-    mock_snap_add_store_section (s, "section");
+    mock_snap_add_store_category (s, "section", FALSE);
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -4736,7 +4744,83 @@ test_find_section_name (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_autoptr(GPtrArray) snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "section", "carrot1", NULL, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 1);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "carrot1");
+}
+
+static void
+test_find_category (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "banana");
+    s = mock_snapd_add_store_snap (snapd, "carrot1");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "carrot2");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GPtrArray) snaps = snapd_client_find_category_sync (client, SNAPD_FIND_FLAGS_NONE, "category", NULL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 2);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "apple");
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[1]), ==, "carrot1");
+}
+
+static void
+test_find_category_query (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "banana");
+    s = mock_snapd_add_store_snap (snapd, "carrot1");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "carrot2");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GPtrArray) snaps = snapd_client_find_category_sync (client, SNAPD_FIND_FLAGS_NONE, "category", "carrot", NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 1);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "carrot1");
+}
+
+static void
+test_find_category_name (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
+    mock_snap_add_store_category (s, "category", FALSE);
+    mock_snapd_add_store_snap (snapd, "banana");
+    s = mock_snapd_add_store_snap (snapd, "carrot1");
+    mock_snap_add_store_category (s, "category", FALSE);
+    s = mock_snapd_add_store_snap (snapd, "carrot2");
+    mock_snap_add_store_category (s, "category", FALSE);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GPtrArray) snaps = snapd_client_find_category_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "category", "carrot1", NULL, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
@@ -4808,6 +4892,34 @@ test_find_common_id (void)
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
     g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap2");
+}
+
+static void
+test_find_categories (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_store_snap (snapd, "apple");
+    mock_snap_add_category (s, "fruit", TRUE);
+    mock_snap_add_category (s, "food", FALSE);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GPtrArray) snaps = snapd_client_find_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, "apple", NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 1);
+    SnapdSnap *snap = snaps->pdata[0];
+    g_assert_cmpint (snapd_snap_get_categories(snap)->len, ==, 2);
+    SnapdCategory *category = snapd_snap_get_categories(snap)->pdata[0];
+    g_assert_cmpstr (snapd_category_get_name (category), ==, "fruit");
+    g_assert_true (snapd_category_get_featured (category));
+    category = snapd_snap_get_categories(snap)->pdata[1];
+    g_assert_cmpstr (snapd_category_get_name (category), ==, "food");
+    g_assert_false (snapd_category_get_featured (category));
 }
 
 static void
@@ -7273,8 +7385,8 @@ static void
 test_get_sections_sync (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_store_section (snapd, "SECTION1");
-    mock_snapd_add_store_section (snapd, "SECTION2");
+    mock_snapd_add_store_category (snapd, "SECTION1");
+    mock_snapd_add_store_category (snapd, "SECTION2");
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -7282,7 +7394,9 @@ test_get_sections_sync (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_auto(GStrv) sections = snapd_client_get_sections_sync (client, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (sections);
     g_assert_cmpint (g_strv_length (sections), ==, 2);
@@ -7296,7 +7410,9 @@ get_sections_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_autoptr(AsyncData) data = user_data;
 
     g_autoptr(GError) error = NULL;
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_auto(GStrv) sections = snapd_client_get_sections_finish (SNAPD_CLIENT (object), result, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_no_error (error);
     g_assert_nonnull (sections);
     g_assert_cmpint (g_strv_length (sections), ==, 2);
@@ -7312,8 +7428,8 @@ test_get_sections_async (void)
     g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
 
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
-    mock_snapd_add_store_section (snapd, "SECTION1");
-    mock_snapd_add_store_section (snapd, "SECTION2");
+    mock_snapd_add_store_category (snapd, "SECTION1");
+    mock_snapd_add_store_category (snapd, "SECTION2");
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -7321,7 +7437,75 @@ test_get_sections_async (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_get_sections_async (client, NULL, get_sections_cb, async_data_new (loop, snapd));
+G_GNUC_END_IGNORE_DEPRECATIONS
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_categories_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_category (snapd, "CATEGORY1");
+    mock_snapd_add_store_category (snapd, "CATEGORY2");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    g_autoptr(GPtrArray) categories = snapd_client_get_categories_sync (client, NULL, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    g_assert_no_error (error);
+    g_assert_nonnull (categories);
+    g_assert_cmpint (categories->len, ==, 2);
+    SnapdCategoryDetails *category_details = categories->pdata[0];
+    g_assert_cmpstr (snapd_category_details_get_name (category_details), ==, "CATEGORY1");
+    category_details = categories->pdata[1];
+    g_assert_cmpstr (snapd_category_details_get_name (category_details), ==, "CATEGORY2");
+}
+
+static void
+get_categories_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    g_autoptr(GPtrArray) categories = snapd_client_get_categories_finish (SNAPD_CLIENT (object), result, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    g_assert_no_error (error);
+    g_assert_nonnull (categories);
+    g_assert_cmpint (categories->len, ==, 2);
+    SnapdCategoryDetails *category_details = categories->pdata[0];
+    g_assert_cmpstr (snapd_category_details_get_name (category_details), ==, "CATEGORY1");
+    category_details = categories->pdata[1];
+    g_assert_cmpstr (snapd_category_details_get_name (category_details), ==, "CATEGORY2");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_get_categories_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_store_category (snapd, "CATEGORY1");
+    mock_snapd_add_store_category (snapd, "CATEGORY2");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    snapd_client_get_categories_async (client, NULL, get_categories_cb, async_data_new (loop, snapd));
+G_GNUC_END_IGNORE_DEPRECATIONS
     g_main_loop_run (loop);
 }
 
@@ -8210,9 +8394,13 @@ main (int argc, char **argv)
     g_test_add_func ("/find/section", test_find_section);
     g_test_add_func ("/find/section-query", test_find_section_query);
     g_test_add_func ("/find/section-name", test_find_section_name);
+    g_test_add_func ("/find/category", test_find_category);
+    g_test_add_func ("/find/category-query", test_find_category_query);
+    g_test_add_func ("/find/category-name", test_find_category_name);
     g_test_add_func ("/find/scope-narrow", test_find_scope_narrow);
     g_test_add_func ("/find/scope-wide", test_find_scope_wide);
     g_test_add_func ("/find/common-id", test_find_common_id);
+    g_test_add_func ("/find/categories", test_find_categories);
     g_test_add_func ("/find-refreshable/sync", test_find_refreshable_sync);
     g_test_add_func ("/find-refreshable/async", test_find_refreshable_async);
     g_test_add_func ("/find-refreshable/no-updates", test_find_refreshable_no_updates);
@@ -8306,6 +8494,8 @@ main (int argc, char **argv)
     g_test_add_func ("/get-users/async", test_get_users_async);
     g_test_add_func ("/get-sections/sync", test_get_sections_sync);
     g_test_add_func ("/get-sections/async", test_get_sections_async);
+    g_test_add_func ("/get-categories/sync", test_get_categories_sync);
+    g_test_add_func ("/get-categories/async", test_get_categories_async);
     g_test_add_func ("/aliases/get-sync", test_aliases_get_sync);
     g_test_add_func ("/aliases/get-async", test_aliases_get_async);
     g_test_add_func ("/aliases/get-empty", test_aliases_get_empty);

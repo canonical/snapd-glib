@@ -190,7 +190,7 @@ MockSnap       *mock_snapd_find_snap              (MockSnapd     *snapd,
 MockSnapshot   *mock_snapd_find_snapshot          (MockSnapd     *snapd,
                                                    const gchar   *name);
 
-void            mock_snapd_add_store_section      (MockSnapd     *snapd,
+void            mock_snapd_add_store_category     (MockSnapd     *snapd,
                                                    const gchar   *name);
 
 MockSnap       *mock_snapd_add_store_snap         (MockSnapd     *snapd,
@@ -232,6 +232,10 @@ void            mock_snap_set_base                (MockSnap      *snap,
 
 void            mock_snap_set_broken              (MockSnap      *snap,
                                                    const gchar   *broken);
+
+void            mock_snap_add_category            (MockSnap    *snap,
+                                                   const gchar *name,
+                                                   gboolean     featured);
 
 void            mock_snap_set_channel             (MockSnap      *snap,
                                                    const gchar   *channel);
@@ -402,8 +406,9 @@ void            mock_snap_set_version             (MockSnap      *snap,
 void            mock_snap_set_website             (MockSnap      *snap,
                                                    const gchar   *website);
 
-void            mock_snap_add_store_section       (MockSnap      *snap,
-                                                   const gchar   *section);
+void            mock_snap_add_store_category      (MockSnap      *snap,
+                                                   const gchar   *category,
+                                                   gboolean       featured);
 
 MockPlug       *mock_snap_add_plug                (MockSnap      *snap,
                                                    MockInterface *interface,

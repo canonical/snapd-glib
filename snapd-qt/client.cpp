@@ -443,31 +443,43 @@ QSnapdFindRequest::~QSnapdFindRequest ()
 QSnapdFindRequest *QSnapdClient::find (const QString& name)
 {
     Q_D(QSnapdClient);
-    return new QSnapdFindRequest (QSnapdClient::FindFlag::None, NULL, name, d->client);
+    return new QSnapdFindRequest (QSnapdClient::FindFlag::None, NULL, NULL, name, d->client);
 }
 
 QSnapdFindRequest *QSnapdClient::find (FindFlags flags)
 {
     Q_D(QSnapdClient);
-    return new QSnapdFindRequest (flags, NULL, NULL, d->client);
+    return new QSnapdFindRequest (flags, NULL, NULL, NULL, d->client);
 }
 
 QSnapdFindRequest *QSnapdClient::find (FindFlags flags, const QString& name)
 {
     Q_D(QSnapdClient);
-    return new QSnapdFindRequest (flags, NULL, name, d->client);
+    return new QSnapdFindRequest (flags, NULL, NULL, name, d->client);
 }
 
 QSnapdFindRequest *QSnapdClient::findSection (const QString &section, const QString& name)
 {
     Q_D(QSnapdClient);
-    return new QSnapdFindRequest (QSnapdClient::FindFlag::None, section, name, d->client);
+    return new QSnapdFindRequest (QSnapdClient::FindFlag::None, section, NULL, name, d->client);
 }
 
 QSnapdFindRequest *QSnapdClient::findSection (FindFlags flags, const QString &section, const QString& name)
 {
     Q_D(QSnapdClient);
-    return new QSnapdFindRequest (flags, section, name, d->client);
+    return new QSnapdFindRequest (flags, section, NULL, name, d->client);
+}
+
+QSnapdFindRequest *QSnapdClient::findCategory (const QString &category, const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdFindRequest (QSnapdClient::FindFlag::None, NULL, category, name, d->client);
+}
+
+QSnapdFindRequest *QSnapdClient::findCategory (FindFlags flags, const QString &category, const QString& name)
+{
+    Q_D(QSnapdClient);
+    return new QSnapdFindRequest (flags, NULL, category, name, d->client);
 }
 
 QSnapdFindRefreshableRequest::~QSnapdFindRefreshableRequest ()
@@ -663,6 +675,15 @@ QSnapdGetSectionsRequest *QSnapdClient::getSections ()
 {
     Q_D(QSnapdClient);
     return new QSnapdGetSectionsRequest (d->client);
+}
+
+QSnapdGetCategoriesRequest::~QSnapdGetCategoriesRequest ()
+{}
+
+QSnapdGetCategoriesRequest *QSnapdClient::getCategories ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetCategoriesRequest (d->client);
 }
 
 QSnapdGetAliasesRequest::~QSnapdGetAliasesRequest ()
@@ -2062,9 +2083,9 @@ static SnapdFindFlags convertFindFlags (int flags)
     return (SnapdFindFlags) result;
 }
 
-QSnapdFindRequest::QSnapdFindRequest (int flags, const QString& section, const QString& name, void *snapd_client, QObject *parent) :
+QSnapdFindRequest::QSnapdFindRequest (int flags, const QString& section, const QString& category, const QString& name, void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdFindRequestPrivate (this, flags, section, name)) {}
+    d_ptr (new QSnapdFindRequestPrivate (this, flags, section, category, name)) {}
 
 void QSnapdFindRequest::runSync ()
 {
@@ -2072,7 +2093,14 @@ void QSnapdFindRequest::runSync ()
 
     g_autoptr(GError) error = NULL;
     g_autofree gchar *suggested_currency = NULL;
-    d->snaps = snapd_client_find_section_sync (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.isNull () ? NULL : d->section.toStdString().c_str (), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), &suggested_currency, G_CANCELLABLE (getCancellable ()), &error);
+    if (d->section.isNull ()) {
+        d->snaps = snapd_client_find_category_sync (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->category.isNull () ? NULL : d->category.toStdString().c_str (), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), &suggested_currency, G_CANCELLABLE (getCancellable ()), &error);
+    }
+    else {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+        d->snaps = snapd_client_find_section_sync (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.isNull () ? NULL : d->section.toStdString().c_str (), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), &suggested_currency, G_CANCELLABLE (getCancellable ()), &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    }
     d->suggestedCurrency = suggested_currency;
     finish (error);
 }
@@ -2083,7 +2111,15 @@ void QSnapdFindRequest::handleResult (void *object, void *result)
 
     g_autofree gchar *suggested_currency = NULL;
     g_autoptr(GError) error = NULL;
-    g_autoptr(GPtrArray) snaps = snapd_client_find_section_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &suggested_currency, &error);
+    g_autoptr(GPtrArray) snaps = NULL;
+    if (d->section.isNull ()) {
+        snaps = snapd_client_find_category_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &suggested_currency, &error);
+    }
+    else {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+        snaps = snapd_client_find_section_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &suggested_currency, &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    }
     d->snaps = (GPtrArray*) g_steal_pointer (&snaps);
     d->suggestedCurrency = suggested_currency;
     finish (error);
@@ -2101,7 +2137,14 @@ static void find_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
 void QSnapdFindRequest::runAsync ()
 {
     Q_D(QSnapdFindRequest);
-    snapd_client_find_section_async (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.isNull () ? NULL : d->section.toStdString ().c_str (), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, g_object_ref (d->callback_data));
+    if (d->section.isNull ()) {
+        snapd_client_find_category_async (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->category.isNull () ? NULL : d->category.toStdString ().c_str (), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, g_object_ref (d->callback_data));
+    }
+    else {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+        snapd_client_find_section_async (SNAPD_CLIENT (getClient ()), convertFindFlags (d->flags), d->section.isNull () ? NULL : d->section.toStdString ().c_str (), d->name.isNull () ? NULL : d->name.toStdString ().c_str (), G_CANCELLABLE (getCancellable ()), find_ready_cb, g_object_ref (d->callback_data));
+G_GNUC_END_IGNORE_DEPRECATIONS
+    }
 }
 
 int QSnapdFindRequest::snapCount () const
@@ -2838,8 +2881,10 @@ void QSnapdGetSectionsRequest::runSync ()
     Q_D(QSnapdGetSectionsRequest);
 
     g_autoptr(GError) error = NULL;
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     d->sections = snapd_client_get_sections_sync (SNAPD_CLIENT (getClient ()),
                                                   G_CANCELLABLE (getCancellable ()), &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
     finish (error);
 }
 
@@ -2848,7 +2893,9 @@ void QSnapdGetSectionsRequest::handleResult (void *object, void *result)
     Q_D(QSnapdGetSectionsRequest);
 
     g_autoptr(GError) error = NULL;
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     g_auto(GStrv) sections = snapd_client_get_sections_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+G_GNUC_END_IGNORE_DEPRECATIONS
 
     d->sections = (GStrv) g_steal_pointer (&sections);
     finish (error);
@@ -2866,8 +2913,10 @@ static void get_sections_ready_cb (GObject *object, GAsyncResult *result, gpoint
 void QSnapdGetSectionsRequest::runAsync ()
 {
     Q_D(QSnapdGetSectionsRequest);
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     snapd_client_get_sections_async (SNAPD_CLIENT (getClient ()),
                                      G_CANCELLABLE (getCancellable ()), get_sections_ready_cb, g_object_ref (d->callback_data));
+G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 QStringList QSnapdGetSectionsRequest::sections () const
@@ -2878,6 +2927,60 @@ QStringList QSnapdGetSectionsRequest::sections () const
     for (int i = 0; d->sections[i] != NULL; i++)
         result.append (d->sections[i]);
     return result;
+}
+
+QSnapdGetCategoriesRequest::QSnapdGetCategoriesRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetCategoriesRequestPrivate (this)) {}
+
+void QSnapdGetCategoriesRequest::runSync ()
+{
+    Q_D(QSnapdGetCategoriesRequest);
+
+    g_autoptr(GError) error = NULL;
+    d->categories = snapd_client_get_categories_sync (SNAPD_CLIENT (getClient ()),
+                                                      G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdGetCategoriesRequest::handleResult (void *object, void *result)
+{
+    Q_D(QSnapdGetCategoriesRequest);
+
+    g_autoptr(GError) error = NULL;
+    d->categories = snapd_client_get_categories_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    finish (error);
+}
+
+static void get_categories_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    g_autoptr(CallbackData) callback_data = (CallbackData *) data;
+    if (callback_data->request != NULL) {
+        QSnapdGetCategoriesRequest *request = static_cast<QSnapdGetCategoriesRequest*>(callback_data->request);
+        request->handleResult (object, result);
+    }
+}
+
+void QSnapdGetCategoriesRequest::runAsync ()
+{
+    Q_D(QSnapdGetCategoriesRequest);
+    snapd_client_get_categories_async (SNAPD_CLIENT (getClient ()),
+                                       G_CANCELLABLE (getCancellable ()), get_categories_ready_cb, g_object_ref (d->callback_data));
+}
+
+int QSnapdGetCategoriesRequest::categoryCount () const
+{
+    Q_D(const QSnapdGetCategoriesRequest);
+    return d->categories != NULL ? d->categories->len : 0;
+}
+
+QSnapdCategoryDetails *QSnapdGetCategoriesRequest::category (int n) const
+{
+    Q_D(const QSnapdGetCategoriesRequest);
+
+    if (d->categories == NULL || n < 0 || (guint) n >= d->categories->len)
+        return NULL;
+    return new QSnapdCategoryDetails (d->categories->pdata[n]);
 }
 
 QSnapdGetAliasesRequest::QSnapdGetAliasesRequest (void *snapd_client, QObject *parent) :

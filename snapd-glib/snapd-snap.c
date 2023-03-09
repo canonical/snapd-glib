@@ -35,6 +35,7 @@ struct _SnapdSnap
     GPtrArray *apps;
     gchar *base;
     gchar *broken;
+    GPtrArray *categories;
     gchar *channel;
     GPtrArray *channels;
     GStrv common_ids;
@@ -76,6 +77,7 @@ struct _SnapdSnap
 enum
 {
     PROP_APPS = 1,
+    PROP_CATEGORIES,
     PROP_CHANNEL,
     PROP_CONFINEMENT,
     PROP_CONTACT,
@@ -169,6 +171,23 @@ snapd_snap_get_broken (SnapdSnap *self)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
     return self->broken;
+}
+
+/**
+ * snapd_snap_get_categories:
+ * @snap: a #SnapdSnap.
+ *
+ * Gets the categories this snap belongs to.
+ *
+ * Returns: (transfer none) (element-type SnapdCategory): an array of #SnapdCategory.
+ *
+ * Since: 1.64
+ */
+GPtrArray *
+snapd_snap_get_categories (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->categories;
 }
 
 /**
@@ -890,6 +909,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         g_free (self->broken);
         self->broken = g_strdup (g_value_get_string (value));
         break;
+    case PROP_CATEGORIES:
+        g_clear_pointer (&self->categories, g_ptr_array_unref);
+        if (g_value_get_boxed (value) != NULL)
+            self->categories = g_ptr_array_ref (g_value_get_boxed (value));
+        break;
     case PROP_CHANNEL:
         g_free (self->channel);
         self->channel = g_strdup (g_value_get_string (value));
@@ -1052,6 +1076,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_BROKEN:
         g_value_set_string (value, self->broken);
         break;
+    case PROP_CATEGORIES:
+        g_value_set_boxed (value, self->categories);
+        break;
     case PROP_CHANNEL:
         g_value_set_string (value, self->channel);
         break;
@@ -1175,6 +1202,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&self->apps, g_ptr_array_unref);
     g_clear_pointer (&self->base, g_free);
     g_clear_pointer (&self->broken, g_free);
+    g_clear_pointer (&self->categories, g_ptr_array_unref);
     g_clear_pointer (&self->channel, g_free);
     g_clear_pointer (&self->channels, g_ptr_array_unref);
     g_clear_pointer (&self->common_ids, g_strfreev);
@@ -1219,6 +1247,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                      g_param_spec_boxed ("apps",
                                                          "apps",
                                                          "Apps this snap contains",
+                                                         G_TYPE_PTR_ARRAY,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_CATEGORIES,
+                                     g_param_spec_boxed ("categories",
+                                                         "categories",
+                                                         "Categories this snap belongs to",
                                                          G_TYPE_PTR_ARRAY,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
