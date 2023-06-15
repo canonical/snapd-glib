@@ -25,6 +25,7 @@
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-change.h>
 #include <snapd-glib/snapd-user-information.h>
+#include <snapd-glib/snapd-prompting-request.h>
 
 G_BEGIN_DECLS
 
@@ -1277,6 +1278,45 @@ void                    snapd_client_follow_logs_async             (SnapdClient 
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 gboolean                snapd_client_follow_logs_finish            (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+GPtrArray              *snapd_client_get_prompting_requests_sync   (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_prompting_requests_async  (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_get_prompting_requests_finish (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+SnapdPromptingRequest  *snapd_client_get_prompting_request_sync    (SnapdClient          *client,
+                                                                    const gchar          *id,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_prompting_request_async   (SnapdClient          *client,
+                                                                    const gchar          *id,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+SnapdPromptingRequest  *snapd_client_get_prompting_request_finish  (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_prompting_respond_sync        (SnapdClient          *client,
+                                                                    const gchar          *id,
+                                                                    gboolean              allow,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_prompting_respond_async       (SnapdClient          *client,
+                                                                    const gchar          *id,
+                                                                    gboolean              allow,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_prompting_respond_finish      (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

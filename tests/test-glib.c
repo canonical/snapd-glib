@@ -8368,6 +8368,207 @@ test_get_logs_limit (void)
 }
 
 static void
+test_get_prompting_requests_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_add_prompting_request (snapd, "1", "snap1", "app1", "/home/foo/file.txt", "file", "read");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GPtrArray) requests = snapd_client_get_prompting_requests_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (requests);
+    g_assert_cmpint (requests->len, ==, 1);
+
+    SnapdPromptingRequest *request = requests->pdata[0];
+    g_assert_cmpstr (snapd_prompting_request_get_id (request), ==, "1");
+    g_assert_cmpstr (snapd_prompting_request_get_snap (request), ==, "snap1");
+    g_assert_cmpstr (snapd_prompting_request_get_app (request), ==, "app1");
+    g_assert_cmpstr (snapd_prompting_request_get_path (request), ==, "/home/foo/file.txt");
+    g_assert_cmpstr (snapd_prompting_request_get_resource_type (request), ==, "file");
+    g_assert_cmpstr (snapd_prompting_request_get_permission (request), ==, "read");
+}
+
+static void
+get_prompting_requests_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) requests = snapd_client_get_prompting_requests_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (requests);
+    g_assert_cmpint (requests->len, ==, 1);
+
+    SnapdPromptingRequest *request = requests->pdata[0];
+    g_assert_cmpstr (snapd_prompting_request_get_id (request), ==, "1");
+    g_assert_cmpstr (snapd_prompting_request_get_snap (request), ==, "snap1");
+    g_assert_cmpstr (snapd_prompting_request_get_app (request), ==, "app1");
+    g_assert_cmpstr (snapd_prompting_request_get_path (request), ==, "/home/foo/file.txt");
+    g_assert_cmpstr (snapd_prompting_request_get_resource_type (request), ==, "file");
+    g_assert_cmpstr (snapd_prompting_request_get_permission (request), ==, "read");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_get_prompting_requests_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_add_prompting_request (snapd, "1", "snap1", "app1", "/home/foo/file.txt", "file", "read");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_prompting_requests_async (client, NULL, get_prompting_requests_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_prompting_request_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_add_prompting_request (snapd, "1", "snap1", "app1a", "/home/foo/file1.txt", "file", "read");
+    mock_snapd_add_prompting_request (snapd, "2", "snap1", "app1b", "/home/foo/file2.txt", "file", "write");
+    mock_snapd_add_prompting_request (snapd, "3", "snap2", "app2", "/home/foo/file3.txt", "file", "execute");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(SnapdPromptingRequest) request = snapd_client_get_prompting_request_sync (client, "2", NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (request);
+
+    g_assert_cmpstr (snapd_prompting_request_get_id (request), ==, "2");
+    g_assert_cmpstr (snapd_prompting_request_get_snap (request), ==, "snap1");
+    g_assert_cmpstr (snapd_prompting_request_get_app (request), ==, "app1b");
+    g_assert_cmpstr (snapd_prompting_request_get_path (request), ==, "/home/foo/file2.txt");
+    g_assert_cmpstr (snapd_prompting_request_get_resource_type (request), ==, "file");
+    g_assert_cmpstr (snapd_prompting_request_get_permission (request), ==, "write");
+}
+
+static void
+get_prompting_request_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    g_autoptr(SnapdPromptingRequest) request = snapd_client_get_prompting_request_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (request);
+
+    g_assert_cmpstr (snapd_prompting_request_get_id (request), ==, "2");
+    g_assert_cmpstr (snapd_prompting_request_get_snap (request), ==, "snap1");
+    g_assert_cmpstr (snapd_prompting_request_get_app (request), ==, "app1b");
+    g_assert_cmpstr (snapd_prompting_request_get_path (request), ==, "/home/foo/file2.txt");
+    g_assert_cmpstr (snapd_prompting_request_get_resource_type (request), ==, "file");
+    g_assert_cmpstr (snapd_prompting_request_get_permission (request), ==, "write");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_get_prompting_request_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_add_prompting_request (snapd, "1", "snap1", "app1a", "/home/foo/file1.txt", "file", "read");
+    mock_snapd_add_prompting_request (snapd, "2", "snap1", "app1b", "/home/foo/file2.txt", "file", "write");
+    mock_snapd_add_prompting_request (snapd, "3", "snap2", "app2", "/home/foo/file3.txt", "file", "execute");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_prompting_request_async (client, "2", NULL, get_prompting_request_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
+test_prompting_respond_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_add_prompting_request (snapd, "1", "snap1", "app1a", "/home/foo/file1.txt", "file", "read");
+    MockPromptingRequest *r = mock_snapd_add_prompting_request (snapd, "2", "snap1", "app1b", "/home/foo/file2.txt", "file", "write");
+    mock_snapd_add_prompting_request (snapd, "3", "snap2", "app2", "/home/foo/file3.txt", "file", "execute");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_assert_false (mock_prompting_request_get_has_response (r));
+
+    gboolean result = snapd_client_prompting_respond_sync (client, "2", TRUE, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_true (result);
+
+    g_assert_true (mock_prompting_request_get_has_response (r));
+    g_assert_true (mock_prompting_request_get_allow (r));
+}
+
+static void
+prompting_respond_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    gboolean res = snapd_client_prompting_respond_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (res);
+
+    MockPromptingRequest *r = mock_snapd_find_prompting_request (data->snapd, "2");
+    g_assert_true (mock_prompting_request_get_has_response (r));
+    g_assert_true (mock_prompting_request_get_allow (r));
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_prompting_respond_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_add_prompting_request (snapd, "1", "snap1", "app1a", "/home/foo/file1.txt", "file", "read");
+    MockPromptingRequest *r = mock_snapd_add_prompting_request (snapd, "2", "snap1", "app1b", "/home/foo/file2.txt", "file", "write");
+    mock_snapd_add_prompting_request (snapd, "3", "snap2", "app2", "/home/foo/file3.txt", "file", "execute");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_assert_false (mock_prompting_request_get_has_response (r));
+
+    snapd_client_prompting_respond_async (client, "2", TRUE, NULL, prompting_respond_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
 test_stress (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -8724,6 +8925,12 @@ main (int argc, char **argv)
     g_test_add_func ("/get-logs/limit", test_get_logs_limit);
     g_test_add_func ("/follow-logs/sync", test_follow_logs_sync);
     g_test_add_func ("/follow-logs/async", test_follow_logs_async);
+    g_test_add_func ("/get-prompting-requests/sync", test_get_prompting_requests_sync);
+    g_test_add_func ("/get-prompting-requests/async", test_get_prompting_requests_async);
+    g_test_add_func ("/get-prompting-request/sync", test_get_prompting_request_sync);
+    g_test_add_func ("/get-prompting-request/async", test_get_prompting_request_async);
+    g_test_add_func ("/prompting-respond/sync", test_prompting_respond_sync);
+    g_test_add_func ("/prompting-respond/async", test_prompting_respond_async);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();

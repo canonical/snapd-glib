@@ -36,6 +36,7 @@ typedef struct _MockLog MockLog;
 typedef struct _MockMedia MockMedia;
 typedef struct _MockPlug MockPlug;
 typedef struct _MockPrice MockPrice;
+typedef struct _MockPromptingRequest MockPromptingRequest;
 typedef struct _MockSlot MockSlot;
 typedef struct _MockSnap MockSnap;
 typedef struct _MockSnapshot MockSnapshot;
@@ -476,6 +477,21 @@ void            mock_snapd_add_log                (MockSnapd     *snapd,
                                                    const gchar   *message,
                                                    const gchar   *sid,
                                                    const gchar   *pid);
+
+MockPromptingRequest *mock_snapd_add_prompting_request  (MockSnapd     *snapd,
+                                                         const gchar   *id,
+                                                         const gchar   *snap,
+                                                         const gchar   *app,
+                                                         const gchar   *path,
+                                                         const gchar   *resource_type,
+                                                         const gchar   *permission);
+
+MockPromptingRequest *mock_snapd_find_prompting_request (MockSnapd     *snapd,
+                                                         const gchar   *id);
+
+gboolean              mock_prompting_request_get_has_response (MockPromptingRequest *request);
+
+gboolean              mock_prompting_request_get_allow        (MockPromptingRequest *request);
 
 G_END_DECLS
 

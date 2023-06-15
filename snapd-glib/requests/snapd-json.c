@@ -1307,3 +1307,25 @@ _snapd_json_parse_interface (JsonNode *node, GError **error)
                          "slots", slot_array,
                          NULL);
 }
+
+SnapdPromptingRequest *
+_snapd_json_parse_prompting_request (JsonNode *node, GError **error)
+{
+    if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected prompt request type");
+        return NULL;
+    }
+    JsonObject *object = json_node_get_object (node);
+
+    return g_object_new (SNAPD_TYPE_PROMPTING_REQUEST,
+                         "id", _snapd_json_get_string (object, "id", NULL),
+                         "snap", _snapd_json_get_string (object, "snap", NULL),
+                         "app", _snapd_json_get_string (object, "app", NULL),
+                         "path", _snapd_json_get_string (object, "path", NULL),
+                         "resource-type", _snapd_json_get_string (object, "resource-type", NULL),
+                         "permission", _snapd_json_get_string (object, "permission", NULL),
+                         NULL);
+}

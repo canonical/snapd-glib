@@ -21,6 +21,7 @@
 #include "snapd-maintenance.h"
 #include "snapd-plug.h"
 #include "snapd-plug-ref.h"
+#include "snapd-prompting-request.h"
 #include "snapd-slot.h"
 #include "snapd-slot-ref.h"
 #include "snapd-snap.h"
@@ -116,6 +117,9 @@ SnapdConnection      *_snapd_json_parse_connection       (JsonNode           *no
 
 SnapdInterface       *_snapd_json_parse_interface        (JsonNode           *node,
                                                           GError            **error);
+
+SnapdPromptingRequest *_snapd_json_parse_prompting_request  (JsonNode           *node,
+                                                             GError            **error);
 
 G_END_DECLS
 

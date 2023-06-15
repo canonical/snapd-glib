@@ -75,6 +75,7 @@ struct _MockSnapd
     GHashTable *icon_theme_status;
     GHashTable *sound_theme_status;
     GList *logs;
+    GList *prompting_requests;
 };
 
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
@@ -282,6 +283,18 @@ struct _MockTrack
     GList *channels;
 };
 
+struct _MockPromptingRequest
+{
+    gchar *id;
+    gchar *snap;
+    gchar *app;
+    gchar *path;
+    gchar *resource_type;
+    gchar *permission;
+    gboolean has_response;
+    gboolean allow;
+};
+
 static void
 mock_alias_free (MockAlias *alias)
 {
@@ -430,6 +443,18 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->snap_path);
     g_free (snap->error);
     g_slice_free (MockSnap, snap);
+}
+
+static void
+mock_prompting_request_free (MockPromptingRequest *request)
+{
+    g_free (request->id);
+    g_free (request->snap);
+    g_free (request->app);
+    g_free (request->path);
+    g_free (request->resource_type);
+    g_free (request->permission);
+    g_slice_free (MockPromptingRequest, request);
 }
 
 MockSnapd *
@@ -1881,6 +1906,55 @@ mock_snapd_add_log (MockSnapd *self, const gchar *timestamp, const gchar *messag
     log->sid = g_strdup (sid);
     log->pid = g_strdup (pid);
     self->logs = g_list_append (self->logs, log);
+}
+
+MockPromptingRequest *
+mock_snapd_add_prompting_request (MockSnapd *self, const gchar *id, const gchar *snap, const gchar *app, const gchar *path, const gchar *resource_type, const gchar *permission)
+{
+    MockPromptingRequest *request = g_slice_new0 (MockPromptingRequest);
+    request->id = g_strdup (id);
+    request->snap = g_strdup (snap);
+    request->app = g_strdup (app);
+    request->path = g_strdup (path);
+    request->resource_type = g_strdup (resource_type);
+    request->permission = g_strdup (permission);
+    self->prompting_requests = g_list_append (self->prompting_requests, request);
+
+    return request;
+}
+
+static MockPromptingRequest *
+find_prompting_request (MockSnapd *self, const gchar *id)
+{
+    for (GList *link = self->prompting_requests; link; link = link->next) {
+        MockPromptingRequest *request = link->data;
+        if (strcmp (request->id, id) == 0)
+            return request;
+    }
+
+    return NULL;
+}
+
+MockPromptingRequest *
+mock_snapd_find_prompting_request (MockSnapd *self, const gchar *id)
+{
+    g_return_val_if_fail (MOCK_IS_SNAPD (self), NULL);
+
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
+
+    return find_prompting_request (self, id);
+}
+
+gboolean
+mock_prompting_request_get_has_response (MockPromptingRequest *request)
+{
+    return request->has_response;
+}
+
+gboolean
+mock_prompting_request_get_allow (MockPromptingRequest *request)
+{
+    return request->allow;
 }
 
 static MockChange *
@@ -5061,6 +5135,97 @@ handle_logs (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
     send_response (message, 200, "application/json-seq", (const guint8 *) content->str, content->len);
 }
 
+static JsonNode *
+make_prompting_request_node (MockPromptingRequest *request)
+{
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
+
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "id");
+    json_builder_add_string_value (builder, request->id);
+    json_builder_set_member_name (builder, "snap");
+    json_builder_add_string_value (builder, request->snap);
+    json_builder_set_member_name (builder, "app");
+    json_builder_add_string_value (builder, request->app);
+    json_builder_set_member_name (builder, "path");
+    json_builder_add_string_value (builder, request->path);
+    json_builder_set_member_name (builder, "resource-type");
+    json_builder_add_string_value (builder, request->resource_type);
+    json_builder_set_member_name (builder, "permission");
+    json_builder_add_string_value (builder, request->permission);
+    json_builder_end_object (builder);
+
+    return json_builder_get_root (builder);
+}
+
+static void
+handle_prompting_requests (MockSnapd *self, SoupServerMessage *message)
+{
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
+    const gchar *method = message->method;
+#endif
+
+    if (strcmp (method, "GET") != 0) {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
+    json_builder_begin_array (builder);
+    for (GList *link = self->prompting_requests; link; link = link->next) {
+        MockPromptingRequest *request = link->data;
+        json_builder_add_value (builder, make_prompting_request_node (request));
+    }
+    json_builder_end_array (builder);
+
+    send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+}
+
+static void
+handle_prompting_request (MockSnapd *self, SoupServerMessage *message, const char *id)
+{
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
+    const gchar *method = message->method;
+#endif
+
+    if (strcmp (method, "GET") == 0) {
+        MockPromptingRequest *request = find_prompting_request (self, id);
+        if (request == NULL) {
+            send_error_not_found (self, message, "cannot find prompting request", NULL);
+            return;
+        }
+
+        send_sync_response (self, message, 200, make_prompting_request_node (request), NULL);
+    } else if (strcmp (method, "POST") == 0) {
+        g_autoptr(JsonNode) request = get_json (message);
+        if (request == NULL) {
+            send_error_bad_request (self, message, "unknown content type", NULL);
+            return;
+        }
+
+        MockPromptingRequest *r = find_prompting_request (self, id);
+        if (r == NULL) {
+            send_error_not_found (self, message, "cannot find prompting request", NULL);
+            return;
+        }
+
+        JsonObject *o = json_node_get_object (request);
+        gboolean allow = json_object_get_boolean_member (o, "allow");
+
+        r->has_response = TRUE;
+        r->allow = allow;
+
+        send_sync_response (self, message, 200, NULL, NULL);
+    } else {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+}
+
 static void
 handle_request (SoupServer        *server,
                 SoupServerMessage *message,
@@ -5155,6 +5320,10 @@ handle_request (SoupServer        *server,
         handle_change (self, message, path + strlen ("/v2/accessories/changes/"));
     else if (strcmp (path, "/v2/logs") == 0)
         handle_logs (self, message, query);
+    else if (strcmp (path, "/v2/prompting/requests") == 0)
+        handle_prompting_requests (self, message);
+    else if (g_str_has_prefix (path, "/v2/prompting/requests/") )
+        handle_prompting_request (self, message, path + strlen ("/v2/prompting/requests/"));
     else
         send_error_not_found (self, message, "not found", NULL);
 }
@@ -5226,9 +5395,11 @@ mock_snapd_finalize (GObject *object)
 #endif
     g_clear_pointer (&self->gtk_theme_status, g_hash_table_unref);
     g_clear_pointer (&self->icon_theme_status, g_hash_table_unref);
+    g_clear_pointer (&self->sound_theme_status, g_hash_table_unref);
     g_list_free_full (self->logs, (GDestroyNotify) mock_log_free);
     self->logs = NULL;
-    g_clear_pointer (&self->sound_theme_status, g_hash_table_unref);
+    g_list_free_full (self->prompting_requests, (GDestroyNotify) mock_prompting_request_free);
+    self->prompting_requests = NULL;
     g_clear_pointer (&self->context, g_main_context_unref);
     g_clear_pointer (&self->loop, g_main_loop_unref);
 

@@ -34,6 +34,7 @@
 #include <snapd-glib/snapd-plug.h>
 #include <snapd-glib/snapd-plug-ref.h>
 #include <snapd-glib/snapd-price.h>
+#include <snapd-glib/snapd-prompting-request.h>
 #include <snapd-glib/snapd-screenshot.h>
 #include <snapd-glib/snapd-slot.h>
 #include <snapd-glib/snapd-slot-ref.h>

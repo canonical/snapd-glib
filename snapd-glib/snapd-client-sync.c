@@ -1884,3 +1884,84 @@ snapd_client_follow_logs_sync (SnapdClient *self,
     end_sync (&data);
     return snapd_client_follow_logs_finish (self, data.result, error);
 }
+
+/**
+ * snapd_client_get_prompting_requests_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get the current prompting requests.
+ *
+ * Returns: (transfer container) (element-type SnapdPromptingRequest): an array of #SnapdPromptingRequest or %NULL on error.
+ *
+ * Since: 1.64
+ */
+GPtrArray *
+snapd_client_get_prompting_requests_sync (SnapdClient *self,
+                                          GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_get_prompting_requests_async (self, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_prompting_requests_finish (self, data.result, error);
+}
+
+/**
+ * snapd_client_get_prompting_request_sync:
+ * @client: a #SnapdClient.
+ * @id: a prompting request ID.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Get information on a prompting request.
+ *
+ * Returns: (transfer full): a #SnapdPromptingRequest or %NULL on error.
+ *
+ * Since: 1.64
+ */
+SnapdPromptingRequest *
+snapd_client_get_prompting_request_sync (SnapdClient *self,
+                                         const gchar *id,
+                                         GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_get_prompting_request_async (self, id, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_prompting_request_finish (self, data.result, error);
+}
+
+/**
+ * snapd_client_prompting_respond_sync:
+ * @client: a #SnapdClient.
+ * @id: a prompting request ID.
+ * @allow: %TRUE if the request is allowed.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Respond to a prompting request.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.64
+ */
+gboolean
+snapd_client_prompting_respond_sync (SnapdClient *self,
+                                     const gchar *id,
+                                     gboolean     allow,
+                                     GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_prompting_respond_async (self, id, allow, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_prompting_respond_finish (self, data.result, error);
+}
