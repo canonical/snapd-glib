@@ -73,6 +73,7 @@ struct _MockSnapd
     GHashTable *gtk_theme_status;
     GHashTable *icon_theme_status;
     GHashTable *sound_theme_status;
+    GList *logs;
 };
 
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
@@ -140,6 +141,14 @@ struct _MockChannel
     gchar *revision;
     int size;
     gchar *version;
+};
+
+struct _MockLog
+{
+    gchar *timestamp;
+    gchar *message;
+    gchar *sid;
+    gchar *pid;
 };
 
 struct _MockPrice
@@ -316,6 +325,16 @@ mock_track_free (MockTrack *track)
     g_free (track->name);
     g_list_free_full (track->channels, (GDestroyNotify) mock_channel_free);
     g_slice_free (MockTrack, track);
+}
+
+static void
+mock_log_free (MockLog *log)
+{
+    g_free (log->timestamp);
+    g_free (log->message);
+    g_free (log->sid);
+    g_free (log->pid);
+    g_slice_free (MockLog, log);
 }
 
 static void
@@ -1772,7 +1791,7 @@ void
 mock_snapd_add_assertion (MockSnapd *self, const gchar *assertion)
 {
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
-    return add_assertion (self, assertion);
+    add_assertion (self, assertion);
 }
 
 GList *
@@ -1839,6 +1858,18 @@ void
 mock_snapd_set_sound_theme_status (MockSnapd *self, const gchar *name, const gchar *status)
 {
     g_hash_table_insert (self->sound_theme_status, g_strdup (name), g_strdup (status));
+}
+
+void
+mock_snapd_add_log (MockSnapd *self, const gchar *timestamp, const gchar *message, const gchar *sid, const gchar *pid)
+{
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
+    MockLog *log = g_slice_new0 (MockLog);
+    log->timestamp = g_strdup (timestamp);
+    log->message = g_strdup (message);
+    log->sid = g_strdup (sid);
+    log->pid = g_strdup (pid);
+    self->logs = g_list_append (self->logs, log);
 }
 
 static MockChange *
@@ -4937,6 +4968,77 @@ handle_themes (MockSnapd *self, SoupServerMessage *message)
     }
 }
 
+static gboolean
+filter_logs (GStrv names, MockLog *log)
+{
+    /* If no filter selected, then return all snaps */
+    if (names == NULL || names[0] == NULL)
+        return TRUE;
+
+    for (int i = 0; names[i] != NULL; i++) {
+        if (strcmp (names[i], log->sid) == 0)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+static void
+handle_logs (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
+{
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
+    const gchar *method = message->method;
+#endif
+
+    if (strcmp (method, "GET") != 0) {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+
+    g_auto(GStrv) names = NULL;
+    size_t n = 0;
+    if (query != NULL) {
+        const gchar *snaps_param = NULL, *n_param = NULL;
+
+        snaps_param = g_hash_table_lookup (query, "names");
+        if (snaps_param != NULL)
+            names = g_strsplit (snaps_param, ",", -1);
+        n_param = g_hash_table_lookup (query, "n");
+        if (n_param != NULL)
+	    n = atoi(n_param);
+    }
+
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
+    json_builder_begin_array (builder);
+    size_t n_logs = 0;
+    for (GList *link = self->logs; link; link = link->next) {
+        MockLog *log = link->data;
+
+        if (n != 0 && n_logs >= n)
+            break;
+
+        if (!filter_logs (names, log))
+            continue;
+
+        json_builder_begin_object (builder);
+        json_builder_set_member_name (builder, "timestamp");
+        json_builder_add_string_value (builder, log->timestamp);
+        json_builder_set_member_name (builder, "message");
+        json_builder_add_string_value (builder, log->message);
+        json_builder_set_member_name (builder, "sid");
+        json_builder_add_string_value (builder, log->sid);
+        json_builder_set_member_name (builder, "pid");
+        json_builder_add_string_value (builder, log->pid);
+        json_builder_end_object (builder);
+        n_logs++;
+    }
+    json_builder_end_array (builder);
+
+    send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+}
+
 static void
 handle_request (SoupServer        *server,
                 SoupServerMessage *message,
@@ -5029,6 +5131,8 @@ handle_request (SoupServer        *server,
         handle_themes (self, message);
     else if (g_str_has_prefix (path, "/v2/accessories/changes/"))
         handle_change (self, message, path + strlen ("/v2/accessories/changes/"));
+    else if (strcmp (path, "/v2/logs") == 0)
+        handle_logs (self, message, query);
     else
         send_error_not_found (self, message, "not found", NULL);
 }
@@ -5099,6 +5203,8 @@ mock_snapd_finalize (GObject *object)
 #endif
     g_clear_pointer (&self->gtk_theme_status, g_hash_table_unref);
     g_clear_pointer (&self->icon_theme_status, g_hash_table_unref);
+    g_list_free_full (self->logs, (GDestroyNotify) mock_log_free);
+    self->logs = NULL;
     g_clear_pointer (&self->sound_theme_status, g_hash_table_unref);
     g_clear_pointer (&self->context, g_main_context_unref);
     g_clear_pointer (&self->loop, g_main_loop_unref);

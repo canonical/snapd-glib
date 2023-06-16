@@ -1235,6 +1235,21 @@ gboolean                snapd_client_install_themes_finish         (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
+GPtrArray              *snapd_client_get_logs_sync                 (SnapdClient          *client,
+                                                                    GStrv                 names,
+                                                                    size_t                n,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_get_logs_async                (SnapdClient          *client,
+                                                                    GStrv                 names,
+                                                                    size_t                n,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+GPtrArray              *snapd_client_get_logs_finish               (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
 G_END_DECLS
 
 #endif /* __SNAPD_CLIENT_H__ */

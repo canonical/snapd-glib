@@ -27,6 +27,7 @@
 #include "requests/snapd-get-icon.h"
 #include "requests/snapd-get-interfaces.h"
 #include "requests/snapd-get-interfaces-legacy.h"
+#include "requests/snapd-get-logs.h"
 #include "requests/snapd-get-sections.h"
 #include "requests/snapd-get-snap.h"
 #include "requests/snapd-get-snap-conf.h"
@@ -4226,6 +4227,58 @@ snapd_client_install_themes_finish (SnapdClient *self, GAsyncResult *result, GEr
     g_return_val_if_fail (SNAPD_IS_POST_THEMES (result), FALSE);
 
     return _snapd_request_propagate_error (SNAPD_REQUEST (result), error);
+}
+
+/**
+ * snapd_client_get_logs_async:
+ * @client: a #SnapdClient.
+ * @names: (allow-none) (array zero-terminated=1): a null-terminated array of service names or %NULL.
+ * @n: the number of logs to return or 0 for default.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get logs for snap services.
+ * See snapd_client_get_logs_sync() for more information.
+ *
+ * Since: 1.64
+ */
+void
+snapd_client_get_logs_async (SnapdClient *self,
+                             GStrv names,
+                             size_t n,
+                             GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdGetLogs) request = _snapd_get_logs_new (names, n, FALSE, cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_logs_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_logs_async().
+ * See snapd_client_get_logs_sync() for more information.
+ *
+ * Returns: (transfer container) (element-type SnapdLog): an array of #SnapdLog or %NULL on error.
+ *
+ * Since: 1.64
+ */
+GPtrArray *
+snapd_client_get_logs_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_LOGS (result), NULL);
+
+    SnapdGetLogs *request = SNAPD_GET_LOGS (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_ptr_array_ref (_snapd_get_logs_get_logs (request));
 }
 
 /**
