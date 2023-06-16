@@ -32,6 +32,7 @@ typedef struct _MockChange MockChange;
 typedef struct _MockChannel MockChannel;
 typedef struct _MockConnection MockConnection;
 typedef struct _MockInterface MockInterface;
+typedef struct _MockLog MockLog;
 typedef struct _MockMedia MockMedia;
 typedef struct _MockPlug MockPlug;
 typedef struct _MockPrice MockPrice;
@@ -466,6 +467,12 @@ void            mock_snapd_set_icon_theme_status  (MockSnapd     *snapd,
 void            mock_snapd_set_sound_theme_status (MockSnapd     *snapd,
                                                    const gchar   *name,
                                                    const gchar   *status);
+
+void            mock_snapd_add_log                (MockSnapd     *snapd,
+                                                   const gchar   *timestamp,
+                                                   const gchar   *message,
+                                                   const gchar   *sid,
+                                                   const gchar   *pid);
 
 G_END_DECLS
 

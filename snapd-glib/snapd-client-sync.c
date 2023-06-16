@@ -1822,3 +1822,33 @@ snapd_client_install_themes_sync (SnapdClient *self, GStrv gtk_theme_names, GStr
     end_sync (&data);
     return snapd_client_install_themes_finish (self, data.result, error);
 }
+
+/**
+ * snapd_client_get_logs_sync:
+ * @client: a #SnapdClient.
+ * @names: (allow-none) (array zero-terminated=1): a null-terminated array of service names or %NULL.
+ * @n: the number of logs to return or 0 for default.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Get logs for snap services.
+ *
+ * Returns: (transfer container) (element-type SnapdLog): an array of #SnapdLog or %NULL on error.
+ *
+ * Since: 1.64
+ */
+GPtrArray *
+snapd_client_get_logs_sync (SnapdClient *self,
+                            GStrv names,
+                            size_t n,
+                            GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_get_logs_async (self, names, n, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_logs_finish (self, data.result, error);
+}

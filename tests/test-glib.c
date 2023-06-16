@@ -8239,6 +8239,133 @@ test_themes_install_progress (void)
 }
 
 static void
+test_get_logs_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_log (snapd, "2023-06-15T23:20:40Z", "first", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T00:20:40Z", "second", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T03:20:40Z", "third", "cups.cups-browsed", "1234");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GPtrArray) logs = snapd_client_get_logs_sync (client, NULL, 0, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (logs);
+    g_assert_cmpint (logs->len, ==, 3);
+    SnapdLog *log = logs->pdata[0];
+    g_assert_true (date_matches (snapd_log_get_timestamp (log), 2023, 6, 15, 23, 20, 40));
+    g_assert_cmpstr (snapd_log_get_message (log), ==, "first");
+    g_assert_cmpstr (snapd_log_get_sid (log), ==, "cups.cups-browsed");
+    g_assert_cmpstr (snapd_log_get_pid (log), ==, "1234");
+    log = logs->pdata[1];
+    g_assert_true (date_matches (snapd_log_get_timestamp (log), 2023, 6, 16, 0, 20, 40));
+    g_assert_cmpstr (snapd_log_get_message (log), ==, "second");
+    g_assert_cmpstr (snapd_log_get_sid (log), ==, "cups.cups-browsed");
+    g_assert_cmpstr (snapd_log_get_pid (log), ==, "1234");
+    log = logs->pdata[2];
+    g_assert_true (date_matches (snapd_log_get_timestamp (log), 2023, 6, 16, 3, 20, 40));
+    g_assert_cmpstr (snapd_log_get_message (log), ==, "third");
+    g_assert_cmpstr (snapd_log_get_sid (log), ==, "cups.cups-browsed");
+    g_assert_cmpstr (snapd_log_get_pid (log), ==, "1234");
+}
+
+static void
+get_logs_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) logs = snapd_client_get_logs_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (logs);
+    g_assert_cmpint (logs->len, ==, 3);
+    SnapdLog *log = logs->pdata[0];
+    g_assert_true (date_matches (snapd_log_get_timestamp (log), 2023, 6, 15, 23, 20, 40));
+    g_assert_cmpstr (snapd_log_get_message (log), ==, "first");
+    g_assert_cmpstr (snapd_log_get_sid (log), ==, "cups.cups-browsed");
+    g_assert_cmpstr (snapd_log_get_pid (log), ==, "1234");
+    log = logs->pdata[1];
+    g_assert_true (date_matches (snapd_log_get_timestamp (log), 2023, 6, 16, 0, 20, 40));
+    g_assert_cmpstr (snapd_log_get_message (log), ==, "second");
+    g_assert_cmpstr (snapd_log_get_sid (log), ==, "cups.cups-browsed");
+    g_assert_cmpstr (snapd_log_get_pid (log), ==, "1234");
+    log = logs->pdata[2];
+    g_assert_true (date_matches (snapd_log_get_timestamp (log), 2023, 6, 16, 3, 20, 40));
+    g_assert_cmpstr (snapd_log_get_message (log), ==, "third");
+    g_assert_cmpstr (snapd_log_get_sid (log), ==, "cups.cups-browsed");
+    g_assert_cmpstr (snapd_log_get_pid (log), ==, "1234");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_get_logs_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_log (snapd, "2023-06-15T23:20:40Z", "first", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T00:20:40Z", "second", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T03:20:40Z", "third", "cups.cups-browsed", "1234");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_logs_async (client, NULL, 0, NULL, get_logs_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_logs_names (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_log (snapd, "2023-06-15T23:20:40Z", "first", "snap1.app1", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T00:20:40Z", "second", "snap2.app2", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T03:20:40Z", "third", "snap3.app3", "1234");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_auto(GStrv) names = g_strsplit ("snap1.app1;snap3.app3", ";", -1);
+    g_autoptr(GPtrArray) logs = snapd_client_get_logs_sync (client, names, 0, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (logs);
+    g_assert_cmpint (logs->len, ==, 2);
+    g_assert_cmpstr (snapd_log_get_sid (logs->pdata[0]), ==, "snap1.app1");
+    g_assert_cmpstr (snapd_log_get_sid (logs->pdata[1]), ==, "snap3.app3");
+}
+
+static void
+test_get_logs_limit (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_log (snapd, "2023-06-15T23:20:40Z", "first", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T00:20:40Z", "second", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T03:20:40Z", "third", "cups.cups-browsed", "1234");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GPtrArray) logs = snapd_client_get_logs_sync (client, NULL, 1, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (logs);
+    g_assert_cmpint (logs->len, ==, 1);
+}
+
+static void
 test_stress (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -8519,6 +8646,10 @@ main (int argc, char **argv)
     g_test_add_func ("/themes/install/async", test_themes_install_async);
     g_test_add_func ("/themes/install/no-snaps", test_themes_install_no_snaps);
     g_test_add_func ("/themes/install/progress", test_themes_install_progress);
+    g_test_add_func ("/get-logs/sync", test_get_logs_sync);
+    g_test_add_func ("/get-logs/async", test_get_logs_async);
+    g_test_add_func ("/get-logs/names", test_get_logs_names);
+    g_test_add_func ("/get-logs/limit", test_get_logs_limit);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();
