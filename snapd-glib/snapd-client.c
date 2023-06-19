@@ -931,6 +931,37 @@ send_request (SnapdClient *self, SnapdRequest *request)
     complete_request (self, request, e);
 }
 
+typedef struct
+{
+    SnapdClient *client;
+    SnapdLogCallback callback;
+    gpointer callback_data;
+} FollowLogsData;
+
+static FollowLogsData *
+follow_logs_data_new (SnapdClient *client, SnapdLogCallback callback, gpointer callback_data)
+{
+    FollowLogsData *data = g_slice_new0 (FollowLogsData);
+    data->client = client;
+    data->callback = callback;
+    data->callback_data = callback_data;
+
+    return data;
+}
+
+static void
+follow_logs_data_free (FollowLogsData *data)
+{
+    g_slice_free (FollowLogsData, data);
+}
+
+static void
+log_cb (SnapdGetLogs *request, SnapdLog *log, gpointer user_data)
+{
+    FollowLogsData *data = user_data;
+    data->callback (data->client, log, data->callback_data);
+}
+
 /**
  * snapd_client_connect_async:
  * @client: a #SnapdClient
@@ -4288,7 +4319,9 @@ snapd_client_get_logs_async (SnapdClient *self,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (self));
 
-    g_autoptr(SnapdGetLogs) request = _snapd_get_logs_new (names, n, FALSE, cancellable, callback, user_data);
+    g_autoptr(SnapdGetLogs) request = _snapd_get_logs_new (names, n,
+                                                           FALSE, NULL, NULL, NULL,
+                                                           cancellable, callback, user_data);
     send_request (self, SNAPD_REQUEST (request));
 }
 
@@ -4316,6 +4349,58 @@ snapd_client_get_logs_finish (SnapdClient *self, GAsyncResult *result, GError **
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_ptr_array_ref (_snapd_get_logs_get_logs (request));
+}
+
+/**
+ * snapd_client_follow_logs_async:
+ * @client: a #SnapdClient.
+ * @names: (allow-none) (array zero-terminated=1): a null-terminated array of service names or %NULL.
+ * @log_callback: (scope async): a #SnapdLogCallback to call when a log is received.
+ * @log_callback_data: (closure): the data to pass to @log_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Follow logs for snap services. This call will only complete if snapd closes the connection and will
+ * stop any other request on this client from being sent.
+ *
+ * Since: 1.64
+ */
+void
+snapd_client_follow_logs_async (SnapdClient *self, GStrv names,
+                                SnapdLogCallback log_callback, gpointer log_callback_data,
+                                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdGetLogs) request = _snapd_get_logs_new (names, 0,
+                                                           TRUE, log_cb, follow_logs_data_new (self, log_callback, log_callback_data), (GDestroyNotify) follow_logs_data_free,
+                                                           cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_follow_logs_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_follow_logs_async().
+ * See snapd_client_follow_logs_sync() for more information.
+ *
+ * Returns: %TRUE on success.
+ *
+ * Since: 1.64
+ */
+gboolean
+snapd_client_follow_logs_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+    g_return_val_if_fail (SNAPD_IS_GET_LOGS (result), FALSE);
+
+    SnapdGetLogs *request = SNAPD_GET_LOGS (result);
+
+    return _snapd_request_propagate_error (SNAPD_REQUEST (request), error);
 }
 
 /**

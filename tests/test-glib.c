@@ -8385,6 +8385,76 @@ test_stress (void)
     }
 }
 
+static void
+sync_log_cb (SnapdClient *client, SnapdLog *log, gpointer user_data)
+{
+    int *counter = user_data;
+    (*counter)++;
+}
+
+static void
+test_follow_logs_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_log (snapd, "2023-06-15T23:20:40Z", "first", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T00:20:40Z", "second", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T03:20:40Z", "third", "cups.cups-browsed", "1234");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    int counter = 0;
+    gboolean result = snapd_client_follow_logs_sync (client, NULL, sync_log_cb, &counter, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_true (result);
+    g_assert_cmpint (counter, ==, 3);
+}
+
+static void
+async_log_cb (SnapdClient *client, SnapdLog *log, gpointer user_data)
+{
+    AsyncData *data = user_data;
+    data->counter++;
+}
+
+static void
+follow_logs_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_follow_logs_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+    g_assert_cmpint (data->counter, ==, 3);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_follow_logs_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    mock_snapd_add_log (snapd, "2023-06-15T23:20:40Z", "first", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T00:20:40Z", "second", "cups.cups-browsed", "1234");
+    mock_snapd_add_log (snapd, "2023-06-16T03:20:40Z", "third", "cups.cups-browsed", "1234");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    AsyncData *data = async_data_new (loop, snapd);
+    snapd_client_follow_logs_async (client, NULL, async_log_cb, data, NULL, follow_logs_cb, data);
+    g_main_loop_run (loop);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -8650,6 +8720,8 @@ main (int argc, char **argv)
     g_test_add_func ("/get-logs/async", test_get_logs_async);
     g_test_add_func ("/get-logs/names", test_get_logs_names);
     g_test_add_func ("/get-logs/limit", test_get_logs_limit);
+    g_test_add_func ("/follow-logs/sync", test_follow_logs_sync);
+    g_test_add_func ("/follow-logs/async", test_follow_logs_async);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();

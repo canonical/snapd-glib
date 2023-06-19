@@ -244,30 +244,57 @@ static int list (int argc, char **argv)
     return EXIT_SUCCESS;
 }
 
+static void print_log (SnapdLog *log)
+{
+    g_autofree gchar *timestamp = g_date_time_format (snapd_log_get_timestamp (log), "%Y-%m-%dT%H:%M:%SZ");
+    g_printerr ("%s %s[%s]: %s\n", timestamp,
+                snapd_log_get_sid (log),
+                snapd_log_get_pid (log),
+                snapd_log_get_message (log));
+}
+
+static void log_cb (SnapdClient *client, SnapdLog *log, gpointer user_data)
+{
+    print_log (log);
+}
+
 static int logs (int argc, char **argv)
 {
     if (argc < 1) {
         g_printerr ("error: the required argument `<service> (at least 1 argument)` was not provided\n");
         return EXIT_FAILURE;
     }
-    const gchar *name = argc > 0 ? argv[0] : NULL;
-    gchar *names[2] = { (gchar*) name, NULL };
+    gboolean follow = FALSE;
+    g_autoptr(GPtrArray) names_array = g_ptr_array_new ();
+    for (int i = 0; i < argc; i++) {
+        if (strcmp (argv[i], "-f") == 0) {
+            follow = TRUE;
+        } else {
+            g_ptr_array_add (names_array, g_strdup (argv[i]));
+        }
+    }
+    g_ptr_array_add (names_array, NULL);
+    g_auto(GStrv) names = g_steal_pointer ((GStrv *)&names_array->pdata);
 
     g_autoptr(SnapdClient) client = snapd_client_new ();
-    g_autoptr(GError) error = NULL;
-    g_autoptr(GPtrArray) logs = snapd_client_get_logs_sync (client, names, 0, NULL, &error);
-    if (logs == NULL) {
-        g_printerr ("error: failed to get logs: %s\n", error->message);
-        return EXIT_FAILURE;
-    }
+    if (follow) {
+        g_autoptr(GError) error = NULL;
+        if (!snapd_client_follow_logs_sync (client, names, log_cb, NULL, NULL, &error)) {
+            g_printerr ("error: failed to get logs: %s\n", error->message);
+            return EXIT_FAILURE;
+        }
+    } else {
+        g_autoptr(GError) error = NULL;
+        g_autoptr(GPtrArray) logs = snapd_client_get_logs_sync (client, names, 0, NULL, &error);
+        if (logs == NULL) {
+            g_printerr ("error: failed to get logs: %s\n", error->message);
+            return EXIT_FAILURE;
+        }
 
-    for (guint i = 0; i < logs->len; i++) {
-        SnapdLog *log = g_ptr_array_index (logs, i);
-        g_autofree gchar *timestamp = g_date_time_format (snapd_log_get_timestamp (log), "%Y-%m-%dT%H:%M:%SZ");
-        g_printerr ("%s %s[%s]: %s\n", timestamp,
-                    snapd_log_get_sid (log),
-                    snapd_log_get_pid (log),
-                    snapd_log_get_message (log));
+        for (guint i = 0; i < logs->len; i++) {
+            SnapdLog *log = g_ptr_array_index (logs, i);
+            print_log (log);
+        }
     }
 
     return EXIT_SUCCESS;

@@ -19,13 +19,16 @@ struct _SnapdGetLogs
     gchar **names;
     size_t n;
     gboolean follow;
+    SnapdGetLogsLogCallback log_callback;
+    gpointer log_callback_data;
+    GDestroyNotify log_callback_destroy_notify;
     GPtrArray *logs;
 };
 
 G_DEFINE_TYPE (SnapdGetLogs, snapd_get_logs, snapd_request_get_type ())
 
 SnapdGetLogs *
-_snapd_get_logs_new (gchar **names, size_t n, gboolean follow, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_get_logs_new (gchar **names, size_t n, gboolean follow, SnapdGetLogsLogCallback log_callback, gpointer log_callback_data, GDestroyNotify log_callback_destroy_notify, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdGetLogs *self = SNAPD_GET_LOGS (g_object_new (snapd_get_logs_get_type (),
                                                        "cancellable", cancellable,
@@ -37,6 +40,9 @@ _snapd_get_logs_new (gchar **names, size_t n, gboolean follow, GCancellable *can
         self->names = g_strdupv (names);
     self->n = n;
     self->follow = follow;
+    self->log_callback = log_callback;
+    self->log_callback_data = log_callback_data;
+    self->log_callback_destroy_notify = log_callback_destroy_notify;
 
     return self;
 }
@@ -116,7 +122,12 @@ parse_get_logs_json_seq (SnapdRequest *request, JsonNode *seq, GError **error)
     sid = _snapd_json_get_string (object, "sid", NULL);
     pid = _snapd_json_get_string (object, "pid", NULL);
     log = g_object_new (snapd_log_get_type (), "timestamp", timestamp, "message", message, "sid", sid, "pid", pid, NULL);
-    g_ptr_array_add (self->logs, log);
+
+    if (self->log_callback != NULL) {
+        self->log_callback (self, log, self->log_callback_data);
+    } else {
+        g_ptr_array_add (self->logs, log);
+    }
 
     return TRUE;
 }
@@ -128,6 +139,9 @@ snapd_get_logs_finalize (GObject *object)
 
     g_clear_pointer (&self->names, g_strfreev);
     g_clear_pointer (&self->logs, g_ptr_array_unref);
+    if (self->log_callback_destroy_notify) {
+        self->log_callback_destroy_notify (self->log_callback_data);
+    }
 
     G_OBJECT_CLASS (snapd_get_logs_parent_class)->finalize (object);
 }

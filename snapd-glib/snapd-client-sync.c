@@ -1852,3 +1852,35 @@ snapd_client_get_logs_sync (SnapdClient *self,
     end_sync (&data);
     return snapd_client_get_logs_finish (self, data.result, error);
 }
+
+/**
+ * snapd_client_follow_logs_sync:
+ * @client: a #SnapdClient.
+ * @names: (allow-none) (array zero-terminated=1): a null-terminated array of service names or %NULL.
+ * @log_callback: (scope async): a #SnapdLogCallback to call when a log is received.
+ * @log_callback_data: (closure): the data to pass to @log_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL
+ *     to ignore.
+ *
+ * Follow logs for snap services. This call will only complete if snapd closes the connection and will
+ * stop any other request on this client from being sent.
+ *
+ * Returns: %TRUE on success.
+ *
+ * Since: 1.64
+ */
+gboolean
+snapd_client_follow_logs_sync (SnapdClient *self,
+                               GStrv names,
+                               SnapdLogCallback log_callback, gpointer log_callback_data,
+                               GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_follow_logs_async (self, names, log_callback, log_callback_data, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_follow_logs_finish (self, data.result, error);
+}
