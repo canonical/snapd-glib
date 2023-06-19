@@ -60,7 +60,7 @@ static int find (int argc, char **argv)
 
     g_autoptr(SnapdClient) client = snapd_client_new ();
     g_autoptr(GError) error = NULL;
-    g_autoptr(GPtrArray) snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_NONE, NULL, query, NULL, NULL, &error);
+    g_autoptr(GPtrArray) snaps = snapd_client_find_category_sync (client, SNAPD_FIND_FLAGS_NONE, NULL, query, NULL, NULL, &error);
     if (snaps == NULL) {
         g_printerr ("error: failed to find: %s\n", error->message);
         return EXIT_FAILURE;
@@ -110,7 +110,7 @@ static int info (int argc, char **argv)
         gchar *names[2] = { (gchar*) name, NULL };
         g_autoptr(GError) error = NULL;
         g_autoptr(GPtrArray) local_snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_NONE, names, NULL, &error);
-        g_autoptr(GPtrArray) store_snaps = snapd_client_find_section_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, NULL, name, NULL, NULL, &error);
+        g_autoptr(GPtrArray) store_snaps = snapd_client_find_category_sync (client, SNAPD_FIND_FLAGS_MATCH_NAME, NULL, name, NULL, NULL, &error);
 
         SnapdSnap *local_snap = local_snaps != NULL && local_snaps->len > 0 ? g_ptr_array_index (local_snaps, 0) : NULL;
         SnapdSnap *store_snap = store_snaps != NULL && store_snaps->len > 0 ? g_ptr_array_index (store_snaps, 0) : NULL;
