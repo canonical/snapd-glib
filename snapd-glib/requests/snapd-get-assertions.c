@@ -54,6 +54,17 @@ generate_get_assertions_request (SnapdRequest *request, GBytes **body)
     return soup_message_new ("GET", path->str);
 }
 
+static gssize
+find_divider (const gchar *data, size_t offset, size_t data_length)
+{
+    for (size_t i = offset; i < data_length - 1; i++) {
+        if (data[i] == '\n' && data[i+1] == '\n')
+            return i;
+    }
+
+    return -1;
+}
+
 static gboolean
 parse_get_assertions_response (SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
 {
@@ -94,11 +105,18 @@ parse_get_assertions_response (SnapdRequest *request, guint status_code, const g
     gsize data_length, offset = 0;
     const gchar *data = g_bytes_get_data (body, &data_length);
     while (offset < data_length) {
-        /* Headers terminated by double newline */
         gsize assertion_start = offset;
-        while (offset < data_length && !g_str_has_prefix (data + offset, "\n\n"))
-            offset++;
-        offset += 2;
+
+        /* Headers terminated by double newline */
+        gssize header_end = find_divider (data, offset, data_length);
+        if (header_end < 0) {
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Invalid assertion header");
+            return FALSE;
+        }
+        offset = header_end + 2;
 
         /* Make a temporary assertion object to decode body length header */
         g_autofree gchar *content = g_strndup (data + assertion_start, offset - assertion_start);
@@ -111,10 +129,13 @@ parse_get_assertions_response (SnapdRequest *request, guint status_code, const g
             offset += body_length + 2;
 
         /* Find end of signature */
-        while (offset < data_length && !g_str_has_prefix (data + offset, "\n\n"))
-            offset++;
-        gsize assertion_end = offset;
-        offset += 2;
+        gssize assertion_end = find_divider (data, offset, data_length);
+        if (assertion_end < 0) {
+            assertion_end = data_length;
+            offset = assertion_end;
+        } else {
+            offset = assertion_end + 2;
+        }
 
         g_ptr_array_add (assertions, g_strndup (data + assertion_start, assertion_end - assertion_start));
     }
