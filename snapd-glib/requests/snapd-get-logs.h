@@ -11,17 +11,23 @@
 #define __SNAPD_GET_LOGS_H__
 
 #include "snapd-request.h"
+#include "snapd-log.h"
 
 G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdGetLogs, snapd_get_logs, SNAPD, GET_LOGS, SnapdRequest)
 
-SnapdGetLogs *_snapd_get_logs_new      (gchar              **names,
-                                        size_t               n,
-                                        gboolean             follow,
-                                        GCancellable        *cancellable,
-                                        GAsyncReadyCallback  callback,
-                                        gpointer             user_data);
+typedef void (*SnapdGetLogsLogCallback) (SnapdGetLogs *request, SnapdLog *log, gpointer user_data);
+
+SnapdGetLogs *_snapd_get_logs_new      (gchar                 **names,
+                                        size_t                  n,
+                                        gboolean                follow,
+                                        SnapdGetLogsLogCallback log_callback,
+                                        gpointer                log_callback_data,
+                                        GDestroyNotify          log_callback_destroy_notify,
+                                        GCancellable           *cancellable,
+                                        GAsyncReadyCallback     callback,
+                                        gpointer                user_data);
 
 GPtrArray    *_snapd_get_logs_get_logs (SnapdGetLogs *request);
 

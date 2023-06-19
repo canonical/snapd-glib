@@ -19,6 +19,7 @@
 
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-icon.h>
+#include <snapd-glib/snapd-log.h>
 #include <snapd-glib/snapd-maintenance.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
@@ -243,6 +244,18 @@ typedef enum
  * Since: 1.0
  */
 typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data);
+
+/**
+ * SnapdLogCallback:
+ * @client: a #SnapdClient
+ * @log: a #SnapdLog received
+ * @user_data: user data passed to the callback
+ *
+ * Signature for callback function used in snapd_client_follow_logs().
+ *
+ * Since: 1.64
+ */
+typedef void (*SnapdLogCallback) (SnapdClient *client, SnapdLog *log, gpointer user_data);
 
 SnapdClient            *snapd_client_new                           (void);
 
@@ -1247,6 +1260,23 @@ void                    snapd_client_get_logs_async                (SnapdClient 
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 GPtrArray              *snapd_client_get_logs_finish               (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_follow_logs_sync              (SnapdClient          *client,
+                                                                    GStrv                 names,
+                                                                    SnapdLogCallback      log_callback,
+                                                                    gpointer              log_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+void                    snapd_client_follow_logs_async             (SnapdClient          *client,
+                                                                    GStrv                 names,
+                                                                    SnapdLogCallback      log_callback,
+                                                                    gpointer              log_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+gboolean                snapd_client_follow_logs_finish            (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
