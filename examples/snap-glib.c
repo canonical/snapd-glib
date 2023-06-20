@@ -244,10 +244,39 @@ static int list (int argc, char **argv)
     return EXIT_SUCCESS;
 }
 
+static int logs (int argc, char **argv)
+{
+    if (argc < 1) {
+        g_printerr ("error: the required argument `<service> (at least 1 argument)` was not provided\n");
+        return EXIT_FAILURE;
+    }
+    const gchar *name = argc > 0 ? argv[0] : NULL;
+    gchar *names[2] = { (gchar*) name, NULL };
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) logs = snapd_client_get_logs_sync (client, names, 0, NULL, &error);
+    if (logs == NULL) {
+        g_printerr ("error: failed to get logs: %s\n", error->message);
+        return EXIT_FAILURE;
+    }
+
+    for (guint i = 0; i < logs->len; i++) {
+        SnapdLog *log = g_ptr_array_index (logs, i);
+        g_autofree gchar *timestamp = g_date_time_format (snapd_log_get_timestamp (log), "%Y-%m-%dT%H:%M:%SZ");
+        g_printerr ("%s %s[%s]: %s\n", timestamp,
+                    snapd_log_get_sid (log),
+                    snapd_log_get_pid (log),
+                    snapd_log_get_message (log));
+    }
+
+    return EXIT_SUCCESS;
+}
+
 static int usage()
 {
     g_printerr ("Usage snap-glib <command> [<options>...]\n");
-    g_printerr ("Commands: find, info, install, remove, list, help\n");
+    g_printerr ("Commands: find, info, install, remove, list, logs, help\n");
 
     return EXIT_SUCCESS;
 }
@@ -275,6 +304,9 @@ int main (int argc, char **argv)
     }
     else if (strcmp (command, "list") == 0) {
         return list (command_argc, command_argv);
+    }
+    else if (strcmp (command, "logs") == 0) {
+        return logs (command_argc, command_argv);
     }
     else if (strcmp (command, "help") == 0) {
         return usage ();

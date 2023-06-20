@@ -5010,9 +5010,8 @@ handle_logs (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 	    n = atoi(n_param);
     }
 
-    g_autoptr(JsonBuilder) builder = json_builder_new ();
-    json_builder_begin_array (builder);
     size_t n_logs = 0;
+    g_autoptr(GString) content = g_string_new ("");
     for (GList *link = self->logs; link; link = link->next) {
         MockLog *log = link->data;
 
@@ -5022,6 +5021,7 @@ handle_logs (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         if (!filter_logs (names, log))
             continue;
 
+        g_autoptr(JsonBuilder) builder = json_builder_new ();
         json_builder_begin_object (builder);
         json_builder_set_member_name (builder, "timestamp");
         json_builder_add_string_value (builder, log->timestamp);
@@ -5032,11 +5032,17 @@ handle_logs (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         json_builder_set_member_name (builder, "pid");
         json_builder_add_string_value (builder, log->pid);
         json_builder_end_object (builder);
+
+        g_autoptr(JsonGenerator) generator = json_generator_new ();
+        json_generator_set_root (generator, json_builder_get_root (builder));
+        g_autofree gchar *log_json = json_generator_to_data (generator, NULL);
+        g_string_append_unichar (content, 0x1e);
+        g_string_append (content, log_json);
+
         n_logs++;
     }
-    json_builder_end_array (builder);
 
-    send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+    send_response (message, 200, "application/json-seq", (const guint8 *) content->str, content->len);
 }
 
 static void

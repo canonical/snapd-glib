@@ -82,28 +82,60 @@ parse_get_logs_response (SnapdRequest *request, guint status_code, const gchar *
 {
     SnapdGetLogs *self = SNAPD_GET_LOGS (request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, maintenance, NULL, error);
-    if (response == NULL)
+    // If not a sequence, then expect an error response.
+    if (g_strcmp0 (content_type, "application/json-seq") != 0) {
+        g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, NULL, NULL, error);
+        if (response == NULL)
+            return FALSE;
+        g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
+        if (result != NULL) {
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected snap log response");
+        }
         return FALSE;
-    g_autoptr(JsonArray) result = _snapd_json_get_sync_result_a (response, error);
-    if (result == NULL)
-        return FALSE;
+    }
 
     g_autoptr(GPtrArray) logs = g_ptr_array_new_with_free_func (g_object_unref);
-    for (guint i = 0; i < json_array_get_length (result); i++) {
-        JsonNode *node = json_array_get_element (result, i);
+    gsize body_length, offset = 0;
+    const gchar *body_data = g_bytes_get_data (body, &body_length);
+    while (offset < body_length) {
         g_autoptr(GDateTime) timestamp = NULL;
         const gchar *message, *sid, *pid;
         SnapdLog *log;
 
-        if (json_node_get_value_type (node) != JSON_TYPE_OBJECT) {
+        if (body_data[offset] != 0x1e) {
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Invalid json-seq log data");
+            return FALSE;
+        }
+        offset++;
+        gsize seq_start = offset;
+        while (offset < body_length && body_data[offset] != 0x1e)
+            offset++;
+        gsize seq_end = offset;
+
+        g_autoptr(JsonParser) parser = json_parser_new ();
+        g_autoptr(GError) error_local = NULL;
+        if (!json_parser_load_from_data (parser, body_data + seq_start, seq_end - seq_start, &error_local)) {
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_BAD_RESPONSE,
+                         "Unable to parse json-seq log data: %s", error_local->message);
+            return FALSE;
+        }
+
+        if (!JSON_NODE_HOLDS_OBJECT (json_parser_get_root (parser))) {
             g_set_error (error,
                          SNAPD_ERROR,
                          SNAPD_ERROR_READ_FAILED,
                          "Unexpected snap log type");
             return FALSE;
         }
-        JsonObject *object = json_node_get_object (node);
+        JsonObject *object = json_node_get_object (json_parser_get_root (parser));
         timestamp = _snapd_json_get_date_time (object, "timestamp");
         message = _snapd_json_get_string (object, "message", NULL);
         sid = _snapd_json_get_string (object, "sid", NULL);
