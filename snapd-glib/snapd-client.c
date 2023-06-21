@@ -120,7 +120,11 @@ typedef struct
     /* Data received from snapd */
     GMutex buffer_mutex;
     GByteArray *buffer;
-    gsize n_read;
+
+    /* Processed HTTP response */
+    guint response_status_code;
+    SoupMessageHeaders *response_headers;
+    GByteArray *response_body;
 
     /* Maintenance information returned from snapd */
     SnapdMaintenance *maintenance;
@@ -415,61 +419,16 @@ get_first_request (SnapdClient *self)
     return NULL;
 }
 
-/* Check if we have all HTTP chunks */
 static gboolean
-have_chunked_body (const gchar *body, gsize body_length)
+read_chunk_header (const gchar *body, gsize body_length, gsize *chunk_header_length, gsize *chunk_length)
 {
-    while (TRUE) {
-        /* Read chunk header, stopping on zero length chunk */
-        const gchar *chunk_start = g_strstr_len (body, body_length, "\r\n");
-        if (chunk_start == NULL)
-            return FALSE;
-        gsize chunk_header_length = chunk_start - body + 2;
-        gsize chunk_length = strtoul (body, NULL, 16);
-        if (chunk_length == 0)
-            return TRUE;
+    const gchar *chunk_start = g_strstr_len (body, body_length, "\r\n");
+    if (chunk_start == NULL)
+        return FALSE;
+    *chunk_header_length = chunk_start - body + 2;
+    *chunk_length = strtoul (body, NULL, 16);
 
-        /* Check enough space for chunk body */
-        gsize required_length = chunk_header_length + chunk_length + 2;
-        if (required_length > body_length)
-            return FALSE;
-        // FIXME: Validate that \r\n is on the end of a chunk?
-        body += required_length;
-        body_length -= required_length;
-    }
-}
-
-/* If more than one HTTP chunk, re-order buffer to contain one chunk.
- * Assumes body is a valid chunked data block (as checked with have_chunked_body()) */
-static void
-compress_chunks (gchar *body, gsize body_length, gchar **combined_start, gsize *combined_length, gsize *total_length)
-{
-    /* Use first chunk as output */
-    *combined_length = strtoul (body, NULL, 16);
-    *combined_start = strstr (body, "\r\n") + 2;
-    if (*combined_length == 0) {
-        *total_length = *combined_start - body;
-        return;
-    }
-
-    /* Copy any remaining chunks beside the first one */
-    gchar *chunk_start = *combined_start + *combined_length + 2;
-    while (TRUE) {
-        gsize chunk_length;
-
-        chunk_length = strtoul (chunk_start, NULL, 16);
-        chunk_start = strstr (chunk_start, "\r\n") + 2;
-        if (chunk_length == 0) {
-            *total_length = chunk_start - body;
-            return;
-        }
-
-        /* Move this chunk on the end of the last one */
-        memmove (*combined_start + *combined_length, chunk_start, chunk_length);
-        *combined_length += chunk_length;
-
-        chunk_start += chunk_length + 2;
-    }
+    return TRUE;
 }
 
 static void
@@ -566,14 +525,15 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
     SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&priv->buffer_mutex);
 
-    if (priv->n_read + READ_SIZE > priv->buffer->len)
-        g_byte_array_set_size (priv->buffer, priv->n_read + READ_SIZE);
+    gsize orig_length = priv->buffer->len;
+    g_byte_array_set_size (priv->buffer, orig_length + READ_SIZE);
     g_autoptr(GError) error = NULL;
     gssize n_read = g_socket_receive (socket,
-                                      (gchar *) (priv->buffer->data + priv->n_read),
+                                      (gchar *) priv->buffer->data + orig_length,
                                       READ_SIZE,
                                       NULL,
                                       &error);
+    g_byte_array_set_size (priv->buffer, orig_length + (n_read >= 0 ? n_read : 0));
 
     if (n_read == 0) {
         g_autoptr(GError) e = g_error_new (SNAPD_ERROR,
@@ -595,63 +555,66 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
         return G_SOURCE_REMOVE;
     }
 
-    priv->n_read += n_read;
-
     while (TRUE) {
-        /* Look for header divider */
-        gchar *body = g_strstr_len ((gchar *) priv->buffer->data, priv->n_read, "\r\n\r\n");
-        if (body == NULL)
-            return G_SOURCE_CONTINUE;
-        body += 4;
-        gsize header_length = body - (gchar *) priv->buffer->data;
-
-        /* Match this response to the next uncompleted request */
-        SnapdRequest *request = get_first_request (self);
-        if (request == NULL) {
-            g_warning ("Ignoring unexpected response");
-            return G_SOURCE_REMOVE;
-        }
-
-        /* Parse headers */
-        guint status_code;
-        g_autoptr(SoupMessageHeaders) response_headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_RESPONSE);
-        if (!soup_headers_parse_response ((gchar *) priv->buffer->data, header_length, response_headers, NULL, &status_code, NULL)) {
-            g_autoptr(GError) e = g_error_new (SNAPD_ERROR,
-                                               SNAPD_ERROR_READ_FAILED,
-                                               "Failed to parse headers from snapd");
-            complete_all_requests (self, e);
-            return G_SOURCE_REMOVE;
-        }
-
-        /* Read content and process content */
-        gsize content_length;
-        g_autoptr(GBytes) b = NULL;
-        switch (soup_message_headers_get_encoding (response_headers)) {
-        case SOUP_ENCODING_EOF:
-            if (!g_socket_is_closed (priv->snapd_socket))
+        /* Process headers */
+        if (priv->response_headers == NULL) {
+            gchar *body = g_strstr_len ((gchar *) priv->buffer->data, priv->buffer->len, "\r\n\r\n");
+            if (body == NULL)
                 return G_SOURCE_CONTINUE;
+            body += 4;
+            gsize header_length = body - (gchar *) priv->buffer->data;
 
-            content_length = priv->n_read - header_length;
-            b = g_bytes_new (body, content_length);
+            priv->response_headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_RESPONSE);
+            if (!soup_headers_parse_response ((gchar *) priv->buffer->data, header_length, priv->response_headers, NULL, &priv->response_status_code, NULL)) {
+                g_autoptr(GError) e = g_error_new (SNAPD_ERROR,
+                                                   SNAPD_ERROR_READ_FAILED,
+                                                   "Failed to parse headers from snapd");
+                complete_all_requests (self, e);
+                return G_SOURCE_REMOVE;
+            }
+
+            /* Remove headers from buffer */
+            g_byte_array_remove_range (priv->buffer, 0, header_length);
+        }
+
+        /* Read response body */
+        gboolean is_complete = FALSE;
+        gsize offset = 0, chunk_header_length, chunk_length, content_length, n;
+        switch (soup_message_headers_get_encoding (priv->response_headers)) {
+        case SOUP_ENCODING_EOF:
+            g_byte_array_append(priv->response_body, priv->buffer->data, priv->buffer->len);
+            g_byte_array_set_size(priv->buffer, 0);
+            is_complete = g_socket_is_closed (priv->snapd_socket);
             break;
 
         case SOUP_ENCODING_CHUNKED:
-            // FIXME: Find a way to abort on error
-            if (!have_chunked_body (body, priv->n_read - header_length))
-                return G_SOURCE_CONTINUE;
+            while (read_chunk_header ((const gchar *) priv->buffer->data + offset, priv->buffer->len - offset, &chunk_header_length, &chunk_length)) {
+                // Haven't yet received all chunk data.
+                if (offset + chunk_header_length + chunk_length > priv->buffer->len) {
+                    break;
+                }
 
-            gchar *combined_start;
-            gsize combined_length;
-            compress_chunks (body, priv->n_read - header_length, &combined_start, &combined_length, &content_length);
-            b = g_bytes_new (combined_start, combined_length);
+                g_byte_array_append(priv->response_body, priv->buffer->data + offset + chunk_header_length, chunk_length);
+                offset += chunk_header_length + chunk_length;
+
+                // Empty chunk is end of data.
+                if (chunk_length == 0) {
+                    is_complete = TRUE;
+                    break;
+                }
+            }
+            g_byte_array_remove_range (priv->buffer, 0, offset);
             break;
 
         case SOUP_ENCODING_CONTENT_LENGTH:
-            content_length = soup_message_headers_get_content_length (response_headers);
-            if (priv->n_read < header_length + content_length)
-                return G_SOURCE_CONTINUE;
-
-            b = g_bytes_new (body, content_length);
+            content_length = soup_message_headers_get_content_length (priv->response_headers);
+            n = content_length - priv->response_body->len;
+            if (n > priv->buffer->len) {
+                n = priv->buffer->len;
+            }
+            g_byte_array_append(priv->response_body, priv->buffer->data, n);
+            g_byte_array_remove_range (priv->buffer, 0, n);
+            is_complete = priv->response_body->len >= content_length;
             break;
 
         default:
@@ -664,12 +627,28 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             return G_SOURCE_REMOVE;
         }
 
-        const gchar *content_type = soup_message_headers_get_content_type (response_headers, NULL);
-        parse_response (self, request, status_code, content_type, b);
+        /* Wait for the response to complete */
+        if (!is_complete) {
+           return G_SOURCE_CONTINUE;
+        }
 
-        /* Move remaining data to the start of the buffer */
-        g_byte_array_remove_range (priv->buffer, 0, header_length + content_length);
-        priv->n_read -= header_length + content_length;
+        /* Match this response to the next uncompleted request */
+        SnapdRequest *request = get_first_request (self);
+        if (request == NULL) {
+            g_warning ("Ignoring unexpected response");
+            return G_SOURCE_REMOVE;
+        }
+
+        const gchar *content_type = soup_message_headers_get_content_type (priv->response_headers, NULL);
+        g_autoptr(GBytes) b = g_bytes_new (priv->response_body->data, priv->response_body->len);
+        parse_response (self, request, priv->response_status_code, content_type, b);
+
+#if SOUP_CHECK_VERSION (2, 99, 2)
+        g_clear_pointer (&priv->response_headers, soup_message_headers_unref);
+#else
+        g_clear_pointer (&priv->response_headers, soup_message_headers_free);
+#endif
+        g_byte_array_set_size(priv->response_body, 0);
     }
 }
 
@@ -4332,6 +4311,12 @@ snapd_client_finalize (GObject *object)
         g_socket_close (priv->snapd_socket, NULL);
     g_clear_object (&priv->snapd_socket);
     g_clear_pointer (&priv->buffer, g_byte_array_unref);
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    g_clear_pointer (&priv->response_headers, soup_message_headers_unref);
+#else
+    g_clear_pointer (&priv->response_headers, soup_message_headers_free);
+#endif
+    g_clear_pointer (&priv->response_body, g_byte_array_unref);
     g_clear_object (&priv->maintenance);
 
     G_OBJECT_CLASS (snapd_client_parent_class)->finalize (object);
@@ -4355,6 +4340,7 @@ snapd_client_init (SnapdClient *self)
     priv->allow_interaction = TRUE;
     priv->requests = g_ptr_array_new_with_free_func ((GDestroyNotify) request_data_unref);
     priv->buffer = g_byte_array_new ();
+    priv->response_body = g_byte_array_new ();
     g_mutex_init (&priv->requests_mutex);
     g_mutex_init (&priv->buffer_mutex);
 }
