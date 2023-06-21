@@ -11,6 +11,7 @@
 #define __SNAPD_REQUEST_H__
 
 #include <glib-object.h>
+#include <json-glib/json-glib.h>
 #include <libsoup/soup.h>
 
 #include "snapd-maintenance.h"
@@ -25,6 +26,7 @@ struct _SnapdRequestClass
 
     SoupMessage *(*generate_request)(SnapdRequest *request, GBytes **body);
     gboolean (*parse_response)(SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error);
+    gboolean (*parse_json_seq)(SnapdRequest *request, JsonNode *seq, GError **error);
 };
 
 void          _snapd_request_set_source_object (SnapdRequest *request,
