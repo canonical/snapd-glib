@@ -125,6 +125,7 @@ typedef struct
     guint response_status_code;
     SoupMessageHeaders *response_headers;
     GByteArray *response_body;
+    gsize response_body_used;
 
     /* Maintenance information returned from snapd */
     SnapdMaintenance *maintenance;
@@ -520,6 +521,22 @@ parse_response (SnapdClient *self, SnapdRequest *request, guint status_code, con
 }
 
 static gboolean
+parse_seq (SnapdClient *self, SnapdRequest *request, const char *data, gsize data_length, GError **error)
+{
+    g_autoptr(JsonParser) parser = json_parser_new ();
+    g_autoptr(GError) json_error = NULL;
+    if (!json_parser_load_from_data (parser, data, data_length, error)) {
+        return FALSE;
+    }
+
+    if (SNAPD_REQUEST_GET_CLASS (request)->parse_json_seq == NULL) {
+        return TRUE;
+    }
+
+    return SNAPD_REQUEST_GET_CLASS (request)->parse_json_seq (request, json_parser_get_root (parser), error);
+}
+
+static gboolean
 read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
 {
     SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
@@ -609,13 +626,13 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
 
         case SOUP_ENCODING_CONTENT_LENGTH:
             content_length = soup_message_headers_get_content_length (priv->response_headers);
-            n = content_length - priv->response_body->len;
+            n = content_length - (priv->response_body->len + priv->response_body_used);
             if (n > priv->buffer->len) {
                 n = priv->buffer->len;
             }
             g_byte_array_append(priv->response_body, priv->buffer->data, n);
             g_byte_array_remove_range (priv->buffer, 0, n);
-            is_complete = priv->response_body->len >= content_length;
+            is_complete = (priv->response_body->len + priv->response_body_used) >= content_length;
             break;
 
         default:
@@ -633,17 +650,47 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             return G_SOURCE_REMOVE;
         }
 
-        if (is_complete) {
-            const gchar *content_type = soup_message_headers_get_content_type (priv->response_headers, NULL);
+        const gchar *content_type = soup_message_headers_get_content_type (priv->response_headers, NULL);
+        if (g_strcmp0 (content_type, "application/json-seq") == 0) {
+            /* Handle each sequence element */
+            while (priv->response_body->len > 0) {
+                /* Requests start with a record separator */
+                if (priv->response_body->data[0] != 0x1e) {
+                    break;
+                }
+                gsize seq_start = 1, seq_end = 1;
+                while (seq_end < priv->response_body->len && priv->response_body->data[seq_end] != 0x1e) {
+                    seq_end++;
+                }
+
+                if (priv->response_body->data[seq_end] == 0x1e || is_complete) {
+		    g_autoptr(GError) json_error = NULL;
+		    if (!parse_seq (self, request, (const gchar *) priv->response_body->data + seq_start, seq_end - seq_start, &json_error)) {
+		       g_warning ("Ignoring invalid JSON: %s", json_error->message);
+		       return G_SOURCE_REMOVE;
+		    }
+
+                    g_byte_array_remove_range (priv->response_body, 0, seq_end);
+                    priv->response_body_used += seq_end;
+                }
+            }
+
+            if (is_complete) {
+                complete_request (self, request, NULL);
+            }
+        } else if (is_complete) {
             g_autoptr(GBytes) b = g_bytes_new (priv->response_body->data, priv->response_body->len);
             parse_response (self, request, priv->response_status_code, content_type, b);
+        }
 
+        if (is_complete) {
 #if SOUP_CHECK_VERSION (2, 99, 2)
             g_clear_pointer (&priv->response_headers, soup_message_headers_unref);
 #else
             g_clear_pointer (&priv->response_headers, soup_message_headers_free);
 #endif
             g_byte_array_set_size(priv->response_body, 0);
+            priv->response_body_used = 0;
        } else {
             return G_SOURCE_CONTINUE;
        }
