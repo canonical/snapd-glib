@@ -626,11 +626,6 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             return G_SOURCE_REMOVE;
         }
 
-        /* Wait for the response to complete */
-        if (!is_complete) {
-           return G_SOURCE_CONTINUE;
-        }
-
         /* Match this response to the next uncompleted request */
         SnapdRequest *request = get_first_request (self);
         if (request == NULL) {
@@ -638,16 +633,20 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             return G_SOURCE_REMOVE;
         }
 
-        const gchar *content_type = soup_message_headers_get_content_type (priv->response_headers, NULL);
-        g_autoptr(GBytes) b = g_bytes_new (priv->response_body->data, priv->response_body->len);
-        parse_response (self, request, priv->response_status_code, content_type, b);
+        if (is_complete) {
+            const gchar *content_type = soup_message_headers_get_content_type (priv->response_headers, NULL);
+            g_autoptr(GBytes) b = g_bytes_new (priv->response_body->data, priv->response_body->len);
+            parse_response (self, request, priv->response_status_code, content_type, b);
 
 #if SOUP_CHECK_VERSION (2, 99, 2)
-        g_clear_pointer (&priv->response_headers, soup_message_headers_unref);
+            g_clear_pointer (&priv->response_headers, soup_message_headers_unref);
 #else
-        g_clear_pointer (&priv->response_headers, soup_message_headers_free);
+            g_clear_pointer (&priv->response_headers, soup_message_headers_free);
 #endif
-        g_byte_array_set_size(priv->response_body, 0);
+            g_byte_array_set_size(priv->response_body, 0);
+       } else {
+            return G_SOURCE_CONTINUE;
+       }
     }
 }
 
