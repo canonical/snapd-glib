@@ -562,7 +562,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
 
     if (n_read < 0) {
         if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
-            return TRUE;
+            return G_SOURCE_CONTINUE;
 
         g_autoptr(GError) e = g_error_new (SNAPD_ERROR,
                                            SNAPD_ERROR_READ_FAILED,
@@ -662,17 +662,18 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
                 while (seq_end < priv->response_body->len && priv->response_body->data[seq_end] != 0x1e) {
                     seq_end++;
                 }
-
-                if (priv->response_body->data[seq_end] == 0x1e || is_complete) {
-		    g_autoptr(GError) json_error = NULL;
-		    if (!parse_seq (self, request, (const gchar *) priv->response_body->data + seq_start, seq_end - seq_start, &json_error)) {
-		       g_warning ("Ignoring invalid JSON: %s", json_error->message);
-		       return G_SOURCE_REMOVE;
-		    }
-
-                    g_byte_array_remove_range (priv->response_body, 0, seq_end);
-                    priv->response_body_used += seq_end;
+                if (priv->response_body->data[seq_end] != 0x1e && !is_complete) {
+                    break;
                 }
+
+                g_autoptr(GError) json_error = NULL;
+                if (!parse_seq (self, request, (const gchar *) priv->response_body->data + seq_start, seq_end - seq_start, &json_error)) {
+                    g_warning ("Ignoring invalid JSON: %s", json_error->message);
+                    return G_SOURCE_REMOVE;
+                }
+
+                g_byte_array_remove_range (priv->response_body, 0, seq_end);
+                priv->response_body_used += seq_end;
             }
 
             if (is_complete) {
