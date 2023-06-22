@@ -580,6 +580,7 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
         /* Read response body */
         gboolean is_complete = FALSE;
         gsize offset = 0, chunk_header_length, chunk_length, content_length, n;
+        g_autoptr(GError) e = NULL;
         switch (soup_message_headers_get_encoding (priv->response_headers)) {
         case SOUP_ENCODING_EOF:
             g_byte_array_append(priv->response_body, priv->buffer->data, priv->buffer->len);
@@ -618,12 +619,10 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             break;
 
         default:
-            {
-                g_autoptr(GError) e = g_error_new (SNAPD_ERROR,
-                                                   SNAPD_ERROR_READ_FAILED,
-                                                   "Unable to determine header encoding");
-                complete_all_requests (self, e);
-            }
+            e = g_error_new (SNAPD_ERROR,
+                             SNAPD_ERROR_READ_FAILED,
+                             "Unable to determine header encoding");
+            complete_all_requests (self, e);
             return G_SOURCE_REMOVE;
         }
 
