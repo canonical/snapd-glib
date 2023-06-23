@@ -606,14 +606,25 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             break;
 
         case SOUP_ENCODING_CHUNKED:
-            while (read_chunk_header ((const gchar *) priv->buffer->data + offset, priv->buffer->len - offset, &chunk_header_length, &chunk_length)) {
+            gsize chunk_trailer_length = 2;
+            while (offset < priv->buffer->len && read_chunk_header ((const gchar *) priv->buffer->data + offset, priv->buffer->len - offset, &chunk_header_length, &chunk_length)) {
+                gsize chunk_data_offset = offset + chunk_header_length;
+                gsize chunk_trailer_offset = chunk_data_offset + chunk_length;
+                gsize chunk_end = chunk_trailer_offset + chunk_trailer_length;
+
                 // Haven't yet received all chunk data.
-                if (offset + chunk_header_length + chunk_length > priv->buffer->len) {
+                if (chunk_end > priv->buffer->len) {
                     break;
                 }
 
-                g_byte_array_append(priv->response_body, priv->buffer->data + offset + chunk_header_length, chunk_length);
-                offset += chunk_header_length + chunk_length;
+                const gchar *chunk_trailer = (const gchar *) priv->buffer->data + chunk_trailer_offset;
+                if (chunk_trailer[0] != '\r' && chunk_trailer[1] != '\n') {
+                    g_warning ("Invalid HTTP chunk");
+                    return G_SOURCE_REMOVE;
+                }
+
+                g_byte_array_append(priv->response_body, priv->buffer->data + chunk_data_offset, chunk_length);
+                offset = chunk_end;
 
                 // Empty chunk is end of data.
                 if (chunk_length == 0) {
