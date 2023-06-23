@@ -606,8 +606,8 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
             break;
 
         case SOUP_ENCODING_CHUNKED:
-            gsize chunk_trailer_length = 2;
             while (offset < priv->buffer->len && read_chunk_header ((const gchar *) priv->buffer->data + offset, priv->buffer->len - offset, &chunk_header_length, &chunk_length)) {
+                gsize chunk_trailer_length = 2;
                 gsize chunk_data_offset = offset + chunk_header_length;
                 gsize chunk_trailer_offset = chunk_data_offset + chunk_length;
                 gsize chunk_end = chunk_trailer_offset + chunk_trailer_length;
@@ -673,7 +673,8 @@ read_cb (GSocket *socket, GIOCondition condition, SnapdClient *self)
                 while (seq_end < priv->response_body->len && priv->response_body->data[seq_end] != 0x1e) {
                     seq_end++;
                 }
-                if (priv->response_body->data[seq_end] != 0x1e && !is_complete) {
+                gboolean have_end = seq_end < priv->response_body->len && priv->response_body->data[seq_end] == 0x1e;
+                if (!have_end && !is_complete) {
                     break;
                 }
 
