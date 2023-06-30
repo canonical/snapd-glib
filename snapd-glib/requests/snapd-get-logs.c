@@ -105,7 +105,7 @@ parse_get_logs_json_seq (SnapdRequest *request, JsonNode *seq, GError **error)
 {
     g_autoptr(GDateTime) timestamp = NULL;
     const gchar *message, *sid, *pid;
-    SnapdLog *log;
+    g_autoptr(SnapdLog) log = NULL;
 
     SnapdGetLogs *self = SNAPD_GET_LOGS (request);
 
@@ -126,7 +126,7 @@ parse_get_logs_json_seq (SnapdRequest *request, JsonNode *seq, GError **error)
     if (self->log_callback != NULL) {
         self->log_callback (self, log, self->log_callback_data);
     } else {
-        g_ptr_array_add (self->logs, log);
+        g_ptr_array_add (self->logs, g_steal_pointer (&log));
     }
 
     return TRUE;
