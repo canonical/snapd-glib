@@ -2822,9 +2822,9 @@ handle_snaps (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
             if (strcmp (disposition, "form-data") == 0) {
                 const gchar *name = g_hash_table_lookup (params, "name");
 #if SOUP_CHECK_VERSION (2, 99, 2)
-                const gchar *value = g_strndup (g_bytes_get_data (part_body, NULL), g_bytes_get_size (part_body));
+                g_autofree gchar *value = g_strndup (g_bytes_get_data (part_body, NULL), g_bytes_get_size (part_body));
 #else
-                const gchar *value = g_strndup (part_body->data, part_body->length);
+                g_autofree gchar *value = g_strndup (part_body->data, part_body->length);
 #endif
 
                 if (g_strcmp0 (name, "action") == 0)
