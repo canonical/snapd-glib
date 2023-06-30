@@ -246,6 +246,18 @@ typedef enum
 typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdChange *change, gpointer deprecated, gpointer user_data);
 
 /**
+ * SnapdChangeCallback:
+ * @client: a #SnapdClient
+ * @change: a #SnapdChange received
+ * @user_data: user data passed to the callback
+ *
+ * Signature for callback function used in snapd_client_follow_changes_sync().
+ *
+ * Since: 1.64
+ */
+typedef void (*SnapdChangeCallback) (SnapdClient *client, SnapdChange *change, gpointer user_data);
+
+/**
  * SnapdLogCallback:
  * @client: a #SnapdClient
  * @log: a #SnapdLog received
@@ -356,6 +368,27 @@ void                    snapd_client_get_changes_async             (SnapdClient 
                                                                     gpointer              user_data);
 
 GPtrArray              *snapd_client_get_changes_finish            (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gboolean                snapd_client_follow_changes_sync           (SnapdClient          *client,
+                                                                    SnapdChangeFilter     filter,
+                                                                    const gchar          *snap_name,
+                                                                    SnapdChangeCallback   change_callback,
+                                                                    gpointer              change_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GError             **error);
+
+void                    snapd_client_follow_changes_async          (SnapdClient          *client,
+                                                                    SnapdChangeFilter     filter,
+                                                                    const gchar          *snap_name,
+                                                                    SnapdChangeCallback   change_callback,
+                                                                    gpointer              change_callback_data,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+
+gboolean                snapd_client_follow_changes_finish         (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

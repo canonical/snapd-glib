@@ -4038,6 +4038,19 @@ change_relates_to_snap (MockChange *change, const gchar *snap_name)
     return FALSE;
 }
 
+static gboolean
+filter_changes (const gchar *select_param, const gchar *for_param, MockChange *change)
+{
+    if (g_strcmp0 (select_param, "in-progress") == 0 && change_get_ready (change))
+        return FALSE;
+    if (g_strcmp0 (select_param, "ready") == 0 && !change_get_ready (change))
+        return FALSE;
+    if (for_param != NULL && !change_relates_to_snap (change, for_param))
+        return FALSE;
+
+    return TRUE;
+}
+
 static void
 handle_changes (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 {
@@ -4056,24 +4069,39 @@ handle_changes (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
     if (select_param == NULL)
         select_param = "in-progress";
     const gchar *for_param = g_hash_table_lookup (query, "for");
+    gboolean follow = g_strcmp0 (g_hash_table_lookup (query, "follow"), "true") == 0;
 
-    g_autoptr(JsonBuilder) builder = json_builder_new ();
-    json_builder_begin_array (builder);
-    for (GList *link = self->changes; link; link = link->next) {
-        MockChange *change = link->data;
+    if (!follow) {
+        g_autoptr(JsonBuilder) builder = json_builder_new ();
+        json_builder_begin_array (builder);
+        for (GList *link = self->changes; link; link = link->next) {
+            MockChange *change = link->data;
 
-        if (g_strcmp0 (select_param, "in-progress") == 0 && change_get_ready (change))
-            continue;
-        if (g_strcmp0 (select_param, "ready") == 0 && !change_get_ready (change))
-            continue;
-        if (for_param != NULL && !change_relates_to_snap (change, for_param))
-            continue;
+            if (!filter_changes (select_param, for_param, change))
+                continue;
 
-        json_builder_add_value (builder, make_change_node (change));
+            json_builder_add_value (builder, make_change_node (change));
+        }
+        json_builder_end_array (builder);
+
+        send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+    } else {
+        g_autoptr(GString) content = g_string_new ("");
+        for (GList *link = self->changes; link; link = link->next) {
+            MockChange *change = link->data;
+
+            if (!filter_changes (select_param, for_param, change))
+                continue;
+
+            g_autoptr(JsonGenerator) generator = json_generator_new ();
+            json_generator_set_root (generator, make_change_node (change));
+            g_autofree gchar *change_json = json_generator_to_data (generator, NULL);
+            g_string_append_unichar (content, 0x1e);
+            g_string_append (content, change_json);
+        }
+
+        send_response (message, 200, "application/json-seq", (const guint8 *) content->str, content->len);
     }
-    json_builder_end_array (builder);
-
-    send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
 }
 
 static void

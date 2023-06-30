@@ -197,6 +197,39 @@ snapd_client_get_changes_sync (SnapdClient *self,
 }
 
 /**
+ * snapd_client_follow_changes_sync:
+ * @client: a #SnapdClient.
+ * @filter: changes to filter on.
+ * @snap_name: (allow-none): name of snap to filter on or %NULL for changes for any snap.
+ * @change_callback: (scope async): a #SnapdChangeCallback to call when a change is received.
+ * @change_callback_data: (closure): the data to pass to @change_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Follow chanegs. This call will only complete if snapd closes the connection and will
+ * stop any other request on this client from being sent.
+ *
+ * Returns: %TRUE on success.
+ *
+ * Since: 1.64
+ */
+gboolean
+snapd_client_follow_changes_sync (SnapdClient *self,
+                                  SnapdChangeFilter filter, const gchar *snap_name,
+                                  SnapdChangeCallback change_callback, gpointer change_callback_data,
+                                  GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_follow_changes_async (self, filter, snap_name, change_callback, change_callback_data, cancellable, sync_cb, &data);
+    end_sync (&data);
+
+    return snapd_client_follow_changes_finish (self, data.result, error);
+}
+
+/**
  * snapd_client_get_change_sync:
  * @client: a #SnapdClient.
  * @id: a change ID to get information on.

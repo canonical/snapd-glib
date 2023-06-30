@@ -1143,6 +1143,75 @@ test_get_changes_filter_ready_snap (void)
 }
 
 static void
+sync_change_cb (SnapdClient *client, SnapdChange *change, gpointer user_data)
+{
+    int *counter = user_data;
+    (*counter)++;
+}
+
+static void
+test_follow_changes_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_add_change (snapd);
+    mock_snapd_add_change (snapd);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    int counter = 0;
+    gboolean result = snapd_client_follow_changes_sync (client, SNAPD_CHANGE_FILTER_ALL, NULL, sync_change_cb, &counter, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_true (result);
+    g_assert_cmpint (counter, ==, 2);
+}
+
+static void
+async_change_cb (SnapdClient *client, SnapdChange *change, gpointer user_data)
+{
+    AsyncData *data = user_data;
+    data->counter++;
+}
+
+static void
+follow_changes_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    gboolean r = snapd_client_follow_changes_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_true (r);
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_follow_changes_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    mock_snapd_add_change (snapd);
+    mock_snapd_add_change (snapd);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    AsyncData *data = async_data_new (loop, snapd);
+    snapd_client_follow_changes_async (client, SNAPD_CHANGE_FILTER_ALL, NULL, async_change_cb, data, NULL, follow_changes_cb, async_data_new (loop, snapd));
+    g_main_loop_run (loop);
+}
+
+static void
 test_get_change_sync (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -8499,6 +8568,8 @@ main (int argc, char **argv)
     g_test_add_func ("/get-changes/filter-ready", test_get_changes_filter_ready);
     g_test_add_func ("/get-changes/filter-snap", test_get_changes_filter_snap);
     g_test_add_func ("/get-changes/filter-ready-snap", test_get_changes_filter_ready_snap);
+    g_test_add_func ("/follow-changes/sync", test_follow_changes_sync);
+    g_test_add_func ("/follow-changes/async", test_follow_changes_async);
     g_test_add_func ("/get-change/sync", test_get_change_sync);
     g_test_add_func ("/get-change/async", test_get_change_async);
     g_test_add_func ("/abort-change/sync", test_abort_change_sync);

@@ -13,13 +13,20 @@
 #include <json-glib/json-glib.h>
 
 #include "snapd-request.h"
+#include "snapd-change.h"
 
 G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdGetChanges, snapd_get_changes, SNAPD, GET_CHANGES, SnapdRequest)
 
+typedef void (*SnapdGetChangesChangeCallback) (SnapdGetChanges *request, SnapdChange *change, gpointer user_data);
+
 SnapdGetChanges *_snapd_get_changes_new           (const gchar         *select,
                                                    const gchar         *snap_name,
+                                                   gboolean             follow,
+                                                   SnapdGetChangesChangeCallback change_callback,
+                                                   gpointer             change_callback_data,
+                                                   GDestroyNotify       change_callback_destroy_notify,
                                                    GCancellable        *cancellable,
                                                    GAsyncReadyCallback  callback,
                                                    gpointer             user_data);

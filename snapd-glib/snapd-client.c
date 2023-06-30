@@ -934,6 +934,37 @@ send_request (SnapdClient *self, SnapdRequest *request)
 typedef struct
 {
     SnapdClient *client;
+    SnapdChangeCallback callback;
+    gpointer callback_data;
+} FollowChangesData;
+
+static FollowChangesData *
+follow_changes_data_new (SnapdClient *client, SnapdChangeCallback callback, gpointer callback_data)
+{
+    FollowChangesData *data = g_slice_new0 (FollowChangesData);
+    data->client = client;
+    data->callback = callback;
+    data->callback_data = callback_data;
+
+    return data;
+}
+
+static void
+follow_changes_data_free (FollowChangesData *data)
+{
+    g_slice_free (FollowChangesData, data);
+}
+
+static void
+change_cb (SnapdGetChanges *request, SnapdChange *change, gpointer user_data)
+{
+    FollowChangesData *data = user_data;
+    data->callback (data->client, change, data->callback_data);
+}
+
+typedef struct
+{
+    SnapdClient *client;
     SnapdLogCallback callback;
     gpointer callback_data;
 } FollowLogsData;
@@ -1372,7 +1403,9 @@ snapd_client_get_changes_async (SnapdClient *self,
         break;
     }
 
-    g_autoptr(SnapdGetChanges) request = _snapd_get_changes_new (select, snap_name, cancellable, callback, user_data);
+    g_autoptr(SnapdGetChanges) request = _snapd_get_changes_new (select, snap_name,
+                                                                 FALSE, NULL, NULL, NULL,
+                                                                 cancellable, callback, user_data);
     send_request (self, SNAPD_REQUEST (request));
 }
 
@@ -1400,6 +1433,74 @@ snapd_client_get_changes_finish (SnapdClient *self, GAsyncResult *result, GError
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
         return NULL;
     return g_ptr_array_ref (_snapd_get_changes_get_changes (request));
+}
+
+/**
+ * snapd_client_follow_changes_async:
+ * @client: a #SnapdClient.
+ * @filter: changes to filter on.
+ * @snap_name: (allow-none): name of snap to filter on or %NULL for changes for any snap.
+ * @change_callback: (scope async): a #SnapdChangeCallback to call when a change is received.
+ * @change_callback_data: (closure): the data to pass to @change_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Follow changes. This call will only complete if snapd closes the connection and will
+ * stop any other request on this client from being sent.
+ *
+ * Since: 1.64
+ */
+void
+snapd_client_follow_changes_async (SnapdClient *self,
+                                   SnapdChangeFilter filter, const gchar *snap_name,
+				   SnapdChangeCallback change_callback, gpointer change_callback_data,
+                                   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    const gchar *select = NULL;
+    switch (filter)
+    {
+    case SNAPD_CHANGE_FILTER_ALL:
+        select = "all";
+        break;
+    case SNAPD_CHANGE_FILTER_IN_PROGRESS:
+        select = "in-progress";
+        break;
+    case SNAPD_CHANGE_FILTER_READY:
+        select = "ready";
+        break;
+    }
+
+    g_autoptr(SnapdGetChanges) request = _snapd_get_changes_new (select, snap_name,
+                                                                 TRUE, change_cb, follow_changes_data_new (self, change_callback, change_callback_data), (GDestroyNotify) follow_changes_data_free,
+                                                                 cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_follow_changes_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_follow_changes_async().
+ * See snapd_client_follow_changes_sync() for more information.
+ *
+ * Returns: %TRUE on success.
+ *
+ * Since: 1.64
+ */
+gboolean
+snapd_client_follow_changes_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+    g_return_val_if_fail (SNAPD_IS_GET_CHANGES (result), FALSE);
+
+    SnapdGetChanges *request = SNAPD_GET_CHANGES (result);
+
+    return _snapd_request_propagate_error (SNAPD_REQUEST (request), error);
 }
 
 /**

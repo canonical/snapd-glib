@@ -17,13 +17,17 @@ struct _SnapdGetChanges
     SnapdRequest parent_instance;
     gchar *select;
     gchar *snap_name;
+    gboolean follow;
+    SnapdGetChangesChangeCallback change_callback;
+    gpointer change_callback_data;
+    GDestroyNotify change_callback_destroy_notify;
     GPtrArray *changes;
 };
 
 G_DEFINE_TYPE (SnapdGetChanges, snapd_get_changes, snapd_request_get_type ())
 
 SnapdGetChanges *
-_snapd_get_changes_new (const gchar *select, const gchar *snap_name, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_get_changes_new (const gchar *select, const gchar *snap_name, gboolean follow, SnapdGetChangesChangeCallback change_callback, gpointer change_callback_data, GDestroyNotify change_callback_destroy_notify, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdGetChanges *self = SNAPD_GET_CHANGES (g_object_new (snapd_get_changes_get_type (),
                                                              "cancellable", cancellable,
@@ -32,6 +36,10 @@ _snapd_get_changes_new (const gchar *select, const gchar *snap_name, GCancellabl
                                                              NULL));
     self->select = g_strdup (select);
     self->snap_name = g_strdup (snap_name);
+    self->follow = follow;
+    self->change_callback = change_callback;
+    self->change_callback_data = change_callback_data;
+    self->change_callback_destroy_notify = change_callback_destroy_notify;
 
     return self;
 }
@@ -57,6 +65,9 @@ generate_get_changes_request (SnapdRequest *request, GBytes **body)
         g_autoptr(GString) attr = g_string_new ("for=");
         g_string_append_uri_escaped (attr, self->snap_name, NULL, TRUE);
         g_ptr_array_add (query_attributes, g_strdup (attr->str));
+    }
+    if (self->follow) {
+        g_ptr_array_add (query_attributes, g_strdup ("follow=true"));
     }
 
     g_autoptr(GString) path = g_string_new ("http://snapd/v2/changes");
@@ -100,6 +111,24 @@ parse_get_changes_response (SnapdRequest *request, guint status_code, const gcha
     return TRUE;
 }
 
+static gboolean
+parse_get_changes_json_seq (SnapdRequest *request, JsonNode *seq, GError **error)
+{
+    g_autoptr(SnapdChange) change = NULL;
+
+    SnapdGetChanges *self = SNAPD_GET_CHANGES (request);
+
+    change = _snapd_json_parse_change (seq, error);
+    if (change == NULL)
+        return FALSE;
+
+    if (self->change_callback != NULL) {
+        self->change_callback (self, change, self->change_callback_data);
+    }
+
+    return TRUE;
+}
+
 static void
 snapd_get_changes_finalize (GObject *object)
 {
@@ -108,6 +137,9 @@ snapd_get_changes_finalize (GObject *object)
     g_clear_pointer (&self->select, g_free);
     g_clear_pointer (&self->snap_name, g_free);
     g_clear_pointer (&self->changes, g_ptr_array_unref);
+    if (self->change_callback_destroy_notify) {
+        self->change_callback_destroy_notify (self->change_callback_data);
+    }
 
     G_OBJECT_CLASS (snapd_get_changes_parent_class)->finalize (object);
 }
@@ -115,12 +147,13 @@ snapd_get_changes_finalize (GObject *object)
 static void
 snapd_get_changes_class_init (SnapdGetChangesClass *klass)
 {
-   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
-   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+    SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
-   request_class->generate_request = generate_get_changes_request;
-   request_class->parse_response = parse_get_changes_response;
-   gobject_class->finalize = snapd_get_changes_finalize;
+    request_class->generate_request = generate_get_changes_request;
+    request_class->parse_response = parse_get_changes_response;
+    request_class->parse_json_seq = parse_get_changes_json_seq;
+    gobject_class->finalize = snapd_get_changes_finalize;
 }
 
 static void
