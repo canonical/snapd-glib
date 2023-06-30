@@ -189,8 +189,10 @@ snapd_request_async_finalize (GObject *object)
     SnapdRequestAsync *self = SNAPD_REQUEST_ASYNC (object);
     SnapdRequestAsyncPrivate *priv = snapd_request_async_get_instance_private (self);
 
+    g_clear_pointer (&priv->change_api_path, g_free);
     g_clear_pointer (&priv->change_id, g_free);
     g_clear_object (&priv->change);
+
 
     G_OBJECT_CLASS (snapd_request_async_parent_class)->finalize (object);
 }
