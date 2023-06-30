@@ -251,7 +251,7 @@ typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdChange *change,
  * @log: a #SnapdLog received
  * @user_data: user data passed to the callback
  *
- * Signature for callback function used in snapd_client_follow_logs().
+ * Signature for callback function used in snapd_client_follow_logs_sync().
  *
  * Since: 1.64
  */
