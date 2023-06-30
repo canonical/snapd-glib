@@ -137,6 +137,7 @@ parse_get_themes_response (SnapdRequest *request, guint status_code, const gchar
     self->gtk_theme_status = parse_theme_status (json_object_get_member (object, "gtk-themes"));
     self->icon_theme_status = parse_theme_status (json_object_get_member (object, "icon-themes"));
     self->sound_theme_status = parse_theme_status (json_object_get_member (object, "sound-themes"));
+    json_node_unref (result);
 
     return TRUE;
 }
