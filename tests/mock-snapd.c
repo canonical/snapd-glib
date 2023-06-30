@@ -5034,7 +5034,8 @@ handle_logs (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         json_builder_end_object (builder);
 
         g_autoptr(JsonGenerator) generator = json_generator_new ();
-        json_generator_set_root (generator, json_builder_get_root (builder));
+        g_autoptr(JsonNode) root = json_builder_get_root (builder);
+        json_generator_set_root (generator, root);
         g_autofree gchar *log_json = json_generator_to_data (generator, NULL);
         g_string_append_unichar (content, 0x1e);
         g_string_append (content, log_json);
