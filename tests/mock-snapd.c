@@ -46,6 +46,7 @@ struct _MockSnapd
     GList *interfaces;
     GList *snaps;
     GList *snapshots;
+    gchar *architecture;
     gchar *build_id;
     gchar *confinement;
     GHashTable *sandbox_features;
@@ -466,6 +467,16 @@ mock_snapd_set_maintenance (MockSnapd *self, const gchar *kind, const gchar *mes
     self->maintenance_kind = g_strdup (kind);
     g_free (self->maintenance_message);
     self->maintenance_message = g_strdup (message);
+}
+
+void
+mock_snapd_set_architecture (MockSnapd *self, const gchar *architecture)
+{
+    g_return_if_fail (MOCK_IS_SNAPD (self));
+
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
+    g_free (self->architecture);
+    self->architecture = g_strdup (architecture);
 }
 
 void
@@ -2062,6 +2073,10 @@ handle_system_info (MockSnapd *self, SoupServerMessage *message)
 
     g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
+    if (self->architecture) {
+        json_builder_set_member_name (builder, "architecture");
+        json_builder_add_string_value (builder, self->architecture);
+    }
     if (self->build_id) {
         json_builder_set_member_name (builder, "build-id");
         json_builder_add_string_value (builder, self->build_id);
@@ -5177,6 +5192,7 @@ mock_snapd_finalize (GObject *object)
     self->snaps = NULL;
     g_list_free_full (self->snapshots, (GDestroyNotify) mock_snapshot_free);
     self->snapshots = NULL;
+    g_free (self->architecture);
     g_free (self->build_id);
     g_free (self->confinement);
     g_clear_pointer (&self->sandbox_features, g_hash_table_unref);

@@ -374,6 +374,7 @@ test_get_system_information_sync (void)
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     mock_snapd_set_managed (snapd, TRUE);
     mock_snapd_set_on_classic (snapd, TRUE);
+    mock_snapd_set_architecture (snapd, "amd64");
     mock_snapd_set_build_id (snapd, "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
     mock_snapd_add_sandbox_feature (snapd, "backend", "feature1");
     mock_snapd_add_sandbox_feature (snapd, "backend", "feature2");
@@ -389,6 +390,7 @@ test_get_system_information_sync (void)
     g_autoptr(SnapdSystemInformation) info = snapd_client_get_system_information_sync (client, NULL, &error);
     g_assert_no_error (error);
     g_assert_nonnull (info);
+    g_assert_cmpstr (snapd_system_information_get_architecture (info), ==, "amd64");
     g_assert_cmpstr (snapd_system_information_get_build_id (info), ==, "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1");
     g_assert_cmpint (snapd_system_information_get_confinement (info), ==, SNAPD_SYSTEM_CONFINEMENT_UNKNOWN);
     g_assert_cmpstr (snapd_system_information_get_kernel_version (info), ==, "KERNEL-VERSION");

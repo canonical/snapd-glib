@@ -61,6 +61,9 @@ void            mock_snapd_set_maintenance        (MockSnapd     *snapd,
                                                    const gchar   *type,
                                                    const gchar   *message);
 
+void            mock_snapd_set_architecture       (MockSnapd     *snapd,
+                                                   const gchar   *architecture);
+
 void            mock_snapd_set_build_id           (MockSnapd     *snapd,
                                                    const gchar   *build_id);
 

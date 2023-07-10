@@ -605,6 +605,7 @@ _snapd_json_parse_system_information (JsonNode *node, GError **error)
     }
     JsonObject *object = json_node_get_object (node);
 
+    const gchar *architecture = _snapd_json_get_string (object, "architecture", "");
     const gchar *confinement_string = _snapd_json_get_string (object, "confinement", "");
     SnapdSystemConfinement confinement = SNAPD_SYSTEM_CONFINEMENT_UNKNOWN;
     if (strcmp (confinement_string, "strict") == 0)
@@ -652,6 +653,7 @@ _snapd_json_parse_system_information (JsonNode *node, GError **error)
     g_autoptr(GDateTime) refresh_next = _snapd_json_get_date_time (refresh, "next");
 
     return g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
+                         "architecture", architecture,
                          "binaries-directory", locations != NULL ? _snapd_json_get_string (locations, "snap-bin-dir", NULL) : NULL,
                          "build-id", _snapd_json_get_string (object, "build-id", NULL),
                          "confinement", confinement,
