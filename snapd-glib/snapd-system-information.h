@@ -39,6 +39,8 @@ typedef enum
     SNAPD_SYSTEM_CONFINEMENT_PARTIAL
 } SnapdSystemConfinement;
 
+const gchar *snapd_system_information_get_architecture       (SnapdSystemInformation *system_information);
+
 const gchar *snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_information);
 
 const gchar *snapd_system_information_get_build_id           (SnapdSystemInformation *system_information);

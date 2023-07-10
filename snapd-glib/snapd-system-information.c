@@ -31,6 +31,7 @@ struct _SnapdSystemInformation
 {
     GObject parent_instance;
 
+    gchar *architecture;
     gchar *binaries_directory;
     gchar *build_id;
     SnapdSystemConfinement confinement;
@@ -71,10 +72,28 @@ enum
     PROP_REFRESH_NEXT,
     PROP_REFRESH_SCHEDULE,
     PROP_REFRESH_TIMER,
+    PROP_ARCHITECTURE,
     PROP_LAST
 };
 
 G_DEFINE_TYPE (SnapdSystemInformation, snapd_system_information, G_TYPE_OBJECT)
+
+/**
+ * snapd_system_information_get_architecture:
+ * @system_information: a #SnapdSystemInformation.
+ *
+ * Get the architecture this system is using, e.g. "amd64".
+ *
+ * Returns: an architecture.
+ *
+ * Since: 1.64
+ */
+const gchar *
+snapd_system_information_get_architecture (SnapdSystemInformation *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SYSTEM_INFORMATION (self), NULL);
+    return self->architecture;
+}
 
 /**
  * snapd_system_information_get_binaries_directory:
@@ -390,6 +409,10 @@ snapd_system_information_set_property (GObject *object, guint prop_id, const GVa
     SnapdSystemInformation *self = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
+    case PROP_ARCHITECTURE:
+        g_free (self->architecture);
+        self->architecture = g_strdup (g_value_get_string (value));
+        break;
     case PROP_BINARIES_DIRECTORY:
         g_free (self->binaries_directory);
         self->binaries_directory = g_strdup (g_value_get_string (value));
@@ -474,6 +497,9 @@ snapd_system_information_get_property (GObject *object, guint prop_id, GValue *v
     SnapdSystemInformation *self = SNAPD_SYSTEM_INFORMATION (object);
 
     switch (prop_id) {
+    case PROP_ARCHITECTURE:
+        g_value_set_string (value, self->architecture);
+        break;
     case PROP_BINARIES_DIRECTORY:
         g_value_set_string (value, self->binaries_directory);
         break;
@@ -539,6 +565,7 @@ snapd_system_information_finalize (GObject *object)
 {
     SnapdSystemInformation *self = SNAPD_SYSTEM_INFORMATION (object);
 
+    g_clear_pointer (&self->architecture, g_free);
     g_clear_pointer (&self->binaries_directory, g_free);
     g_clear_pointer (&self->build_id, g_free);
     g_clear_pointer (&self->kernel_version, g_free);
@@ -567,6 +594,13 @@ snapd_system_information_class_init (SnapdSystemInformationClass *klass)
     gobject_class->get_property = snapd_system_information_get_property;
     gobject_class->finalize = snapd_system_information_finalize;
 
+    g_object_class_install_property (gobject_class,
+                                     PROP_ARCHITECTURE,
+                                     g_param_spec_string ("architecture",
+                                                          "architecture",
+                                                          "System architecture",
+                                                          NULL,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_BINARIES_DIRECTORY,
                                      g_param_spec_string ("binaries-directory",
