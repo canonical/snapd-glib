@@ -15,7 +15,7 @@
  * @short_description: Snap service log entry
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdLog contains a line from a log for a snap service as returned using snapd_client_get_logs().
+ * A #SnapdLog contains a line from a log for a snap service as returned using snapd_client_get_logs_sync().
  */
 
 /**
