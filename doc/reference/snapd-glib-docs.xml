@@ -25,12 +25,15 @@
     <xi:include href="xml/snapd-assertion.xml"/>    
     <xi:include href="xml/snapd-alias.xml"/>    
     <xi:include href="xml/snapd-auth-data.xml"/>
+    <xi:include href="xml/snapd-category.xml"/>
+    <xi:include href="xml/snapd-category-details.xml"/>
     <xi:include href="xml/snapd-change.xml"/>
     <xi:include href="xml/snapd-channel.xml"/>
     <xi:include href="xml/snapd-client.xml"/>
     <xi:include href="xml/snapd-connection.xml"/>
     <xi:include href="xml/snapd-icon.xml"/>
     <xi:include href="xml/snapd-interface.xml"/>
+    <xi:include href="xml/snapd-log.xml"/>
     <xi:include href="xml/snapd-markdown-node.xml"/>
     <xi:include href="xml/snapd-markdown-parser.xml"/>
     <xi:include href="xml/snapd-maintenance.xml"/>

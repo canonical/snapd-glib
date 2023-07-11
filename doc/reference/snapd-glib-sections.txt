@@ -107,7 +107,10 @@ SnapdInstallFlags
 SnapdRemoveFlags
 SnapdCreateUserFlags
 SnapdGetInterfacesFlags
+SnapdThemeStatus
 SnapdProgressCallback
+SnapdGetLogsLogCallback
+SnapdLogCallback
 snapd_client_new
 snapd_client_new_from_socket
 snapd_client_set_socket_path
@@ -197,8 +200,11 @@ snapd_client_disconnect_interface_finish
 snapd_client_find_sync
 snapd_client_find_async
 snapd_client_find_finish
-snapd_client_find_section_async
+snapd_client_find_category_sync
+snapd_client_find_category_async
+snapd_client_find_category_finish
 snapd_client_find_section_sync
+snapd_client_find_section_async
 snapd_client_find_section_finish
 snapd_client_find_refreshable_sync
 snapd_client_find_refreshable_async
@@ -236,6 +242,12 @@ snapd_client_disable_finish
 snapd_client_switch_sync
 snapd_client_switch_async
 snapd_client_switch_finish
+snapd_client_get_logs_sync
+snapd_client_get_logs_async
+snapd_client_get_logs_finish
+snapd_client_follow_logs_async
+snapd_client_follow_logs_finish
+snapd_client_follow_logs_sync
 snapd_client_check_buy_sync
 snapd_client_check_buy_async
 snapd_client_check_buy_finish
@@ -251,6 +263,9 @@ snapd_client_create_users_finish
 snapd_client_get_users_sync
 snapd_client_get_users_async
 snapd_client_get_users_finish
+snapd_client_get_categories_sync
+snapd_client_get_categories_async
+snapd_client_get_categories_finish
 snapd_client_get_sections_sync
 snapd_client_get_sections_async
 snapd_client_get_sections_finish
@@ -284,6 +299,12 @@ snapd_client_run_snapctl_sync
 snapd_client_run_snapctl2_async
 snapd_client_run_snapctl2_finish
 snapd_client_run_snapctl2_sync
+snapd_client_check_themes_sync
+snapd_client_check_themes_async
+snapd_client_check_themes_finish
+snapd_client_install_themes_sync
+snapd_client_install_themes_async
+snapd_client_install_themes_finish
 
 <SUBSECTION Private>
 SNAPD_TYPE_CLIENT
@@ -305,10 +326,13 @@ SNAPD_TYPE_CREATE_USER_FLAGS
 snapd_create_user_flags_get_type
 SNAPD_TYPE_GET_INTERFACES_FLAGS
 snapd_get_interfaces_flags_get_type
+SNAPD_TYPE_THEME_STATUS
+snapd_theme_status_get_type
 SnapdGetAliases
 SnapdGetApps
 SnapdGetAssertions
 SnapdGetBuyReady
+SnapdGetCategories
 SnapdGetChange
 SnapdGetChanges
 SnapdGetConnections
@@ -316,11 +340,13 @@ SnapdGetFind
 SnapdGetIcon
 SnapdGetInterfaces
 SnapdGetInterfacesLegacy
+SnapdGetLogs
 SnapdGetSections
 SnapdGetSnap
 SnapdGetSnapConf
 SnapdGetSnaps
 SnapdGetSystemInfo
+SnapdGetThemes
 SnapdGetUsers
 SnapdPostAliases
 SnapdPostAssertions
@@ -337,6 +363,7 @@ SnapdPostSnapStream
 SnapdPostSnapTry
 SnapdPostSnapctl
 SnapdPostSnaps
+SnapdPostThemes
 SnapdPutSnapConf
 SnapdRequest
 SnapdRequestAsync
@@ -659,6 +686,7 @@ SnapdPublisherValidation
 snapd_snap_get_apps
 snapd_snap_get_base
 snapd_snap_get_broken
+snapd_snap_get_categories
 snapd_snap_get_channel
 snapd_snap_get_channels
 snapd_snap_match_channel
@@ -669,6 +697,7 @@ snapd_snap_get_description
 snapd_snap_get_developer
 snapd_snap_get_devmode
 snapd_snap_get_download_size
+snapd_snap_get_hold
 snapd_snap_get_icon
 snapd_snap_get_id
 snapd_snap_get_install_date
@@ -688,6 +717,7 @@ snapd_snap_get_revision
 snapd_snap_get_screenshots
 snapd_snap_get_snap_type
 snapd_snap_get_status
+snapd_snap_get_store_url
 snapd_snap_get_summary
 snapd_snap_get_title
 snapd_snap_get_tracking_channel
@@ -715,6 +745,7 @@ snapd_publisher_validation_get_type
 <TITLE>SnapdSystemInformation</TITLE>
 SnapdSystemConfinement
 SnapdSystemInformation
+snapd_system_information_get_architecture
 snapd_system_information_get_binaries_directory
 snapd_system_information_get_build_id
 snapd_system_information_get_confinement
@@ -774,4 +805,38 @@ SnapdUserInformation
 <SUBSECTION Private>
 SnapdUserInformationClass
 SNAPD_TYPE_USER_INFORMATION
+</SECTION>
+
+<SECTION>
+<FILE>snapd-category-details</FILE>
+<TITLE>SnapdCategoryDetails</TITLE>
+SnapdCategoryDetails
+snapd_category_details_get_name
+
+<SUBSECTION Private>
+SNAPD_TYPE_CATEGORY_DETAILS
+</SECTION>
+
+<SECTION>
+<FILE>snapd-category</FILE>
+<TITLE>SnapdCategory</TITLE>
+SnapdCategory
+snapd_category_get_featured
+snapd_category_get_name
+
+<SUBSECTION Private>
+SNAPD_TYPE_CATEGORY
+</SECTION>
+<SECTION>
+
+<FILE>snapd-log</FILE>
+<TITLE>SnapdLog</TITLE>
+SnapdLog
+snapd_log_get_message
+snapd_log_get_pid
+snapd_log_get_sid
+snapd_log_get_timestamp
+
+<SUBSECTION Private>
+SNAPD_TYPE_LOG
 </SECTION>
