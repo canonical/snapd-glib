@@ -414,7 +414,7 @@ snapd_snap_get_download_size (SnapdSnap *self)
  *
  * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
  *
- * Since: 1.0
+ * Since: 1.64
  */
 GDateTime *
 snapd_snap_get_hold (SnapdSnap *self)
