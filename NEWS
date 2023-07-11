@@ -1,3 +1,46 @@
+Overview of changes in snapd-glib 1.64
+
+    * New API:
+      - snapd_category_details_get_name
+      - snapd_category_get_featured
+      - snapd_category_get_name
+      - snapd_client_find_category_async
+      - snapd_client_find_category_finish
+      - snapd_client_find_category_sync
+      - snapd_client_follow_logs_async
+      - snapd_client_follow_logs_finish
+      - snapd_client_follow_logs_sync
+      - snapd_client_get_categories_async
+      - snapd_client_get_categories_finish
+      - snapd_client_get_categories_sync
+      - snapd_client_get_logs_async
+      - snapd_client_get_logs_finish
+      - snapd_client_get_logs_sync
+      - snapd_log_get_message
+      - snapd_log_get_pid
+      - snapd_log_get_sid
+      - snapd_log_get_timestamp
+      - snapd_snap_get_categories
+      - snapd_snap_get_hold
+      - snapd_system_information_get_architecture
+      - SNAPD_ERROR_APP_NOT_FOUND
+      - SNAPD_ERROR_ARCHITECTURE_NOT_AVAILABLE
+      - SNAPD_ERROR_CHANGE_CONFLICT
+      - SNAPD_ERROR_INTERFACES_UNCHANGED
+    * Deprecated API:
+      - snapd_client_find_section_sync
+      - snapd_client_find_section_async
+      - snapd_client_find_section_finish
+      - snapd_client_get_sections_sync
+    * Support snap hold date field.
+    * Support system information architecture field.
+    * Implement snap categories support, replacing sections.
+    * Support getting snap service logs.
+    * Fix buffer overflow reading assertions.
+    * Fix leak in themes API.
+    * Add more snapd errors.
+    * Fix tests failing on glib 2.77.
+
 Overview of changes in snapd-glib 1.63
 
     * Fix snapd-qt cmake configuration.
