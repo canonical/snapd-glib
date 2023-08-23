@@ -300,10 +300,37 @@ static int logs (int argc, char **argv)
     return EXIT_SUCCESS;
 }
 
+static void print_prompting_request (SnapdPromptingRequest *request)
+{
+    g_printerr ("%s: %s.%s  %s\n",
+                snapd_prompting_request_get_id (request),
+                snapd_prompting_request_get_snap (request),
+                snapd_prompting_request_get_app (request),
+                snapd_prompting_request_get_path (request));
+}
+
+static int prompting_requests (int argc, char **argv)
+{
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) requests = snapd_client_get_prompting_requests_sync (client, NULL, &error);
+    if (requests == NULL) {
+        g_printerr ("error: failed to get prompting requests: %s\n", error->message);
+        return EXIT_FAILURE;
+    }
+
+    for (guint i = 0; i < requests->len; i++) {
+        SnapdPromptingRequest *request = g_ptr_array_index (requests, i);
+        print_prompting_request (request);
+    }
+
+    return EXIT_SUCCESS;
+}
+
 static int usage()
 {
     g_printerr ("Usage snap-glib <command> [<options>...]\n");
-    g_printerr ("Commands: find, info, install, remove, list, logs, help\n");
+    g_printerr ("Commands: find, info, install, remove, list, logs, prompting-requests, help\n");
 
     return EXIT_SUCCESS;
 }
@@ -334,6 +361,9 @@ int main (int argc, char **argv)
     }
     else if (strcmp (command, "logs") == 0) {
         return logs (command_argc, command_argv);
+    }
+    else if (strcmp (command, "prompting-requests") == 0) {
+        return prompting_requests (command_argc, command_argv);
     }
     else if (strcmp (command, "help") == 0) {
         return usage ();
