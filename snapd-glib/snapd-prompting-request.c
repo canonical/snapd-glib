@@ -37,7 +37,7 @@ struct _SnapdPromptingRequest
     gchar *app;
     gchar *path;
     gchar *resource_type; // FIXME: enum
-    gchar *permission; // FIXME: enum
+    SnapdPromptingPermissionFlags permissions;
 };
 
 enum
@@ -47,7 +47,7 @@ enum
     PROP_APP,
     PROP_PATH,
     PROP_RESOURCE_TYPE,
-    PROP_PERMISSION,
+    PROP_PERMISSIONS,
     PROP_LAST
 };
 
@@ -139,20 +139,20 @@ snapd_prompting_request_get_resource_type (SnapdPromptingRequest *self)
 }
 
 /**
- * snapd_prompting_request_get_permission:
+ * snapd_prompting_request_get_permissions:
  * @request: a #SnapdPromptingRequest.
  *
- * Get the permission requested in this prompt request, e.g. "read".
+ * Get the permissions requested in this prompt request, e.g. SNAPD_PROMPTING_PERMISSION_FLAGS_READ.
  *
- * Returns: a request permission.
+ * Returns: permissions.
  *
  * Since: 1.64
  */
-const gchar *
-snapd_prompting_request_get_permission (SnapdPromptingRequest *self)
+SnapdPromptingPermissionFlags
+snapd_prompting_request_get_permissions (SnapdPromptingRequest *self)
 {
-    g_return_val_if_fail (SNAPD_IS_PROMPTING_REQUEST (self), NULL);
-    return self->permission;
+    g_return_val_if_fail (SNAPD_IS_PROMPTING_REQUEST (self), SNAPD_PROMPTING_PERMISSION_FLAGS_NONE);
+    return self->permissions;
 }
 
 static void
@@ -181,9 +181,8 @@ snapd_prompting_request_set_property (GObject *object, guint prop_id, const GVal
         g_free (self->resource_type);
         self->resource_type = g_strdup (g_value_get_string (value));
         break;
-    case PROP_PERMISSION:
-        g_free (self->permission);
-        self->permission = g_strdup (g_value_get_string (value));
+    case PROP_PERMISSIONS:
+        self->permissions = g_value_get_flags (value);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -212,8 +211,8 @@ snapd_prompting_request_get_property (GObject *object, guint prop_id, GValue *va
     case PROP_RESOURCE_TYPE:
         g_value_set_string (value, self->resource_type);
         break;
-    case PROP_PERMISSION:
-        g_value_set_string (value, self->permission);
+    case PROP_PERMISSIONS:
+        g_value_set_flags (value, self->permissions);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -231,7 +230,6 @@ snapd_prompting_request_finalize (GObject *object)
     g_clear_pointer (&self->app, g_free);
     g_clear_pointer (&self->path, g_free);
     g_clear_pointer (&self->resource_type, g_free);
-    g_clear_pointer (&self->permission, g_free);
 
     G_OBJECT_CLASS (snapd_prompting_request_parent_class)->finalize (object);
 }
@@ -281,12 +279,12 @@ snapd_prompting_request_class_init (SnapdPromptingRequestClass *klass)
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
-                                     PROP_PERMISSION,
-                                     g_param_spec_string ("permission",
-                                                          NULL,
-                                                          NULL,
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                     PROP_PERMISSIONS,
+                                     g_param_spec_flags ("permissions",
+                                                         NULL,
+                                                         NULL,
+                                                         SNAPD_TYPE_PROMPTING_PERMISSION_FLAGS, SNAPD_PROMPTING_PERMISSION_FLAGS_NONE,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void

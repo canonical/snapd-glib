@@ -290,7 +290,7 @@ struct _MockPromptingRequest
     gchar *app;
     gchar *path;
     gchar *resource_type;
-    gchar *permission;
+    gchar **permissions;
     gboolean has_response;
     gboolean allow;
 };
@@ -453,7 +453,7 @@ mock_prompting_request_free (MockPromptingRequest *request)
     g_free (request->app);
     g_free (request->path);
     g_free (request->resource_type);
-    g_free (request->permission);
+    g_strfreev (request->permissions);
     g_slice_free (MockPromptingRequest, request);
 }
 
@@ -1909,7 +1909,7 @@ mock_snapd_add_log (MockSnapd *self, const gchar *timestamp, const gchar *messag
 }
 
 MockPromptingRequest *
-mock_snapd_add_prompting_request (MockSnapd *self, const gchar *id, const gchar *snap, const gchar *app, const gchar *path, const gchar *resource_type, const gchar *permission)
+mock_snapd_add_prompting_request (MockSnapd *self, const gchar *id, const gchar *snap, const gchar *app, const gchar *path, const gchar *resource_type, GStrv permissions)
 {
     MockPromptingRequest *request = g_slice_new0 (MockPromptingRequest);
     request->id = g_strdup (id);
@@ -1917,7 +1917,7 @@ mock_snapd_add_prompting_request (MockSnapd *self, const gchar *id, const gchar 
     request->app = g_strdup (app);
     request->path = g_strdup (path);
     request->resource_type = g_strdup (resource_type);
-    request->permission = g_strdup (permission);
+    request->permissions = g_strdupv (permissions);
     self->prompting_requests = g_list_append (self->prompting_requests, request);
 
     return request;
@@ -5151,8 +5151,12 @@ make_prompting_request_node (MockPromptingRequest *request)
     json_builder_add_string_value (builder, request->path);
     json_builder_set_member_name (builder, "resource-type");
     json_builder_add_string_value (builder, request->resource_type);
-    json_builder_set_member_name (builder, "permission");
-    json_builder_add_string_value (builder, request->permission);
+    json_builder_set_member_name (builder, "permissions");
+    json_builder_begin_array (builder);
+    for (gchar **permission = request->permissions; *permission != NULL; permission++) {
+        json_builder_add_string_value (builder, *permission);
+    }
+    json_builder_end_array (builder);
     json_builder_end_object (builder);
 
     return json_builder_get_root (builder);

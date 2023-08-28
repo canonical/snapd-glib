@@ -1308,6 +1308,53 @@ _snapd_json_parse_interface (JsonNode *node, GError **error)
                          NULL);
 }
 
+static SnapdPromptingPermissionFlags
+parse_permission (const gchar *value)
+{
+    if (strcmp (value, "execute") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_EXECUTE;
+    else if (strcmp (value, "write") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_WRITE;
+    else if (strcmp (value, "read") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_READ;
+    else if (strcmp (value, "append") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_APPEND;
+    else if (strcmp (value, "create") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_CREATE;
+    else if (strcmp (value, "delete") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_DELETE;
+    else if (strcmp (value, "open") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_OPEN;
+    else if (strcmp (value, "rename") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_RENAME;
+    else if (strcmp (value, "set-attr") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_SET_ATTR;
+    else if (strcmp (value, "get-attr") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_GET_ATTR;
+    else if (strcmp (value, "set-cred") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_SET_CRED;
+    else if (strcmp (value, "get-cred") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_GET_CRED;
+    else if (strcmp (value, "change-mode") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_MODE;
+    else if (strcmp (value, "change-owner") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_OWNER;
+    else if (strcmp (value, "change-group") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_GROUP;
+    else if (strcmp (value, "lock") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_LOCK;
+    else if (strcmp (value, "execute-map") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_EXECUTE_MAP;
+    else if (strcmp (value, "link") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_LINK;
+    else if (strcmp (value, "change-profile") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_PROFILE;
+    else if (strcmp (value, "change-profile-on-exec") == 0)
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_PROFILE_ON_EXEC;
+    else
+        return SNAPD_PROMPTING_PERMISSION_FLAGS_NONE;
+}
+
 SnapdPromptingRequest *
 _snapd_json_parse_prompting_request (JsonNode *node, GError **error)
 {
@@ -1320,12 +1367,28 @@ _snapd_json_parse_prompting_request (JsonNode *node, GError **error)
     }
     JsonObject *object = json_node_get_object (node);
 
+    SnapdPromptingPermissionFlags permissions = SNAPD_PROMPTING_PERMISSION_FLAGS_NONE;
+    g_autoptr(JsonArray) permission_names = _snapd_json_get_array (object, "permissions");
+    for (guint i = 0; i < json_array_get_length (permission_names); i++) {
+        JsonNode *node = json_array_get_element (permission_names, i);
+
+        if (json_node_get_value_type (node) != G_TYPE_STRING) {
+            g_set_error (error,
+                         SNAPD_ERROR,
+                         SNAPD_ERROR_READ_FAILED,
+                         "Unexpected permission type");
+            return FALSE;
+        }
+
+        permissions |= parse_permission(json_node_get_string (node));
+    }
+
     return g_object_new (SNAPD_TYPE_PROMPTING_REQUEST,
                          "id", _snapd_json_get_string (object, "id", NULL),
                          "snap", _snapd_json_get_string (object, "snap", NULL),
                          "app", _snapd_json_get_string (object, "app", NULL),
                          "path", _snapd_json_get_string (object, "path", NULL),
                          "resource-type", _snapd_json_get_string (object, "resource-type", NULL),
-                         "permission", _snapd_json_get_string (object, "permission", NULL),
+                         "permissions", permissions,
                          NULL);
 }

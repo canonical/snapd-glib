@@ -484,7 +484,7 @@ MockPromptingRequest *mock_snapd_add_prompting_request  (MockSnapd     *snapd,
                                                          const gchar   *app,
                                                          const gchar   *path,
                                                          const gchar   *resource_type,
-                                                         const gchar   *permission);
+                                                         GStrv          permissions);
 
 MockPromptingRequest *mock_snapd_find_prompting_request (MockSnapd     *snapd,
                                                          const gchar   *id);
