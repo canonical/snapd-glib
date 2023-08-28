@@ -227,6 +227,40 @@ typedef enum
 } SnapdThemeStatus;
 
 /**
+ * SnapdPromptingOutcome:
+ * @SNAPD_PROMPTING_OUTCOME_ALLOW: the request is allowed.
+ * @SNAPD_PROMPTING_OUTCOME_DENY: the request is denied.
+ *
+ * Outcome of a prompting response.
+ *
+ * Since: 1.64
+ */
+typedef enum
+{
+    SNAPD_PROMPTING_OUTCOME_ALLOW,
+    SNAPD_PROMPTING_OUTCOME_DENY
+} SnapdPromptingOutcome;
+
+/**
+ * SnapdPromptingLifespan:
+ * @SNAPD_PROMPTING_LIFESPAN_FOREVER: last forever.
+ * @SNAPD_PROMPTING_LIFESPAN_SESSION: lasts for this session.
+ * @SNAPD_PROMPTING_LIFESPAN_SINGLE: lasts for this one use.
+ * @SNAPD_PROMPTING_LIFESPAN_TIMESPAN: lasts for a provided timespan.
+ *
+ * Lifespan for a prompting response.
+ *
+ * Since: 1.64
+ */
+typedef enum
+{
+    SNAPD_PROMPTING_LIFESPAN_FOREVER,
+    SNAPD_PROMPTING_LIFESPAN_SESSION,
+    SNAPD_PROMPTING_LIFESPAN_SINGLE,
+    SNAPD_PROMPTING_LIFESPAN_TIMESPAN
+} SnapdPromptingLifespan;
+
+/**
  * SnapdProgressCallback:
  * @client: a #SnapdClient
  * @change: a #SnapdChange describing the change in progress
@@ -1305,20 +1339,28 @@ SnapdPromptingRequest  *snapd_client_get_prompting_request_finish  (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-gboolean                snapd_client_prompting_respond_sync        (SnapdClient          *client,
-                                                                    const gchar          *id,
-                                                                    gboolean              allow,
-                                                                    GCancellable         *cancellable,
-                                                                    GError              **error);
-void                    snapd_client_prompting_respond_async       (SnapdClient          *client,
-                                                                    const gchar          *id,
-                                                                    gboolean              allow,
-                                                                    GCancellable         *cancellable,
-                                                                    GAsyncReadyCallback   callback,
-                                                                    gpointer              user_data);
-gboolean                snapd_client_prompting_respond_finish      (SnapdClient          *client,
-                                                                    GAsyncResult         *result,
-                                                                    GError              **error);
+gboolean                snapd_client_prompting_respond_sync        (SnapdClient                  *client,
+                                                                    const gchar                  *id,
+                                                                    SnapdPromptingOutcome         outcome,
+                                                                    SnapdPromptingLifespan        lifespan,
+                                                                    gint64                        duration,
+                                                                    const gchar                  *path_pattern,
+								    SnapdPromptingPermissionFlags permissions,
+                                                                    GCancellable                 *cancellable,
+                                                                    GError                      **error);
+void                    snapd_client_prompting_respond_async       (SnapdClient                  *client,
+                                                                    const gchar                  *id,
+                                                                    SnapdPromptingOutcome         outcome,
+                                                                    SnapdPromptingLifespan        lifespan,
+                                                                    gint64                        duration,
+                                                                    const gchar                  *path_pattern,
+								    SnapdPromptingPermissionFlags permissions,
+                                                                    GCancellable                 *cancellable,
+                                                                    GAsyncReadyCallback           callback,
+                                                                    gpointer                      user_data);
+gboolean                snapd_client_prompting_respond_finish      (SnapdClient           *client,
+                                                                    GAsyncResult          *result,
+                                                                    GError               **error);
 
 G_END_DECLS
 

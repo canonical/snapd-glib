@@ -4508,7 +4508,11 @@ snapd_client_get_prompting_request_finish (SnapdClient *self, GAsyncResult *resu
  * snapd_client_prompting_respond_async:
  * @client: a #SnapdClient.
  * @id: a request ID to get information on.
- * @allow: %TRUE if the request is allowed.
+ * @outcome: outcome of the decision.
+ * @lifespan: how long the decision lasts for.
+ * @duration: number of FIXME(units) if @lifespan is %SNAPD_PROMPTING_LIFESPAN_TIMESPAN.
+ * @path_pattern: paths this decision relates to.
+ * @permissions: permissions this decision relates to.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
@@ -4519,15 +4523,85 @@ snapd_client_get_prompting_request_finish (SnapdClient *self, GAsyncResult *resu
  * Since: 1.64
  */
 void
-snapd_client_prompting_respond_async (SnapdClient *self,
-                                      const gchar *id,
-				      gboolean     allow,
-                                      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+snapd_client_prompting_respond_async (SnapdClient                  *self,
+                                      const gchar                  *id,
+                                      SnapdPromptingOutcome         outcome,
+                                      SnapdPromptingLifespan        lifespan,
+                                      gint64                        duration,
+                                      const gchar                  *path_pattern,
+                                      SnapdPromptingPermissionFlags permissions,
+                                      GCancellable                 *cancellable,
+                                      GAsyncReadyCallback           callback,
+                                      gpointer                      user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (self));
     g_return_if_fail (id != NULL);
 
-    g_autoptr(SnapdPostPromptingRequest) request = _snapd_post_prompting_request_new (id, allow, cancellable, callback, user_data);
+    const gchar *outcome_string;
+    switch (outcome) {
+    case SNAPD_PROMPTING_OUTCOME_ALLOW:
+        outcome_string = "allow";
+        break;
+    case SNAPD_PROMPTING_OUTCOME_DENY:
+        outcome_string = "deny";
+        break;
+    default:
+        outcome_string = "";
+        break;
+    }
+
+    const gchar *lifespan_string;
+    switch (lifespan) {
+    case SNAPD_PROMPTING_LIFESPAN_FOREVER:
+        lifespan_string = "forever";
+        break;
+    case SNAPD_PROMPTING_LIFESPAN_SESSION:
+        lifespan_string = "session";
+        break;
+    case SNAPD_PROMPTING_LIFESPAN_SINGLE:
+        lifespan_string = "single";
+        break;
+    case SNAPD_PROMPTING_LIFESPAN_TIMESPAN:
+        lifespan_string = "timespan";
+        break;
+    default:
+        lifespan_string = "";
+        break;
+    }
+
+    struct { SnapdPromptingPermissionFlags flag; const char *name; } flags_to_name[] = {
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_EXECUTE, "execute" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_WRITE, "write" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_READ, "read" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_APPEND, "append" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_CREATE, "create" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_DELETE, "delete" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_OPEN, "open" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_RENAME, "rename" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_SET_ATTR, "set-attr" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_GET_ATTR, "get-attr" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_SET_CRED, "set-cred" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_GET_CRED, "get-cred" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_MODE, "change-mode" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_OWNER, "change-owner" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_GROUP, "change-group" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_LOCK, "lock" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_EXECUTE_MAP, "execute-map" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_LINK, "link" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_PROFILE, "change-profile" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_CHANGE_PROFILE_ON_EXEC, "change-profile-on-exec" },
+        { SNAPD_PROMPTING_PERMISSION_FLAGS_NONE, NULL }
+    };
+    g_autoptr(GPtrArray) permission_names = g_ptr_array_new ();
+    for (size_t i = 0; flags_to_name[i].flag != SNAPD_PROMPTING_PERMISSION_FLAGS_NONE; i++) {
+        if ((permissions & flags_to_name[i].flag) != 0) {
+            g_ptr_array_add(permission_names, (gpointer) flags_to_name[i].name);
+        }
+    }
+
+    g_ptr_array_add (permission_names, NULL);
+
+    g_autoptr(SnapdPostPromptingRequest) request = _snapd_post_prompting_request_new (id, outcome_string, lifespan_string, 0, path_pattern, (GStrv) permission_names->pdata, cancellable, callback, user_data);
     send_request (self, SNAPD_REQUEST (request));
 }
 

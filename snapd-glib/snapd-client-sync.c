@@ -1941,7 +1941,11 @@ snapd_client_get_prompting_request_sync (SnapdClient *self,
  * snapd_client_prompting_respond_sync:
  * @client: a #SnapdClient.
  * @id: a prompting request ID.
- * @allow: %TRUE if the request is allowed.
+ * @outcome: outcome of the decision.
+ * @lifespan: how long the decision lasts for.
+ * @duration: number of FIXME(units) if @lifespan is %SNAPD_PROMPTING_LIFESPAN_TIMESPAN.
+ * @path_pattern: paths this decision relates to.
+ * @permissions: permissions this decision relates to.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
@@ -1952,16 +1956,21 @@ snapd_client_get_prompting_request_sync (SnapdClient *self,
  * Since: 1.64
  */
 gboolean
-snapd_client_prompting_respond_sync (SnapdClient *self,
-                                     const gchar *id,
-                                     gboolean     allow,
-                                     GCancellable *cancellable, GError **error)
+snapd_client_prompting_respond_sync (SnapdClient                  *self,
+                                     const gchar                  *id,
+                                     SnapdPromptingOutcome         outcome,
+                                     SnapdPromptingLifespan        lifespan,
+                                     gint64                        duration,
+                                     const gchar                  *path_pattern,
+                                     SnapdPromptingPermissionFlags permissions,
+                                     GCancellable                 *cancellable,
+                                     GError                      **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
 
     g_auto(SyncData) data = { 0 };
     start_sync (&data);
-    snapd_client_prompting_respond_async (self, id, allow, cancellable, sync_cb, &data);
+    snapd_client_prompting_respond_async (self, id, outcome, lifespan, duration, path_pattern, permissions, cancellable, sync_cb, &data);
     end_sync (&data);
     return snapd_client_prompting_respond_finish (self, data.result, error);
 }

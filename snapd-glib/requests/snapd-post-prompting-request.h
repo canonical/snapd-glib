@@ -16,8 +16,12 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdPostPromptingRequest, snapd_post_prompting_request, SNAPD, POST_PROMPTING_REQUEST, SnapdRequest)
 
-SnapdPostPromptingRequest *_snapd_post_prompting_request_new (const char          *id,
-                                                              gboolean             allow,
+SnapdPostPromptingRequest *_snapd_post_prompting_request_new (const gchar         *id,
+                                                              const gchar         *outcome,
+                                                              const gchar         *lifespan,
+                                                              gint64               duration,
+                                                              const gchar         *path_pattern,
+                                                              GStrv                permissions,
                                                               GCancellable        *cancellable,
                                                               GAsyncReadyCallback  callback,
                                                               gpointer             user_data);

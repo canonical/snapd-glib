@@ -16,13 +16,17 @@ struct _SnapdPostPromptingRequest
 {
     SnapdRequest parent_instance;
     gchar *id;
-    gboolean allow;
+    gchar *outcome;
+    gchar *lifespan;
+    gint64 duration;
+    gchar *path_pattern;
+    GStrv  permissions;
 };
 
 G_DEFINE_TYPE (SnapdPostPromptingRequest, snapd_post_prompting_request, snapd_request_get_type ())
 
 SnapdPostPromptingRequest *
-_snapd_post_prompting_request_new (const gchar *id, gboolean allow, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_post_prompting_request_new (const gchar *id, const gchar *outcome, const gchar *lifespan, gint64 duration, const gchar *path_pattern, GStrv permissions, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
     SnapdPostPromptingRequest *self = SNAPD_POST_PROMPTING_REQUEST (g_object_new (snapd_post_prompting_request_get_type (),
                                                                                   "cancellable", cancellable,
@@ -30,7 +34,11 @@ _snapd_post_prompting_request_new (const gchar *id, gboolean allow, GCancellable
                                                                                   "ready-callback-data", user_data,
                                                                                   NULL));
     self->id = g_strdup (id);
-    self->allow = allow;
+    self->outcome = g_strdup (outcome);
+    self->lifespan = g_strdup (lifespan);
+    self->duration = duration;
+    self->path_pattern = g_strdup (path_pattern);
+    self->permissions = g_strdupv (permissions);
 
     return self;
 }
@@ -45,8 +53,20 @@ generate_post_prompting_request_request (SnapdRequest *request, GBytes **body)
 
     g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_object (builder);
-    json_builder_set_member_name (builder, "allow");
-    json_builder_add_boolean_value (builder, self->allow);
+    json_builder_set_member_name (builder, "outcome");
+    json_builder_add_string_value (builder, self->outcome);
+    json_builder_set_member_name (builder, "lifespan");
+    json_builder_add_string_value (builder, self->lifespan);
+    json_builder_set_member_name (builder, "duration");
+    json_builder_add_int_value (builder, self->duration);
+    json_builder_set_member_name (builder, "path-pattern");
+    json_builder_add_string_value (builder, self->path_pattern);
+    json_builder_set_member_name (builder, "permissions");
+    json_builder_begin_array (builder);
+    for (gchar **permission = self->permissions; *permission != NULL; permission++) {
+        json_builder_add_string_value (builder, *permission);
+    }
+    json_builder_end_array (builder);
     json_builder_end_object (builder);
     _snapd_json_set_body (message, builder, body);
 
@@ -69,6 +89,10 @@ snapd_post_prompting_request_finalize (GObject *object)
     SnapdPostPromptingRequest *self = SNAPD_POST_PROMPTING_REQUEST (object);
 
     g_clear_pointer (&self->id, g_free);
+    g_clear_pointer (&self->outcome, g_free);
+    g_clear_pointer (&self->lifespan, g_free);
+    g_clear_pointer (&self->path_pattern, g_free);
+    g_clear_pointer (&self->permissions, g_strfreev);
 
     G_OBJECT_CLASS (snapd_post_prompting_request_parent_class)->finalize (object);
 }

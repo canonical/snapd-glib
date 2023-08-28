@@ -491,7 +491,15 @@ MockPromptingRequest *mock_snapd_find_prompting_request (MockSnapd     *snapd,
 
 gboolean              mock_prompting_request_get_has_response (MockPromptingRequest *request);
 
-gboolean              mock_prompting_request_get_allow        (MockPromptingRequest *request);
+const gchar          *mock_prompting_request_get_outcome      (MockPromptingRequest *request);
+
+const gchar          *mock_prompting_request_get_lifespan     (MockPromptingRequest *request);
+
+gint64                mock_prompting_request_get_duration     (MockPromptingRequest *request);
+
+const gchar          *mock_prompting_request_get_path_pattern (MockPromptingRequest *request);
+
+gchar               **mock_prompting_request_get_permissions  (MockPromptingRequest *request);
 
 G_END_DECLS
 

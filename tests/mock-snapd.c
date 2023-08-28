@@ -292,7 +292,11 @@ struct _MockPromptingRequest
     gchar *resource_type;
     gchar **permissions;
     gboolean has_response;
-    gboolean allow;
+    gchar *outcome;
+    gchar *lifespan;
+    gint64 duration;
+    gchar *path_pattern;
+    gchar **permissions_out;
 };
 
 static void
@@ -454,6 +458,10 @@ mock_prompting_request_free (MockPromptingRequest *request)
     g_free (request->path);
     g_free (request->resource_type);
     g_strfreev (request->permissions);
+    g_free (request->outcome);
+    g_free (request->lifespan);
+    g_free (request->path_pattern);
+    g_strfreev (request->permissions_out);
     g_slice_free (MockPromptingRequest, request);
 }
 
@@ -1951,10 +1959,34 @@ mock_prompting_request_get_has_response (MockPromptingRequest *request)
     return request->has_response;
 }
 
-gboolean
-mock_prompting_request_get_allow (MockPromptingRequest *request)
+const gchar *
+mock_prompting_request_get_outcome (MockPromptingRequest *request)
 {
-    return request->allow;
+    return request->outcome;
+}
+
+const gchar *
+mock_prompting_request_get_lifespan (MockPromptingRequest *request)
+{
+    return request->lifespan;
+}
+
+gint64
+mock_prompting_request_get_duration (MockPromptingRequest *request)
+{
+    return request->duration;
+}
+
+const gchar *
+mock_prompting_request_get_path_pattern (MockPromptingRequest *request)
+{
+    return request->path_pattern;
+}
+
+gchar **
+mock_prompting_request_get_permissions (MockPromptingRequest *request)
+{
+    return request->permissions_out;
 }
 
 static MockChange *
@@ -5096,7 +5128,7 @@ handle_logs (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
             names = g_strsplit (snaps_param, ",", -1);
         n_param = g_hash_table_lookup (query, "n");
         if (n_param != NULL)
-	    n = atoi(n_param);
+            n = atoi(n_param);
     }
 
     size_t n_logs = 0;
@@ -5218,10 +5250,25 @@ handle_prompting_request (MockSnapd *self, SoupServerMessage *message, const cha
         }
 
         JsonObject *o = json_node_get_object (request);
-        gboolean allow = json_object_get_boolean_member (o, "allow");
+        const gchar *outcome = json_object_get_string_member (o, "outcome");
+        const gchar *lifespan = json_object_get_string_member (o, "lifespan");
+        gint64 duration = json_object_get_int_member (o, "duration");
+        const gchar *path_pattern = json_object_get_string_member (o, "path-pattern");
+        JsonArray *permission_names = json_object_get_array_member (o, "permissions");
+        guint permission_names_length = json_array_get_length (permission_names);
+        g_autoptr(GPtrArray) permission_names_array = g_ptr_array_new ();
+        for (guint i = 0; i < permission_names_length; i++) {
+            const char *permission_name = json_array_get_string_element (permission_names, i);
+            g_ptr_array_add (permission_names_array, (gpointer) permission_name);
+        }
+        g_ptr_array_add (permission_names_array, NULL);
 
         r->has_response = TRUE;
-        r->allow = allow;
+        r->outcome = g_strdup (outcome);
+        r->lifespan = g_strdup (lifespan);
+        r->duration = duration;
+        r->path_pattern = g_strdup (path_pattern);
+        r->permissions_out = g_strdupv ((GStrv) permission_names_array->pdata);
 
         send_sync_response (self, message, 200, NULL, NULL);
     } else {

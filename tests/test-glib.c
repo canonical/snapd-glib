@@ -8531,12 +8531,23 @@ test_prompting_respond_sync (void)
 
     g_assert_false (mock_prompting_request_get_has_response (r));
 
-    gboolean result = snapd_client_prompting_respond_sync (client, "2", TRUE, NULL, &error);
+    gboolean result = snapd_client_prompting_respond_sync (client, "2",
+                                                           SNAPD_PROMPTING_OUTCOME_ALLOW,
+                                                           SNAPD_PROMPTING_LIFESPAN_FOREVER, 0,
+                                                           "/home/foo/file2.txt",
+                                                           SNAPD_PROMPTING_PERMISSION_FLAGS_EXECUTE,
+                                                           NULL, &error);
     g_assert_no_error (error);
     g_assert_true (result);
 
     g_assert_true (mock_prompting_request_get_has_response (r));
-    g_assert_true (mock_prompting_request_get_allow (r));
+    g_assert_cmpstr (mock_prompting_request_get_outcome (r), ==, "allow");
+    g_assert_cmpstr (mock_prompting_request_get_lifespan (r), ==, "forever");
+    g_assert_cmpint (mock_prompting_request_get_duration (r), ==, 0);
+    g_assert_cmpstr (mock_prompting_request_get_path_pattern (r), ==, "/home/foo/file2.txt");
+    gchar **permissions = mock_prompting_request_get_permissions (r);
+    g_assert_cmpint (g_strv_length (permissions), ==, 1);
+    g_assert_cmpstr (permissions[0], ==, "execute");
 }
 
 static void
@@ -8551,7 +8562,13 @@ prompting_respond_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
     MockPromptingRequest *r = mock_snapd_find_prompting_request (data->snapd, "2");
     g_assert_true (mock_prompting_request_get_has_response (r));
-    g_assert_true (mock_prompting_request_get_allow (r));
+    g_assert_cmpstr (mock_prompting_request_get_outcome (r), ==, "allow");
+    g_assert_cmpstr (mock_prompting_request_get_lifespan (r), ==, "forever");
+    g_assert_cmpint (mock_prompting_request_get_duration (r), ==, 0);
+    g_assert_cmpstr (mock_prompting_request_get_path_pattern (r), ==, "/home/foo/file2.txt");
+    gchar **permissions = mock_prompting_request_get_permissions (r);
+    g_assert_cmpint (g_strv_length (permissions), ==, 1);
+    g_assert_cmpstr (permissions[0], ==, "execute");
 
     g_main_loop_quit (data->loop);
 }
@@ -8578,7 +8595,12 @@ test_prompting_respond_async (void)
 
     g_assert_false (mock_prompting_request_get_has_response (r));
 
-    snapd_client_prompting_respond_async (client, "2", TRUE, NULL, prompting_respond_cb, async_data_new (loop, snapd));
+    snapd_client_prompting_respond_async (client, "2",
+                                          SNAPD_PROMPTING_OUTCOME_ALLOW,
+                                          SNAPD_PROMPTING_LIFESPAN_FOREVER, 0,
+                                          "/home/foo/file2.txt",
+                                          SNAPD_PROMPTING_PERMISSION_FLAGS_EXECUTE,
+                                          NULL, prompting_respond_cb, async_data_new (loop, snapd));
     g_main_loop_run (loop);
 }
 
