@@ -491,7 +491,7 @@ MockPromptingRequest *mock_snapd_find_prompting_request (MockSnapd     *snapd,
 
 gboolean              mock_prompting_request_get_has_response (MockPromptingRequest *request);
 
-const gchar          *mock_prompting_request_get_outcome      (MockPromptingRequest *request);
+const gchar          *mock_prompting_request_get_action       (MockPromptingRequest *request);
 
 const gchar          *mock_prompting_request_get_lifespan     (MockPromptingRequest *request);
 

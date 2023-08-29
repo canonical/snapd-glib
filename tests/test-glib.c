@@ -8541,7 +8541,7 @@ test_prompting_respond_sync (void)
     g_assert_true (result);
 
     g_assert_true (mock_prompting_request_get_has_response (r));
-    g_assert_cmpstr (mock_prompting_request_get_outcome (r), ==, "allow");
+    g_assert_cmpstr (mock_prompting_request_get_action (r), ==, "allow");
     g_assert_cmpstr (mock_prompting_request_get_lifespan (r), ==, "forever");
     g_assert_cmpint (mock_prompting_request_get_duration (r), ==, 0);
     g_assert_cmpstr (mock_prompting_request_get_path_pattern (r), ==, "/home/foo/file2.txt");
@@ -8562,7 +8562,7 @@ prompting_respond_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 
     MockPromptingRequest *r = mock_snapd_find_prompting_request (data->snapd, "2");
     g_assert_true (mock_prompting_request_get_has_response (r));
-    g_assert_cmpstr (mock_prompting_request_get_outcome (r), ==, "allow");
+    g_assert_cmpstr (mock_prompting_request_get_action (r), ==, "allow");
     g_assert_cmpstr (mock_prompting_request_get_lifespan (r), ==, "forever");
     g_assert_cmpint (mock_prompting_request_get_duration (r), ==, 0);
     g_assert_cmpstr (mock_prompting_request_get_path_pattern (r), ==, "/home/foo/file2.txt");

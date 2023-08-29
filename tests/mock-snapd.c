@@ -292,7 +292,7 @@ struct _MockPromptingRequest
     gchar *resource_type;
     gchar **permissions;
     gboolean has_response;
-    gchar *outcome;
+    gchar *action;
     gchar *lifespan;
     gint64 duration;
     gchar *path_pattern;
@@ -458,7 +458,7 @@ mock_prompting_request_free (MockPromptingRequest *request)
     g_free (request->path);
     g_free (request->resource_type);
     g_strfreev (request->permissions);
-    g_free (request->outcome);
+    g_free (request->action);
     g_free (request->lifespan);
     g_free (request->path_pattern);
     g_strfreev (request->permissions_out);
@@ -1960,9 +1960,9 @@ mock_prompting_request_get_has_response (MockPromptingRequest *request)
 }
 
 const gchar *
-mock_prompting_request_get_outcome (MockPromptingRequest *request)
+mock_prompting_request_get_action (MockPromptingRequest *request)
 {
-    return request->outcome;
+    return request->action;
 }
 
 const gchar *
@@ -5250,7 +5250,7 @@ handle_prompting_request (MockSnapd *self, SoupServerMessage *message, const cha
         }
 
         JsonObject *o = json_node_get_object (request);
-        const gchar *outcome = json_object_get_string_member (o, "outcome");
+        const gchar *action = json_object_get_string_member (o, "action");
         const gchar *lifespan = json_object_get_string_member (o, "lifespan");
         gint64 duration = json_object_get_int_member (o, "duration");
         const gchar *path_pattern = json_object_get_string_member (o, "path-pattern");
@@ -5264,7 +5264,7 @@ handle_prompting_request (MockSnapd *self, SoupServerMessage *message, const cha
         g_ptr_array_add (permission_names_array, NULL);
 
         r->has_response = TRUE;
-        r->outcome = g_strdup (outcome);
+        r->action = g_strdup (action);
         r->lifespan = g_strdup (lifespan);
         r->duration = duration;
         r->path_pattern = g_strdup (path_pattern);

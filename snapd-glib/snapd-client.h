@@ -1341,7 +1341,7 @@ SnapdPromptingRequest  *snapd_client_get_prompting_request_finish  (SnapdClient 
 
 gboolean                snapd_client_prompting_respond_sync        (SnapdClient                  *client,
                                                                     const gchar                  *id,
-                                                                    SnapdPromptingOutcome         outcome,
+                                                                    SnapdPromptingOutcome         action,
                                                                     SnapdPromptingLifespan        lifespan,
                                                                     gint64                        duration,
                                                                     const gchar                  *path_pattern,
@@ -1350,7 +1350,7 @@ gboolean                snapd_client_prompting_respond_sync        (SnapdClient 
                                                                     GError                      **error);
 void                    snapd_client_prompting_respond_async       (SnapdClient                  *client,
                                                                     const gchar                  *id,
-                                                                    SnapdPromptingOutcome         outcome,
+                                                                    SnapdPromptingOutcome         action,
                                                                     SnapdPromptingLifespan        lifespan,
                                                                     gint64                        duration,
                                                                     const gchar                  *path_pattern,

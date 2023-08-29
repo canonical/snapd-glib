@@ -4508,7 +4508,7 @@ snapd_client_get_prompting_request_finish (SnapdClient *self, GAsyncResult *resu
  * snapd_client_prompting_respond_async:
  * @client: a #SnapdClient.
  * @id: a request ID to get information on.
- * @outcome: outcome of the decision.
+ * @action: outcome of the decision.
  * @lifespan: how long the decision lasts for.
  * @duration: number of FIXME(units) if @lifespan is %SNAPD_PROMPTING_LIFESPAN_TIMESPAN.
  * @path_pattern: paths this decision relates to.
@@ -4525,7 +4525,7 @@ snapd_client_get_prompting_request_finish (SnapdClient *self, GAsyncResult *resu
 void
 snapd_client_prompting_respond_async (SnapdClient                  *self,
                                       const gchar                  *id,
-                                      SnapdPromptingOutcome         outcome,
+                                      SnapdPromptingOutcome         action,
                                       SnapdPromptingLifespan        lifespan,
                                       gint64                        duration,
                                       const gchar                  *path_pattern,
@@ -4537,16 +4537,16 @@ snapd_client_prompting_respond_async (SnapdClient                  *self,
     g_return_if_fail (SNAPD_IS_CLIENT (self));
     g_return_if_fail (id != NULL);
 
-    const gchar *outcome_string;
-    switch (outcome) {
+    const gchar *action_string;
+    switch (action) {
     case SNAPD_PROMPTING_OUTCOME_ALLOW:
-        outcome_string = "allow";
+        action_string = "allow";
         break;
     case SNAPD_PROMPTING_OUTCOME_DENY:
-        outcome_string = "deny";
+        action_string = "deny";
         break;
     default:
-        outcome_string = "";
+        action_string = "";
         break;
     }
 
@@ -4601,7 +4601,7 @@ snapd_client_prompting_respond_async (SnapdClient                  *self,
 
     g_ptr_array_add (permission_names, NULL);
 
-    g_autoptr(SnapdPostPromptingRequest) request = _snapd_post_prompting_request_new (id, outcome_string, lifespan_string, 0, path_pattern, (GStrv) permission_names->pdata, cancellable, callback, user_data);
+    g_autoptr(SnapdPostPromptingRequest) request = _snapd_post_prompting_request_new (id, action_string, lifespan_string, 0, path_pattern, (GStrv) permission_names->pdata, cancellable, callback, user_data);
     send_request (self, SNAPD_REQUEST (request));
 }
 
