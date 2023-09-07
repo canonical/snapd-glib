@@ -25,7 +25,7 @@
  * #SnapdPromptingRequest is an opaque data structure and can only be accessed
  * using the provided functions.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 
 struct _SnapdPromptingRequest
@@ -61,7 +61,7 @@ G_DEFINE_TYPE (SnapdPromptingRequest, snapd_prompting_request, G_TYPE_OBJECT)
  *
  * Returns: a request ID.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 const gchar *
 snapd_prompting_request_get_id (SnapdPromptingRequest *self)
@@ -78,7 +78,7 @@ snapd_prompting_request_get_id (SnapdPromptingRequest *self)
  *
  * Returns: a snap name.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 const gchar *
 snapd_prompting_request_get_snap (SnapdPromptingRequest *self)
@@ -95,7 +95,7 @@ snapd_prompting_request_get_snap (SnapdPromptingRequest *self)
  *
  * Returns: an app name.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 const gchar *
 snapd_prompting_request_get_app (SnapdPromptingRequest *self)
@@ -112,7 +112,7 @@ snapd_prompting_request_get_app (SnapdPromptingRequest *self)
  *
  * Returns: a file path.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 const gchar *
 snapd_prompting_request_get_path (SnapdPromptingRequest *self)
@@ -129,7 +129,7 @@ snapd_prompting_request_get_path (SnapdPromptingRequest *self)
  *
  * Returns: a request resource type.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 const gchar *
 snapd_prompting_request_get_resource_type (SnapdPromptingRequest *self)
@@ -146,7 +146,7 @@ snapd_prompting_request_get_resource_type (SnapdPromptingRequest *self)
  *
  * Returns: permissions.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 SnapdPromptingPermissionFlags
 snapd_prompting_request_get_permissions (SnapdPromptingRequest *self)

@@ -4600,7 +4600,7 @@ snapd_client_get_prompting_request_finish (SnapdClient *self, GAsyncResult *resu
  * Asynchronously respond to a prompting request.
  * See snapd_client_prompting_respond_sync() for more information.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 void
 snapd_client_prompting_respond_async (SnapdClient                  *self,
@@ -4696,7 +4696,7 @@ snapd_client_prompting_respond_async (SnapdClient                  *self,
  *
  * Returns: %TRUE on success or %FALSE on error.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 gboolean
 snapd_client_prompting_respond_finish (SnapdClient *self, GAsyncResult *result, GError **error)

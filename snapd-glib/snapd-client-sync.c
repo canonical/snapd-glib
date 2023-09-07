@@ -1895,7 +1895,7 @@ snapd_client_follow_logs_sync (SnapdClient *self,
  *
  * Returns: (transfer container) (element-type SnapdPromptingRequest): an array of #SnapdPromptingRequest or %NULL on error.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 GPtrArray *
 snapd_client_get_prompting_requests_sync (SnapdClient *self,

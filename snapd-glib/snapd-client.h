@@ -233,7 +233,7 @@ typedef enum
  *
  * Outcome of a prompting response.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 typedef enum
 {
@@ -250,7 +250,7 @@ typedef enum
  *
  * Lifespan for a prompting response.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 typedef enum
 {
@@ -290,7 +290,6 @@ typedef void (*SnapdProgressCallback) (SnapdClient *client, SnapdChange *change,
  *
  * Since: 1.64
  */
-
 typedef void (*SnapdLogCallback) (SnapdClient *client, SnapdLog *log, gpointer user_data);
 
 /**
@@ -301,7 +300,7 @@ typedef void (*SnapdLogCallback) (SnapdClient *client, SnapdLog *log, gpointer u
  *
  * Signature for callback function used in snapd_client_follow_prompting_requests_sync().
  *
- * Since: 1.64
+ * Since: 1.65
  */
 typedef void (*SnapdPromptingRequestCallback) (SnapdClient *client, SnapdPromptingRequest *request, gpointer user_data);
 

@@ -40,7 +40,7 @@
  *
  * Permissions requested in a prompt.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 typedef enum
 {
