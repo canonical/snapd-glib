@@ -965,6 +965,37 @@ log_cb (SnapdGetLogs *request, SnapdLog *log, gpointer user_data)
     data->callback (data->client, log, data->callback_data);
 }
 
+typedef struct
+{
+    SnapdClient *client;
+    SnapdLogCallback callback;
+    gpointer callback_data;
+} FollowPromptingRequestsData;
+
+static FollowPromptingRequestsData *
+follow_prompting_requests_data_new (SnapdClient *client, SnapdPromptingRequestCallback callback, gpointer callback_data)
+{
+    FollowPromptingRequestsData *data = g_slice_new0 (FollowPromptingRequestsData);
+    data->client = client;
+    data->callback = callback;
+    data->callback_data = callback_data;
+
+    return data;
+}
+
+static void
+follow_prompting_requests_data_free (FollowPromptingRequestsData *data)
+{
+    g_slice_free (FollowPromptingRequestsData, data);
+}
+
+static void
+prompt_request_cb (SnapdGetPromptingRequests *request, SnapdPromptingRequest *prompting_request, gpointer user_data)
+{
+    FollowPromptingRequestsData *data = user_data;
+    data->callback (data->client, prompting_request, data->callback_data);
+}
+
 /**
  * snapd_client_connect_async:
  * @client: a #SnapdClient
@@ -4416,7 +4447,7 @@ snapd_client_follow_logs_finish (SnapdClient *self, GAsyncResult *result, GError
  * Asynchronously get any prompting requests that are active.
  * See snapd_client_get_prompting_requests_sync() for more information.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 void
 snapd_client_get_prompting_requests_async (SnapdClient *self, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
@@ -4438,7 +4469,7 @@ snapd_client_get_prompting_requests_async (SnapdClient *self, GCancellable *canc
  *
  * Returns: (transfer container) (element-type SnapdPromptingRequest): an array of #SnapdPromptingRequest or %NULL on error.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 GPtrArray *
 snapd_client_get_prompting_requests_finish (SnapdClient *self, GAsyncResult *result, GError **error)
@@ -4454,6 +4485,55 @@ snapd_client_get_prompting_requests_finish (SnapdClient *self, GAsyncResult *res
 }
 
 /**
+ * snapd_client_follow_prompting_requests_async:
+ * @client: a #SnapdClient.
+ * @request_callback: (scope async): a #SnapdPromptingRequestCallback to call when a request is received.
+ * @request_callback_data: (closure): the data to pass to @request_callback.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously follow prompting requests.
+ * See snapd_client_follow_prompting_requests_sync() for more information.
+ *
+ * Since: 1.65
+ */
+void
+snapd_client_follow_prompting_requests_async (SnapdClient *self,
+					      SnapdPromptingRequestCallback request_callback, gpointer request_callback_data,
+					      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdGetPromptingRequests) request = _snapd_get_prompting_requests_new (TRUE, prompt_request_cb, follow_prompting_requests_data_new (self, request_callback, request_callback_data), (GDestroyNotify) follow_prompting_requests_data_free, cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_follow_prompting_requests_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_follow_prompting_requests_async().
+ * See snapd_client_follow_prompting_requests_sync() for more information.
+ *
+ * Returns: %TRUE on success or %FALSE on error.
+ *
+ * Since: 1.65
+ */
+gboolean
+snapd_client_follow_prompting_requests_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_PROMPTING_REQUESTS (result), NULL);
+
+    SnapdGetPromptingRequests *request = SNAPD_GET_PROMPTING_REQUESTS (result);
+
+    return _snapd_request_propagate_error (SNAPD_REQUEST (request), error);
+}
+
+/**
  * snapd_client_get_prompting_request_async:
  * @client: a #SnapdClient.
  * @id: a request ID to get information on.
@@ -4464,7 +4544,7 @@ snapd_client_get_prompting_requests_finish (SnapdClient *self, GAsyncResult *res
  * Asynchronously get information on a prompting request.
  * See snapd_client_get_prompting_request_sync() for more information.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 void
 snapd_client_get_prompting_request_async (SnapdClient *self,
@@ -4489,7 +4569,7 @@ snapd_client_get_prompting_request_async (SnapdClient *self,
  *
  * Returns: (transfer full): a #SnapdPromptingRequest or %NULL on error.
  *
- * Since: 1.64
+ * Since: 1.65
  */
 SnapdPromptingRequest *
 snapd_client_get_prompting_request_finish (SnapdClient *self, GAsyncResult *result, GError **error)

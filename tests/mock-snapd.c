@@ -5195,7 +5195,7 @@ make_prompting_request_node (MockPromptingRequest *request)
 }
 
 static void
-handle_prompting_requests (MockSnapd *self, SoupServerMessage *message)
+handle_prompting_requests (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 {
 #if SOUP_CHECK_VERSION (2, 99, 2)
     const gchar *method = soup_server_message_get_method (message);
@@ -5208,15 +5208,39 @@ handle_prompting_requests (MockSnapd *self, SoupServerMessage *message)
         return;
     }
 
-    g_autoptr(JsonBuilder) builder = json_builder_new ();
-    json_builder_begin_array (builder);
-    for (GList *link = self->prompting_requests; link; link = link->next) {
-        MockPromptingRequest *request = link->data;
-        json_builder_add_value (builder, make_prompting_request_node (request));
-    }
-    json_builder_end_array (builder);
+    gboolean follow = FALSE;
+    if (query != NULL) {
+        const gchar *follow_param = NULL;
 
-    send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+        follow_param = g_hash_table_lookup (query, "follow");
+        if (follow_param != NULL)
+            follow = g_strcmp0 (follow_param, "true") == 0;
+    }
+
+    if (follow) {
+        g_autoptr(GString) content = g_string_new ("");
+        for (GList *link = self->prompting_requests; link; link = link->next) {
+            MockPromptingRequest *request = link->data;
+
+            g_autoptr(JsonGenerator) generator = json_generator_new ();
+            g_autoptr(JsonNode) node = make_prompting_request_node (request);
+            json_generator_set_root (generator, node);
+            g_autofree gchar *log_json = json_generator_to_data (generator, NULL);
+            g_string_append_unichar (content, 0x1e);
+            g_string_append (content, log_json);
+        }
+        send_response (message, 200, "application/json-seq", (const guint8 *) content->str, content->len);
+    } else {
+        g_autoptr(JsonBuilder) builder = json_builder_new ();
+        json_builder_begin_array (builder);
+        for (GList *link = self->prompting_requests; link; link = link->next) {
+            MockPromptingRequest *request = link->data;
+            json_builder_add_value (builder, make_prompting_request_node (request));
+        }
+        json_builder_end_array (builder);
+
+        send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+    }
 }
 
 static void
@@ -5372,7 +5396,7 @@ handle_request (SoupServer        *server,
     else if (strcmp (path, "/v2/logs") == 0)
         handle_logs (self, message, query);
     else if (strcmp (path, "/v2/prompting/requests") == 0)
-        handle_prompting_requests (self, message);
+        handle_prompting_requests (self, message, query);
     else if (g_str_has_prefix (path, "/v2/prompting/requests/") )
         handle_prompting_request (self, message, path + strlen ("/v2/prompting/requests/"));
     else
