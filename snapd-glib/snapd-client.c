@@ -4423,7 +4423,7 @@ snapd_client_get_prompting_requests_async (SnapdClient *self, GCancellable *canc
 {
     g_return_if_fail (SNAPD_IS_CLIENT (self));
 
-    g_autoptr(SnapdGetPromptingRequests) request = _snapd_get_prompting_requests_new (cancellable, callback, user_data);
+    g_autoptr(SnapdGetPromptingRequests) request = _snapd_get_prompting_requests_new (FALSE, NULL, NULL, NULL, cancellable, callback, user_data);
     send_request (self, SNAPD_REQUEST (request));
 }
 

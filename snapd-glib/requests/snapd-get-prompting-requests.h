@@ -11,14 +11,21 @@
 #define __SNAPD_GET_PROMPTING_REQUESTS_H__
 
 #include "snapd-request.h"
+#include "snapd-prompting-request.h"
 
 G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdGetPromptingRequests, snapd_get_prompting_requests, SNAPD, GET_PROMPTING_REQUESTS, SnapdRequest)
 
-SnapdGetPromptingRequests *_snapd_get_prompting_requests_new          (GCancellable        *cancellable,
-                                                                       GAsyncReadyCallback  callback,
-                                                                       gpointer             user_data);
+typedef void (*SnapdGetPromptingRequestsRequestCallback) (SnapdGetPromptingRequests *request, SnapdPromptingRequest *prompting_request, gpointer user_data);
+
+SnapdGetPromptingRequests *_snapd_get_prompting_requests_new          (gboolean                                 follow,
+                                                                       SnapdGetPromptingRequestsRequestCallback request_callback,
+                                                                       gpointer                                 request_callback_data,
+                                                                       GDestroyNotify                           request_callback_destroy_notify,
+                                                                       GCancellable                            *cancellable,
+                                                                       GAsyncReadyCallback                      callback,
+                                                                       gpointer                                 user_data);
 
 GPtrArray                 *_snapd_get_prompting_requests_get_requests (SnapdGetPromptingRequests *request);
 

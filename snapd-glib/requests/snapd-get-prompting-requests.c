@@ -15,19 +15,30 @@
 struct _SnapdGetPromptingRequests
 {
     SnapdRequest parent_instance;
+    gboolean follow;
+    SnapdGetPromptingRequestsRequestCallback request_callback;
+    gpointer request_callback_data;
+    GDestroyNotify request_callback_destroy_notify;
     GPtrArray *requests;
 };
 
 G_DEFINE_TYPE (SnapdGetPromptingRequests, snapd_get_prompting_requests, snapd_request_get_type ())
 
 SnapdGetPromptingRequests *
-_snapd_get_prompting_requests_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+_snapd_get_prompting_requests_new (gboolean follow, SnapdGetPromptingRequestsRequestCallback request_callback, gpointer request_callback_data, GDestroyNotify request_callback_destroy_notify, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
-    return SNAPD_GET_PROMPTING_REQUESTS (g_object_new (snapd_get_prompting_requests_get_type (),
-                                                       "cancellable", cancellable,
-                                                       "ready-callback", callback,
-                                                       "ready-callback-data", user_data,
-                                                       NULL));
+    SnapdGetPromptingRequests *self = SNAPD_GET_PROMPTING_REQUESTS (g_object_new (snapd_get_prompting_requests_get_type (),
+                                                                    "cancellable", cancellable,
+                                                                    "ready-callback", callback,
+                                                                    "ready-callback-data", user_data,
+                                                                    NULL));
+
+    self->follow = follow;
+    self->request_callback = request_callback;
+    self->request_callback_data = request_callback_data;
+    self->request_callback_destroy_notify = request_callback_destroy_notify;
+
+    return self;
 }
 
 GPtrArray *
@@ -39,7 +50,24 @@ _snapd_get_prompting_requests_get_requests (SnapdGetPromptingRequests *self)
 static SoupMessage *
 generate_get_prompting_requests_request (SnapdRequest *request, GBytes **body)
 {
-    return soup_message_new ("GET", "http://snapd/v2/prompting/requests");
+    SnapdGetPromptingRequests *self = SNAPD_GET_PROMPTING_REQUESTS (request);
+
+    g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
+    if (self->follow) {
+        g_ptr_array_add (query_attributes, g_strdup ("follow=true"));
+    }
+
+    g_autoptr(GString) path = g_string_new ("http://snapd/v2/prompting/requests");
+    if (query_attributes->len > 0) {
+        g_string_append_c (path, '?');
+        for (guint i = 0; i < query_attributes->len; i++) {
+            if (i != 0)
+                g_string_append_c (path, '&');
+            g_string_append (path, (gchar *) query_attributes->pdata[i]);
+        }
+    }
+
+    return soup_message_new ("GET", path->str);
 }
 
 static gboolean
@@ -70,11 +98,42 @@ parse_get_prompting_requests_response (SnapdRequest *request, guint status_code,
     return TRUE;
 }
 
+static gboolean
+parse_get_prompting_requests_json_seq (SnapdRequest *request, JsonNode *seq, GError **error)
+{
+    g_autoptr(SnapdPromptingRequest) prompting_request = NULL;
+
+    SnapdGetPromptingRequests *self = SNAPD_GET_PROMPTING_REQUESTS (request);
+
+    if (!JSON_NODE_HOLDS_OBJECT (seq)) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected prompt request type");
+        return FALSE;
+    }
+
+    prompting_request = _snapd_json_parse_prompting_request (seq, error);
+    if (prompting_request == NULL)
+        return FALSE;
+
+    if (self->request_callback != NULL) {
+        self->request_callback (self, prompting_request, self->request_callback_data);
+    } else {
+        g_ptr_array_add (self->requests, g_steal_pointer (&prompting_request));
+    }
+
+    return TRUE;
+}
+
 static void
 snapd_get_prompting_requests_finalize (GObject *object)
 {
     SnapdGetPromptingRequests *self = SNAPD_GET_PROMPTING_REQUESTS (object);
 
+    if (self->request_callback_destroy_notify) {
+        self->request_callback_destroy_notify (self->request_callback_data);
+    }
     g_clear_pointer (&self->requests, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_prompting_requests_parent_class)->finalize (object);
@@ -88,6 +147,7 @@ snapd_get_prompting_requests_class_init (SnapdGetPromptingRequestsClass *klass)
 
    request_class->generate_request = generate_get_prompting_requests_request;
    request_class->parse_response = parse_get_prompting_requests_response;
+   request_class->parse_json_seq = parse_get_prompting_requests_json_seq;
    gobject_class->finalize = snapd_get_prompting_requests_finalize;
 }
 
