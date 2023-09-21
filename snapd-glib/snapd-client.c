@@ -968,7 +968,7 @@ log_cb (SnapdGetLogs *request, SnapdLog *log, gpointer user_data)
 typedef struct
 {
     SnapdClient *client;
-    SnapdLogCallback callback;
+    SnapdPromptingRequestCallback callback;
     gpointer callback_data;
 } FollowPromptingRequestsData;
 
@@ -4525,8 +4525,8 @@ snapd_client_follow_prompting_requests_async (SnapdClient *self,
 gboolean
 snapd_client_follow_prompting_requests_finish (SnapdClient *self, GAsyncResult *result, GError **error)
 {
-    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
-    g_return_val_if_fail (SNAPD_IS_GET_PROMPTING_REQUESTS (result), NULL);
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), FALSE);
+    g_return_val_if_fail (SNAPD_IS_GET_PROMPTING_REQUESTS (result), FALSE);
 
     SnapdGetPromptingRequests *request = SNAPD_GET_PROMPTING_REQUESTS (result);
 
@@ -4590,7 +4590,7 @@ snapd_client_get_prompting_request_finish (SnapdClient *self, GAsyncResult *resu
  * @id: a request ID to get information on.
  * @action: outcome of the decision.
  * @lifespan: how long the decision lasts for.
- * @duration: number of FIXME(units) if @lifespan is %SNAPD_PROMPTING_LIFESPAN_TIMESPAN.
+ * @duration: duration this decision lasts for if @lifespan is %SNAPD_PROMPTING_LIFESPAN_TIMESPAN.
  * @path_pattern: paths this decision relates to.
  * @permissions: permissions this decision relates to.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
@@ -4607,7 +4607,7 @@ snapd_client_prompting_respond_async (SnapdClient                  *self,
                                       const gchar                  *id,
                                       SnapdPromptingOutcome         action,
                                       SnapdPromptingLifespan        lifespan,
-                                      gint64                        duration,
+                                      const gchar                  *duration,
                                       const gchar                  *path_pattern,
                                       SnapdPromptingPermissionFlags permissions,
                                       GCancellable                 *cancellable,
@@ -4681,7 +4681,7 @@ snapd_client_prompting_respond_async (SnapdClient                  *self,
 
     g_ptr_array_add (permission_names, NULL);
 
-    g_autoptr(SnapdPostPromptingRequest) request = _snapd_post_prompting_request_new (id, action_string, lifespan_string, 0, path_pattern, (GStrv) permission_names->pdata, cancellable, callback, user_data);
+    g_autoptr(SnapdPostPromptingRequest) request = _snapd_post_prompting_request_new (id, action_string, lifespan_string, duration, path_pattern, (GStrv) permission_names->pdata, cancellable, callback, user_data);
     send_request (self, SNAPD_REQUEST (request));
 }
 

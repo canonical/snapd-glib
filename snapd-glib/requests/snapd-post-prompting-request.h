@@ -19,7 +19,7 @@ G_DECLARE_FINAL_TYPE (SnapdPostPromptingRequest, snapd_post_prompting_request, S
 SnapdPostPromptingRequest *_snapd_post_prompting_request_new (const gchar         *id,
                                                               const gchar         *outcome,
                                                               const gchar         *lifespan,
-                                                              gint64               duration,
+                                                              const gchar         *duration,
                                                               const gchar         *path_pattern,
                                                               GStrv                permissions,
                                                               GCancellable        *cancellable,

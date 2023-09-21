@@ -294,7 +294,7 @@ struct _MockPromptingRequest
     gboolean has_response;
     gchar *action;
     gchar *lifespan;
-    gint64 duration;
+    gchar *duration;
     gchar *path_pattern;
     gchar **permissions_out;
 };
@@ -460,6 +460,7 @@ mock_prompting_request_free (MockPromptingRequest *request)
     g_strfreev (request->permissions);
     g_free (request->action);
     g_free (request->lifespan);
+    g_free (request->duration);
     g_free (request->path_pattern);
     g_strfreev (request->permissions_out);
     g_slice_free (MockPromptingRequest, request);
@@ -1971,7 +1972,7 @@ mock_prompting_request_get_lifespan (MockPromptingRequest *request)
     return request->lifespan;
 }
 
-gint64
+const gchar *
 mock_prompting_request_get_duration (MockPromptingRequest *request)
 {
     return request->duration;
@@ -5276,7 +5277,9 @@ handle_prompting_request (MockSnapd *self, SoupServerMessage *message, const cha
         JsonObject *o = json_node_get_object (request);
         const gchar *action = json_object_get_string_member (o, "action");
         const gchar *lifespan = json_object_get_string_member (o, "lifespan");
-        gint64 duration = json_object_get_int_member (o, "duration");
+        const gchar *duration = NULL;
+        if (json_object_has_member (o, "duration"))
+            duration = json_object_get_string_member (o, "duration");
         const gchar *path_pattern = json_object_get_string_member (o, "path-pattern");
         JsonArray *permission_names = json_object_get_array_member (o, "permissions");
         guint permission_names_length = json_array_get_length (permission_names);
@@ -5290,7 +5293,7 @@ handle_prompting_request (MockSnapd *self, SoupServerMessage *message, const cha
         r->has_response = TRUE;
         r->action = g_strdup (action);
         r->lifespan = g_strdup (lifespan);
-        r->duration = duration;
+        r->duration = g_strdup (duration);
         r->path_pattern = g_strdup (path_pattern);
         r->permissions_out = g_strdupv ((GStrv) permission_names_array->pdata);
 

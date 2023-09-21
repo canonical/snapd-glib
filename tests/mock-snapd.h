@@ -495,7 +495,7 @@ const gchar          *mock_prompting_request_get_action       (MockPromptingRequ
 
 const gchar          *mock_prompting_request_get_lifespan     (MockPromptingRequest *request);
 
-gint64                mock_prompting_request_get_duration     (MockPromptingRequest *request);
+const gchar          *mock_prompting_request_get_duration     (MockPromptingRequest *request);
 
 const gchar          *mock_prompting_request_get_path_pattern (MockPromptingRequest *request);
 

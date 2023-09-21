@@ -8689,7 +8689,7 @@ test_prompting_respond_sync (void)
     g_assert_true (mock_prompting_request_get_has_response (r));
     g_assert_cmpstr (mock_prompting_request_get_action (r), ==, "allow");
     g_assert_cmpstr (mock_prompting_request_get_lifespan (r), ==, "forever");
-    g_assert_cmpint (mock_prompting_request_get_duration (r), ==, 0);
+    g_assert_null (mock_prompting_request_get_duration (r));
     g_assert_cmpstr (mock_prompting_request_get_path_pattern (r), ==, "/home/foo/file2.txt");
     gchar **permissions = mock_prompting_request_get_permissions (r);
     g_assert_cmpint (g_strv_length (permissions), ==, 1);
@@ -8710,7 +8710,7 @@ prompting_respond_cb (GObject *object, GAsyncResult *result, gpointer user_data)
     g_assert_true (mock_prompting_request_get_has_response (r));
     g_assert_cmpstr (mock_prompting_request_get_action (r), ==, "allow");
     g_assert_cmpstr (mock_prompting_request_get_lifespan (r), ==, "forever");
-    g_assert_cmpint (mock_prompting_request_get_duration (r), ==, 0);
+    g_assert_null (mock_prompting_request_get_duration (r));
     g_assert_cmpstr (mock_prompting_request_get_path_pattern (r), ==, "/home/foo/file2.txt");
     gchar **permissions = mock_prompting_request_get_permissions (r);
     g_assert_cmpint (g_strv_length (permissions), ==, 1);

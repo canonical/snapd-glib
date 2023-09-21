@@ -1972,7 +1972,7 @@ snapd_client_get_prompting_request_sync (SnapdClient *self,
  * @id: a prompting request ID.
  * @action: outcome of the decision.
  * @lifespan: how long the decision lasts for.
- * @duration: number of FIXME(units) if @lifespan is %SNAPD_PROMPTING_LIFESPAN_TIMESPAN.
+ * @duration: duration this decision lasts for if @lifespan is %SNAPD_PROMPTING_LIFESPAN_TIMESPAN.
  * @path_pattern: paths this decision relates to.
  * @permissions: permissions this decision relates to.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
@@ -1989,7 +1989,7 @@ snapd_client_prompting_respond_sync (SnapdClient                  *self,
                                      const gchar                  *id,
                                      SnapdPromptingOutcome         action,
                                      SnapdPromptingLifespan        lifespan,
-                                     gint64                        duration,
+                                     const gchar                  *duration,
                                      const gchar                  *path_pattern,
                                      SnapdPromptingPermissionFlags permissions,
                                      GCancellable                 *cancellable,
