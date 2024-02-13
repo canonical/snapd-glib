@@ -62,3 +62,14 @@ QSnapdMarkdownNode *QSnapdMarkdownNode::child (int n) const
         return NULL;
     return new QSnapdMarkdownNode (children->pdata[n]);
 }
+
+QSnapdMarkdownNode & QSnapdMarkdownNode::operator=(const QSnapdMarkdownNode& node)
+{
+    if (&node == this) {
+        return *this;
+    }
+    g_object_unref(wrapped_object);
+    wrapped_object = node.wrapped_object;
+    g_object_ref(wrapped_object);
+    return *this;
+}

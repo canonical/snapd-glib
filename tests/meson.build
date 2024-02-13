@@ -39,7 +39,7 @@ test_file = configure_file (input: 'test-markdown-glib.test.in',
 install_data (test_file, install_dir: installed_tests_data_dir)
 
 if get_option ('qt-bindings')
-  moc_files = qt5.preprocess (moc_headers: [ 'test-qt.h' ])
+  moc_files = qt6.preprocess (moc_headers: [ 'test-qt.h' ])
 
   test_executable = executable ('test-qt',
                                 'test-qt.cpp', moc_files,

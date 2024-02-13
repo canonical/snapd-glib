@@ -56,7 +56,7 @@ bool QSnapdMarkdownParser::preserveWhitespace () const
 QList<QSnapdMarkdownNode> QSnapdMarkdownParser::parse (const QString &text) const
 {
     Q_D(const QSnapdMarkdownParser);
-    g_autoptr(GPtrArray) nodes = snapd_markdown_parser_parse (d->parser, text.toStdString ().c_str ());
+    g_autoptr(GPtrArray) nodes = snapd_markdown_parser_parse (d->parser, text.toUtf8().constData());
     QList<QSnapdMarkdownNode> nodes_list;
     for (uint i = 0; i < nodes->len; i++) {
         SnapdMarkdownNode *node = (SnapdMarkdownNode *) g_ptr_array_index (nodes, i);

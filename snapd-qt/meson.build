@@ -9,7 +9,7 @@ if not get_option('soup2')
 endif
 
 install_header_dir = join_paths (includedir, library_name, 'Snapd')
-qml_dir = join_paths (libdir, 'qt5', 'qml', qt_name)
+qml_dir = join_paths (libdir, 'qt6', 'qml', qt_name)
 cmake_dir = join_paths (libdir, 'cmake', qt_name)
 
 source_cpp = [
@@ -114,19 +114,19 @@ source_private_h = [
 ]
 
 if get_option ('qt-bindings')
-  qt5 = import ('qt5')
-  moc_files = qt5.preprocess (moc_headers: [ source_h, source_private_h ],
-                              dependencies: [ qt5_core_dep, qt5_network_dep ])
+  qt6 = import ('qt6')
+  moc_files = qt6.preprocess (moc_headers: [ source_h, source_private_h ],
+                              dependencies: [ qt6_core_dep, qt6_network_dep ])
 
   snapd_qt_lib = library (library_name,
                           source_cpp, moc_files,
                           version: '1.0.0',
-                          dependencies: [ qt5_core_dep, qt5_network_dep, glib_dep, gio_dep, snapd_glib_dep ],
+                          dependencies: [ qt6_core_dep, qt6_network_dep, glib_dep, gio_dep, snapd_glib_dep ],
                           cpp_args: [ '-DQT_NO_SIGNALS_SLOTS_KEYWORDS' ],
                           install: true)
 
   snapd_qt_dep = declare_dependency (link_with: snapd_qt_lib,
-                                     dependencies: [ qt5_network_dep ],
+                                     dependencies: [ qt6_network_dep ],
                                      include_directories: include_directories ('.'))
 
   install_headers (source_h + source_alias_h,
@@ -160,7 +160,7 @@ if get_option ('qt-bindings')
     install_data ('qmldir',
                   install_dir: qml_dir)
 
-    qml_moc_files = qt5.preprocess (moc_headers: 'qml-plugin.h',
+    qml_moc_files = qt6.preprocess (moc_headers: 'qml-plugin.h',
                                     dependencies: qml_dep)
     library (qt_name,
              'qml-plugin.cpp', qml_moc_files,
