@@ -38,7 +38,7 @@ qt_dep = dependency(
 )
 
 install_header_dir = join_paths (includedir, library_name, 'Snapd')
-qml_dir = join_paths (libdir, '@qt_version@', 'qml', qt_name)
+qml_dir = join_paths (libdir, f'@qt_version@', 'qml', f'@base_name@')
 cmake_dir = join_paths (libdir, 'cmake', qt_name)
 
 source_cpp = [

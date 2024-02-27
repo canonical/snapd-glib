@@ -1,3 +1,0 @@
-[Test]
-Type=session
-Exec=@installed_tests_exec_dir@/test-markdown-qt
