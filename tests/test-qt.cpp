@@ -10,6 +10,7 @@
 #include "mock-snapd.h"
 
 #include <QBuffer>
+#include <QVariant>
 #include <Snapd/Client>
 #include <Snapd/Assertion>
 
@@ -2918,32 +2919,32 @@ test_get_connections_attributes ()
 
     check_names_match (connection->plugAttributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key" << "plug-number-key");
     g_assert_true (connection->hasPlugAttribute ("plug-string-key"));
-    g_assert_true (connection->plugAttribute ("plug-string-key").metaType().id () == QMetaType::QString);
+    g_assert_true (connection->plugAttribute ("plug-string-key").type () == QMetaType::QString);
     g_assert_true (connection->plugAttribute ("plug-string-key").toString () == "value");
     g_assert_true (connection->hasPlugAttribute ("plug-int-key"));
-    g_assert_true (connection->plugAttribute ("plug-int-key").metaType().id () == QMetaType::LongLong);
+    g_assert_true (connection->plugAttribute ("plug-int-key").type () == QMetaType::LongLong);
     g_assert_cmpint (connection->plugAttribute ("plug-int-key").toLongLong (), ==, 42);
     g_assert_true (connection->hasPlugAttribute ("plug-bool-key"));
-    g_assert_true (connection->plugAttribute ("plug-bool-key").metaType().id () == QMetaType::Bool);
+    g_assert_true (connection->plugAttribute ("plug-bool-key").type () == QMetaType::Bool);
     g_assert_true (connection->plugAttribute ("plug-bool-key").toBool ());
     g_assert_true (connection->hasPlugAttribute ("plug-number-key"));
-    g_assert_true (connection->plugAttribute ("plug-number-key").metaType().id () == QMetaType::Double);
+    g_assert_true (connection->plugAttribute ("plug-number-key").type () == QMetaType::Double);
     g_assert_cmpfloat (connection->plugAttribute ("plug-number-key").toDouble (), ==, 1.25);
     g_assert_false (connection->hasPlugAttribute ("plug-invalid-key"));
     g_assert_false (connection->plugAttribute ("plug-invalid-key").isValid ());
 
     check_names_match (connection->slotAttributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key" << "slot-number-key");
     g_assert_true (connection->hasSlotAttribute ("slot-string-key"));
-    g_assert_true (connection->slotAttribute ("slot-string-key").metaType().id () == QMetaType::QString);
+    g_assert_true (connection->slotAttribute ("slot-string-key").type () == QMetaType::QString);
     g_assert_true (connection->slotAttribute ("slot-string-key").toString () == "value");
     g_assert_true (connection->hasSlotAttribute ("slot-int-key"));
-    g_assert_true (connection->slotAttribute ("slot-int-key").metaType().id () == QMetaType::LongLong);
+    g_assert_true (connection->slotAttribute ("slot-int-key").type () == QMetaType::LongLong);
     g_assert_cmpint (connection->slotAttribute ("slot-int-key").toLongLong (), ==, 42);
     g_assert_true (connection->hasSlotAttribute ("slot-bool-key"));
-    g_assert_true (connection->slotAttribute ("slot-bool-key").metaType().id () == QMetaType::Bool);
+    g_assert_true (connection->slotAttribute ("slot-bool-key").type () == QMetaType::Bool);
     g_assert_true (connection->slotAttribute ("slot-bool-key").toBool ());
     g_assert_true (connection->hasSlotAttribute ("slot-number-key"));
-    g_assert_true (connection->slotAttribute ("slot-number-key").metaType().id () == QMetaType::Double);
+    g_assert_true (connection->slotAttribute ("slot-number-key").type () == QMetaType::Double);
     g_assert_cmpfloat (connection->slotAttribute ("slot-number-key").toDouble (), ==, 1.25);
     g_assert_false (connection->hasSlotAttribute ("slot-invalid-key"));
     g_assert_false (connection->slotAttribute ("slot-invalid-key").isValid ());
@@ -2952,16 +2953,16 @@ test_get_connections_attributes ()
     QScopedPointer<QSnapdPlug> plug (getConnectionsRequest->plug (0));
     check_names_match (plug->attributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key" << "plug-number-key");
     g_assert_true (plug->hasAttribute ("plug-string-key"));
-    g_assert_true (plug->attribute ("plug-string-key").metaType().id () == QMetaType::QString);
+    g_assert_true (plug->attribute ("plug-string-key").type () == QMetaType::QString);
     g_assert_true (plug->attribute ("plug-string-key").toString () == "value");
     g_assert_true (plug->hasAttribute ("plug-int-key"));
-    g_assert_true (plug->attribute ("plug-int-key").metaType().id () == QMetaType::LongLong);
+    g_assert_true (plug->attribute ("plug-int-key").type () == QMetaType::LongLong);
     g_assert_cmpint (plug->attribute ("plug-int-key").toLongLong (), ==, 42);
     g_assert_true (plug->hasAttribute ("plug-bool-key"));
-    g_assert_true (plug->attribute ("plug-bool-key").metaType().id () == QMetaType::Bool);
+    g_assert_true (plug->attribute ("plug-bool-key").type () == QMetaType::Bool);
     g_assert_true (plug->attribute ("plug-bool-key").toBool ());
     g_assert_true (plug->hasAttribute ("plug-number-key"));
-    g_assert_true (plug->attribute ("plug-number-key").metaType().id () == QMetaType::Double);
+    g_assert_true (plug->attribute ("plug-number-key").type () == QMetaType::Double);
     g_assert_cmpfloat (plug->attribute ("plug-number-key").toDouble (), ==, 1.25);
     g_assert_false (plug->hasAttribute ("plug-invalid-key"));
     g_assert_false (plug->attribute ("plug-invalid-key").isValid ());
@@ -2970,16 +2971,16 @@ test_get_connections_attributes ()
     QScopedPointer<QSnapdSlot> slot (getConnectionsRequest->slot (0));
     check_names_match (slot->attributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key" << "slot-number-key");
     g_assert_true (slot->hasAttribute ("slot-string-key"));
-    g_assert_true (slot->attribute ("slot-string-key").metaType().id () == QMetaType::QString);
+    g_assert_true (slot->attribute ("slot-string-key").type () == QMetaType::QString);
     g_assert_true (slot->attribute ("slot-string-key").toString () == "value");
     g_assert_true (slot->hasAttribute ("slot-int-key"));
-    g_assert_true (slot->attribute ("slot-int-key").metaType().id () == QMetaType::LongLong);
+    g_assert_true (slot->attribute ("slot-int-key").type () == QMetaType::LongLong);
     g_assert_cmpint (slot->attribute ("slot-int-key").toLongLong (), ==, 42);
     g_assert_true (slot->hasAttribute ("slot-bool-key"));
-    g_assert_true (slot->attribute ("slot-bool-key").metaType().id () == QMetaType::Bool);
+    g_assert_true (slot->attribute ("slot-bool-key").type () == QMetaType::Bool);
     g_assert_true (slot->attribute ("slot-bool-key").toBool ());
     g_assert_true (slot->hasAttribute ("slot-number-key"));
-    g_assert_true (slot->attribute ("slot-number-key").metaType().id () == QMetaType::Double);
+    g_assert_true (slot->attribute ("slot-number-key").type () == QMetaType::Double);
     g_assert_cmpfloat (slot->attribute ("slot-number-key").toDouble (), ==, 1.25);
     g_assert_false (slot->hasAttribute ("slot-invalid-key"));
     g_assert_false (slot->attribute ("slot-invalid-key").isValid ());
@@ -3123,13 +3124,13 @@ test_get_interfaces_attributes ()
     QScopedPointer<QSnapdPlug> plug (getInterfacesRequest->plug (0));
     check_names_match (plug->attributeNames (), QStringList () << "plug-string-key" << "plug-int-key" << "plug-bool-key");
     g_assert_true (plug->hasAttribute ("plug-string-key"));
-    g_assert_true (plug->attribute ("plug-string-key").metaType().id () == QMetaType::QString);
+    g_assert_true (plug->attribute ("plug-string-key").type () == QMetaType::QString);
     g_assert_true (plug->attribute ("plug-string-key").toString () == "value");
     g_assert_true (plug->hasAttribute ("plug-int-key"));
-    g_assert_true (plug->attribute ("plug-int-key").metaType().id () == QMetaType::LongLong);
+    g_assert_true (plug->attribute ("plug-int-key").type () == QMetaType::LongLong);
     g_assert_cmpint (plug->attribute ("plug-int-key").toLongLong (), ==, 42);
     g_assert_true (plug->hasAttribute ("plug-bool-key"));
-    g_assert_true (plug->attribute ("plug-bool-key").metaType().id () == QMetaType::Bool);
+    g_assert_true (plug->attribute ("plug-bool-key").type () == QMetaType::Bool);
     g_assert_true (plug->attribute ("plug-bool-key").toBool ());
     g_assert_false (plug->hasAttribute ("plug-invalid-key"));
     g_assert_false (plug->attribute ("plug-invalid-key").isValid ());
@@ -3138,13 +3139,13 @@ test_get_interfaces_attributes ()
     QScopedPointer<QSnapdSlot> slot (getInterfacesRequest->slot (0));
     check_names_match (slot->attributeNames (), QStringList () << "slot-string-key" << "slot-int-key" << "slot-bool-key");
     g_assert_true (slot->hasAttribute ("slot-string-key"));
-    g_assert_true (slot->attribute ("slot-string-key").metaType().id () == QMetaType::QString);
+    g_assert_true (slot->attribute ("slot-string-key").type () == QMetaType::QString);
     g_assert_true (slot->attribute ("slot-string-key").toString () == "value");
     g_assert_true (slot->hasAttribute ("slot-int-key"));
-    g_assert_true (slot->attribute ("slot-int-key").metaType().id () == QMetaType::LongLong);
+    g_assert_true (slot->attribute ("slot-int-key").type () == QMetaType::LongLong);
     g_assert_cmpint (slot->attribute ("slot-int-key").toLongLong (), ==, 42);
     g_assert_true (slot->hasAttribute ("slot-bool-key"));
-    g_assert_true (slot->attribute ("slot-bool-key").metaType().id () == QMetaType::Bool);
+    g_assert_true (slot->attribute ("slot-bool-key").type () == QMetaType::Bool);
     g_assert_true (slot->attribute ("slot-bool-key").toBool ());
     g_assert_false (slot->hasAttribute ("slot-invalid-key"));
     g_assert_false (slot->attribute ("slot-invalid-key").isValid ());
