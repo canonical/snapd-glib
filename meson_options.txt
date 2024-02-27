@@ -8,8 +8,10 @@ option('vala-bindings',
        type: 'boolean', value: true,
        description: 'Build the Vala bindings (requires introspection)')
 option('qt-bindings',
-       type: 'boolean', value: true,
-       description: 'Build the Qt bindings')
+       type: 'array',
+       choices: ['5','6'],
+       value : ['6'],
+       description: 'Build the Qt bindings for major versions')
 option('qml-bindings',
        type: 'boolean', value: true,
        description: 'Build the QML bindings (requires the Qt bindings)')

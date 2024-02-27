@@ -1,0 +1,14 @@
+# SNAPD_INCLUDE_DIRS - The snapd-qt include directories
+# SNAPD_LIBRARIES - The libraries needed to use snapd-qt
+
+set(SNAPD_LIBRARIES @libdir@/lib@library_name@.so)
+set(SNAPD_INCLUDE_DIRS @includedir@/@library_name@/)
+
+add_library(Snapd::Core SHARED IMPORTED)
+set_target_properties(Snapd::Core PROPERTIES
+  IMPORTED_LINK_DEPENDENT_LIBRARIES "Qt6::Core"
+  IMPORTED_LOCATION "${SNAPD_LIBRARIES}"
+  IMPORTED_SONAME "lib@library_name@.so"
+  )
+
+set_property(TARGET Snapd::Core PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${SNAPD_INCLUDE_DIRS})

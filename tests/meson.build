@@ -38,8 +38,8 @@ test_file = configure_file (input: 'test-markdown-glib.test.in',
                             configuration: test_data_conf)
 install_data (test_file, install_dir: installed_tests_data_dir)
 
-if get_option ('qt-bindings')
-  moc_files = qt6.preprocess (moc_headers: [ 'test-qt.h' ])
+foreach qt_major : get_option('qt-bindings')
+  moc_files = qt.preprocess (moc_headers: [ 'test-qt.h' ])
 
   test_executable = executable ('test-qt',
                                 'test-qt.cpp', moc_files,
@@ -65,4 +65,4 @@ if get_option ('qt-bindings')
                               output: 'test-markdown-qt.test',
                               configuration: test_data_conf)
   install_data (test_file, install_dir: installed_tests_data_dir)
-endif
+endforeach

@@ -3,9 +3,9 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: Snapd Qt
+Name: Snapd Qt6
 Description: Library for accessing snapd
 Version: @VERSION@
-Libs: -L${libdir} -lsnapd-qt
-Cflags: -I${includedir}/snapd-qt
-Requires: Qt5Core
+Libs: -L${libdir} -lsnapd-qt6
+Cflags: -I${includedir}/snapd-qt6
+Requires: Qt6Core

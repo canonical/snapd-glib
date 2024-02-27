@@ -3,6 +3,7 @@ project ('snapd-glib', [ 'c', 'cpp' ],
          meson_version: '>= 0.57.0',
          default_options : [ 'c_std=c11' ])
 
+
 glib_dep = dependency ('glib-2.0', version: '>= 2.46')
 gio_dep = dependency ('gio-2.0', version: '>= 2.46')
 gio_unix_dep = dependency ('gio-unix-2.0', version: '>= 2.46')
@@ -12,12 +13,6 @@ else
   libsoup_dep = dependency ('libsoup-3.0', version: '>= 2.99.2')
 endif
 json_glib_dep = dependency ('json-glib-1.0', version: '>= 1.1.2')
-
-if get_option ('qt-bindings')
-  qt6_core_dep = dependency ('qt6', modules: [ 'Core' ])
-  qt6_network_dep = dependency ('qt6', modules: [ 'Network' ])
-  qml_dep = dependency ('qt6', modules: [ 'Qml' ])
-endif
 
 datadir = join_paths (get_option ('prefix'), get_option ('datadir'))
 includedir = join_paths (get_option ('prefix'), get_option ('includedir'))
