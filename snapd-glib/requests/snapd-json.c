@@ -880,9 +880,9 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
     }
 
     JsonObject *refresh_inhibit = _snapd_json_get_object (object, "refresh-inhibit");
-    guint64 proceed_time = 0;
+    g_autoptr(GDateTime) proceed_time = NULL;
     if (refresh_inhibit != NULL)
-        proceed_time = _snapd_json_get_int (refresh_inhibit, "proceed-time", 0);
+        proceed_time = _snapd_json_get_date_time (refresh_inhibit, "proceed-time");
 
     return g_object_new (SNAPD_TYPE_SNAP,
                          "apps", apps_array,

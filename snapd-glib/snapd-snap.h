@@ -176,7 +176,7 @@ const gchar             *snapd_snap_get_version                (SnapdSnap   *sna
 
 const gchar             *snapd_snap_get_website                (SnapdSnap   *snap);
 
-guint64                  snapd_snap_get_proceed_time           (SnapdSnap   *snap);
+GDateTime               *snapd_snap_get_proceed_time           (SnapdSnap   *snap);
 
 G_END_DECLS
 

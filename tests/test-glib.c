@@ -1432,7 +1432,7 @@ test_get_snaps_inhibited (void)
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
     MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
-    mock_snap_set_proceed_time (s, 10);
+    mock_snap_set_proceed_time (s, "2024-03-13T15:43:32Z");
     mock_snapd_add_snap (snapd, "snap1");
     mock_snapd_add_snap (snapd, "snap2");
     mock_snapd_add_snap (snapd, "snap3");
@@ -1448,7 +1448,7 @@ test_get_snaps_inhibited (void)
     g_assert_nonnull (snaps);
     g_assert_cmpint (snaps->len, ==, 1);
     g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
-    g_assert_cmpint (snapd_snap_get_proceed_time (snaps->pdata[0]), ==, 10);
+    g_assert_true (date_matches (snapd_snap_get_proceed_time (snaps->pdata[0]), 2024, 3, 13, 15, 43, 32));
 }
 
 static void
