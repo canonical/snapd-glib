@@ -477,6 +477,9 @@ void            mock_snapd_add_log                (MockSnapd     *snapd,
                                                    const gchar   *sid,
                                                    const gchar   *pid);
 
+void            mock_snap_set_proceed_time        (MockSnap      *snap,
+                                                   const guint64  proceed_time);
+
 G_END_DECLS
 
 #endif /* __MOCK_SNAPD_H__ */

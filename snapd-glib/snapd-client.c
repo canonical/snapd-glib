@@ -1951,13 +1951,17 @@ void
 snapd_client_get_snaps_async (SnapdClient *self,
                               SnapdGetSnapsFlags flags,
                               GStrv names,
-                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+                              GCancellable *cancellable,
+                              GAsyncReadyCallback callback,
+                              gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (self));
 
     g_autoptr(SnapdGetSnaps) request = _snapd_get_snaps_new (cancellable, names, callback, user_data);
     if ((flags & SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE) != 0)
         _snapd_get_snaps_set_select (request, "all");
+    if ((flags & SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED) != 0)
+        _snapd_get_snaps_set_select (request, "refresh-inhibited");
     send_request (self, SNAPD_REQUEST (request));
 }
 

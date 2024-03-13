@@ -72,6 +72,7 @@ struct _SnapdSnap
     SnapdSnapType snap_type;
     gchar *version;
     gchar *website;
+    guint64 proceed_time;
 };
 
 enum
@@ -117,6 +118,7 @@ enum
     PROP_MEDIA,
     PROP_WEBSITE,
     PROP_HOLD,
+    PROP_PROCEED_TIME,
     PROP_LAST
 };
 
@@ -423,6 +425,13 @@ snapd_snap_get_hold (SnapdSnap *self)
     return self->hold;
 }
 
+
+guint64
+snapd_snap_get_proceed_time (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), 0);
+    return self->proceed_time;
+}
 
 /**
  * snapd_snap_get_icon:
@@ -945,6 +954,9 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         if (g_value_get_boxed (value) != NULL)
             self->hold = g_date_time_ref (g_value_get_boxed (value));
         break;
+    case PROP_PROCEED_TIME:
+        self->proceed_time = g_value_get_uint64 (value);
+        break;
     case PROP_ICON:
         g_free (self->icon);
         self->icon = g_strdup (g_value_get_string (value));
@@ -1102,6 +1114,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_HOLD:
         g_value_set_boxed (value, self->hold);
+        break;
+    case PROP_PROCEED_TIME:
+        g_value_set_uint64 (value, self->proceed_time);
         break;
     case PROP_ICON:
         g_value_set_string (value, self->icon);
@@ -1340,6 +1355,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          "Date this snap will re-enable automatic refreshing",
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_PROCEED_TIME,
+                                     g_param_spec_uint64 ("proceed-time",
+                                                          "proceed-time",
+                                                          "Describes time after which a refresh is forced for a running snap in the next auto-refresh.",
+                                                          0, G_MAXUINT64, 0,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_ICON,
                                      g_param_spec_string ("icon",
