@@ -162,6 +162,11 @@ QDateTime QSnapdSnap::hold () const
     return convertDateTime (snapd_snap_get_hold (SNAPD_SNAP (wrapped_object)));
 }
 
+QDateTime QSnapdSnap::proceed_time () const
+{
+    return convertDateTime (snapd_snap_get_proceed_time (SNAPD_SNAP (wrapped_object)));
+}
+
 QString QSnapdSnap::icon () const
 {
     return snapd_snap_get_icon (SNAPD_SNAP (wrapped_object));
