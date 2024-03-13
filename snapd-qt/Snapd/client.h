@@ -988,7 +988,8 @@ public:
     Q_ENUM(ChangeFilter)
     enum GetSnapsFlag
     {
-        IncludeInactive = 1 << 0
+        IncludeInactive  = 1 << 0,
+        RefreshInhibited = 1 << 1
     };
     Q_DECLARE_FLAGS(GetSnapsFlags, GetSnapsFlag);
     enum GetAppsFlag
