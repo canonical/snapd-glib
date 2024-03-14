@@ -40,6 +40,8 @@ GDateTime   *snapd_change_get_ready_time (SnapdChange *change);
 
 const gchar *snapd_change_get_error      (SnapdChange *change);
 
+GHashTable  *snapd_change_get_data       (SnapdChange *self);
+
 G_END_DECLS
 
 #endif /* __SNAPD_CHANGE_H__ */

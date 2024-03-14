@@ -12,6 +12,7 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
+#include <json-glib/json-glib.h>
 
 G_BEGIN_DECLS
 
@@ -479,6 +480,8 @@ void            mock_snapd_add_log                (MockSnapd     *snapd,
 
 void            mock_snap_set_proceed_time        (MockSnap      *snap,
                                                    const gchar   *proceed_time);
+void            mock_change_add_data              (MockChange    *change,
+                                                   const JsonNode *data);
 
 G_END_DECLS
 

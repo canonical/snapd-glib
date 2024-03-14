@@ -9,6 +9,7 @@
 
 #include <string.h>
 #include <snapd-glib/snapd-glib.h>
+#include <json-glib/json-glib.h>
 
 #include "mock-snapd.h"
 
@@ -8481,6 +8482,59 @@ test_follow_logs_async (void)
     g_main_loop_run (loop);
 }
 
+static void
+test_get_changes_data (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    MockChange *c = mock_snapd_add_change (snapd);
+
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "snap-names");
+    json_builder_begin_array (builder);
+    json_builder_add_string_value (builder, "snap1");
+    json_builder_add_string_value (builder, "snap2");
+    json_builder_add_string_value (builder, "snap3");
+    json_builder_end_array (builder);
+    json_builder_set_member_name (builder, "refresh-forced");
+    json_builder_begin_array (builder);
+    json_builder_add_string_value (builder, "snap_forced1");
+    json_builder_add_string_value (builder, "snap_forced2");
+    json_builder_end_array (builder);
+    json_builder_end_object (builder);
+
+    JsonNode *node = json_builder_get_root (builder);
+
+    mock_change_add_data (c, node);
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GPtrArray) changes = snapd_client_get_changes_sync (client, SNAPD_CHANGE_FILTER_ALL, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (changes);
+    g_assert_cmpint (changes->len, ==, 1);
+    GHashTable *data = snapd_change_get_data (SNAPD_CHANGE(changes->pdata[0]));
+    g_assert_nonnull (data);
+    g_assert_cmpint (g_hash_table_size (data), ==, 2);
+    g_auto (GStrv) snap_names = g_hash_table_lookup (data, "snap-names");
+    g_assert_nonnull (snap_names);
+    g_assert_cmpint (g_strv_length (snap_names), ==, 3);
+    g_assert_true (g_str_equal (snap_names[0], "snap1"));
+    g_assert_true (g_str_equal (snap_names[1], "snap2"));
+    g_assert_true (g_str_equal (snap_names[2], "snap3"));
+
+    g_auto (GStrv) refresh_forced = g_hash_table_lookup (data, "refresh-forced");
+    g_assert_nonnull (refresh_forced);
+    g_assert_cmpint (g_strv_length (refresh_forced), ==, 2);
+    g_assert_true (g_str_equal (refresh_forced[0], "snap_forced1"));
+    g_assert_true (g_str_equal (refresh_forced[1], "snap_forced2"));
+}
+
 int
 main (int argc, char **argv)
 {
@@ -8525,6 +8579,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-changes/filter-ready", test_get_changes_filter_ready);
     g_test_add_func ("/get-changes/filter-snap", test_get_changes_filter_snap);
     g_test_add_func ("/get-changes/filter-ready-snap", test_get_changes_filter_ready_snap);
+    g_test_add_func ("/get-changes/data", test_get_changes_data);
     g_test_add_func ("/get-change/sync", test_get_change_sync);
     g_test_add_func ("/get-change/async", test_get_change_async);
     g_test_add_func ("/abort-change/sync", test_abort_change_sync);

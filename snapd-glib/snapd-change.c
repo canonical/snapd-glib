@@ -41,6 +41,7 @@ struct _SnapdChange
     GDateTime *spawn_time;
     GDateTime *ready_time;
     gchar *error;
+    GHashTable *data;
 };
 
 enum
@@ -54,6 +55,7 @@ enum
     PROP_SPAWN_TIME,
     PROP_READY_TIME,
     PROP_ERROR,
+    PROP_DATA,
     PROP_LAST
 };
 
@@ -142,6 +144,28 @@ snapd_change_get_tasks (SnapdChange *self)
 {
     g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
     return self->tasks;
+}
+
+/**
+ * snapd_change_get_data:
+ * @change: a #SnapdChange.
+ *
+ * Get the data field for this change. It is a GHashMap with gchar* entries.
+ * Currently, two possible entries are defined:
+ *
+ * * snap-names: it points to a GStrv with the names of the snaps that have been auto-refreshed
+ *
+ * * refresh-forced: it points to a GStrv with the names of the snaps that have been forced to refresh
+ *
+ * Returns: (transfer none): a #GHashMap with the data
+ *
+ * Since: 1.5
+ */
+GHashTable *
+snapd_change_get_data (SnapdChange *self)
+{
+    g_return_val_if_fail (SNAPD_IS_CHANGE (self), NULL);
+    return self->data;
 }
 
 /**
@@ -239,6 +263,11 @@ snapd_change_set_property (GObject *object, guint prop_id, const GValue *value, 
         if (g_value_get_boxed (value) != NULL)
             self->tasks = g_ptr_array_ref (g_value_get_boxed (value));
         break;
+    case PROP_DATA:
+        g_clear_pointer (&self->data, g_hash_table_unref);
+        if (g_value_get_boxed (value) != NULL)
+            self->data = g_hash_table_ref (g_value_get_boxed (value));
+        break;
     case PROP_READY:
         self->ready = g_value_get_boolean (value);
         break;
@@ -283,6 +312,9 @@ snapd_change_get_property (GObject *object, guint prop_id, GValue *value, GParam
     case PROP_TASKS:
         g_value_set_boxed (value, self->tasks);
         break;
+    case PROP_DATA:
+        g_value_set_boxed (value, self->data);
+        break;
     case PROP_READY:
         g_value_set_boolean (value, self->ready);
         break;
@@ -311,6 +343,7 @@ snapd_change_finalize (GObject *object)
     g_clear_pointer (&self->summary, g_free);
     g_clear_pointer (&self->status, g_free);
     g_clear_pointer (&self->tasks, g_ptr_array_unref);
+    g_clear_pointer (&self->data, g_hash_table_unref);
     g_clear_pointer (&self->spawn_time, g_date_time_unref);
     g_clear_pointer (&self->ready_time, g_date_time_unref);
     g_clear_pointer (&self->error, g_free);
@@ -390,6 +423,13 @@ snapd_change_class_init (SnapdChangeClass *klass)
                                                           "Error associated with change",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_DATA,
+                                     g_param_spec_boxed ("data",
+                                                         "data",
+                                                         "Data field",
+                                                         G_TYPE_HASH_TABLE,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void
