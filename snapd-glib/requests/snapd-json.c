@@ -521,18 +521,26 @@ _snapd_json_get_async_result (JsonObject *response, GError **error)
     return g_strdup (json_node_get_string (change_node));
 }
 
-static GStrv
+static GList *
 create_str_array_from_jsonarray (JsonArray *data) {
-    g_autoptr(GStrvBuilder) builder = g_strv_builder_new();
+    GList *list = NULL;
 
     for (guint i = 0; i < json_array_get_length (data); i++) {
         JsonNode *node = json_array_get_element (data, i);
-        if (node == NULL || json_node_get_value_type (node) != G_TYPE_STRING)
+        if (node == NULL || json_node_get_value_type (node) != G_TYPE_STRING) {
+            g_list_free_full (list, g_free);
             return NULL;
+        }
         gchar *entry = g_strdup(json_node_get_string (node));
-        g_strv_builder_add (builder, entry);
+        list = g_list_append (list, entry);
     }
-    return g_strv_builder_end (builder);
+    return list;
+}
+
+static void
+destroy_hash_table_glist (gpointer element)
+{
+    g_list_free_full ((GList *)element, g_free);
 }
 
 SnapdChange *
@@ -582,18 +590,18 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
     g_autoptr(GDateTime) main_spawn_time = _snapd_json_get_date_time (object, "spawn-time");
     g_autoptr(GDateTime) main_ready_time = _snapd_json_get_date_time (object, "ready-time");
 
-    GHashTable *data = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify)g_strfreev);
+    GHashTable *data = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, destroy_hash_table_glist);
     JsonObject *autorefresh_data = _snapd_json_get_object (object, "data");
     if (autorefresh_data != NULL) {
         g_autoptr(JsonArray) snap_names = _snapd_json_get_array (autorefresh_data, "snap-names");
         if (snap_names != NULL) {
-            GStrv contents = create_str_array_from_jsonarray (snap_names);
+            GList *contents = create_str_array_from_jsonarray (snap_names);
             if (contents != NULL)
                 g_hash_table_replace (data, "snap-names", contents);
         }
         g_autoptr(JsonArray) refresh_forced = _snapd_json_get_array (autorefresh_data, "refresh-forced");
         if (refresh_forced != NULL) {
-            GStrv contents = create_str_array_from_jsonarray (refresh_forced);
+            GList *contents = create_str_array_from_jsonarray (refresh_forced);
             if (contents != NULL)
                 g_hash_table_replace (data, "refresh-forced", contents);
         }

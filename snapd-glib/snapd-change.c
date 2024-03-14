@@ -148,14 +148,14 @@ snapd_change_get_tasks (SnapdChange *self)
 
 /**
  * snapd_change_get_data:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
- * Get the data field for this change. It is a GHashMap with gchar* entries.
- * Currently, two possible entries are defined:
+ * Get the data field for this change. It is a GHashMap with GList entries, each with.
+ * a pointer to a string. Currently, two possible entries are defined:
  *
- * * snap-names: it points to a GStrv with the names of the snaps that have been auto-refreshed
+ * * snap-names: it points to a GList with the names of the snaps that have been auto-refreshed
  *
- * * refresh-forced: it points to a GStrv with the names of the snaps that have been forced to refresh
+ * * refresh-forced: it points to a GList with the names of the snaps that have been forced to refresh
  *
  * Returns: (transfer none): a #GHashMap with the data
  *
