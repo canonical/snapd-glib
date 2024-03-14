@@ -39,7 +39,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(bool devmode READ devmode)
     Q_PROPERTY(qint64 downloadSize READ downloadSize)
     Q_PROPERTY(QDateTime hold READ hold)
-    Q_PROPERTY(QDateTime proceed_time READ proceed_time)
+    Q_PROPERTY(QDateTime proceedTime READ proceedTime)
     Q_PROPERTY(QString icon READ icon)
     Q_PROPERTY(QString id READ id)
     Q_PROPERTY(QDateTime installDate READ installDate)
