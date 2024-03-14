@@ -53,7 +53,7 @@ G_DEFINE_TYPE (SnapdUserInformation, snapd_user_information, G_TYPE_OBJECT)
 
 /**
  * snapd_user_information_get_id:
- * @user_information: a #SnapdUserInformation.
+ * @self: a #SnapdUserInformation.
  *
  * Get the id for this account.
  *
@@ -70,7 +70,7 @@ snapd_user_information_get_id (SnapdUserInformation *self)
 
 /**
  * snapd_user_information_get_username:
- * @user_information: a #SnapdUserInformation.
+ * @self: a #SnapdUserInformation.
  *
  * Get the local username for this account.
  *
@@ -87,7 +87,7 @@ snapd_user_information_get_username (SnapdUserInformation *self)
 
 /**
  * snapd_user_information_get_email:
- * @user_information: a #SnapdUserInformation.
+ * @self: a #SnapdUserInformation.
  *
  * Get the email address for this account.
  *
@@ -104,7 +104,7 @@ snapd_user_information_get_email (SnapdUserInformation *self)
 
 /**
  * snapd_user_information_get_ssh_keys:
- * @user_information: a #SnapdUserInformation.
+ * @self: a #SnapdUserInformation.
  *
  * Get the SSH keys added to this account.
  *
@@ -121,7 +121,7 @@ snapd_user_information_get_ssh_keys (SnapdUserInformation *self)
 
 /**
  * snapd_user_information_get_auth_data:
- * @user_information: a #SnapdUserInformation.
+ * @self: a #SnapdUserInformation.
  *
  * Get the email address for this account.
  *

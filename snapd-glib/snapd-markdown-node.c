@@ -142,7 +142,7 @@ snapd_markdown_node_init (SnapdMarkdownNode *self)
 
 /**
  * snapd_markdown_node_get_node_type:
- * @node: a #SnapdMarkdownNode.
+ * @self: a #SnapdMarkdownNode.
  *
  * Get the type of node this is.
  *
@@ -159,7 +159,7 @@ snapd_markdown_node_get_node_type (SnapdMarkdownNode *self)
 
 /**
  * snapd_markdown_node_get_text:
- * @node: a #SnapdMarkdownNode.
+ * @self: a #SnapdMarkdownNode.
  *
  * Gets the text associated with this node. This is only present for nodes of type
  * %SNAPD_MARKDOWN_NODE_TYPE_TEXT.
@@ -177,7 +177,7 @@ snapd_markdown_node_get_text (SnapdMarkdownNode *self)
 
 /**
  * snapd_markdown_node_get_children:
- * @node: a #SnapdMarkdownNode.
+ * @self: a #SnapdMarkdownNode.
  *
  * Get the child nodes of this node.
  *

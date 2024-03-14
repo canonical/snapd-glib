@@ -60,7 +60,7 @@ G_DEFINE_TYPE (SnapdChannel, snapd_channel, G_TYPE_OBJECT)
 
 /**
  * snapd_channel_get_branch:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the branch this channel is tracking.
  *
@@ -77,7 +77,7 @@ snapd_channel_get_branch (SnapdChannel *self)
 
 /**
  * snapd_channel_get_confinement:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the confinement this snap is using, e.g. %SNAPD_CONFINEMENT_STRICT.
  *
@@ -94,7 +94,7 @@ snapd_channel_get_confinement (SnapdChannel *self)
 
 /**
  * snapd_channel_get_epoch:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the epoch used on this channel, e.g. "1".
  *
@@ -111,7 +111,7 @@ snapd_channel_get_epoch (SnapdChannel *self)
 
 /**
  * snapd_channel_get_name:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the name of this channel, e.g. "stable".
  *
@@ -140,7 +140,7 @@ snapd_channel_get_name (SnapdChannel *self)
 
 /**
  * snapd_channel_get_released_at:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the date this revision was released into the channel or %NULL if unknown.
  *
@@ -157,7 +157,7 @@ snapd_channel_get_released_at (SnapdChannel *self)
 
 /**
  * snapd_channel_get_revision:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the revision for this snap. The format of the string is undefined.
  * See also snapd_channel_get_version().
@@ -175,7 +175,7 @@ snapd_channel_get_revision (SnapdChannel *self)
 
 /**
  * snapd_channel_get_risk:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the risk this channel is on, one of `stable`, `candidate`, `beta` or `edge`.
  *
@@ -192,7 +192,7 @@ snapd_channel_get_risk (SnapdChannel *self)
 
 /**
  * snapd_channel_get_size:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the download size of this snap.
  *
@@ -209,7 +209,7 @@ snapd_channel_get_size (SnapdChannel *self)
 
 /**
  * snapd_channel_get_track:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the track this channel is on.
  *
@@ -226,7 +226,7 @@ snapd_channel_get_track (SnapdChannel *self)
 
 /**
  * snapd_channel_get_version:
- * @channel: a #SnapdChannel.
+ * @self: a #SnapdChannel.
  *
  * Get the version for this snap. The format of the string is undefined.
  * See also snapd_channel_get_revision().

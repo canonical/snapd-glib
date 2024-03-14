@@ -58,7 +58,7 @@ G_DEFINE_TYPE (SnapdAlias, snapd_alias, G_TYPE_OBJECT)
 
 /**
  * snapd_alias_get_app:
- * @alias: a #SnapdAlias.
+ * @self: a #SnapdAlias.
  *
  * Get the app this is an alias for.
  *
@@ -76,7 +76,7 @@ snapd_alias_get_app (SnapdAlias *self)
 
 /**
  * snapd_alias_get_app_auto:
- * @alias: a #SnapdAlias.
+ * @self: a #SnapdAlias.
  *
  * Get the app this alias has been automatically set to (status is %SNAPD_ALIAS_STATUS_AUTO).
  * Can be overridden when status is %SNAPD_ALIAS_STATUS_MANUAL.
@@ -94,7 +94,7 @@ snapd_alias_get_app_auto (SnapdAlias *self)
 
 /**
  * snapd_alias_get_app_manual:
- * @alias: a #SnapdAlias.
+ * @self: a #SnapdAlias.
  *
  * Get the app this alias has been manually set to (status is %SNAPD_ALIAS_STATUS_MANUAL).
  * This overrides the app from snapd_alias_get_app_auto().
@@ -112,7 +112,7 @@ snapd_alias_get_app_manual (SnapdAlias *self)
 
 /**
  * snapd_alias_get_command:
- * @alias: a #SnapdAlias.
+ * @self: a #SnapdAlias.
  *
  * Get the command this alias runs.
  *
@@ -129,7 +129,7 @@ snapd_alias_get_command (SnapdAlias *self)
 
 /**
  * snapd_alias_get_name:
- * @alias: a #SnapdAlias.
+ * @self: a #SnapdAlias.
  *
  * Get the name of this alias.
  *
@@ -146,7 +146,7 @@ snapd_alias_get_name (SnapdAlias *self)
 
 /**
  * snapd_alias_get_snap:
- * @alias: a #SnapdAlias.
+ * @self: a #SnapdAlias.
  *
  * Get the snap this alias is for.
  *
@@ -163,7 +163,7 @@ snapd_alias_get_snap (SnapdAlias *self)
 
 /**
  * snapd_alias_get_status:
- * @alias: a #SnapdAlias.
+ * @self: a #SnapdAlias.
  *
  * Get the status of this alias.
  *

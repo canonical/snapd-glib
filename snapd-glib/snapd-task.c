@@ -62,7 +62,7 @@ G_DEFINE_TYPE (SnapdTask, snapd_task, G_TYPE_OBJECT)
 
 /**
  * snapd_task_get_id:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Get the unique ID for this task.
  *
@@ -83,7 +83,7 @@ snapd_task_get_id (SnapdTask *self)
 
 /**
  * snapd_task_get_kind:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Gets the kind of task this is.
  *
@@ -104,7 +104,7 @@ snapd_task_get_kind (SnapdTask *self)
 
 /**
  * snapd_task_get_summary:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Get a human readable description of the task.
  *
@@ -125,7 +125,7 @@ snapd_task_get_summary (SnapdTask *self)
 
 /**
  * snapd_task_get_status:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Get the status of the task.
  *
@@ -146,7 +146,7 @@ snapd_task_get_status (SnapdTask *self)
 
 /**
  * snapd_task_get_ready:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Get if this task is completed.
  *
@@ -168,7 +168,7 @@ snapd_task_get_ready (SnapdTask *self)
 
 /**
  * snapd_task_get_progress_label:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Get the the label associated with the progress.
  *
@@ -189,7 +189,7 @@ snapd_task_get_progress_label (SnapdTask *self)
 
 /**
  * snapd_task_get_progress_done:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Get the the number of items completed in this task.
  *
@@ -210,7 +210,7 @@ snapd_task_get_progress_done (SnapdTask *self)
 
 /**
  * snapd_task_get_progress_total:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Get the the total number of items to be completed in this task.
  *
@@ -231,7 +231,7 @@ snapd_task_get_progress_total (SnapdTask *self)
 
 /**
  * snapd_task_get_spawn_time:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Get the time this task started.
  *
@@ -252,7 +252,7 @@ snapd_task_get_spawn_time (SnapdTask *self)
 
 /**
  * snapd_task_get_ready_time:
- * @task: a #SnapdTask.
+ * @self: a #SnapdTask.
  *
  * Get the time this task completed or %NULL if not yet completed.
  *

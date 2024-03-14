@@ -53,7 +53,7 @@ snapd_screenshot_new (void)
 
 /**
  * snapd_screenshot_get_url:
- * @screenshot: a #SnapdScreenshot.
+ * @self: a #SnapdScreenshot.
  *
  * Get the URL for this screenshot, e.g. "http://example.com/screenshot.png"
  *
@@ -70,7 +70,7 @@ snapd_screenshot_get_url (SnapdScreenshot *self)
 
 /**
  * snapd_screenshot_get_width:
- * @screenshot: a #SnapdScreenshot.
+ * @self: a #SnapdScreenshot.
  *
  * Get the width of the screenshot in pixels or 0 if unknown.
  *
@@ -87,7 +87,7 @@ snapd_screenshot_get_width (SnapdScreenshot *self)
 
 /**
  * snapd_screenshot_get_height:
- * @screenshot: a #SnapdScreenshot.
+ * @self: a #SnapdScreenshot.
  *
  * Get the height of the screenshot in pixels or 0 if unknown.
  *

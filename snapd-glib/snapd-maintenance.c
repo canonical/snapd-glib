@@ -48,7 +48,7 @@ G_DEFINE_TYPE (SnapdMaintenance, snapd_maintenance, G_TYPE_OBJECT)
 
 /**
  * snapd_maintenance_get_kind:
- * @maintenance: a #SnapdMaintenance.
+ * @self: a #SnapdMaintenance.
  *
  * Get the kind of maintenance kind, e.g. %SNAPD_MAINTENANCE_KIND_DAEMON_RESTART.
  *
@@ -65,7 +65,7 @@ snapd_maintenance_get_kind (SnapdMaintenance *self)
 
 /**
  * snapd_maintenance_get_message:
- * @maintenance: a #SnapdMaintenance.
+ * @self: a #SnapdMaintenance.
  *
  * Get the user readable message associate with the maintenance state.
  *

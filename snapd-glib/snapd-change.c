@@ -61,7 +61,7 @@ G_DEFINE_TYPE (SnapdChange, snapd_change, G_TYPE_OBJECT)
 
 /**
  * snapd_change_get_id:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
  * Get the unique ID for this change.
  *
@@ -78,7 +78,7 @@ snapd_change_get_id (SnapdChange *self)
 
 /**
  * snapd_change_get_kind:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
  * Gets the kind of change this is.
  *
@@ -95,7 +95,7 @@ snapd_change_get_kind (SnapdChange *self)
 
 /**
  * snapd_change_get_summary:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
  * Get a human readable description of the change.
  *
@@ -112,7 +112,7 @@ snapd_change_get_summary (SnapdChange *self)
 
 /**
  * snapd_change_get_status:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
  * Get the status of the change.
  *
@@ -129,7 +129,7 @@ snapd_change_get_status (SnapdChange *self)
 
 /**
  * snapd_change_get_tasks:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
  * Get the tasks that are in this change.
  *
@@ -146,7 +146,7 @@ snapd_change_get_tasks (SnapdChange *self)
 
 /**
  * snapd_change_get_ready:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
  * Get if this change is completed.
  *
@@ -163,7 +163,7 @@ snapd_change_get_ready (SnapdChange *self)
 
 /**
  * snapd_change_get_spawn_time:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
  * Get the time this change started.
  *
@@ -180,7 +180,7 @@ snapd_change_get_spawn_time (SnapdChange *self)
 
 /**
  * snapd_change_get_ready_time:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
  * Get the time this task completed or %NULL if not yet completed.
  *
@@ -197,7 +197,7 @@ snapd_change_get_ready_time (SnapdChange *self)
 
 /**
  * snapd_change_get_error:
- * @change: a #SnapdChange.
+ * @self: a #SnapdChange.
  *
  * Gets the error string associated with this change.
  *

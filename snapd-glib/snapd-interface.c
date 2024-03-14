@@ -56,7 +56,7 @@ G_DEFINE_TYPE (SnapdInterface, snapd_interface, G_TYPE_OBJECT);
 
 /**
  * snapd_interface_get_name:
- * @interface: a #SnapdInterface
+ * @self: a #SnapdInterface
  *
  * Get the name of this interface.
  *
@@ -73,7 +73,7 @@ snapd_interface_get_name (SnapdInterface *self)
 
 /**
  * snapd_interface_get_summary:
- * @interface: a #SnapdInterface
+ * @self: a #SnapdInterface
  *
  * Get the summary of this interface.
  *
@@ -90,7 +90,7 @@ snapd_interface_get_summary (SnapdInterface *self)
 
 /**
  * snapd_interface_get_doc_url:
- * @interface: a #SnapdInterface
+ * @self: a #SnapdInterface
  *
  * Get the documentation URL of this interface.
  *
@@ -107,7 +107,7 @@ snapd_interface_get_doc_url (SnapdInterface *self)
 
 /**
  * snapd_interface_get_plugs:
- * @interface: a #SnapdInterface
+ * @self: a #SnapdInterface
  *
  * Get the plugs matching this interface type.
  *
@@ -124,7 +124,7 @@ snapd_interface_get_plugs (SnapdInterface *self)
 
 /**
  * snapd_interface_get_slots:
- * @interface: a #SnapdInterface
+ * @self: a #SnapdInterface
  *
  * Get the slots matching this interface type.
  *
@@ -141,7 +141,7 @@ snapd_interface_get_slots (SnapdInterface *self)
 
 /**
  * snapd_interface_make_label:
- * @interface: a #SnapdInterface
+ * @self: a #SnapdInterface
  *
  * Make a label for this interface suitable for a user interface.
  *

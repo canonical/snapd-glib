@@ -61,7 +61,7 @@ G_DEFINE_TYPE (SnapdPlug, snapd_plug, G_TYPE_OBJECT)
 
 /**
  * snapd_plug_get_name:
- * @plug: a #SnapdPlug.
+ * @self: a #SnapdPlug.
  *
  * Get the name of this plug.
  *
@@ -78,7 +78,7 @@ snapd_plug_get_name (SnapdPlug *self)
 
 /**
  * snapd_plug_get_snap:
- * @plug: a #SnapdPlug.
+ * @self: a #SnapdPlug.
  *
  * Get the snap this plug is on.
  *
@@ -95,7 +95,7 @@ snapd_plug_get_snap (SnapdPlug *self)
 
 /**
  * snapd_plug_get_interface:
- * @plug: a #SnapdPlug.
+ * @self: a #SnapdPlug.
  *
  * Get the name of the interface this plug provides.
  *
@@ -112,7 +112,7 @@ snapd_plug_get_interface (SnapdPlug *self)
 
 /**
  * snapd_plug_get_attribute_names:
- * @plug: a #SnapdPlug.
+ * @self: a #SnapdPlug.
  * @length: (out) (allow-none): location to write number of attributes or %NULL if not required.
  *
  * Get the names of the attributes this plug has.
@@ -144,7 +144,7 @@ snapd_plug_get_attribute_names (SnapdPlug *self, guint *length)
 
 /**
  * snapd_plug_has_attribute:
- * @plug: a #SnapdPlug.
+ * @self: a #SnapdPlug.
  * @name: an attribute name.
  *
  * Check if this plug has an attribute.
@@ -162,7 +162,7 @@ snapd_plug_has_attribute (SnapdPlug *self, const gchar *name)
 
 /**
  * snapd_plug_get_attribute:
- * @plug: a #SnapdPlug.
+ * @self: a #SnapdPlug.
  * @name: an attribute name.
  *
  * Get an attribute for this interface.
@@ -180,7 +180,7 @@ snapd_plug_get_attribute (SnapdPlug *self, const gchar *name)
 
 /**
  * snapd_plug_get_label:
- * @plug: a #SnapdPlug.
+ * @self: a #SnapdPlug.
  *
  * Get a human readable label for this plug.
  *
@@ -197,7 +197,7 @@ snapd_plug_get_label (SnapdPlug *self)
 
 /**
  * snapd_plug_get_connections:
- * @plug: a #SnapdPlug.
+ * @self: a #SnapdPlug.
  *
  * Get the connections being made with this plug.
  *
@@ -230,7 +230,7 @@ snapd_plug_get_connections (SnapdPlug *self)
 
 /**
  * snapd_plug_get_connected_slots:
- * @plug: a #SnapdPlug.
+ * @self: a #SnapdPlug.
  *
  * Get the slots connected to this plug.
  *

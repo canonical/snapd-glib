@@ -835,7 +835,7 @@ snapd_markdown_parser_new (SnapdMarkdownVersion version)
 
 /**
  * snapd_markdown_parser_set_preserve_whitespace:
- * @parser: a #SnapdMarkdownParser.
+ * @self: a #SnapdMarkdownParser.
  * @preserve_whitespace: %TRUE if the parse should keep paragraph whitespace intact.
  *
  * Consecutive paragraph whitespace (space, tabs, newlines) is automatically
@@ -854,7 +854,7 @@ snapd_markdown_parser_set_preserve_whitespace (SnapdMarkdownParser *self, gboole
 
 /**
  * snapd_markdown_parser_get_preserve_whitespace:
- * @parser: a #SnapdMarkdownParser.
+ * @self: a #SnapdMarkdownParser.
  *
  * Check if paragraph whitespace will be kept intact.
  *
@@ -871,7 +871,7 @@ snapd_markdown_parser_get_preserve_whitespace (SnapdMarkdownParser *self)
 
 /**
  * snapd_markdown_parser_parse:
- * @parser: a #SnapdMarkdownParser.
+ * @self: a #SnapdMarkdownParser.
  * @text: text to parse.
  *
  * Convert text in snapd markdown format to markup.

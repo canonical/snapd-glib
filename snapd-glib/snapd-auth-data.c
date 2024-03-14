@@ -74,7 +74,7 @@ snapd_auth_data_new (const gchar *macaroon, GStrv discharges)
 
 /**
  * snapd_auth_data_get_macaroon:
- * @auth_data: a #SnapdAuthData.
+ * @self: a #SnapdAuthData.
  *
  * Get the Macaroon that this authorization uses.
  *
@@ -91,7 +91,7 @@ snapd_auth_data_get_macaroon (SnapdAuthData *self)
 
 /**
  * snapd_auth_data_get_discharges:
- * @auth_data: a #SnapdAuthData.
+ * @self: a #SnapdAuthData.
  *
  * Get the discharges that this authorization uses.
  *

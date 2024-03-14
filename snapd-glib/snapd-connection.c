@@ -63,7 +63,7 @@ G_DEFINE_TYPE (SnapdConnection, snapd_connection, G_TYPE_OBJECT)
 
 /**
  * snapd_connection_get_slot:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  *
  * Get the slot this connection is made with.
  *
@@ -80,7 +80,7 @@ snapd_connection_get_slot (SnapdConnection *self)
 
 /**
  * snapd_connection_get_plug:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  *
  * Get the plug this connection is made with.
  *
@@ -97,7 +97,7 @@ snapd_connection_get_plug (SnapdConnection *self)
 
 /**
  * snapd_connection_get_interface:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  *
  * Get the interface this connections uses.
  *
@@ -114,7 +114,7 @@ snapd_connection_get_interface (SnapdConnection *self)
 
 /**
  * snapd_connection_get_manual:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  *
  * Get if this connection was made manually.
  *
@@ -131,7 +131,7 @@ snapd_connection_get_manual (SnapdConnection *self)
 
 /**
  * snapd_connection_get_gadget:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  *
  * Get if this connection was made by the gadget snap.
  *
@@ -148,7 +148,7 @@ snapd_connection_get_gadget (SnapdConnection *self)
 
 /**
  * snapd_connection_get_slot_attribute_names:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  * @length: (out) (allow-none): location to write number of attributes or %NULL if not required.
  *
  * Get the names of the attributes the connected slot has.
@@ -179,7 +179,7 @@ snapd_connection_get_slot_attribute_names (SnapdConnection *self, guint *length)
 
 /**
  * snapd_connection_has_slot_attribute:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  * @name: an attribute name.
  *
  * Check if the connected slot has an attribute.
@@ -197,7 +197,7 @@ snapd_connection_has_slot_attribute (SnapdConnection *self, const gchar *name)
 
 /**
  * snapd_connection_get_slot_attribute:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  * @name: an attribute name.
  *
  * Get an attribute for connected slot.
@@ -215,7 +215,7 @@ snapd_connection_get_slot_attribute (SnapdConnection *self, const gchar *name)
 
 /**
  * snapd_connection_get_plug_attribute_names:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  * @length: (out) (allow-none): location to write number of attributes or %NULL if not required.
  *
  * Get the names of the attributes the connected plug has.
@@ -246,7 +246,7 @@ snapd_connection_get_plug_attribute_names (SnapdConnection *self, guint *length)
 
 /**
  * snapd_connection_has_plug_attribute:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  * @name: an attribute name.
  *
  * Check if the connected plug has an attribute.
@@ -264,7 +264,7 @@ snapd_connection_has_plug_attribute (SnapdConnection *self, const gchar *name)
 
 /**
  * snapd_connection_get_plug_attribute:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  * @name: an attribute name.
  *
  * Get an attribute for connected plug.
@@ -282,7 +282,7 @@ snapd_connection_get_plug_attribute (SnapdConnection *self, const gchar *name)
 
 /**
  * snapd_connection_get_name:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  *
  * Get the name of this connection (i.e. a slot or plug name).
  *
@@ -300,7 +300,7 @@ snapd_connection_get_name (SnapdConnection *self)
 
 /**
  * snapd_connection_get_snap:
- * @connection: a #SnapdConnection.
+ * @self: a #SnapdConnection.
  *
  * Get the snap this connection is on.
  *

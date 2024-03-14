@@ -44,7 +44,7 @@ G_DEFINE_TYPE (SnapdCategoryDetails, snapd_category_details, G_TYPE_OBJECT)
 
 /**
  * snapd_category_details_get_name:
- * @category_details: a #SnapdCategoryDetails.
+ * @self: a #SnapdCategoryDetails.
  *
  * Get the name of this category, e.g. "social".
  *

@@ -124,7 +124,7 @@ G_DEFINE_TYPE (SnapdSnap, snapd_snap, G_TYPE_OBJECT)
 
 /**
  * snapd_snap_get_apps:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the apps this snap provides.
  *
@@ -141,7 +141,7 @@ snapd_snap_get_apps (SnapdSnap *self)
 
 /**
  * snapd_snap_get_base:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the base snap this snap uses.
  *
@@ -158,7 +158,7 @@ snapd_snap_get_base (SnapdSnap *self)
 
 /**
  * snapd_snap_get_broken:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the reason this snap is broken.
  *
@@ -175,7 +175,7 @@ snapd_snap_get_broken (SnapdSnap *self)
 
 /**
  * snapd_snap_get_categories:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Gets the categories this snap belongs to.
  *
@@ -192,7 +192,7 @@ snapd_snap_get_categories (SnapdSnap *self)
 
 /**
  * snapd_snap_get_channel:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the channel this snap is from, e.g. "stable".
  *
@@ -209,7 +209,7 @@ snapd_snap_get_channel (SnapdSnap *self)
 
 /**
  * snapd_snap_get_channels:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Gets the available channels for this snap.
  *
@@ -241,7 +241,7 @@ parse_risk (const gchar *risk)
 
 /**
  * snapd_snap_match_channel:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  * @name: a channel name.
  *
  * Finds the available channel that best matches the given name.
@@ -287,7 +287,7 @@ snapd_snap_match_channel (SnapdSnap *self, const gchar *name)
 
 /**
  * snapd_snap_get_common_ids:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get common IDs associated with this snap.
  *
@@ -304,7 +304,7 @@ snapd_snap_get_common_ids (SnapdSnap *self)
 
 /**
  * snapd_snap_get_confinement:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the confinement this snap is using, e.g. %SNAPD_CONFINEMENT_STRICT.
  *
@@ -321,7 +321,7 @@ snapd_snap_get_confinement (SnapdSnap *self)
 
 /**
  * snapd_snap_get_contact:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the means of contacting the snap developer, e.g. "mailto:developer@example.com".
  *
@@ -338,7 +338,7 @@ snapd_snap_get_contact (SnapdSnap *self)
 
 /**
  * snapd_snap_get_description:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get a multi-line description of this snap. The description is formatted using
  * a subset of Markdown. To parse this use a #SnapdMarkdownParser.
@@ -356,7 +356,7 @@ snapd_snap_get_description (SnapdSnap *self)
 
 /**
  * snapd_snap_get_developer:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the developer who created this snap.
  *
@@ -374,7 +374,7 @@ snapd_snap_get_developer (SnapdSnap *self)
 
 /**
  * snapd_snap_get_devmode:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get if this snap is running in developer mode.
  *
@@ -391,7 +391,7 @@ snapd_snap_get_devmode (SnapdSnap *self)
 
 /**
  * snapd_snap_get_download_size:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the download size of this snap or 0 if unknown.
  *
@@ -408,7 +408,7 @@ snapd_snap_get_download_size (SnapdSnap *self)
 
 /**
  * snapd_snap_get_hold:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the date this snap will re-enable automatic refreshing or %NULL if no hold is present.
  *
@@ -426,7 +426,7 @@ snapd_snap_get_hold (SnapdSnap *self)
 
 /**
  * snapd_snap_get_icon:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the icon for this Snap, either a URL or an absolute path to retrieve it
  * from snapd directly.
@@ -444,7 +444,7 @@ snapd_snap_get_icon (SnapdSnap *self)
 
 /**
  * snapd_snap_get_id:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Gets the unique ID for this snap.
  *
@@ -461,7 +461,7 @@ snapd_snap_get_id (SnapdSnap *self)
 
 /**
  * snapd_snap_get_install_date:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the date this snap was installed or %NULL if unknown.
  *
@@ -478,7 +478,7 @@ snapd_snap_get_install_date (SnapdSnap *self)
 
 /**
  * snapd_snap_get_installed_size:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the installed size of this snap or 0 if unknown.
  *
@@ -495,7 +495,7 @@ snapd_snap_get_installed_size (SnapdSnap *self)
 
 /**
  * snapd_snap_get_jailmode:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get if this snap is running in enforced confinement (jail) mode.
  *
@@ -512,7 +512,7 @@ snapd_snap_get_jailmode (SnapdSnap *self)
 
 /**
  * snapd_snap_get_license:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Gets the SPDX license expression for this snap, e.g. "GPL-3.0+".
  *
@@ -529,7 +529,7 @@ snapd_snap_get_license (SnapdSnap *self)
 
 /**
  * snapd_snap_get_media:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get media that is associated with this snap.
  *
@@ -546,7 +546,7 @@ snapd_snap_get_media (SnapdSnap *self)
 
 /**
  * snapd_snap_get_mounted_from:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Gets the path this snap is mounted from, which is a .snap file for installed
  * snaps and a directory for snaps in try mode.
@@ -564,7 +564,7 @@ snapd_snap_get_mounted_from (SnapdSnap *self)
 
 /**
  * snapd_snap_get_title:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the title for this snap. If not available use the snap name instead.
  *
@@ -581,7 +581,7 @@ snapd_snap_get_title (SnapdSnap *self)
 
 /**
  * snapd_snap_get_name:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the name of this snap. This is used to reference this snap, e.g. for
  * installing / removing.
@@ -599,7 +599,7 @@ snapd_snap_get_name (SnapdSnap *self)
 
 /**
  * snapd_snap_get_prices:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the prices that this snap can be purchased at.
  *
@@ -616,7 +616,7 @@ snapd_snap_get_prices (SnapdSnap *self)
 
 /**
  * snapd_snap_get_private:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get if this snap is only available to the developer.
  *
@@ -633,7 +633,7 @@ snapd_snap_get_private (SnapdSnap *self)
 
 /**
  * snapd_snap_get_publisher_display_name:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the display name of the publisher who created this snap.
  *
@@ -650,7 +650,7 @@ snapd_snap_get_publisher_display_name (SnapdSnap *self)
 
 /**
  * snapd_snap_get_publisher_id:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the ID of the publisher who created this snap.
  *
@@ -667,7 +667,7 @@ snapd_snap_get_publisher_id (SnapdSnap *self)
 
 /**
  * snapd_snap_get_publisher_username:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the username of the publisher who created this snap.
  *
@@ -684,7 +684,7 @@ snapd_snap_get_publisher_username (SnapdSnap *self)
 
 /**
  * snapd_snap_get_publisher_validation:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the validation for the snap publisher, e.g. %SNAPD_PUBLISHER_VALIDATION_VERIFIED
  *
@@ -701,7 +701,7 @@ snapd_snap_get_publisher_validation (SnapdSnap *self)
 
 /**
  * snapd_snap_get_revision:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the revision for this snap. The format of the string is undefined.
  * See also snapd_snap_get_version().
@@ -719,7 +719,7 @@ snapd_snap_get_revision (SnapdSnap *self)
 
 /**
  * snapd_snap_get_screenshots:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the screenshots that are available for this snap.
  *
@@ -737,7 +737,7 @@ snapd_snap_get_screenshots (SnapdSnap *self)
 
 /**
  * snapd_snap_get_snap_type:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the type of snap, e.g. %SNAPD_SNAP_TYPE_APP
  *
@@ -754,7 +754,7 @@ snapd_snap_get_snap_type (SnapdSnap *self)
 
 /**
  * snapd_snap_get_status:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the current status of this snap, e.g. SNAPD_SNAP_STATUS_INSTALLED.
  *
@@ -771,7 +771,7 @@ snapd_snap_get_status (SnapdSnap *self)
 
 /**
  * snapd_snap_get_store_url:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get a URL to the web snap store, e.g. "https://snapcraft.io/example"
  *
@@ -788,7 +788,7 @@ snapd_snap_get_store_url (SnapdSnap *self)
 
 /**
  * snapd_snap_get_summary:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get a single line summary for this snap, e.g. "Best app ever!".
  *
@@ -805,7 +805,7 @@ snapd_snap_get_summary (SnapdSnap *self)
 
 /**
  * snapd_snap_get_tracking_channel:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the channel that updates will be installed from, e.g. "stable".
  *
@@ -822,7 +822,7 @@ snapd_snap_get_tracking_channel (SnapdSnap *self)
 
 /**
  * snapd_snap_get_tracks:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the tracks that are available.
  *
@@ -839,7 +839,7 @@ snapd_snap_get_tracks (SnapdSnap *self)
 
 /**
  * snapd_snap_get_trymode:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get if this snap is running in try mode (installed locally and able to be
  * directly modified).
@@ -857,7 +857,7 @@ snapd_snap_get_trymode (SnapdSnap *self)
 
 /**
  * snapd_snap_get_version:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the version for this snap. The format of the string is undefined.
  * See also snapd_snap_get_revision().
@@ -875,7 +875,7 @@ snapd_snap_get_version (SnapdSnap *self)
 
 /**
  * snapd_snap_get_website:
- * @snap: a #SnapdSnap.
+ * @self: a #SnapdSnap.
  *
  * Get the website of the snap developer, e.g. "http://example.com".
  *

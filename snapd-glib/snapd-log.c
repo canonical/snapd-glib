@@ -50,7 +50,7 @@ G_DEFINE_TYPE (SnapdLog, snapd_log, G_TYPE_OBJECT)
 
 /**
  * snapd_log_get_timestamp:
- * @log: a #SnapdLog.
+ * @self: a #SnapdLog.
  *
  * Get the time this log was generated.
  *
@@ -67,7 +67,7 @@ snapd_log_get_timestamp (SnapdLog *self)
 
 /**
  * snapd_log_get_message:
- * @log: a #SnapdLog.
+ * @self: a #SnapdLog.
  *
  * Get the message of this log, e.g. "service started"
  *
@@ -84,7 +84,7 @@ snapd_log_get_message (SnapdLog *self)
 
 /**
  * snapd_log_get_sid:
- * @log: a #SnapdLog.
+ * @self: a #SnapdLog.
  *
  * Get the syslog id of this log, e.g. "cups.cups-browsed"
  *
@@ -101,7 +101,7 @@ snapd_log_get_sid (SnapdLog *self)
 
 /**
  * snapd_log_get_pid:
- * @log: a #SnapdLog.
+ * @self: a #SnapdLog.
  *
  * Get the process ID of this log, e.g. "1234"
  *

@@ -46,7 +46,7 @@ G_DEFINE_TYPE (SnapdPlugRef, snapd_plug_ref, G_TYPE_OBJECT)
 
 /**
  * snapd_plug_ref_get_plug:
- * @plug_ref: a #SnapdPlugRef.
+ * @self: a #SnapdPlugRef.
  *
  * Get the name of the plug.
  *
@@ -63,7 +63,7 @@ snapd_plug_ref_get_plug (SnapdPlugRef *self)
 
 /**
  * snapd_plug_ref_get_snap:
- * @plug_ref: a #SnapdPlugRef.
+ * @self: a #SnapdPlugRef.
  *
  * Get the snap this plug is on.
  *

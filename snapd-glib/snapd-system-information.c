@@ -80,7 +80,7 @@ G_DEFINE_TYPE (SnapdSystemInformation, snapd_system_information, G_TYPE_OBJECT)
 
 /**
  * snapd_system_information_get_architecture:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the architecture this system is using, e.g. "amd64".
  *
@@ -97,7 +97,7 @@ snapd_system_information_get_architecture (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_binaries_directory:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the directory snap binaries are stored, e.g. "/snap/bin".
  *
@@ -114,7 +114,7 @@ snapd_system_information_get_binaries_directory (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_build_id:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Gets the unique build ID for the snap build, e.g. "efdd0b5e69b0742fa5e5bad0771df4d1df2459d1"
  *
@@ -131,7 +131,7 @@ snapd_system_information_get_build_id (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_confinement:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the level of confinement the system supports, e.g. %SNAPD_SYSTEM_CONFINEMENT_STRICT.
  *
@@ -148,7 +148,7 @@ snapd_system_information_get_confinement (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_kernel_version:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the version of the kernel snapd is running on, e.g. "4.10.0-15-generic".
  *
@@ -165,7 +165,7 @@ snapd_system_information_get_kernel_version (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_managed:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get if snapd is running on a managed system.
  *
@@ -182,7 +182,7 @@ snapd_system_information_get_managed (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_mount_directory:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the directory snaps are mounted, e.g. "/snap".
  *
@@ -199,7 +199,7 @@ snapd_system_information_get_mount_directory (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_on_classic:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get if this system is a classic system.
  *
@@ -216,7 +216,7 @@ snapd_system_information_get_on_classic (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_os_id:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the operating system ID, e.g. "ubuntu".
  *
@@ -233,7 +233,7 @@ snapd_system_information_get_os_id (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_os_version:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the operating system version, e.g. "16.04".
  *
@@ -250,7 +250,7 @@ snapd_system_information_get_os_version (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_refresh_hold:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the time refreshes will be applied at, or %NULL if they are applied immediately.
  *
@@ -267,7 +267,7 @@ snapd_system_information_get_refresh_hold (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_refresh_last:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the time the last refresh occurred, or %NULL if has not occurred.
  *
@@ -284,7 +284,7 @@ snapd_system_information_get_refresh_last (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_refresh_next:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the time the next refresh is scheduled for, or %NULL if none has been scheduled.
  *
@@ -301,7 +301,7 @@ snapd_system_information_get_refresh_next (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_refresh_schedule:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the schedule when snap refreshes will occur.
  *
@@ -318,7 +318,7 @@ snapd_system_information_get_refresh_schedule (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_refresh_timer:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the timer that refreshes are running to.
  *
@@ -335,7 +335,7 @@ snapd_system_information_get_refresh_timer (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_sandbox_features:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Gets the sandbox features that snapd provides. Each backend in snapd provides
  * a list of features that it supports. For example, the "confinement-options"
@@ -354,7 +354,7 @@ snapd_system_information_get_sandbox_features (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_series:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the series of snapd running, e.g. "16".
  *
@@ -371,7 +371,7 @@ snapd_system_information_get_series (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_store:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the store being used by snapd, e.g. "Ubuntu"
  *
@@ -388,7 +388,7 @@ snapd_system_information_get_store (SnapdSystemInformation *self)
 
 /**
  * snapd_system_information_get_version:
- * @system_information: a #SnapdSystemInformation.
+ * @self: a #SnapdSystemInformation.
  *
  * Get the version of snapd running, e.g. "2.11+ppa174-1".
  *

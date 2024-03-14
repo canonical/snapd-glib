@@ -47,7 +47,7 @@ G_DEFINE_TYPE (SnapdCategory, snapd_category, G_TYPE_OBJECT)
 
 /**
  * snapd_category_get_featured:
- * @category: a #SnapdCategory.
+ * @self: a #SnapdCategory.
  *
  * Get if this snap is featured in this category.
  *
@@ -64,7 +64,7 @@ snapd_category_get_featured (SnapdCategory *self)
 
 /**
  * snapd_category_get_name:
- * @category: a #SnapdCategory.
+ * @self: a #SnapdCategory.
  *
  * Get the name of this category, e.g. "social".
  *

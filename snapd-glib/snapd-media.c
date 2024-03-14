@@ -55,7 +55,7 @@ snapd_media_new (void)
 
 /**
  * snapd_media_get_media_type:
- * @media: a #SnapdMedia.
+ * @self: a #SnapdMedia.
  *
  * Get the type for this media, e.g. "icon" or "screenshot".
  *
@@ -72,7 +72,7 @@ snapd_media_get_media_type (SnapdMedia *self)
 
 /**
  * snapd_media_get_url:
- * @media: a #SnapdMedia.
+ * @self: a #SnapdMedia.
  *
  * Get the URL for this media, e.g. "http://example.com/media.png"
  *
@@ -89,7 +89,7 @@ snapd_media_get_url (SnapdMedia *self)
 
 /**
  * snapd_media_get_width:
- * @media: a #SnapdMedia.
+ * @self: a #SnapdMedia.
  *
  * Get the width of the media in pixels or 0 if unknown.
  *
@@ -106,7 +106,7 @@ snapd_media_get_width (SnapdMedia *self)
 
 /**
  * snapd_media_get_height:
- * @media: a #SnapdMedia.
+ * @self: a #SnapdMedia.
  *
  * Get the height of the media in pixels or 0 if unknown.
  *

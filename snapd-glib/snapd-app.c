@@ -60,7 +60,7 @@ G_DEFINE_TYPE (SnapdApp, snapd_app, G_TYPE_OBJECT)
 
 /**
  * snapd_app_get_name:
- * @app: a #SnapdApp.
+ * @self: a #SnapdApp.
  *
  * Get the name of this app.
  *
@@ -77,7 +77,7 @@ snapd_app_get_name (SnapdApp *self)
 
 /**
  * snapd_app_get_active:
- * @app: a #SnapdApp.
+ * @self: a #SnapdApp.
  *
  * Get if this service is active.
  *
@@ -94,7 +94,7 @@ snapd_app_get_active (SnapdApp *self)
 
 /**
  * snapd_app_get_aliases:
- * @app: a #SnapdApp.
+ * @self: a #SnapdApp.
  *
  * Get the aliases for this app.
  *
@@ -112,7 +112,7 @@ snapd_app_get_aliases (SnapdApp *self)
 
 /**
  * snapd_app_get_common_id:
- * @app: a #SnapdApp.
+ * @self: a #SnapdApp.
  *
  * Get the common ID associated with this app.
  *
@@ -129,7 +129,7 @@ snapd_app_get_common_id (SnapdApp *self)
 
 /**
  * snapd_app_get_daemon_type:
- * @app: a #SnapdApp.
+ * @self: a #SnapdApp.
  *
  * Get the daemon type for this app.
  *
@@ -146,7 +146,7 @@ snapd_app_get_daemon_type (SnapdApp *self)
 
 /**
  * snapd_app_get_desktop_file:
- * @app: a #SnapdApp.
+ * @self: a #SnapdApp.
  *
  * Get the path to the desktop file for this app.
  *
@@ -163,7 +163,7 @@ snapd_app_get_desktop_file (SnapdApp *self)
 
 /**
  * snapd_app_get_enabled:
- * @app: a #SnapdApp.
+ * @self: a #SnapdApp.
  *
  * Get if this service is enabled.
  *
@@ -180,7 +180,7 @@ snapd_app_get_enabled (SnapdApp *self)
 
 /**
  * snapd_app_get_snap:
- * @app: a #SnapdApp.
+ * @self: a #SnapdApp.
  *
  * Get the snap this app is associated with.
  *

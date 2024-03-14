@@ -46,7 +46,7 @@ G_DEFINE_TYPE (SnapdPrice, snapd_price, G_TYPE_OBJECT)
 
 /**
  * snapd_price_get_amount:
- * @price: a #SnapdPrice.
+ * @self: a #SnapdPrice.
  *
  * Get the currency amount for this price, e.g. 0.99.
  *
@@ -63,7 +63,7 @@ snapd_price_get_amount (SnapdPrice *self)
 
 /**
  * snapd_price_get_currency:
- * @price: a #SnapdPrice.
+ * @self: a #SnapdPrice.
  *
  * Get the currency this price is in, e.g. "NZD".
  *

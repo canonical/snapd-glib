@@ -47,7 +47,7 @@ G_DEFINE_TYPE (SnapdIcon, snapd_icon, G_TYPE_OBJECT)
 
 /**
  * snapd_icon_get_mime_type:
- * @icon: a #SnapdIcon.
+ * @self: a #SnapdIcon.
  *
  * Get the mime-type for this icon, e.g. "image/png".
  *
@@ -64,7 +64,7 @@ snapd_icon_get_mime_type (SnapdIcon *self)
 
 /**
  * snapd_icon_get_data:
- * @icon: a #SnapdIcon.
+ * @self: a #SnapdIcon.
  *
  * Get the binary data for this icon.
  *

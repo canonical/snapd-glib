@@ -113,7 +113,7 @@ get_header (const gchar *content, gsize *offset, gsize *name_start, gsize *name_
 
 /**
  * snapd_assertion_get_headers:
- * @assertion: a #SnapdAssertion.
+ * @self: a #SnapdAssertion.
  *
  * Get the headers provided by this assertion.
  *
@@ -145,7 +145,7 @@ snapd_assertion_get_headers (SnapdAssertion *self)
 
 /**
  * snapd_assertion_get_header:
- * @assertion: a #SnapdAssertion.
+ * @self: a #SnapdAssertion.
  * @name: name of the header.
  *
  * Get a header from an assertion.
@@ -201,7 +201,7 @@ get_body_length (SnapdAssertion *self)
 
 /**
  * snapd_assertion_get_body:
- * @assertion: a #SnapdAssertion.
+ * @self: a #SnapdAssertion.
  *
  * Get the body of the assertion.
  *
@@ -223,7 +223,7 @@ snapd_assertion_get_body (SnapdAssertion *self)
 
 /**
  * snapd_assertion_get_signature:
- * @assertion: a #SnapdAssertion.
+ * @self: a #SnapdAssertion.
  *
  * Get the signature of the assertion.
  *

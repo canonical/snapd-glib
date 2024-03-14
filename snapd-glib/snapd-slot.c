@@ -61,7 +61,7 @@ G_DEFINE_TYPE (SnapdSlot, snapd_slot, G_TYPE_OBJECT)
 
 /**
  * snapd_slot_get_name:
- * @slot: a #SnapdSlot.
+ * @self: a #SnapdSlot.
  *
  * Get the name of this slot.
  *
@@ -78,7 +78,7 @@ snapd_slot_get_name (SnapdSlot *self)
 
 /**
  * snapd_slot_get_snap:
- * @slot: a #SnapdSlot.
+ * @self: a #SnapdSlot.
  *
  * Get the snap this slot is on.
  *
@@ -95,7 +95,7 @@ snapd_slot_get_snap (SnapdSlot *self)
 
 /**
  * snapd_slot_get_interface:
- * @slot: a #SnapdSlot.
+ * @self: a #SnapdSlot.
  *
  * Get the name of the interface this slot accepts.
  *
@@ -112,7 +112,7 @@ snapd_slot_get_interface (SnapdSlot *self)
 
 /**
  * snapd_slot_get_attribute_names:
- * @slot: a #SnapdSlot.
+ * @self: a #SnapdSlot.
  * @length: (out) (allow-none): location to write number of attributes or %NULL if not required.
  *
  * Get the names of the attributes this slot has.
@@ -144,7 +144,7 @@ snapd_slot_get_attribute_names (SnapdSlot *self, guint *length)
 
 /**
  * snapd_slot_has_attribute:
- * @slot: a #SnapdSlot.
+ * @self: a #SnapdSlot.
  * @name: an attribute name.
  *
  * Check if this slot has an attribute.
@@ -162,7 +162,7 @@ snapd_slot_has_attribute (SnapdSlot *self, const gchar *name)
 
 /**
  * snapd_slot_get_attribute:
- * @slot: a #SnapdSlot.
+ * @self: a #SnapdSlot.
  * @name: an attribute name.
  *
  * Get an attribute for this interface.
@@ -180,7 +180,7 @@ snapd_slot_get_attribute (SnapdSlot *self, const gchar *name)
 
 /**
  * snapd_slot_get_label:
- * @slot: a #SnapdSlot.
+ * @self: a #SnapdSlot.
  *
  * Get a human readable label for this slot.
  *
@@ -197,7 +197,7 @@ snapd_slot_get_label (SnapdSlot *self)
 
 /**
  * snapd_slot_get_connections:
- * @slot: a #SnapdSlot.
+ * @self: a #SnapdSlot.
  *
  * Get the connections being made with this slot.
  *
@@ -230,7 +230,7 @@ snapd_slot_get_connections (SnapdSlot *self)
 
 /**
  * snapd_slot_get_connected_plugs:
- * @slot: a #SnapdSlot.
+ * @self: a #SnapdSlot.
  *
  * Get the plugs connected to this slot.
  *

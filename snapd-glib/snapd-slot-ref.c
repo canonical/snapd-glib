@@ -46,7 +46,7 @@ G_DEFINE_TYPE (SnapdSlotRef, snapd_slot_ref, G_TYPE_OBJECT)
 
 /**
  * snapd_slot_ref_get_slot:
- * @slot_ref: a #SnapdSlotRef.
+ * @self: a #SnapdSlotRef.
  *
  * Get the name of the slot.
  *
@@ -63,7 +63,7 @@ snapd_slot_ref_get_slot (SnapdSlotRef *self)
 
 /**
  * snapd_slot_ref_get_snap:
- * @slot_ref: a #SnapdSlotRef.
+ * @self: a #SnapdSlotRef.
  *
  * Get the snap this slot is on.
  *
