@@ -87,7 +87,7 @@ public:
     bool devmode () const;
     qint64 downloadSize () const;
     QDateTime hold () const;
-    QDateTime proceed_time () const;
+    QDateTime proceedTime () const;
     QString icon () const;
     QString id () const;
     QDateTime installDate () const;

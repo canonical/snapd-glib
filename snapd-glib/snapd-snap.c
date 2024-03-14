@@ -425,11 +425,22 @@ snapd_snap_get_hold (SnapdSnap *self)
     return self->hold;
 }
 
-
+/**
+ * snapd_snap_get_proceed_time:
+ * @self: a @SnapdSnap
+ *
+ * Returns the date and time after which a refresh is forced for this running snap
+ * in the next auto-refresh. By substracting the current date and time it's possible
+ * to know how many time remains before the snap is forced to be refreshed.
+ *
+ * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
+ *
+ * Since: 1.65
+ */
 GDateTime *
 snapd_snap_get_proceed_time (SnapdSnap *self)
 {
-    g_return_val_if_fail (SNAPD_IS_SNAP (self), 0);
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
     return self->proceed_time;
 }
 
