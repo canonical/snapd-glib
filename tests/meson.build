@@ -49,7 +49,7 @@ foreach qt_major : get_option('qt-bindings')
                                 cpp_args: [ '-DVERSION="@0@"'.format (meson.project_version ()) ],
                                 install_dir: installed_tests_exec_dir,
                                 install: true)
-  test ('Tests (Qt)', test_executable, timeout: 600)
+  test ('f'Tests (Qt@qt_major@)' ', test_executable, timeout: 600)
   test_file = configure_file (input: f'test-qt@qt_major@.test.in',
                               output: f'test-qt@qt_major@.test',
                               configuration: test_data_conf)
@@ -61,7 +61,7 @@ foreach qt_major : get_option('qt-bindings')
                                 link_with: [ mock_snapd_lib ],
                                 install_dir: installed_tests_exec_dir,
                                 install: true)
-  test ('Markdown tests (Qt)', test_executable, timeout: 600)
+  test ('f'Markdown tests (Qt@qt_major@)'', test_executable, timeout: 600)
   test_file = configure_file (input: f'test-markdown-qt@qt_major@.test.in',
                               output: f'test-markdown-qt@qt_major@.test',
                               configuration: test_data_conf)

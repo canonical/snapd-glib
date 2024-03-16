@@ -175,7 +175,7 @@ cmake_conf.set ('includedir', includedir)
 cmake_conf.set ('version', meson.project_version ())
 cmake_conf.set ('library_name', library_name)
 cmake_file = configure_file (input: f'@base_name@Config.cmake.in',
-                              output: f'@base_name@SnapdConfig.cmake',
+                              output: f'@base_name@Config.cmake',
                               configuration: cmake_conf)
 cmake_version_file = configure_file (input: f'@base_name@ConfigVersion.cmake.in',
                                       output: f'@base_name@ConfigVersion.cmake',
