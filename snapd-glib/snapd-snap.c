@@ -427,7 +427,7 @@ snapd_snap_get_hold (SnapdSnap *self)
 
 /**
  * snapd_snap_get_proceed_time:
- * @self: a @SnapdSnap
+ * @snap: a @SnapdSnap
  *
  * Returns the date and time after which a refresh is forced for this running snap
  * in the next auto-refresh. By substracting the current date and time it's possible

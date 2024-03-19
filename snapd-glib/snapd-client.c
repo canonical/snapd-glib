@@ -1945,6 +1945,9 @@ snapd_client_list_finish (SnapdClient *self, GAsyncResult *result, GError **erro
  * Asynchronously get information on installed snaps.
  * See snapd_client_get_snaps_sync() for more information.
  *
+ * When settings the @flags variable, only one of SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE and
+ * SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED can be set. Setting both results in an error.
+ *
  * Since: 1.42
  */
 void
