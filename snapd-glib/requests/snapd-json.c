@@ -586,7 +586,6 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
         g_ptr_array_add (tasks, g_steal_pointer (&t));
     }
 
-
     g_autoptr(GDateTime) main_spawn_time = _snapd_json_get_date_time (object, "spawn-time");
     g_autoptr(GDateTime) main_ready_time = _snapd_json_get_date_time (object, "ready-time");
 

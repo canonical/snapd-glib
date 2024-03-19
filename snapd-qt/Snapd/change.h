@@ -28,6 +28,7 @@ class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject
     Q_PROPERTY(QDateTime spawnTime READ spawnTime)
     Q_PROPERTY(QDateTime readyTime READ readyTime)
     Q_PROPERTY(QString error READ error)
+    Q_PROPERTY(QHash<QString, QStringList> data READ data)
 
 public:
     explicit QSnapdChange (void* snapd_object, QObject* parent = 0);
@@ -42,6 +43,7 @@ public:
     QDateTime spawnTime () const;
     QDateTime readyTime () const;
     QString error () const;
+    QHash<QString, QStringList> data () const;
 };
 
 #endif
