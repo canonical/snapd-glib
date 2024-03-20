@@ -8518,21 +8518,20 @@ test_get_changes_data (void)
     g_assert_no_error (error);
     g_assert_nonnull (changes);
     g_assert_cmpint (changes->len, ==, 1);
-    GHashTable *data = snapd_change_get_data (SNAPD_CHANGE(changes->pdata[0]));
+    SnapdChangeData *data = snapd_change_get_data (SNAPD_CHANGE(changes->pdata[0]));
     g_assert_nonnull (data);
-    g_assert_cmpint (g_hash_table_size (data), ==, 2);
-    GList *snap_names = g_hash_table_lookup (data, "snap-names");
+    GStrv snap_names = snapd_change_data_get_snap_names (data);
     g_assert_nonnull (snap_names);
-    g_assert_cmpint (g_list_length (snap_names), ==, 3);
-    g_assert_true (g_str_equal (g_list_nth_data (snap_names, 0), "snap1"));
-    g_assert_true (g_str_equal (g_list_nth_data (snap_names, 1), "snap2"));
-    g_assert_true (g_str_equal (g_list_nth_data (snap_names, 2), "snap3"));
+    g_assert_cmpint (g_strv_length (snap_names), ==, 3);
+    g_assert_true (g_str_equal (snap_names[0], "snap1"));
+    g_assert_true (g_str_equal (snap_names[1], "snap2"));
+    g_assert_true (g_str_equal (snap_names[2], "snap3"));
 
-    GList *refresh_forced = g_hash_table_lookup (data, "refresh-forced");
+    GStrv refresh_forced = snapd_change_data_get_refresh_forced (data);
     g_assert_nonnull (refresh_forced);
-    g_assert_cmpint (g_list_length (refresh_forced), ==, 2);
-    g_assert_true (g_str_equal (g_list_nth_data (refresh_forced, 0), "snap_forced1"));
-    g_assert_true (g_str_equal (g_list_nth_data (refresh_forced, 1), "snap_forced2"));
+    g_assert_cmpint (g_strv_length (refresh_forced), ==, 2);
+    g_assert_true (g_str_equal (refresh_forced[0], "snap_forced1"));
+    g_assert_true (g_str_equal (refresh_forced[1], "snap_forced2"));
 }
 
 int

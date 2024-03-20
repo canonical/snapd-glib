@@ -86,18 +86,7 @@ QString QSnapdChange::error () const
     return snapd_change_get_error (SNAPD_CHANGE (wrapped_object));
 }
 
-QHash<QString, QStringList> QSnapdChange::data () const
+QSnapdChangeData *QSnapdChange::data () const
 {
-    QHash<QString, QStringList> hash;
-
-    GHashTable *table = snapd_change_get_data (SNAPD_CHANGE (wrapped_object));
-    for (gchar **key = (gchar **)g_hash_table_get_keys_as_array (table, NULL); *key != NULL; key++) {
-        QStringList entries;
-        GList *data = (GList *)g_hash_table_lookup (table, key);
-        for (guint i = 0; i < g_list_length (data); i++) {
-            entries.append ((char *)g_list_nth_data (data, i));
-        }
-        hash.insert (*key, entries);
-    }
-    return hash;
+    return new QSnapdChangeData (SNAPD_CHANGE_DATA (snapd_change_get_data (SNAPD_CHANGE (wrapped_object))), NULL);
 }
