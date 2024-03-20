@@ -8507,6 +8507,7 @@ test_get_changes_data (void)
     JsonNode *node = json_builder_get_root (builder);
 
     mock_change_add_data (c, node);
+    mock_change_set_kind (c, "auto-refresh");
 
     g_autoptr(GError) error = NULL;
     g_assert_true (mock_snapd_start (snapd, &error));
@@ -8518,16 +8519,16 @@ test_get_changes_data (void)
     g_assert_no_error (error);
     g_assert_nonnull (changes);
     g_assert_cmpint (changes->len, ==, 1);
-    SnapdChangeData *data = snapd_change_get_data (SNAPD_CHANGE(changes->pdata[0]));
+    SnapdAutorefreshChangeData *data = SNAPD_AUTOREFRESH_CHANGE_DATA (snapd_change_get_data (SNAPD_CHANGE(changes->pdata[0])));
     g_assert_nonnull (data);
-    GStrv snap_names = snapd_change_data_get_snap_names (data);
+    GStrv snap_names = snapd_autorefresh_change_data_get_snap_names (data);
     g_assert_nonnull (snap_names);
     g_assert_cmpint (g_strv_length (snap_names), ==, 3);
     g_assert_true (g_str_equal (snap_names[0], "snap1"));
     g_assert_true (g_str_equal (snap_names[1], "snap2"));
     g_assert_true (g_str_equal (snap_names[2], "snap3"));
 
-    GStrv refresh_forced = snapd_change_data_get_refresh_forced (data);
+    GStrv refresh_forced = snapd_autorefresh_change_data_get_refresh_forced (data);
     g_assert_nonnull (refresh_forced);
     g_assert_cmpint (g_strv_length (refresh_forced), ==, 2);
     g_assert_true (g_str_equal (refresh_forced[0], "snap_forced1"));

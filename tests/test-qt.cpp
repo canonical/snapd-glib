@@ -908,6 +908,7 @@ test_get_changes_data ()
     JsonNode *node = json_builder_get_root (builder);
 
     mock_change_add_data (c, node);
+    mock_change_set_kind (c, "auto-refresh");
 
     g_assert_true (mock_snapd_start (snapd, NULL));
 
@@ -921,7 +922,9 @@ test_get_changes_data ()
     g_assert_cmpint (changesRequest->changeCount (), ==, 1);
 
     QScopedPointer<QSnapdChange> change (changesRequest->change (0));
-    QScopedPointer<QSnapdChangeData> data (change->data ());
+    QSnapdChangeData *base_data = change->data ();
+    g_assert (base_data != NULL);
+    QScopedPointer<QSnapdAutorefreshChangeData> data (dynamic_cast<QSnapdAutorefreshChangeData *>(base_data));
     g_assert (data != NULL);
     QStringList snap_names = data->snap_names ();
     g_assert_cmpint (snap_names.length (), ==, 3);

@@ -88,5 +88,8 @@ QString QSnapdChange::error () const
 
 QSnapdChangeData *QSnapdChange::data () const
 {
-    return new QSnapdChangeData (SNAPD_CHANGE_DATA (snapd_change_get_data (SNAPD_CHANGE (wrapped_object))), NULL);
+    SnapdAutorefreshChangeData *data = SNAPD_AUTOREFRESH_CHANGE_DATA(snapd_change_get_data (SNAPD_CHANGE (wrapped_object)));
+    if (data == NULL)
+        return NULL;
+    return new QSnapdAutorefreshChangeData (SNAPD_CHANGE_DATA (data), NULL);
 }

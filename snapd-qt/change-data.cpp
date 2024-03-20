@@ -12,30 +12,3 @@
 #include "Snapd/change-data.h"
 
 QSnapdChangeData::QSnapdChangeData (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
-
-static QStringList
-gstrv_to_qstringlist (GStrv data)
-{
-    QStringList retval;
-
-    if (data != NULL)
-        for (gchar **element = data; *element != NULL; element++)
-            retval << *element;
-    return retval;
-}
-
-QStringList QSnapdChangeData::snap_names () const
-{
-    QStringList list;
-
-    GStrv data = snapd_change_data_get_snap_names (SNAPD_CHANGE_DATA (wrapped_object));
-    return gstrv_to_qstringlist (data);
-}
-
-QStringList QSnapdChangeData::refresh_forced () const
-{
-    QStringList list;
-
-    GStrv data = snapd_change_data_get_refresh_forced (SNAPD_CHANGE_DATA (wrapped_object));
-    return gstrv_to_qstringlist (data);
-}

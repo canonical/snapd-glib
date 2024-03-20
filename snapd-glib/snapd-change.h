@@ -16,6 +16,7 @@
 
 #include <glib-object.h>
 #include "snapd-change-data.h"
+#include "snapd-autorefresh-change-data.h"
 
 G_BEGIN_DECLS
 

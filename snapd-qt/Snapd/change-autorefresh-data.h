@@ -7,19 +7,26 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef SNAPD_CHANGE_DATA_H
-#define SNAPD_CHANGE_DATA_H
+#ifndef SNAPD_AUTOREFRESH_CHANGE_DATA_H
+#define SNAPD_AUTOREFRESH_CHANGE_DATA_H
 
 #include <QtCore/QObject>
 #include <QtCore/QStringList>
 #include <Snapd/WrappedObject>
+#include "change-data.h"
 
-class Q_DECL_EXPORT QSnapdChangeData : public QSnapdWrappedObject
+class Q_DECL_EXPORT QSnapdAutorefreshChangeData : public QSnapdChangeData
 {
     Q_OBJECT
 
+    Q_PROPERTY(QStringList snap_names READ snap_names)
+    Q_PROPERTY(QStringList refresh_forced READ refresh_forced)
+
 public:
-    explicit QSnapdChangeData (void* snapd_object, QObject* parent = 0);
+    explicit QSnapdAutorefreshChangeData (void* snapd_object, QObject* parent = 0);
+
+    QStringList snap_names () const;
+    QStringList refresh_forced () const;
 };
 
 

@@ -15,6 +15,7 @@
 #include <Snapd/WrappedObject>
 #include <Snapd/Task>
 #include <Snapd/change-data.h>
+#include <Snapd/change-autorefresh-data.h>
 
 class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject
 {

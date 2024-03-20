@@ -12,11 +12,12 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_CHANGE_DATA  (snapd_change_data_get_type ())
-G_DECLARE_FINAL_TYPE (SnapdChangeData, snapd_change_data, SNAPD, CHANGE_DATA, GObject)
+#define SNAPD_TYPE_CHANGE_DATA snapd_change_data_get_type()
+G_DECLARE_DERIVABLE_TYPE (SnapdChangeData, snapd_change_data, SNAPD, CHANGE_DATA, GObject)
 
-GStrv     snapd_change_data_get_snap_names         (SnapdChangeData *change_data);
-
-GStrv     snapd_change_data_get_refresh_forced     (SnapdChangeData *change_data);
+struct _SnapdChangeDataClass
+{
+  GObjectClass parent_class;
+};
 
 G_END_DECLS
