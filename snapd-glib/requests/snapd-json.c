@@ -589,6 +589,10 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
     SnapdChangeData *data = NULL;
     JsonObject *autorefresh_data = _snapd_json_get_object (object, "data");
     const gchar *kind = _snapd_json_get_string (object, "kind", "");
+
+    // Currently, only one kind of Change can have DATA field, so this is quite "hardcoded". When more
+    // Change kinds have DATA field, new subclasses of SNAPD_TYPE_CHANGE_DATA must be created, and
+    // the code in QT's snapd-change-data.c file must be completed to manage the new types.
     if (g_str_equal (kind, "auto-refresh") && (autorefresh_data != NULL)) {
 
         g_autoptr(JsonArray) snap_names_json = _snapd_json_get_array (autorefresh_data, "snap-names");
