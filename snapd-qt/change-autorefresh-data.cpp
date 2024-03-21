@@ -24,7 +24,7 @@ gstrv_to_qstringlist (GStrv data)
     return retval;
 }
 
-QStringList QSnapdAutorefreshChangeData::snap_names () const
+QStringList QSnapdAutorefreshChangeData::snapNames () const
 {
     QStringList list;
 
@@ -32,7 +32,7 @@ QStringList QSnapdAutorefreshChangeData::snap_names () const
     return gstrv_to_qstringlist (data);
 }
 
-QStringList QSnapdAutorefreshChangeData::refresh_forced () const
+QStringList QSnapdAutorefreshChangeData::refreshForced () const
 {
     QStringList list;
 

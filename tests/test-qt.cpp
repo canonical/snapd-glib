@@ -926,13 +926,13 @@ test_get_changes_data ()
     g_assert (base_data != NULL);
     QScopedPointer<QSnapdAutorefreshChangeData> data (dynamic_cast<QSnapdAutorefreshChangeData *>(base_data));
     g_assert (data != NULL);
-    QStringList snap_names = data->snap_names ();
+    QStringList snap_names = data->snapNames ();
     g_assert_cmpint (snap_names.length (), ==, 3);
     g_assert_true (snap_names[0] == "snap1");
     g_assert_true (snap_names[1] == "snap2");
     g_assert_true (snap_names[2] == "snap3");
 
-    QStringList refresh_forced = data->refresh_forced ();
+    QStringList refresh_forced = data->refreshForced ();
     g_assert_cmpint (refresh_forced.length (), ==, 2);
     g_assert_true (refresh_forced[0] == "snap_forced1");
     g_assert_true (refresh_forced[1] == "snap_forced2");

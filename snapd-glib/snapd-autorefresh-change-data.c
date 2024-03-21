@@ -33,7 +33,8 @@ static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
  * return: (transfer none): a GStrv with the snap names, or NULL if the property wasn't defined
  */
 GStrv
-snapd_autorefresh_change_data_get_snap_names         (SnapdAutorefreshChangeData *self) {
+snapd_autorefresh_change_data_get_snap_names (SnapdAutorefreshChangeData *self) {
+    g_return_val_if_fail (SNAPD_IS_AUTOREFRESH_CHANGE_DATA (self), NULL);
     return self->snap_names;
 }
 
@@ -44,7 +45,8 @@ snapd_autorefresh_change_data_get_snap_names         (SnapdAutorefreshChangeData
  * return: (transfer none): a GStrv with the snap names, or NULL if the property wasn't defined
  */
 GStrv
-snapd_autorefresh_change_data_get_refresh_forced     (SnapdAutorefreshChangeData *self) {
+snapd_autorefresh_change_data_get_refresh_forced (SnapdAutorefreshChangeData *self) {
+    g_return_val_if_fail (SNAPD_IS_AUTOREFRESH_CHANGE_DATA (self), NULL);
     return self->refresh_forced;
 }
 

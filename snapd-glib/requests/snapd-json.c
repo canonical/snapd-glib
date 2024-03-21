@@ -596,10 +596,10 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
     if (g_str_equal (kind, "auto-refresh") && (autorefresh_data != NULL)) {
 
         g_autoptr(JsonArray) snap_names_json = _snapd_json_get_array (autorefresh_data, "snap-names");
-        GStrv snap_names = create_str_array_from_jsonarray (snap_names_json);
+        g_auto(GStrv) snap_names = create_str_array_from_jsonarray (snap_names_json);
 
         g_autoptr(JsonArray) refresh_forced_json = _snapd_json_get_array (autorefresh_data, "refresh-forced");
-        GStrv refresh_forced = create_str_array_from_jsonarray (refresh_forced_json);
+        g_auto(GStrv) refresh_forced = create_str_array_from_jsonarray (refresh_forced_json);
 
         data = g_object_new (SNAPD_TYPE_AUTOREFRESH_CHANGE_DATA,
                              "snap-names", snap_names,
