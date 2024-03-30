@@ -19,7 +19,9 @@ includedir = join_paths (get_option ('prefix'), get_option ('includedir'))
 libdir = join_paths (get_option ('prefix'), get_option ('libdir'))
 
 subdir ('snapd-glib')
-subdir ('snapd-qt')
+if get_option('qt5') or get_option('qt6')
+    subdir ('snapd-qt')
+endif
 subdir ('tests')
 subdir ('examples')
 subdir ('doc')

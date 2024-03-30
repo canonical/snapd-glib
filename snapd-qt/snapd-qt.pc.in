@@ -8,4 +8,4 @@ Description: Library for accessing snapd
 Version: @VERSION@
 Libs: -L${libdir} -lsnapd-qt
 Cflags: -I${includedir}/snapd-qt
-Requires: Qt5Core
+Requires: @pc_required_qt@

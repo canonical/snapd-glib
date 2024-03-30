@@ -1,37 +1,40 @@
-foreach qt_major : get_option('qt-bindings')
+if get_option('qt5') and get_option('qt6')
+    error('Both the "qt5" and "qt6" bindings are selected, snapd-glib only supports building one Qt major version at a time.')
+endif
 
-if qt_major == '5'
-    qt_major_version = '5'
+if get_option('qt5')
     qt_min_version = '5.15'
     qt_version = 'qt5'
+    qt_core_camel = 'Qt5Core'
     description = 'Snapd Qt'
-    base_name = 'Snapd'
+    cmake_base_name = 'SnapdQt5'
     library_name = 'snapd-qt'
-    qt_name= 'Snapd'
     qt_core_dep = dependency ('qt5', modules: [ 'Core' ])
     qt_network_dep = dependency ('qt5', modules: [ 'Network' ])
     qml_dep = dependency ('qt5', modules: [ 'Qml' ])
-else
-    qt_major_version = '6'
+endif
+
+if get_option('qt6')
     qt_min_version = '6.2.4'
     qt_version = 'qt6'
-    description = 'Snapd Qt6'
-    base_name = 'SnapdQt6'
-    library_name = 'snapd-qt6'
-    qt_name= 'SnapdQt6'
+    qt_core_camel = 'Qt6Core'
+    description = 'Snapd Qt'
+    cmake_base_name = 'SnapdQt6'
+    library_name = 'snapd-qt'
     qt6_core_dep = dependency ('qt6', modules: [ 'Core' ])
     qt6_network_dep = dependency ('qt6', modules: [ 'Network' ])
     qml_dep = dependency ('qt6', modules: [ 'Qml' ])
 endif
 
+qt_name = 'Snapd'
 if not get_option('soup2')
       library_name += '-2'
       qt_name += '2'
 endif
 
-qt = import(f'qt@qt_major_version@')
+qt = import(qt_version)
 qt_dep = dependency(
-    f'qt@qt_major_version@',
+    qt_version,
     modules: ['Core', 'Network'],
     version: f'>= @qt_min_version@',
     include_type: 'system'
@@ -160,11 +163,13 @@ install_headers (source_h + source_alias_h,
                   install_dir: install_header_dir)
 
 pc = import ('pkgconfig')
+pc_required_qt=f'@qt_core_camel@'
 pc.generate (libraries: snapd_qt_lib,
               filebase: library_name,
-              name: f'@description@',
+              name: 'Snapd Qt',
               description: 'Library for accessing snapd',
-              version: meson.project_version ())
+              version: meson.project_version (),
+              requires: pc_required_qt,)
 
 install_data ('qmldir',
               install_dir: qml_dir)
@@ -174,11 +179,11 @@ cmake_conf.set ('libdir', libdir)
 cmake_conf.set ('includedir', includedir)
 cmake_conf.set ('version', meson.project_version ())
 cmake_conf.set ('library_name', library_name)
-cmake_file = configure_file (input: f'@base_name@Config.cmake.in',
-                              output: f'@base_name@Config.cmake',
+cmake_file = configure_file (input: f'@cmake_base_name@Config.cmake.in',
+                              output: 'SnapdConfig.cmake',
                               configuration: cmake_conf)
-cmake_version_file = configure_file (input: f'@base_name@ConfigVersion.cmake.in',
-                                      output: f'@base_name@ConfigVersion.cmake',
+cmake_version_file = configure_file (input: f'@cmake_base_name@ConfigVersion.cmake.in',
+                                      output: 'SnapdConfigVersion.cmake',
                                       configuration: cmake_conf)
 install_data (cmake_file, cmake_version_file,
               install_dir: cmake_dir)
@@ -196,6 +201,3 @@ install_data (cmake_file, cmake_version_file,
               install: true,
               install_dir: qml_dir)
   endif
-
-# end of Qt version loop
-endforeach
