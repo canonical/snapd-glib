@@ -75,9 +75,25 @@ struct _MockSnapd
     GHashTable *icon_theme_status;
     GHashTable *sound_theme_status;
     GList *logs;
+    GList *notices;
 };
 
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
+
+struct _MockNotice
+{
+    gchar *id;
+    gchar *user_id;
+    gchar *key;
+    GDateTime *first_occurred;
+    GDateTime *last_occurred;
+    GDateTime *last_repeated;
+    int occurrences;
+    gchar *expire_after;
+    gchar *repeat_after;
+    gchar *type;
+    GHashTable *last_data;
+};
 
 struct _MockAccount
 {
@@ -282,6 +298,21 @@ struct _MockTrack
     gchar *name;
     GList *channels;
 };
+
+static void
+mock_notice_free (MockNotice *notice)
+{
+    g_free (notice->id);
+    g_free (notice->user_id);
+    g_free (notice->key);
+    g_free (notice->type);
+    g_free (notice->expire_after);
+    g_free (notice->repeat_after);
+    g_date_time_unref (notice->first_occurred);
+    g_date_time_unref (notice->last_occurred);
+    g_date_time_unref (notice->last_repeated);
+    g_hash_table_unref (notice->last_data);
+}
 
 static void
 mock_alias_free (MockAlias *alias)
@@ -649,6 +680,53 @@ mock_snapd_add_account (MockSnapd *self, const gchar *email, const gchar *userna
     g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&self->mutex);
 
     return add_account (self, email, username, password);
+}
+
+MockNotice *
+mock_snapd_add_notice (MockSnapd *self, const gchar *id, const gchar *key, const gchar *type)
+{
+    g_return_val_if_fail (MOCK_IS_SNAPD (self), NULL);
+    MockNotice *notice = g_slice_new0 (MockNotice);
+    notice->id = g_strdup (id);
+    notice->key = g_strdup (key);
+    notice->type = g_strdup (type);
+    notice->last_data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    self->notices = g_list_append (self->notices, notice);
+
+    return notice;
+}
+
+void
+mock_notice_set_user_id (MockNotice *self, const gchar *user_id)
+{
+    self->user_id = g_strdup (user_id);
+}
+
+void
+mock_notice_set_dates (MockNotice *self, GDateTime *first_occurred, GDateTime *last_occurred, GDateTime *last_repeated, int occurrences)
+{
+    self->first_occurred = g_date_time_ref (first_occurred);
+    self->last_occurred = g_date_time_ref (last_occurred);
+    self->last_repeated = g_date_time_ref (last_repeated);
+    self->occurrences = occurrences;
+}
+
+void
+mock_notice_set_expire_after (MockNotice *self, const gchar *expire_after)
+{
+    self->expire_after = g_strdup (expire_after);
+}
+
+void
+mock_notice_set_repeat_after (MockNotice *self, const gchar *repeat_after)
+{
+    self->repeat_after = g_strdup (repeat_after);
+}
+
+void
+mock_notice_add_data_pair (MockNotice *self, const gchar *entry, const gchar *data)
+{
+    g_hash_table_insert (self->last_data, g_strdup (entry), g_strdup (data));
 }
 
 void
@@ -5096,6 +5174,86 @@ handle_logs (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 }
 
 static void
+handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
+{
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
+    const gchar *method = message->method;
+#endif
+
+    if (strcmp (method, "GET") != 0) {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
+    json_builder_begin_array (builder);
+
+    for (GList *link = self->notices; link; link = link->next) {
+        MockNotice *notice = link->data;
+        json_builder_begin_object (builder);
+        json_builder_set_member_name (builder, "id");
+        json_builder_add_string_value (builder, notice->id);
+        json_builder_set_member_name (builder, "user-id");
+        if (notice->user_id == NULL) {
+            json_builder_add_null_value (builder);
+        } else {
+            int v = atoi(notice->user_id);
+            if (v != 0)
+                json_builder_add_int_value (builder, v);
+            else
+                json_builder_add_string_value (builder, notice->user_id);
+        }
+        json_builder_set_member_name (builder, "type");
+        json_builder_add_string_value (builder, notice->type);
+        json_builder_set_member_name (builder, "key");
+        json_builder_add_string_value (builder, notice->key);
+        if (notice->first_occurred) {
+            json_builder_set_member_name (builder, "first-occurred");
+            g_autofree gchar *date = g_date_time_format_iso8601 (notice->first_occurred);
+            json_builder_add_string_value (builder, date);
+            json_builder_set_member_name (builder, "occurrences");
+            json_builder_add_int_value (builder, notice->occurrences);
+        }
+        if (notice->last_occurred) {
+            json_builder_set_member_name (builder, "last-occurred");
+            g_autofree gchar *date = g_date_time_format_iso8601 (notice->last_occurred);
+            json_builder_add_string_value (builder, date);
+        }
+        if (notice->last_repeated) {
+            json_builder_set_member_name (builder, "last-repeated");
+            g_autofree gchar *date = g_date_time_format_iso8601 (notice->last_repeated);
+            json_builder_add_string_value (builder, date);
+        }
+        if (notice->expire_after) {
+            json_builder_set_member_name (builder, "expire-after");
+            json_builder_add_string_value (builder, notice->expire_after);
+        }
+        if (notice->repeat_after) {
+            json_builder_set_member_name (builder, "repeat-after");
+            json_builder_add_string_value (builder, notice->repeat_after);
+        }
+        guint data_size = g_hash_table_size (notice->last_data);
+        if (data_size != 0) {
+            gchar **keys = (gchar **)g_hash_table_get_keys_as_array (notice->last_data, NULL);
+            json_builder_set_member_name (builder, "last-data");
+            json_builder_begin_object (builder);
+            for (guint i=0; i<data_size; i++) {
+                gchar *value = g_hash_table_lookup (notice->last_data, keys[i]);
+                json_builder_set_member_name (builder, keys[i]);
+                json_builder_add_string_value (builder, value);
+            }
+            json_builder_end_object (builder);
+        }
+        json_builder_end_object (builder);
+    }
+    json_builder_end_array (builder);
+
+    send_sync_response (self, message, 200, json_builder_get_root (builder), NULL);
+}
+
+static void
 handle_request (SoupServer        *server,
                 SoupServerMessage *message,
                 const char        *path,
@@ -5189,6 +5347,8 @@ handle_request (SoupServer        *server,
         handle_change (self, message, path + strlen ("/v2/accessories/changes/"));
     else if (strcmp (path, "/v2/logs") == 0)
         handle_logs (self, message, query);
+    else if (strcmp (path, "/v2/notices") == 0)
+        handle_notices (self, message, query);
     else
         send_error_not_found (self, message, "not found", NULL);
 }
@@ -5265,6 +5425,8 @@ mock_snapd_finalize (GObject *object)
     g_clear_pointer (&self->sound_theme_status, g_hash_table_unref);
     g_clear_pointer (&self->context, g_main_context_unref);
     g_clear_pointer (&self->loop, g_main_loop_unref);
+    g_list_free_full (self->notices, (GDestroyNotify) mock_notice_free);
+    self->notices = NULL;
 
     g_cond_clear (&self->condition);
     g_mutex_clear (&self->mutex);

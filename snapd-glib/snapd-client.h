@@ -25,6 +25,7 @@
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-change.h>
 #include <snapd-glib/snapd-user-information.h>
+#include <snapd-glib/snapd-notice.h>
 
 G_BEGIN_DECLS
 
@@ -1280,6 +1281,13 @@ void                    snapd_client_follow_logs_async             (SnapdClient 
 gboolean                snapd_client_follow_logs_finish            (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
+
+void
+snapd_client_get_notices_async (SnapdClient *client,
+                                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
+GSList *
+snapd_client_get_notices_finish (SnapdClient *client, GAsyncResult *result, GError **error);
 
 G_END_DECLS
 
