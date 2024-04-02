@@ -27,7 +27,7 @@ SnapdGetNotices *_snapd_get_notices_new      (gchar               *user_id,
                                               GAsyncReadyCallback  callback,
                                               gpointer             user_data);
 
-GSList          *_snapd_get_notices_get_notices (SnapdGetNotices *request);
+GPtrArray       *_snapd_get_notices_get_notices (SnapdGetNotices *request);
 
 G_END_DECLS
 

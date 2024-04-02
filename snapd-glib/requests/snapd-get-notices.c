@@ -20,7 +20,7 @@ struct _SnapdGetNotices
     GDateTime *from_date_time;
     GTimeSpan timeout;
 
-    GSList *notices;
+    GPtrArray *notices;
 };
 
 G_DEFINE_TYPE (SnapdGetNotices, snapd_get_notices, snapd_request_get_type ())
@@ -120,11 +120,12 @@ parse_get_snap_response (SnapdRequest *request, guint status_code, const gchar *
     if (result == NULL)
         return FALSE;
 
-    g_autoptr(GSList) notice = _snapd_json_parse_notice (result, error);
+    g_autoptr(GPtrArray) notice = _snapd_json_parse_notice (result, error);
     json_node_unref (result);
     if (notice == NULL)
         return FALSE;
-
+    if (self->notices != NULL)
+        g_ptr_array_unref (self->notices);
     self->notices = g_steal_pointer (&notice);
 
     return TRUE;
@@ -143,7 +144,7 @@ snapd_get_notices_finalize (GObject *object)
     G_OBJECT_CLASS (snapd_get_notices_parent_class)->finalize (object);
 }
 
-GSList *
+GPtrArray *
 _snapd_get_notices_get_notices (SnapdGetNotices *self)
 {
     return self->notices;

@@ -669,7 +669,7 @@ create_str_array_from_jsonarray (JsonArray *data) {
 static void
 add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data)
 {
-    GSList **list = (GSList **) data;
+    GPtrArray *list = (GPtrArray *) data;
     GTimeSpan expire_after;
     GTimeSpan repeat_after;
     g_autoptr(GHashTable) last_data = NULL;
@@ -723,10 +723,10 @@ add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data
                                                   "last-data", last_data,
                                                   NULL);
 
-    *list = g_slist_append (*list, g_object_ref(notice));
+    g_ptr_array_add (list, g_object_ref(notice));
 }
 
-GSList *
+GPtrArray *
 _snapd_json_parse_notice (JsonNode *node, GError **error)
 {
     if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
@@ -736,9 +736,9 @@ _snapd_json_parse_notice (JsonNode *node, GError **error)
                      "Unexpected change type");
         return NULL;
     }
-    GSList *retlist = NULL;
     JsonArray *notices = json_node_get_array (node);
-    json_array_foreach_element (notices, add_notice_to_list, &retlist);
+    GPtrArray *retlist = g_ptr_array_new_full(json_array_get_length (notices), g_object_unref);
+    json_array_foreach_element (notices, add_notice_to_list, retlist);
 
     return retlist;
 }

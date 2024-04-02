@@ -1286,7 +1286,7 @@ void
 snapd_client_get_notices_async (SnapdClient *client,
                                 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
 
-GSList *
+GPtrArray *
 snapd_client_get_notices_finish (SnapdClient *client, GAsyncResult *result, GError **error);
 
 G_END_DECLS

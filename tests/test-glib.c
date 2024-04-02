@@ -8579,13 +8579,13 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
-    GSList *notices = snapd_client_get_notices_finish (source_object, result, &error);
+    GPtrArray *notices = snapd_client_get_notices_finish (source_object, result, &error);
     g_assert_no_error (error);
     g_assert_true (notices != NULL);
-    g_assert_true (g_slist_length (notices) == 2);
+    g_assert_true (notices->len == 2);
 
-    SnapdNotice *notice1 = notices->data;
-    SnapdNotice *notice2 = notices->next->data;
+    SnapdNotice *notice1 = notices->pdata[0];
+    SnapdNotice *notice2 = notices->pdata[1];
 
     g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
     g_assert_true (snapd_notice_get_user_id (notice1) == NULL);
@@ -8642,7 +8642,13 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
 
     g_assert_cmpstr (g_hash_table_lookup (notice_data, "kind"), ==, "change-kind");
 
-    g_main_loop_quit (data->loop);
+    // Test it twice, to ensure that multiple calls do work
+    if (data->counter == 0) {
+        data->counter++;
+        snapd_client_get_notices_async (source_object, NULL, (GAsyncReadyCallback) test_notices_events_cb, data);
+    } else {
+        g_main_loop_quit (data->loop);
+    }
 }
 
 static void

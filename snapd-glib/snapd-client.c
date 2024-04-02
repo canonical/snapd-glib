@@ -1368,11 +1368,11 @@ snapd_client_get_notices_async (SnapdClient *self,
  *
  * Complete request started with snapd_client_get_notices_async().
  *
- * Returns: (transfer full) (element-type GSList): a list of #SnapdNotice or %NULL on error.
+ * Returns: (transfer full) (element-type GPtrArray): a list of #SnapdNotice or %NULL on error.
  *
  * Since: 1.29
  */
-GSList *
+GPtrArray *
 snapd_client_get_notices_finish (SnapdClient *self, GAsyncResult *result, GError **error)
 {
     g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
