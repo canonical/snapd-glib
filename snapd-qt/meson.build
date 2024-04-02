@@ -3,7 +3,7 @@ if get_option('qt5') and get_option('qt6')
 endif
 
 if get_option('qt5')
-    qt_min_version = '5.15'
+    qt_min_version = '5.9.5'
     qt_version = 'qt5'
     qt_core_camel = 'Qt5Core'
     description = 'Snapd Qt'
