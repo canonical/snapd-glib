@@ -21,6 +21,7 @@ jobs:
         include:
           - image: ubuntu:22.04
             soup: libsoup2
+            qt: qt6
           - image: ubuntu:20.04
             soup: libsoup2
             qt: qt5
