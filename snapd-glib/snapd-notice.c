@@ -130,7 +130,7 @@ snapd_notice_get_key (SnapdNotice *self)
 }
 
 /**
- * snapd_notice_get_data:
+ * snapd_notice_get_last_data:
  * @notice: a #SnapdNotice.
  *
  * Get the data of the notice.
@@ -140,7 +140,7 @@ snapd_notice_get_key (SnapdNotice *self)
  * Since: 1.65
  */
 GHashTable *
-snapd_notice_get_data (SnapdNotice *self)
+snapd_notice_get_last_data (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
     return self->data;

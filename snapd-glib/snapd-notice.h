@@ -45,7 +45,7 @@ const GDateTime       *snapd_notice_get_last_repeated  (SnapdNotice *notice);
 
 const gint             snapd_notice_get_occurrences    (SnapdNotice *notice);
 
-GHashTable            *snapd_notice_get_data           (SnapdNotice *notice);
+GHashTable            *snapd_notice_get_last_data      (SnapdNotice *notice);
 
 const GTimeSpan        snapd_notice_get_repeat_after   (SnapdNotice *notice);
 
