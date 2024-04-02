@@ -507,16 +507,6 @@ parse_error_response (JsonObject *root, JsonNode **error_value, GError **error)
     }
 }
 
-void print_data(gchar *prefix, GBytes *bytes) {
-    gsize l;
-    const void *data = g_bytes_get_data (bytes, &l);
-    gchar *s = g_malloc (l+1);
-    memcpy(s, data, l);
-    *(s+l) = 0;
-    g_print("%s%s\n",prefix, s);
-    g_free(s);
-}
-
 JsonObject *
 _snapd_json_parse_response (const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, JsonNode **error_value, GError **error)
 {
