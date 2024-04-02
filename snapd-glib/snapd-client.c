@@ -1342,6 +1342,41 @@ snapd_client_get_auth_data (SnapdClient *self)
 /**
  * snapd_client_get_notices_async:
  * @client: a #SnapdClient.
+ * @from_date_time: send only the notices generated after this moment (NULL for all).
+ * @timeout: time, in microseconds, to wait for a new notice (zero to return immediately).
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get notifications that have occurred / are occurring on the snap daemon.
+ *
+ * Since: 1.65
+ */
+void
+snapd_client_get_notices_async (SnapdClient *self,
+                                GDateTime *from_date_time,
+                                GTimeSpan timeout,
+                                GCancellable *cancellable,
+                                GAsyncReadyCallback callback,
+                                gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    snapd_client_get_notices_with_filters_async (self,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 from_date_time,
+                                                 timeout,
+                                                 cancellable,
+                                                 callback,
+                                                 user_data);
+}
+
+/**
+ * snapd_client_get_notices_with_filters_async:
+ * @client: a #SnapdClient.
  * @user_id: filter by this user-id (NULL for no filter).
  * @users: filter by this comma-separated list of users (NULL for no filter).
  * @types: filter by this comma-separated list of types (NULL for no filter).
@@ -1357,16 +1392,16 @@ snapd_client_get_auth_data (SnapdClient *self)
  * Since: 1.65
  */
 void
-snapd_client_get_notices_async (SnapdClient *self,
-                                gchar *user_id,
-                                gchar *users,
-                                gchar *types,
-                                gchar *keys,
-                                GDateTime *from_date_time,
-                                GTimeSpan timeout,
-                                GCancellable *cancellable,
-                                GAsyncReadyCallback callback,
-                                gpointer user_data)
+snapd_client_get_notices_with_filters_async (SnapdClient *self,
+                                             gchar *user_id,
+                                             gchar *users,
+                                             gchar *types,
+                                             gchar *keys,
+                                             GDateTime *from_date_time,
+                                             GTimeSpan timeout,
+                                             GCancellable *cancellable,
+                                             GAsyncReadyCallback callback,
+                                             gpointer user_data)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (self));
 

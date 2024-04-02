@@ -1284,6 +1284,14 @@ gboolean                snapd_client_follow_logs_finish            (SnapdClient 
 
 void
 snapd_client_get_notices_async                                     (SnapdClient          *client,
+                                                                    GDateTime            *from_date_time,
+                                                                    GTimeSpan             timeout,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+
+void
+snapd_client_get_notices_with_filters_async                        (SnapdClient          *client,
                                                                     gchar                *user_id,
                                                                     gchar                *users,
                                                                     gchar                *types,

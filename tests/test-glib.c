@@ -8651,10 +8651,6 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
         data->counter++;
         snapd_client_get_notices_async (source_object,
                                         NULL,
-                                        NULL,
-                                        NULL,
-                                        NULL,
-                                        NULL,
                                         0,
                                         NULL,
                                         (GAsyncReadyCallback) test_notices_events_cb,
@@ -8701,10 +8697,6 @@ test_notices_events (void)
 
     snapd_client_get_notices_async (client,
                                     NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
                                     0,
                                     NULL,
                                     (GAsyncReadyCallback) test_notices_events_cb,
@@ -8749,10 +8741,6 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
         data->counter++;
         snapd_client_get_notices_async (source_object,
                                         NULL,
-                                        NULL,
-                                        NULL,
-                                        NULL,
-                                        NULL,
                                         0,
                                         NULL,
                                         (GAsyncReadyCallback) test_notices_minimal_data_events_cb,
@@ -8779,10 +8767,6 @@ test_notices_events_with_minimal_data (void)
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
     snapd_client_get_notices_async (client,
-                                    NULL,
-                                    NULL,
-                                    NULL,
-                                    NULL,
                                     NULL,
                                     0,
                                     NULL,
