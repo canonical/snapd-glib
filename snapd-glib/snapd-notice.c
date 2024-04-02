@@ -204,7 +204,7 @@ snapd_notice_get_last_repeated (SnapdNotice *self)
  *
  * Get the number of times that this notification has been triggered.
  *
- * Returns: a #gint.
+ * Returns: a count.
  *
  * Since: 1.65
  */
