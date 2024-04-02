@@ -147,6 +147,7 @@ snapd_get_notices_finalize (GObject *object)
 GPtrArray *
 _snapd_get_notices_get_notices (SnapdGetNotices *self)
 {
+    g_return_val_if_fail (SNAPD_IS_GET_NOTICES (self), NULL);
     return self->notices;
 }
 
