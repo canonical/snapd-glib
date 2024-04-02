@@ -16,17 +16,17 @@ jobs:
           - fedora:latest
         soup:
           - libsoup3
-	qt:
-	  - qt6
+        qt:
+          - qt6
         include:
           - image: ubuntu:22.04
             soup: libsoup2
           - image: ubuntu:20.04
             soup: libsoup2
-	    qt: qt5
+            qt: qt5
           - image: ubuntu:18.04
             soup: libsoup2
-	    qt: qt5
+            qt: qt5
 
     runs-on: ubuntu-latest
     container: ${{ matrix.image }}
