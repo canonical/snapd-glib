@@ -40,7 +40,7 @@ jobs:
         if: startsWith(matrix.image, 'ubuntu:')
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gtk-doc-tools libgirepository1.0-dev libglib2.0-dev libjson-glib-dev ninja-build python3-pip python3-setuptools python3-wheel qtbase5-dev qtdeclarative5-dev valac
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gtk-doc-tools libgirepository1.0-dev libglib2.0-dev libjson-glib-dev ninja-build python3-pip python3-setuptools python3-wheel qtbase5-dev qtdeclarative5-dev qt6-base-dev qt6-declarative-dev valac
 
       - name: Install libsoup3 dependencies (Ubuntu)
         if: startsWith(matrix.image, 'ubuntu:') && matrix.soup == 'libsoup3'
