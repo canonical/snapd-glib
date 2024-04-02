@@ -5211,19 +5211,19 @@ handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         json_builder_add_string_value (builder, notice->key);
         if (notice->first_occurred) {
             json_builder_set_member_name (builder, "first-occurred");
-            g_autofree gchar *date = g_date_time_format_iso8601 (notice->first_occurred);
+            g_autofree gchar *date = g_date_time_format (notice->first_occurred, "%FT%T%z");
             json_builder_add_string_value (builder, date);
             json_builder_set_member_name (builder, "occurrences");
             json_builder_add_int_value (builder, notice->occurrences);
         }
         if (notice->last_occurred) {
             json_builder_set_member_name (builder, "last-occurred");
-            g_autofree gchar *date = g_date_time_format_iso8601 (notice->last_occurred);
+            g_autofree gchar *date = g_date_time_format (notice->last_occurred, "%FT%T%z");
             json_builder_add_string_value (builder, date);
         }
         if (notice->last_repeated) {
             json_builder_set_member_name (builder, "last-repeated");
-            g_autofree gchar *date = g_date_time_format_iso8601 (notice->last_repeated);
+            g_autofree gchar *date = g_date_time_format (notice->last_repeated, "%FT%T%z");
             json_builder_add_string_value (builder, date);
         }
         if (notice->expire_after) {

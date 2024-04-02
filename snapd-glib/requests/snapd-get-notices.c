@@ -91,7 +91,7 @@ generate_get_snap_request (SnapdRequest *request, GBytes **body)
     add_uri_list (query, "types", self->types);
     add_uri_list (query, "keys", self->keys);
     if (self->from_date_time != NULL) {
-        g_autofree gchar *date_time = g_date_time_format_iso8601 (self->from_date_time);
+        g_autofree gchar *date_time = g_date_time_format (self->from_date_time, "%FT%T%z");
         add_uri_parameter (query, "after", date_time);
     }
     if (self->timeout != 0) {
