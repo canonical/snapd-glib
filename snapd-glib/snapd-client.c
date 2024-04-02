@@ -1348,7 +1348,7 @@ snapd_client_get_auth_data (SnapdClient *self)
  *
  * Asynchronously get notifications that have occurred / are occurring on the snap daemon.
  *
- * Since: 1.29
+ * Since: 1.65
  */
 void
 snapd_client_get_notices_async (SnapdClient *self,
@@ -1370,7 +1370,7 @@ snapd_client_get_notices_async (SnapdClient *self,
  *
  * Returns: (transfer full) (element-type GPtrArray): a list of #SnapdNotice or %NULL on error.
  *
- * Since: 1.29
+ * Since: 1.65
  */
 GPtrArray *
 snapd_client_get_notices_finish (SnapdClient *self, GAsyncResult *result, GError **error)
