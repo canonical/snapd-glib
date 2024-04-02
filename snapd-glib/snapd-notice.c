@@ -67,7 +67,7 @@ G_DEFINE_TYPE (SnapdNotice, snapd_notice, G_TYPE_OBJECT)
  *
  * Get the unique ID for this notice.
  *
- * Returns: (transfer none): an ID.
+ * Returns: an ID.
  *
  * Since: 1.65
  */
@@ -84,7 +84,7 @@ snapd_notice_get_id (SnapdNotice *self)
  *
  * Get the user ID for this notice, or NULL if no user is defined
  *
- * Returns: (transfer none): an user ID.
+ * Returns: an user ID.
  *
  * Since: 1.65
  */
@@ -118,7 +118,7 @@ snapd_notice_get_notice_type (SnapdNotice *self)
  *
  * Get the notice-id or the instance-name, depending on the type.
  *
- * Returns: (transfer none): a string with the key.
+ * Returns: a string with the key.
  *
  * Since: 1.65
  */
