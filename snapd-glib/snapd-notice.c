@@ -22,7 +22,7 @@
  *
  * #SnapdNotice contains information on a notification element.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 
 enum
@@ -69,7 +69,7 @@ G_DEFINE_TYPE (SnapdNotice, snapd_notice, G_TYPE_OBJECT)
  *
  * Returns: (transfer none): an ID.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 const gchar *
 snapd_notice_get_id (SnapdNotice *self)
@@ -86,7 +86,7 @@ snapd_notice_get_id (SnapdNotice *self)
  *
  * Returns: (transfer none): an user ID.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 const gchar *
 snapd_notice_get_user_id (SnapdNotice *self)
@@ -103,7 +103,7 @@ snapd_notice_get_user_id (SnapdNotice *self)
  *
  * Returns: the type of change.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 SnapdNoticeType
 snapd_notice_get_notice_type (SnapdNotice *self)
@@ -120,7 +120,7 @@ snapd_notice_get_notice_type (SnapdNotice *self)
  *
  * Returns: (transfer none): a string with the key.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 const gchar *
 snapd_notice_get_key (SnapdNotice *self)
@@ -138,7 +138,7 @@ snapd_notice_get_key (SnapdNotice *self)
  * Returns: (transfer none): a HashTable with the data elements, or NULL
  * if the field didn't exist.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 GHashTable *
 snapd_notice_get_data (SnapdNotice *self)
@@ -155,7 +155,7 @@ snapd_notice_get_data (SnapdNotice *self)
  *
  * Returns: (transfer full): a #GDateTime.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 const GDateTime *
 snapd_notice_get_first_occurred (SnapdNotice *self)
@@ -172,7 +172,7 @@ snapd_notice_get_first_occurred (SnapdNotice *self)
  *
  * Returns: (transfer full): a #GDateTime.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 const GDateTime *
 snapd_notice_get_last_occurred (SnapdNotice *self)
@@ -189,7 +189,7 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
  *
  * Returns: (transfer full): a #GDateTime.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 const GDateTime *
 snapd_notice_get_last_repeated (SnapdNotice *self)
@@ -206,7 +206,7 @@ snapd_notice_get_last_repeated (SnapdNotice *self)
  *
  * Returns: a #gint.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 const gint
 snapd_notice_get_occurrences (SnapdNotice *self)
@@ -223,7 +223,7 @@ snapd_notice_get_occurrences (SnapdNotice *self)
  *
  * Returns: a #GTimeSpan.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 const GTimeSpan
 snapd_notice_get_repeat_after (SnapdNotice *self)
@@ -240,7 +240,7 @@ snapd_notice_get_repeat_after (SnapdNotice *self)
  *
  * Returns: a #GTimeSpan.
  *
- * Since: 1.5
+ * Since: 1.65
  */
 const GTimeSpan
 snapd_notice_get_expire_after (SnapdNotice *self)
