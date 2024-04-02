@@ -82,7 +82,7 @@ snapd_notice_get_id (SnapdNotice *self)
  * snapd_notice_get_user_id:
  * @notice: a #SnapdNotice.
  *
- * Get the user ID for this notice, or NULL if no user is defuned
+ * Get the user ID for this notice, or NULL if no user is defined
  *
  * Returns: (transfer none): an user ID.
  *
