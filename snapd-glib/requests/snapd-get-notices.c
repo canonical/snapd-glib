@@ -50,7 +50,7 @@ _snapd_get_notices_new (gchar               *user_id,
 }
 
 static void
-add_uri_parameter_base (GString *query, gchar *name)
+add_uri_parameter_base (GString *query, const gchar *name)
 {
     if (query->len != 0)
         g_string_append (query, "&");
@@ -59,7 +59,7 @@ add_uri_parameter_base (GString *query, gchar *name)
 }
 
 static void
-add_uri_list (GString *query, gchar *name, gchar **values)
+add_uri_list (GString *query, const gchar *name, gchar **values)
 {
     if ((values == NULL) || (g_strv_length (values) == 0))
         return;
@@ -74,7 +74,7 @@ add_uri_list (GString *query, gchar *name, gchar **values)
 }
 
 static void
-add_uri_parameter (GString *query, gchar *name, gchar *value)
+add_uri_parameter (GString *query, const gchar *name, const gchar *value)
 {
     if (value == NULL)
         return;
