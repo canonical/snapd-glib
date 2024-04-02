@@ -96,6 +96,15 @@ public:
         MaintenanceKindSystemRestart
     };
     Q_ENUM(MaintenanceKind)
+
+    enum SnapNoticeType
+    {
+        SnapNoticeTypeUnknown,
+        SnapNoticeTypeChangeUpdate,
+        SnapNoticeTypeRefreshInhibit,
+        SnapNoticeTypeSnapRunInhibit
+    };
+    Q_ENUM(SnapNoticeType)
 };
 
 #endif

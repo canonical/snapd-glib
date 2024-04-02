@@ -3583,3 +3583,59 @@ void QSnapdInstallThemesRequest::runAsync ()
                                        progress_cb, d->callback_data,
                                        G_CANCELLABLE (getCancellable ()), install_themes_ready_cb, g_object_ref (d->callback_data));
 }
+
+QSnapdNoticesRequest::QSnapdNoticesRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdNoticesRequestPrivate (this)) {}
+
+QSnapdNoticesRequest::~QSnapdNoticesRequest ()
+{}
+
+void QSnapdNoticesRequest::runSync ()
+{
+    Q_D(QSnapdNoticesRequest);
+
+    g_autoptr(GError) error = NULL;
+    d->notices = snapd_client_get_notices_sync (SNAPD_CLIENT (getClient ()), NULL, 0, G_CANCELLABLE (getCancellable ()), &error);
+    finish (error);
+}
+
+void QSnapdNoticesRequest::handleResult (void *object, void *result)
+{
+    Q_D(QSnapdNoticesRequest);
+
+    g_autoptr(GError) error = NULL;
+    g_autoptr(GPtrArray) snaps = snapd_client_get_snaps_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    d->notices = (GPtrArray*) g_steal_pointer (&snaps);
+    finish (error);
+}
+
+static void notices_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    g_autoptr(CallbackData) callback_data = (CallbackData *) data;
+    if (callback_data->request != NULL) {
+        QSnapdNoticesRequest *request = static_cast<QSnapdNoticesRequest*>(callback_data->request);
+        request->handleResult (object, result);
+    }
+}
+
+void QSnapdNoticesRequest::runAsync ()
+{
+    Q_D(QSnapdNoticesRequest);
+    snapd_client_get_snaps_async (SNAPD_CLIENT (getClient ()), SNAPD_GET_SNAPS_FLAGS_NONE, NULL, G_CANCELLABLE (getCancellable ()), notices_ready_cb, g_object_ref (d->callback_data));
+}
+
+int QSnapdNoticesRequest::noticesCount () const
+{
+    Q_D(const QSnapdNoticesRequest);
+    return d->notices != NULL ? d->notices->len : 0;
+}
+
+QSnapdNotice *QSnapdNoticesRequest::notice (int n) const
+{
+    Q_D(const QSnapdNoticesRequest);
+
+    if (d->notices == NULL || n < 0 || (guint) n >= d->notices->len)
+        return NULL;
+    return new QSnapdNotice (d->notices->pdata[n]);
+}

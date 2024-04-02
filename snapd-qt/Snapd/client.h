@@ -21,6 +21,7 @@
 #include <Snapd/Icon>
 #include <Snapd/Interface>
 #include <Snapd/Maintenance>
+#include <Snapd/Notice>
 #include <Snapd/Plug>
 #include <Snapd/Request>
 #include <Snapd/Slot>
@@ -962,6 +963,25 @@ public:
 private:
     QScopedPointer<QSnapdInstallThemesRequestPrivate> d_ptr;
     Q_DECLARE_PRIVATE(QSnapdInstallThemesRequest)
+};
+
+class QSnapdNoticesRequestPrivate;
+class Q_DECL_EXPORT QSnapdNoticesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdNoticesRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdNoticesRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE int noticesCount () const;
+    Q_INVOKABLE QSnapdNotice *notice (int) const;
+    void handleResult (void *, void *);
+
+private:
+    QScopedPointer<QSnapdNoticesRequestPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdNoticesRequest)
 };
 
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password);

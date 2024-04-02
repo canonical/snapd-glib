@@ -1338,7 +1338,6 @@ snapd_client_get_auth_data (SnapdClient *self)
     return priv->auth_data;
 }
 
-
 /**
  * snapd_client_get_notices_async:
  * @client: a #SnapdClient.
