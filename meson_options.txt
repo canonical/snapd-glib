@@ -7,9 +7,14 @@ option('docs',
 option('vala-bindings',
        type: 'boolean', value: true,
        description: 'Build the Vala bindings (requires introspection)')
-option('qt-bindings',
-       type: 'boolean', value: true,
-       description: 'Build the Qt bindings')
+option('qt5',
+       type : 'boolean',
+       value : false,
+       description: 'Build the Qt5 bindings')
+option('qt6',
+       type : 'boolean',
+       value : true,
+       description: 'Build the Qt6 bindings')
 option('qml-bindings',
        type: 'boolean', value: true,
        description: 'Build the QML bindings (requires the Qt bindings)')
