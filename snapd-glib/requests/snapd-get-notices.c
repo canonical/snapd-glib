@@ -15,8 +15,9 @@ struct _SnapdGetNotices
 {
     SnapdRequest parent_instance;
     gchar *user_id;
-    GStrv types;
-    GStrv keys;
+    gchar *users;
+    gchar *types;
+    gchar *keys;
     GDateTime *from_date_time;
     GTimeSpan timeout;
 
@@ -27,8 +28,9 @@ G_DEFINE_TYPE (SnapdGetNotices, snapd_get_notices, snapd_request_get_type ())
 
 SnapdGetNotices *
 _snapd_get_notices_new (gchar               *user_id,
-                        GStrv                types,
-                        GStrv                keys,
+                        gchar               *users,
+                        gchar               *types,
+                        gchar               *keys,
                         GDateTime           *from_date_time,
                         GTimeSpan            timeout,
                         GCancellable        *cancellable,
@@ -42,8 +44,9 @@ _snapd_get_notices_new (gchar               *user_id,
                                                NULL));
 
     self->user_id = g_strdup (user_id);
-    self->types = g_strdupv (types);
-    self->keys = g_strdupv (keys);
+    self->users = g_strdup (users);
+    self->types = g_strdup (types);
+    self->keys = g_strdup (keys);
     self->from_date_time = from_date_time == NULL ? NULL : g_date_time_ref (from_date_time);
     self->timeout = timeout;
     return self;
@@ -59,24 +62,9 @@ add_uri_parameter_base (GString *query, const gchar *name)
 }
 
 static void
-add_uri_list (GString *query, const gchar *name, gchar **values)
-{
-    if ((values == NULL) || (g_strv_length (values) == 0))
-        return;
-    gboolean first_element = TRUE;
-    add_uri_parameter_base (query, name);
-    for (; *values != NULL; values++) {
-        if (!first_element)
-            g_string_append (query, ",");
-        first_element = FALSE;
-        g_string_append (query, *values);
-    }
-}
-
-static void
 add_uri_parameter (GString *query, const gchar *name, const gchar *value)
 {
-    if (value == NULL)
+    if ((value == NULL) || (*value == 0))
         return;
     add_uri_parameter_base (query, name);
     g_string_append (query, value);
@@ -88,8 +76,9 @@ generate_get_snap_request (SnapdRequest *request, GBytes **body)
     SnapdGetNotices *self = SNAPD_GET_NOTICES (request);
     g_autoptr(GString) query = g_string_new ("");
     add_uri_parameter (query, "user-id", self->user_id);
-    add_uri_list (query, "types", self->types);
-    add_uri_list (query, "keys", self->keys);
+    add_uri_parameter (query, "users", self->users);
+    add_uri_parameter (query, "types", self->types);
+    add_uri_parameter (query, "keys", self->keys);
     if (self->from_date_time != NULL) {
         g_autofree gchar *date_time = g_date_time_format (self->from_date_time, "%FT%T%z");
         add_uri_parameter (query, "after", date_time);
@@ -137,8 +126,9 @@ snapd_get_notices_finalize (GObject *object)
     SnapdGetNotices *self = SNAPD_GET_NOTICES (object);
 
     g_clear_pointer (&self->user_id, g_free);
-    g_clear_pointer (&self->types, g_strfreev);
-    g_clear_pointer (&self->keys, g_strfreev);
+    g_clear_pointer (&self->users, g_free);
+    g_clear_pointer (&self->types, g_free);
+    g_clear_pointer (&self->keys, g_free);
     g_clear_pointer (&self->from_date_time, g_date_time_unref);
 
     G_OBJECT_CLASS (snapd_get_notices_parent_class)->finalize (object);

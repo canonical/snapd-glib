@@ -8649,7 +8649,16 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     // Test it twice, to ensure that multiple calls do work
     if (data->counter == 0) {
         data->counter++;
-        snapd_client_get_notices_async (source_object, NULL, (GAsyncReadyCallback) test_notices_events_cb, data);
+        snapd_client_get_notices_async (source_object,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        0,
+                                        NULL,
+                                        (GAsyncReadyCallback) test_notices_events_cb,
+                                        data);
     } else {
         g_main_loop_quit (data->loop);
     }
@@ -8690,7 +8699,16 @@ test_notices_events (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snapd_client_get_notices_async (client, NULL, (GAsyncReadyCallback) test_notices_events_cb, data);
+    snapd_client_get_notices_async (client,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    0,
+                                    NULL,
+                                    (GAsyncReadyCallback) test_notices_events_cb,
+                                    data);
     g_main_loop_run (loop);
 }
 
@@ -8729,7 +8747,16 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
     // Test it twice, to ensure that multiple calls do work
     if (data->counter == 0) {
         data->counter++;
-        snapd_client_get_notices_async (source_object, NULL, (GAsyncReadyCallback) test_notices_minimal_data_events_cb, data);
+        snapd_client_get_notices_async (source_object,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        NULL,
+                                        0,
+                                        NULL,
+                                        (GAsyncReadyCallback) test_notices_minimal_data_events_cb,
+                                        data);
     } else {
         g_main_loop_quit (data->loop);
     }
@@ -8751,7 +8778,16 @@ test_notices_events_with_minimal_data (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snapd_client_get_notices_async (client, NULL, (GAsyncReadyCallback) test_notices_minimal_data_events_cb, data);
+    snapd_client_get_notices_async (client,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    0,
+                                    NULL,
+                                    (GAsyncReadyCallback) test_notices_minimal_data_events_cb,
+                                    data);
     g_main_loop_run (loop);
 }
 

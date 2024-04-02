@@ -19,8 +19,9 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (SnapdGetNotices, snapd_get_notices, SNAPD, GET_NOTICES, SnapdRequest)
 
 SnapdGetNotices *_snapd_get_notices_new      (gchar               *user_id,
-                                              GStrv                types,
-                                              GStrv                keys,
+                                              gchar               *users,
+                                              gchar               *types,
+                                              gchar               *keys,
                                               GDateTime           *from_date_time,
                                               GTimeSpan            timeout,
                                               GCancellable        *cancellable,

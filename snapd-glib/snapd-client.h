@@ -1283,11 +1283,21 @@ gboolean                snapd_client_follow_logs_finish            (SnapdClient 
                                                                     GError              **error);
 
 void
-snapd_client_get_notices_async (SnapdClient *client,
-                                GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+snapd_client_get_notices_async                                     (SnapdClient          *client,
+                                                                    gchar                *user_id,
+                                                                    gchar                *users,
+                                                                    gchar                *types,
+                                                                    gchar                *keys,
+                                                                    GDateTime            *from_date_time,
+                                                                    GTimeSpan             timeout,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
 
 GPtrArray *
-snapd_client_get_notices_finish (SnapdClient *client, GAsyncResult *result, GError **error);
+snapd_client_get_notices_finish                                    (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
 
 G_END_DECLS
 
