@@ -14,7 +14,7 @@
  * @short_description: Notices element
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdNotice contains information about a change that is notified.
+ * A #SnapdNotice contains information about a notice that is notified.
  */
 
 /**
@@ -65,7 +65,7 @@ G_DEFINE_TYPE (SnapdNotice, snapd_notice, G_TYPE_OBJECT)
  * snapd_notice_get_id:
  * @notice: a #SnapdNotice.
  *
- * Get the unique ID for this change.
+ * Get the unique ID for this notice.
  *
  * Returns: (transfer none): an ID.
  *
@@ -82,7 +82,7 @@ snapd_notice_get_id (SnapdNotice *self)
  * snapd_notice_get_user_id:
  * @notice: a #SnapdNotice.
  *
- * Get the user ID for this change, or NULL if no user is defuned
+ * Get the user ID for this notice, or NULL if no user is defuned
  *
  * Returns: (transfer none): an user ID.
  *
@@ -99,9 +99,9 @@ snapd_notice_get_user_id (SnapdNotice *self)
  * snapd_notice_get_notice_type:
  * @notice: a #SnapdNotice.
  *
- * Gets the type of change this is.
+ * Gets the type of notice this is.
  *
- * Returns: the type of change.
+ * Returns: the type of notice.
  *
  * Since: 1.65
  */
@@ -116,7 +116,7 @@ snapd_notice_get_notice_type (SnapdNotice *self)
  * snapd_notice_get_key:
  * @notice: a #SnapdNotice.
  *
- * Get the change-id or the instance-name, depending on the type.
+ * Get the notice-id or the instance-name, depending on the type.
  *
  * Returns: (transfer none): a string with the key.
  *
@@ -133,7 +133,7 @@ snapd_notice_get_key (SnapdNotice *self)
  * snapd_notice_get_data:
  * @notice: a #SnapdNotice.
  *
- * Get the data of the change.
+ * Get the data of the notice.
  *
  * Returns: (transfer none): a HashTable with the data elements, or NULL
  * if the field didn't exist.
@@ -379,7 +379,7 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
                                      PROP_ID,
                                      g_param_spec_string ("id",
                                                           "id",
-                                                          "ID of change",
+                                                          "ID of notice",
                                                           NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
@@ -393,7 +393,7 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
                                      PROP_TYPE,
                                      g_param_spec_uint ("notice-type",
                                                         "notice-type",
-                                                        "Type of change",
+                                                        "Type of notice",
                                                         0, G_MAXUINT, 0,
                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
@@ -407,21 +407,21 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
                                      PROP_FIRST_OCCURRED,
                                      g_param_spec_boxed ("first-occurred",
                                                          "first-occurred",
-                                                         "Time this change first occurred",
+                                                         "Time this notice first occurred",
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_LAST_OCCURRED,
                                      g_param_spec_boxed ("last-occurred",
                                                          "last-occurred",
-                                                         "Time this change last occurred",
+                                                         "Time this notice last occurred",
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_LAST_REPEATED,
                                      g_param_spec_boxed ("last-repeated",
                                                          "last-repeated",
-                                                         "Time this change was last repeated",
+                                                         "Time this notice was last repeated",
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
