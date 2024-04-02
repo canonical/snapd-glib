@@ -17,16 +17,16 @@ jobs:
         soup:
           - libsoup3
 	qt:
-	  - 6
+	  - qt6
         include:
           - image: ubuntu:22.04
             soup: libsoup2
           - image: ubuntu:20.04
             soup: libsoup2
-	    qt: 5
+	    qt: qt5
           - image: ubuntu:18.04
             soup: libsoup2
-	    qt: 5
+	    qt: qt5
 
     runs-on: ubuntu-latest
     container: ${{ matrix.image }}
@@ -57,12 +57,12 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libsoup2.4-dev
 
       - name: Install Qt5 dependencies (Ubuntu)
-        if: startsWith(matrix.image, 'ubuntu:') && matrix.qt == '5'
+        if: startsWith(matrix.image, 'ubuntu:') && matrix.qt == 'qt5'
         run: |
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends qtbase5-dev qtdeclarative5-dev
 
       - name: Install Qt6 dependencies (Ubuntu)
-        if: startsWith(matrix.image, 'ubuntu:') && matrix.qt == '6'
+        if: startsWith(matrix.image, 'ubuntu:') && matrix.qt == 'qt6'
         run: |
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends qt6-base-dev qt6-declarative-dev
 
@@ -81,22 +81,22 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends meson
 
       - name: Configure
-        if: matrix.soup == 'libsoup3' && matrix.qt != 5
+        if: matrix.soup == 'libsoup3' && matrix.qt != qt5
         run: |
           meson _build
 
       - name: Configure (Qt5)
-        if: matrix.soup == 'libsoup3' && matrix.qt == 5
+        if: matrix.soup == 'libsoup3' && matrix.qt == qt5
         run: |
           meson _build -Dqt=5
 
       - name: Configure (libsoup2.4)
-        if: matrix.soup == 'libsoup2' && matrix.qt != 5
+        if: matrix.soup == 'libsoup2' && matrix.qt != qt5
         run:
           meson _build -Dsoup2=true
 
       - name: Configure (libsoup2.4 and Qt5)
-        if: matrix.soup == 'libsoup2' && matrix.qt == 5
+        if: matrix.soup == 'libsoup2' && matrix.qt == qt5
         run: |
           meson _build -Dsoup2=true -Dqt5=true
 
