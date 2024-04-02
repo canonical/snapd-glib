@@ -135,8 +135,7 @@ snapd_notice_get_key (SnapdNotice *self)
  *
  * Get the data of the notice.
  *
- * Returns: (transfer none): a HashTable with the data elements, or NULL
- * if the field didn't exist.
+ * Returns: (transfer none): a HashTable with the data elements.
  *
  * Since: 1.65
  */
@@ -298,6 +297,8 @@ snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, 
         g_clear_pointer (&self->data, g_hash_table_unref);
         if (g_value_get_boxed (value) != NULL)
             self->data = g_hash_table_ref (g_value_get_boxed (value));
+        else
+            self->data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
         break;
     case PROP_EXPIRE_AFTER:
         self->expire_after = g_value_get_int64 (value);
@@ -463,4 +464,5 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
 static void
 snapd_notice_init (SnapdNotice *self)
 {
+    self->data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 }
