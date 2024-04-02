@@ -8573,6 +8573,7 @@ test_get_changes_data (void)
         }
     ]
 } */
+
 void
 test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpointer user_data)
 {
@@ -8690,11 +8691,71 @@ test_notices_events (void)
     g_main_loop_run (loop);
 }
 
+void
+test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* result, gpointer user_data)
+{
+    AsyncData *data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    GPtrArray *notices = snapd_client_get_notices_finish (source_object, result, &error);
+    g_assert_no_error (error);
+    g_assert_true (notices != NULL);
+    g_assert_true (notices->len == 1);
+
+    SnapdNotice *notice1 = notices->pdata[0];
+
+    g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
+    g_assert_true (snapd_notice_get_user_id (notice1) == NULL);
+
+    g_assert_cmpint (snapd_notice_get_expire_after(notice1), ==, 0);
+
+    g_assert_cmpint (snapd_notice_get_repeat_after(notice1), ==, 0);
+
+    g_assert_true (snapd_notice_get_first_occurred (notice1) == NULL);
+    g_assert_true (snapd_notice_get_last_occurred (notice1) == NULL);
+    g_assert_true (snapd_notice_get_last_repeated (notice1) == NULL);
+
+    g_assert_true (snapd_notice_get_notice_type (notice1) == SNAPD_NOTICE_TYPE_UNKNOWN);
+
+    g_assert_cmpint (snapd_notice_get_occurrences(notice1), ==, -1);
+
+    g_assert_true (snapd_notice_get_data (notice1) == NULL);
+
+    // Test it twice, to ensure that multiple calls do work
+    if (data->counter == 0) {
+        data->counter++;
+        snapd_client_get_notices_async (source_object, NULL, (GAsyncReadyCallback) test_notices_minimal_data_events_cb, data);
+    } else {
+        g_main_loop_quit (data->loop);
+    }
+}
+
+
+static void
+test_notices_events_with_minimal_data (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    AsyncData *data = async_data_new (loop, snapd);
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    mock_snapd_add_notice (snapd, "1", "8473", "refresh-snap");
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_notices_async (client, NULL, (GAsyncReadyCallback) test_notices_minimal_data_events_cb, data);
+    g_main_loop_run (loop);
+}
+
 int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
     g_test_add_func ("/notices/test_notices", test_notices_events);
+    g_test_add_func ("/notices/test_minimal_data", test_notices_events_with_minimal_data);
 
     g_test_add_func ("/socket-closed/before-request", test_socket_closed_before_request);
     g_test_add_func ("/socket-closed/after-request", test_socket_closed_after_request);

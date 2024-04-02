@@ -161,6 +161,8 @@ const GDateTime *
 snapd_notice_get_first_occurred (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    if (self->first_occurred == NULL)
+        return NULL;
     return g_date_time_ref (self->first_occurred);
 }
 
@@ -178,6 +180,8 @@ const GDateTime *
 snapd_notice_get_last_occurred (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    if (self->last_occurred == NULL)
+        return NULL;
     return g_date_time_ref (self->last_occurred);
 }
 
@@ -195,6 +199,8 @@ const GDateTime *
 snapd_notice_get_last_repeated (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    if (self->last_repeated == NULL)
+        return NULL;
     return g_date_time_ref (self->last_repeated);
 }
 

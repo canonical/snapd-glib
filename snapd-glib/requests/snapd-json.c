@@ -660,8 +660,8 @@ static void
 add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data)
 {
     GPtrArray *list = (GPtrArray *) data;
-    GTimeSpan expire_after;
-    GTimeSpan repeat_after;
+    GTimeSpan expire_after = 0;
+    GTimeSpan repeat_after = 0;
     g_autoptr(GHashTable) last_data = NULL;
 
     JsonObject *object = json_node_get_object (element);
