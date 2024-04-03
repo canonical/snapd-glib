@@ -8692,7 +8692,7 @@ test_notices_events (void)
 
     mock_notice_set_user_id (notice, "67");
 
-#if GLIB_CHECK_VERSION(2, 58, 0)
+#if GLIB_CHECK_VERSION(2, 68, 0)
     g_autoptr(GTimeZone) timezone2 = g_time_zone_new_identifier ("01:32");
 #else
     g_autoptr(GTimeZone) timezone2 = g_time_zone_new ("01:32");
