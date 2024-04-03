@@ -3613,7 +3613,13 @@ void QSnapdNoticesRequest::resetFilters ()
 static GDateTime *
 getSinceDateTime (QDateTime &dateTime)
 {
+#if GLIB_CHECK_VERSION(2, 58, 0)
     g_autoptr (GTimeZone) timeZone = g_time_zone_new_offset (dateTime.timeZone().offsetFromUtc(dateTime));
+#else
+    int timeOffset = dateTime.timeZone().offsetFromUtc(dateTime) / 60;
+    g_autofree gchar *timeOffsetStr = g_strdup_printf("%02d:%02d", timeOffset / 60, timeOffset % 60);
+    g_autoptr (GTimeZone) timeZone = g_time_zone_new (timeOffsetStr);
+#endif
     GDateTime *gDateTime = g_date_time_new (timeZone,
                                             dateTime.date().year(),
                                             dateTime.date().month(),

@@ -7320,7 +7320,12 @@ test_notices_events ()
 
     mock_notice_set_user_id (notice, "67");
 
-    g_autoptr(GDateTime) date4 = g_date_time_new (timezone, 2023, 2, 5, 21, 23, 3);
+#if GLIB_CHECK_VERSION(2, 58, 0)
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new_identifier ("01:32");
+#else
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new ("01:32");
+#endif
+    g_autoptr(GDateTime) date4 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3);
     mock_notice_set_dates (notice, date4, date4, date4, 1);
     mock_notice_add_data_pair (notice, "kind", "change-kind");
 
@@ -7362,7 +7367,7 @@ test_notices_events ()
     g_assert_true (notice1->id() == "2");
     g_assert_true (notice1->userId() == "67");
 
-    QDateTime newDate = QDateTime::fromString("2023-02-05T21:23:03Z", Qt::ISODate);
+    QDateTime newDate = QDateTime::fromString("2023-02-05T21:23:03+01:32", Qt::ISODate);
     g_assert_true (notice1->firstOccurred() == newDate);
     g_assert_true (notice1->lastOccurred() == newDate);
     g_assert_true (notice1->lastRepeated() == newDate);

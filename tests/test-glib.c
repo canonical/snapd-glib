@@ -8628,7 +8628,12 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     g_assert_cmpstr (snapd_notice_get_id (notice2), ==, "2");
     g_assert_cmpstr (snapd_notice_get_user_id (notice2), ==, "67");
 
-    g_autoptr(GDateTime) date4 = g_date_time_new (timezone, 2023, 2, 5, 21, 23, 3);
+#if GLIB_CHECK_VERSION(2, 58, 0)
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new_identifier ("01:32");
+#else
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new ("01:32");
+#endif
+    g_autoptr(GDateTime) date4 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3);
 
     g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred (notice2), date4));
     g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice2), date4));
@@ -8687,7 +8692,12 @@ test_notices_events (void)
 
     mock_notice_set_user_id (notice, "67");
 
-    g_autoptr(GDateTime) date4 = g_date_time_new (timezone, 2023, 2, 5, 21, 23, 3);
+#if GLIB_CHECK_VERSION(2, 58, 0)
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new_identifier ("01:32");
+#else
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new ("01:32");
+#endif
+    g_autoptr(GDateTime) date4 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3);
     mock_notice_set_dates (notice, date4, date4, date4, 1);
     mock_notice_add_data_pair (notice, "kind", "change-kind");
 
