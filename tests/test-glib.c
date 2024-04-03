@@ -8667,7 +8667,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
         g_assert_true (g_hash_table_contains (parameters, "user-id"));
         g_assert_cmpstr (g_hash_table_lookup (parameters, "user-id"), ==, "an_user_id");
         g_assert_true (g_hash_table_contains (parameters, "users"));
-        g_assert_cmpstr (g_hash_table_lookup (parameters, "users"), ==, "id1,id2");
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "users"), ==, "id1, id2, an_utf8_íd");
         g_assert_true (g_hash_table_contains (parameters, "types"));
         g_assert_cmpstr (g_hash_table_lookup (parameters, "types"), ==, "type1,type2");
         g_assert_true (g_hash_table_contains (parameters, "keys"));
@@ -8736,7 +8736,7 @@ test_notices_events (void)
     g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58);
     snapd_client_get_notices_with_filters_async (client,
                                                  "an_user_id",
-                                                 "id1,id2",
+                                                 "id1, id2, an_utf8_íd",
                                                  "type1,type2",
                                                  "key1,key2",
                                                  date5,
