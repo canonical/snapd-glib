@@ -8628,7 +8628,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     g_assert_cmpstr (snapd_notice_get_id (notice2), ==, "2");
     g_assert_cmpstr (snapd_notice_get_user_id (notice2), ==, "67");
 
-#if GLIB_CHECK_VERSION(2, 58, 0)
+#if GLIB_CHECK_VERSION(2, 68, 0)
     g_autoptr(GTimeZone) timezone2 = g_time_zone_new_identifier ("01:32");
 #else
     g_autoptr(GTimeZone) timezone2 = g_time_zone_new ("01:32");
