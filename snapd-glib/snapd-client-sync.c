@@ -1892,7 +1892,7 @@ snapd_client_follow_logs_sync (SnapdClient *self,
 /**
  * snapd_client_get_notices_sync:
  * @client: a #SnapdClient.
- * @from_date_time: send only the notices generated after this moment (NULL for all).
+ * @since_date_time: send only the notices generated after this moment (NULL for all).
  * @timeout: time, in microseconds, to wait for a new notice (zero to return immediately).
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
@@ -1905,7 +1905,7 @@ snapd_client_follow_logs_sync (SnapdClient *self,
  */
 GPtrArray *
 snapd_client_get_notices_sync (SnapdClient *self,
-                               GDateTime *from_date_time,
+                               GDateTime *since_date_time,
                                GTimeSpan timeout,
                                GCancellable *cancellable, GError **error)
 {
@@ -1913,7 +1913,7 @@ snapd_client_get_notices_sync (SnapdClient *self,
 
     g_auto(SyncData) data = { 0 };
     start_sync (&data);
-    snapd_client_get_notices_async (self, from_date_time, timeout, cancellable, sync_cb, &data);
+    snapd_client_get_notices_async (self, since_date_time, timeout, cancellable, sync_cb, &data);
     end_sync (&data);
     return snapd_client_get_notices_finish (self, data.result, error);
 }
@@ -1925,7 +1925,7 @@ snapd_client_get_notices_sync (SnapdClient *self,
  * @users: filter by this comma-separated list of users (NULL for no filter).
  * @types: filter by this comma-separated list of types (NULL for no filter).
  * @keys: filter by this comma-separated list of keys (NULL for no filter).
- * @from_date_time: send only the notices generated after this moment (NULL for all).
+ * @since_date_time: send only the notices generated after this moment (NULL for all).
  * @timeout: time, in microseconds, to wait for a new notice (zero to return immediately).
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
@@ -1942,7 +1942,7 @@ snapd_client_get_notices_with_filters_sync (SnapdClient *self,
                                             gchar *users,
                                             gchar *types,
                                             gchar *keys,
-                                            GDateTime *from_date_time,
+                                            GDateTime *since_date_time,
                                             GTimeSpan timeout,
                                             GCancellable *cancellable, GError **error)
 {
@@ -1951,7 +1951,7 @@ snapd_client_get_notices_with_filters_sync (SnapdClient *self,
     g_auto(SyncData) data = { 0 };
     start_sync (&data);
     snapd_client_get_notices_with_filters_async (self, user_id, users, types, keys,
-                                                 from_date_time, timeout, cancellable, sync_cb, &data);
+                                                 since_date_time, timeout, cancellable, sync_cb, &data);
     end_sync (&data);
     return snapd_client_get_notices_finish (self, data.result, error);
 }

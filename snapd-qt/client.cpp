@@ -12,6 +12,7 @@
 #include "Snapd/client.h"
 #include "client-private.h"
 #include "variant.h"
+#include <QTimeZone>
 
 G_DEFINE_TYPE (CallbackData, callback_data, G_TYPE_OBJECT)
 
@@ -3584,19 +3585,60 @@ void QSnapdInstallThemesRequest::runAsync ()
                                        G_CANCELLABLE (getCancellable ()), install_themes_ready_cb, g_object_ref (d->callback_data));
 }
 
+QSnapdNoticesRequest *QSnapdClient::getNotices ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdNoticesRequest (d->client);
+}
+
 QSnapdNoticesRequest::QSnapdNoticesRequest (void *snapd_client, QObject *parent) :
     QSnapdRequest (snapd_client, parent),
-    d_ptr (new QSnapdNoticesRequestPrivate (this)) {}
+    d_ptr (new QSnapdNoticesRequestPrivate (this)) {
+        this->timeout = 0;
+        this->resetFilters();
+    }
 
 QSnapdNoticesRequest::~QSnapdNoticesRequest ()
 {}
+
+void QSnapdNoticesRequest::resetFilters ()
+{
+    this->sinceFilterSet = false;
+    this->userIdFilter = "";
+    this->usersFilter = "";
+    this->typesFilter = "";
+    this->keysFilter = "";
+}
+
+static GDateTime *
+getSinceDateTime (QDateTime &dateTime)
+{
+    g_autoptr (GTimeZone) timeZone = g_time_zone_new_offset (dateTime.timeZone().offsetFromUtc(dateTime));
+    GDateTime *gDateTime = g_date_time_new (timeZone,
+                                            dateTime.date().year(),
+                                            dateTime.date().month(),
+                                            dateTime.date().day(),
+                                            dateTime.time().hour(),
+                                            dateTime.time().minute(),
+                                            dateTime.time().second());
+    return gDateTime;
+}
 
 void QSnapdNoticesRequest::runSync ()
 {
     Q_D(QSnapdNoticesRequest);
 
     g_autoptr(GError) error = NULL;
-    d->notices = snapd_client_get_notices_sync (SNAPD_CLIENT (getClient ()), NULL, 0, G_CANCELLABLE (getCancellable ()), &error);
+    g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
+    d->notices = snapd_client_get_notices_with_filters_sync (SNAPD_CLIENT (getClient ()),
+                                                             (gchar *) this->userIdFilter.toStdString ().c_str (),
+                                                             (gchar *) this->usersFilter.toStdString ().c_str (),
+                                                             (gchar *) this->typesFilter.toStdString ().c_str (),
+                                                             (gchar *) this->keysFilter.toStdString ().c_str (),
+                                                             dateTime,
+                                                             this->timeout,
+                                                             G_CANCELLABLE (getCancellable ()),
+                                                             &error);
     finish (error);
 }
 
@@ -3622,7 +3664,17 @@ static void notices_ready_cb (GObject *object, GAsyncResult *result, gpointer da
 void QSnapdNoticesRequest::runAsync ()
 {
     Q_D(QSnapdNoticesRequest);
-    snapd_client_get_snaps_async (SNAPD_CLIENT (getClient ()), SNAPD_GET_SNAPS_FLAGS_NONE, NULL, G_CANCELLABLE (getCancellable ()), notices_ready_cb, g_object_ref (d->callback_data));
+    g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
+    snapd_client_get_notices_with_filters_async (SNAPD_CLIENT (getClient ()),
+                                                 (gchar *) this->userIdFilter.toStdString ().c_str (),
+                                                 (gchar *) this->usersFilter.toStdString ().c_str (),
+                                                 (gchar *) this->typesFilter.toStdString ().c_str (),
+                                                 (gchar *) this->keysFilter.toStdString ().c_str (),
+                                                 dateTime,
+                                                 this->timeout,
+                                                 G_CANCELLABLE (getCancellable ()),
+                                                 notices_ready_cb,
+                                                 g_object_ref (d->callback_data));
 }
 
 int QSnapdNoticesRequest::noticesCount () const

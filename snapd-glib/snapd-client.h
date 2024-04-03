@@ -1271,6 +1271,7 @@ gboolean                snapd_client_follow_logs_sync              (SnapdClient 
                                                                     gpointer              log_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
+
 void                    snapd_client_follow_logs_async             (SnapdClient          *client,
                                                                     GStrv                 names,
                                                                     SnapdLogCallback      log_callback,
@@ -1278,19 +1279,19 @@ void                    snapd_client_follow_logs_async             (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
+
 gboolean                snapd_client_follow_logs_finish            (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
 GPtrArray *snapd_client_get_notices_sync                           (SnapdClient          *client,
-                                                                    GDateTime            *from_date_time,
+                                                                    GDateTime            *since_date_time,
                                                                     GTimeSpan             timeout,
-                                                                    GCancellable *cancellable, GError **error);
-
-
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
 
 void snapd_client_get_notices_async                                (SnapdClient          *client,
-                                                                    GDateTime            *from_date_time,
+                                                                    GDateTime            *since_date_time,
                                                                     GTimeSpan             timeout,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
@@ -1301,7 +1302,7 @@ GPtrArray *snapd_client_get_notices_with_filters_sync              (SnapdClient 
                                                                     gchar                *users,
                                                                     gchar                *types,
                                                                     gchar                *keys,
-                                                                    GDateTime            *from_date_time,
+                                                                    GDateTime            *since_date_time,
                                                                     GTimeSpan             timeout,
                                                                     GCancellable *cancellable, GError **error);
 
@@ -1310,7 +1311,7 @@ void snapd_client_get_notices_with_filters_async                   (SnapdClient 
                                                                     gchar                *users,
                                                                     gchar                *types,
                                                                     gchar                *keys,
-                                                                    GDateTime            *from_date_time,
+                                                                    GDateTime            *since_date_time,
                                                                     GTimeSpan             timeout,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,

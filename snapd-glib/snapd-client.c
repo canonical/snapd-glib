@@ -1341,7 +1341,7 @@ snapd_client_get_auth_data (SnapdClient *self)
 /**
  * snapd_client_get_notices_async:
  * @client: a #SnapdClient.
- * @from_date_time: send only the notices generated after this moment (NULL for all).
+ * @since_date_time: send only the notices generated after this moment (NULL for all).
  * @timeout: time, in microseconds, to wait for a new notice (zero to return immediately).
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
@@ -1353,7 +1353,7 @@ snapd_client_get_auth_data (SnapdClient *self)
  */
 void
 snapd_client_get_notices_async (SnapdClient *self,
-                                GDateTime *from_date_time,
+                                GDateTime *since_date_time,
                                 GTimeSpan timeout,
                                 GCancellable *cancellable,
                                 GAsyncReadyCallback callback,
@@ -1366,7 +1366,7 @@ snapd_client_get_notices_async (SnapdClient *self,
                                                  NULL,
                                                  NULL,
                                                  NULL,
-                                                 from_date_time,
+                                                 since_date_time,
                                                  timeout,
                                                  cancellable,
                                                  callback,
@@ -1380,7 +1380,7 @@ snapd_client_get_notices_async (SnapdClient *self,
  * @users: filter by this comma-separated list of users (NULL for no filter).
  * @types: filter by this comma-separated list of types (NULL for no filter).
  * @keys: filter by this comma-separated list of keys (NULL for no filter).
- * @from_date_time: send only the notices generated after this moment (NULL for all).
+ * @since_date_time: send only the notices generated after this moment (NULL for all).
  * @timeout: time, in microseconds, to wait for a new notice (zero to return immediately).
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
@@ -1396,7 +1396,7 @@ snapd_client_get_notices_with_filters_async (SnapdClient *self,
                                              gchar *users,
                                              gchar *types,
                                              gchar *keys,
-                                             GDateTime *from_date_time,
+                                             GDateTime *since_date_time,
                                              GTimeSpan timeout,
                                              GCancellable *cancellable,
                                              GAsyncReadyCallback callback,
@@ -1408,7 +1408,7 @@ snapd_client_get_notices_with_filters_async (SnapdClient *self,
                                                                  users,
                                                                  types,
                                                                  keys,
-                                                                 from_date_time,
+                                                                 since_date_time,
                                                                  timeout,
                                                                  cancellable,
                                                                  callback,
