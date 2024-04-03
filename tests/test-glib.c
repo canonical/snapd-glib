@@ -8582,14 +8582,14 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
 
     GPtrArray *notices = snapd_client_get_notices_finish (source_object, result, &error);
     g_assert_no_error (error);
-    g_assert_true (notices != NULL);
-    g_assert_true (notices->len == 2);
+    g_assert_nonnull (notices);
+    g_assert_cmpint (notices->len, ==, 2);
 
     SnapdNotice *notice1 = notices->pdata[0];
     SnapdNotice *notice2 = notices->pdata[1];
 
     g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
-    g_assert_true (snapd_notice_get_user_id (notice1) == NULL);
+    g_assert_null (snapd_notice_get_user_id (notice1));
 
     g_assert_cmpint (snapd_notice_get_expire_after(notice1), ==,
                                    382 * G_TIME_SPAN_DAY +
@@ -8622,7 +8622,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     g_assert_cmpint (snapd_notice_get_occurrences(notice1), ==, 5);
 
     GHashTable *notice_data = snapd_notice_get_last_data (notice1);
-    g_assert_true (notice_data != NULL);
+    g_assert_nonnull (notice_data);
     g_assert_cmpint (g_hash_table_size (notice_data), ==, 0);
 
     g_assert_cmpstr (snapd_notice_get_id (notice2), ==, "2");
@@ -8639,7 +8639,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     g_assert_true (snapd_notice_get_notice_type (notice2) == SNAPD_NOTICE_TYPE_REFRESH_INHIBIT);
 
     notice_data = snapd_notice_get_last_data (notice2);
-    g_assert_true (notice_data != NULL);
+    g_assert_nonnull (notice_data);
     g_assert_cmpint (g_hash_table_size (notice_data), ==, 1);
 
     g_assert_true (g_hash_table_contains (notice_data, "kind"));
@@ -8712,28 +8712,28 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
 
     GPtrArray *notices = snapd_client_get_notices_finish (source_object, result, &error);
     g_assert_no_error (error);
-    g_assert_true (notices != NULL);
-    g_assert_true (notices->len == 1);
+    g_assert_nonnull (notices);
+    g_assert_cmpint (notices->len, ==, 1);
 
     SnapdNotice *notice1 = notices->pdata[0];
 
     g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
-    g_assert_true (snapd_notice_get_user_id (notice1) == NULL);
+    g_assert_null (snapd_notice_get_user_id (notice1));
 
     g_assert_cmpint (snapd_notice_get_expire_after(notice1), ==, 0);
 
     g_assert_cmpint (snapd_notice_get_repeat_after(notice1), ==, 0);
 
-    g_assert_true (snapd_notice_get_first_occurred (notice1) == NULL);
-    g_assert_true (snapd_notice_get_last_occurred (notice1) == NULL);
-    g_assert_true (snapd_notice_get_last_repeated (notice1) == NULL);
+    g_assert_null (snapd_notice_get_first_occurred (notice1));
+    g_assert_null (snapd_notice_get_last_occurred (notice1));
+    g_assert_null (snapd_notice_get_last_repeated (notice1));
 
     g_assert_true (snapd_notice_get_notice_type (notice1) == SNAPD_NOTICE_TYPE_UNKNOWN);
 
     g_assert_cmpint (snapd_notice_get_occurrences(notice1), ==, -1);
 
     GHashTable *notice_data = snapd_notice_get_last_data (notice1);
-    g_assert_true (notice_data != NULL);
+    g_assert_nonnull (notice_data);
     g_assert_cmpint (g_hash_table_size (notice_data), ==, 0);
 
     // Test it twice, to ensure that multiple calls do work

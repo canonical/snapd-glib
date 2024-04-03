@@ -7296,11 +7296,93 @@ test_stress ()
     }
 }
 
+static void
+test_notices_events ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    MockNotice *notice = mock_snapd_add_notice (snapd, "1", "8473", "refresh-snap");
+
+    mock_notice_set_expire_after (notice, "1y2w3d4h5m6s7ms8us9ns");
+    mock_notice_set_repeat_after (notice, "-1y2w3d4h5m6s7ms8µs9ns");
+
+    g_autoptr(GTimeZone) timezone = g_time_zone_new_utc ();
+
+    g_autoptr(GDateTime) date1 = g_date_time_new (timezone, 2024, 3, 1, 20, 29, 58);
+    g_autoptr(GDateTime) date2 = g_date_time_new (timezone, 2025, 4, 2, 23, 28, 8);
+    g_autoptr(GDateTime) date3 = g_date_time_new (timezone, 2026, 5, 3, 22, 20, 7);
+    mock_notice_set_dates (notice, date1, date2, date3, 5);
+
+    notice = mock_snapd_add_notice (snapd, "2", "8474", "refresh-inhibit");
+
+    mock_notice_set_user_id (notice, "67");
+
+    g_autoptr(GDateTime) date4 = g_date_time_new (timezone, 2023, 2, 5, 21, 23, 3);
+    mock_notice_set_dates (notice, date4, date4, date4, 1);
+    mock_notice_add_data_pair (notice, "kind", "change-kind");
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdNoticesRequest> noticesRequest (client.getNotices ());
+    noticesRequest->runSync ();
+    g_assert_cmpint (noticesRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (noticesRequest->noticesCount(), ==, 2);
+    QSnapdNotice *notice0 = noticesRequest->notice(0);
+    QSnapdNotice *notice1 = noticesRequest->notice(1);
+    g_assert_nonnull (notice0);
+    g_assert_nonnull (notice1);
+
+    g_assert_true (notice0->id() == "1");
+    g_assert_true (notice0->userId() == "");
+    g_assert_cmpint ((gint64)notice0->expireAfter(), ==, 382 * G_TIME_SPAN_DAY +
+                                                           4 * G_TIME_SPAN_HOUR +
+                                                           5 * G_TIME_SPAN_MINUTE +
+                                                           6 * G_TIME_SPAN_SECOND +
+                                                           7 * G_TIME_SPAN_MILLISECOND +
+                                                           8);
+    g_assert_cmpint ((gint64)notice0->repeatAfter(), ==, -(382 * G_TIME_SPAN_DAY +
+                                                             4 * G_TIME_SPAN_HOUR +
+                                                             5 * G_TIME_SPAN_MINUTE +
+                                                             6 * G_TIME_SPAN_SECOND +
+                                                             7 * G_TIME_SPAN_MILLISECOND +
+                                                             8));
+
+    g_assert_true (notice0->firstOccurred() == QDateTime::fromString("2024-03-01T20:29:58Z", Qt::ISODate));
+    g_assert_true (notice0->lastOccurred() == QDateTime::fromString("2025-04-02T23:28:08Z", Qt::ISODate));
+    g_assert_true (notice0->lastRepeated() == QDateTime::fromString("2026-05-03T22:20:07Z", Qt::ISODate));
+    g_assert_true (notice0->noticeType() == QSnapdEnums::SnapNoticeTypeUnknown);
+    g_assert_cmpint ((gint64)notice0->occurrences(), ==, 5);
+    QHash lastData = notice0->lastData();
+    g_assert_cmpint ((gint64) lastData.size(), ==, 0);
+
+    g_assert_true (notice1->id() == "2");
+    g_assert_true (notice1->userId() == "67");
+
+    QDateTime newDate = QDateTime::fromString("2023-02-05T21:23:03Z", Qt::ISODate);
+    g_assert_true (notice1->firstOccurred() == newDate);
+    g_assert_true (notice1->lastOccurred() == newDate);
+    g_assert_true (notice1->lastRepeated() == newDate);
+    g_assert_cmpint ((gint64)notice0->occurrences(), ==, 5);
+    g_assert_true (notice1->noticeType() == QSnapdEnums::SnapNoticeTypeRefreshInhibit);
+
+    lastData = notice1->lastData();
+    g_assert_cmpint ((gint64) lastData.size(), ==, 1);
+    g_assert_true (lastData.contains ("kind"));
+    QHash<QString, QString>::iterator i = lastData.find("kind");
+    g_assert_true (i != lastData.end());
+    g_assert_true (i.value() == "change-kind");
+}
+
 int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
 
+    g_test_add_func ("/notices/test_notices", test_notices_events);
     g_test_add_func ("/socket-closed/before-request", test_socket_closed_before_request);
     g_test_add_func ("/socket-closed/after-request", test_socket_closed_after_request);
     g_test_add_func ("/client/set-socket-path", test_client_set_socket_path);
