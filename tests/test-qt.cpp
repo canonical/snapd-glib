@@ -7356,7 +7356,7 @@ test_notices_events ()
     g_assert_true (notice0->lastRepeated() == QDateTime::fromString("2026-05-03T22:20:07Z", Qt::ISODate));
     g_assert_true (notice0->noticeType() == QSnapdEnums::SnapNoticeTypeUnknown);
     g_assert_cmpint ((gint64)notice0->occurrences(), ==, 5);
-    QHash lastData = notice0->lastData();
+    QHash<QString, QString> lastData = notice0->lastData();
     g_assert_cmpint ((gint64) lastData.size(), ==, 0);
 
     g_assert_true (notice1->id() == "2");
