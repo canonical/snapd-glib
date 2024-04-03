@@ -8654,6 +8654,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     if (data->counter == 0) {
         // this was done with parameters
 
+#if GLIB_CHECK_VERSION(2, 66, 0)
         g_autoptr (GHashTable) parameters = g_uri_parse_params (mock_snapd_get_notices_parameters (data->snapd),
                                                                 -1,
                                                                 "&",
@@ -8675,6 +8676,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
         g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58+0000");
         g_assert_true (g_hash_table_contains (parameters, "timeout"));
         g_assert_cmpstr (g_hash_table_lookup (parameters, "timeout"), ==, "20000us");
+#endif
 
         data->counter++;
         snapd_client_get_notices_async (source_object,
