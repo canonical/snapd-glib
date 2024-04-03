@@ -8646,13 +8646,36 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     notice_data = snapd_notice_get_last_data (notice2);
     g_assert_nonnull (notice_data);
     g_assert_cmpint (g_hash_table_size (notice_data), ==, 1);
-
     g_assert_true (g_hash_table_contains (notice_data, "kind"));
-
     g_assert_cmpstr (g_hash_table_lookup (notice_data, "kind"), ==, "change-kind");
+
 
     // Test it twice, to ensure that multiple calls do work
     if (data->counter == 0) {
+        // this was done with parameters
+
+        g_autoptr (GHashTable) parameters = g_uri_parse_params (mock_snapd_get_notices_parameters (data->snapd),
+                                                                -1,
+                                                                "&",
+                                                                G_URI_PARAMS_NONE,
+                                                                NULL);
+
+        g_assert_nonnull (parameters);
+        g_assert_cmpint (g_hash_table_size (parameters), ==, 6);
+
+        g_assert_true (g_hash_table_contains (parameters, "user-id"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "user-id"), ==, "an_user_id");
+        g_assert_true (g_hash_table_contains (parameters, "users"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "users"), ==, "id1,id2");
+        g_assert_true (g_hash_table_contains (parameters, "types"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "types"), ==, "type1,type2");
+        g_assert_true (g_hash_table_contains (parameters, "keys"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "keys"), ==, "key1,key2");
+        g_assert_true (g_hash_table_contains (parameters, "after"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58+0000");
+        g_assert_true (g_hash_table_contains (parameters, "timeout"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "timeout"), ==, "20000us");
+
         data->counter++;
         snapd_client_get_notices_async (source_object,
                                         NULL,
@@ -8661,6 +8684,9 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
                                         (GAsyncReadyCallback) test_notices_events_cb,
                                         data);
     } else {
+        // and this one without parameters
+        gchar *parameters = mock_snapd_get_notices_parameters (data->snapd);
+        g_assert_null (parameters);
         g_main_loop_quit (data->loop);
     }
 }
@@ -8705,12 +8731,17 @@ test_notices_events (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    snapd_client_get_notices_async (client,
-                                    NULL,
-                                    0,
-                                    NULL,
-                                    (GAsyncReadyCallback) test_notices_events_cb,
-                                    data);
+    g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58);
+    snapd_client_get_notices_with_filters_async (client,
+                                                 "an_user_id",
+                                                 "id1,id2",
+                                                 "type1,type2",
+                                                 "key1,key2",
+                                                 date5,
+                                                 20000,
+                                                 NULL,
+                                                 (GAsyncReadyCallback) test_notices_events_cb,
+                                                 data);
     g_main_loop_run (loop);
 }
 

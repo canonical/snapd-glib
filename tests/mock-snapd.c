@@ -76,6 +76,7 @@ struct _MockSnapd
     GHashTable *sound_theme_status;
     GList *logs;
     GList *notices;
+    gchar *notices_parameters;
 };
 
 G_DEFINE_TYPE (MockSnapd, mock_snapd, G_TYPE_OBJECT)
@@ -5187,6 +5188,15 @@ handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         return;
     }
 
+    g_free (self->notices_parameters);
+#if SOUP_CHECK_VERSION (2, 99, 2)
+        GUri *uri = soup_server_message_get_uri (message);
+        self->notices_parameters = g_strdup (g_uri_get_query (uri));
+#else
+        SoupURI *uri = soup_message_get_uri (message);
+        self->notices_parameters = g_strdup (soup_uri_get_query (uri));
+#endif
+
     g_autoptr(JsonBuilder) builder = json_builder_new ();
     json_builder_begin_array (builder);
 
@@ -5531,6 +5541,12 @@ mock_snapd_start (MockSnapd *self, GError **dest_error)
     g_assert_nonnull (self->context);
 
     return error == NULL;
+}
+
+gchar *
+mock_snapd_get_notices_parameters (MockSnapd *self)
+{
+    return self->notices_parameters;
 }
 
 void

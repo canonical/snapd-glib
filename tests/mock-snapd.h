@@ -511,6 +511,8 @@ void            mock_notice_add_data_pair         (MockNotice    *notice,
                                                    const gchar   *entry,
                                                    const gchar   *data);
 
+gchar *         mock_snapd_get_notices_parameters (MockSnapd     *snapd);
+
 G_END_DECLS
 
 #endif /* __MOCK_SNAPD_H__ */
