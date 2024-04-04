@@ -1198,6 +1198,9 @@ static SnapdGetSnapsFlags convertGetSnapsFlags (int flags)
     if ((flags & QSnapdClient::GetSnapsFlag::IncludeInactive) != 0)
         result |= SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE;
 
+    if ((flags & QSnapdClient::GetSnapsFlag::RefreshInhibited) != 0)
+        result |= SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED;
+
     return (SnapdGetSnapsFlags) result;
 }
 

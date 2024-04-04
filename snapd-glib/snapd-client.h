@@ -74,7 +74,8 @@ typedef enum
 typedef enum
 {
     SNAPD_GET_SNAPS_FLAGS_NONE              = 0,
-    SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE = 1 << 0
+    SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE  = 1 << 0,
+    SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED = 1 << 1
 } SnapdGetSnapsFlags;
 
 /**

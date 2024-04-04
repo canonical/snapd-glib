@@ -1428,6 +1428,30 @@ test_get_snaps_sync (void)
 }
 
 static void
+test_get_snaps_inhibited (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+    MockSnap *s = mock_snapd_add_snap (snapd, "snap1");
+    mock_snap_set_proceed_time (s, "2024-03-13T15:43:32Z");
+    mock_snapd_add_snap (snapd, "snap1");
+    mock_snapd_add_snap (snapd, "snap2");
+    mock_snapd_add_snap (snapd, "snap3");
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GPtrArray) snaps = snapd_client_get_snaps_sync (client, SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED, NULL, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (snaps);
+    g_assert_cmpint (snaps->len, ==, 1);
+    g_assert_cmpstr (snapd_snap_get_name (snaps->pdata[0]), ==, "snap1");
+    g_assert_true (date_matches (snapd_snap_get_proceed_time (snaps->pdata[0]), 2024, 3, 13, 15, 43, 32));
+}
+
+static void
 get_snaps_cb (GObject *object, GAsyncResult *result, gpointer user_data)
 {
     g_autoptr(AsyncData) data = user_data;
@@ -8508,6 +8532,7 @@ main (int argc, char **argv)
     g_test_add_func ("/list/sync", test_list_sync);
     g_test_add_func ("/list/async", test_list_async);
     g_test_add_func ("/get-snaps/sync", test_get_snaps_sync);
+    g_test_add_func ("/get_snaps/inhibited", test_get_snaps_inhibited);
     g_test_add_func ("/get-snaps/async", test_get_snaps_async);
     g_test_add_func ("/get-snaps/filter", test_get_snaps_filter);
     g_test_add_func ("/list-one/sync", test_list_one_sync);

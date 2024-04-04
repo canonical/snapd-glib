@@ -72,6 +72,7 @@ struct _SnapdSnap
     SnapdSnapType snap_type;
     gchar *version;
     gchar *website;
+    GDateTime *proceed_time;
 };
 
 enum
@@ -117,6 +118,7 @@ enum
     PROP_MEDIA,
     PROP_WEBSITE,
     PROP_HOLD,
+    PROP_PROCEED_TIME,
     PROP_LAST
 };
 
@@ -423,6 +425,24 @@ snapd_snap_get_hold (SnapdSnap *self)
     return self->hold;
 }
 
+/**
+ * snapd_snap_get_proceed_time:
+ * @snap: a @SnapdSnap
+ *
+ * Returns the date and time after which a refresh is forced for this running snap
+ * in the next auto-refresh. By substracting the current date and time it's possible
+ * to know how many time remains before the snap is forced to be refreshed.
+ *
+ * Returns: (transfer none) (allow-none): a #GDateTime or %NULL.
+ *
+ * Since: 1.65
+ */
+GDateTime *
+snapd_snap_get_proceed_time (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->proceed_time;
+}
 
 /**
  * snapd_snap_get_icon:
@@ -945,6 +965,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         if (g_value_get_boxed (value) != NULL)
             self->hold = g_date_time_ref (g_value_get_boxed (value));
         break;
+    case PROP_PROCEED_TIME:
+        g_clear_pointer (&self->proceed_time, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL)
+            self->proceed_time = g_date_time_ref (g_value_get_boxed (value));
+        break;
     case PROP_ICON:
         g_free (self->icon);
         self->icon = g_strdup (g_value_get_string (value));
@@ -1103,6 +1128,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_HOLD:
         g_value_set_boxed (value, self->hold);
         break;
+    case PROP_PROCEED_TIME:
+        g_value_set_boxed (value, self->proceed_time);
+        break;
     case PROP_ICON:
         g_value_set_string (value, self->icon);
         break;
@@ -1209,6 +1237,7 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&self->contact, g_free);
     g_clear_pointer (&self->description, g_free);
     g_clear_pointer (&self->hold, g_date_time_unref);
+    g_clear_pointer (&self->proceed_time, g_date_time_unref);
     g_clear_pointer (&self->icon, g_free);
     g_clear_pointer (&self->id, g_free);
     g_clear_pointer (&self->install_date, g_date_time_unref);
@@ -1338,6 +1367,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                      g_param_spec_boxed ("hold",
                                                          "hold",
                                                          "Date this snap will re-enable automatic refreshing",
+                                                         G_TYPE_DATE_TIME,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_PROCEED_TIME,
+                                     g_param_spec_boxed ("proceed-time",
+                                                         "proceed-time",
+                                                         "Describes time after which a refresh is forced for a running snap in the next auto-refresh.",
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,

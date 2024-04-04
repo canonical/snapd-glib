@@ -224,6 +224,7 @@ struct _MockSnap
     GList *media;
     gchar *mounted_from;
     gchar *name;
+    gchar *proceed_time;
     GList *prices;
     gboolean is_private;
     gchar *publisher_display_name;
@@ -1574,6 +1575,13 @@ mock_snap_set_status (MockSnap *snap, const gchar *status)
 }
 
 void
+mock_snap_set_proceed_time (MockSnap *snap, const gchar *proceed_time)
+{
+    g_free (snap->proceed_time);
+    snap->proceed_time = g_strdup (proceed_time);
+}
+
+void
 mock_snap_set_store_url (MockSnap *snap, const gchar *store_url)
 {
     g_free (snap->store_url);
@@ -2691,6 +2699,13 @@ make_snap_node (MockSnap *snap)
         json_builder_set_member_name (builder, "website");
         json_builder_add_string_value (builder, snap->website);
     }
+    if (snap->proceed_time != NULL) {
+        json_builder_set_member_name (builder, "refresh-inhibit");
+        json_builder_begin_object (builder);
+        json_builder_set_member_name (builder, "proceed-time");
+        json_builder_add_string_value (builder, snap->proceed_time);
+        json_builder_end_object (builder);
+    }
     json_builder_end_object (builder);
 
     return json_builder_get_root (builder);
@@ -2762,6 +2777,9 @@ handle_snaps (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
                 continue;
 
             if ((select_param == NULL || strcmp (select_param, "enabled") == 0) && strcmp (snap->status, "active") != 0)
+                continue;
+
+            if ((select_param != NULL) && g_str_equal (select_param, "refresh-inhibited") && (snap->proceed_time == NULL))
                 continue;
 
             json_builder_add_value (builder, make_snap_node (snap));

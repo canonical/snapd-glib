@@ -512,6 +512,10 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  * If @flags contains %SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE then also return snaps
  * with status %SNAPD_SNAP_STATUS_INSTALLED.
  *
+ * If @flags contains %SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED, then it will return
+ * only those snaps that are inhibited from being refreshed, for example due to having a
+ * running instace.
+ *
  * If @names is not %NULL and contains at least one name only snaps that match these names are
  * returned. If a snap is not installed it is not returned (no error is generated).
  *

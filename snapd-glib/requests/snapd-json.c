@@ -879,6 +879,11 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
             publisher_validation = SNAPD_PUBLISHER_VALIDATION_UNKNOWN;
     }
 
+    JsonObject *refresh_inhibit = _snapd_json_get_object (object, "refresh-inhibit");
+    g_autoptr(GDateTime) proceed_time = NULL;
+    if (refresh_inhibit != NULL)
+        proceed_time = _snapd_json_get_date_time (refresh_inhibit, "proceed-time");
+
     return g_object_new (SNAPD_TYPE_SNAP,
                          "apps", apps_array,
                          "base", _snapd_json_get_string (object, "base", NULL),
@@ -920,6 +925,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
                          "trymode", _snapd_json_get_bool (object, "trymode", FALSE),
                          "version", _snapd_json_get_string (object, "version", NULL),
                          "website", _snapd_json_get_string (object, "website", NULL),
+                         "proceed-time", proceed_time,
                          NULL);
 }
 

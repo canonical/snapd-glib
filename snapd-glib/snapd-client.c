@@ -1945,19 +1945,32 @@ snapd_client_list_finish (SnapdClient *self, GAsyncResult *result, GError **erro
  * Asynchronously get information on installed snaps.
  * See snapd_client_get_snaps_sync() for more information.
  *
+ * When settings the @flags variable, only one of SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE and
+ * SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED can be set. Setting both results in an error.
+ *
  * Since: 1.42
  */
 void
 snapd_client_get_snaps_async (SnapdClient *self,
                               SnapdGetSnapsFlags flags,
                               GStrv names,
-                              GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+                              GCancellable *cancellable,
+                              GAsyncReadyCallback callback,
+                              gpointer user_data)
 {
+    // SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE and SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED
+    // are mutually exclusive; only one can be set.
+    #define SNAPD_GET_SNAPS_FLAGS_EXCLUSIVE (SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE | SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED)
+    g_assert ((flags & SNAPD_GET_SNAPS_FLAGS_EXCLUSIVE) != SNAPD_GET_SNAPS_FLAGS_EXCLUSIVE);
+    #undef SNAPD_GET_SNAPS_FLAGS_EXCLUSIVE
+
     g_return_if_fail (SNAPD_IS_CLIENT (self));
 
     g_autoptr(SnapdGetSnaps) request = _snapd_get_snaps_new (cancellable, names, callback, user_data);
     if ((flags & SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE) != 0)
         _snapd_get_snaps_set_select (request, "all");
+    if ((flags & SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED) != 0)
+        _snapd_get_snaps_set_select (request, "refresh-inhibited");
     send_request (self, SNAPD_REQUEST (request));
 }
 
