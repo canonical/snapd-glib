@@ -1304,7 +1304,8 @@ GPtrArray *snapd_client_get_notices_with_filters_sync              (SnapdClient 
                                                                     gchar                *keys,
                                                                     GDateTime            *since_date_time,
                                                                     GTimeSpan             timeout,
-                                                                    GCancellable *cancellable, GError **error);
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
 
 void snapd_client_get_notices_with_filters_async                   (SnapdClient          *client,
                                                                     gchar                *user_id,

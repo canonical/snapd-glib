@@ -113,8 +113,7 @@ parse_get_snap_response (SnapdRequest *request, guint status_code, const gchar *
     json_node_unref (result);
     if (notice == NULL)
         return FALSE;
-    if (self->notices != NULL)
-        g_ptr_array_unref (self->notices);
+    g_clear_pointer (&self->notices, g_ptr_array_unref);
     self->notices = g_steal_pointer (&notice);
 
     return TRUE;
@@ -130,6 +129,7 @@ snapd_get_notices_finalize (GObject *object)
     g_clear_pointer (&self->types, g_free);
     g_clear_pointer (&self->keys, g_free);
     g_clear_pointer (&self->from_date_time, g_date_time_unref);
+    g_clear_pointer (&self->notices, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_get_notices_parent_class)->finalize (object);
 }
