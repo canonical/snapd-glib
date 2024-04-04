@@ -797,6 +797,22 @@ mock_snapd_add_change (MockSnapd *self)
     return add_change (self);
 }
 
+void
+mock_change_set_kind (MockChange *change, const gchar *kind)
+{
+    g_free (change->kind);
+    change->kind = g_strdup (kind);
+}
+
+void
+mock_change_add_data (MockChange *change, JsonNode *data)
+{
+    if (change->data != NULL) {
+        json_node_unref (change->data);
+    }
+    change->data = json_node_ref ((JsonNode *)data);
+}
+
 MockTask *
 mock_change_add_task (MockChange *change, const gchar *kind)
 {

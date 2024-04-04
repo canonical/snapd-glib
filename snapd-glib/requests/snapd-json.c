@@ -521,6 +521,25 @@ _snapd_json_get_async_result (JsonObject *response, GError **error)
     return g_strdup (json_node_get_string (change_node));
 }
 
+static GStrv
+create_str_array_from_jsonarray (JsonArray *data) {
+    if (data == NULL)
+        return NULL;
+
+    guint len = json_array_get_length (data);
+    GStrv list = g_malloc0_n (1 + len, sizeof(gchar *));
+
+    for (guint i = 0; i <len; i++) {
+        JsonNode *node = json_array_get_element (data, i);
+        if (node == NULL || json_node_get_value_type (node) != G_TYPE_STRING) {
+            g_strfreev (list);
+            return NULL;
+        }
+        list[i] = g_strdup(json_node_get_string (node));
+    }
+    return list;
+}
+
 SnapdChange *
 _snapd_json_parse_change (JsonNode *node, GError **error)
 {
@@ -567,6 +586,27 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
     g_autoptr(GDateTime) main_spawn_time = _snapd_json_get_date_time (object, "spawn-time");
     g_autoptr(GDateTime) main_ready_time = _snapd_json_get_date_time (object, "ready-time");
 
+    g_autoptr(SnapdChangeData) data = NULL;
+    JsonObject *autorefresh_data = _snapd_json_get_object (object, "data");
+    const gchar *kind = _snapd_json_get_string (object, "kind", "");
+
+    // Currently, only one kind of Change can have DATA field, so this is quite "hardcoded". When more
+    // Change kinds have DATA field, new subclasses of SNAPD_TYPE_CHANGE_DATA must be created, and
+    // the code in QT's snapd-change-data.c file must be completed to manage the new types.
+    if (g_str_equal (kind, "auto-refresh") && (autorefresh_data != NULL)) {
+
+        g_autoptr(JsonArray) snap_names_json = _snapd_json_get_array (autorefresh_data, "snap-names");
+        g_auto(GStrv) snap_names = create_str_array_from_jsonarray (snap_names_json);
+
+        g_autoptr(JsonArray) refresh_forced_json = _snapd_json_get_array (autorefresh_data, "refresh-forced");
+        g_auto(GStrv) refresh_forced = create_str_array_from_jsonarray (refresh_forced_json);
+
+        data = g_object_new (SNAPD_TYPE_AUTOREFRESH_CHANGE_DATA,
+                             "snap-names", snap_names,
+                             "refresh-forced", refresh_forced,
+                             NULL);
+    }
+
     return g_object_new (SNAPD_TYPE_CHANGE,
                          "id", _snapd_json_get_string (object, "id", NULL),
                          "kind", _snapd_json_get_string (object, "kind", NULL),
@@ -577,6 +617,7 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
                          "spawn-time", main_spawn_time,
                          "ready-time", main_ready_time,
                          "error", _snapd_json_get_string (object, "err", NULL),
+                         "data", data,
                          NULL);
 }
 

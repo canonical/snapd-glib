@@ -884,6 +884,64 @@ test_get_changes_filter_ready_snap ()
 }
 
 static void
+test_get_changes_data ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    MockChange *c = mock_snapd_add_change (snapd);
+
+    g_autoptr(JsonBuilder) builder = json_builder_new ();
+    json_builder_begin_object (builder);
+    json_builder_set_member_name (builder, "snap-names");
+    json_builder_begin_array (builder);
+    json_builder_add_string_value (builder, "snap1");
+    json_builder_add_string_value (builder, "snap2");
+    json_builder_add_string_value (builder, "snap3");
+    json_builder_end_array (builder);
+    json_builder_set_member_name (builder, "refresh-forced");
+    json_builder_begin_array (builder);
+    json_builder_add_string_value (builder, "snap_forced1");
+    json_builder_add_string_value (builder, "snap_forced2");
+    json_builder_end_array (builder);
+    json_builder_end_object (builder);
+
+    JsonNode *node = json_builder_get_root (builder);
+
+    mock_change_add_data (c, node);
+    mock_change_set_kind (c, "auto-refresh");
+
+    g_assert_true (mock_snapd_start (snapd, NULL));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+
+    QScopedPointer<QSnapdGetChangesRequest> changesRequest (client.getChanges ());
+    changesRequest->runSync ();
+    g_assert_cmpint (changesRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (changesRequest->changeCount (), ==, 1);
+
+    QScopedPointer<QSnapdChange> change (changesRequest->change (0));
+    QSnapdChangeData *base_data = change->data ();
+    g_assert (base_data != NULL);
+    QScopedPointer<QSnapdAutorefreshChangeData> data (dynamic_cast<QSnapdAutorefreshChangeData *>(base_data));
+    g_assert (data != NULL);
+    QStringList snap_names = data->snapNames ();
+    g_assert_cmpint (snap_names.length (), ==, 3);
+    g_assert_true (snap_names[0] == "snap1");
+    g_assert_true (snap_names[1] == "snap2");
+    g_assert_true (snap_names[2] == "snap3");
+
+    QStringList refresh_forced = data->refreshForced ();
+    g_assert_cmpint (refresh_forced.length (), ==, 2);
+    g_assert_true (refresh_forced[0] == "snap_forced1");
+    g_assert_true (refresh_forced[1] == "snap_forced2");
+
+    json_node_unref (node);
+}
+
+
+static void
 test_get_change_sync ()
 {
     g_autoptr(MockSnapd) snapd = mock_snapd_new ();
@@ -7279,6 +7337,7 @@ main (int argc, char **argv)
     g_test_add_func ("/get-changes/filter-ready", test_get_changes_filter_ready);
     g_test_add_func ("/get-changes/filter-snap", test_get_changes_filter_snap);
     g_test_add_func ("/get-changes/filter-ready-snap", test_get_changes_filter_ready_snap);
+    g_test_add_func ("/get-change/data", test_get_changes_data);
     g_test_add_func ("/get-change/sync", test_get_change_sync);
     g_test_add_func ("/get-change/async", test_get_change_async);
     g_test_add_func ("/abort-change/sync", test_abort_change_sync);

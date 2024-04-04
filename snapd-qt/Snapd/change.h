@@ -14,6 +14,8 @@
 #include <QtCore/QDateTime>
 #include <Snapd/WrappedObject>
 #include <Snapd/Task>
+#include <Snapd/change-data.h>
+#include <Snapd/change-autorefresh-data.h>
 
 class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject
 {
@@ -28,6 +30,7 @@ class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject
     Q_PROPERTY(QDateTime spawnTime READ spawnTime)
     Q_PROPERTY(QDateTime readyTime READ readyTime)
     Q_PROPERTY(QString error READ error)
+    Q_PROPERTY(QSnapdChangeData *data READ data)
 
 public:
     explicit QSnapdChange (void* snapd_object, QObject* parent = 0);
@@ -42,6 +45,7 @@ public:
     QDateTime spawnTime () const;
     QDateTime readyTime () const;
     QString error () const;
+    QSnapdChangeData *data () const;
 };
 
 #endif

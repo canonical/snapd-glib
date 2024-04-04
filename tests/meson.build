@@ -15,7 +15,7 @@ mock_snapd_lib = static_library ('mock-snapd',
 
 test_executable = executable ('test-glib',
                               'test-glib.c',
-                              dependencies: [ glib_dep, snapd_glib_dep ],
+                              dependencies: [ glib_dep, snapd_glib_dep, json_glib_dep ],
                               link_with: [ mock_snapd_lib ],
                               c_args: [ '-DVERSION="@0@"'.format (meson.project_version ()) ],
                               install_dir: installed_tests_exec_dir,
@@ -43,7 +43,7 @@ if get_option('qt5') or get_option('qt6')
 
   test_executable = executable (f'test-@qt_version@',
                                 'test-qt.cpp', moc_files,
-                                dependencies: [ glib_dep, snapd_qt_dep ],
+                                dependencies: [ glib_dep, snapd_qt_dep, json_glib_dep ],
                                 link_with: [ mock_snapd_lib ],
                                 cpp_args: [ '-DVERSION="@0@"'.format (meson.project_version ()) ],
                                 install_dir: installed_tests_exec_dir,
