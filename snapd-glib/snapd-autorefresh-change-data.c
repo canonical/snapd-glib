@@ -24,8 +24,6 @@ enum
     N_PROPERTIES
 };
 
-static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
-
 /**
  * snapd_autorefresh_change_data_get_snap_names:
  * @change_data: a #SnapdAutorefreshChangeData
@@ -108,23 +106,21 @@ snapd_autorefresh_change_data_class_init (SnapdAutorefreshChangeDataClass *klass
     gobject_class->get_property = snapd_autorefresh_change_data_get_property;
     gobject_class->finalize = snapd_autorefresh_change_data_finalize;
 
-    obj_properties[PROP_SNAP_NAMES] =
-    g_param_spec_boxed ("snap-names",
-                        "Snap Names",
-                        "Names of the snaps that have been autorefreshed.",
-                        G_TYPE_STRV,
-                        G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
+    g_object_class_install_property (gobject_class,
+                                     PROP_SNAP_NAMES,
+                                     g_param_spec_boxed ("snap-names",
+                                                         "Snap Names",
+                                                         "Names of the snaps that have been autorefreshed.",
+                                                         G_TYPE_STRV,
+                                                         G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
 
-    obj_properties[PROP_REFRESH_FORCED] =
-    g_param_spec_boxed ("refresh-forced",
-                        "Refresh forced",
-                        "Names of the snaps that have been forced to autorefresh.",
-                        G_TYPE_STRV,
-                        G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
-
-    g_object_class_install_properties (gobject_class,
-                                       N_PROPERTIES,
-                                       obj_properties);
+    g_object_class_install_property (gobject_class,
+                                     PROP_REFRESH_FORCED,
+                                     g_param_spec_boxed ("refresh-forced",
+                                                         "Refresh forced",
+                                                         "Names of the snaps that have been forced to autorefresh.",
+                                                         G_TYPE_STRV,
+                                                         G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
 }
 
 static void
