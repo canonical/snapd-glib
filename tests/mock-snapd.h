@@ -482,7 +482,7 @@ void            mock_snap_set_proceed_time        (MockSnap      *snap,
                                                    const gchar   *proceed_time);
 
 void            mock_change_add_data              (MockChange    *change,
-                                                   const JsonNode *data);
+                                                   JsonNode      *data);
 
 void            mock_change_set_kind              (MockChange    *change,
                                                    const gchar   *kind);

@@ -805,7 +805,7 @@ mock_change_set_kind (MockChange *change, const gchar *kind)
 }
 
 void
-mock_change_add_data (MockChange *change, const JsonNode *data)
+mock_change_add_data (MockChange *change, JsonNode *data)
 {
     if (change->data != NULL) {
         json_node_unref (change->data);
