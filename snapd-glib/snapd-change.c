@@ -154,7 +154,7 @@ snapd_change_get_tasks (SnapdChange *self)
  *
  * Returns: (transfer none): a #SnapdChangeData object with all the data, or NULL if the field isn't defined
  *
- * Since: 1.5
+ * Since: 1.65
  */
 SnapdChangeData *
 snapd_change_get_data (SnapdChange *self)

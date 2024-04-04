@@ -27,7 +27,7 @@ enum
 static GParamSpec *obj_properties[N_PROPERTIES] = { NULL, };
 
 /**
- * snapd_autorefresh_change_data_get_snap_names
+ * snapd_autorefresh_change_data_get_snap_names:
  * @change_data: a #SnapdAutorefreshChangeData
  *
  * return: (transfer none): a GStrv with the snap names, or NULL if the property wasn't defined
@@ -39,7 +39,7 @@ snapd_autorefresh_change_data_get_snap_names (SnapdAutorefreshChangeData *self) 
 }
 
 /**
- * snapd_autorefresh_change_data_get_refresh_forced
+ * snapd_autorefresh_change_data_get_refresh_forced:
  * @change_data: a #SnapdAutorefreshChangeData
  *
  * return: (transfer none): a GStrv with the snap names, or NULL if the property wasn't defined

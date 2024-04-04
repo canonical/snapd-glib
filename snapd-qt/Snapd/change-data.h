@@ -22,5 +22,4 @@ public:
     explicit QSnapdChangeData (void* snapd_object, QObject* parent = 0);
 };
 
-
 #endif

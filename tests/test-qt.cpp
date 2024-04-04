@@ -905,7 +905,7 @@ test_get_changes_data ()
     json_builder_end_array (builder);
     json_builder_end_object (builder);
 
-    JsonNode *node = json_builder_get_root (builder);
+    g_autoptr (JsonNode) node = json_builder_get_root (builder);
 
     mock_change_add_data (c, node);
     mock_change_set_kind (c, "auto-refresh");

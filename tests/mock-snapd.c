@@ -810,7 +810,7 @@ mock_change_add_data (MockChange *change, const JsonNode *data)
     if (change->data != NULL) {
         json_node_unref (change->data);
     }
-    change->data = (JsonNode *)data;
+    change->data = json_node_ref ((JsonNode *)data);
 }
 
 MockTask *
