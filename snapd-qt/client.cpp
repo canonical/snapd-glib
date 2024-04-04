@@ -3653,8 +3653,8 @@ void QSnapdNoticesRequest::handleResult (void *object, void *result)
     Q_D(QSnapdNoticesRequest);
 
     g_autoptr(GError) error = NULL;
-    g_autoptr(GPtrArray) snaps = snapd_client_get_snaps_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
-    d->notices = (GPtrArray*) g_steal_pointer (&snaps);
+    g_clear_pointer (&d->notices, g_object_unref);
+    d->notices = snapd_client_get_notices_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
     finish (error);
 }
 
@@ -3686,14 +3686,14 @@ void QSnapdNoticesRequest::runAsync ()
 int QSnapdNoticesRequest::noticesCount () const
 {
     Q_D(const QSnapdNoticesRequest);
-    return d->notices != NULL ? d->notices->len : 0;
+    return snapd_notices_get_n_notices (d->notices);
 }
 
-QSnapdNotice *QSnapdNoticesRequest::notice (int n) const
+QSnapdNotice *QSnapdNoticesRequest::notice (quint64 n) const
 {
     Q_D(const QSnapdNoticesRequest);
 
-    if (d->notices == NULL || n < 0 || (guint) n >= d->notices->len)
+    if (d->notices == NULL || n >= snapd_notices_get_n_notices (d->notices))
         return NULL;
-    return new QSnapdNotice (d->notices->pdata[n]);
+    return new QSnapdNotice (snapd_notices_get_notice (d->notices, n));
 }

@@ -977,10 +977,10 @@ public:
     {
         callback_data->request = NULL;
         g_object_unref (callback_data);
-        g_ptr_array_unref (notices);
+        g_clear_pointer (&notices, g_object_unref);
     }
     CallbackData *callback_data;
-    GPtrArray *notices;
+    SnapdNotices *notices;
 };
 
 #endif

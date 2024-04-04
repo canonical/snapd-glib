@@ -983,7 +983,7 @@ public:
     virtual void runSync ();
     virtual void runAsync ();
     Q_INVOKABLE int noticesCount () const;
-    Q_INVOKABLE QSnapdNotice *notice (int) const;
+    Q_INVOKABLE QSnapdNotice *notice (quint64) const;
     void handleResult (void *, void *);
     void resetFilters ();
 

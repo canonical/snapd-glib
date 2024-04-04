@@ -26,6 +26,7 @@
 #include <snapd-glib/snapd-change.h>
 #include <snapd-glib/snapd-user-information.h>
 #include <snapd-glib/snapd-notice.h>
+#include <snapd-glib/snapd-notices.h>
 
 G_BEGIN_DECLS
 
@@ -1284,7 +1285,7 @@ gboolean                snapd_client_follow_logs_finish            (SnapdClient 
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-GPtrArray *snapd_client_get_notices_sync                           (SnapdClient          *client,
+SnapdNotices    *snapd_client_get_notices_sync                     (SnapdClient          *client,
                                                                     GDateTime            *since_date_time,
                                                                     GTimeSpan             timeout,
                                                                     GCancellable         *cancellable,
@@ -1297,7 +1298,7 @@ void snapd_client_get_notices_async                                (SnapdClient 
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 
-GPtrArray *snapd_client_get_notices_with_filters_sync              (SnapdClient          *client,
+SnapdNotices    *snapd_client_get_notices_with_filters_sync        (SnapdClient          *client,
                                                                     gchar                *user_id,
                                                                     gchar                *users,
                                                                     gchar                *types,
@@ -1318,7 +1319,7 @@ void snapd_client_get_notices_with_filters_async                   (SnapdClient 
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
 
-GPtrArray *snapd_client_get_notices_finish                         (SnapdClient          *client,
+SnapdNotices *snapd_client_get_notices_finish                      (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

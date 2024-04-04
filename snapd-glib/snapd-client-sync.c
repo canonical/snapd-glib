@@ -1899,11 +1899,11 @@ snapd_client_follow_logs_sync (SnapdClient *self,
  *
  * Synchronously get notifications that have occurred / are occurring on the snap daemon.
  *
- * Returns: (transfer full) (element-type GPtrArray): a list of #SnapdNotice or %NULL on error.
+ * Returns: (transfer full): a #SnapdGetNotices object with the notices list, or NULL in case of error.
  *
  * Since: 1.65
  */
-GPtrArray *
+SnapdNotices *
 snapd_client_get_notices_sync (SnapdClient *self,
                                GDateTime *since_date_time,
                                GTimeSpan timeout,
@@ -1932,11 +1932,11 @@ snapd_client_get_notices_sync (SnapdClient *self,
  *
  * Synchronously get notifications that have occurred / are occurring on the snap daemon.
  *
- * Returns: (transfer full) (element-type GPtrArray): a list of #SnapdNotice or %NULL on error.
+ * Returns: (transfer full): a #SnapdGetNotices object with the notices list, or NULL in case of error.
  *
  * Since: 1.65
  */
-GPtrArray *
+SnapdNotices *
 snapd_client_get_notices_with_filters_sync (SnapdClient *self,
                                             gchar *user_id,
                                             gchar *users,
@@ -1953,5 +1953,5 @@ snapd_client_get_notices_with_filters_sync (SnapdClient *self,
     snapd_client_get_notices_with_filters_async (self, user_id, users, types, keys,
                                                  since_date_time, timeout, cancellable, sync_cb, &data);
     end_sync (&data);
-    return g_ptr_array_ref (snapd_client_get_notices_finish (self, data.result, error));
+    return snapd_client_get_notices_finish (self, data.result, error);
 }
