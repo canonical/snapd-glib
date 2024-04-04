@@ -527,7 +527,7 @@ create_str_array_from_jsonarray (JsonArray *data) {
         return NULL;
 
     guint len = json_array_get_length (data);
-    GStrv list = g_malloc0_n (len, 1 + sizeof(gchar *));
+    GStrv list = g_malloc0_n (1 + len, sizeof(gchar *));
 
     for (guint i = 0; i <len; i++) {
         JsonNode *node = json_array_get_element (data, i);

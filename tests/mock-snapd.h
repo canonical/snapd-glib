@@ -480,6 +480,7 @@ void            mock_snapd_add_log                (MockSnapd     *snapd,
 
 void            mock_snap_set_proceed_time        (MockSnap      *snap,
                                                    const gchar   *proceed_time);
+
 void            mock_change_add_data              (MockChange    *change,
                                                    const JsonNode *data);
 
