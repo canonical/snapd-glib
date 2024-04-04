@@ -1953,5 +1953,5 @@ snapd_client_get_notices_with_filters_sync (SnapdClient *self,
     snapd_client_get_notices_with_filters_async (self, user_id, users, types, keys,
                                                  since_date_time, timeout, cancellable, sync_cb, &data);
     end_sync (&data);
-    return snapd_client_get_notices_finish (self, data.result, error);
+    return g_ptr_array_ref (snapd_client_get_notices_finish (self, data.result, error));
 }
