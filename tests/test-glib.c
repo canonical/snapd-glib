@@ -8504,7 +8504,7 @@ test_get_changes_data (void)
     json_builder_end_array (builder);
     json_builder_end_object (builder);
 
-    g_autoptr (JsonNode) node = json_builder_get_root (builder);
+    JsonNode *node = json_builder_get_root (builder);
 
     mock_change_add_data (c, node);
     mock_change_set_kind (c, "auto-refresh");
@@ -8533,6 +8533,8 @@ test_get_changes_data (void)
     g_assert_cmpint (g_strv_length (refresh_forced), ==, 2);
     g_assert_true (g_str_equal (refresh_forced[0], "snap_forced1"));
     g_assert_true (g_str_equal (refresh_forced[1], "snap_forced2"));
+
+    json_node_unref (node);
 }
 
 int
