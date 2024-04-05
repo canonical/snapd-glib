@@ -1899,7 +1899,7 @@ snapd_client_follow_logs_sync (SnapdClient *self,
  *
  * Synchronously get notifications that have occurred / are occurring on the snap daemon.
  *
- * Returns: (transfer full): a #SnapdGetNotices object with the notices list, or NULL in case of error.
+ * Returns: (transfer container): a #SnapdGetNotices object with the notices list, or NULL in case of error.
  *
  * Since: 1.65
  */
@@ -1932,7 +1932,7 @@ snapd_client_get_notices_sync (SnapdClient *self,
  *
  * Synchronously get notifications that have occurred / are occurring on the snap daemon.
  *
- * Returns: (transfer full): a #SnapdGetNotices object with the notices list, or NULL in case of error.
+ * Returns: (transfer container): a #SnapdGetNotices object with the notices list, or NULL in case of error.
  *
  * Since: 1.65
  */

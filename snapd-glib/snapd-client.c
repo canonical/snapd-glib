@@ -2088,7 +2088,7 @@ snapd_client_get_snaps_async (SnapdClient *self,
  * Complete request started with snapd_client_get_snaps_async().
  * See snapd_client_get_snaps_sync() for more information.
  *
- * Returns: (transfer full) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
+ * Returns: (transfer container) (element-type SnapdSnap): an array of #SnapdSnap or %NULL on error.
  *
  * Since: 1.42
  */

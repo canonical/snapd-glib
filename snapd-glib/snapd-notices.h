@@ -27,6 +27,6 @@ SnapdNotices      *snapd_notices_new           (GPtrArray *data);
 guint64            snapd_notices_get_n_notices (SnapdNotices *notices);
 
 SnapdNotice       *snapd_notices_get_notice    (SnapdNotices *notices,
-                                                guint64       notice);
+                                                guint64       notice_number);
 
 G_END_DECLS

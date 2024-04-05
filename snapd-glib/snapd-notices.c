@@ -53,17 +53,18 @@ snapd_notices_get_n_notices (SnapdNotices *self)
 }
 
 /**
- * snapd_notice_get_user_id:
- * @notice: a #SnapdNotice.
+ * snapd_notice_get_notice:
+ * @notice: a #SnapdNotices.
+ * @notice_number: the #SnapdNotice number to get
  *
- * Get the user ID for this notice, or NULL if no user is defined
+ * Get a specific #SnapdNotice from the list.
  *
- * Returns: an user ID.
+ * Returns: the requested #SnapdNotice, or NULL if there was an error.
  *
  * Since: 1.65
  */
 SnapdNotice *
-snapd_notices_get_notice (SnapdNotices *self, guint64 notice)
+snapd_notices_get_notice (SnapdNotices *self, guint64 notice_number)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICES (self), NULL);
     if ((self->notices == NULL) || (notice >= self->notices->len))
