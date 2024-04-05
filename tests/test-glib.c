@@ -8580,7 +8580,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
-    SnapdNotices *notices = snapd_client_get_notices_finish (source_object, result, &error);
+    g_autoptr(SnapdNotices) notices = snapd_client_get_notices_finish (source_object, result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (notices);
     g_assert_cmpint (snapd_notices_get_n_notices (notices), ==, 2);
@@ -8752,7 +8752,7 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
     AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
-    SnapdNotices *notices = snapd_client_get_notices_finish (source_object, result, &error);
+    g_autoptr(SnapdNotices) notices = snapd_client_get_notices_finish (source_object, result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (notices);
     g_assert_cmpint (snapd_notices_get_n_notices (notices), ==, 1);

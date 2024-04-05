@@ -3636,6 +3636,7 @@ void QSnapdNoticesRequest::runSync ()
 
     g_autoptr(GError) error = NULL;
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
+    g_clear_pointer (&d->notices, g_object_unref);
     d->notices = snapd_client_get_notices_with_filters_sync (SNAPD_CLIENT (getClient ()),
                                                              (gchar *) this->userIdFilter.toStdString ().c_str (),
                                                              (gchar *) this->usersFilter.toStdString ().c_str (),
