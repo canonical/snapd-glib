@@ -135,7 +135,7 @@ snapd_notice_get_key (SnapdNotice *self)
  *
  * Get the data of the notice.
  *
- * Returns: (transfer none): a HashTable with the data elements.
+ * Returns: (transfer container): a HashTable with the data elements.
  *
  * Since: 1.65
  */
@@ -143,7 +143,7 @@ GHashTable *
 snapd_notice_get_last_data (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
-    return self->data;
+    return g_hash_table_ref (self->data);
 }
 
 /**
