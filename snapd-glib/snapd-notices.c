@@ -53,13 +53,13 @@ snapd_notices_get_n_notices (SnapdNotices *self)
 }
 
 /**
- * snapd_notice_get_notice:
- * @notice: a #SnapdNotices.
+ * snapd_notices_get_notice:
+ * @notices: a #SnapdNotices.
  * @notice_number: the #SnapdNotice number to get
  *
  * Get a specific #SnapdNotice from the list.
  *
- * Returns: the requested #SnapdNotice, or NULL if there was an error.
+ * Returns: (transfer full): the requested #SnapdNotice, or NULL if there was an error.
  *
  * Since: 1.65
  */
@@ -67,9 +67,9 @@ SnapdNotice *
 snapd_notices_get_notice (SnapdNotices *self, guint64 notice_number)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICES (self), NULL);
-    if ((self->notices == NULL) || (notice >= self->notices->len))
+    if ((self->notices == NULL) || (notice_number >= self->notices->len))
         return NULL;
-    return self->notices->pdata[notice];
+    return g_object_ref (self->notices->pdata[notice_number]);
 }
 
 
@@ -96,6 +96,14 @@ snapd_notices_init (SnapdNotices *self)
 {
 }
 
+/**
+ * snapd_notices_new:
+ * @data: (element-type SnapdNotice): a #GPtrArray containing #SnapdNotice elements
+ *
+ * Creates a new #SnapdNotices object with the specified data
+ *
+ * Returns: (transfer full): a new #SnapdNotices
+ */
 SnapdNotices *
 snapd_notices_new (GPtrArray *data)
 {
