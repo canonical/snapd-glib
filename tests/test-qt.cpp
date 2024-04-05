@@ -7336,8 +7336,8 @@ test_notices_events ()
     noticesRequest->runSync ();
     g_assert_cmpint (noticesRequest->error (), ==, QSnapdRequest::NoError);
     g_assert_cmpint (noticesRequest->noticesCount(), ==, 2);
-    QSnapdNotice *notice0 = noticesRequest->notice(0);
-    QSnapdNotice *notice1 = noticesRequest->notice(1);
+    QSnapdNotice *notice0 = noticesRequest->getNotice(0);
+    QSnapdNotice *notice1 = noticesRequest->getNotice(1);
     g_assert_nonnull (notice0);
     g_assert_nonnull (notice1);
 

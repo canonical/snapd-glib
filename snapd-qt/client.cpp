@@ -3690,7 +3690,7 @@ int QSnapdNoticesRequest::noticesCount () const
     return snapd_notices_get_n_notices (d->notices);
 }
 
-QSnapdNotice *QSnapdNoticesRequest::notice (quint64 n) const
+QSnapdNotice *QSnapdNoticesRequest::getNotice (quint64 n) const
 {
     Q_D(const QSnapdNoticesRequest);
 
