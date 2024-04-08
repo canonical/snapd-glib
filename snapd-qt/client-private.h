@@ -977,10 +977,15 @@ public:
     {
         callback_data->request = NULL;
         g_object_unref (callback_data);
-        g_clear_pointer (&notices, g_object_unref);
+        g_clear_pointer (&notices, g_ptr_array_unref);
+    }
+    void updateNoticesData (GPtrArray *data)
+    {
+        g_clear_pointer (&notices, g_ptr_array_unref);
+        notices = data;
     }
     CallbackData *callback_data;
-    SnapdNotices *notices;
+    GPtrArray *notices;
 };
 
 #endif

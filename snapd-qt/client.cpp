@@ -3636,16 +3636,15 @@ void QSnapdNoticesRequest::runSync ()
 
     g_autoptr(GError) error = NULL;
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
-    g_clear_pointer (&d->notices, g_object_unref);
-    d->notices = snapd_client_get_notices_with_filters_sync (SNAPD_CLIENT (getClient ()),
-                                                             (gchar *) this->userIdFilter.toStdString ().c_str (),
-                                                             (gchar *) this->usersFilter.toStdString ().c_str (),
-                                                             (gchar *) this->typesFilter.toStdString ().c_str (),
-                                                             (gchar *) this->keysFilter.toStdString ().c_str (),
-                                                             dateTime,
-                                                             this->timeout,
-                                                             G_CANCELLABLE (getCancellable ()),
-                                                             &error);
+    d->updateNoticesData (snapd_client_get_notices_with_filters_sync (SNAPD_CLIENT (getClient ()),
+                                                                      (gchar *) this->userIdFilter.toStdString ().c_str (),
+                                                                      (gchar *) this->usersFilter.toStdString ().c_str (),
+                                                                      (gchar *) this->typesFilter.toStdString ().c_str (),
+                                                                      (gchar *) this->keysFilter.toStdString ().c_str (),
+                                                                      dateTime,
+                                                                      this->timeout,
+                                                                      G_CANCELLABLE (getCancellable ()),
+                                                                      &error));
     finish (error);
 }
 
@@ -3654,8 +3653,7 @@ void QSnapdNoticesRequest::handleResult (void *object, void *result)
     Q_D(QSnapdNoticesRequest);
 
     g_autoptr(GError) error = NULL;
-    g_clear_pointer (&d->notices, g_object_unref);
-    d->notices = snapd_client_get_notices_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    d->updateNoticesData (snapd_client_get_notices_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error));
     finish (error);
 }
 
@@ -3684,17 +3682,17 @@ void QSnapdNoticesRequest::runAsync ()
                                                  g_object_ref (d->callback_data));
 }
 
-int QSnapdNoticesRequest::noticesCount () const
+uint QSnapdNoticesRequest::noticesCount () const
 {
     Q_D(const QSnapdNoticesRequest);
-    return snapd_notices_get_n_notices (d->notices);
+    return d->notices->len;
 }
 
 QSnapdNotice *QSnapdNoticesRequest::getNotice (quint64 n) const
 {
     Q_D(const QSnapdNoticesRequest);
 
-    if (d->notices == NULL || n >= snapd_notices_get_n_notices (d->notices))
+    if (d->notices == NULL || n >= d->notices->len)
         return NULL;
-    return new QSnapdNotice (snapd_notices_get_notice (d->notices, n));
+    return new QSnapdNotice (SNAPD_NOTICE(d->notices->pdata[n]));
 }

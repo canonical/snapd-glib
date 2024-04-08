@@ -8580,13 +8580,13 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
-    g_autoptr(SnapdNotices) notices = snapd_client_get_notices_finish (source_object, result, &error);
+    g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish (source_object, result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (notices);
-    g_assert_cmpint (snapd_notices_get_n_notices (notices), ==, 2);
+    g_assert_cmpint (notices->len, ==, 2);
 
-    g_autoptr(SnapdNotice) notice1 = snapd_notices_get_notice (notices, 0);
-    g_autoptr(SnapdNotice) notice2 = snapd_notices_get_notice (notices, 1);
+    g_autoptr(SnapdNotice) notice1 = g_object_ref (notices->pdata[0]);
+    g_autoptr(SnapdNotice) notice2 = g_object_ref (notices->pdata[1]);
 
     g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
     g_assert_null (snapd_notice_get_user_id (notice1));
@@ -8752,12 +8752,12 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
     AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
-    g_autoptr(SnapdNotices) notices = snapd_client_get_notices_finish (source_object, result, &error);
+    g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish (source_object, result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (notices);
-    g_assert_cmpint (snapd_notices_get_n_notices (notices), ==, 1);
+    g_assert_cmpint (notices->len, ==, 1);
 
-    g_autoptr(SnapdNotice) notice1 = snapd_notices_get_notice (notices, 0);
+    g_autoptr(SnapdNotice) notice1 = g_object_ref (notices->pdata[0]);
 
     g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
     g_assert_null (snapd_notice_get_user_id (notice1));

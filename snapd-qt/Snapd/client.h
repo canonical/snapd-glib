@@ -982,7 +982,7 @@ public:
     ~QSnapdNoticesRequest ();
     virtual void runSync ();
     virtual void runAsync ();
-    Q_INVOKABLE int noticesCount () const;
+    Q_INVOKABLE uint noticesCount () const;
     Q_INVOKABLE QSnapdNotice *getNotice (quint64) const;
     void handleResult (void *, void *);
     void resetFilters ();
