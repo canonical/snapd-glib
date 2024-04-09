@@ -3653,7 +3653,7 @@ void QSnapdNoticesRequest::handleResult (void *object, void *result)
     Q_D(QSnapdNoticesRequest);
 
     g_autoptr(GError) error = NULL;
-    d->updateNoticesData (snapd_client_get_notices_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error));
+    d->updateNoticesData (snapd_client_get_notices_with_filters_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error));
     finish (error);
 }
 

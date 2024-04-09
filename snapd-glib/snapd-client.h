@@ -1271,7 +1271,6 @@ gboolean                snapd_client_follow_logs_sync              (SnapdClient 
                                                                     gpointer              log_callback_data,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
-
 void                    snapd_client_follow_logs_async             (SnapdClient          *client,
                                                                     GStrv                 names,
                                                                     SnapdLogCallback      log_callback,
@@ -1279,7 +1278,6 @@ void                    snapd_client_follow_logs_async             (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-
 gboolean                snapd_client_follow_logs_finish            (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
@@ -1289,13 +1287,15 @@ GPtrArray              *snapd_client_get_notices_sync              (SnapdClient 
                                                                     GTimeSpan             timeout,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
-
 void                    snapd_client_get_notices_async             (SnapdClient          *client,
                                                                     GDateTime            *since_date_time,
                                                                     GTimeSpan             timeout,
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
+GPtrArray              *snapd_client_get_notices_finish            (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
 
 GPtrArray              *snapd_client_get_notices_with_filters_sync (SnapdClient          *client,
                                                                     gchar                *user_id,
@@ -1306,7 +1306,6 @@ GPtrArray              *snapd_client_get_notices_with_filters_sync (SnapdClient 
                                                                     GTimeSpan             timeout,
                                                                     GCancellable         *cancellable,
                                                                     GError              **error);
-
 void                   snapd_client_get_notices_with_filters_async (SnapdClient          *client,
                                                                     gchar                *user_id,
                                                                     gchar                *users,
@@ -1317,8 +1316,7 @@ void                   snapd_client_get_notices_with_filters_async (SnapdClient 
                                                                     GCancellable         *cancellable,
                                                                     GAsyncReadyCallback   callback,
                                                                     gpointer              user_data);
-
-GPtrArray              *snapd_client_get_notices_finish            (SnapdClient          *client,
+GPtrArray              *snapd_client_get_notices_with_filters_finish (SnapdClient          *client,
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 

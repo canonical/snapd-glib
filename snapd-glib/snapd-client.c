@@ -1374,6 +1374,31 @@ snapd_client_get_notices_async (SnapdClient *self,
 }
 
 /**
+ * snapd_client_get_notices_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_notices_async().
+ *
+ * Returns: (transfer container) (element-type SnapdNotice): a #GPtrArray object containing the requested notices, or NULL in case of error.
+ *
+ * Since: 1.65
+ */
+GPtrArray *
+snapd_client_get_notices_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_NOTICES (result), NULL);
+
+    SnapdGetNotices *request = SNAPD_GET_NOTICES (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_ptr_array_ref (_snapd_get_notices_get_notices (request));
+}
+
+/**
  * snapd_client_get_notices_with_filters_async:
  * @client: a #SnapdClient.
  * @user_id: filter by this user-id (NULL for no filter).
@@ -1417,28 +1442,21 @@ snapd_client_get_notices_with_filters_async (SnapdClient *self,
 }
 
 /**
- * snapd_client_get_notices_finish:
+ * snapd_client_get_notices_with_filters_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
- * Complete request started with snapd_client_get_notices_async().
+ * Complete request started with snapd_client_get_notices_with_filters_async().
  *
  * Returns: (transfer container) (element-type SnapdNotice): a #GPtrArray object containing the requested notices, or NULL in case of error.
  *
  * Since: 1.65
  */
 GPtrArray *
-snapd_client_get_notices_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+snapd_client_get_notices_with_filters_finish (SnapdClient *self, GAsyncResult *result, GError **error)
 {
-    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
-    g_return_val_if_fail (SNAPD_IS_GET_NOTICES (result), NULL);
-
-    SnapdGetNotices *request = SNAPD_GET_NOTICES (result);
-
-    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
-        return NULL;
-    return g_ptr_array_ref (_snapd_get_notices_get_notices (request));
+    return snapd_client_get_notices_finish (self, result, error);
 }
 
 
