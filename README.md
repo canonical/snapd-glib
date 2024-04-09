@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/snapcore/snapd-glib.svg?branch=master)](https://travis-ci.org/snapcore/snapd-glib)
-
 ## snapd-glib
 
 snapd-glib is a library to allow GLib based applications access to snapd, the daemon that controls Snaps.
