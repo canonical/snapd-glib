@@ -32,4 +32,4 @@ GPtrArray       *_snapd_get_notices_get_notices (SnapdGetNotices *request);
 
 G_END_DECLS
 
-#endif /* __SNAPD_GET_SNAP_H__ */
+#endif /* __SNAPD_GET_NOTICES_H__ */
