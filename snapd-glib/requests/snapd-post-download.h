@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_DOWNLOAD_H__
-#define __SNAPD_POST_DOWNLOAD_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -26,5 +25,3 @@ SnapdPostDownload *_snapd_post_download_new      (const gchar         *name,
 GBytes            *_snapd_post_download_get_data (SnapdPostDownload   *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_DOWNLOAD_H__ */

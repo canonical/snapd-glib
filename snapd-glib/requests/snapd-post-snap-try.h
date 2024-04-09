@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_SNAP_TRY_H__
-#define __SNAPD_POST_SNAP_TRY_H__
+#pragma once
 
 #include "snapd-request-async.h"
 
@@ -26,5 +25,3 @@ SnapdPostSnapTry *_snapd_post_snap_try_new (const gchar           *path,
                                             gpointer               user_data);
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_SNAP_TRY_H__ */

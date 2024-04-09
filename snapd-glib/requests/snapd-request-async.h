@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_REQUEST_ASYNC_H__
-#define __SNAPD_REQUEST_ASYNC_H__
+#pragma once
 
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
@@ -45,5 +44,3 @@ SnapdGetChange  *_snapd_request_async_make_get_change_request  (SnapdRequestAsyn
 SnapdPostChange *_snapd_request_async_make_post_change_request (SnapdRequestAsync *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_REQUEST_ASYNC_H__ */

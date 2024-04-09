@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_ALIASES_H__
-#define __SNAPD_GET_ALIASES_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -23,5 +22,3 @@ SnapdGetAliases *_snapd_get_aliases_new         (GCancellable        *cancellabl
 GPtrArray       *_snapd_get_aliases_get_aliases (SnapdGetAliases *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_ALIASES_H__ */

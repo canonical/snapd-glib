@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_SNAP_STREAM_H__
-#define __SNAPD_POST_SNAP_STREAM_H__
+#pragma once
 
 #include "snapd-request-async.h"
 
@@ -41,5 +40,3 @@ void                 _snapd_post_snap_stream_append_data   (SnapdPostSnapStream 
                                                             guint                  len);
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_SNAP_STREAM_H__ */

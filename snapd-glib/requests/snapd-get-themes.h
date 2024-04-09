@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_THEMES_H__
-#define __SNAPD_GET_THEMES_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -28,5 +27,3 @@ GHashTable *_snapd_get_themes_get_icon_theme_status  (SnapdGetThemes *request);
 GHashTable *_snapd_get_themes_get_sound_theme_status (SnapdGetThemes *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_THEMES_H__ */

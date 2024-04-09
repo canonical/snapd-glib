@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_APPS_H__
-#define __SNAPD_GET_APPS_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -27,5 +26,3 @@ void          _snapd_get_apps_set_select (SnapdGetApps        *request,
 GPtrArray    *_snapd_get_apps_get_apps   (SnapdGetApps        *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_APPS_H__ */

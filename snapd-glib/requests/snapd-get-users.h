@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_USERS_H__
-#define __SNAPD_GET_USERS_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -23,5 +22,3 @@ SnapdGetUsers *_snapd_get_users_new                   (GCancellable        *canc
 GPtrArray     *_snapd_get_users_get_users_information (SnapdGetUsers *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_USERS_H__ */

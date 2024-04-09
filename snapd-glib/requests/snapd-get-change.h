@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_CHANGE_H__
-#define __SNAPD_GET_CHANGE_H__
+#pragma once
 
 #include <json-glib/json-glib.h>
 
@@ -33,5 +32,3 @@ JsonNode       *_snapd_get_change_get_data      (SnapdGetChange *request);
 void            _snapd_get_change_set_api_path  (SnapdGetChange *request,
                                                  const gchar    *api_path);
 G_END_DECLS
-
-#endif /* __SNAPD_GET_CHANGE_H__ */

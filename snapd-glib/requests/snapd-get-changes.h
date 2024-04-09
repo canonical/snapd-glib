@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_CHANGES_H__
-#define __SNAPD_GET_CHANGES_H__
+#pragma once
 
 #include <json-glib/json-glib.h>
 
@@ -27,5 +26,3 @@ SnapdGetChanges *_snapd_get_changes_new           (const gchar         *select,
 GPtrArray       *_snapd_get_changes_get_changes   (SnapdGetChanges *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_CHANGES_H__ */

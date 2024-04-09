@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_INTERFACES_H__
-#define __SNAPD_POST_INTERFACES_H__
+#pragma once
 
 #include "snapd-request-async.h"
 
@@ -30,5 +29,3 @@ SnapdPostInterfaces *_snapd_post_interfaces_new (const gchar           *action,
                                                  gpointer               user_data);
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_INTERFACES_H__ */

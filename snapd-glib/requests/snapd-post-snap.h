@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_SNAP_H__
-#define __SNAPD_POST_SNAP_H__
+#pragma once
 
 #include "snapd-request-async.h"
 
@@ -49,5 +48,3 @@ void           _snapd_post_snap_set_purge     (SnapdPostSnap         *request,
 
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_SNAP_H__ */

@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_SNAP_CONF_H__
-#define __SNAPD_GET_SNAP_CONF_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -25,5 +24,3 @@ SnapdGetSnapConf *_snapd_get_snap_conf_new      (const gchar         *name,
 GHashTable       *_snapd_get_snap_conf_get_conf (SnapdGetSnapConf    *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_SNAP_CONF_H__ */

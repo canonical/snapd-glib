@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_CREATE_USERS_H__
-#define __SNAPD_POST_CREATE_USERS_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -23,5 +22,3 @@ SnapdPostCreateUsers *_snapd_post_create_users_new                   (GCancellab
 GPtrArray            *_snapd_post_create_users_get_users_information (SnapdPostCreateUsers  *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_CREATE_USERS_H__ */

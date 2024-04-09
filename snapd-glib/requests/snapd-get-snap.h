@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_SNAP_H__
-#define __SNAPD_GET_SNAP_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -26,5 +25,3 @@ SnapdGetSnap *_snapd_get_snap_new      (const gchar         *name,
 SnapdSnap    *_snapd_get_snap_get_snap (SnapdGetSnap *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_SNAP_H__ */

@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_LOGIN_H__
-#define __SNAPD_POST_LOGIN_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -28,5 +27,3 @@ SnapdPostLogin       *_snapd_post_login_new                  (const gchar       
 SnapdUserInformation *_snapd_post_login_get_user_information (SnapdPostLogin *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_LOGIN_H__ */

@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_CHANGE_H__
-#define __SNAPD_POST_CHANGE_H__
+#pragma once
 
 #include <json-glib/json-glib.h>
 
@@ -35,5 +34,3 @@ void             _snapd_post_change_set_api_path  (SnapdPostChange *request,
                                                    const gchar     *api_path);
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_CHANGE_H__ */

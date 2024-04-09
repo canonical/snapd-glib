@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_CONNECTIONS_H__
-#define __SNAPD_GET_CONNECTIONS_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -32,5 +31,3 @@ GPtrArray           *_snapd_get_connections_get_slots       (SnapdGetConnections
 GPtrArray           *_snapd_get_connections_get_undesired   (SnapdGetConnections *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_CONNECTIONS_H__ */

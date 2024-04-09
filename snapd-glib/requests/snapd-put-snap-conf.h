@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_PUT_SNAP_CONF_H__
-#define __SNAPD_PUT_SNAP_CONF_H__
+#pragma once
 
 #include "snapd-request-async.h"
 
@@ -23,5 +22,3 @@ SnapdPutSnapConf *_snapd_put_snap_conf_new (const gchar         *name,
                                             gpointer             user_data);
 
 G_END_DECLS
-
-#endif /* __SNAPD_PUT_SNAP_CONF_H__ */

@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_ASSERTIONS_H__
-#define __SNAPD_POST_ASSERTIONS_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -22,5 +21,3 @@ SnapdPostAssertions *_snapd_post_assertions_new (GStrv                assertions
                                                  gpointer             user_data);
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_ASSERTIONS_H__ */

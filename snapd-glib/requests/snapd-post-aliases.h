@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_POST_ALIASES_H__
-#define __SNAPD_POST_ALIASES_H__
+#pragma once
 
 #include "snapd-request-async.h"
 
@@ -29,5 +28,3 @@ SnapdPostAliases *_snapd_post_aliases_new (const gchar           *action,
                                            gpointer               user_data);
 
 G_END_DECLS
-
-#endif /* __SNAPD_POST_ALIASES_H__ */

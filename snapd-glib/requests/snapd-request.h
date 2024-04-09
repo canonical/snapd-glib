@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_REQUEST_H__
-#define __SNAPD_REQUEST_H__
+#pragma once
 
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
@@ -48,5 +47,3 @@ gboolean      _snapd_request_propagate_error   (SnapdRequest *request,
                                                 GError      **error);
 
 G_END_DECLS
-
-#endif /* __SNAPD_REQUEST_H__ */

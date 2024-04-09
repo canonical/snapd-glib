@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_ICON_H__
-#define __SNAPD_GET_ICON_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -27,4 +26,3 @@ SnapdIcon    *_snapd_get_icon_get_icon (SnapdGetIcon *request);
 
 G_END_DECLS
 
-#endif /* __SNAPD_GET_ICON_H__ */

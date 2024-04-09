@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_CATEGORIES_H__
-#define __SNAPD_GET_CATEGORIES_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -23,5 +22,3 @@ SnapdGetCategories *_snapd_get_categories_new            (GCancellable        *c
 GPtrArray          *_snapd_get_categories_get_categories (SnapdGetCategories *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_CATEGORIES_H__ */

@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_INTERFACE_H__
-#define __SNAPD_GET_INTERFACE_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -36,5 +35,3 @@ void                _snapd_get_interfaces_set_only_connected (SnapdGetInterfaces
 GPtrArray          *_snapd_get_interfaces_get_interfaces     (SnapdGetInterfaces  *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_INTERFACE_H__ */

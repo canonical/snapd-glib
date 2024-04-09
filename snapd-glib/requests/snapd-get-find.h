@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_FIND_H__
-#define __SNAPD_GET_FIND_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -47,4 +46,3 @@ const gchar  *_snapd_get_find_get_suggested_currency (SnapdGetFind        *reque
 
 G_END_DECLS
 
-#endif /* __SNAPD_GET_FIND_H__ */

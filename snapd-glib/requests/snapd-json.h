@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_JSON_H__
-#define __SNAPD_JSON_H__
+#pragma once
 
 #include <libsoup/soup.h>
 #include <json-glib/json-glib.h>
@@ -122,5 +121,3 @@ SnapdInterface       *_snapd_json_parse_interface        (JsonNode           *no
                                                           GError            **error);
 
 G_END_DECLS
-
-#endif /* __SNAPD_JSON_H__ */

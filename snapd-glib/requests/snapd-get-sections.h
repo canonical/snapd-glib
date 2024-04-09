@@ -7,8 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#ifndef __SNAPD_GET_SECTIONS_H__
-#define __SNAPD_GET_SECTIONS_H__
+#pragma once
 
 #include "snapd-request.h"
 
@@ -23,5 +22,3 @@ SnapdGetSections *_snapd_get_sections_new          (GCancellable        *cancell
 GStrv             _snapd_get_sections_get_sections (SnapdGetSections *request);
 
 G_END_DECLS
-
-#endif /* __SNAPD_GET_SECTIONS_H__ */
