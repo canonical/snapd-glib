@@ -53,7 +53,7 @@ struct _SnapdNotice
     GDateTime *last_occurred;
     GDateTime *last_repeated;
     GHashTable *data;
-    gint occurrences;
+    gint64 occurrences;
     GTimeSpan repeat_after;
     GTimeSpan expire_after;
 };
@@ -213,7 +213,7 @@ snapd_notice_get_last_repeated (SnapdNotice *self)
  *
  * Since: 1.65
  */
-const gint
+const gint64
 snapd_notice_get_occurrences (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
@@ -291,7 +291,7 @@ snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, 
             self->last_repeated = g_date_time_ref (g_value_get_boxed (value));
         break;
     case PROP_OCCURRENCES:
-        self->occurrences = g_value_get_int (value);
+        self->occurrences = g_value_get_int64 (value);
         break;
     case PROP_LAST_DATA:
         g_clear_pointer (&self->data, g_hash_table_unref);
@@ -433,11 +433,11 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_OCCURRENCES,
-                                     g_param_spec_int ("occurrences",
-                                                       "occurrences",
-                                                       "Number of time one of these notices has occurred",
-                                                       G_MININT, G_MAXINT, -1,
-                                                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                     g_param_spec_int64 ("occurrences",
+                                                         "occurrences",
+                                                         "Number of time one of these notices has occurred",
+                                                         G_MININT, G_MAXINT, -1,
+                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_LAST_DATA,
                                      g_param_spec_boxed ("last-data",
