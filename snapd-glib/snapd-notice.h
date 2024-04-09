@@ -7,7 +7,8 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#pragma once
+#ifndef __SNAPD_NOTICE_H__
+#define __SNAPD_NOTICE_H__
 
 #if !defined(__SNAPD_GLIB_INSIDE__) && !defined(SNAPD_COMPILATION)
 #error "Only <snapd-glib/snapd-glib.h> can be included directly."
@@ -52,3 +53,5 @@ const GTimeSpan        snapd_notice_get_repeat_after   (SnapdNotice *notice);
 const GTimeSpan        snapd_notice_get_expire_after   (SnapdNotice *notice);
 
 G_END_DECLS
+
+#endif /* __SNAPD_NOTICE_H__ */

@@ -6,7 +6,9 @@
  * Software Foundation; either version 2 or version 3 of the License.
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
-#pragma once
+
+#ifndef __SNAPD_CHANGE_DATA_H__
+#define __SNAPD_CHANGE_DATA_H__
 
 #include <glib-object.h>
 
@@ -21,3 +23,5 @@ struct _SnapdChangeDataClass
 };
 
 G_END_DECLS
+
+#endif /* __SNAPD_CHANGE_DATA_H__ */

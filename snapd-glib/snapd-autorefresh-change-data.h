@@ -6,7 +6,9 @@
  * Software Foundation; either version 2 or version 3 of the License.
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
-#pragma once
+
+#ifndef __SNAPD_AUTOREFRESH_CHANGE_DATA_H__
+#define __SNAPD_AUTOREFRESH_CHANGE_DATA_H__
 
 #include <glib-object.h>
 #include "snapd-change-data.h"
@@ -21,3 +23,5 @@ GStrv     snapd_autorefresh_change_data_get_snap_names         (SnapdAutorefresh
 GStrv     snapd_autorefresh_change_data_get_refresh_forced     (SnapdAutorefreshChangeData *change_data);
 
 G_END_DECLS
+
+#endif /* __SNAPD_AUTOREFRESH_CHANGE_DATA_H__ */
