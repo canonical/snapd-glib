@@ -42,6 +42,7 @@ typedef struct _MockSnap MockSnap;
 typedef struct _MockSnapshot MockSnapshot;
 typedef struct _MockTask MockTask;
 typedef struct _MockTrack MockTrack;
+typedef struct _MockNotice MockNotice;
 
 MockSnapd      *mock_snapd_new                    (void);
 
@@ -486,6 +487,32 @@ void            mock_change_add_data              (MockChange    *change,
 
 void            mock_change_set_kind              (MockChange    *change,
                                                    const gchar   *kind);
+MockNotice *    mock_snapd_add_notice             (MockSnapd     *snapd,
+                                                   const gchar   *id,
+                                                   const gchar   *key,
+                                                   const gchar   *type);
+
+void            mock_notice_set_user_id           (MockNotice    *notice,
+                                                   const gchar   *user_id);
+
+void            mock_notice_set_dates             (MockNotice    *notice,
+                                                   GDateTime     *first_occurred,
+                                                   GDateTime     *last_occurred,
+                                                   GDateTime     *last_repeat,
+                                                   int            occurrences);
+
+void            mock_notice_set_expire_after      (MockNotice    *notice,
+                                                   const gchar   *expire_after);
+
+void            mock_notice_set_repeat_after      (MockNotice    *notice,
+                                                   const gchar   *repeat_after);
+
+void            mock_notice_add_data_pair         (MockNotice    *notice,
+                                                   const gchar   *entry,
+                                                   const gchar   *data);
+
+gchar *         mock_snapd_get_notices_parameters (MockSnapd     *snapd);
+
 G_END_DECLS
 
 #endif /* __MOCK_SNAPD_H__ */

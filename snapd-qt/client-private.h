@@ -966,4 +966,26 @@ public:
     CallbackData *callback_data;
 };
 
+class QSnapdNoticesRequestPrivate
+{
+public:
+    QSnapdNoticesRequestPrivate (gpointer request) {
+        notices = NULL;
+        callback_data = callback_data_new (request);
+    }
+    ~QSnapdNoticesRequestPrivate ()
+    {
+        callback_data->request = NULL;
+        g_object_unref (callback_data);
+        g_clear_pointer (&notices, g_ptr_array_unref);
+    }
+    void updateNoticesData (GPtrArray *data)
+    {
+        g_clear_pointer (&notices, g_ptr_array_unref);
+        notices = data;
+    }
+    CallbackData *callback_data;
+    GPtrArray *notices;
+};
+
 #endif

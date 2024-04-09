@@ -21,6 +21,7 @@
 #include <Snapd/Icon>
 #include <Snapd/Interface>
 #include <Snapd/Maintenance>
+#include <Snapd/Notice>
 #include <Snapd/Plug>
 #include <Snapd/Request>
 #include <Snapd/Slot>
@@ -964,6 +965,40 @@ private:
     Q_DECLARE_PRIVATE(QSnapdInstallThemesRequest)
 };
 
+class QSnapdNoticesRequestPrivate;
+class Q_DECL_EXPORT QSnapdNoticesRequest : public QSnapdRequest
+{
+    Q_OBJECT
+    Q_PROPERTY(qint64 timeout MEMBER timeout)
+    Q_PROPERTY(bool sinceFilterSet MEMBER sinceFilterSet)
+    Q_PROPERTY(QDateTime sinceFilter MEMBER sinceFilter)
+    Q_PROPERTY(QString userIdFilter MEMBER userIdFilter)
+    Q_PROPERTY(QString usersFilter MEMBER usersFilter)
+    Q_PROPERTY(QString keysFilter MEMBER keysFilter)
+    Q_PROPERTY(QString typesFilter MEMBER typesFilter)
+
+public:
+    explicit QSnapdNoticesRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdNoticesRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE uint noticesCount () const;
+    Q_INVOKABLE QSnapdNotice *getNotice (quint64) const;
+    void handleResult (void *, void *);
+    void resetFilters ();
+
+private:
+    QScopedPointer<QSnapdNoticesRequestPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdNoticesRequest)
+    qint64 timeout;
+    bool sinceFilterSet;
+    QDateTime sinceFilter;
+    QString userIdFilter;
+    QString usersFilter;
+    QString keysFilter;
+    QString typesFilter;
+};
+
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password);
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password, const QString& otp);
 
@@ -1138,6 +1173,7 @@ public:
     Q_INVOKABLE QSnapdDownloadRequest *download (const QString &name, const QString &channel, const QString &revision);
     Q_INVOKABLE QSnapdCheckThemesRequest *checkThemes (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames);
     Q_INVOKABLE QSnapdInstallThemesRequest *installThemes (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames);
+    Q_INVOKABLE QSnapdNoticesRequest *getNotices ();
 
 private:
     QScopedPointer<QSnapdClientPrivate> d_ptr;

@@ -1888,3 +1888,70 @@ snapd_client_follow_logs_sync (SnapdClient *self,
     end_sync (&data);
     return snapd_client_follow_logs_finish (self, data.result, error);
 }
+
+/**
+ * snapd_client_get_notices_sync:
+ * @client: a #SnapdClient.
+ * @since_date_time: send only the notices generated after this moment (NULL for all).
+ * @timeout: time, in microseconds, to wait for a new notice (zero to return immediately).
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Synchronously get notifications that have occurred / are occurring on the snap daemon.
+ *
+ * Returns: (transfer container) (element-type SnapdNotice): a #GPtrArray object containing the requested notices, or NULL in case of error.
+ *
+ * Since: 1.65
+ */
+GPtrArray *
+snapd_client_get_notices_sync (SnapdClient *self,
+                               GDateTime *since_date_time,
+                               GTimeSpan timeout,
+                               GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_get_notices_async (self, since_date_time, timeout, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_notices_finish (self, data.result, error);
+}
+
+/**
+ * snapd_client_get_notices_with_filters_sync:
+ * @client: a #SnapdClient.
+ * @user_id: filter by this user-id (NULL for no filter).
+ * @users: filter by this comma-separated list of users (NULL for no filter).
+ * @types: filter by this comma-separated list of types (NULL for no filter).
+ * @keys: filter by this comma-separated list of keys (NULL for no filter).
+ * @since_date_time: send only the notices generated after this moment (NULL for all).
+ * @timeout: time, in microseconds, to wait for a new notice (zero to return immediately).
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Synchronously get notifications that have occurred / are occurring on the snap daemon.
+ *
+ * Returns: (transfer container) (element-type SnapdNotice): a #GPtrArray object containing the requested notices, or NULL in case of error.
+ *
+ * Since: 1.65
+ */
+GPtrArray *
+snapd_client_get_notices_with_filters_sync (SnapdClient *self,
+                                            gchar *user_id,
+                                            gchar *users,
+                                            gchar *types,
+                                            gchar *keys,
+                                            GDateTime *since_date_time,
+                                            GTimeSpan timeout,
+                                            GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_get_notices_with_filters_async (self, user_id, users, types, keys,
+                                                 since_date_time, timeout, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_notices_finish (self, data.result, error);
+}

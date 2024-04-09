@@ -19,6 +19,7 @@
 #include "snapd-connection.h"
 #include "snapd-interface.h"
 #include "snapd-maintenance.h"
+#include "snapd-notice.h"
 #include "snapd-plug.h"
 #include "snapd-plug-ref.h"
 #include "snapd-slot.h"
@@ -71,6 +72,9 @@ JsonArray            *_snapd_json_get_sync_result_a      (JsonObject         *re
 
 gchar                *_snapd_json_get_async_result       (JsonObject         *response,
                                                           GError            **error);
+
+GPtrArray            *_snapd_json_parse_notice           (JsonNode            *node,
+                                                          GError             **error);
 
 SnapdChange          *_snapd_json_parse_change           (JsonNode            *node,
                                                           GError            **error);

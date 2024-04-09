@@ -68,6 +68,19 @@ _snapd_json_get_string (JsonObject *object, const gchar *name, const gchar *defa
         return default_value;
 }
 
+const gchar *
+_snapd_json_get_int_as_string (JsonObject *object, const gchar *name)
+{
+    JsonNode *node = json_object_get_member (object, name);
+    if (node == NULL)
+        return NULL;
+    if (json_node_get_value_type (node) == G_TYPE_INT64)
+        return g_strdup_printf("%ld", json_node_get_int (node));
+    else if (json_node_get_value_type (node) == G_TYPE_STRING)
+        return g_strdup(json_node_get_string (node));
+    return NULL;
+}
+
 JsonArray *
 _snapd_json_get_array (JsonObject *object, const gchar *name)
 {
@@ -86,6 +99,109 @@ _snapd_json_get_object (JsonObject *object, const gchar *name)
         return json_node_get_object (node);
     else
         return NULL;
+}
+
+gboolean
+_snapd_json_parse_time_span (const gchar *time_span_string, GTimeSpan *time_span)
+{
+    /* Examples:
+          3y
+          1y5d
+          4h32m2s
+
+       Valid time units: y w d h m s ms us µs ns
+
+       Since GTimeSpan is in microseconds, ns will be discarded.
+     */
+
+    GTimeSpan current_value = 0;
+    if (time_span_string == NULL)
+        return FALSE;
+    gchar *p = (gchar *)time_span_string;
+
+    *time_span = 0;
+    if (*p == '-')
+        p++;
+
+    for (;*p != 0; p++) {
+        switch (*p) {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            current_value *= 10;
+            current_value += (GTimeSpan)((*p) - '0');
+            break;
+        case 'y':
+            *time_span += current_value * 365 * G_TIME_SPAN_DAY;
+            current_value = 0;
+            break;
+        case 'w':
+            *time_span += current_value * 7 * G_TIME_SPAN_DAY;
+            current_value = 0;
+            break;
+        case 'd':
+            *time_span += current_value * G_TIME_SPAN_DAY;
+            current_value = 0;
+            break;
+        case 'h':
+            *time_span += current_value * G_TIME_SPAN_HOUR;
+            current_value = 0;
+            break;
+        case 'm':
+            if (*(p+1) == 's') {
+                *time_span += current_value * G_TIME_SPAN_MILLISECOND;
+                p++;
+            } else {
+                *time_span += current_value * G_TIME_SPAN_MINUTE;
+            }
+            current_value = 0;
+            break;
+        case 's':
+            *time_span += current_value * G_TIME_SPAN_SECOND;
+            current_value = 0;
+            break;
+        case '\xc2': // first byte of µ
+            p++;
+            if (*p != '\xb5') { // it's not µ
+                *time_span = 0;
+                return FALSE;
+            }
+            // continue like it is 'u'
+        case 'u':
+            p++;
+            if (*p == 's') {
+                *time_span += current_value; // microseconds
+                current_value = 0;
+            } else {
+                *time_span = 0;
+                return FALSE;
+            }
+            break;
+        case 'n':
+            p++;
+            if (*p == 's') {
+                current_value = 0;
+            } else {
+                *time_span = 0;
+                return FALSE;
+            }
+            break;
+        default:
+            *time_span = 0;
+            return FALSE;
+        }
+    }
+    if (*time_span_string == '-') {
+        *time_span *= -1;
+    }
+    return TRUE;
 }
 
 static gboolean
@@ -538,6 +654,83 @@ create_str_array_from_jsonarray (JsonArray *data) {
         list[i] = g_strdup(json_node_get_string (node));
     }
     return list;
+}
+
+static void
+add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data)
+{
+    GPtrArray *list = (GPtrArray *) data;
+    GTimeSpan expire_after = 0;
+    GTimeSpan repeat_after = 0;
+    g_autoptr(GHashTable) last_data = NULL;
+
+    JsonObject *object = json_node_get_object (element);
+    g_autoptr(GDateTime) first_occurred = _snapd_json_get_date_time (object, "first-occurred");
+    g_autoptr(GDateTime) last_occurred = _snapd_json_get_date_time (object, "last-occurred");
+    g_autoptr(GDateTime) last_repeated = _snapd_json_get_date_time (object, "last-repeated");
+
+    _snapd_json_parse_time_span (_snapd_json_get_string (object, "expire-after", NULL), &expire_after);
+    _snapd_json_parse_time_span (_snapd_json_get_string (object, "repeat-after", NULL), &repeat_after);
+
+    const gchar *notice_type_string = _snapd_json_get_string (object, "type", NULL);
+
+    SnapdNoticeType notice_type;
+    if (notice_type_string == NULL)
+        notice_type = SNAPD_NOTICE_TYPE_UNKNOWN;
+    else if (g_str_equal (notice_type_string, "change-update"))
+        notice_type = SNAPD_NOTICE_TYPE_CHANGE_UPDATE;
+    else if (g_str_equal (notice_type_string, "refresh-inhibit"))
+        notice_type = SNAPD_NOTICE_TYPE_REFRESH_INHIBIT;
+    else if (g_str_equal (notice_type_string, "snap-run-inhibit"))
+        notice_type = SNAPD_NOTICE_TYPE_SNAP_RUN_INHIBIT;
+    else
+        notice_type = SNAPD_NOTICE_TYPE_UNKNOWN;
+
+    if (json_object_has_member (object, "last-data")) {
+        JsonObjectIter iter;
+        const gchar *member_name;
+        JsonNode *member_node;
+
+        last_data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+        JsonObject *data_dict = _snapd_json_get_object (object, "last-data");
+
+        json_object_iter_init (&iter, data_dict);
+        while (json_object_iter_next (&iter, &member_name, &member_node))
+            g_hash_table_insert (last_data, g_strdup((gchar *)member_name), g_strdup((gchar *)json_node_get_string (member_node)));
+    }
+    g_autofree const gchar *user_id = _snapd_json_get_int_as_string (object, "user-id");
+    g_autoptr(SnapdNotice) notice = g_object_new (SNAPD_TYPE_NOTICE,
+                                                  "id", _snapd_json_get_string (object, "id", NULL),
+                                                  "user-id", user_id,
+                                                  "notice-type", notice_type,
+                                                  "key", _snapd_json_get_string (object, "key", NULL),
+                                                  "first-occurred", first_occurred,
+                                                  "last-occurred", last_occurred,
+                                                  "last-repeated", last_repeated,
+                                                  "occurrences", _snapd_json_get_int (object, "occurrences", -1),
+                                                  "expire-after", expire_after,
+                                                  "repeat-after", repeat_after,
+                                                  "last-data", last_data,
+                                                  NULL);
+
+    g_ptr_array_add (list, g_object_ref(notice));
+}
+
+GPtrArray *
+_snapd_json_parse_notice (JsonNode *node, GError **error)
+{
+    if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
+        g_set_error (error,
+                     SNAPD_ERROR,
+                     SNAPD_ERROR_READ_FAILED,
+                     "Unexpected change type");
+        return NULL;
+    }
+    JsonArray *notices = json_node_get_array (node);
+    GPtrArray *retlist = g_ptr_array_new_full(json_array_get_length (notices), g_object_unref);
+    json_array_foreach_element (notices, add_notice_to_list, retlist);
+
+    return retlist;
 }
 
 SnapdChange *

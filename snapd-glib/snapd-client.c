@@ -28,6 +28,7 @@
 #include "requests/snapd-get-interfaces.h"
 #include "requests/snapd-get-interfaces-legacy.h"
 #include "requests/snapd-get-logs.h"
+#include "requests/snapd-get-notices.h"
 #include "requests/snapd-get-sections.h"
 #include "requests/snapd-get-snap.h"
 #include "requests/snapd-get-snap-conf.h"
@@ -1336,6 +1337,110 @@ snapd_client_get_auth_data (SnapdClient *self)
     g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
     return priv->auth_data;
 }
+
+/**
+ * snapd_client_get_notices_async:
+ * @client: a #SnapdClient.
+ * @since_date_time: send only the notices generated after this moment (NULL for all).
+ * @timeout: time, in microseconds, to wait for a new notice (zero to return immediately).
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get notifications that have occurred / are occurring on the snap daemon.
+ *
+ * Since: 1.65
+ */
+void
+snapd_client_get_notices_async (SnapdClient *self,
+                                GDateTime *since_date_time,
+                                GTimeSpan timeout,
+                                GCancellable *cancellable,
+                                GAsyncReadyCallback callback,
+                                gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    snapd_client_get_notices_with_filters_async (self,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 since_date_time,
+                                                 timeout,
+                                                 cancellable,
+                                                 callback,
+                                                 user_data);
+}
+
+/**
+ * snapd_client_get_notices_with_filters_async:
+ * @client: a #SnapdClient.
+ * @user_id: filter by this user-id (NULL for no filter).
+ * @users: filter by this comma-separated list of users (NULL for no filter).
+ * @types: filter by this comma-separated list of types (NULL for no filter).
+ * @keys: filter by this comma-separated list of keys (NULL for no filter).
+ * @since_date_time: send only the notices generated after this moment (NULL for all).
+ * @timeout: time, in microseconds, to wait for a new notice (zero to return immediately).
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Asynchronously get notifications that have occurred / are occurring on the snap daemon.
+ *
+ * Since: 1.65
+ */
+void
+snapd_client_get_notices_with_filters_async (SnapdClient *self,
+                                             gchar *user_id,
+                                             gchar *users,
+                                             gchar *types,
+                                             gchar *keys,
+                                             GDateTime *since_date_time,
+                                             GTimeSpan timeout,
+                                             GCancellable *cancellable,
+                                             GAsyncReadyCallback callback,
+                                             gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdGetNotices) request = _snapd_get_notices_new (user_id,
+                                                                 users,
+                                                                 types,
+                                                                 keys,
+                                                                 since_date_time,
+                                                                 timeout,
+                                                                 cancellable,
+                                                                 callback,
+                                                                 user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_notices_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_notices_async().
+ *
+ * Returns: (transfer container) (element-type SnapdNotice): a #GPtrArray object containing the requested notices, or NULL in case of error.
+ *
+ * Since: 1.65
+ */
+GPtrArray *
+snapd_client_get_notices_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_NOTICES (result), NULL);
+
+    SnapdGetNotices *request = SNAPD_GET_NOTICES (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_ptr_array_ref (_snapd_get_notices_get_notices (request));
+}
+
 
 /**
  * snapd_client_get_changes_async:

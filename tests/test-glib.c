@@ -8537,10 +8537,292 @@ test_get_changes_data (void)
     json_node_unref (node);
 }
 
+
+/* Notices example
+{
+    "type":"sync",
+    "status-code":200,
+    "status":"OK",
+    "result":[
+        {
+            "id":"1",
+            "user-id":null,
+            "type":"change-update",
+            "key":"8473",
+            "first-occurred":"2024-03-27T11:34:53.34609455Z",
+            "last-occurred":"2024-03-27T11:34:54.847953897Z",
+            "last-repeated":"2024-03-27T11:34:54.847953897Z",
+            "occurrences":3,
+            "last-data":{
+                "kind":"install-snap"
+            },
+            "expire-after":"168h0m0s"
+        },{
+            "id":"2",
+            "user-id":null,
+            "type":"change-update",
+            "key":"8474",
+            "first-occurred":"2024-03-27T16:15:09.871332485Z",
+            "last-occurred":"2024-03-27T16:15:43.702284133Z",
+            "last-repeated":"2024-03-27T16:15:43.702284133Z",
+            "occurrences":3,
+            "last-data":{
+                "kind":"refresh-snap"
+            },
+            "expire-after":"168h0m0s"
+        }
+    ]
+} */
+
+void
+test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpointer user_data)
+{
+    AsyncData *data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish (source_object, result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (notices);
+    g_assert_cmpint (notices->len, ==, 2);
+
+    g_autoptr(SnapdNotice) notice1 = g_object_ref (notices->pdata[0]);
+    g_autoptr(SnapdNotice) notice2 = g_object_ref (notices->pdata[1]);
+
+    g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
+    g_assert_null (snapd_notice_get_user_id (notice1));
+
+    g_assert_cmpint (snapd_notice_get_expire_after(notice1), ==,
+                                   382 * G_TIME_SPAN_DAY +
+                                     4 * G_TIME_SPAN_HOUR +
+                                     5 * G_TIME_SPAN_MINUTE +
+                                     6 * G_TIME_SPAN_SECOND +
+                                     7 * G_TIME_SPAN_MILLISECOND +
+                                     8);
+
+    g_assert_cmpint (snapd_notice_get_repeat_after(notice1), ==,
+                                   -(382 * G_TIME_SPAN_DAY +
+                                       4 * G_TIME_SPAN_HOUR +
+                                       5 * G_TIME_SPAN_MINUTE +
+                                       6 * G_TIME_SPAN_SECOND +
+                                       7 * G_TIME_SPAN_MILLISECOND +
+                                       8));
+
+    g_autoptr(GTimeZone) timezone = g_time_zone_new_utc ();
+
+    g_autoptr(GDateTime) date1 = g_date_time_new (timezone, 2024, 3, 1, 20, 29, 58);
+    g_autoptr(GDateTime) date2 = g_date_time_new (timezone, 2025, 4, 2, 23, 28, 8);
+    g_autoptr(GDateTime) date3 = g_date_time_new (timezone, 2026, 5, 3, 22, 20, 7);
+
+    g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred (notice1), date1));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice1), date2));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated (notice1), date3));
+
+    g_assert_true (snapd_notice_get_notice_type (notice1) == SNAPD_NOTICE_TYPE_UNKNOWN);
+
+    g_assert_cmpint (snapd_notice_get_occurrences(notice1), ==, 5);
+
+    g_autoptr(GHashTable) notice_data1 = snapd_notice_get_last_data (notice1);
+    g_assert_nonnull (notice_data1);
+    g_assert_cmpint (g_hash_table_size (notice_data1), ==, 0);
+
+    g_assert_cmpstr (snapd_notice_get_id (notice2), ==, "2");
+    g_assert_cmpstr (snapd_notice_get_user_id (notice2), ==, "67");
+
+#if GLIB_CHECK_VERSION(2, 68, 0)
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new_identifier ("01:32");
+#else
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new ("01:32");
+#endif
+    g_autoptr(GDateTime) date4 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3);
+
+    g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred (notice2), date4));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice2), date4));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated (notice2), date4));
+
+    g_assert_cmpint (snapd_notice_get_occurrences(notice2), ==, 1);
+
+    g_assert_true (snapd_notice_get_notice_type (notice2) == SNAPD_NOTICE_TYPE_REFRESH_INHIBIT);
+
+    g_autoptr(GHashTable) notice_data2 = snapd_notice_get_last_data (notice2);
+    g_assert_nonnull (notice_data2);
+    g_assert_cmpint (g_hash_table_size (notice_data2), ==, 1);
+    g_assert_true (g_hash_table_contains (notice_data2, "kind"));
+    g_assert_cmpstr (g_hash_table_lookup (notice_data2, "kind"), ==, "change-kind");
+
+
+    // Test it twice, to ensure that multiple calls do work
+    if (data->counter == 0) {
+        // this was done with parameters
+
+#if GLIB_CHECK_VERSION(2, 66, 0)
+        g_autoptr (GHashTable) parameters = g_uri_parse_params (mock_snapd_get_notices_parameters (data->snapd),
+                                                                -1,
+                                                                "&",
+                                                                G_URI_PARAMS_NONE,
+                                                                NULL);
+
+        g_assert_nonnull (parameters);
+        g_assert_cmpint (g_hash_table_size (parameters), ==, 6);
+
+        g_assert_true (g_hash_table_contains (parameters, "user-id"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "user-id"), ==, "an_user_id");
+        g_assert_true (g_hash_table_contains (parameters, "users"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "users"), ==, "id1, id2, an_utf8_íd");
+        g_assert_true (g_hash_table_contains (parameters, "types"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "types"), ==, "type1,type2");
+        g_assert_true (g_hash_table_contains (parameters, "keys"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "keys"), ==, "key1,key2");
+        g_assert_true (g_hash_table_contains (parameters, "after"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58+0000");
+        g_assert_true (g_hash_table_contains (parameters, "timeout"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "timeout"), ==, "20000us");
+#endif
+        data->counter++;
+        snapd_client_get_notices_async (source_object,
+                                        NULL,
+                                        0,
+                                        NULL,
+                                        (GAsyncReadyCallback) test_notices_events_cb,
+                                        data);
+    } else {
+        // and this one without parameters
+        gchar *parameters = mock_snapd_get_notices_parameters (data->snapd);
+        g_assert_null (parameters);
+        g_main_loop_quit (data->loop);
+    }
+}
+
+static void
+test_notices_events (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    AsyncData *data = async_data_new (loop, snapd);
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    MockNotice *notice = mock_snapd_add_notice (snapd, "1", "8473", "refresh-snap");
+
+    mock_notice_set_expire_after (notice, "1y2w3d4h5m6s7ms8us9ns");
+    mock_notice_set_repeat_after (notice, "-1y2w3d4h5m6s7ms8µs9ns");
+
+    g_autoptr(GTimeZone) timezone = g_time_zone_new_utc ();
+
+    g_autoptr(GDateTime) date1 = g_date_time_new (timezone, 2024, 3, 1, 20, 29, 58);
+    g_autoptr(GDateTime) date2 = g_date_time_new (timezone, 2025, 4, 2, 23, 28, 8);
+    g_autoptr(GDateTime) date3 = g_date_time_new (timezone, 2026, 5, 3, 22, 20, 7);
+    mock_notice_set_dates (notice, date1, date2, date3, 5);
+
+    notice = mock_snapd_add_notice (snapd, "2", "8474", "refresh-inhibit");
+
+    mock_notice_set_user_id (notice, "67");
+
+#if GLIB_CHECK_VERSION(2, 68, 0)
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new_identifier ("01:32");
+#else
+    g_autoptr(GTimeZone) timezone2 = g_time_zone_new ("01:32");
+#endif
+    g_autoptr(GDateTime) date4 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3);
+    mock_notice_set_dates (notice, date4, date4, date4, 1);
+    mock_notice_add_data_pair (notice, "kind", "change-kind");
+
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58);
+    snapd_client_get_notices_with_filters_async (client,
+                                                 "an_user_id",
+                                                 "id1, id2, an_utf8_íd",
+                                                 "type1,type2",
+                                                 "key1,key2",
+                                                 date5,
+                                                 20000,
+                                                 NULL,
+                                                 (GAsyncReadyCallback) test_notices_events_cb,
+                                                 data);
+    g_main_loop_run (loop);
+}
+
+void
+test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* result, gpointer user_data)
+{
+    AsyncData *data = user_data;
+    g_autoptr(GError) error = NULL;
+
+    g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish (source_object, result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (notices);
+    g_assert_cmpint (notices->len, ==, 1);
+
+    g_autoptr(SnapdNotice) notice1 = g_object_ref (notices->pdata[0]);
+
+    g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
+    g_assert_null (snapd_notice_get_user_id (notice1));
+
+    g_assert_cmpint (snapd_notice_get_expire_after(notice1), ==, 0);
+
+    g_assert_cmpint (snapd_notice_get_repeat_after(notice1), ==, 0);
+
+    g_assert_null (snapd_notice_get_first_occurred (notice1));
+    g_assert_null (snapd_notice_get_last_occurred (notice1));
+    g_assert_null (snapd_notice_get_last_repeated (notice1));
+
+    g_assert_true (snapd_notice_get_notice_type (notice1) == SNAPD_NOTICE_TYPE_UNKNOWN);
+
+    g_assert_cmpint (snapd_notice_get_occurrences(notice1), ==, -1);
+
+    g_autoptr(GHashTable) notice_data = snapd_notice_get_last_data (notice1);
+    g_assert_nonnull (notice_data);
+    g_assert_cmpint (g_hash_table_size (notice_data), ==, 0);
+
+    // Test it twice, to ensure that multiple calls do work
+    if (data->counter == 0) {
+        data->counter++;
+        snapd_client_get_notices_async (source_object,
+                                        NULL,
+                                        0,
+                                        NULL,
+                                        (GAsyncReadyCallback) test_notices_minimal_data_events_cb,
+                                        data);
+    } else {
+        g_main_loop_quit (data->loop);
+    }
+}
+
+
+static void
+test_notices_events_with_minimal_data (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    AsyncData *data = async_data_new (loop, snapd);
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    mock_snapd_add_notice (snapd, "1", "8473", "refresh-snap");
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    snapd_client_get_notices_async (client,
+                                    NULL,
+                                    0,
+                                    NULL,
+                                    (GAsyncReadyCallback) test_notices_minimal_data_events_cb,
+                                    data);
+    g_main_loop_run (loop);
+}
+
 int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
+    g_test_add_func ("/notices/test_notices", test_notices_events);
+    g_test_add_func ("/notices/test_minimal_data", test_notices_events_with_minimal_data);
 
     g_test_add_func ("/socket-closed/before-request", test_socket_closed_before_request);
     g_test_add_func ("/socket-closed/after-request", test_socket_closed_after_request);
