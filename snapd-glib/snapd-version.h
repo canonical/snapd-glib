@@ -608,4 +608,13 @@
  */
 #define SNAPD_GLIB_VERSION_1_65
 
+/**
+ * SNAPD_GLIB_VERSION_1_66:
+ *
+ * A define that can be used by the C pre-processor to check for features in 1.66
+ *
+ * Since: 1.66
+ */
+#define SNAPD_GLIB_VERSION_1_66
+
 #endif /* __SNAPD_GLIB_VERSION_H__ */
