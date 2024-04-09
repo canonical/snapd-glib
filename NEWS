@@ -1,3 +1,35 @@
+Overview of changes in snapd-glib 1.66
+
+    * New API:
+      - snapd_autorefresh_change_data_get_snap_names
+      - snapd_autorefresh_change_data_get_refresh_forced
+      - snapd_change_get_data
+      - snapd_client_get_notices_async
+      - snapd_client_get_notices_finish
+      - snapd_client_get_notices_sync
+      - snapd_client_get_notices_with_filters_async
+      - snapd_client_get_notices_with_filters_finish
+      - snapd_client_get_notices_with_filters_sync
+      - snapd_notice_get_notice_type
+      - snapd_notice_get_key
+      - snapd_notice_get_first_occurred
+      - snapd_notice_get_last_occurred
+      - snapd_notice_get_last_repeated
+      - snapd_notice_get_occurrences
+      - snapd_notice_get_last_data
+      - snapd_notice_get_repeat_after
+      - snapd_notice_get_expire_after
+      - snapd_snap_get_proceed_time
+      - SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED
+      - SNAPD_NOTICE_TYPE_UNKNOWN
+      - SNAPD_NOTICE_TYPE_CHANGE_UPDATE
+      - SNAPD_NOTICE_TYPE_REFRESH_INHIBIT
+      - SNAPD_NOTICE_TYPE_SNAP_RUN_INHIBIT
+    * Port to Qt 6.
+    * Add support for refresh-inhibited snap parameter.
+    * Add support for DATA parameters in Changes.
+    * Add support for notify interface.
+
 Overview of changes in snapd-glib 1.64
 
     * New API:
