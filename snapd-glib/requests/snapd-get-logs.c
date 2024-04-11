@@ -117,7 +117,7 @@ parse_get_logs_json_seq (SnapdRequest *request, JsonNode *seq, GError **error)
         return FALSE;
     }
     JsonObject *object = json_node_get_object (seq);
-    timestamp = _snapd_json_get_date_time (object, "timestamp");
+    timestamp = _snapd_json_get_date_time (object, "timestamp", NULL);
     message = _snapd_json_get_string (object, "message", NULL);
     sid = _snapd_json_get_string (object, "sid", NULL);
     pid = _snapd_json_get_string (object, "pid", NULL);

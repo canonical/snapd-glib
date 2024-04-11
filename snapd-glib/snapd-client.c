@@ -130,6 +130,9 @@ typedef struct
 
     /* Maintenance information returned from snapd */
     SnapdMaintenance *maintenance;
+
+    /* Seconds value, with nanosecond accuracy, for filtering notice events by date */
+    gdouble since_date_time_seconds;
 } SnapdClientPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
@@ -1349,6 +1352,10 @@ snapd_client_get_auth_data (SnapdClient *self)
  *
  * Asynchronously get notifications that have occurred / are occurring on the snap daemon.
  *
+ * The @since_date_time field, being a GDateTime, has a resolution of microseconds, so,
+ * if nanosecond resolution is needed, it is mandatory to call
+ * #snapd_client_set_notices_filter_by_date_seconds before calling this method.
+ *
  * Since: 1.65
  */
 void
@@ -1411,7 +1418,12 @@ snapd_client_get_notices_finish (SnapdClient *self, GAsyncResult *result, GError
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
  * @user_data: (closure): the data to pass to callback function.
  *
- * Asynchronously get notifications that have occurred / are occurring on the snap daemon.
+ * Asynchronously get notifications that have occurred / are occurring on the snap daemon,
+ * allowing to filter the results with several options.
+ *
+ * The @since_date_time field, being a GDateTime, has a resolution of microseconds, so,
+ * if nanosecond resolution is needed, it is mandatory to call
+ * #snapd_client_set_notices_filter_by_date_nanoseconds before calling this method.
  *
  * Since: 1.65
  */
@@ -1429,15 +1441,19 @@ snapd_client_get_notices_with_filters_async (SnapdClient *self,
 {
     g_return_if_fail (SNAPD_IS_CLIENT (self));
 
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
+
     g_autoptr(SnapdGetNotices) request = _snapd_get_notices_new (user_id,
                                                                  users,
                                                                  types,
                                                                  keys,
                                                                  since_date_time,
+                                                                 priv->since_date_time_seconds,
                                                                  timeout,
                                                                  cancellable,
                                                                  callback,
                                                                  user_data);
+    priv->since_date_time_seconds = -1;
     send_request (self, SNAPD_REQUEST (request));
 }
 
@@ -1459,6 +1475,32 @@ snapd_client_get_notices_with_filters_finish (SnapdClient *self, GAsyncResult *r
     return snapd_client_get_notices_finish (self, result, error);
 }
 
+/**
+ * snapd_client_set_filter_by_date_seconds:
+ * @client: a #SnapdClient
+ * @seconds: a value between 0.0 and 60.0 specifying a value in seconds with accuracy of nanoseconds
+ *
+ * Allows to set the seconds value with nanosecond accuracy when doing a call to get the notices and the parameter
+ * @since_date_time is not NULL. This is currently needed because GDateTime has only an accuracy of 1
+ * microsecond, but to receive notice events correctly, without loosing any, it is needed 1 nanosecond
+ * accuracu in the value passed on in the @since_date_time parameter.
+ *
+ * The value is "reseted" after any call to snapd_client_get_notices_*(), so it must be set always before
+ * doing any of those calls.
+ *
+ * Setting a negative value "resets" the parameter, in which case the mili- and micro-seconds defined
+ * in the @since_date_time parameter will be used.
+ *
+ * Since: 1.66
+ */
+void
+snapd_client_set_notices_filter_by_date_seconds (SnapdClient *self, gdouble seconds)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
+
+    priv->since_date_time_seconds = seconds;
+}
 
 /**
  * snapd_client_get_changes_async:
@@ -4622,4 +4664,5 @@ snapd_client_init (SnapdClient *self)
     priv->response_body = g_byte_array_new ();
     g_mutex_init (&priv->requests_mutex);
     g_mutex_init (&priv->buffer_mutex);
+    priv->since_date_time_seconds = -1;
 }
