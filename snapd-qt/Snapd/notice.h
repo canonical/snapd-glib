@@ -30,6 +30,7 @@ class Q_DECL_EXPORT QSnapdNotice : public QSnapdWrappedObject
     Q_PROPERTY(qint64 repeatAfter READ repeatAfter CONSTANT)
     Q_PROPERTY(qint64 expireAfter READ expireAfter CONSTANT)
     Q_PROPERTY(QHash<QString, QString> lastData READ lastData CONSTANT)
+    Q_PROPERTY(double lastOccurredSeconds READ lastOccurredSeconds CONSTANT)
 
 public:
     explicit QSnapdNotice (void* snapd_object, QObject* parent = 0);
@@ -45,6 +46,7 @@ public:
     qint64 repeatAfter () const;
     qint64 expireAfter () const;
     QHash<QString, QString> lastData () const;
+    double lastOccurredSeconds () const;
 };
 
 #endif

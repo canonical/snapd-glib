@@ -89,6 +89,11 @@ qint64 QSnapdNotice::expireAfter () const
     return snapd_notice_get_expire_after (SNAPD_NOTICE (wrapped_object));
 }
 
+double QSnapdNotice::lastOccurredSeconds () const
+{
+    return snapd_notice_get_last_occurred_seconds (SNAPD_NOTICE (wrapped_object));
+}
+
 static void
 addItemToQHash (gchar *key, gchar *value, QHash<QString, QString> *lastData)
 {

@@ -976,6 +976,7 @@ class Q_DECL_EXPORT QSnapdNoticesRequest : public QSnapdRequest
     Q_PROPERTY(QString usersFilter MEMBER usersFilter)
     Q_PROPERTY(QString keysFilter MEMBER keysFilter)
     Q_PROPERTY(QString typesFilter MEMBER typesFilter)
+    Q_PROPERTY(double seconds MEMBER seconds)
 
 public:
     explicit QSnapdNoticesRequest (void *snapd_client, QObject *parent = 0);
@@ -997,6 +998,7 @@ private:
     QString usersFilter;
     QString keysFilter;
     QString typesFilter;
+    double seconds;
 };
 
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password);

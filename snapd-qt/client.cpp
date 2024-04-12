@@ -3596,6 +3596,7 @@ QSnapdNoticesRequest::QSnapdNoticesRequest (void *snapd_client, QObject *parent)
     d_ptr (new QSnapdNoticesRequestPrivate (this)) {
         this->timeout = 0;
         this->resetFilters();
+        this->seconds = -1;
     }
 
 QSnapdNoticesRequest::~QSnapdNoticesRequest ()
@@ -3634,6 +3635,8 @@ void QSnapdNoticesRequest::runSync ()
 {
     Q_D(QSnapdNoticesRequest);
 
+    snapd_client_set_notices_filter_by_date_seconds (SNAPD_CLIENT (getClient ()), this->seconds);
+    this->seconds = -1;
     g_autoptr(GError) error = NULL;
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
     d->updateNoticesData (snapd_client_get_notices_with_filters_sync (SNAPD_CLIENT (getClient ()),
@@ -3669,6 +3672,9 @@ static void notices_ready_cb (GObject *object, GAsyncResult *result, gpointer da
 void QSnapdNoticesRequest::runAsync ()
 {
     Q_D(QSnapdNoticesRequest);
+
+    snapd_client_set_notices_filter_by_date_seconds (SNAPD_CLIENT (getClient ()), this->seconds);
+    this->seconds = -1;
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
     snapd_client_get_notices_with_filters_async (SNAPD_CLIENT (getClient ()),
                                                  (gchar *) this->userIdFilter.toStdString ().c_str (),
