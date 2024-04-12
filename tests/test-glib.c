@@ -8673,7 +8673,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
         g_assert_true (g_hash_table_contains (parameters, "keys"));
         g_assert_cmpstr (g_hash_table_lookup (parameters, "keys"), ==, "key1,key2");
         g_assert_true (g_hash_table_contains (parameters, "after"));
-        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58+0000");
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58.000000+00:00");
         g_assert_true (g_hash_table_contains (parameters, "timeout"));
         g_assert_cmpstr (g_hash_table_lookup (parameters, "timeout"), ==, "20000us");
 #endif
