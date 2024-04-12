@@ -8673,7 +8673,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
         g_assert_true (g_hash_table_contains (parameters, "keys"));
         g_assert_cmpstr (g_hash_table_lookup (parameters, "keys"), ==, "key1,key2");
         g_assert_true (g_hash_table_contains (parameters, "after"));
-        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58.000000+00:00");
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58.123456+00:00");
         g_assert_true (g_hash_table_contains (parameters, "timeout"));
         g_assert_cmpstr (g_hash_table_lookup (parameters, "timeout"), ==, "20000us");
 #endif
@@ -8732,7 +8732,7 @@ test_notices_events (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58);
+    g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58.123456789);
     snapd_client_get_notices_with_filters_async (client,
                                                  "an_user_id",
                                                  "id1, id2, an_utf8_íd",
@@ -8781,13 +8781,29 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
     // Test it twice, to ensure that multiple calls do work
     if (data->counter == 0) {
         data->counter++;
+        g_autoptr(GTimeZone) timezone = g_time_zone_new_utc ();
+        g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58.123456789);
+        snapd_client_set_notices_filter_by_date_seconds (source_object, 54.123456789);
         snapd_client_get_notices_async (source_object,
-                                        NULL,
+                                        date5,
                                         0,
                                         NULL,
                                         (GAsyncReadyCallback) test_notices_minimal_data_events_cb,
                                         data);
     } else {
+        #if GLIB_CHECK_VERSION(2, 66, 0)
+        g_autoptr (GHashTable) parameters = g_uri_parse_params (mock_snapd_get_notices_parameters (data->snapd),
+                                                                -1,
+                                                                "&",
+                                                                G_URI_PARAMS_NONE,
+                                                                NULL);
+
+        g_assert_nonnull (parameters);
+        g_assert_cmpint (g_hash_table_size (parameters), ==, 1);
+
+        g_assert_true (g_hash_table_contains (parameters, "after"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58.123456789+00:00");
+#endif
         g_main_loop_quit (data->loop);
     }
 }
