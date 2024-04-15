@@ -69,7 +69,7 @@ static void begin_monitor(SnapdNoticesMonitor *self) {
     snapd_client_set_notices_filter_by_date_seconds (self->client, self->last_date_time_seconds);
     snapd_client_get_notices_async(self->client,
                                    self->last_date_time,
-                                   20000000000000000, // "infinity"
+                                   200000000000000, // "infinity"
                                    self->cancellable,
                                    (GAsyncReadyCallback)monitor_cb,
                                    self);
