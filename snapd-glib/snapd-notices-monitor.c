@@ -39,6 +39,14 @@ static void monitor_cb(SnapdClient* source,
 
     notices = snapd_client_get_notices_finish(source, res, &error);
 
+    if (error != NULL) {
+        g_clear_object(&self->cancellable);
+        g_clear_pointer(&self->last_date_time, g_date_time_unref);
+        self->last_date_time_seconds = -1.0;
+        g_signal_emit_by_name(self, "error-event", error);
+        return;
+    }
+
     if (g_cancellable_is_cancelled(self->cancellable)) {
         g_clear_object(&self->cancellable);
         g_clear_pointer(&self->last_date_time, g_date_time_unref);
@@ -91,7 +99,7 @@ gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self,
                                  GCancellable *cancellable) {
 
     g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), TRUE);
-    self->cancellable = g_object_ref(cancellable);
+    self->cancellable = cancellable == NULL ? NULL : g_object_ref(cancellable);
     begin_monitor(self);
     return FALSE;
 }
@@ -139,6 +147,16 @@ void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
                   G_TYPE_NONE,
                   1,
                   SNAPD_TYPE_NOTICE);
+    g_signal_new ("error-event",
+                  G_TYPE_FROM_CLASS (klass),
+                  G_SIGNAL_RUN_LAST,
+                  0,
+                  NULL,
+                  NULL,
+                  NULL,
+                  G_TYPE_NONE,
+                  1,
+                  G_TYPE_ERROR);
 }
 
 SnapdNoticesMonitor *snapd_notices_monitor_new(void) {
