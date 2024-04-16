@@ -23,7 +23,7 @@ struct _SnapdNoticesMonitor {
     SnapdClient *client;
     GCancellable *cancellable;
     GDateTime *last_date_time;
-    gdouble last_date_time_seconds;
+    SnapdNotice *last_notice;
 };
 
 G_DEFINE_TYPE(SnapdNoticesMonitor, snapd_notices_monitor, G_TYPE_OBJECT)
@@ -40,7 +40,7 @@ static void monitor_cb(SnapdClient* source,
     if (error != NULL) {
         g_clear_object(&self->cancellable);
         g_clear_pointer(&self->last_date_time, g_date_time_unref);
-        self->last_date_time_seconds = -1.0;
+        g_clear_object(&self->last_notice);
         g_signal_emit_by_name(self, "error-event", error);
         return;
     }
@@ -48,7 +48,7 @@ static void monitor_cb(SnapdClient* source,
     if (g_cancellable_is_cancelled(self->cancellable)) {
         g_clear_object(&self->cancellable);
         g_clear_pointer(&self->last_date_time, g_date_time_unref);
-        self->last_date_time_seconds = -1.0;
+        g_clear_object(&self->last_notice);
         return;
     }
 
@@ -56,14 +56,13 @@ static void monitor_cb(SnapdClient* source,
         for (int i = 0; i < notices->len; i++) {
             g_autoptr(SnapdNotice) notice = g_object_ref(notices->pdata[i]);
             g_autoptr(GDateTime) last_occurred = (GDateTime *)snapd_notice_get_last_occurred(notice);
-            gdouble last_occurred_seconds = snapd_notice_get_last_occurred_seconds(notice);
 
             if (self->last_date_time == NULL ||
-                g_date_time_compare(self->last_date_time, last_occurred) == -1 ||
-                (g_date_time_compare(self->last_date_time, last_occurred) == 0 && self->last_date_time_seconds < last_occurred_seconds)) {
+                g_date_time_compare(self->last_date_time, last_occurred) == -1) {
                     g_clear_pointer (&self->last_date_time, g_date_time_unref);
                     self->last_date_time = g_date_time_ref(last_occurred);
-                    self->last_date_time_seconds = snapd_notice_get_last_occurred_seconds(notice);
+                    g_clear_object(&self->last_notice);
+                    self->last_notice = g_object_ref(notice);
                 }
             g_signal_emit_by_name(self, "notice-event", notice);
         }
@@ -72,7 +71,7 @@ static void monitor_cb(SnapdClient* source,
 }
 
 static void begin_monitor(SnapdNoticesMonitor *self) {
-    snapd_client_set_notices_filter_by_date_seconds (self->client, self->last_date_time_seconds);
+    snapd_client_notices_set_after_notice (self->client, self->last_notice);
     snapd_client_get_notices_async(self->client,
                                    self->last_date_time,
                                    2000000000000000, // "infinity" (there is a limit in snapd, around 9 billion seconds)
@@ -113,7 +112,7 @@ gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self, GError **error) 
  *
  * @return: FALSE if there was an error, TRUE if everything worked fine.
  */
-gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self, GError **error) {
+gboolean snapd_notices_monitor_stop(SnapdNoticesMonitor *self, GError **error) {
 
     g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
     g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), FALSE);
@@ -149,12 +148,12 @@ static void snapd_notices_monitor_dispose(GObject *object) {
     g_clear_object(&self->client);
     g_clear_object(&self->cancellable);
     g_clear_pointer(&self->last_date_time, g_date_time_unref);
+    g_clear_object(&self->last_notice);
 
     G_OBJECT_CLASS(snapd_notices_monitor_parent_class)->dispose(object);
 }
 
 void snapd_notices_monitor_init(SnapdNoticesMonitor *self) {
-    self->last_date_time_seconds = -1.0;
     self->client = snapd_client_new();
 }
 
