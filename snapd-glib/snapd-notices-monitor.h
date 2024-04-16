@@ -26,5 +26,6 @@ SnapdNoticesMonitor  *snapd_notices_monitor_new               ();
 
 SnapdClient          *snapd_notices_monitor_get_client        (SnapdNoticesMonitor     *monitor);
 
-gboolean              snapd_notices_monitor_start             (SnapdNoticesMonitor     *monitor,
-                                                               GCancellable        *cancellable);
+gboolean              snapd_notices_monitor_start             (SnapdNoticesMonitor     *monitor, GError **error);
+
+gboolean              snapd_notices_monitor_stop              (SnapdNoticesMonitor     *monitor, GError **error);

@@ -34,10 +34,8 @@ static void monitor_cb(SnapdClient* source,
                        GAsyncResult* res,
                        SnapdNoticesMonitor *self) {
 
-    g_autoptr(GPtrArray) notices = NULL;
     g_autoptr(GError) error = NULL;
-
-    notices = snapd_client_get_notices_finish(source, res, &error);
+    g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish(source, res, &error);
 
     if (error != NULL) {
         g_clear_object(&self->cancellable);
@@ -55,14 +53,14 @@ static void monitor_cb(SnapdClient* source,
     }
 
     if ((error == NULL) && (notices != NULL)) {
-        for (int i=0; i < notices->len; i++) {
+        for (int i = 0; i < notices->len; i++) {
             g_autoptr(SnapdNotice) notice = g_object_ref(notices->pdata[i]);
             g_autoptr(GDateTime) last_occurred = (GDateTime *)snapd_notice_get_last_occurred(notice);
             gdouble last_occurred_seconds = snapd_notice_get_last_occurred_seconds(notice);
 
-            if ((self->last_date_time == NULL) ||
-                (g_date_time_compare(self->last_date_time, last_occurred) == -1) ||
-                ((g_date_time_compare(self->last_date_time, last_occurred) == 0) && (self->last_date_time_seconds < last_occurred_seconds))) {
+            if (self->last_date_time == NULL ||
+                g_date_time_compare(self->last_date_time, last_occurred) == -1 ||
+                (g_date_time_compare(self->last_date_time, last_occurred) == 0 && self->last_date_time_seconds < last_occurred_seconds)) {
                     g_clear_pointer (&self->last_date_time, g_date_time_unref);
                     self->last_date_time = g_date_time_ref(last_occurred);
                     self->last_date_time_seconds = snapd_notice_get_last_occurred_seconds(notice);
@@ -77,7 +75,7 @@ static void begin_monitor(SnapdNoticesMonitor *self) {
     snapd_client_set_notices_filter_by_date_seconds (self->client, self->last_date_time_seconds);
     snapd_client_get_notices_async(self->client,
                                    self->last_date_time,
-                                   200000000000000, // "infinity"
+                                   2000000000000000, // "infinity" (there is a limit in snapd, around 9 billion seconds)
                                    self->cancellable,
                                    (GAsyncReadyCallback)monitor_cb,
                                    self);
@@ -86,22 +84,46 @@ static void begin_monitor(SnapdNoticesMonitor *self) {
 /**
  * snapd_notices_monitor_start:
  * @monitor: a #SnapdNoticesMonitor
- * @cancellable: a #GCancellable
  *
  * Starts the asynchronous listening proccess, that will wait for new
  * notices and emit a "notice-event" signal with the new notice as
  * parameter.
  *
- * @return: TRUE if there was an error, FALSE if everything worked fine
+ * @return: FALSE if there was an error, TRUE if everything worked fine
  * and the object is listening for events.
  */
-gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self,
-                                 GCancellable *cancellable) {
+gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self, GError **error) {
 
-    g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), TRUE);
-    self->cancellable = cancellable == NULL ? NULL : g_object_ref(cancellable);
+    g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
+    g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), FALSE);
+    if (self->cancellable != NULL) {
+        *error = g_error_new(SNAPD_ERROR, SNAPD_ERROR_ALREADY_RUNNING, "The notices monitor is already running.");
+        return FALSE;
+    }
+    self->cancellable = g_cancellable_new();
     begin_monitor(self);
-    return FALSE;
+    return TRUE;
+}
+
+/**
+ * snapd_notices_monitor_stop:
+ * @monitor: a #SnapdNoticesMonitor
+ *
+ * Stops the asynchronous listening proccess started with #snapd_notices_monitor_start.
+ *
+ * @return: FALSE if there was an error, TRUE if everything worked fine.
+ */
+gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self, GError **error) {
+
+    g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
+    g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), FALSE);
+    if (self->cancellable == NULL) {
+        *error = g_error_new(SNAPD_ERROR, SNAPD_ERROR_NOT_RUNNING, "The notices monitor isn't running.");
+        return FALSE;
+    }
+    g_cancellable_cancel(self->cancellable);
+    g_object_unref(self->cancellable);
+    return TRUE;
 }
 
 /**
@@ -114,7 +136,7 @@ gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self,
  * call will block the connection until a response is generated. This client
  * MUST be used only by this object.
  *
- * @return: (transfer none): a #SnapdClient
+ * @returns: (transfer none): a #SnapdClient
  */
 SnapdClient *snapd_notices_monitor_get_client(SnapdNoticesMonitor *self) {
     g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), NULL);
@@ -132,6 +154,7 @@ static void snapd_notices_monitor_dispose(GObject *object) {
 }
 
 void snapd_notices_monitor_init(SnapdNoticesMonitor *self) {
+    self->last_date_time_seconds = -1.0;
     self->client = snapd_client_new();
 }
 
@@ -161,6 +184,5 @@ void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
 
 SnapdNoticesMonitor *snapd_notices_monitor_new(void) {
     SnapdNoticesMonitor *self = g_object_new(snapd_notices_monitor_get_type(), NULL);
-    self->last_date_time_seconds = -1.0;
     return self;
 }

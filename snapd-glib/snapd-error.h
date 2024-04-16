@@ -67,6 +67,8 @@ G_BEGIN_DECLS
  * @SNAPD_ERROR_ARCHITECTURE_NOT_AVAILABLE: No snap revision on specified architecture.
  * @SNAPD_ERROR_CHANGE_CONFLICT: The requested operation would conflict with currently ongoing change.
  * @SNAPD_ERROR_INTERFACES_UNCHANGED: The requested interfaces' operation would have no effect.
+ * @SNAPD_ERROR_ALREADY_RUNNING: An async process is already running.
+ * @SNAPD_ERROR_NOT_RUNNING: An async process is not running.
  *
  * Error codes returned by snapd operations.
  *
@@ -111,6 +113,8 @@ typedef enum
     SNAPD_ERROR_ARCHITECTURE_NOT_AVAILABLE,
     SNAPD_ERROR_CHANGE_CONFLICT,
     SNAPD_ERROR_INTERFACES_UNCHANGED,
+    SNAPD_ERROR_ALREADY_RUNNING,
+    SNAPD_ERROR_NOT_RUNNING,
 } SnapdError;
 
 /**
