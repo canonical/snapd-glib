@@ -1478,7 +1478,7 @@ snapd_client_get_notices_with_filters_finish (SnapdClient *self, GAsyncResult *r
 /**
  * snapd_client_notices_set_after_notice:
  * @client: a #SnapdClient
- * @notice: the last #SnapdNotice received, to filter notices after it
+ * @notice: the last #SnapdNotice received, to get all the notices after it.
  *
  * Allows to set the "since" parameter with nanosecond accuracy when doing a call to get the notices.
  * This is currently needed because GDateTime has only an accuracy of 1 microsecond, but to receive
@@ -1510,8 +1510,8 @@ snapd_client_notices_set_after_notice (SnapdClient *self, SnapdNotice *notice)
  *
  * Allows to set the "since" parameter with nanosecond accuracy when doing a call to get the notices.
  * This is currently needed because GDateTime has only an accuracy of 1 microsecond, but to receive
- * notice events correctly, without loosing any, it is needed 1 nanosecond
- * accuracy in the value passed on in the @since_date_time parameter.
+ * notice events correctly, without loosing any, it is needed 1 nanosecond accuracy in the value
+ * passed on in the @since_date_time parameter.
  *
  * The value is "reseted" after any call to snapd_client_get_notices_*(), so it must be set always before
  * doing any of those calls.

@@ -187,13 +187,16 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
 }
 
 /**
- * snapd_notice_get_last_occurred_seconds:
+ * snapd_notice_get_last_occurred_str:
  * @notice: a #SnapdNotice.
  *
- * Get the seconds of the time this notification last occurred, with an
- * accuracy of nanoseconds.
+ * Get the *last-occurred* time and date in string format, exactly as sent by
+ * snapd. Useful combined with #snapd_client_notices_set_since_date, and used
+ * internally by snapd_client_notices_set_after_notice, to ensure the maximum
+ * possible precission when dealing with timestamps.
  *
- * Returns: the seconds, as a #gdouble between 0.0 and 1.0.
+ * Returns: a string, in RFC3999nano format, with the date and time of the
+ * *last-occurred* field.
  *
  * Since: 1.66
  */
