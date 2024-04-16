@@ -37,18 +37,18 @@ static void monitor_cb(SnapdClient* source,
     g_autoptr(GError) error = NULL;
     g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish(source, res, &error);
 
+    if (g_cancellable_is_cancelled(self->cancellable)) {
+        g_clear_object(&self->cancellable);
+        g_clear_pointer(&self->last_date_time, g_date_time_unref);
+        g_clear_object(&self->last_notice);
+        return;
+    }
+
     if (error != NULL) {
         g_clear_object(&self->cancellable);
         g_clear_pointer(&self->last_date_time, g_date_time_unref);
         g_clear_object(&self->last_notice);
         g_signal_emit_by_name(self, "error-event", error);
-        return;
-    }
-
-    if (g_cancellable_is_cancelled(self->cancellable)) {
-        g_clear_object(&self->cancellable);
-        g_clear_pointer(&self->last_date_time, g_date_time_unref);
-        g_clear_object(&self->last_notice);
         return;
     }
 
