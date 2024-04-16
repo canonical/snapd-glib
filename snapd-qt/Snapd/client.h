@@ -987,6 +987,7 @@ public:
     Q_INVOKABLE QSnapdNotice *getNotice (quint64) const;
     void handleResult (void *, void *);
     void resetFilters ();
+    void setSinceDateFilterFromNotice (QSnapdNotice *);
 
 private:
     QScopedPointer<QSnapdNoticesRequestPrivate> d_ptr;

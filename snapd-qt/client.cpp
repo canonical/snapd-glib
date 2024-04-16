@@ -3704,3 +3704,8 @@ QSnapdNotice *QSnapdNoticesRequest::getNotice (quint64 n) const
         return NULL;
     return new QSnapdNotice (SNAPD_NOTICE(d->notices->pdata[n]));
 }
+
+void QSnapdNoticesRequest::setSinceDateFilterFromNotice (QSnapdNotice *notice)
+{
+    this->sinceDateFilter = notice->lastOccurredStr();
+}
