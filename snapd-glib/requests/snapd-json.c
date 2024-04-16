@@ -230,7 +230,7 @@ parse_date (const gchar *date_string, gint *year, gint *month, gint *day)
 }
 
 static gboolean
-parse_time (const gchar *time_string, gint *hour, gint *minute, gdouble *seconds, gdouble *nanoseconds)
+parse_time (const gchar *time_string, gint *hour, gint *minute, gdouble *seconds)
 {
     /* Example: 09:36:53.682 or 09:36:53 or 09:36 */
     if (strchr (time_string, ':') != NULL) {
@@ -241,9 +241,6 @@ parse_time (const gchar *time_string, gint *hour, gint *minute, gdouble *seconds
         *minute = atoi (tokens[1]);
         if (tokens[2] != NULL) {
             *seconds = g_ascii_strtod (tokens[2], NULL);
-            if (nanoseconds != NULL) {
-                *nanoseconds = *seconds;
-            }
         } else {
             *seconds = 0.0;
         }
@@ -264,7 +261,7 @@ is_timezone_prefix (gchar c)
 }
 
 GDateTime *
-_snapd_json_get_date_time (JsonObject *object, const gchar *name, gdouble *nanoseconds)
+_snapd_json_get_date_time (JsonObject *object, const gchar *name, gchar **string_format)
 {
     const gchar *value = _snapd_json_get_string (object, name, NULL);
     if (value == NULL)
@@ -298,13 +295,15 @@ _snapd_json_get_date_time (JsonObject *object, const gchar *name, gdouble *nanos
         /* Strip off timezone */
         *timezone_start = '\0';
 
-        if (!parse_time (tokens[1], &hour, &minute, &seconds, nanoseconds))
+        if (!parse_time (tokens[1], &hour, &minute, &seconds))
             return NULL;
     }
 
     if (timezone == NULL)
         timezone = g_time_zone_new_local ();
 
+    if (string_format != NULL)
+        *string_format = g_strdup(value);
     return g_date_time_new (timezone, year, month, day, hour, minute, seconds);
 }
 
@@ -670,9 +669,9 @@ add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data
     g_autoptr(GHashTable) last_data = NULL;
 
     JsonObject *object = json_node_get_object (element);
-    gdouble last_occurred_seconds = 0;
+    gchar *last_occurred_str = NULL;
     g_autoptr(GDateTime) first_occurred = _snapd_json_get_date_time (object, "first-occurred", NULL);
-    g_autoptr(GDateTime) last_occurred = _snapd_json_get_date_time (object, "last-occurred", &last_occurred_seconds);
+    g_autoptr(GDateTime) last_occurred = _snapd_json_get_date_time (object, "last-occurred", &last_occurred_str);
     g_autoptr(GDateTime) last_repeated = _snapd_json_get_date_time (object, "last-repeated", NULL);
 
     _snapd_json_parse_time_span (_snapd_json_get_string (object, "expire-after", NULL), &expire_after);
@@ -712,7 +711,7 @@ add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data
                                                   "key", _snapd_json_get_string (object, "key", NULL),
                                                   "first-occurred", first_occurred,
                                                   "last-occurred", last_occurred,
-                                                  "last-occurred-seconds", last_occurred_seconds,
+                                                  "last-occurred-str", last_occurred_str,
                                                   "last-repeated", last_repeated,
                                                   "occurrences", _snapd_json_get_int (object, "occurrences", -1),
                                                   "expire-after", expire_after,

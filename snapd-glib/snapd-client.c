@@ -131,8 +131,8 @@ typedef struct
     /* Maintenance information returned from snapd */
     SnapdMaintenance *maintenance;
 
-    /* Seconds value, with nanosecond accuracy, for filtering notice events by date */
-    gdouble since_date_time_seconds;
+    /* Date, in string format, for filtering when using nanosecond precision */
+    gchar *since_date_time_str;
 } SnapdClientPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (SnapdClient, snapd_client, G_TYPE_OBJECT)
@@ -1354,7 +1354,7 @@ snapd_client_get_auth_data (SnapdClient *self)
  *
  * The @since_date_time field, being a GDateTime, has a resolution of microseconds, so,
  * if nanosecond resolution is needed, it is mandatory to call
- * #snapd_client_set_notices_filter_by_date_seconds before calling this method.
+ * #snapd_client_notices_set_after_notice before calling this method.
  *
  * Since: 1.65
  */
@@ -1423,7 +1423,7 @@ snapd_client_get_notices_finish (SnapdClient *self, GAsyncResult *result, GError
  *
  * The @since_date_time field, being a GDateTime, has a resolution of microseconds, so,
  * if nanosecond resolution is needed, it is mandatory to call
- * #snapd_client_set_notices_filter_by_date_nanoseconds before calling this method.
+ * #snapd_client_notices_set_after_notice before calling this method.
  *
  * Since: 1.65
  */
@@ -1448,12 +1448,12 @@ snapd_client_get_notices_with_filters_async (SnapdClient *self,
                                                                  types,
                                                                  keys,
                                                                  since_date_time,
-                                                                 priv->since_date_time_seconds,
+                                                                 priv->since_date_time_str,
                                                                  timeout,
                                                                  cancellable,
                                                                  callback,
                                                                  user_data);
-    priv->since_date_time_seconds = -1;
+    g_clear_pointer (&priv->since_date_time_str, g_free);
     send_request (self, SNAPD_REQUEST (request));
 }
 
@@ -1476,30 +1476,59 @@ snapd_client_get_notices_with_filters_finish (SnapdClient *self, GAsyncResult *r
 }
 
 /**
- * snapd_client_set_filter_by_date_seconds:
+ * snapd_client_notices_set_after_notice:
  * @client: a #SnapdClient
- * @seconds: a value between 0.0 and 60.0 specifying a value in seconds with accuracy of nanoseconds
+ * @notice: the last #SnapdNotice received, to filter notices after it
  *
- * Allows to set the seconds value with nanosecond accuracy when doing a call to get the notices and the parameter
- * @since_date_time is not NULL. This is currently needed because GDateTime has only an accuracy of 1
- * microsecond, but to receive notice events correctly, without loosing any, it is needed 1 nanosecond
- * accuracu in the value passed on in the @since_date_time parameter.
+ * Allows to set the "since" parameter with nanosecond accuracy when doing a call to get the notices.
+ * This is currently needed because GDateTime has only an accuracy of 1 microsecond, but to receive
+ * notice events correctly, without loosing any, it is needed 1 nanosecond
+ * accuracy in the value passed on in the @since_date_time parameter.
  *
  * The value is "reseted" after any call to snapd_client_get_notices_*(), so it must be set always before
  * doing any of those calls.
  *
- * Setting a negative value "resets" the parameter, in which case the mili- and micro-seconds defined
+ * Passing NULL will reset the value too, in which case the mili- and micro-seconds defined
  * in the @since_date_time parameter will be used.
  *
  * Since: 1.66
  */
 void
-snapd_client_set_notices_filter_by_date_seconds (SnapdClient *self, gdouble seconds)
+snapd_client_notices_set_after_notice (SnapdClient *self, SnapdNotice *notice)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (self));
     SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
 
-    priv->since_date_time_seconds = seconds;
+    g_clear_pointer (&priv->since_date_time_str, g_free);
+    priv->since_date_time_str = notice == NULL ? NULL : g_strdup(snapd_notice_get_last_occurred_str (notice));
+}
+
+/**
+ * snapd_client_notices_set_since_date:
+ * @client: a #SnapdClient
+ * @date: the date after whith to filter notices after it, in RFC3999nano format
+ *
+ * Allows to set the "since" parameter with nanosecond accuracy when doing a call to get the notices.
+ * This is currently needed because GDateTime has only an accuracy of 1 microsecond, but to receive
+ * notice events correctly, without loosing any, it is needed 1 nanosecond
+ * accuracy in the value passed on in the @since_date_time parameter.
+ *
+ * The value is "reseted" after any call to snapd_client_get_notices_*(), so it must be set always before
+ * doing any of those calls.
+ *
+ * Passing NULL will reset the value too, in which case the mili- and micro-seconds defined
+ * in the @since_date_time parameter will be used.
+ *
+ * Since: 1.66
+ */
+void
+snapd_client_notices_set_since_date (SnapdClient *self, const gchar *date)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+    SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
+
+    g_clear_pointer (&priv->since_date_time_str, g_free);
+    priv->since_date_time_str = g_strdup(date);
 }
 
 /**
@@ -4664,5 +4693,4 @@ snapd_client_init (SnapdClient *self)
     priv->response_body = g_byte_array_new ();
     g_mutex_init (&priv->requests_mutex);
     g_mutex_init (&priv->buffer_mutex);
-    priv->since_date_time_seconds = -1;
 }

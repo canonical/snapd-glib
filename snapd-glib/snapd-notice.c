@@ -33,7 +33,7 @@ enum
     PROP_KEY,
     PROP_FIRST_OCCURRED,
     PROP_LAST_OCCURRED,
-    PROP_LAST_OCCURRED_SECONDS,
+    PROP_LAST_OCCURRED_STR,
     PROP_LAST_REPEATED,
     PROP_OCCURRENCES,
     PROP_LAST_DATA,
@@ -52,7 +52,7 @@ struct _SnapdNotice
     gchar *key;
     GDateTime *first_occurred;
     GDateTime *last_occurred;
-    gdouble last_occurred_seconds;
+    gchar *last_occurred_str;
     GDateTime *last_repeated;
     GHashTable *data;
     gint64 occurrences;
@@ -197,11 +197,11 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
  *
  * Since: 1.66
  */
-const gdouble
-snapd_notice_get_last_occurred_seconds (SnapdNotice *self)
+const gchar *
+snapd_notice_get_last_occurred_str (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
-    return self->last_occurred_seconds;
+    return self->last_occurred_str;
 }
 
 /**
@@ -305,8 +305,9 @@ snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, 
         if (g_value_get_boxed (value) != NULL)
             self->last_occurred = g_date_time_ref (g_value_get_boxed (value));
         break;
-    case PROP_LAST_OCCURRED_SECONDS:
-        self->last_occurred_seconds = g_value_get_double (value);
+    case PROP_LAST_OCCURRED_STR:
+        g_free (self->last_occurred_str);
+        self->last_occurred_str = g_strdup (g_value_get_string (value));
         break;
     case PROP_LAST_REPEATED:
         g_clear_pointer (&self->last_repeated, g_date_time_unref);
@@ -359,8 +360,8 @@ snapd_notice_get_property (GObject *object, guint prop_id, GValue *value, GParam
     case PROP_LAST_OCCURRED:
         g_value_set_boxed (value, self->last_occurred);
         break;
-    case PROP_LAST_OCCURRED_SECONDS:
-        g_value_set_double (value, self->last_occurred_seconds);
+    case PROP_LAST_OCCURRED_STR:
+        g_value_set_string (value, self->last_occurred_str);
         break;
     case PROP_LAST_REPEATED:
         g_value_set_boxed (value, self->last_repeated);
@@ -451,11 +452,11 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
-                                     PROP_LAST_OCCURRED_SECONDS,
-                                     g_param_spec_double ("last-occurred-seconds",
-                                                          "last-occurred-seconds",
-                                                          "Seconds for the time this notice last occurred, with nanosecond accuracy",
-                                                          0.0, 60.0, 0.0,
+                                     PROP_LAST_OCCURRED_STR,
+                                     g_param_spec_string ("last-occurred-str",
+                                                          "last-occurred-str",
+                                                          "Time this notice last ocurred, in string format and with nanosecond accuracy",
+                                                          NULL,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_LAST_REPEATED,

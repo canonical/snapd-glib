@@ -21,7 +21,7 @@ struct _SnapdGetNotices
     gchar *keys;
     GDateTime *since_date_time;
     GTimeSpan timeout;
-    gdouble since_date_time_seconds;
+    gchar *since_date_time_str;
 
     GPtrArray *notices;
 };
@@ -34,7 +34,7 @@ _snapd_get_notices_new (gchar               *user_id,
                         gchar               *types,
                         gchar               *keys,
                         GDateTime           *since_date_time,
-                        gdouble              since_date_time_seconds,
+                        gchar               *since_date_time_str,
                         GTimeSpan            timeout,
                         GCancellable        *cancellable,
                         GAsyncReadyCallback  callback,
@@ -52,7 +52,7 @@ _snapd_get_notices_new (gchar               *user_id,
     self->keys = g_strdup (keys);
     self->since_date_time = since_date_time == NULL ? NULL : g_date_time_ref (since_date_time);
     self->timeout = timeout;
-    self->since_date_time_seconds = since_date_time_seconds;
+    self->since_date_time_str = g_strdup(since_date_time_str);
     return self;
 }
 
@@ -84,17 +84,15 @@ generate_get_snap_request (SnapdRequest *request, GBytes **body)
     add_uri_parameter (query, "users", self->users);
     add_uri_parameter (query, "types", self->types);
     add_uri_parameter (query, "keys", self->keys);
-    if (self->since_date_time != NULL) {
-        g_autofree gchar *date_time = NULL;
-        if (self->since_date_time_seconds < 0) {
+    if (self->since_date_time_str == NULL) {
+        if (self->since_date_time != NULL) {
+            g_autofree gchar *date_time = NULL;
             date_time = g_date_time_format (self->since_date_time, "%FT%T.%f%:z");
-        } else {
-            g_autofree gchar *date_time_str = g_date_time_format (self->since_date_time, "%FT%H:%M:%S.%%d%:z");
-            double nano, tmp;
-            nano = modf(self->since_date_time_seconds, &tmp);
-            date_time = g_strdup_printf(date_time_str, (guint)(nano * 1000000000));
+            add_uri_parameter (query, "after", date_time);
         }
-        add_uri_parameter (query, "after", date_time);
+    } else {
+        add_uri_parameter (query, "after", self->since_date_time_str);
+        g_clear_pointer (&self->since_date_time_str, g_free);
     }
     if (self->timeout != 0) {
         add_uri_parameter_base (query, "timeout");
@@ -143,6 +141,7 @@ snapd_get_notices_finalize (GObject *object)
     g_clear_pointer (&self->keys, g_free);
     g_clear_pointer (&self->since_date_time, g_date_time_unref);
     g_clear_pointer (&self->notices, g_ptr_array_unref);
+    g_clear_pointer (&self->since_date_time_str, g_free);
 
     G_OBJECT_CLASS (snapd_get_notices_parent_class)->finalize (object);
 }

@@ -1900,7 +1900,7 @@ snapd_client_follow_logs_sync (SnapdClient *self,
  * Synchronously get notifications that have occurred / are occurring on the snap daemon.
  *
  * The @since_date_time field, being a GDateTime, has a resolution of microseconds, so,
- * if nanosecond resolution is needed, it is mandatory to call #snapd_client_set_notices_nanoseconds
+ * if nanosecond resolution is needed, it is mandatory to call #snapd_client_notices_set_after_notice
  * before calling this method.
  *
  * Returns: (transfer container) (element-type SnapdNotice): a #GPtrArray object containing the requested notices, or NULL in case of error.
@@ -1939,7 +1939,7 @@ snapd_client_get_notices_sync (SnapdClient *self,
  *
  * The @since_date_time field, being a GDateTime, has a resolution of microseconds, so,
  * if nanosecond resolution is needed, it is mandatory to call
- * #snapd_client_set_notices_filter_by_date_nanoseconds before calling this method.
+ * #snapd_client_notices_set_after_notice before calling this method.
  *
  * Returns: (transfer container) (element-type SnapdNotice): a #GPtrArray object containing the requested notices, or NULL in case of error.
  *

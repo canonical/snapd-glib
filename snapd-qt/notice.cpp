@@ -8,7 +8,6 @@
  */
 
 #include <snapd-glib/snapd-glib.h>
-
 #include "Snapd/notice.h"
 
 QSnapdNotice::QSnapdNotice (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
@@ -89,9 +88,9 @@ qint64 QSnapdNotice::expireAfter () const
     return snapd_notice_get_expire_after (SNAPD_NOTICE (wrapped_object));
 }
 
-double QSnapdNotice::lastOccurredSeconds () const
+QString QSnapdNotice::lastOccurredStr () const
 {
-    return snapd_notice_get_last_occurred_seconds (SNAPD_NOTICE (wrapped_object));
+    return snapd_notice_get_last_occurred_str (SNAPD_NOTICE (wrapped_object));
 }
 
 static void

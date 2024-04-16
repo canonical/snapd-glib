@@ -1320,8 +1320,11 @@ GPtrArray              *snapd_client_get_notices_with_filters_finish (SnapdClien
                                                                     GAsyncResult         *result,
                                                                     GError              **error);
 
-void                    snapd_client_set_notices_filter_by_date_seconds (SnapdClient *client,
-                                                                         gdouble      seconds);
+void                    snapd_client_notices_set_after_notice      (SnapdClient          *client,
+                                                                    SnapdNotice          *notice);
+
+void                    snapd_client_notices_set_since_date        (SnapdClient          *client,
+                                                                    const gchar          *date);
 
 G_END_DECLS
 
