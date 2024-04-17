@@ -22,7 +22,11 @@ subdir ('snapd-glib')
 if get_option('qt5') or get_option('qt6')
     subdir ('snapd-qt')
 endif
-subdir ('tests')
-subdir ('examples')
+if get_option ('tests')
+  subdir ('tests')
+endif
+if get_option ('examples')
+  subdir ('examples')
+endif
 subdir ('doc')
 subdir ('po')

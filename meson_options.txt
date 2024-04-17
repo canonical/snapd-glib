@@ -21,3 +21,9 @@ option('qml-bindings',
 option('soup2',
        type: 'boolean', value: false,
        description: 'Whether to build with libsoup2')
+option('examples',
+       type: 'boolean', value: true,
+       description: 'Whether to build the examples')
+option('tests',
+       type: 'boolean', value: true,
+       description: 'Whether to build the tests')
