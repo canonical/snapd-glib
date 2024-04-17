@@ -120,7 +120,7 @@ gboolean snapd_notices_monitor_stop(SnapdNoticesMonitor *self, GError **error) {
         return FALSE;
     }
     g_cancellable_cancel(self->cancellable);
-    g_object_unref(self->cancellable);
+    g_clear_object(&self->cancellable);
     return TRUE;
 }
 
