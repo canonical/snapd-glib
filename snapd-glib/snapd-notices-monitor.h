@@ -19,6 +19,8 @@
 
 #include <snapd-glib/snapd-glib.h>
 
+G_BEGIN_DECLS
+
 G_DECLARE_FINAL_TYPE(SnapdNoticesMonitor, snapd_notices_monitor, SNAPD,
                      NOTICES_MONITOR, GObject)
 
@@ -29,3 +31,5 @@ SnapdClient          *snapd_notices_monitor_get_client        (SnapdNoticesMonit
 gboolean              snapd_notices_monitor_start             (SnapdNoticesMonitor     *monitor, GError **error);
 
 gboolean              snapd_notices_monitor_stop              (SnapdNoticesMonitor     *monitor, GError **error);
+
+G_END_DECLS
