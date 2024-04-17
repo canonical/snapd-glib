@@ -668,7 +668,7 @@ add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data
     g_autoptr(GHashTable) last_data = NULL;
 
     JsonObject *object = json_node_get_object (element);
-    gchar *last_occurred_str = NULL;
+    g_autofree gchar *last_occurred_str = NULL;
     g_autoptr(GDateTime) first_occurred = _snapd_json_get_date_time (object, "first-occurred", NULL);
     g_autoptr(GDateTime) last_occurred = _snapd_json_get_date_time (object, "last-occurred", &last_occurred_str);
     g_autoptr(GDateTime) last_repeated = _snapd_json_get_date_time (object, "last-repeated", NULL);
