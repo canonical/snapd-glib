@@ -57,13 +57,12 @@ static void monitor_cb(SnapdClient* source,
             g_autoptr(SnapdNotice) notice = g_object_ref(notices->pdata[i]);
             g_autoptr(GDateTime) last_occurred = (GDateTime *)snapd_notice_get_last_occurred(notice);
 
-            if (self->last_date_time == NULL ||
-                g_date_time_compare(self->last_date_time, last_occurred) == -1) {
-                    g_clear_pointer (&self->last_date_time, g_date_time_unref);
-                    self->last_date_time = g_date_time_ref(last_occurred);
-                    g_clear_object(&self->last_notice);
-                    self->last_notice = g_object_ref(notice);
-                }
+            if (self->last_date_time == NULL || g_date_time_compare(self->last_date_time, last_occurred) <= 0) {
+                g_clear_pointer (&self->last_date_time, g_date_time_unref);
+                self->last_date_time = g_date_time_ref(last_occurred);
+                g_clear_object(&self->last_notice);
+                self->last_notice = g_object_ref(notice);
+            }
             g_signal_emit_by_name(self, "notice-event", notice);
         }
     }
