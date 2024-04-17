@@ -7,7 +7,6 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#include <math.h>
 #include "snapd-get-notices.h"
 
 #include "snapd-json.h"
