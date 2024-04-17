@@ -8784,9 +8784,9 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
         g_autoptr(GTimeZone) timezone = g_time_zone_new_utc ();
         g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58.123456789);
         g_autoptr(SnapdNotice) noticeTest = g_object_new (SNAPD_TYPE_NOTICE,
-                                                  "id", "an-id",
-                                                  "last-occurred-str", "2024-04-16T13:51:57.123456789Z",
-                                                  NULL);
+                                                          "id", "an-id",
+                                                          "last-occurred-str", "2024-04-16T13:51:57.123456789Z",
+                                                          NULL);
         snapd_client_notices_set_after_notice (source_object, noticeTest);
         snapd_client_get_notices_async (source_object,
                                         date5,
