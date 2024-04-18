@@ -500,6 +500,8 @@ void            mock_notice_set_dates             (MockNotice    *notice,
                                                    GDateTime     *last_occurred,
                                                    GDateTime     *last_repeat,
                                                    int            occurrences);
+void            mock_notice_set_nanoseconds       (MockNotice    *notice,
+                                                   const gint32   nanoseconds);
 
 void            mock_notice_set_expire_after      (MockNotice    *notice,
                                                    const gchar   *expire_after);

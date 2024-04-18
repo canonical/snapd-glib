@@ -89,6 +89,7 @@ struct _MockNotice
     GDateTime *first_occurred;
     GDateTime *last_occurred;
     GDateTime *last_repeated;
+    gint32 last_occurred_nanoseconds;
     int occurrences;
     gchar *expire_after;
     gchar *repeat_after;
@@ -692,9 +693,16 @@ mock_snapd_add_notice (MockSnapd *self, const gchar *id, const gchar *key, const
     notice->key = g_strdup (key);
     notice->type = g_strdup (type);
     notice->last_data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+    notice->last_occurred_nanoseconds = -1;
     self->notices = g_list_append (self->notices, notice);
 
     return notice;
+}
+
+void
+mock_notice_set_nanoseconds (MockNotice *self, const gint32 nanoseconds)
+{
+    self->last_occurred_nanoseconds = nanoseconds;
 }
 
 void
@@ -5227,7 +5235,13 @@ handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         }
         if (notice->last_occurred) {
             json_builder_set_member_name (builder, "last-occurred");
-            g_autofree gchar *date = g_date_time_format (notice->last_occurred, "%FT%T.%f%z");
+            g_autofree gchar *date = NULL;
+            if (notice->last_occurred_nanoseconds == -1) {
+                date = g_date_time_format (notice->last_occurred, "%FT%T.%f%z");
+            } else {
+                g_autofree gchar *date_tmp = g_date_time_format (notice->last_occurred, "%FT%T.%%09d%z");
+                date = g_strdup_printf(date_tmp, notice->last_occurred_nanoseconds);
+            }
             json_builder_add_string_value (builder, date);
         }
         if (notice->last_repeated) {

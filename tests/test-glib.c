@@ -8634,9 +8634,10 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     g_autoptr(GTimeZone) timezone2 = g_time_zone_new ("01:32");
 #endif
     g_autoptr(GDateTime) date4 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3);
+    g_autoptr(GDateTime) date5 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3.000123);
 
     g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred (notice2), date4));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice2), date4));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice2), date5));
     g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated (notice2), date4));
 
     g_assert_cmpint (snapd_notice_get_occurrences(notice2), ==, 1);
@@ -8716,6 +8717,7 @@ test_notices_events (void)
     mock_notice_set_dates (notice, date1, date2, date3, 5);
 
     notice = mock_snapd_add_notice (snapd, "2", "8474", "refresh-inhibit");
+    mock_notice_set_nanoseconds (notice, 123456);
 
     mock_notice_set_user_id (notice, "67");
 
@@ -8785,7 +8787,7 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
         g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58.123456789);
         g_autoptr(SnapdNotice) noticeTest = g_object_new (SNAPD_TYPE_NOTICE,
                                                           "id", "an-id",
-                                                          "last-occurred-nanoseconds", 123456789,
+                                                          "last-occurred-nanoseconds", 12345678,
                                                           NULL);
         snapd_client_notices_set_after_notice (source_object, noticeTest);
         snapd_client_get_notices_async (source_object,
@@ -8806,7 +8808,7 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
         g_assert_cmpint (g_hash_table_size (parameters), ==, 1);
 
         g_assert_true (g_hash_table_contains (parameters, "after"));
-        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58.123456789+00:00");
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58.012345678+00:00");
 #endif
         g_main_loop_quit (data->loop);
     }
