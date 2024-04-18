@@ -5241,7 +5241,7 @@ handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
             json_builder_set_member_name (builder, "last-occurred");
             g_autofree gchar *date = NULL;
             if (notice->last_occurred_nanoseconds == -1) {
-                date = g_date_time_format (notice->last_occurred, "%FT%T.%f%z");
+                date = g_date_time_format (notice->last_occurred, "%FT%T%z");
             } else {
                 g_autofree gchar *date_tmp = g_date_time_format (notice->last_occurred, "%FT%T.%%09d%z");
                 date = g_strdup_printf(date_tmp, notice->last_occurred_nanoseconds);
@@ -5250,7 +5250,7 @@ handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         }
         if (notice->last_repeated) {
             json_builder_set_member_name (builder, "last-repeated");
-            g_autofree gchar *date = g_date_time_format (notice->last_repeated, "%FT%T.%f%z");
+            g_autofree gchar *date = g_date_time_format (notice->last_repeated, "%FT%T%z");
             json_builder_add_string_value (builder, date);
         }
         if (notice->expire_after) {
