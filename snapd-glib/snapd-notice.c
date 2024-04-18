@@ -302,6 +302,7 @@ snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, 
         self->key = g_strdup (g_value_get_string (value));
         break;
     case PROP_FIRST_OCCURRED:
+        g_print("Set first_occurred\n");
         g_clear_pointer (&self->first_occurred, g_date_time_unref);
         if (g_value_get_boxed (value) != NULL)
             self->first_occurred = g_date_time_ref (g_value_get_boxed (value));
@@ -360,6 +361,7 @@ snapd_notice_get_property (GObject *object, guint prop_id, GValue *value, GParam
         g_value_set_string (value, self->key);
         break;
     case PROP_FIRST_OCCURRED:
+        g_print("Get first occurred\n");
         g_value_set_boxed (value, self->first_occurred);
         break;
     case PROP_LAST_OCCURRED:
