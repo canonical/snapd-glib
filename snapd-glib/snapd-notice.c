@@ -284,6 +284,7 @@ static void
 snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
     SnapdNotice *self = SNAPD_NOTICE (object);
+    GDateTime *tmp_date;
 
     switch (prop_id) {
     case PROP_ID:
@@ -304,8 +305,9 @@ snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, 
     case PROP_FIRST_OCCURRED:
         g_print("Set first_occurred\n");
         g_clear_pointer (&self->first_occurred, g_date_time_unref);
-        if (g_value_get_boxed (value) != NULL)
-            self->first_occurred = g_date_time_ref (g_value_get_boxed (value));
+        tmpdate = g_value_get_boxed (value);
+        self->first_occurred = tmpdate == NULL ? NULL : g_date_time_ref (tmpdate);
+        g_print("first occurred: %s\n", self->first_occurred ? "NOT NULL" : "NULL");
         break;
     case PROP_LAST_OCCURRED:
         g_clear_pointer (&self->last_occurred, g_date_time_unref);
