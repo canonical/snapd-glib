@@ -45,9 +45,18 @@ QString QSnapdNotice::key () const
 
 static QDateTime convertDateTime (GDateTime *datetime)
 {
-    if (datetime == NULL)
+    if (datetime == NULL) {
+        g_print("Datetime is NULL\n");
         return QDateTime ();
+    }
 
+    g_print("Date: %d %d %d\n",g_date_time_get_year (datetime),
+                g_date_time_get_month (datetime),
+                g_date_time_get_day_of_month (datetime));
+    g_print("Time: %d %d %d\n",g_date_time_get_hour (datetime),
+                g_date_time_get_minute (datetime),
+                g_date_time_get_second (datetime),
+                g_date_time_get_microsecond (datetime) / 1000);
     QDate date (g_date_time_get_year (datetime),
                 g_date_time_get_month (datetime),
                 g_date_time_get_day_of_month (datetime));
