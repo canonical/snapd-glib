@@ -5231,7 +5231,7 @@ handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         if (notice->first_occurred) {
             json_builder_set_member_name (builder, "first-occurred");
             g_print("mock first occurred: %s\n", notice->first_occurred ? "NOT NULL" : "NULL");
-            g_autofree gchar *date = g_date_time_format (notice->first_occurred, "%FT%T.%f%z");
+            g_autofree gchar *date = g_date_time_format (notice->first_occurred, "%FT%T%z");
             g_print("First occurred in mock: %s\n", date);
             json_builder_add_string_value (builder, date);
             json_builder_set_member_name (builder, "occurrences");
