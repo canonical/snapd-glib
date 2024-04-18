@@ -288,7 +288,6 @@ GDateTime *
 _snapd_json_get_date_time (JsonObject *object, const gchar *name, gint32 *nanoseconds)
 {
     const gchar *value = _snapd_json_get_string (object, name, NULL);
-    g_print("Parsing value %s\n", value);
     if (value == NULL)
         return NULL;
 

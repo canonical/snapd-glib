@@ -714,9 +714,7 @@ mock_notice_set_user_id (MockNotice *self, const gchar *user_id)
 void
 mock_notice_set_dates (MockNotice *self, GDateTime *first_occurred, GDateTime *last_occurred, GDateTime *last_repeated, int occurrences)
 {
-    g_print("setting first occurred in mock: %s\n", first_occurred ? "NOT NULL" : "NULL");
     self->first_occurred = g_date_time_ref (first_occurred);
-    g_print("setting first occurred in mock2: %s\n", self->first_occurred ? "NOT NULL" : "NULL");
     self->last_occurred = g_date_time_ref (last_occurred);
     self->last_repeated = g_date_time_ref (last_repeated);
     self->occurrences = occurrences;
@@ -5230,9 +5228,7 @@ handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         json_builder_add_string_value (builder, notice->key);
         if (notice->first_occurred) {
             json_builder_set_member_name (builder, "first-occurred");
-            g_print("mock first occurred: %s\n", notice->first_occurred ? "NOT NULL" : "NULL");
             g_autofree gchar *date = g_date_time_format (notice->first_occurred, "%FT%T%z");
-            g_print("First occurred in mock: %s\n", date);
             json_builder_add_string_value (builder, date);
             json_builder_set_member_name (builder, "occurrences");
             json_builder_add_int_value (builder, notice->occurrences);

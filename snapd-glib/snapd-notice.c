@@ -161,13 +161,9 @@ snapd_notice_get_last_data (SnapdNotice *self)
 const GDateTime *
 snapd_notice_get_first_occurred (SnapdNotice *self)
 {
-    g_print("Asking for first_occurred... ");
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
-    if (self->first_occurred == NULL) {
-        g_print("self->first_occurred is NULL\n");
+    if (self->first_occurred == NULL)
         return NULL;
-    }
-    g_print("self->first_occurred is not NULL\n");
     return g_date_time_ref (self->first_occurred);
 }
 
@@ -303,11 +299,9 @@ snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, 
         self->key = g_strdup (g_value_get_string (value));
         break;
     case PROP_FIRST_OCCURRED:
-        g_print("Set first_occurred\n");
         g_clear_pointer (&self->first_occurred, g_date_time_unref);
         tmpdate = g_value_get_boxed (value);
         self->first_occurred = tmpdate == NULL ? NULL : g_date_time_ref (tmpdate);
-        g_print("first occurred: %s\n", self->first_occurred ? "NOT NULL" : "NULL");
         break;
     case PROP_LAST_OCCURRED:
         g_clear_pointer (&self->last_occurred, g_date_time_unref);
@@ -363,7 +357,6 @@ snapd_notice_get_property (GObject *object, guint prop_id, GValue *value, GParam
         g_value_set_string (value, self->key);
         break;
     case PROP_FIRST_OCCURRED:
-        g_print("Get first occurred\n");
         g_value_set_boxed (value, self->first_occurred);
         break;
     case PROP_LAST_OCCURRED:
