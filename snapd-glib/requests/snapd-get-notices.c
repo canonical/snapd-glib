@@ -98,7 +98,6 @@ generate_get_snap_request (SnapdRequest *request, GBytes **body)
             }
         }
         add_uri_parameter (query, "after", date_time);
-        g_print("after: %s\n", date_time);
         self->since_date_time_nanoseconds = -1;
     }
     if (self->timeout != 0) {

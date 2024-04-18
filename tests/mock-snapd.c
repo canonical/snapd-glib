@@ -5187,7 +5187,6 @@ handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
         send_error_method_not_allowed (self, message, "method not allowed");
         return;
     }
-
     g_free (self->notices_parameters);
 #if SOUP_CHECK_VERSION (2, 99, 2)
         GUri *uri = soup_server_message_get_uri (message);

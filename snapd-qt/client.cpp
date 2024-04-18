@@ -3608,7 +3608,7 @@ void QSnapdNoticesRequest::resetFilters ()
     this->usersFilter = "";
     this->typesFilter = "";
     this->keysFilter = "";
-    this->sinceDateFilter = "";
+    this->sinceNanosecondsFilter = -1;
 }
 
 static GDateTime *
@@ -3635,10 +3635,9 @@ void QSnapdNoticesRequest::runSync ()
 {
     Q_D(QSnapdNoticesRequest);
 
-    // TODO
-    /*if (this->sinceDateFilter != "")
-        snapd_client_notices_set_since_nanoseconds (SNAPD_CLIENT (getClient ()), this->sinceDateFilter.toStdString().c_str());
-    this->sinceDateFilter = "";*/
+    if (this->sinceNanosecondsFilter != -1)
+        snapd_client_notices_set_since_nanoseconds (SNAPD_CLIENT (getClient ()), this->sinceNanosecondsFilter);
+    this->sinceNanosecondsFilter = -1;
     g_autoptr(GError) error = NULL;
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
     d->updateNoticesData (snapd_client_get_notices_with_filters_sync (SNAPD_CLIENT (getClient ()),
@@ -3675,10 +3674,9 @@ void QSnapdNoticesRequest::runAsync ()
 {
     Q_D(QSnapdNoticesRequest);
 
-    // TODO
-    /*if (this->sinceDateFilter != "")
-        snapd_client_notices_set_since_date (SNAPD_CLIENT (getClient ()), this->sinceDateFilter.toStdString().c_str());
-    this->sinceDateFilter = "";*/
+    if (this->sinceNanosecondsFilter != -1)
+        snapd_client_notices_set_since_nanoseconds (SNAPD_CLIENT (getClient ()), this->sinceNanosecondsFilter);
+    this->sinceNanosecondsFilter = -1;
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
     snapd_client_get_notices_with_filters_async (SNAPD_CLIENT (getClient ()),
                                                  (gchar *) this->userIdFilter.toStdString ().c_str (),
@@ -3709,5 +3707,14 @@ QSnapdNotice *QSnapdNoticesRequest::getNotice (quint64 n) const
 
 void QSnapdNoticesRequest::setSinceDateFilterFromNotice (QSnapdNotice *notice)
 {
-    //TODO this->sinceDateFilter = notice->lastOccurredStr();
+    this->sinceFilterSet = true;
+    this->sinceFilter = notice->lastOccurred();
+    this->sinceNanosecondsFilter = notice->lastOccurredNanoseconds();
+}
+
+void QSnapdNoticesRequest::setSinceDateFilterFromDateNanoseconds (QDateTime dateTime, qint32 nanoseconds)
+{
+    this->sinceFilterSet = true;
+    this->sinceFilter = dateTime;
+    this->sinceNanosecondsFilter = nanoseconds;
 }

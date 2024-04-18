@@ -291,7 +291,6 @@ _snapd_json_get_date_time (JsonObject *object, const gchar *name, gint32 *nanose
     if (value == NULL)
         return NULL;
 
-    g_print("cadena %s\n", value);
     /* Example: 2016-05-17T09:36:53+12:00 */
     g_auto(GStrv) tokens = g_strsplit (value, "T", 2);
     gint year = 0, month = 0, day = 0;

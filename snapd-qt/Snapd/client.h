@@ -976,7 +976,7 @@ class Q_DECL_EXPORT QSnapdNoticesRequest : public QSnapdRequest
     Q_PROPERTY(QString usersFilter MEMBER usersFilter)
     Q_PROPERTY(QString keysFilter MEMBER keysFilter)
     Q_PROPERTY(QString typesFilter MEMBER typesFilter)
-    Q_PROPERTY(QString sinceDateFilter MEMBER sinceDateFilter)
+    Q_PROPERTY(qint32 sinceNanosecondsFilter MEMBER sinceNanosecondsFilter)
 
 public:
     explicit QSnapdNoticesRequest (void *snapd_client, QObject *parent = 0);
@@ -988,6 +988,7 @@ public:
     void handleResult (void *, void *);
     void resetFilters ();
     void setSinceDateFilterFromNotice (QSnapdNotice *);
+    void setSinceDateFilterFromDateNanoseconds (QDateTime, qint32);
 
 private:
     QScopedPointer<QSnapdNoticesRequestPrivate> d_ptr;
@@ -999,7 +1000,7 @@ private:
     QString usersFilter;
     QString keysFilter;
     QString typesFilter;
-    QString sinceDateFilter;
+    qint32 sinceNanosecondsFilter;
 };
 
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password);

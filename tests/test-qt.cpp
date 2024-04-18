@@ -7394,7 +7394,7 @@ test_get_notices_after_notice ()
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
 
     QScopedPointer<QSnapdNoticesRequest> noticesRequest (client.getNotices ());
-    noticesRequest->setProperty("sinceDateFilter", "2023-02-05T21:23:03.123456789+01:32");
+    noticesRequest->setSinceDateFilterFromDateNanoseconds(QDateTime::fromString("2023-02-05T21:23:03.123456789+01:32", Qt::ISODate), 123456789);
     noticesRequest->runSync ();
 #if GLIB_CHECK_VERSION(2, 66, 0)
     g_autoptr (GHashTable) parameters = g_uri_parse_params (mock_snapd_get_notices_parameters (snapd),
@@ -7405,7 +7405,6 @@ test_get_notices_after_notice ()
 
     g_assert_nonnull (parameters);
     g_assert_cmpint (g_hash_table_size (parameters), ==, 1);
-
     g_assert_true (g_hash_table_contains (parameters, "after"));
     g_assert_cmpstr ((gchar*)g_hash_table_lookup (parameters, "after"), ==, "2023-02-05T21:23:03.123456789+01:32");
 #endif
