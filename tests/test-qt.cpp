@@ -7356,6 +7356,8 @@ test_notices_events ()
                                                              7 * G_TIME_SPAN_MILLISECOND +
                                                              8));
 
+    g_print("Date1: %d %d %d\n",notice0->firstOccurred().date().year(),notice0->firstOccurred().date().month(),notice0->firstOccurred().date().day());
+    g_print("Time1: %d %d %d\n",notice0->firstOccurred().time().hour(),notice0->firstOccurred().time().minute(),notice0->firstOccurred().time().second());
     g_assert_true (notice0->firstOccurred() == QDateTime::fromString("2024-03-01T20:29:58Z", Qt::ISODate));
     g_assert_true (notice0->lastOccurred() == QDateTime::fromString("2025-04-02T23:28:08Z", Qt::ISODate));
     g_assert_true (notice0->lastRepeated() == QDateTime::fromString("2026-05-03T22:20:07Z", Qt::ISODate));
