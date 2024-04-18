@@ -161,9 +161,13 @@ snapd_notice_get_last_data (SnapdNotice *self)
 const GDateTime *
 snapd_notice_get_first_occurred (SnapdNotice *self)
 {
+    g_print("Asking for first_occurred... ");
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
-    if (self->first_occurred == NULL)
+    if (self->first_occurred == NULL) {
+        g_print("self->first_occurred is NULL\n");
         return NULL;
+    }
+    g_print("self->first_occurred is not NULL\n");
     return g_date_time_ref (self->first_occurred);
 }
 
