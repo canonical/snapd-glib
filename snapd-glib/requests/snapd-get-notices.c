@@ -20,7 +20,7 @@ struct _SnapdGetNotices
     gchar *keys;
     GDateTime *since_date_time;
     GTimeSpan timeout;
-    gchar *since_date_time_str;
+    gint32 since_date_time_nanoseconds;
 
     GPtrArray *notices;
 };
@@ -33,7 +33,7 @@ _snapd_get_notices_new (gchar               *user_id,
                         gchar               *types,
                         gchar               *keys,
                         GDateTime           *since_date_time,
-                        gchar               *since_date_time_str,
+                        gint32               since_date_time_nanoseconds,
                         GTimeSpan            timeout,
                         GCancellable        *cancellable,
                         GAsyncReadyCallback  callback,
@@ -51,7 +51,7 @@ _snapd_get_notices_new (gchar               *user_id,
     self->keys = g_strdup (keys);
     self->since_date_time = since_date_time == NULL ? NULL : g_date_time_ref (since_date_time);
     self->timeout = timeout;
-    self->since_date_time_str = g_strdup(since_date_time_str);
+    self->since_date_time_nanoseconds = since_date_time_nanoseconds;
     return self;
 }
 
@@ -83,15 +83,23 @@ generate_get_snap_request (SnapdRequest *request, GBytes **body)
     add_uri_parameter (query, "users", self->users);
     add_uri_parameter (query, "types", self->types);
     add_uri_parameter (query, "keys", self->keys);
-    if (self->since_date_time_str == NULL) {
-        if (self->since_date_time != NULL) {
-            g_autofree gchar *date_time = NULL;
+    if (self->since_date_time != NULL) {
+        g_autofree gchar *date_time = NULL;
+        if (self->since_date_time_nanoseconds == -1) {
             date_time = g_date_time_format (self->since_date_time, "%FT%T.%f%:z");
-            add_uri_parameter (query, "after", date_time);
+        } else {
+            if (self->since_date_time_nanoseconds == 0) {
+                date_time = g_date_time_format (self->since_date_time, "%FT%T%:z");
+            } else {
+                // create a temporal date-time string with a %09d between seconds and timezone
+                g_autofree gchar *date_time_tmp = g_date_time_format (self->since_date_time, "%FT%T.%%09d%:z");
+                // Now use that %s to include the nanoseconds
+                date_time = g_strdup_printf(date_time_tmp, self->since_date_time_nanoseconds);
+            }
         }
-    } else {
-        add_uri_parameter (query, "after", self->since_date_time_str);
-        g_clear_pointer (&self->since_date_time_str, g_free);
+        add_uri_parameter (query, "after", date_time);
+        g_print("after: %s\n", date_time);
+        self->since_date_time_nanoseconds = -1;
     }
     if (self->timeout != 0) {
         add_uri_parameter_base (query, "timeout");
@@ -140,7 +148,6 @@ snapd_get_notices_finalize (GObject *object)
     g_clear_pointer (&self->keys, g_free);
     g_clear_pointer (&self->since_date_time, g_date_time_unref);
     g_clear_pointer (&self->notices, g_ptr_array_unref);
-    g_clear_pointer (&self->since_date_time_str, g_free);
 
     G_OBJECT_CLASS (snapd_get_notices_parent_class)->finalize (object);
 }
@@ -166,4 +173,5 @@ snapd_get_notices_class_init (SnapdGetNoticesClass *klass)
 static void
 snapd_get_notices_init (SnapdGetNotices *self)
 {
+    self->since_date_time_nanoseconds = -1;
 }

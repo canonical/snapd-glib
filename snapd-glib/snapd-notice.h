@@ -42,7 +42,7 @@ const GDateTime       *snapd_notice_get_first_occurred (SnapdNotice *notice);
 
 const GDateTime       *snapd_notice_get_last_occurred  (SnapdNotice *notice);
 
-const gchar           *snapd_notice_get_last_occurred_str (SnapdNotice *notice);
+const gint32           snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *notice);
 
 const GDateTime       *snapd_notice_get_last_repeated  (SnapdNotice *notice);
 

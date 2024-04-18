@@ -3635,9 +3635,10 @@ void QSnapdNoticesRequest::runSync ()
 {
     Q_D(QSnapdNoticesRequest);
 
-    if (this->sinceDateFilter != "")
-        snapd_client_notices_set_since_date (SNAPD_CLIENT (getClient ()), this->sinceDateFilter.toStdString().c_str());
-    this->sinceDateFilter = "";
+    // TODO
+    /*if (this->sinceDateFilter != "")
+        snapd_client_notices_set_since_nanoseconds (SNAPD_CLIENT (getClient ()), this->sinceDateFilter.toStdString().c_str());
+    this->sinceDateFilter = "";*/
     g_autoptr(GError) error = NULL;
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
     d->updateNoticesData (snapd_client_get_notices_with_filters_sync (SNAPD_CLIENT (getClient ()),
@@ -3674,9 +3675,10 @@ void QSnapdNoticesRequest::runAsync ()
 {
     Q_D(QSnapdNoticesRequest);
 
-    if (this->sinceDateFilter != "")
+    // TODO
+    /*if (this->sinceDateFilter != "")
         snapd_client_notices_set_since_date (SNAPD_CLIENT (getClient ()), this->sinceDateFilter.toStdString().c_str());
-    this->sinceDateFilter = "";
+    this->sinceDateFilter = "";*/
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
     snapd_client_get_notices_with_filters_async (SNAPD_CLIENT (getClient ()),
                                                  (gchar *) this->userIdFilter.toStdString ().c_str (),
@@ -3707,5 +3709,5 @@ QSnapdNotice *QSnapdNoticesRequest::getNotice (quint64 n) const
 
 void QSnapdNoticesRequest::setSinceDateFilterFromNotice (QSnapdNotice *notice)
 {
-    this->sinceDateFilter = notice->lastOccurredStr();
+    //TODO this->sinceDateFilter = notice->lastOccurredStr();
 }

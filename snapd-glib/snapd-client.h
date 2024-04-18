@@ -1323,8 +1323,8 @@ GPtrArray              *snapd_client_get_notices_with_filters_finish (SnapdClien
 void                    snapd_client_notices_set_after_notice      (SnapdClient          *client,
                                                                     SnapdNotice          *notice);
 
-void                    snapd_client_notices_set_since_date        (SnapdClient          *client,
-                                                                    const gchar          *date);
+void                    snapd_client_notices_set_since_nanoseconds (SnapdClient          *client,
+                                                                    const gint32          nanoseconds);
 
 G_END_DECLS
 

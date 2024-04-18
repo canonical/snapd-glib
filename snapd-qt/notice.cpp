@@ -88,9 +88,9 @@ qint64 QSnapdNotice::expireAfter () const
     return snapd_notice_get_expire_after (SNAPD_NOTICE (wrapped_object));
 }
 
-QString QSnapdNotice::lastOccurredStr () const
+qint32 QSnapdNotice::lastOccurredNanoseconds () const
 {
-    return snapd_notice_get_last_occurred_str (SNAPD_NOTICE (wrapped_object));
+    return snapd_notice_get_last_occurred_nanoseconds (SNAPD_NOTICE (wrapped_object));
 }
 
 static void

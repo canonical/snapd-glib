@@ -33,7 +33,7 @@ enum
     PROP_KEY,
     PROP_FIRST_OCCURRED,
     PROP_LAST_OCCURRED,
-    PROP_LAST_OCCURRED_STR,
+    PROP_LAST_OCCURRED_NANO,
     PROP_LAST_REPEATED,
     PROP_OCCURRENCES,
     PROP_LAST_DATA,
@@ -52,7 +52,7 @@ struct _SnapdNotice
     gchar *key;
     GDateTime *first_occurred;
     GDateTime *last_occurred;
-    gchar *last_occurred_str;
+    gint32 last_occurred_nanosecond;
     GDateTime *last_repeated;
     GHashTable *data;
     gint64 occurrences;
@@ -187,24 +187,23 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
 }
 
 /**
- * snapd_notice_get_last_occurred_str:
+ * snapd_notice_get_last_occurred_nanoseconds:
  * @notice: a #SnapdNotice.
  *
- * Get the *last-occurred* time and date in string format, exactly as sent by
- * snapd. Useful combined with #snapd_client_notices_set_since_date, and used
+ * Get the nanoseconds value of *last-occurred*, exactly as sent by
+ * snapd. Useful combined with #snapd_client_notices_set_since_nanoseconds, and used
  * internally by snapd_client_notices_set_after_notice, to ensure the maximum
  * possible precission when dealing with timestamps.
  *
- * Returns: a string, in RFC3999nano format, with the date and time of the
- * *last-occurred* field.
+ * Returns: a gint32.
  *
  * Since: 1.66
  */
-const gchar *
-snapd_notice_get_last_occurred_str (SnapdNotice *self)
+const gint32
+snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
-    return self->last_occurred_str;
+    return self->last_occurred_nanosecond;
 }
 
 /**
@@ -308,9 +307,8 @@ snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, 
         if (g_value_get_boxed (value) != NULL)
             self->last_occurred = g_date_time_ref (g_value_get_boxed (value));
         break;
-    case PROP_LAST_OCCURRED_STR:
-        g_free (self->last_occurred_str);
-        self->last_occurred_str = g_strdup (g_value_get_string (value));
+    case PROP_LAST_OCCURRED_NANO:
+        self->last_occurred_nanosecond = g_value_get_int (value);
         break;
     case PROP_LAST_REPEATED:
         g_clear_pointer (&self->last_repeated, g_date_time_unref);
@@ -363,8 +361,8 @@ snapd_notice_get_property (GObject *object, guint prop_id, GValue *value, GParam
     case PROP_LAST_OCCURRED:
         g_value_set_boxed (value, self->last_occurred);
         break;
-    case PROP_LAST_OCCURRED_STR:
-        g_value_set_string (value, self->last_occurred_str);
+    case PROP_LAST_OCCURRED_NANO:
+        g_value_set_int (value, self->last_occurred_nanosecond);
         break;
     case PROP_LAST_REPEATED:
         g_value_set_boxed (value, self->last_repeated);
@@ -455,12 +453,12 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
-                                     PROP_LAST_OCCURRED_STR,
-                                     g_param_spec_string ("last-occurred-str",
-                                                          "last-occurred-str",
-                                                          "Time this notice last ocurred, in string format and with nanosecond accuracy",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                                     PROP_LAST_OCCURRED_NANO,
+                                     g_param_spec_int ("last-occurred-nanoseconds",
+                                                       "last-occurred-nanoseconds",
+                                                       "Time this notice last ocurred, in string format and with nanosecond accuracy",
+                                                       -1, 999999999, 0,
+                                                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_LAST_REPEATED,
                                      g_param_spec_boxed ("last-repeated",
