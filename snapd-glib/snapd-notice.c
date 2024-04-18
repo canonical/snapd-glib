@@ -284,7 +284,7 @@ static void
 snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
     SnapdNotice *self = SNAPD_NOTICE (object);
-    GDateTime *tmp_date;
+    GDateTime *tmpdate;
 
     switch (prop_id) {
     case PROP_ID:
