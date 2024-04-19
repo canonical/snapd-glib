@@ -49,6 +49,7 @@ static void monitor_cb (SnapdClient* source,
     }
 
     if (notices != NULL) {
+        gboolean first_run = self->last_notice == NULL;
         for (int i = 0; i < notices->len; i++) {
             g_autoptr(SnapdNotice) notice = g_object_ref(notices->pdata[i]);
 
@@ -56,7 +57,7 @@ static void monitor_cb (SnapdClient* source,
                 g_clear_object(&self->last_notice);
                 self->last_notice = g_object_ref(notice);
             }
-            g_signal_emit_by_name(self, "notice-event", notice);
+            g_signal_emit_by_name(self, "notice-event", notice, first_run);
         }
     }
     begin_monitor(self); // continue waiting for new notifications
@@ -168,8 +169,9 @@ void snapd_notices_monitor_class_init (SnapdNoticesMonitorClass *klass) {
                   NULL,
                   NULL,
                   G_TYPE_NONE,
-                  1,
-                  SNAPD_TYPE_NOTICE);
+                  2,
+                  SNAPD_TYPE_NOTICE,
+                  G_TYPE_BOOLEAN);
     g_signal_new ("error-event",
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
@@ -187,7 +189,6 @@ SnapdNoticesMonitor *snapd_notices_monitor_new (void) {
     SnapdNoticesMonitor *self = g_object_new(snapd_notices_monitor_get_type(),
                                              "client", client,
                                              NULL);
-    g_print("Paso 1 %s\n", self == NULL ? "NULL" : "NOT NULL");
     return self;
 }
 
