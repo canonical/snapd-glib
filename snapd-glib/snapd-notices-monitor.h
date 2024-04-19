@@ -26,10 +26,12 @@ G_DECLARE_FINAL_TYPE(SnapdNoticesMonitor, snapd_notices_monitor, SNAPD,
 
 SnapdNoticesMonitor  *snapd_notices_monitor_new               ();
 
-SnapdClient          *snapd_notices_monitor_get_client        (SnapdNoticesMonitor     *monitor);
+SnapdNoticesMonitor  *snapd_notices_monitor_new_with_client   (SnapdClient             *client);
 
-gboolean              snapd_notices_monitor_start             (SnapdNoticesMonitor     *monitor, GError **error);
+gboolean              snapd_notices_monitor_start             (SnapdNoticesMonitor     *monitor,
+                                                               GError                 **error);
 
-gboolean              snapd_notices_monitor_stop              (SnapdNoticesMonitor     *monitor, GError **error);
+gboolean              snapd_notices_monitor_stop              (SnapdNoticesMonitor     *monitor,
+                                                               GError                 **error);
 
 G_END_DECLS

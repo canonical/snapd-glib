@@ -25,38 +25,34 @@ struct _SnapdNoticesMonitor {
     SnapdNotice *last_notice;
 };
 
-G_DEFINE_TYPE(SnapdNoticesMonitor, snapd_notices_monitor, G_TYPE_OBJECT)
+enum
+{
+    PROP_CLIENT = 1,
+    PROP_LAST
+};
 
-static void begin_monitor(SnapdNoticesMonitor *self);
+G_DEFINE_TYPE (SnapdNoticesMonitor, snapd_notices_monitor, G_TYPE_OBJECT)
 
-static void monitor_cb(SnapdClient* source,
-                       GAsyncResult* res,
-                       SnapdNoticesMonitor *self) {
+static void begin_monitor (SnapdNoticesMonitor *self);
+
+static void monitor_cb (SnapdClient* source,
+                        GAsyncResult* res,
+                        SnapdNoticesMonitor *self) {
 
     g_autoptr(GError) error = NULL;
     g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish(source, res, &error);
 
-    if (self->cancellable == NULL) {
-        // if cancellable doesn't exist, it means that this was cancelled in the `dispose()` method
-        return;
-    }
-
-    if (g_cancellable_is_cancelled(self->cancellable)) {
-        g_clear_object(&self->cancellable);
-        return;
-    }
-
     if (error != NULL) {
-        g_clear_object(&self->cancellable);
-        g_signal_emit_by_name(self, "error-event", error);
+        if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+            g_signal_emit_by_name(self, "error-event", error);
         return;
     }
 
-    if ((error == NULL) && (notices != NULL)) {
+    if (notices != NULL) {
         for (int i = 0; i < notices->len; i++) {
             g_autoptr(SnapdNotice) notice = g_object_ref(notices->pdata[i]);
 
-            if (self->last_notice == NULL || snapd_notice_compare_last_occurred(self, notice) <= 0) {
+            if (self->last_notice == NULL || snapd_notice_compare_last_occurred(self->last_notice, notice) <= 0) {
                 g_clear_object(&self->last_notice);
                 self->last_notice = g_object_ref(notice);
             }
@@ -66,9 +62,9 @@ static void monitor_cb(SnapdClient* source,
     begin_monitor(self); // continue waiting for new notifications
 }
 
-static void begin_monitor(SnapdNoticesMonitor *self) {
+static void begin_monitor (SnapdNoticesMonitor *self) {
     snapd_client_notices_set_after_notice (self->client, self->last_notice);
-    g_autoptr(GDateTime) last_date_time = self->last_notice == NULL ? NULL : snapd_notice_get_last_occurred (self->last_notice);
+    g_autoptr(GDateTime) last_date_time = self->last_notice == NULL ? NULL : (GDateTime *) snapd_notice_get_last_occurred (self->last_notice);
     snapd_client_get_notices_async(self->client,
                                    last_date_time,
                                    2000000000000000, // "infinity" (there is a limit in snapd, around 9 billion seconds)
@@ -85,10 +81,10 @@ static void begin_monitor(SnapdNoticesMonitor *self) {
  * notices and emit a "notice-event" signal with the new notice as
  * parameter.
  *
- * @return: FALSE if there was an error, TRUE if everything worked fine
+ * Returns: FALSE if there was an error, TRUE if everything worked fine
  * and the object is listening for events.
  */
-gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self, GError **error) {
+gboolean snapd_notices_monitor_start (SnapdNoticesMonitor *self, GError **error) {
 
     g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
     g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), FALSE);
@@ -107,9 +103,9 @@ gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self, GError **error) 
  *
  * Stops the asynchronous listening proccess started with #snapd_notices_monitor_start.
  *
- * @return: FALSE if there was an error, TRUE if everything worked fine.
+ * Returns: FALSE if there was an error, TRUE if everything worked fine.
  */
-gboolean snapd_notices_monitor_stop(SnapdNoticesMonitor *self, GError **error) {
+gboolean snapd_notices_monitor_stop (SnapdNoticesMonitor *self, GError **error) {
 
     g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
     g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), FALSE);
@@ -121,24 +117,7 @@ gboolean snapd_notices_monitor_stop(SnapdNoticesMonitor *self, GError **error) {
     return TRUE;
 }
 
-/**
- * snapd_notices_monitor_get_client:
- * @monitor: a #SnapdNoticesMonitor
- *
- * Returns the internal #SnapdClient used by this object. Useful if some
- * kind of extra initialization must be done before begin to read notices.
- * This client must NOT be used for anything else, because the get_notices
- * call will block the connection until a response is generated. This client
- * MUST be used only by this object.
- *
- * @returns: (transfer none): a #SnapdClient
- */
-SnapdClient *snapd_notices_monitor_get_client(SnapdNoticesMonitor *self) {
-    g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), NULL);
-    return self->client;
-}
-
-static void snapd_notices_monitor_dispose(GObject *object) {
+static void snapd_notices_monitor_dispose (GObject *object) {
     SnapdNoticesMonitor *self = SNAPD_NOTICES_MONITOR(object);
 
     if (self->cancellable != NULL)
@@ -150,12 +129,37 @@ static void snapd_notices_monitor_dispose(GObject *object) {
     G_OBJECT_CLASS(snapd_notices_monitor_parent_class)->dispose(object);
 }
 
-void snapd_notices_monitor_init(SnapdNoticesMonitor *self) {
-    self->client = snapd_client_new();
+static void
+snapd_notices_monitor_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
+{
+    SnapdNoticesMonitor *self = SNAPD_NOTICES_MONITOR (object);
+
+    switch (prop_id) {
+    case PROP_CLIENT:
+        g_clear_object (&self->client);
+        if (g_value_get_object (value) != NULL)
+            self->client = g_object_ref (g_value_get_object (value));
+        break;
+    }
 }
 
-void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
-    G_OBJECT_CLASS(klass)->dispose = snapd_notices_monitor_dispose;
+void snapd_notices_monitor_init (SnapdNoticesMonitor *self) {
+}
+
+void snapd_notices_monitor_class_init (SnapdNoticesMonitorClass *klass) {
+    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+    gobject_class->set_property = snapd_notices_monitor_set_property;
+    gobject_class->dispose = snapd_notices_monitor_dispose;
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_CLIENT,
+                                     g_param_spec_object ("client",
+                                                          "client",
+                                                          "SnapdClient to use to communicate",
+                                                          SNAPD_TYPE_CLIENT,
+                                                          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+
     g_signal_new ("notice-event",
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
@@ -178,7 +182,18 @@ void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
                   G_TYPE_ERROR);
 }
 
-SnapdNoticesMonitor *snapd_notices_monitor_new(void) {
-    SnapdNoticesMonitor *self = g_object_new(snapd_notices_monitor_get_type(), NULL);
+SnapdNoticesMonitor *snapd_notices_monitor_new (void) {
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    SnapdNoticesMonitor *self = g_object_new(snapd_notices_monitor_get_type(),
+                                             "client", client,
+                                             NULL);
+    g_print("Paso 1 %s\n", self == NULL ? "NULL" : "NOT NULL");
+    return self;
+}
+
+SnapdNoticesMonitor *snapd_notices_monitor_new_with_client (SnapdClient *client) {
+    SnapdNoticesMonitor *self = g_object_new(snapd_notices_monitor_get_type(),
+                                             "client", client,
+                                             NULL);
     return self;
 }
