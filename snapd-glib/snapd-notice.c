@@ -191,11 +191,12 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
  * @notice: a #SnapdNotice.
  *
  * Get the nanoseconds value of *last-occurred*, exactly as sent by
- * snapd. Useful combined with #snapd_client_notices_set_since_nanoseconds, and used
- * internally by snapd_client_notices_set_after_notice, to ensure the maximum
+ * snapd. Useful when combined with #snapd_client_notices_set_since_nanoseconds,
+ * and used internally by snapd_client_notices_set_after_notice, to ensure the maximum
  * possible precission when dealing with timestamps.
  *
- * Returns: a gint32.
+ * Returns: a gint32 with the nanosecond value between 0 and 999999999, or -1 if no
+ * nanosecond value was set.
  *
  * Since: 1.66
  */
@@ -458,7 +459,7 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
                                      g_param_spec_int ("last-occurred-nanoseconds",
                                                        "last-occurred-nanoseconds",
                                                        "Time this notice last ocurred, in string format and with nanosecond accuracy",
-                                                       -1, 999999999, 0,
+                                                       -1, 999999999, -1,
                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_LAST_REPEATED,

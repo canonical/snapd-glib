@@ -1453,6 +1453,8 @@ snapd_client_get_notices_with_filters_async (SnapdClient *self,
                                                                  cancellable,
                                                                  callback,
                                                                  user_data);
+    // reset the nanoseconds value, to ensure that the wrong value isn't used
+    // in subsequent calls.
     priv->since_date_time_nanoseconds = -1;
     send_request (self, SNAPD_REQUEST (request));
 }
@@ -1480,13 +1482,14 @@ snapd_client_get_notices_with_filters_finish (SnapdClient *self, GAsyncResult *r
  * @client: a #SnapdClient
  * @notice: the last #SnapdNotice received, to get all the notices after it.
  *
- * Allows to set the "since" parameter with nanosecond accuracy when doing a call to get the notices.
- * This is currently needed because GDateTime has only an accuracy of 1 microsecond, but to receive
- * notice events correctly, without loosing any, it is needed 1 nanosecond
- * accuracy in the value passed on in the @since_date_time parameter.
+ * Allows to set the "since" parameter with nanosecond accuracy when doing a call
+ * to get the notices. This is currently needed because GDateTime has only an
+ * accuracy of 1 microsecond, but to receive notice events correctly, without
+ * loosing any of them, an accuracy of 1 nanosecond is needed in the value passed
+ * on in the @since_date_time parameter.
  *
- * The value is "reseted" after any call to snapd_client_get_notices_*(), so it must be set always before
- * doing any of those calls.
+ * The value is "reset" after any call to snapd_client_get_notices_*(), so it must
+ * be set again always before doing any of those calls.
  *
  * Passing NULL will reset the value too, in which case the mili- and micro-seconds defined
  * in the @since_date_time parameter will be used.
@@ -1499,7 +1502,7 @@ snapd_client_notices_set_after_notice (SnapdClient *self, SnapdNotice *notice)
     g_return_if_fail (SNAPD_IS_CLIENT (self));
     SnapdClientPrivate *priv = snapd_client_get_instance_private (self);
 
-    priv->since_date_time_nanoseconds = (notice == NULL) ? G_MAXUINT : snapd_notice_get_last_occurred_nanoseconds (notice);
+    priv->since_date_time_nanoseconds = (notice == NULL) ? -1 : snapd_notice_get_last_occurred_nanoseconds (notice);
 }
 
 /**
@@ -4690,6 +4693,10 @@ snapd_client_init (SnapdClient *self)
     priv->requests = g_ptr_array_new_with_free_func ((GDestroyNotify) request_data_unref);
     priv->buffer = g_byte_array_new ();
     priv->response_body = g_byte_array_new ();
+    // nanoseconds, by default, is set to -1 to specify that the value
+    // is not set, and thus the decimal value from GDateTime should be
+    // used when generating the timestamp for the AFTER field in the
+    // /v2/notice method.
     priv->since_date_time_nanoseconds = -1;
     g_mutex_init (&priv->requests_mutex);
     g_mutex_init (&priv->buffer_mutex);
