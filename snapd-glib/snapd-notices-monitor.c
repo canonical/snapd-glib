@@ -22,7 +22,6 @@ struct _SnapdNoticesMonitor {
 
     SnapdClient *client;
     GCancellable *cancellable;
-    GDateTime *last_date_time;
     SnapdNotice *last_notice;
 };
 
@@ -56,12 +55,9 @@ static void monitor_cb(SnapdClient* source,
     if ((error == NULL) && (notices != NULL)) {
         for (int i = 0; i < notices->len; i++) {
             g_autoptr(SnapdNotice) notice = g_object_ref(notices->pdata[i]);
-            g_autoptr(GDateTime) last_occurred = (GDateTime *)snapd_notice_get_last_occurred(notice);
 
-            if (self->last_date_time == NULL || g_date_time_compare(self->last_date_time, last_occurred) <= 0) {
-                g_clear_pointer (&self->last_date_time, g_date_time_unref);
+            if (self->last_notice == NULL || snapd_notice_compare_last_occurred(self, notice) <= 0) {
                 g_clear_object(&self->last_notice);
-                self->last_date_time = g_date_time_ref(last_occurred);
                 self->last_notice = g_object_ref(notice);
             }
             g_signal_emit_by_name(self, "notice-event", notice);
@@ -72,8 +68,9 @@ static void monitor_cb(SnapdClient* source,
 
 static void begin_monitor(SnapdNoticesMonitor *self) {
     snapd_client_notices_set_after_notice (self->client, self->last_notice);
+    g_autoptr(GDateTime) last_date_time = self->last_notice == NULL ? NULL : snapd_notice_get_last_occurred (self->last_notice);
     snapd_client_get_notices_async(self->client,
-                                   self->last_date_time,
+                                   last_date_time,
                                    2000000000000000, // "infinity" (there is a limit in snapd, around 9 billion seconds)
                                    self->cancellable,
                                    (GAsyncReadyCallback)monitor_cb,
@@ -148,7 +145,6 @@ static void snapd_notices_monitor_dispose(GObject *object) {
         g_cancellable_cancel(self->cancellable);
     g_clear_object(&self->client);
     g_clear_object(&self->cancellable);
-    g_clear_pointer(&self->last_date_time, g_date_time_unref);
     g_clear_object(&self->last_notice);
 
     G_OBJECT_CLASS(snapd_notices_monitor_parent_class)->dispose(object);
