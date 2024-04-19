@@ -54,6 +54,9 @@ const GTimeSpan        snapd_notice_get_repeat_after   (SnapdNotice *notice);
 
 const GTimeSpan        snapd_notice_get_expire_after   (SnapdNotice *notice);
 
+const gint             snapd_notice_compare_last_occurred (SnapdNotice *notice,
+                                                           SnapdNotice *notice_to_compare);
+
 G_END_DECLS
 
 #endif /* __SNAPD_NOTICE_H__ */

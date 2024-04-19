@@ -8839,12 +8839,61 @@ test_notices_events_with_minimal_data (void)
     g_main_loop_run (loop);
 }
 
+static void
+test_notice_comparison (void)
+{
+    g_autoptr(GTimeZone) timezone = g_time_zone_new_utc ();
+
+    g_autoptr(GDateTime) date0 = g_date_time_new (timezone, 2023, 5, 3, 22, 20, 7);
+    g_autoptr(GDateTime) date1 = g_date_time_new (timezone, 2024, 3, 1, 20, 29, 58.45);
+    g_autoptr(GDateTime) date2 = g_date_time_new (timezone, 2025, 4, 2, 23, 28, 8);
+
+    g_autoptr(SnapdNotice) notice0 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id1",
+                                                   "last-occurred", date1,
+                                                   "last-occurred-nanoseconds", 123456788,
+                                                   NULL);
+
+    g_autoptr(SnapdNotice) notice1 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id1",
+                                                   "last-occurred", date1,
+                                                   "last-occurred-nanoseconds", 123456789,
+                                                   NULL);
+    g_autoptr(SnapdNotice) notice2 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id2",
+                                                   "last-occurred", date1,
+                                                   "last-occurred-nanoseconds", 123456789,
+                                                   NULL);
+    g_autoptr(SnapdNotice) notice3 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id3",
+                                                   "last-occurred", date1,
+                                                   "last-occurred-nanoseconds", 123456790,
+                                                   NULL);
+    g_autoptr(SnapdNotice) notice4 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id4",
+                                                   "last-occurred", date0,
+                                                   "last-occurred-nanoseconds", 123456789,
+                                                   NULL);
+    g_autoptr(SnapdNotice) notice5 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id5",
+                                                   "last-occurred", date2,
+                                                   "last-occurred-nanoseconds", 123456789,
+                                                   NULL);
+
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice0) == 1);
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice2) == 0);
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice3) == -1);
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice4) == 1);
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice5) == -1);
+}
+
 int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
     g_test_add_func ("/notices/test_notices", test_notices_events);
     g_test_add_func ("/notices/test_minimal_data", test_notices_events_with_minimal_data);
+    g_test_add_func ("/notices/test_notice_comparison", test_notice_comparison);
 
     g_test_add_func ("/socket-closed/before-request", test_socket_closed_before_request);
     g_test_add_func ("/socket-closed/after-request", test_socket_closed_after_request);
