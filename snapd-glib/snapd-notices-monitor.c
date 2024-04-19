@@ -37,17 +37,18 @@ static void monitor_cb(SnapdClient* source,
     g_autoptr(GError) error = NULL;
     g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish(source, res, &error);
 
+    if (self->cancellable == NULL) {
+        // if cancellable doesn't exist, it means that this was cancelled in the `dispose()` method
+        return;
+    }
+
     if (g_cancellable_is_cancelled(self->cancellable)) {
         g_clear_object(&self->cancellable);
-        g_clear_pointer(&self->last_date_time, g_date_time_unref);
-        g_clear_object(&self->last_notice);
         return;
     }
 
     if (error != NULL) {
         g_clear_object(&self->cancellable);
-        g_clear_pointer(&self->last_date_time, g_date_time_unref);
-        g_clear_object(&self->last_notice);
         g_signal_emit_by_name(self, "error-event", error);
         return;
     }
@@ -59,8 +60,8 @@ static void monitor_cb(SnapdClient* source,
 
             if (self->last_date_time == NULL || g_date_time_compare(self->last_date_time, last_occurred) <= 0) {
                 g_clear_pointer (&self->last_date_time, g_date_time_unref);
-                self->last_date_time = g_date_time_ref(last_occurred);
                 g_clear_object(&self->last_notice);
+                self->last_date_time = g_date_time_ref(last_occurred);
                 self->last_notice = g_object_ref(notice);
             }
             g_signal_emit_by_name(self, "notice-event", notice);
@@ -143,6 +144,8 @@ SnapdClient *snapd_notices_monitor_get_client(SnapdNoticesMonitor *self) {
 static void snapd_notices_monitor_dispose(GObject *object) {
     SnapdNoticesMonitor *self = SNAPD_NOTICES_MONITOR(object);
 
+    if (self->cancellable != NULL)
+        g_cancellable_cancel(self->cancellable);
     g_clear_object(&self->client);
     g_clear_object(&self->cancellable);
     g_clear_pointer(&self->last_date_time, g_date_time_unref);
