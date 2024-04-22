@@ -33,6 +33,7 @@ enum
     PROP_KEY,
     PROP_FIRST_OCCURRED,
     PROP_LAST_OCCURRED,
+    PROP_LAST_OCCURRED_NANO,
     PROP_LAST_REPEATED,
     PROP_OCCURRENCES,
     PROP_LAST_DATA,
@@ -51,6 +52,10 @@ struct _SnapdNotice
     gchar *key;
     GDateTime *first_occurred;
     GDateTime *last_occurred;
+    // last_ocurred_internal contains the same date/time, but without
+    // microseconds. Useful to speedup comparisons.
+    GDateTime *last_occurred_internal;
+    gint32 last_occurred_nanosecond;
     GDateTime *last_repeated;
     GHashTable *data;
     gint64 occurrences;
@@ -185,6 +190,27 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
 }
 
 /**
+ * snapd_notice_get_last_occurred_nanoseconds:
+ * @notice: a #SnapdNotice.
+ *
+ * Get the nanoseconds value of *last-occurred*, exactly as sent by
+ * snapd. Useful when combined with #snapd_client_notices_set_since_nanoseconds,
+ * and used internally by snapd_client_notices_set_after_notice, to ensure the maximum
+ * possible precission when dealing with timestamps.
+ *
+ * Returns: a gint32 with the nanosecond value between 0 and 999999999, or -1 if no
+ * nanosecond value was set.
+ *
+ * Since: 1.66
+ */
+const gint32
+snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *self)
+{
+    g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
+    return self->last_occurred_nanosecond;
+}
+
+/**
  * snapd_notice_get_last_repeated:
  * @notice: a #SnapdNotice.
  *
@@ -254,10 +280,53 @@ snapd_notice_get_expire_after (SnapdNotice *self)
     return self->expire_after;
 }
 
+/**
+ * snapd_notice_compare_last_occurred:
+ * @notice: a #SnapdNotice.
+ * @notice_to_compare: another #SnapdNotice.
+ *
+ * Compare the last_occurred fields (and the last_occurred_nanosecond if available)
+ * of both notices, and returns whether the first one is before, same or after the
+ * second one.
+ *
+ * Returns: -1 if the first one is before the second one; 0 if both are the same
+ * time instant, and 1 if the first one is after the second one.
+ *
+ * Since: 1.66
+ */
+
+const gint
+snapd_notice_compare_last_occurred (SnapdNotice *self, SnapdNotice *notice_to_compare)
+{
+    g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
+    g_return_val_if_fail (SNAPD_IS_NOTICE (notice_to_compare), 0);
+
+    // first, compare without micro/nanoseconds. This is a must to avoid errors
+    // due to rounding, because the g_date_time objects are created using a gdouble.
+    gint c = g_date_time_compare (self->last_occurred_internal,
+                                  notice_to_compare->last_occurred_internal);
+    if (c != 0)
+        return c;
+
+    // now take into account the nanoseconds if available
+    gint32 self_nano = self->last_occurred_nanosecond;
+    if (self_nano == -1)
+        self_nano = 1000 * g_date_time_get_microsecond (self->last_occurred);
+    gint32 notice_nano = notice_to_compare->last_occurred_nanosecond;
+    if (notice_nano == -1)
+        notice_nano = 1000 * g_date_time_get_microsecond (notice_to_compare->last_occurred);
+    if (self_nano < notice_nano)
+        return -1;
+    if (self_nano == notice_nano)
+        return 0;
+    return 1;
+}
+
 static void
 snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
     SnapdNotice *self = SNAPD_NOTICE (object);
+    GDateTime *tmpdate;
 
     switch (prop_id) {
     case PROP_ID:
@@ -277,13 +346,21 @@ snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, 
         break;
     case PROP_FIRST_OCCURRED:
         g_clear_pointer (&self->first_occurred, g_date_time_unref);
-        if (g_value_get_boxed (value) != NULL)
-            self->first_occurred = g_date_time_ref (g_value_get_boxed (value));
+        tmpdate = g_value_get_boxed (value);
+        self->first_occurred = tmpdate == NULL ? NULL : g_date_time_ref (tmpdate);
         break;
     case PROP_LAST_OCCURRED:
         g_clear_pointer (&self->last_occurred, g_date_time_unref);
-        if (g_value_get_boxed (value) != NULL)
+        g_clear_pointer (&self->last_occurred_internal, g_date_time_unref);
+        if (g_value_get_boxed (value) != NULL) {
             self->last_occurred = g_date_time_ref (g_value_get_boxed (value));
+            // store the same date/time, but without microseconds
+            self->last_occurred_internal = g_date_time_add (self->last_occurred,
+                                                            -g_date_time_get_microsecond (self->last_occurred));
+        }
+        break;
+    case PROP_LAST_OCCURRED_NANO:
+        self->last_occurred_nanosecond = g_value_get_int (value);
         break;
     case PROP_LAST_REPEATED:
         g_clear_pointer (&self->last_repeated, g_date_time_unref);
@@ -336,6 +413,9 @@ snapd_notice_get_property (GObject *object, guint prop_id, GValue *value, GParam
     case PROP_LAST_OCCURRED:
         g_value_set_boxed (value, self->last_occurred);
         break;
+    case PROP_LAST_OCCURRED_NANO:
+        g_value_set_int (value, self->last_occurred_nanosecond);
+        break;
     case PROP_LAST_REPEATED:
         g_value_set_boxed (value, self->last_repeated);
         break;
@@ -367,6 +447,7 @@ snapd_notice_finalize (GObject *object)
     g_clear_pointer (&self->key, g_free);
     g_clear_pointer (&self->first_occurred, g_date_time_unref);
     g_clear_pointer (&self->last_occurred, g_date_time_unref);
+    g_clear_pointer (&self->last_occurred_internal, g_date_time_unref);
     g_clear_pointer (&self->last_repeated, g_date_time_unref);
     g_clear_pointer (&self->data, g_hash_table_unref);
 
@@ -424,6 +505,13 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
                                                          "Time this notice last occurred",
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_LAST_OCCURRED_NANO,
+                                     g_param_spec_int ("last-occurred-nanoseconds",
+                                                       "last-occurred-nanoseconds",
+                                                       "Time this notice last ocurred, in string format and with nanosecond accuracy",
+                                                       -1, 999999999, -1,
+                                                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_LAST_REPEATED,
                                      g_param_spec_boxed ("last-repeated",

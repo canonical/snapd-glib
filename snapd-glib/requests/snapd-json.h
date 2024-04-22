@@ -52,7 +52,8 @@ JsonObject           *_snapd_json_get_object             (JsonObject         *ob
                                                           const gchar        *name);
 
 GDateTime            *_snapd_json_get_date_time          (JsonObject         *object,
-                                                          const gchar        *name);
+                                                          const gchar        *name,
+                                                          gint32             *nanoseconds);
 
 JsonObject           *_snapd_json_parse_response         (const gchar        *content_type,
                                                           GBytes             *body,

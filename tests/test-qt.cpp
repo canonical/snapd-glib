@@ -7382,12 +7382,41 @@ test_notices_events ()
     g_assert_true (i.value() == "change-kind");
 }
 
+static void
+test_get_notices_after_notice ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdNoticesRequest> noticesRequest (client.getNotices ());
+    noticesRequest->setSinceDateFilterFromDateNanoseconds(QDateTime::fromString("2023-02-05T21:23:03.123456789+01:32", Qt::ISODate), 123456789);
+    noticesRequest->runSync ();
+#if GLIB_CHECK_VERSION(2, 66, 0)
+    g_autoptr (GHashTable) parameters = g_uri_parse_params (mock_snapd_get_notices_parameters (snapd),
+                                                            -1,
+                                                            "&",
+                                                            G_URI_PARAMS_NONE,
+                                                            NULL);
+
+    g_assert_nonnull (parameters);
+    g_assert_cmpint (g_hash_table_size (parameters), ==, 1);
+    g_assert_true (g_hash_table_contains (parameters, "after"));
+    g_assert_cmpstr ((gchar*)g_hash_table_lookup (parameters, "after"), ==, "2023-02-05T21:23:03.123456789+01:32");
+#endif
+}
+
 int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
 
     g_test_add_func ("/notices/test_notices", test_notices_events);
+    g_test_add_func ("/notices/test_get_notices_after_notice", test_get_notices_after_notice);
     g_test_add_func ("/socket-closed/before-request", test_socket_closed_before_request);
     g_test_add_func ("/socket-closed/after-request", test_socket_closed_after_request);
     g_test_add_func ("/client/set-socket-path", test_client_set_socket_path);

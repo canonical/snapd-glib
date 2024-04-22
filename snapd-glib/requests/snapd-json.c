@@ -238,10 +238,11 @@ parse_time (const gchar *time_string, gint *hour, gint *minute, gdouble *seconds
         if (tokens[1] == NULL)
             return FALSE;
         *minute = atoi (tokens[1]);
-        if (tokens[2] != NULL)
+        if (tokens[2] != NULL) {
             *seconds = g_ascii_strtod (tokens[2], NULL);
-        else
+        } else {
             *seconds = 0.0;
+        }
 
         return TRUE;
     }
@@ -258,8 +259,33 @@ is_timezone_prefix (gchar c)
     return c == '+' || c == '-' || c == 'Z';
 }
 
+static gint32
+parse_nanoseconds(gchar *token)
+{
+    gchar *nanostr;
+    gint32 nanosecs;
+    size_t nanostr_len;
+
+    // find the decimal dot
+    for(nanostr = token; (*nanostr != '.') && (*nanostr != 0); nanostr++);
+
+    // no decimal value
+    if (*nanostr == 0)
+        return 0;
+
+    nanostr++; // jump over the dot
+    nanosecs = atoi(nanostr);
+
+    // RFC3999 removes trailing zeros, so we must complete up to nine decimals
+    nanostr_len = strlen(nanostr);
+    if (nanostr_len < 9)
+        for (int i = 0; i < (9 - nanostr_len); i++)
+            nanosecs *= 10;
+    return nanosecs;
+}
+
 GDateTime *
-_snapd_json_get_date_time (JsonObject *object, const gchar *name)
+_snapd_json_get_date_time (JsonObject *object, const gchar *name, gint32 *nanoseconds)
 {
     const gchar *value = _snapd_json_get_string (object, name, NULL);
     if (value == NULL)
@@ -300,6 +326,8 @@ _snapd_json_get_date_time (JsonObject *object, const gchar *name)
     if (timezone == NULL)
         timezone = g_time_zone_new_local ();
 
+    if (nanoseconds != NULL)
+        *nanoseconds = parse_nanoseconds(tokens[1]);
     return g_date_time_new (timezone, year, month, day, hour, minute, seconds);
 }
 
@@ -665,9 +693,10 @@ add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data
     g_autoptr(GHashTable) last_data = NULL;
 
     JsonObject *object = json_node_get_object (element);
-    g_autoptr(GDateTime) first_occurred = _snapd_json_get_date_time (object, "first-occurred");
-    g_autoptr(GDateTime) last_occurred = _snapd_json_get_date_time (object, "last-occurred");
-    g_autoptr(GDateTime) last_repeated = _snapd_json_get_date_time (object, "last-repeated");
+    gint32 last_occurred_nanoseconds = 0;
+    g_autoptr(GDateTime) first_occurred = _snapd_json_get_date_time (object, "first-occurred", NULL);
+    g_autoptr(GDateTime) last_occurred = _snapd_json_get_date_time (object, "last-occurred", &last_occurred_nanoseconds);
+    g_autoptr(GDateTime) last_repeated = _snapd_json_get_date_time (object, "last-repeated", NULL);
 
     _snapd_json_parse_time_span (_snapd_json_get_string (object, "expire-after", NULL), &expire_after);
     _snapd_json_parse_time_span (_snapd_json_get_string (object, "repeat-after", NULL), &repeat_after);
@@ -706,6 +735,7 @@ add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data
                                                   "key", _snapd_json_get_string (object, "key", NULL),
                                                   "first-occurred", first_occurred,
                                                   "last-occurred", last_occurred,
+                                                  "last-occurred-nanoseconds", last_occurred_nanoseconds,
                                                   "last-repeated", last_repeated,
                                                   "occurrences", _snapd_json_get_int (object, "occurrences", -1),
                                                   "expire-after", expire_after,
@@ -759,8 +789,8 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
         }
         JsonObject *object = json_node_get_object (node);
         JsonObject *progress = _snapd_json_get_object (object, "progress");
-        g_autoptr(GDateTime) spawn_time = _snapd_json_get_date_time (object, "spawn-time");
-        g_autoptr(GDateTime) ready_time = _snapd_json_get_date_time (object, "ready-time");
+        g_autoptr(GDateTime) spawn_time = _snapd_json_get_date_time (object, "spawn-time", NULL);
+        g_autoptr(GDateTime) ready_time = _snapd_json_get_date_time (object, "ready-time", NULL);
 
         g_autoptr(SnapdTask) t = g_object_new (SNAPD_TYPE_TASK,
                                                "id", _snapd_json_get_string (object, "id", NULL),
@@ -776,8 +806,8 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
         g_ptr_array_add (tasks, g_steal_pointer (&t));
     }
 
-    g_autoptr(GDateTime) main_spawn_time = _snapd_json_get_date_time (object, "spawn-time");
-    g_autoptr(GDateTime) main_ready_time = _snapd_json_get_date_time (object, "ready-time");
+    g_autoptr(GDateTime) main_spawn_time = _snapd_json_get_date_time (object, "spawn-time", NULL);
+    g_autoptr(GDateTime) main_ready_time = _snapd_json_get_date_time (object, "ready-time", NULL);
 
     g_autoptr(SnapdChangeData) data = NULL;
     JsonObject *autorefresh_data = _snapd_json_get_object (object, "data");
@@ -882,9 +912,9 @@ _snapd_json_parse_system_information (JsonNode *node, GError **error)
         }
     }
 
-    g_autoptr(GDateTime) refresh_hold = _snapd_json_get_date_time (refresh, "hold");
-    g_autoptr(GDateTime) refresh_last = _snapd_json_get_date_time (refresh, "last");
-    g_autoptr(GDateTime) refresh_next = _snapd_json_get_date_time (refresh, "next");
+    g_autoptr(GDateTime) refresh_hold = _snapd_json_get_date_time (refresh, "hold", NULL);
+    g_autoptr(GDateTime) refresh_last = _snapd_json_get_date_time (refresh, "last", NULL);
+    g_autoptr(GDateTime) refresh_next = _snapd_json_get_date_time (refresh, "next", NULL);
 
     return g_object_new (SNAPD_TYPE_SYSTEM_INFORMATION,
                          "architecture", architecture,
@@ -998,7 +1028,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
             JsonObject *c = json_node_get_object (channel_node);
 
             SnapdConfinement confinement = parse_confinement (_snapd_json_get_string (c, "confinement", ""));
-            g_autoptr(GDateTime) released_at = _snapd_json_get_date_time (c, "released-at");
+            g_autoptr(GDateTime) released_at = _snapd_json_get_date_time (c, "released-at", NULL);
 
             g_autoptr(SnapdChannel) channel = g_object_new (SNAPD_TYPE_CHANNEL,
                                                             "confinement", confinement,
@@ -1027,8 +1057,8 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
     }
     g_ptr_array_add (common_ids_array, NULL);
 
-    g_autoptr(GDateTime) install_date = _snapd_json_get_date_time (object, "install-date");
-    g_autoptr(GDateTime) hold = _snapd_json_get_date_time (object, "hold");
+    g_autoptr(GDateTime) install_date = _snapd_json_get_date_time (object, "install-date", NULL);
+    g_autoptr(GDateTime) hold = _snapd_json_get_date_time (object, "hold", NULL);
 
     JsonObject *prices = _snapd_json_get_object (object, "prices");
     g_autoptr(GPtrArray) prices_array = g_ptr_array_new_with_free_func (g_object_unref);
@@ -1116,7 +1146,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
     JsonObject *refresh_inhibit = _snapd_json_get_object (object, "refresh-inhibit");
     g_autoptr(GDateTime) proceed_time = NULL;
     if (refresh_inhibit != NULL)
-        proceed_time = _snapd_json_get_date_time (refresh_inhibit, "proceed-time");
+        proceed_time = _snapd_json_get_date_time (refresh_inhibit, "proceed-time", NULL);
 
     return g_object_new (SNAPD_TYPE_SNAP,
                          "apps", apps_array,

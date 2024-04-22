@@ -8634,9 +8634,10 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
     g_autoptr(GTimeZone) timezone2 = g_time_zone_new ("01:32");
 #endif
     g_autoptr(GDateTime) date4 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3);
+    g_autoptr(GDateTime) date5 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3.000123);
 
     g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred (notice2), date4));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice2), date4));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice2), date5));
     g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated (notice2), date4));
 
     g_assert_cmpint (snapd_notice_get_occurrences(notice2), ==, 1);
@@ -8673,7 +8674,7 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
         g_assert_true (g_hash_table_contains (parameters, "keys"));
         g_assert_cmpstr (g_hash_table_lookup (parameters, "keys"), ==, "key1,key2");
         g_assert_true (g_hash_table_contains (parameters, "after"));
-        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58+0000");
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58.123456+00:00");
         g_assert_true (g_hash_table_contains (parameters, "timeout"));
         g_assert_cmpstr (g_hash_table_lookup (parameters, "timeout"), ==, "20000us");
 #endif
@@ -8716,6 +8717,7 @@ test_notices_events (void)
     mock_notice_set_dates (notice, date1, date2, date3, 5);
 
     notice = mock_snapd_add_notice (snapd, "2", "8474", "refresh-inhibit");
+    mock_notice_set_nanoseconds (notice, 123456);
 
     mock_notice_set_user_id (notice, "67");
 
@@ -8732,7 +8734,7 @@ test_notices_events (void)
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
 
-    g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58);
+    g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58.123456789);
     snapd_client_get_notices_with_filters_async (client,
                                                  "an_user_id",
                                                  "id1, id2, an_utf8_íd",
@@ -8781,13 +8783,33 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
     // Test it twice, to ensure that multiple calls do work
     if (data->counter == 0) {
         data->counter++;
+        g_autoptr(GTimeZone) timezone = g_time_zone_new_utc ();
+        g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58.123456789);
+        g_autoptr(SnapdNotice) noticeTest = g_object_new (SNAPD_TYPE_NOTICE,
+                                                          "id", "an-id",
+                                                          "last-occurred-nanoseconds", 12345678,
+                                                          NULL);
+        snapd_client_notices_set_after_notice (source_object, noticeTest);
         snapd_client_get_notices_async (source_object,
-                                        NULL,
+                                        date5,
                                         0,
                                         NULL,
                                         (GAsyncReadyCallback) test_notices_minimal_data_events_cb,
                                         data);
     } else {
+        #if GLIB_CHECK_VERSION(2, 66, 0)
+        g_autoptr (GHashTable) parameters = g_uri_parse_params (mock_snapd_get_notices_parameters (data->snapd),
+                                                                -1,
+                                                                "&",
+                                                                G_URI_PARAMS_NONE,
+                                                                NULL);
+
+        g_assert_nonnull (parameters);
+        g_assert_cmpint (g_hash_table_size (parameters), ==, 1);
+
+        g_assert_true (g_hash_table_contains (parameters, "after"));
+        g_assert_cmpstr (g_hash_table_lookup (parameters, "after"), ==, "2029-03-01T20:29:58.012345678+00:00");
+#endif
         g_main_loop_quit (data->loop);
     }
 }
@@ -8817,12 +8839,61 @@ test_notices_events_with_minimal_data (void)
     g_main_loop_run (loop);
 }
 
+static void
+test_notice_comparison (void)
+{
+    g_autoptr(GTimeZone) timezone = g_time_zone_new_utc ();
+
+    g_autoptr(GDateTime) date0 = g_date_time_new (timezone, 2023, 5, 3, 22, 20, 7);
+    g_autoptr(GDateTime) date1 = g_date_time_new (timezone, 2024, 3, 1, 20, 29, 58.45);
+    g_autoptr(GDateTime) date2 = g_date_time_new (timezone, 2025, 4, 2, 23, 28, 8);
+
+    g_autoptr(SnapdNotice) notice0 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id1",
+                                                   "last-occurred", date1,
+                                                   "last-occurred-nanoseconds", 123456788,
+                                                   NULL);
+
+    g_autoptr(SnapdNotice) notice1 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id1",
+                                                   "last-occurred", date1,
+                                                   "last-occurred-nanoseconds", 123456789,
+                                                   NULL);
+    g_autoptr(SnapdNotice) notice2 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id2",
+                                                   "last-occurred", date1,
+                                                   "last-occurred-nanoseconds", 123456789,
+                                                   NULL);
+    g_autoptr(SnapdNotice) notice3 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id3",
+                                                   "last-occurred", date1,
+                                                   "last-occurred-nanoseconds", 123456790,
+                                                   NULL);
+    g_autoptr(SnapdNotice) notice4 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id4",
+                                                   "last-occurred", date0,
+                                                   "last-occurred-nanoseconds", 123456789,
+                                                   NULL);
+    g_autoptr(SnapdNotice) notice5 = g_object_new (SNAPD_TYPE_NOTICE,
+                                                   "id", "id5",
+                                                   "last-occurred", date2,
+                                                   "last-occurred-nanoseconds", 123456789,
+                                                   NULL);
+
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice0) == 1);
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice2) == 0);
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice3) == -1);
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice4) == 1);
+    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice5) == -1);
+}
+
 int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
     g_test_add_func ("/notices/test_notices", test_notices_events);
     g_test_add_func ("/notices/test_minimal_data", test_notices_events_with_minimal_data);
+    g_test_add_func ("/notices/test_notice_comparison", test_notice_comparison);
 
     g_test_add_func ("/socket-closed/before-request", test_socket_closed_before_request);
     g_test_add_func ("/socket-closed/after-request", test_socket_closed_after_request);

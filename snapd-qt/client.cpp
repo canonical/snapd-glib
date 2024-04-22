@@ -3608,6 +3608,7 @@ void QSnapdNoticesRequest::resetFilters ()
     this->usersFilter = "";
     this->typesFilter = "";
     this->keysFilter = "";
+    this->sinceNanosecondsFilter = -1;
 }
 
 static GDateTime *
@@ -3634,6 +3635,9 @@ void QSnapdNoticesRequest::runSync ()
 {
     Q_D(QSnapdNoticesRequest);
 
+    if (this->sinceNanosecondsFilter != -1)
+        snapd_client_notices_set_since_nanoseconds (SNAPD_CLIENT (getClient ()), this->sinceNanosecondsFilter);
+    this->sinceNanosecondsFilter = -1;
     g_autoptr(GError) error = NULL;
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
     d->updateNoticesData (snapd_client_get_notices_with_filters_sync (SNAPD_CLIENT (getClient ()),
@@ -3669,6 +3673,10 @@ static void notices_ready_cb (GObject *object, GAsyncResult *result, gpointer da
 void QSnapdNoticesRequest::runAsync ()
 {
     Q_D(QSnapdNoticesRequest);
+
+    if (this->sinceNanosecondsFilter != -1)
+        snapd_client_notices_set_since_nanoseconds (SNAPD_CLIENT (getClient ()), this->sinceNanosecondsFilter);
+    this->sinceNanosecondsFilter = -1;
     g_autoptr (GDateTime) dateTime = this->sinceFilterSet ? getSinceDateTime (this->sinceFilter) : NULL;
     snapd_client_get_notices_with_filters_async (SNAPD_CLIENT (getClient ()),
                                                  (gchar *) this->userIdFilter.toStdString ().c_str (),
@@ -3695,4 +3703,18 @@ QSnapdNotice *QSnapdNoticesRequest::getNotice (quint64 n) const
     if (d->notices == NULL || n >= d->notices->len)
         return NULL;
     return new QSnapdNotice (SNAPD_NOTICE(d->notices->pdata[n]));
+}
+
+void QSnapdNoticesRequest::setSinceDateFilterFromNotice (QSnapdNotice *notice)
+{
+    this->sinceFilterSet = true;
+    this->sinceFilter = notice->lastOccurred();
+    this->sinceNanosecondsFilter = notice->lastOccurredNanoseconds();
+}
+
+void QSnapdNoticesRequest::setSinceDateFilterFromDateNanoseconds (QDateTime dateTime, qint32 nanoseconds)
+{
+    this->sinceFilterSet = true;
+    this->sinceFilter = dateTime;
+    this->sinceNanosecondsFilter = nanoseconds;
 }
