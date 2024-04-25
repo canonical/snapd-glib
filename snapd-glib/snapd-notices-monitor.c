@@ -23,6 +23,7 @@ struct _SnapdNoticesMonitor {
     SnapdClient *client;
     GCancellable *cancellable;
     SnapdNotice *last_notice;
+    gboolean running;
 };
 
 enum
@@ -45,6 +46,10 @@ static void monitor_cb (SnapdClient* source,
     if (error != NULL) {
         if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
             g_signal_emit_by_name(self, "error-event", error);
+        self->running = FALSE;
+        g_clear_object(self->cancellable);
+        self->cancellable = g_cancellable_new();
+        g_object_unref(self);
         return;
     }
 
@@ -89,12 +94,12 @@ gboolean snapd_notices_monitor_start (SnapdNoticesMonitor *self, GError **error)
 
     g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
     g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), FALSE);
-    if (self->cancellable != NULL) {
+    if (self->running) {
         *error = g_error_new(SNAPD_ERROR, SNAPD_ERROR_ALREADY_RUNNING, "The notices monitor is already running.");
         return FALSE;
     }
-    self->cancellable = g_cancellable_new();
-    begin_monitor(self);
+    self->running = TRUE;
+    begin_monitor(g_object_ref(self));
     return TRUE;
 }
 
@@ -110,7 +115,7 @@ gboolean snapd_notices_monitor_stop (SnapdNoticesMonitor *self, GError **error) 
 
     g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
     g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), FALSE);
-    if (self->cancellable == NULL) {
+    if (!self->running) {
         *error = g_error_new(SNAPD_ERROR, SNAPD_ERROR_NOT_RUNNING, "The notices monitor isn't running.");
         return FALSE;
     }
@@ -133,7 +138,7 @@ static void snapd_notices_monitor_dispose (GObject *object) {
 static void
 snapd_notices_monitor_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdNoticesMonitor *self = SNAPD_NOTICES_MONITOR (object);
+    SnapdNoticesMonitor *self = SNAPD_NOTICES_MONITOR(object);
 
     switch (prop_id) {
     case PROP_CLIENT:
@@ -145,6 +150,7 @@ snapd_notices_monitor_set_property (GObject *object, guint prop_id, const GValue
 }
 
 void snapd_notices_monitor_init (SnapdNoticesMonitor *self) {
+    self->cancellable = g_cancellable_new();
 }
 
 void snapd_notices_monitor_class_init (SnapdNoticesMonitorClass *klass) {
