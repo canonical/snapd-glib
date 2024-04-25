@@ -47,7 +47,7 @@ static void monitor_cb (SnapdClient* source,
         if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
             g_signal_emit_by_name(self, "error-event", error);
         self->running = FALSE;
-        g_clear_object(self->cancellable);
+        g_clear_object(&self->cancellable);
         self->cancellable = g_cancellable_new();
         g_object_unref(self);
         return;
