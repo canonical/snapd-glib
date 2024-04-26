@@ -131,6 +131,7 @@ source_alias_h = [
   'Snapd/MarkdownNode',
   'Snapd/MarkdownParser',
   'Snapd/Media',
+  'Snapd/Notice',
   'Snapd/Plug',
   'Snapd/PlugRef',
   'Snapd/Price',
