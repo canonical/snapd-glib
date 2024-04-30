@@ -34,12 +34,14 @@ enum
 
 G_DEFINE_TYPE (SnapdNoticesMonitor, snapd_notices_monitor, G_TYPE_OBJECT)
 
-static void begin_monitor (SnapdNoticesMonitor *self);
+static void
+begin_monitor (SnapdNoticesMonitor *self);
 
-static void monitor_cb (SnapdClient* source,
-                        GAsyncResult* res,
-                        SnapdNoticesMonitor *self) {
-
+static void
+monitor_cb (SnapdClient* source,
+            GAsyncResult* res,
+            SnapdNoticesMonitor *self)
+{
     g_autoptr(GError) error = NULL;
     g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish(source, res, &error);
 
@@ -68,7 +70,9 @@ static void monitor_cb (SnapdClient* source,
     begin_monitor(self); // continue waiting for new notifications
 }
 
-static void begin_monitor (SnapdNoticesMonitor *self) {
+static void
+begin_monitor (SnapdNoticesMonitor *self)
+{
     snapd_client_notices_set_after_notice (self->client, self->last_notice);
     g_autoptr(GDateTime) last_date_time = self->last_notice == NULL ? NULL : (GDateTime *) snapd_notice_get_last_occurred (self->last_notice);
     snapd_client_get_notices_async(self->client,
@@ -90,8 +94,10 @@ static void begin_monitor (SnapdNoticesMonitor *self) {
  * Returns: FALSE if there was an error, TRUE if everything worked fine
  * and the object is listening for events.
  */
-gboolean snapd_notices_monitor_start (SnapdNoticesMonitor *self, GError **error) {
-
+gboolean
+snapd_notices_monitor_start (SnapdNoticesMonitor *self,
+                             GError **error)
+{
     g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
     g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), FALSE);
     if (self->running) {
@@ -111,8 +117,9 @@ gboolean snapd_notices_monitor_start (SnapdNoticesMonitor *self, GError **error)
  *
  * Returns: FALSE if there was an error, TRUE if everything worked fine.
  */
-gboolean snapd_notices_monitor_stop (SnapdNoticesMonitor *self, GError **error) {
-
+gboolean
+snapd_notices_monitor_stop (SnapdNoticesMonitor *self, GError **error)
+{
     g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
     g_return_val_if_fail(SNAPD_IS_NOTICES_MONITOR(self), FALSE);
     if (!self->running) {
@@ -123,7 +130,9 @@ gboolean snapd_notices_monitor_stop (SnapdNoticesMonitor *self, GError **error) 
     return TRUE;
 }
 
-static void snapd_notices_monitor_dispose (GObject *object) {
+static void
+snapd_notices_monitor_dispose (GObject *object)
+{
     SnapdNoticesMonitor *self = SNAPD_NOTICES_MONITOR(object);
 
     if (self->cancellable != NULL)
@@ -149,11 +158,15 @@ snapd_notices_monitor_set_property (GObject *object, guint prop_id, const GValue
     }
 }
 
-void snapd_notices_monitor_init (SnapdNoticesMonitor *self) {
+void
+snapd_notices_monitor_init (SnapdNoticesMonitor *self)
+{
     self->cancellable = g_cancellable_new();
 }
 
-void snapd_notices_monitor_class_init (SnapdNoticesMonitorClass *klass) {
+void
+snapd_notices_monitor_class_init (SnapdNoticesMonitorClass *klass)
+{
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     gobject_class->set_property = snapd_notices_monitor_set_property;
@@ -190,7 +203,9 @@ void snapd_notices_monitor_class_init (SnapdNoticesMonitorClass *klass) {
                   G_TYPE_ERROR);
 }
 
-SnapdNoticesMonitor *snapd_notices_monitor_new (void) {
+SnapdNoticesMonitor *
+snapd_notices_monitor_new (void)
+{
     g_autoptr(SnapdClient) client = snapd_client_new ();
     SnapdNoticesMonitor *self = g_object_new(snapd_notices_monitor_get_type(),
                                              "client", client,
@@ -198,7 +213,9 @@ SnapdNoticesMonitor *snapd_notices_monitor_new (void) {
     return self;
 }
 
-SnapdNoticesMonitor *snapd_notices_monitor_new_with_client (SnapdClient *client) {
+SnapdNoticesMonitor *
+snapd_notices_monitor_new_with_client (SnapdClient *client)
+{
     SnapdNoticesMonitor *self = g_object_new(snapd_notices_monitor_get_type(),
                                              "client", client,
                                              NULL);
