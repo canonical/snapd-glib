@@ -31,6 +31,7 @@
 #include <snapd-glib/snapd-markdown-node.h>
 #include <snapd-glib/snapd-markdown-parser.h>
 #include <snapd-glib/snapd-media.h>
+#include <snapd-glib/snapd-notices-monitor.h>
 #include <snapd-glib/snapd-plug.h>
 #include <snapd-glib/snapd-plug-ref.h>
 #include <snapd-glib/snapd-price.h>
