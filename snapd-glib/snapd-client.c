@@ -1632,7 +1632,7 @@ snapd_client_get_change_async (SnapdClient *self,
  * Complete request started with snapd_client_get_change_async().
  * See snapd_client_get_change_sync() for more information.
  *
- * Returns: (transfer full): a #SnapdChange or %NULL on error.
+ * Returns: (transfer full): a #SnapdChange or %NULL if there is no change with that ID.
  *
  * Since: 1.29
  */
@@ -1646,7 +1646,8 @@ snapd_client_get_change_finish (SnapdClient *self, GAsyncResult *result, GError 
 
     if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
         return NULL;
-    return g_object_ref (_snapd_get_change_get_change (request));
+    SnapdChange *change = _snapd_get_change_get_change (request);
+    return change == NULL ? NULL : g_object_ref (change);
 }
 
 /**
