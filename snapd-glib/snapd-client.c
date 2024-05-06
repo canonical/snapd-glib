@@ -493,11 +493,11 @@ parse_response (SnapdClient *self, SnapdRequest *request, guint status_code, con
     if (!SNAPD_REQUEST_GET_CLASS (request)->parse_response (request, status_code, content_type, body, &priv->maintenance, &error)) {
         if (SNAPD_IS_GET_CHANGE (request)) {
             complete_change (self, _snapd_get_change_get_change_id (SNAPD_GET_CHANGE (request)), error);
-            complete_request (self, request, NULL);
+            complete_request (self, request, error);
         }
         else if (SNAPD_IS_POST_CHANGE (request)) {
             complete_change (self, _snapd_post_change_get_change_id (SNAPD_POST_CHANGE (request)), error);
-            complete_request (self, request, NULL);
+            complete_request (self, request, error);
         }
         else
             complete_request (self, request, error);

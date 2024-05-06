@@ -150,6 +150,8 @@ MockAccount    *mock_snapd_find_account_by_email  (MockSnapd     *snapd,
 
 MockChange     *mock_snapd_add_change             (MockSnapd     *snapd);
 
+const gchar    *mock_change_get_id                (MockChange    *change);
+
 MockTask       *mock_change_add_task              (MockChange    *change,
                                                    const gchar   *kind);
 

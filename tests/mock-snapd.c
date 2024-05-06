@@ -884,6 +884,12 @@ mock_snapd_add_change (MockSnapd *self)
     return add_change (self);
 }
 
+const gchar *
+mock_change_get_id (MockChange *change)
+{
+    return change->id;
+}
+
 void
 mock_change_set_kind (MockChange *change, const gchar *kind)
 {

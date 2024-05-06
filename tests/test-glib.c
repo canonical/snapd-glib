@@ -8887,10 +8887,35 @@ test_notice_comparison (void)
     g_assert_true (snapd_notice_compare_last_occurred (notice1, notice5) == -1);
 }
 
+static void
+test_error_get_change (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    MockChange *change = mock_snapd_add_change (snapd);
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    error = NULL;
+    g_autoptr(SnapdChange) change1 = snapd_client_get_change_sync (client, mock_change_get_id(change), NULL, &error);
+    g_assert_nonnull (change1);
+    g_assert_null (error);
+
+    g_autoptr(SnapdChange) change2 = snapd_client_get_change_sync (client, "aninexistentID", NULL, &error);
+    g_assert_null (change2);
+    g_assert_nonnull (error);
+}
+
 int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
+    g_test_add_func ("/errors/test_error_get_change", test_error_get_change);
     g_test_add_func ("/notices/test_notices", test_notices_events);
     g_test_add_func ("/notices/test_minimal_data", test_notices_events_with_minimal_data);
     g_test_add_func ("/notices/test_notice_comparison", test_notice_comparison);
