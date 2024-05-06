@@ -1632,7 +1632,7 @@ snapd_client_get_change_async (SnapdClient *self,
  * Complete request started with snapd_client_get_change_async().
  * See snapd_client_get_change_sync() for more information.
  *
- * Returns: (transfer full): a #SnapdChange or %NULL if there is no change with that ID.
+ * Returns: (transfer full): a #SnapdChange or %NULL on error.
  *
  * Since: 1.29
  */
