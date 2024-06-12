@@ -75,6 +75,7 @@ source_cpp = [
   'stream-wrapper.cpp',
   'system-information.cpp',
   'task.cpp',
+  'task-data.cpp',
   'user-information.cpp',
 ]
 
@@ -109,6 +110,7 @@ source_h = [
   'Snapd/snap.h',
   'Snapd/system-information.h',
   'Snapd/task.h',
+  'Snapd/task-data.h',
   'Snapd/user-information.h',
   'Snapd/wrapped-object.h',
 ]
@@ -142,6 +144,7 @@ source_alias_h = [
   'Snapd/Snap',
   'Snapd/SystemInformation',
   'Snapd/Task',
+  'Snapd/TaskData',
   'Snapd/UserInformation',
   'Snapd/WrappedObject',
 ]

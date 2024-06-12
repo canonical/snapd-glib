@@ -7410,11 +7410,65 @@ test_get_notices_after_notice ()
 #endif
 }
 
+
+static void
+test_task_data_field (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    MockChange *mock_change = mock_snapd_add_change (snapd);
+    MockTask *task1 = mock_change_add_task (mock_change, "task1");
+    mock_task_add_affected_snap (task1, "telegram-desktop");
+    mock_task_add_affected_snap (task1, "cups");
+    MockTask *task2 = mock_change_add_task (mock_change, "task2");
+    mock_task_add_affected_snap (task2, "cups");
+    mock_change_add_task (mock_change, "task3");
+
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetChangesRequest> changesRequest (client.getChanges ());
+    changesRequest->runSync ();
+    g_assert_cmpint (changesRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_cmpint (changesRequest->changeCount (), ==, 1);
+
+    QScopedPointer<QSnapdChange> change (changesRequest->change (0));
+    g_assert_cmpint (change->taskCount(), ==, 3);
+
+    QSnapdTask *task_1 = change->task (0);
+    g_assert_nonnull (task_1);
+    QSnapdTask *task_2 = change->task (1);
+    g_assert_nonnull (task_2);
+    QSnapdTask *task_3 = change->task (2);
+    g_assert_nonnull (task_3);
+
+    QSnapdTaskData *data1 = task_1->taskData ();
+    g_assert_nonnull (data1);
+    QStringList affectedSnaps1 = data1->affectedSnaps ();
+    g_assert_cmpint (affectedSnaps1.length(), ==, 2);
+    g_assert_cmpint (affectedSnaps1[0].compare("telegram-desktop"), ==, 0);
+    g_assert_cmpint (affectedSnaps1[1].compare("cups"), ==, 0);
+
+    QSnapdTaskData *data2 = task_2->taskData ();
+    g_assert_nonnull (data2);
+    QStringList affectedSnaps2 = data2->affectedSnaps ();
+    g_assert_cmpint (affectedSnaps2.length(), ==, 1);
+    g_assert_cmpint (affectedSnaps2[0].compare("cups"), ==, 0);
+
+    QSnapdTaskData *data3 = task_3->taskData ();
+    g_assert_null (data3);
+}
+
+
 int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
-
+    g_test_add_func ("/task/test_task_data_field", test_task_data_field);
     g_test_add_func ("/notices/test_notices", test_notices_events);
     g_test_add_func ("/notices/test_get_notices_after_notice", test_get_notices_after_notice);
     g_test_add_func ("/socket-closed/before-request", test_socket_closed_before_request);

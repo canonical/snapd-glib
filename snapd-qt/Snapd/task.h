@@ -12,6 +12,7 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QDateTime>
+#include <Snapd/task-data.h>
 #include <Snapd/WrappedObject>
 
 class Q_DECL_EXPORT QSnapdTask : public QSnapdWrappedObject
@@ -27,6 +28,7 @@ class Q_DECL_EXPORT QSnapdTask : public QSnapdWrappedObject
     Q_PROPERTY(qint64 progressTotal READ progressTotal)
     Q_PROPERTY(QDateTime spawnTime READ spawnTime)
     Q_PROPERTY(QDateTime readyTime READ readyTime)
+    Q_PROPERTY(QSnapdTaskData taskData READ taskData)
 
 public:
     explicit QSnapdTask (void* snapd_object, QObject* parent = 0);
@@ -40,6 +42,7 @@ public:
     Q_INVOKABLE qint64 progressTotal () const;
     Q_INVOKABLE QDateTime spawnTime () const;
     Q_INVOKABLE QDateTime readyTime () const;
+    Q_INVOKABLE QSnapdTaskData *taskData() const;
 };
 
 #endif
