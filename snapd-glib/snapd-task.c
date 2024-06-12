@@ -337,7 +337,8 @@ snapd_task_set_property (GObject *object, guint prop_id, const GValue *value, GP
         break;
     case PROP_DATA:
         g_clear_object (&self->data);
-        self->data = g_object_ref (g_value_get_object (value));
+        if (g_value_get_object (value) != NULL)
+            self->data = g_object_ref (g_value_get_object (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -487,7 +488,7 @@ snapd_task_class_init (SnapdTaskClass *klass)
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
-                                     PROP_KIND,
+                                     PROP_DATA,
                                      g_param_spec_object ("data",
                                                           "data",
                                                           "Extra data of task",

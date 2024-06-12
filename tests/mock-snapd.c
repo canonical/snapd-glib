@@ -293,6 +293,7 @@ struct _MockTask
     gchar *snap_name;
     gchar *error;
     gboolean purge;
+    GPtrArray *affected_snaps;
 };
 
 struct _MockTrack
@@ -918,6 +919,7 @@ mock_change_add_task (MockChange *change, const gchar *kind)
     task->progress_label = g_strdup ("LABEL");
     task->progress_done = 0;
     task->progress_total = 1;
+    task->affected_snaps = g_ptr_array_new_with_free_func (g_free);
     change->tasks = g_list_append (change->tasks, task);
 
     return task;
@@ -955,6 +957,12 @@ mock_task_set_ready_time (MockTask *task, const gchar *ready_time)
 {
     g_free (task->ready_time);
     task->ready_time = g_strdup (ready_time);
+}
+
+void
+mock_task_add_affected_snap (MockTask *task, const gchar *snap)
+{
+    g_ptr_array_add (task->affected_snaps, g_strdup(snap));
 }
 
 void
@@ -4140,6 +4148,17 @@ make_change_node (MockChange *change)
         if (task->progress_done >= task->progress_total && task->ready_time != NULL) {
             json_builder_set_member_name (builder, "ready-time");
             json_builder_add_string_value (builder, task->ready_time);
+        }
+        if (task->affected_snaps->len != 0) {
+            json_builder_set_member_name (builder, "data");
+            json_builder_begin_object (builder);
+            json_builder_set_member_name (builder, "affected-snaps");
+            json_builder_begin_array (builder);
+            for (int i=0; i<task->affected_snaps->len; i++) {
+                json_builder_add_string_value (builder, task->affected_snaps->pdata[i]);
+            }
+            json_builder_end_array (builder);
+            json_builder_end_object (builder);
         }
         json_builder_end_object (builder);
     }
