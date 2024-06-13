@@ -7468,6 +7468,7 @@ int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
+
     g_test_add_func ("/task/test_task_data_field", test_task_data_field);
     g_test_add_func ("/notices/test_notices", test_notices_events);
     g_test_add_func ("/notices/test_get_notices_after_notice", test_get_notices_after_notice);

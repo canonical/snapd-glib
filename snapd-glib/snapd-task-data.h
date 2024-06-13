@@ -22,7 +22,7 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (SnapdTaskData, snapd_task_data, SNAPD, TASK_DATA, GObject)
 
-GPtrArray *snapd_task_data_get_affected_snaps              (SnapdTaskData *task_data);
+GStrv snapd_task_data_get_affected_snaps              (SnapdTaskData *task_data);
 
 G_END_DECLS
 

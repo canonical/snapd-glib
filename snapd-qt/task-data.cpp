@@ -16,10 +16,10 @@ QSnapdTaskData::QSnapdTaskData (void *snapd_object, QObject *parent) : QSnapdWra
 QStringList QSnapdTaskData::affectedSnaps () const
 {
     QStringList retval;
-    GPtrArray *data = snapd_task_data_get_affected_snaps (SNAPD_TASK_DATA (wrapped_object));
+    GStrv data = snapd_task_data_get_affected_snaps (SNAPD_TASK_DATA (wrapped_object));
 
     if (data != NULL)
-        for (gsize i=0; i < data->len; i++)
-            retval.append((gchar *) data->pdata[i]);
+        for (; *data != NULL; data++)
+            retval.append((gchar *) *data);
     return retval;
 }

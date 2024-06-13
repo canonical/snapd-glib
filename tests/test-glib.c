@@ -8925,7 +8925,7 @@ test_task_data_field (void)
     mock_task_add_affected_snap (task1, "cups");
     MockTask *task2 = mock_change_add_task (change, "task2");
     mock_task_add_affected_snap (task2, "cups");
-    MockTask *task3 = mock_change_add_task (change, "task3");
+    mock_change_add_task (change, "task3");
 
     g_autoptr(SnapdClient) client = snapd_client_new ();
     snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
@@ -8947,18 +8947,18 @@ test_task_data_field (void)
 
     SnapdTaskData *data1 = snapd_task_get_data(task_1);
     g_assert_nonnull (data1);
-    GPtrArray *affected_snaps1 = snapd_task_data_get_affected_snaps(data1);
+    GStrv affected_snaps1 = snapd_task_data_get_affected_snaps(data1);
     g_assert_nonnull(affected_snaps1);
-    g_assert_cmpint(affected_snaps1->len, ==, 2);
-    g_assert_true(g_str_equal(affected_snaps1->pdata[0], "telegram-desktop"));
-    g_assert_true(g_str_equal(affected_snaps1->pdata[1], "cups"));
+    g_assert_cmpint(g_strv_length(affected_snaps1), ==, 2);
+    g_assert_true(g_str_equal(affected_snaps1[0], "telegram-desktop"));
+    g_assert_true(g_str_equal(affected_snaps1[1], "cups"));
 
     SnapdTaskData *data2 = snapd_task_get_data(task_2);
     g_assert_nonnull (data2);
-    GPtrArray *affected_snaps2 = snapd_task_data_get_affected_snaps(data2);
+    GStrv affected_snaps2 = snapd_task_data_get_affected_snaps(data2);
     g_assert_nonnull(affected_snaps2);
-    g_assert_cmpint(affected_snaps2->len, ==, 1);
-    g_assert_true(g_str_equal(affected_snaps2->pdata[0], "cups"));
+    g_assert_cmpint(g_strv_length(affected_snaps2), ==, 1);
+    g_assert_true(g_str_equal(affected_snaps2[0], "cups"));
 
     SnapdTaskData *data3 = snapd_task_get_data(task_3);
     g_assert_null (data3);
@@ -8968,6 +8968,7 @@ int
 main (int argc, char **argv)
 {
     g_test_init (&argc, &argv, NULL);
+
     g_test_add_func ("/notices/test_task_data_field", test_task_data_field);
     g_test_add_func ("/errors/test_error_get_change", test_error_get_change);
     g_test_add_func ("/notices/test_notices", test_notices_events);

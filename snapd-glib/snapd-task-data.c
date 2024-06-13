@@ -30,7 +30,7 @@
 struct _SnapdTaskData
 {
     GObject parent_instance;
-    GPtrArray *affected_snaps;
+    GStrv affected_snaps;
 };
 
 enum
@@ -49,15 +49,15 @@ G_DEFINE_TYPE (SnapdTaskData, snapd_task_data, G_TYPE_OBJECT)
  *
  * Get the list of snaps that are affected by this task, or %NULL if snapd doesn't send this data.
  *
- * Returns: (transfer full) (allow-none) (element-type gchar*): a #GPtrArray or %NULL.
+ * Returns: (transfer none) (allow-none): a #GStrv or %NULL.
  *
  * Since: 1.66
  */
-GPtrArray *
+GStrv
 snapd_task_data_get_affected_snaps (SnapdTaskData *self)
 {
     g_return_val_if_fail (SNAPD_IS_TASK_DATA (self), NULL);
-    return g_ptr_array_ref(self->affected_snaps);
+    return self->affected_snaps;
 }
 
 static void
@@ -67,9 +67,8 @@ snapd_task_data_set_property (GObject *object, guint prop_id, const GValue *valu
 
     switch (prop_id) {
     case PROP_AFFECTED_SNAPS:
-        g_clear_pointer (&self->affected_snaps, g_ptr_array_unref);
-        if (g_value_get_boxed (value) != NULL)
-            self->affected_snaps = g_ptr_array_ref (g_value_get_boxed (value));
+        g_clear_pointer (&self->affected_snaps, g_strfreev);
+        self->affected_snaps = g_strdupv (g_value_get_boxed (value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -97,7 +96,7 @@ snapd_task_data_finalize (GObject *object)
 {
     SnapdTaskData *self = SNAPD_TASK_DATA (object);
 
-    g_clear_pointer (&self->affected_snaps, g_ptr_array_unref);
+    g_clear_pointer (&self->affected_snaps, g_strfreev);
     G_OBJECT_CLASS (snapd_task_data_parent_class)->finalize (object);
 }
 
@@ -115,7 +114,7 @@ snapd_task_data_class_init (SnapdTaskDataClass *klass)
                                      g_param_spec_boxed ("affected-snaps",
                                                          "affected-snaps",
                                                          "Snaps affected by this task",
-                                                         G_TYPE_PTR_ARRAY,
+                                                         G_TYPE_STRV,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 

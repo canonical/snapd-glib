@@ -763,14 +763,6 @@ _snapd_json_parse_notice (JsonNode *node, GError **error)
     return retlist;
 }
 
-static void
-add_affected_snap_to_list (JsonArray *array, guint index, JsonNode *element, void *data)
-{
-    GPtrArray *list = (GPtrArray *) data;
-    const gchar *snap_name = json_array_get_string_element (array, index);
-    g_ptr_array_add (list, g_strdup(snap_name));
-}
-
 SnapdChange *
 _snapd_json_parse_change (JsonNode *node, GError **error)
 {
@@ -808,12 +800,11 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
                     g_set_error (error,
                                 SNAPD_ERROR,
                                 SNAPD_ERROR_READ_FAILED,
-                                "Unexpected change type");
+                                "Unexpected affected-snaps type");
                     return NULL;
                 }
                 JsonArray *affected_snaps = json_node_get_array (affected_snaps_node);
-                GPtrArray *affected_snaps_array = g_ptr_array_new_full(json_array_get_length (affected_snaps), g_free);
-                json_array_foreach_element (affected_snaps, add_affected_snap_to_list, affected_snaps_array);
+                g_auto(GStrv) affected_snaps_array = create_str_array_from_jsonarray (affected_snaps);
                 task_data = g_object_new (SNAPD_TYPE_TASK_DATA,
                                           "affected-snaps", affected_snaps_array,
                                           NULL);
