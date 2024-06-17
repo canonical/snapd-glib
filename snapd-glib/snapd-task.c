@@ -279,7 +279,7 @@ snapd_task_get_ready_time (SnapdTask *self)
  *
  * Get the extra data associated with the progress.
  *
- * Returns: (transfer full) (allow-none): a #SnapdTaskData or NULL.
+ * Returns: (transfer none) (allow-none): a #SnapdTaskData or NULL.
  *
  * Since: 1.66
  */
