@@ -38,6 +38,7 @@ source_h = [
   'snapd-snap.h',
   'snapd-system-information.h',
   'snapd-task.h',
+  'snapd-task-data.h',
   'snapd-user-information.h',
   'snapd-version.h',
 ]
@@ -120,6 +121,7 @@ source_c = [
   'snapd-snap.c',
   'snapd-system-information.c',
   'snapd-task.c',
+  'snapd-task-data.c',
   'snapd-user-information.c',
 ]
 

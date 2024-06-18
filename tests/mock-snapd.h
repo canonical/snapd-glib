@@ -171,6 +171,9 @@ void            mock_task_set_spawn_time          (MockTask      *task,
 void            mock_task_set_ready_time          (MockTask      *task,
                                                    const gchar   *ready_time);
 
+void            mock_task_add_affected_snap       (MockTask      *task,
+                                                   const gchar *snap);
+
 void            mock_change_set_spawn_time        (MockChange    *change,
                                                    const gchar   *spawn_time);
 

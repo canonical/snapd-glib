@@ -15,6 +15,7 @@
 #endif
 
 #include <glib-object.h>
+#include "snapd-task-data.h"
 
 G_BEGIN_DECLS
 
@@ -42,6 +43,8 @@ gint64       snapd_task_get_progress_total (SnapdTask *task);
 GDateTime   *snapd_task_get_spawn_time     (SnapdTask *task);
 
 GDateTime   *snapd_task_get_ready_time     (SnapdTask *task);
+
+SnapdTaskData *snapd_task_get_data         (SnapdTask *task);
 
 G_END_DECLS
 

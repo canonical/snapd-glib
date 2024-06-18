@@ -72,3 +72,11 @@ QDateTime QSnapdTask::readyTime () const
 {
     return convertDateTime (snapd_task_get_ready_time (SNAPD_TASK (wrapped_object)));
 }
+
+QSnapdTaskData *QSnapdTask::taskData () const
+{
+    SnapdTaskData *data = SNAPD_TASK_DATA(snapd_task_get_data (SNAPD_TASK (wrapped_object)));
+    if (data == NULL)
+        return NULL;
+    return new QSnapdTaskData (SNAPD_TASK_DATA (data), NULL);
+}

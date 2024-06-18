@@ -41,6 +41,7 @@ struct _SnapdTask
     gint64 progress_total;
     GDateTime *spawn_time;
     GDateTime *ready_time;
+    SnapdTaskData *data;
 };
 
 enum
@@ -55,6 +56,7 @@ enum
     PROP_SPAWN_TIME,
     PROP_READY_TIME,
     PROP_PROGRESS_LABEL,
+    PROP_DATA,
     PROP_LAST
 };
 
@@ -271,6 +273,23 @@ snapd_task_get_ready_time (SnapdTask *self)
     return self->ready_time;
 }
 
+/**
+ * snapd_task_get_data:
+ * @task: a #SnapdTask.
+ *
+ * Get the extra data associated with the progress.
+ *
+ * Returns: (transfer none) (allow-none): a #SnapdTaskData or NULL.
+ *
+ * Since: 1.66
+ */
+SnapdTaskData *
+snapd_task_get_data (SnapdTask *self)
+{
+    g_return_val_if_fail (SNAPD_IS_TASK (self), NULL);
+    return self->data;
+}
+
 static void
 snapd_task_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
@@ -316,6 +335,11 @@ snapd_task_set_property (GObject *object, guint prop_id, const GValue *value, GP
         if (g_value_get_boxed (value) != NULL)
             self->ready_time = g_date_time_ref (g_value_get_boxed (value));
         break;
+    case PROP_DATA:
+        g_clear_object (&self->data);
+        if (g_value_get_object (value) != NULL)
+            self->data = g_object_ref (g_value_get_object (value));
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -358,6 +382,9 @@ snapd_task_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_READY_TIME:
         g_value_set_boxed (value, self->ready_time);
         break;
+    case PROP_DATA:
+        g_value_set_object (value, self->data);
+        break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -376,6 +403,7 @@ snapd_task_finalize (GObject *object)
     g_clear_pointer (&self->progress_label, g_free);
     g_clear_pointer (&self->spawn_time, g_date_time_unref);
     g_clear_pointer (&self->ready_time, g_date_time_unref);
+    g_clear_object (&self->data);
 
     G_OBJECT_CLASS (snapd_task_parent_class)->finalize (object);
 }
@@ -459,6 +487,13 @@ snapd_task_class_init (SnapdTaskClass *klass)
                                                          "Time this task completed",
                                                          G_TYPE_DATE_TIME,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_DATA,
+                                     g_param_spec_object ("data",
+                                                          "data",
+                                                          "Extra data of task",
+                                                          SNAPD_TYPE_TASK_DATA,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
 static void

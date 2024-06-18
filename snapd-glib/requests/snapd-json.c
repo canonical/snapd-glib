@@ -791,6 +791,25 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
         JsonObject *progress = _snapd_json_get_object (object, "progress");
         g_autoptr(GDateTime) spawn_time = _snapd_json_get_date_time (object, "spawn-time", NULL);
         g_autoptr(GDateTime) ready_time = _snapd_json_get_date_time (object, "ready-time", NULL);
+        JsonObject *data = _snapd_json_get_object (object, "data");
+        g_autoptr(SnapdTaskData) task_data = NULL;
+        if (data != NULL) {
+            JsonNode *affected_snaps_node = json_object_get_member (data, "affected-snaps");
+            if (affected_snaps_node != NULL) {
+                if (json_node_get_value_type (affected_snaps_node) != JSON_TYPE_ARRAY) {
+                    g_set_error (error,
+                                SNAPD_ERROR,
+                                SNAPD_ERROR_READ_FAILED,
+                                "Unexpected affected-snaps type");
+                    return NULL;
+                }
+                JsonArray *affected_snaps = json_node_get_array (affected_snaps_node);
+                g_auto(GStrv) affected_snaps_array = create_str_array_from_jsonarray (affected_snaps);
+                task_data = g_object_new (SNAPD_TYPE_TASK_DATA,
+                                          "affected-snaps", affected_snaps_array,
+                                          NULL);
+            }
+        }
 
         g_autoptr(SnapdTask) t = g_object_new (SNAPD_TYPE_TASK,
                                                "id", _snapd_json_get_string (object, "id", NULL),
@@ -802,6 +821,7 @@ _snapd_json_parse_change (JsonNode *node, GError **error)
                                                "progress-total", progress != NULL ? _snapd_json_get_int (progress, "total", 0) : 0,
                                                "spawn-time", spawn_time,
                                                "ready-time", ready_time,
+                                               "data", task_data,
                                                NULL);
         g_ptr_array_add (tasks, g_steal_pointer (&t));
     }
