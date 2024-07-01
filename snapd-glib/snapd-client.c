@@ -1525,7 +1525,7 @@ snapd_client_notices_set_after_notice (SnapdClient *self, SnapdNotice *notice)
  * Since: 1.66
  */
 void
-snapd_client_notices_set_since_nanoseconds (SnapdClient *self, const gint32 nanoseconds)
+snapd_client_notices_set_since_nanoseconds (SnapdClient *self, gint32 nanoseconds)
 {
     g_return_if_fail (SNAPD_IS_CLIENT (self));
     SnapdClientPrivate *priv = snapd_client_get_instance_private (self);

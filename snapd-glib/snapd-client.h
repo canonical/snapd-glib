@@ -1324,7 +1324,7 @@ void                    snapd_client_notices_set_after_notice      (SnapdClient 
                                                                     SnapdNotice          *notice);
 
 void                    snapd_client_notices_set_since_nanoseconds (SnapdClient          *client,
-                                                                    const gint32          nanoseconds);
+                                                                    gint32                nanoseconds);
 
 G_END_DECLS
 

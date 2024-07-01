@@ -161,7 +161,7 @@ snapd_notice_get_last_data (SnapdNotice *self)
  *
  * Since: 1.65
  */
-const GDateTime *
+GDateTime *
 snapd_notice_get_first_occurred (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
@@ -180,7 +180,7 @@ snapd_notice_get_first_occurred (SnapdNotice *self)
  *
  * Since: 1.65
  */
-const GDateTime *
+GDateTime *
 snapd_notice_get_last_occurred (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
@@ -203,7 +203,7 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
  *
  * Since: 1.66
  */
-const gint32
+gint32
 snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
@@ -220,7 +220,7 @@ snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *self)
  *
  * Since: 1.65
  */
-const GDateTime *
+GDateTime *
 snapd_notice_get_last_repeated (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
@@ -239,7 +239,7 @@ snapd_notice_get_last_repeated (SnapdNotice *self)
  *
  * Since: 1.65
  */
-const gint64
+gint64
 snapd_notice_get_occurrences (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
@@ -256,7 +256,7 @@ snapd_notice_get_occurrences (SnapdNotice *self)
  *
  * Since: 1.65
  */
-const GTimeSpan
+GTimeSpan
 snapd_notice_get_repeat_after (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
@@ -273,7 +273,7 @@ snapd_notice_get_repeat_after (SnapdNotice *self)
  *
  * Since: 1.65
  */
-const GTimeSpan
+GTimeSpan
 snapd_notice_get_expire_after (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
@@ -294,8 +294,7 @@ snapd_notice_get_expire_after (SnapdNotice *self)
  *
  * Since: 1.66
  */
-
-const gint
+gint
 snapd_notice_compare_last_occurred (SnapdNotice *self, SnapdNotice *notice_to_compare)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
