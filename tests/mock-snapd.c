@@ -701,7 +701,7 @@ mock_snapd_add_notice (MockSnapd *self, const gchar *id, const gchar *key, const
 }
 
 void
-mock_notice_set_nanoseconds (MockNotice *self, const gint32 nanoseconds)
+mock_notice_set_nanoseconds (MockNotice *self, gint32 nanoseconds)
 {
     self->last_occurred_nanoseconds = nanoseconds;
 }
