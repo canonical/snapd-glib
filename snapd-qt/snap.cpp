@@ -137,6 +137,15 @@ bool QSnapdSnap::devmode () const
     return snapd_snap_get_devmode (SNAPD_SNAP (wrapped_object));
 }
 
+QStringList QSnapdSnap::donation () const
+{
+    GStrv donation = snapd_snap_get_donation (SNAPD_SNAP (wrapped_object));
+    QStringList result;
+    for (int i = 0; donation[i] != NULL; i++)
+        result.append (donation[i]);
+    return result;
+}
+
 qint64 QSnapdSnap::downloadSize () const
 {
     return snapd_snap_get_download_size (SNAPD_SNAP (wrapped_object));
@@ -185,6 +194,15 @@ QDateTime QSnapdSnap::installDate () const
 qint64 QSnapdSnap::installedSize () const
 {
     return snapd_snap_get_installed_size (SNAPD_SNAP (wrapped_object));
+}
+
+QStringList QSnapdSnap::issues () const
+{
+    GStrv issues = snapd_snap_get_issues (SNAPD_SNAP (wrapped_object));
+    QStringList result;
+    for (int i = 0; issues[i] != NULL; i++)
+        result.append (issues[i]);
+    return result;
 }
 
 bool QSnapdSnap::jailmode () const
@@ -330,6 +348,15 @@ QSnapdEnums::SnapType QSnapdSnap::snapType () const
     }
 }
 
+QString QSnapdSnap::source_code () const
+{
+    GStrv source_code = snapd_snap_get_source_code (SNAPD_SNAP (wrapped_object));
+    QString result;
+    for (int i = 0; source_code[i] != NULL; i++)
+        result.append (source_code[i]);
+    return result;
+}
+
 QSnapdEnums::SnapStatus QSnapdSnap::status () const
 {
     switch (snapd_snap_get_status (SNAPD_SNAP (wrapped_object)))
@@ -389,5 +416,9 @@ QString QSnapdSnap::version () const
 
 QString QSnapdSnap::website () const
 {
-    return snapd_snap_get_website (SNAPD_SNAP (wrapped_object));
+    GStrv website = snapd_snap_get_website (SNAPD_SNAP (wrapped_object));
+    QString result;
+    for (int i = 0; website[i] != NULL; i++)
+        result.append (website[i]);
+    return result;
 }

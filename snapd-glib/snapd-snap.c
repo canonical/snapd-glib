@@ -8,6 +8,8 @@
  */
 
 #include "snapd-snap.h"
+#include "glib-object.h"
+#include "glib.h"
 #include "snapd-enum-types.h"
 
 /**
@@ -44,11 +46,13 @@ struct _SnapdSnap
     gchar *description;
     gboolean devmode;
     gint64 download_size;
+    GPtrArray *donation;
     GDateTime *hold;
     gchar *icon;
     gchar *id;
     GDateTime *install_date;
     gint64 installed_size;
+    GPtrArray *issues;
     gboolean jailmode;
     gchar *license;
     GPtrArray *media;
@@ -62,6 +66,7 @@ struct _SnapdSnap
     SnapdPublisherValidation publisher_validation;
     gchar *revision;
     GPtrArray *screenshots;
+    GPtrArray *source_code;
     SnapdSnapStatus status;
     gchar *store_url;
     gchar *summary;
@@ -71,7 +76,7 @@ struct _SnapdSnap
     gboolean trymode;
     SnapdSnapType snap_type;
     gchar *version;
-    gchar *website;
+    GPtrArray *website;
     GDateTime *proceed_time;
 };
 
@@ -85,11 +90,13 @@ enum
     PROP_DESCRIPTION,
     PROP_DEVELOPER,
     PROP_DEVMODE,
+    PROP_DONATION,
     PROP_DOWNLOAD_SIZE,
     PROP_ICON,
     PROP_ID,
     PROP_INSTALL_DATE,
     PROP_INSTALLED_SIZE,
+    PROP_ISSUES,
     PROP_JAILMODE,
     PROP_NAME,
     PROP_PRICES,
@@ -116,6 +123,7 @@ enum
     PROP_BASE,
     PROP_MOUNTED_FROM,
     PROP_MEDIA,
+    PROP_SOURCE_CODE,
     PROP_WEBSITE,
     PROP_HOLD,
     PROP_PROCEED_TIME,
@@ -392,6 +400,23 @@ snapd_snap_get_devmode (SnapdSnap *self)
 }
 
 /**
+ * snapd_snap_get_donations:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the donation URLs of the snap, e.g. ["http://example.com/paypal", "http://liberapay.com/test"].
+ *
+ * Returns: a array of URL for Donation.
+ *
+ * Since: 1.66
+ */
+const GPtrArray *
+snapd_snap_get_donation (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->donation;
+}
+
+/**
  * snapd_snap_get_download_size:
  * @snap: a #SnapdSnap.
  *
@@ -512,6 +537,24 @@ snapd_snap_get_installed_size (SnapdSnap *self)
     g_return_val_if_fail (SNAPD_IS_SNAP (self), 0);
     return self->installed_size;
 }
+
+/**
+ * snapd_snap_get_issues:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the issues of the snap, e.g. "http://example.com".
+ *
+ * Returns: a array of Issues  URL.
+ *
+ * Since: 1.66
+ */
+const GPtrArray *
+snapd_snap_get_issues (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->issues;
+}
+
 
 /**
  * snapd_snap_get_jailmode:
@@ -773,6 +816,23 @@ snapd_snap_get_snap_type (SnapdSnap *self)
 }
 
 /**
+ * snapd_snap_get_source_code:
+ * @snap: a #SnapdSnap.
+ *
+ * Get the source-code URLs of the snap, e.g. ["http://example.com", "https://vcs-browser.com/source-code"].
+ *
+ * Returns: a array of URL for the Source Code.
+ *
+ * Since: 1.66
+ */
+const GPtrArray *
+snapd_snap_get_source_code (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return self->source_code;
+}
+
+/**
  * snapd_snap_get_status:
  * @snap: a #SnapdSnap.
  *
@@ -897,13 +957,13 @@ snapd_snap_get_version (SnapdSnap *self)
  * snapd_snap_get_website:
  * @snap: a #SnapdSnap.
  *
- * Get the website of the snap developer, e.g. "http://example.com".
+ * Get the websites of the snap developer, e.g. ["http://example.com", "https://test.com"].
  *
- * Returns: a website URL.
+ * Returns: an array of URLs for website.
  *
  * Since: 1.50
  */
-const gchar *
+const GPtrArray *
 snapd_snap_get_website (SnapdSnap *self)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
@@ -957,6 +1017,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_DEVMODE:
         self->devmode = g_value_get_boolean (value);
         break;
+    case PROP_DONATION:
+        g_clear_pointer(&self->donation, g_ptr_array_unref);
+        if (g_value_get_boxed(value))
+            self->donation = g_ptr_array_ref(g_value_get_boxed(value));
+        break;
     case PROP_DOWNLOAD_SIZE:
         self->download_size = g_value_get_int64 (value);
         break;
@@ -985,6 +1050,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         break;
     case PROP_INSTALLED_SIZE:
         self->installed_size = g_value_get_int64 (value);
+        break;
+    case PROP_ISSUES:
+        g_clear_pointer(&self->issues, g_ptr_array_unref);
+        if (g_value_get_boxed(value))
+            self->issues = g_ptr_array_ref(g_value_get_boxed(value));
         break;
     case PROP_JAILMODE:
         self->jailmode = g_value_get_boolean (value);
@@ -1038,6 +1108,11 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
     case PROP_SNAP_TYPE:
         self->snap_type = g_value_get_enum (value);
         break;
+    case PROP_SOURCE_CODE:
+        g_clear_pointer(&self->source_code, g_ptr_array_unref);
+        if (g_value_get_boxed(value))
+            self->source_code = g_ptr_array_ref(g_value_get_boxed(value));
+        break;
     case PROP_STATUS:
         self->status = g_value_get_enum (value);
         break;
@@ -1077,8 +1152,9 @@ snapd_snap_set_property (GObject *object, guint prop_id, const GValue *value, GP
         self->common_ids = g_strdupv (g_value_get_boxed (value));
         break;
     case PROP_WEBSITE:
-        g_free (self->website);
-        self->website = g_strdup (g_value_get_string (value));
+        g_clear_pointer(&self->website, g_ptr_array_unref);
+        if (g_value_get_boxed(value))
+            self->website = g_ptr_array_ref(g_value_get_boxed(value));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1122,6 +1198,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_DEVMODE:
         g_value_set_boolean (value, self->devmode);
         break;
+    case PROP_DONATION:
+        g_value_set_boxed (value, self->donation);
+        break;
     case PROP_DOWNLOAD_SIZE:
         g_value_set_int64 (value, self->download_size);
         break;
@@ -1142,6 +1221,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         break;
     case PROP_INSTALLED_SIZE:
         g_value_set_int64 (value, self->installed_size);
+        break;
+    case PROP_ISSUES:
+        g_value_set_boxed (value, self->issues);
         break;
     case PROP_JAILMODE:
         g_value_set_boolean (value, self->jailmode);
@@ -1183,6 +1265,9 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
     case PROP_SNAP_TYPE:
         g_value_set_enum (value, self->snap_type);
         break;
+    case PROP_SOURCE_CODE:
+        g_value_set_boxed (value, self->source_code);
+        break;
     case PROP_STATUS:
         g_value_set_enum (value, self->status);
         break;
@@ -1214,7 +1299,7 @@ snapd_snap_get_property (GObject *object, guint prop_id, GValue *value, GParamSp
         g_value_set_boxed (value, self->common_ids);
         break;
     case PROP_WEBSITE:
-        g_value_set_string (value, self->website);
+        g_value_set_boxed (value, self->website);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1236,11 +1321,13 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&self->common_ids, g_strfreev);
     g_clear_pointer (&self->contact, g_free);
     g_clear_pointer (&self->description, g_free);
+    g_clear_pointer (&self->donation, g_ptr_array_unref);
     g_clear_pointer (&self->hold, g_date_time_unref);
     g_clear_pointer (&self->proceed_time, g_date_time_unref);
     g_clear_pointer (&self->icon, g_free);
     g_clear_pointer (&self->id, g_free);
     g_clear_pointer (&self->install_date, g_date_time_unref);
+    g_clear_pointer (&self->issues, g_ptr_array_unref);
     g_clear_pointer (&self->name, g_free);
     g_clear_pointer (&self->license, g_free);
     g_clear_pointer (&self->media, g_ptr_array_unref);
@@ -1251,13 +1338,14 @@ snapd_snap_finalize (GObject *object)
     g_clear_pointer (&self->publisher_username, g_free);
     g_clear_pointer (&self->revision, g_free);
     g_clear_pointer (&self->screenshots, g_ptr_array_unref);
+    g_clear_pointer (&self->source_code, g_ptr_array_unref);
     g_clear_pointer (&self->store_url, g_free);
     g_clear_pointer (&self->summary, g_free);
     g_clear_pointer (&self->title, g_free);
     g_clear_pointer (&self->tracking_channel, g_free);
     g_clear_pointer (&self->tracks, g_strfreev);
     g_clear_pointer (&self->version, g_free);
-    g_clear_pointer (&self->website, g_free);
+    g_clear_pointer (&self->website, g_ptr_array_unref);
 
     G_OBJECT_CLASS (snapd_snap_parent_class)->finalize (object);
 }
@@ -1356,6 +1444,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                            FALSE,
                                                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
+                                     PROP_DONATION,
+                                     g_param_spec_boxed ("donation",
+                                                          "donation",
+                                                          "Donation links for a Snap",
+                                                          G_TYPE_PTR_ARRAY,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
                                      PROP_DOWNLOAD_SIZE,
                                      g_param_spec_int64 ("download-size",
                                                          "download-size",
@@ -1404,6 +1499,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          "Installed size in bytes",
                                                          G_MININT64, G_MAXINT64, 0,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
+                                     PROP_ISSUES,
+                                     g_param_spec_boxed ("issues",
+                                                          "issues",
+                                                          "Issues for a Snap",
+                                                          G_TYPE_PTR_ARRAY,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_JAILMODE,
                                      g_param_spec_boolean ("jailmode",
@@ -1496,6 +1598,13 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                          G_TYPE_PTR_ARRAY,
                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
+                                     PROP_SOURCE_CODE,
+                                     g_param_spec_boxed ("source-code",
+                                                          "source-code",
+                                                          "Source Code URL for a Snap",
+                                                          G_TYPE_PTR_ARRAY,
+                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+    g_object_class_install_property (gobject_class,
                                      PROP_STATUS,
                                      g_param_spec_enum ("status",
                                                         "status",
@@ -1560,10 +1669,10 @@ snapd_snap_class_init (SnapdSnapClass *klass)
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
     g_object_class_install_property (gobject_class,
                                      PROP_WEBSITE,
-                                     g_param_spec_string ("website",
+                                     g_param_spec_boxed ("website",
                                                           "website",
-                                                          "Website of developer",
-                                                          NULL,
+                                                          "Websites of the developer",
+                                                          G_TYPE_PTR_ARRAY,
                                                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 

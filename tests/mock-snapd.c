@@ -19,6 +19,8 @@
 #include <json-glib/json-glib.h>
 
 #include "mock-snapd.h"
+#include "glib-object.h"
+#include "glib.h"
 
 /* For soup 2 pretend to use the new server API */
 #if !SOUP_CHECK_VERSION (2, 99, 2)
@@ -229,6 +231,7 @@ struct _MockSnap
     gchar *contact;
     gchar *description;
     gboolean devmode;
+    GPtrArray *donation;
     int download_size;
     gchar *hold;
     gchar *icon;
@@ -237,6 +240,7 @@ struct _MockSnap
     gchar *id;
     gchar *install_date;
     int installed_size;
+    GPtrArray *issues;
     gboolean jailmode;
     gchar *license;
     GList *media;
@@ -250,6 +254,7 @@ struct _MockSnap
     gchar *publisher_username;
     gchar *publisher_validation;
     gchar *revision;
+    GPtrArray *source_code;
     gchar *status;
     gchar *store_url;
     gchar *summary;
@@ -259,7 +264,7 @@ struct _MockSnap
     gboolean trymode;
     gchar *type;
     gchar *version;
-    gchar *website;
+    GPtrArray *website;
     GList *store_categories;
     GList *plugs;
     GList *slots_;
@@ -364,6 +369,12 @@ mock_track_free (MockTrack *track)
 }
 
 static void
+mock_link_free (GPtrArray *link)
+{
+    g_free(link);
+}
+
+static void
 mock_log_free (MockLog *log)
 {
     g_free (log->timestamp);
@@ -433,12 +444,14 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->confinement);
     g_free (snap->contact);
     g_free (snap->description);
+    g_free (snap->donation);
     g_free (snap->hold);
     g_free (snap->icon);
     g_free (snap->icon_mime_type);
     g_bytes_unref (snap->icon_data);
     g_free (snap->id);
     g_free (snap->install_date);
+    g_free (snap->issues);
     g_free (snap->license);
     g_list_free_full (snap->media, (GDestroyNotify) mock_media_free);
     g_free (snap->mounted_from);
@@ -449,6 +462,7 @@ mock_snap_free (MockSnap *snap)
     g_free (snap->publisher_username);
     g_free (snap->publisher_validation);
     g_free (snap->revision);
+    g_free (snap->source_code);
     g_free (snap->status);
     g_free (snap->store_url);
     g_free (snap->summary);
@@ -1508,6 +1522,17 @@ mock_snap_get_disabled (MockSnap *snap)
 }
 
 void
+mock_snap_set_donation (MockSnap *snap, const GPtrArray *donation)
+{
+    g_ptr_array_set_free_func(snap->donation, g_free);
+    g_ptr_array_free(snap->donation, TRUE);
+    snap->donation = g_ptr_array_new_with_free_func(g_free);
+    for (guint i = 0; i < snap->donation->len; ++i) {
+        g_ptr_array_add(snap->donation, g_strdup(g_ptr_array_index(snap->donation, i)));
+    }
+}
+
+void
 mock_snap_set_download_size (MockSnap *snap, int download_size)
 {
     snap->download_size = download_size;
@@ -1561,6 +1586,17 @@ void
 mock_snap_set_installed_size (MockSnap *snap, int installed_size)
 {
     snap->installed_size = installed_size;
+}
+
+void
+mock_snap_set_issues (MockSnap *snap, const GPtrArray *issues)
+{
+    g_ptr_array_set_free_func(snap->issues, g_free);
+    g_ptr_array_free(snap->issues, TRUE);
+    snap->issues = g_ptr_array_new_with_free_func(g_free);
+    for (guint i = 0; i < snap->issues->len; ++i) {
+        g_ptr_array_add(snap->issues, g_strdup(g_ptr_array_index(snap->issues, i)));
+    }
 }
 
 void
@@ -1699,6 +1735,17 @@ mock_snap_set_proceed_time (MockSnap *snap, const gchar *proceed_time)
 }
 
 void
+mock_snap_set_source_code (MockSnap *snap, const GPtrArray *source_code)
+{
+    g_ptr_array_set_free_func(snap->source_code, g_free);
+    g_ptr_array_free(snap->source_code, TRUE);
+    snap->source_code = g_ptr_array_new_with_free_func(g_free);
+    for (guint i = 0; i < snap->source_code->len; ++i) {
+        g_ptr_array_add(snap->source_code, g_strdup(g_ptr_array_index(snap->source_code, i)));
+    }
+}
+
+void
 mock_snap_set_store_url (MockSnap *snap, const gchar *store_url)
 {
     g_free (snap->store_url);
@@ -1753,10 +1800,14 @@ mock_snap_set_version (MockSnap *snap, const gchar *version)
 }
 
 void
-mock_snap_set_website (MockSnap *snap, const gchar *website)
+mock_snap_set_website (MockSnap *snap, const GPtrArray *website)
 {
-    g_free (snap->website);
-    snap->website = g_strdup (website);
+    g_ptr_array_set_free_func(snap->website, g_free);
+    g_ptr_array_free(snap->website, TRUE);
+    snap->website = g_ptr_array_new_with_free_func(g_free);
+    for (guint i = 0; i < snap->website->len; ++i) {
+        g_ptr_array_add(snap->website, g_strdup(g_ptr_array_index(snap->website, i)));
+    }
 }
 
 void
@@ -2682,6 +2733,15 @@ make_snap_node (MockSnap *snap)
     json_builder_add_string_value (builder, snap->publisher_username);
     json_builder_set_member_name (builder, "devmode");
     json_builder_add_boolean_value (builder, snap->devmode);
+    if (snap->donation && snap->donation->len > 0) {
+        json_builder_set_member_name(builder, "donations");
+        json_builder_begin_array(builder);
+        for (guint i = 0; i < snap->donation->len; i++) {
+            const gchar *donation = (const gchar *)g_ptr_array_index(snap->donation, i);
+            json_builder_add_string_value(builder, donation);
+        }
+        json_builder_end_array(builder);
+    }
     if (snap->download_size > 0) {
         json_builder_set_member_name (builder, "download-size");
         json_builder_add_int_value (builder, snap->download_size);
@@ -2701,6 +2761,15 @@ make_snap_node (MockSnap *snap)
     if (snap->installed_size > 0) {
         json_builder_set_member_name (builder, "installed-size");
         json_builder_add_int_value (builder, snap->installed_size);
+    }
+    if (snap->issues && snap->issues->len > 0) {
+        json_builder_set_member_name(builder, "issues");
+        json_builder_begin_array(builder);
+        for (guint i = 0; i < snap->issues->len; i++) {
+            const gchar *issues = (const gchar *)g_ptr_array_index(snap->issues, i);
+            json_builder_add_string_value(builder, issues);
+        }
+        json_builder_end_array(builder);
     }
     json_builder_set_member_name (builder, "jailmode");
     json_builder_add_boolean_value (builder, snap->jailmode);
@@ -2779,6 +2848,15 @@ make_snap_node (MockSnap *snap)
     json_builder_add_string_value (builder, "'screenshots' is deprecated; use 'media' instead. More info at https://forum.snapcraft.io/t/8086");
     json_builder_end_object (builder);
     json_builder_end_array (builder);
+    if (snap->source_code && snap->source_code->len > 0) {
+        json_builder_set_member_name(builder, "source");
+        json_builder_begin_array(builder);
+        for (guint i = 0; i < snap->source_code->len; i++) {
+            const gchar *source_code = (const gchar *)g_ptr_array_index(snap->source_code, i);
+            json_builder_add_string_value(builder, source_code);
+        }
+        json_builder_end_array(builder);
+    }
     json_builder_set_member_name (builder, "status");
     json_builder_add_string_value (builder, snap->status);
     if (snap->store_url) {
@@ -2812,9 +2890,14 @@ make_snap_node (MockSnap *snap)
     json_builder_add_string_value (builder, snap->type);
     json_builder_set_member_name (builder, "version");
     json_builder_add_string_value (builder, snap->version);
-    if (snap->website) {
-        json_builder_set_member_name (builder, "website");
-        json_builder_add_string_value (builder, snap->website);
+    if (snap->website && snap->website->len > 0) {
+        json_builder_set_member_name(builder, "website");
+        json_builder_begin_array(builder);
+        for (guint i = 0; i < snap->website->len; i++) {
+            const gchar *website = (const gchar *)g_ptr_array_index(snap->website, i);
+            json_builder_add_string_value(builder, website);
+        }
+        json_builder_end_array(builder);
     }
     if (snap->proceed_time != NULL) {
         json_builder_set_member_name (builder, "refresh-inhibit");

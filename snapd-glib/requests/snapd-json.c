@@ -12,6 +12,8 @@
 
 #include "snapd-json.h"
 
+#include "glib.h"
+#include "json-glib/json-glib.h"
 #include "snapd-error.h"
 #include "snapd-app.h"
 #include "snapd-category.h"
@@ -86,6 +88,30 @@ _snapd_json_get_object (JsonObject *object, const gchar *name)
         return json_node_get_object (node);
     else
         return NULL;
+}
+
+const GPtrArray*
+_snapd_json_get_links (JsonObject *object, const gchar *name, GPtrArray *default_value)
+{
+    JsonObject *links_obj = json_object_get_object_member(object, "links");
+    JsonNode *node = json_node_new(JSON_NODE_OBJECT);
+    json_node_set_object(node, object);
+    gchar *object_str = json_to_string(node, TRUE);
+    g_print("JsonObject: %s\n", object_str);
+    g_free(object_str);
+    JsonArray *json_array = json_object_get_array_member(links_obj, name);
+    GPtrArray *ptr_array = g_ptr_array_new();
+    if (json_array != NULL){
+        guint len = json_array_get_length(json_array);
+        for (guint i = 0; i < len; i++) {
+            JsonNode *node = json_array_get_element(json_array, i);
+            const gchar *value = json_node_get_string(node);
+            g_ptr_array_add(ptr_array, g_strdup(value));
+        }
+        return ptr_array;
+    }
+    else
+        return default_value;
 }
 
 gboolean
@@ -1182,12 +1208,14 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
                          "contact", _snapd_json_get_string (object, "contact", NULL),
                          "description", _snapd_json_get_string (object, "description", NULL),
                          "devmode", _snapd_json_get_bool (object, "devmode", FALSE),
+                         "donation", _snapd_json_get_links(object, "donations", NULL),
                          "download-size", _snapd_json_get_int (object, "download-size", 0),
                          "hold", hold,
                          "icon", _snapd_json_get_string (object, "icon", NULL),
                          "id", _snapd_json_get_string (object, "id", NULL),
                          "install-date", install_date,
                          "installed-size", _snapd_json_get_int (object, "installed-size", 0),
+                         "issues", _snapd_json_get_links(object, "issues", NULL),
                          "jailmode", _snapd_json_get_bool (object, "jailmode", FALSE),
                          "license", _snapd_json_get_string (object, "license", NULL),
                          "media", media_array,
@@ -1202,6 +1230,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
                          "revision", _snapd_json_get_string (object, "revision", NULL),
                          "screenshots", screenshots_array,
                          "snap-type", snap_type,
+                         "source-code", _snapd_json_get_links(object, "source", NULL),
                          "status", snap_status,
                          "store-url", _snapd_json_get_string (object, "store-url", NULL),
                          "summary", _snapd_json_get_string (object, "summary", NULL),
@@ -1210,7 +1239,7 @@ _snapd_json_parse_snap (JsonNode *node, GError **error)
                          "tracks", (GStrv) track_array->pdata,
                          "trymode", _snapd_json_get_bool (object, "trymode", FALSE),
                          "version", _snapd_json_get_string (object, "version", NULL),
-                         "website", _snapd_json_get_string (object, "website", NULL),
+                         "website", _snapd_json_get_links (object, "website", NULL),
                          "proceed-time", proceed_time,
                          NULL);
 }

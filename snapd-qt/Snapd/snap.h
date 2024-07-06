@@ -37,6 +37,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString description READ description)
     Q_PROPERTY(QString developer READ developer)
     Q_PROPERTY(bool devmode READ devmode)
+    Q_PROPERTY(QStringList donation READ donation)
     Q_PROPERTY(qint64 downloadSize READ downloadSize)
     Q_PROPERTY(QDateTime hold READ hold)
     Q_PROPERTY(QDateTime proceedTime READ proceedTime)
@@ -44,6 +45,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QString id READ id)
     Q_PROPERTY(QDateTime installDate READ installDate)
     Q_PROPERTY(qint64 installedSize READ installedSize)
+    Q_PROPERTY(QStringList issues READ issues)
     Q_PROPERTY(bool jailmode READ jailmode)
     Q_PROPERTY(QString license READ license)
     Q_PROPERTY(QString mountedFrom READ mountedFrom)
@@ -56,6 +58,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QSnapdEnums::PublisherValidation publisherValidation READ publisherValidation)
     Q_PROPERTY(QString revision READ revision)
     Q_PROPERTY(QSnapdEnums::SnapType snapType READ snapType)
+    Q_PROPERTY(QStringList source_code READ source_code)
     Q_PROPERTY(QSnapdEnums::SnapStatus status READ status)
     Q_PROPERTY(QString storeUrl READ summary)
     Q_PROPERTY(QString summary READ summary)
@@ -64,7 +67,7 @@ class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject
     Q_PROPERTY(QStringList tracks READ tracks)
     Q_PROPERTY(bool trymode READ trymode)
     Q_PROPERTY(QString version READ version)
-    Q_PROPERTY(QString website READ website)
+    Q_PROPERTY(QStringList website READ website)
 
 public:
     explicit QSnapdSnap (void* snapd_object, QObject* parent = 0);
@@ -85,6 +88,7 @@ public:
     QString description () const;
     Q_DECL_DEPRECATED_X("Use publisherUsername()") QString developer () const;
     bool devmode () const;
+    QStringList donation () const;
     qint64 downloadSize () const;
     QDateTime hold () const;
     QDateTime proceedTime () const;
@@ -92,6 +96,7 @@ public:
     QString id () const;
     QDateTime installDate () const;
     qint64 installedSize () const;
+    QStringList issues () const;
     bool jailmode () const;
     QString license () const;
     int mediaCount () const;
@@ -109,6 +114,7 @@ public:
     Q_DECL_DEPRECATED_X("Use mediaCount()") int screenshotCount () const;
     Q_DECL_DEPRECATED_X("Use media()") QSnapdScreenshot *screenshot (int) const;
     QSnapdEnums::SnapType snapType () const;
+    QStringList source_code () const;
     QSnapdEnums::SnapStatus status () const;
     QString storeUrl () const;
     QString summary () const;
@@ -117,7 +123,7 @@ public:
     QStringList tracks () const;
     bool trymode () const;
     QString version () const;
-    QString website () const;
+    QStringList website () const;
 };
 
 #endif

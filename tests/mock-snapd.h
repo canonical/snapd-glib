@@ -10,6 +10,7 @@
 #ifndef __MOCK_SNAPD_H__
 #define __MOCK_SNAPD_H__
 
+#include "glib.h"
 #include <glib-object.h>
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
@@ -315,6 +316,9 @@ void            mock_snap_set_disabled            (MockSnap      *snap,
 
 gboolean        mock_snap_get_disabled            (MockSnap      *snap);
 
+void            mock_snap_set_donation            (MockSnap      *snap,
+                                                   const GPtrArray *donation);
+
 void            mock_snap_set_download_size       (MockSnap      *snap,
                                                    int           download_size);
 
@@ -339,6 +343,9 @@ void            mock_snap_set_install_date        (MockSnap      *snap,
 
 void            mock_snap_set_installed_size      (MockSnap      *snap,
                                                    int           installed_size);
+
+void            mock_snap_set_issues              (MockSnap      *snap,
+                                                   const GPtrArray *issues);                            
 
 void            mock_snap_set_jailmode            (MockSnap      *snap,
                                                    gboolean       jailmode);
@@ -388,6 +395,9 @@ MockMedia      *mock_snap_add_media               (MockSnap      *snap,
                                                    int            width,
                                                    int            height);
 
+void            mock_snap_set_source_code         (MockSnap      *snap,
+                                                   const GPtrArray *source_code);
+
 void            mock_snap_set_status              (MockSnap      *snap,
                                                    const gchar   *status);
 
@@ -415,7 +425,7 @@ void            mock_snap_set_version             (MockSnap      *snap,
                                                    const gchar   *version);
 
 void            mock_snap_set_website             (MockSnap      *snap,
-                                                   const gchar   *website);
+                                                   const GPtrArray *website);
 
 void            mock_snap_add_store_category      (MockSnap      *snap,
                                                    const gchar   *category,

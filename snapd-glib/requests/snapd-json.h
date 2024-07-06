@@ -41,6 +41,10 @@ gint64                _snapd_json_get_int                (JsonObject         *ob
                                                           const gchar        *name,
                                                           gint64              default_value);
 
+const GPtrArray*      _snapd_json_get_links              (JsonObject         *object,
+                                                          const gchar        *name,
+                                                          GPtrArray          *default_value);
+
 const gchar          *_snapd_json_get_string             (JsonObject         *object,
                                                           const gchar        *name,
                                                           const gchar        *default_value);

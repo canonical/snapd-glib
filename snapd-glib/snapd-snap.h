@@ -10,6 +10,7 @@
 #ifndef __SNAPD_SNAP_H__
 #define __SNAPD_SNAP_H__
 
+#include "glib.h"
 #if !defined(__SNAPD_GLIB_INSIDE__) && !defined(SNAPD_COMPILATION)
 #error "Only <snapd-glib/snapd-glib.h> can be included directly."
 #endif
@@ -118,6 +119,8 @@ const gchar             *snapd_snap_get_developer              (SnapdSnap   *sna
 
 gboolean                 snapd_snap_get_devmode                (SnapdSnap   *snap);
 
+const GPtrArray         *snapd_snap_get_donation               (SnapdSnap   *snap);
+
 gint64                   snapd_snap_get_download_size          (SnapdSnap   *snap);
 
 GDateTime               *snapd_snap_get_hold                   (SnapdSnap   *snap);
@@ -129,6 +132,8 @@ const gchar             *snapd_snap_get_id                     (SnapdSnap   *sna
 GDateTime               *snapd_snap_get_install_date           (SnapdSnap   *snap);
 
 gint64                   snapd_snap_get_installed_size         (SnapdSnap   *snap);
+
+const GPtrArray         *snapd_snap_get_issues                 (SnapdSnap   *snap);
 
 gboolean                 snapd_snap_get_jailmode               (SnapdSnap   *snap);
 
@@ -158,6 +163,8 @@ GPtrArray               *snapd_snap_get_screenshots            (SnapdSnap   *sna
 
 SnapdSnapType            snapd_snap_get_snap_type              (SnapdSnap   *snap);
 
+const GPtrArray         *snapd_snap_get_source_code            (SnapdSnap   *snap);
+
 SnapdSnapStatus          snapd_snap_get_status                 (SnapdSnap   *snap);
 
 const gchar             *snapd_snap_get_store_url              (SnapdSnap   *snap);
@@ -174,7 +181,7 @@ gboolean                 snapd_snap_get_trymode                (SnapdSnap   *sna
 
 const gchar             *snapd_snap_get_version                (SnapdSnap   *snap);
 
-const gchar             *snapd_snap_get_website                (SnapdSnap   *snap);
+const GPtrArray         *snapd_snap_get_website                (SnapdSnap   *snap);
 
 GDateTime               *snapd_snap_get_proceed_time           (SnapdSnap   *snap);
 

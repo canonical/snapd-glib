@@ -7,6 +7,7 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
+#include "glib.h"
 #include <snapd-glib/snapd-glib.h>
 
 static void print_table (GPtrArray *columns)
@@ -131,6 +132,30 @@ static int info (int argc, char **argv)
         if (store_snap != NULL) {
             g_printerr ("store-url: %s\n", snapd_snap_get_store_url (store_snap));
             g_printerr ("contact:   %s\n", snapd_snap_get_contact (store_snap));
+            if (snapd_snap_get_donation (store_snap) != NULL) {
+                for (guint i = 0; i < snapd_snap_get_donation (store_snap)->len; i++) {
+                    gchar *element = g_ptr_array_index(snapd_snap_get_donation (store_snap), i);
+                    g_printerr ("Donation: %s\n", element);
+                }
+            }
+            if (snapd_snap_get_issues (store_snap) != NULL) {
+                for (guint i = 0; i < snapd_snap_get_issues (store_snap)->len; i++) {
+                    gchar *element = g_ptr_array_index(snapd_snap_get_issues (store_snap), i);
+                    g_printerr ("Issues: %s\n", element);
+                }
+            }
+            if (snapd_snap_get_source_code (store_snap) != NULL) {
+                for (guint i = 0; i < snapd_snap_get_source_code (store_snap)->len; i++) {
+                    gchar *element = g_ptr_array_index(snapd_snap_get_source_code (store_snap), i);
+                    g_printerr ("Source Code: %s\n", element);
+                }
+            }
+            if (snapd_snap_get_website (store_snap) != NULL) {
+                for (guint i = 0; i < snapd_snap_get_website (store_snap)->len; i++) {
+                    gchar *element = g_ptr_array_index(snapd_snap_get_website (store_snap), i);
+                    g_printerr ("Website: %s\n", element);
+                }
+            }
         }
         g_printerr ("license:   %s\n", license != NULL ? license : "unset");
         g_printerr ("description: |\n");

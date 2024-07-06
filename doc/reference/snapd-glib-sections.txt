@@ -698,12 +698,14 @@ snapd_snap_get_contact
 snapd_snap_get_description
 snapd_snap_get_developer
 snapd_snap_get_devmode
+snapd_snap_get_donation
 snapd_snap_get_download_size
 snapd_snap_get_hold
 snapd_snap_get_icon
 snapd_snap_get_id
 snapd_snap_get_install_date
 snapd_snap_get_installed_size
+snapd_snap_get_issues
 snapd_snap_get_jailmode
 snapd_snap_get_license
 snapd_snap_get_media
@@ -718,6 +720,7 @@ snapd_snap_get_publisher_validation
 snapd_snap_get_revision
 snapd_snap_get_screenshots
 snapd_snap_get_snap_type
+snapd_snap_get_source_code
 snapd_snap_get_status
 snapd_snap_get_store_url
 snapd_snap_get_summary
