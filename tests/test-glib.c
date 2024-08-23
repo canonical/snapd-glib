@@ -8575,12 +8575,12 @@ test_get_changes_data (void)
 } */
 
 void
-test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpointer user_data)
+test_notices_events_cb (GObject* object, GAsyncResult* result, gpointer user_data)
 {
     AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
-    g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish (source_object, result, &error);
+    g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (notices);
     g_assert_cmpint (notices->len, ==, 2);
@@ -8679,11 +8679,11 @@ test_notices_events_cb (SnapdClient* source_object, GAsyncResult* result, gpoint
         g_assert_cmpstr (g_hash_table_lookup (parameters, "timeout"), ==, "20000us");
 #endif
         data->counter++;
-        snapd_client_get_notices_async (source_object,
+        snapd_client_get_notices_async (SNAPD_CLIENT (object),
                                         NULL,
                                         0,
                                         NULL,
-                                        (GAsyncReadyCallback) test_notices_events_cb,
+                                        test_notices_events_cb,
                                         data);
     } else {
         // and this one without parameters
@@ -8743,18 +8743,18 @@ test_notices_events (void)
                                                  date5,
                                                  20000,
                                                  NULL,
-                                                 (GAsyncReadyCallback) test_notices_events_cb,
+                                                 test_notices_events_cb,
                                                  data);
     g_main_loop_run (loop);
 }
 
 void
-test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* result, gpointer user_data)
+test_notices_minimal_data_events_cb (GObject* object, GAsyncResult* result, gpointer user_data)
 {
     AsyncData *data = user_data;
     g_autoptr(GError) error = NULL;
 
-    g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish (source_object, result, &error);
+    g_autoptr(GPtrArray) notices = snapd_client_get_notices_finish (SNAPD_CLIENT (object), result, &error);
     g_assert_no_error (error);
     g_assert_nonnull (notices);
     g_assert_cmpint (notices->len, ==, 1);
@@ -8789,15 +8789,15 @@ test_notices_minimal_data_events_cb (SnapdClient* source_object, GAsyncResult* r
                                                           "id", "an-id",
                                                           "last-occurred-nanoseconds", 12345678,
                                                           NULL);
-        snapd_client_notices_set_after_notice (source_object, noticeTest);
-        snapd_client_get_notices_async (source_object,
+        snapd_client_notices_set_after_notice (SNAPD_CLIENT (object), noticeTest);
+        snapd_client_get_notices_async (SNAPD_CLIENT (object),
                                         date5,
                                         0,
                                         NULL,
-                                        (GAsyncReadyCallback) test_notices_minimal_data_events_cb,
+                                        test_notices_minimal_data_events_cb,
                                         data);
     } else {
-        #if GLIB_CHECK_VERSION(2, 66, 0)
+#if GLIB_CHECK_VERSION(2, 66, 0)
         g_autoptr (GHashTable) parameters = g_uri_parse_params (mock_snapd_get_notices_parameters (data->snapd),
                                                                 -1,
                                                                 "&",
@@ -8834,7 +8834,7 @@ test_notices_events_with_minimal_data (void)
                                     NULL,
                                     0,
                                     NULL,
-                                    (GAsyncReadyCallback) test_notices_minimal_data_events_cb,
+                                    test_notices_minimal_data_events_cb,
                                     data);
     g_main_loop_run (loop);
 }
