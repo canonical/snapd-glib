@@ -126,12 +126,12 @@ parse_get_snap_response (SnapdRequest *request, guint status_code, const gchar *
     if (result == NULL)
         return FALSE;
 
-    g_autoptr(GPtrArray) notice = _snapd_json_parse_notice (result, error);
+    g_autoptr(GPtrArray) notices = _snapd_json_parse_notices (result, error);
     json_node_unref (result);
-    if (notice == NULL)
+    if (notices == NULL)
         return FALSE;
     g_clear_pointer (&self->notices, g_ptr_array_unref);
-    self->notices = g_steal_pointer (&notice);
+    self->notices = g_steal_pointer (&notices);
 
     return TRUE;
 }
