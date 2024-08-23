@@ -259,11 +259,11 @@ is_timezone_prefix (gchar c)
     return c == '+' || c == '-' || c == 'Z';
 }
 
-static gint32
+static int
 parse_nanoseconds(gchar *token)
 {
     gchar *nanostr;
-    gint32 nanosecs;
+    int nanosecs;
     size_t nanostr_len;
 
     // find the decimal dot
@@ -285,7 +285,7 @@ parse_nanoseconds(gchar *token)
 }
 
 GDateTime *
-_snapd_json_get_date_time (JsonObject *object, const gchar *name, gint32 *nanoseconds)
+_snapd_json_get_date_time (JsonObject *object, const gchar *name, int *nanoseconds)
 {
     const gchar *value = _snapd_json_get_string (object, name, NULL);
     if (value == NULL)
@@ -693,7 +693,7 @@ add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data
     g_autoptr(GHashTable) last_data = NULL;
 
     JsonObject *object = json_node_get_object (element);
-    gint32 last_occurred_nanoseconds = 0;
+    int last_occurred_nanoseconds = 0;
     g_autoptr(GDateTime) first_occurred = _snapd_json_get_date_time (object, "first-occurred", NULL);
     g_autoptr(GDateTime) last_occurred = _snapd_json_get_date_time (object, "last-occurred", &last_occurred_nanoseconds);
     g_autoptr(GDateTime) last_repeated = _snapd_json_get_date_time (object, "last-repeated", NULL);
