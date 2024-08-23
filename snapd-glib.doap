@@ -6,9 +6,9 @@
 
   <name xml:lang="en">snapd-glib</name>
   <shortdesc xml:lang="en">Library to allow GLib based applications access to snapd, the daemon that controls Snaps</shortdesc>
-  <homepage rdf:resource="https://github.com/snapcore/snapd-glib/" />
-  <download-page rdf:resource="https://github.com/snapcore/snapd-glib/" />
-  <bug-database rdf:resource="https://github.com/snapcore/snapd-glib/issues/" />
+  <homepage rdf:resource="https://github.com/canonical/snapd-glib/" />
+  <download-page rdf:resource="https://github.com/canonical/snapd-glib/" />
+  <bug-database rdf:resource="https://github.com/canonical/snapd-glib/issues/" />
   <programming-language>C</programming-language>
 
   <maintainer>
