@@ -747,7 +747,7 @@ add_notice_to_list (JsonArray *array, guint index, JsonNode *element, void *data
 }
 
 GPtrArray *
-_snapd_json_parse_notice (JsonNode *node, GError **error)
+_snapd_json_parse_notices (JsonNode *node, GError **error)
 {
     if (json_node_get_value_type (node) != JSON_TYPE_ARRAY) {
         g_set_error (error,
@@ -757,7 +757,7 @@ _snapd_json_parse_notice (JsonNode *node, GError **error)
         return NULL;
     }
     JsonArray *notices = json_node_get_array (node);
-    GPtrArray *retlist = g_ptr_array_new_full(json_array_get_length (notices), g_object_unref);
+    GPtrArray *retlist = g_ptr_array_new_full (json_array_get_length (notices), g_object_unref);
     json_array_foreach_element (notices, add_notice_to_list, retlist);
 
     return retlist;
