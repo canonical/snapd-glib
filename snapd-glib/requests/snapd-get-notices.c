@@ -20,7 +20,7 @@ struct _SnapdGetNotices
     gchar *keys;
     GDateTime *since_date_time;
     GTimeSpan timeout;
-    gint32 since_date_time_nanoseconds;
+    int since_date_time_nanoseconds;
 
     GPtrArray *notices;
 };
@@ -33,7 +33,7 @@ _snapd_get_notices_new (gchar               *user_id,
                         gchar               *types,
                         gchar               *keys,
                         GDateTime           *since_date_time,
-                        gint32               since_date_time_nanoseconds,
+                        int                  since_date_time_nanoseconds,
                         GTimeSpan            timeout,
                         GCancellable        *cancellable,
                         GAsyncReadyCallback  callback,

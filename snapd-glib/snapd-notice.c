@@ -55,7 +55,7 @@ struct _SnapdNotice
     // last_ocurred_internal contains the same date/time, but without
     // microseconds. Useful to speedup comparisons.
     GDateTime *last_occurred_internal;
-    gint32 last_occurred_nanosecond;
+    int last_occurred_nanosecond;
     GDateTime *last_repeated;
     GHashTable *data;
     gint64 occurrences;
@@ -198,12 +198,12 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
  * and used internally by snapd_client_notices_set_after_notice, to ensure the maximum
  * possible precission when dealing with timestamps.
  *
- * Returns: a gint32 with the nanosecond value between 0 and 999999999, or -1 if no
+ * Returns: the nanosecond value between 0 and 999999999, or -1 if no
  * nanosecond value was set.
  *
  * Since: 1.66
  */
-gint32
+int
 snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
@@ -308,10 +308,10 @@ snapd_notice_compare_last_occurred (SnapdNotice *self, SnapdNotice *notice_to_co
         return c;
 
     // now take into account the nanoseconds if available
-    gint32 self_nano = self->last_occurred_nanosecond;
+    int self_nano = self->last_occurred_nanosecond;
     if (self_nano == -1)
         self_nano = 1000 * g_date_time_get_microsecond (self->last_occurred);
-    gint32 notice_nano = notice_to_compare->last_occurred_nanosecond;
+    int notice_nano = notice_to_compare->last_occurred_nanosecond;
     if (notice_nano == -1)
         notice_nano = 1000 * g_date_time_get_microsecond (notice_to_compare->last_occurred);
     if (self_nano < notice_nano)
