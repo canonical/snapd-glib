@@ -955,14 +955,32 @@ snapd_snap_get_version (SnapdSnap *self)
  * snapd_snap_get_website:
  * @snap: a #SnapdSnap.
  *
+ * Get the website of the snap developer, e.g. "http://example.com".
+ *
+ * Returns: a website URL.
+ *
+ * Since: 1.50
+ * Deprecated: 1.66
+ */
+const gchar *
+snapd_snap_get_website (SnapdSnap *self)
+{
+    g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
+    return g_ptr_array_index(self->website, 0);
+}
+
+/**
+ * snapd_snap_get_website_urls:
+ * @snap: a #SnapdSnap.
+ *
  * Get the websites of the snap developer, e.g. ["http://example.com", "https://test.com"].
  *
  * Returns: (element-type GPtrArray*) (transfer none): an array of URLs for website.
  *
- * Since: 1.50
+ * Since: 1.66
  */
 GPtrArray *
-snapd_snap_get_website (SnapdSnap *self)
+snapd_snap_get_website_urls (SnapdSnap *self)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
     return self->website;

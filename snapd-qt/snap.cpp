@@ -440,7 +440,7 @@ QString QSnapdSnap::version () const
 
 QStringList QSnapdSnap::website () const
 {
-    GPtrArray *website = snapd_snap_get_website (SNAPD_SNAP (wrapped_object));
+    GPtrArray *website = snapd_snap_get_website_urls (SNAPD_SNAP (wrapped_object));
     QStringList result;
     if (website != nullptr) {
         for (guint i = 0; i < website->len; i++) {

@@ -181,7 +181,7 @@ gboolean                 snapd_snap_get_trymode                (SnapdSnap   *sna
 
 const gchar             *snapd_snap_get_version                (SnapdSnap   *snap);
 
-GPtrArray               *snapd_snap_get_website                (SnapdSnap   *snap);
+GPtrArray               *snapd_snap_get_website_urls           (SnapdSnap   *snap);
 
 GDateTime               *snapd_snap_get_proceed_time           (SnapdSnap   *snap);
 
