@@ -1458,7 +1458,7 @@ QT_WARNING_POP
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
     g_assert_true (snap->version () == "VERSION");
-    g_assert_null (snap->website ());
+    g_assert_true (snap->website().isEmpty());
 }
 
 void
@@ -1505,7 +1505,7 @@ QT_WARNING_POP
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
     g_assert_true (snap->version () == "VERSION");
-    g_assert_null (snap->website ());
+    g_assert_true (snap->website().isEmpty());
 
     g_main_loop_quit (loop);
 }
@@ -1585,7 +1585,7 @@ QT_WARNING_POP
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
     g_assert_true (snap->version () == "VERSION");
-    g_assert_null (snap->website ());
+    g_assert_true (snap->website().isEmpty());
 }
 
 void
@@ -1632,7 +1632,7 @@ QT_WARNING_POP
     g_assert_null (snap->trackingChannel ());
     g_assert_false (snap->trymode ());
     g_assert_true (snap->version () == "VERSION");
-    g_assert_null (snap->website ());
+    g_assert_true (snap->website().isEmpty());
 
     g_main_loop_quit (loop);
 }
@@ -1728,7 +1728,9 @@ test_get_snap_optional_fields ()
     mock_snap_set_jailmode (s, TRUE);
     mock_snap_set_trymode (s, TRUE);
     mock_snap_set_contact (s, "CONTACT");
-    mock_snap_set_website (s, "WEBSITE");
+    GPtrArray *websiteArray = g_ptr_array_new_with_free_func (g_free);
+    g_ptr_array_add(websiteArray, g_strdup ("WEBSITE"));  // Use g_strdup to duplicate the string
+    mock_snap_set_website (s, websiteArray);
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_license (s, "LICENSE");
@@ -1759,7 +1761,9 @@ test_get_snap_optional_fields ()
     g_assert_true (snap->channel () == "CHANNEL");
     g_assert_cmpint (snap->confinement (), ==, QSnapdEnums::SnapConfinementClassic);
     g_assert_true (snap->contact () == "CONTACT");
-    g_assert_true (snap->website () == "WEBSITE");
+    QStringList expectedWebsite;
+    expectedWebsite << "WEBSITE";
+    g_assert_true(snap->website () == expectedWebsite);
     g_assert_true (snap->description () == "DESCRIPTION");
     g_assert_true (snap->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert_true (snap->publisherId () == "PUBLISHER-ID");
@@ -3686,7 +3690,6 @@ test_find_query ()
     mock_track_add_channel (mock_snap_add_track (s, "latest"), "stable", NULL);
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_contact (s, "CONTACT");
-    mock_snap_set_website (s, "WEBSITE");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_store_url (s, "https://snapcraft.io/snap");
     mock_snap_set_summary (s, "SUMMARY");
@@ -3698,6 +3701,9 @@ test_find_query ()
     mock_snap_add_media (s, "banner", "banner.png", 0, 0);
     mock_snap_set_trymode (s, TRUE);
     g_assert_true (mock_snapd_start (snapd, NULL));
+    GPtrArray *websiteArray = g_ptr_array_new_with_free_func (g_free);
+    g_ptr_array_add (websiteArray, g_strdup("WEBSITE"));
+    mock_snap_set_website (s, websiteArray);
 
     QSnapdClient client;
     client.setSocketPath (mock_snapd_get_socket_path (snapd));
@@ -3723,7 +3729,9 @@ test_find_query ()
     g_assert_cmpint (channel->size (), ==, 65535);
     g_assert_cmpint (snap1->confinement (), ==, QSnapdEnums::SnapConfinementStrict);
     g_assert_true (snap1->contact () == "CONTACT");
-    g_assert_true (snap1->website () == "WEBSITE");
+    QStringList expectedWebsite;
+    expectedWebsite << "WEBSITE";
+    g_assert_true (snap1->website () == expectedWebsite);
     g_assert_true (snap1->description () == "DESCRIPTION");
     g_assert_true (snap1->publisherDisplayName () == "PUBLISHER-DISPLAY-NAME");
     g_assert_true (snap1->publisherId () == "PUBLISHER-ID");

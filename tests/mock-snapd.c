@@ -1522,12 +1522,12 @@ mock_snap_get_disabled (MockSnap *snap)
 }
 
 void
-mock_snap_set_donation (MockSnap *snap, const GPtrArray *donation)
+mock_snap_set_donation (MockSnap *snap, GPtrArray *donation)
 {
     g_ptr_array_set_free_func(snap->donation, g_free);
     g_ptr_array_free(snap->donation, TRUE);
     snap->donation = g_ptr_array_new_with_free_func(g_free);
-    for (guint i = 0; i < snap->donation->len; ++i) {
+    for (guint i = 0; i < snap->donation->len; i++) {
         g_ptr_array_add(snap->donation, g_strdup(g_ptr_array_index(snap->donation, i)));
     }
 }
@@ -1589,7 +1589,7 @@ mock_snap_set_installed_size (MockSnap *snap, int installed_size)
 }
 
 void
-mock_snap_set_issues (MockSnap *snap, const GPtrArray *issues)
+mock_snap_set_issues (MockSnap *snap, GPtrArray *issues)
 {
     g_ptr_array_set_free_func(snap->issues, g_free);
     g_ptr_array_free(snap->issues, TRUE);
@@ -1735,7 +1735,7 @@ mock_snap_set_proceed_time (MockSnap *snap, const gchar *proceed_time)
 }
 
 void
-mock_snap_set_source_code (MockSnap *snap, const GPtrArray *source_code)
+mock_snap_set_source_code (MockSnap *snap, GPtrArray *source_code)
 {
     g_ptr_array_set_free_func(snap->source_code, g_free);
     g_ptr_array_free(snap->source_code, TRUE);
@@ -1800,7 +1800,7 @@ mock_snap_set_version (MockSnap *snap, const gchar *version)
 }
 
 void
-mock_snap_set_website (MockSnap *snap, const GPtrArray *website)
+mock_snap_set_website (MockSnap *snap, GPtrArray *website)
 {
     g_ptr_array_set_free_func(snap->website, g_free);
     g_ptr_array_free(snap->website, TRUE);

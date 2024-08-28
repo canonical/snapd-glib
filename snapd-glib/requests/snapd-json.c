@@ -13,7 +13,6 @@
 #include "snapd-json.h"
 
 #include "glib.h"
-#include "json-glib/json-glib.h"
 #include "snapd-error.h"
 #include "snapd-app.h"
 #include "snapd-category.h"
@@ -97,21 +96,17 @@ _snapd_json_get_links (JsonObject *object, const gchar *name, GPtrArray *default
     JsonNode *node = json_node_new(JSON_NODE_OBJECT);
     json_node_set_object(node, object);
     gchar *object_str = json_to_string(node, TRUE);
-    g_print("JsonObject: %s\n", object_str);
     g_free(object_str);
     JsonArray *json_array = json_object_get_array_member(links_obj, name);
-    GPtrArray *ptr_array = g_ptr_array_new();
-    if (json_array != NULL){
-        guint len = json_array_get_length(json_array);
-        for (guint i = 0; i < len; i++) {
-            JsonNode *node = json_array_get_element(json_array, i);
-            const gchar *value = json_node_get_string(node);
-            g_ptr_array_add(ptr_array, g_strdup(value));
-        }
-        return ptr_array;
+    g_autoptr(GPtrArray) ptr_array = g_ptr_array_new_with_free_func(g_object_unref);
+    if (json_array == NULL){ return default_value; }
+    guint len = json_array_get_length(json_array);
+    for (guint i = 0; i < len; i++) {
+        JsonNode *node = json_array_get_element(json_array, i);
+        const gchar *value = json_node_get_string(node);
+        g_ptr_array_add(ptr_array, g_strdup(value));
     }
-    else
-        return default_value;
+    return ptr_array;
 }
 
 gboolean

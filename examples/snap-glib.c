@@ -7,7 +7,6 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#include "glib.h"
 #include <snapd-glib/snapd-glib.h>
 
 static void print_table (GPtrArray *columns)
@@ -122,6 +121,22 @@ static int info (int argc, char **argv)
 
         const gchar *publisher = snapd_snap_get_publisher_display_name (snap);
         const gchar *license = snapd_snap_get_license (snap);
+        g_autoptr(GError) interfaces_error = NULL;
+        g_autoptr(GPtrArray) interfaces = NULL;
+
+        interfaces = snapd_client_get_interfaces2_sync(client, SNAPD_GET_INTERFACES_FLAGS_NONE, NULL, NULL, &interfaces_error);
+
+        for (int i = 0; i < interfaces->len; ++i) {
+            SnapdInterface *interface = g_ptr_array_index(interfaces, i);
+            g_autofree const gchar *interface_name = snapd_interface_get_name(interface);
+            g_autofree const gchar *interface_description = snapd_interface_get_summary(interface);
+            g_printerr ("  %s: %s\n", interface_name, interface_description);
+            const GPtrArray * temp = snapd_interface_get_plugs(interface);
+            for (int j = 0; j < temp->len; ++j) {
+                SnapdPlug *plug = g_ptr_array_index(temp, j);
+                g_printerr ("Plug Name: %s %s\n", snapd_plug_get_name(plug), snapd_plug_get_interface(plug));
+            }
+        }
 
         if (i != 0) {
             g_printerr ("---\n");
@@ -164,6 +179,12 @@ static int info (int argc, char **argv)
             g_printerr ("snap-id:   %s\n", snapd_snap_get_id (snap));
             g_printerr ("tracking:  %s\n", snapd_snap_get_tracking_channel (local_snap));
         }
+        g_printerr("Apps!!!");
+        guint appCount = snapd_snap_get_apps(snap)->len;
+        if (snapd_snap_get_installed_size(store_snap)) {
+            g_printerr("%u\n", appCount);
+        }
+        //g_printerr("%d\n", snapd_snap_get_apps(snap)->len);
     }
 
     return EXIT_SUCCESS;

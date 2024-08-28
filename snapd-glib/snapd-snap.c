@@ -8,8 +8,6 @@
  */
 
 #include "snapd-snap.h"
-#include "glib-object.h"
-#include "glib.h"
 #include "snapd-enum-types.h"
 
 /**
@@ -400,16 +398,16 @@ snapd_snap_get_devmode (SnapdSnap *self)
 }
 
 /**
- * snapd_snap_get_donations:
+ * snapd_snap_get_donation:
  * @snap: a #SnapdSnap.
  *
  * Get the donation URLs of the snap, e.g. ["http://example.com/paypal", "http://liberapay.com/test"].
  *
- * Returns: a array of URL for Donation.
+ * Returns: (element-type GPtrArray*) (transfer none): an array of URL for Donation.
  *
  * Since: 1.66
  */
-const GPtrArray *
+GPtrArray *
 snapd_snap_get_donation (SnapdSnap *self)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
@@ -544,11 +542,11 @@ snapd_snap_get_installed_size (SnapdSnap *self)
  *
  * Get the issues of the snap, e.g. "http://example.com".
  *
- * Returns: a array of Issues  URL.
+ * Returns: (element-type GPtrArray*) (transfer none): a array of Issue  URLs.
  *
  * Since: 1.66
  */
-const GPtrArray *
+GPtrArray *
 snapd_snap_get_issues (SnapdSnap *self)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
@@ -821,11 +819,11 @@ snapd_snap_get_snap_type (SnapdSnap *self)
  *
  * Get the source-code URLs of the snap, e.g. ["http://example.com", "https://vcs-browser.com/source-code"].
  *
- * Returns: a array of URL for the Source Code.
+ * Returns: (element-type GPtrArray*) (transfer none): a array of URL for the source code.
  *
  * Since: 1.66
  */
-const GPtrArray *
+GPtrArray *
 snapd_snap_get_source_code (SnapdSnap *self)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
@@ -959,11 +957,11 @@ snapd_snap_get_version (SnapdSnap *self)
  *
  * Get the websites of the snap developer, e.g. ["http://example.com", "https://test.com"].
  *
- * Returns: an array of URLs for website.
+ * Returns: (element-type GPtrArray*) (transfer none): an array of URLs for website.
  *
  * Since: 1.50
  */
-const GPtrArray *
+GPtrArray *
 snapd_snap_get_website (SnapdSnap *self)
 {
     g_return_val_if_fail (SNAPD_IS_SNAP (self), NULL);
