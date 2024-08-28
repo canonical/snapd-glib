@@ -14,25 +14,25 @@ QSnapdNotice::QSnapdNotice (void *snapd_object, QObject *parent) : QSnapdWrapped
 
 QString QSnapdNotice::id () const
 {
-    return snapd_notice_get_id (SNAPD_NOTICE (wrapped_object));
+    return snapd_notice2_get_id (SNAPD_NOTICE2 (wrapped_object));
 }
 
 QString QSnapdNotice::userId () const
 {
-    return snapd_notice_get_user_id (SNAPD_NOTICE (wrapped_object));
+    return snapd_notice2_get_user_id (SNAPD_NOTICE2 (wrapped_object));
 }
 
 QSnapdEnums::SnapNoticeType QSnapdNotice::noticeType () const
 {
-    switch (snapd_notice_get_notice_type (SNAPD_NOTICE (wrapped_object)))
+    switch (snapd_notice2_get_notice_type (SNAPD_NOTICE2 (wrapped_object)))
     {
-    case SNAPD_NOTICE_TYPE_CHANGE_UPDATE:
+    case SNAPD_NOTICE2_TYPE_CHANGE_UPDATE:
         return QSnapdEnums::SnapNoticeTypeChangeUpdate;
-    case SNAPD_NOTICE_TYPE_REFRESH_INHIBIT:
+    case SNAPD_NOTICE2_TYPE_REFRESH_INHIBIT:
         return QSnapdEnums::SnapNoticeTypeRefreshInhibit;
-    case SNAPD_NOTICE_TYPE_SNAP_RUN_INHIBIT:
+    case SNAPD_NOTICE2_TYPE_SNAP_RUN_INHIBIT:
         return QSnapdEnums::SnapNoticeTypeSnapRunInhibit;
-    case SNAPD_NOTICE_TYPE_UNKNOWN:
+    case SNAPD_NOTICE2_TYPE_UNKNOWN:
     default:
         return QSnapdEnums::SnapNoticeTypeUnknown;
     }
@@ -40,7 +40,7 @@ QSnapdEnums::SnapNoticeType QSnapdNotice::noticeType () const
 
 QString QSnapdNotice::key () const
 {
-    return snapd_notice_get_key (SNAPD_NOTICE (wrapped_object));
+    return snapd_notice2_get_key (SNAPD_NOTICE2 (wrapped_object));
 }
 
 static QDateTime convertDateTime (GDateTime *datetime)
@@ -60,37 +60,37 @@ static QDateTime convertDateTime (GDateTime *datetime)
 
 QDateTime QSnapdNotice::firstOccurred () const
 {
-    return convertDateTime ((GDateTime*) snapd_notice_get_first_occurred (SNAPD_NOTICE (wrapped_object)));
+    return convertDateTime ((GDateTime*) snapd_notice2_get_first_occurred (SNAPD_NOTICE2 (wrapped_object)));
 }
 
 QDateTime QSnapdNotice::lastOccurred () const
 {
-    return convertDateTime ((GDateTime*) snapd_notice_get_last_occurred (SNAPD_NOTICE (wrapped_object)));
+    return convertDateTime ((GDateTime*) snapd_notice2_get_last_occurred (SNAPD_NOTICE2 (wrapped_object)));
 }
 
 QDateTime QSnapdNotice::lastRepeated () const
 {
-    return convertDateTime ((GDateTime*) snapd_notice_get_last_repeated (SNAPD_NOTICE (wrapped_object)));
+    return convertDateTime ((GDateTime*) snapd_notice2_get_last_repeated (SNAPD_NOTICE2 (wrapped_object)));
 }
 
 qint32 QSnapdNotice::occurrences () const
 {
-    return snapd_notice_get_occurrences (SNAPD_NOTICE (wrapped_object));
+    return snapd_notice2_get_occurrences (SNAPD_NOTICE2 (wrapped_object));
 }
 
 qint64 QSnapdNotice::repeatAfter () const
 {
-    return snapd_notice_get_repeat_after (SNAPD_NOTICE (wrapped_object));
+    return snapd_notice2_get_repeat_after (SNAPD_NOTICE2 (wrapped_object));
 }
 
 qint64 QSnapdNotice::expireAfter () const
 {
-    return snapd_notice_get_expire_after (SNAPD_NOTICE (wrapped_object));
+    return snapd_notice2_get_expire_after (SNAPD_NOTICE2 (wrapped_object));
 }
 
 qint32 QSnapdNotice::lastOccurredNanoseconds () const
 {
-    return snapd_notice_get_last_occurred_nanoseconds (SNAPD_NOTICE (wrapped_object));
+    return snapd_notice2_get_last_occurred_nanoseconds (SNAPD_NOTICE2 (wrapped_object));
 }
 
 static void
@@ -102,8 +102,8 @@ addItemToQHash (gchar *key, gchar *value, QHash<QString, QString> *lastData)
 QHash<QString, QString> QSnapdNotice::lastData () const
 {
     QHash<QString, QString> lastData;
-    g_autoptr(GHashTable) last_data = snapd_notice_get_last_data (SNAPD_NOTICE (wrapped_object));
-    g_hash_table_foreach (last_data, (GHFunc) addItemToQHash, &lastData);
+    const GHashTable *last_data = snapd_notice2_get_last_data (SNAPD_NOTICE2 (wrapped_object));
+    g_hash_table_foreach ((GHashTable *)last_data, (GHFunc) addItemToQHash, &lastData);
     return lastData;
 }
 

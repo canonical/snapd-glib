@@ -89,7 +89,7 @@ struct _MockNotice
     GDateTime *first_occurred;
     GDateTime *last_occurred;
     GDateTime *last_repeated;
-    gint32 last_occurred_nanoseconds;
+    int last_occurred_nanoseconds;
     int occurrences;
     gchar *expire_after;
     gchar *repeat_after;
@@ -701,7 +701,7 @@ mock_snapd_add_notice (MockSnapd *self, const gchar *id, const gchar *key, const
 }
 
 void
-mock_notice_set_nanoseconds (MockNotice *self, gint32 nanoseconds)
+mock_notice_set_nanoseconds (MockNotice *self, int nanoseconds)
 {
     self->last_occurred_nanoseconds = nanoseconds;
 }

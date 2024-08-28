@@ -25,7 +25,7 @@
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-change.h>
 #include <snapd-glib/snapd-user-information.h>
-#include <snapd-glib/snapd-notice.h>
+#include <snapd-glib/snapd-notice2.h>
 
 G_BEGIN_DECLS
 
@@ -1321,7 +1321,7 @@ GPtrArray              *snapd_client_get_notices_with_filters_finish (SnapdClien
                                                                     GError              **error);
 
 void                    snapd_client_notices_set_after_notice      (SnapdClient          *client,
-                                                                    SnapdNotice          *notice);
+                                                                    SnapdNotice2         *notice);
 
 void                    snapd_client_notices_set_since_nanoseconds (SnapdClient          *client,
                                                                     gint32                nanoseconds);

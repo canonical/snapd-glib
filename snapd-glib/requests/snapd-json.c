@@ -684,7 +684,7 @@ get_int_as_string (JsonObject *object, const gchar *name)
     return NULL;
 }
 
-static SnapdNotice *
+static SnapdNotice2 *
 parse_notice (JsonObject *object)
 {
     int last_occurred_nanoseconds = 0;
@@ -697,17 +697,17 @@ parse_notice (JsonObject *object)
     _snapd_json_parse_time_span (_snapd_json_get_string (object, "repeat-after", NULL), &repeat_after);
 
     const gchar *notice_type_string = _snapd_json_get_string (object, "type", NULL);
-    SnapdNoticeType notice_type;
+    SnapdNotice2Type notice_type;
     if (notice_type_string == NULL)
-        notice_type = SNAPD_NOTICE_TYPE_UNKNOWN;
+        notice_type = SNAPD_NOTICE2_TYPE_UNKNOWN;
     else if (g_str_equal (notice_type_string, "change-update"))
-        notice_type = SNAPD_NOTICE_TYPE_CHANGE_UPDATE;
+        notice_type = SNAPD_NOTICE2_TYPE_CHANGE_UPDATE;
     else if (g_str_equal (notice_type_string, "refresh-inhibit"))
-        notice_type = SNAPD_NOTICE_TYPE_REFRESH_INHIBIT;
+        notice_type = SNAPD_NOTICE2_TYPE_REFRESH_INHIBIT;
     else if (g_str_equal (notice_type_string, "snap-run-inhibit"))
-        notice_type = SNAPD_NOTICE_TYPE_SNAP_RUN_INHIBIT;
+        notice_type = SNAPD_NOTICE2_TYPE_SNAP_RUN_INHIBIT;
     else
-        notice_type = SNAPD_NOTICE_TYPE_UNKNOWN;
+        notice_type = SNAPD_NOTICE2_TYPE_UNKNOWN;
 
     g_autoptr(GHashTable) last_data = NULL;
     if (json_object_has_member (object, "last-data")) {
@@ -722,7 +722,7 @@ parse_notice (JsonObject *object)
             g_hash_table_insert (last_data, g_strdup (member_name), g_strdup (json_node_get_string (member_node)));
     }
     g_autofree gchar *user_id = get_int_as_string (object, "user-id");
-    return g_object_new (SNAPD_TYPE_NOTICE,
+    return g_object_new (SNAPD_TYPE_NOTICE2,
                          "id", _snapd_json_get_string (object, "id", NULL),
                          "user-id", user_id,
                          "notice-type", notice_type,

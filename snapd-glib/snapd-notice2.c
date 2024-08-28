@@ -7,23 +7,22 @@
  * See http://www.gnu.org/copyleft/lgpl.html the full text of the license.
  */
 
-#include "snapd-notice.h"
+#include "snapd-notice2.h"
 
 /**
- * SECTION: snapd-notice
+ * SECTION: snapd-notice2
  * @short_description: Notices element
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdNotice contains information about a notice that is notified.
+ * A #SnapdNotice2 contains information about a notice that is notified.
  */
 
 /**
- * SnapdNotice:
+ * SnapdNotice2:
  *
- * #SnapdNotice contains information on a notification element.
+ * #SnapdNotice2 contains information on a notification element.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
 
 enum
@@ -43,13 +42,13 @@ enum
     PROP_LAST
 };
 
-struct _SnapdNotice
+struct _SnapdNotice2
 {
     GObject parent_instance;
 
     gchar *id;
     gchar *userid;
-    SnapdNoticeType type;
+    SnapdNotice2Type type;
     gchar *key;
     GDateTime *first_occurred;
     GDateTime *last_occurred;
@@ -65,141 +64,134 @@ struct _SnapdNotice
 };
 
 
-G_DEFINE_TYPE (SnapdNotice, snapd_notice, G_TYPE_OBJECT)
+G_DEFINE_TYPE (SnapdNotice2, snapd_notice2, G_TYPE_OBJECT)
 
 /**
- * snapd_notice_get_id:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_id:
+ * @notice: a #SnapdNotice2.
  *
  * Get the unique ID for this notice.
  *
  * Returns: an ID.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
 const gchar *
-snapd_notice_get_id (SnapdNotice *self)
+snapd_notice2_get_id (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), NULL);
     return self->id;
 }
 
 /**
- * snapd_notice_get_user_id:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_user_id:
+ * @notice: a #SnapdNotice2.
  *
  * Get the user ID for this notice, or NULL if no user is defined
  *
  * Returns: an user ID.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
 const gchar *
-snapd_notice_get_user_id (SnapdNotice *self)
+snapd_notice2_get_user_id (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), NULL);
     return self->userid;
 }
 
 /**
- * snapd_notice_get_notice_type:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_notice_type:
+ * @notice: a #SnapdNotice2.
  *
  * Gets the type of notice this is.
  *
  * Returns: the type of notice.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
-SnapdNoticeType
-snapd_notice_get_notice_type (SnapdNotice *self)
+SnapdNotice2Type
+snapd_notice2_get_notice_type (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), SNAPD_NOTICE_TYPE_UNKNOWN);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), SNAPD_NOTICE2_TYPE_UNKNOWN);
     return self->type;
 }
 
 /**
- * snapd_notice_get_key:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_key:
+ * @notice: a #SnapdNotice2.
  *
  * Get the notice-id or the instance-name, depending on the type.
  *
  * Returns: a string with the key.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
 const gchar *
-snapd_notice_get_key (SnapdNotice *self)
+snapd_notice2_get_key (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), NULL);
     return self->key;
 }
 
 /**
- * snapd_notice_get_last_data:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_last_data:
+ * @notice: a #SnapdNotice2.
  *
  * Get the data of the notice.
  *
- * Returns: (transfer container): a HashTable with the data elements.
+ * Returns: (transfer none): a HashTable with the data elements.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
-GHashTable *
-snapd_notice_get_last_data (SnapdNotice *self)
+const GHashTable *
+snapd_notice2_get_last_data (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
-    return g_hash_table_ref (self->data);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), NULL);
+    return self->data;
 }
 
 /**
- * snapd_notice_get_first_occurred:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_first_occurred:
+ * @notice: a #SnapdNotice2.
  *
  * Get the time this notification first occurred.
  *
- * Returns: (transfer full): a #GDateTime.
+ * Returns: (transfer none): a #GDateTime.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
-GDateTime *
-snapd_notice_get_first_occurred (SnapdNotice *self)
+const GDateTime *
+snapd_notice2_get_first_occurred (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), NULL);
     if (self->first_occurred == NULL)
         return NULL;
-    return g_date_time_ref (self->first_occurred);
+    return self->first_occurred;
 }
 
 /**
- * snapd_notice_get_last_occurred:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_last_occurred:
+ * @notice: a #SnapdNotice2.
  *
  * Get the time this notification last occurred.
  *
- * Returns: (transfer full): a #GDateTime.
+ * Returns: (transfer none): a #GDateTime.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
-GDateTime *
-snapd_notice_get_last_occurred (SnapdNotice *self)
+const GDateTime *
+snapd_notice2_get_last_occurred (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), NULL);
     if (self->last_occurred == NULL)
         return NULL;
-    return g_date_time_ref (self->last_occurred);
+    return self->last_occurred;
 }
 
 /**
- * snapd_notice_get_last_occurred_nanoseconds:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_last_occurred_nanoseconds:
+ * @notice: a #SnapdNotice2.
  *
  * Get the nanoseconds value of *last-occurred*, exactly as sent by
  * snapd. Useful when combined with #snapd_client_notices_set_since_nanoseconds,
@@ -210,93 +202,88 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
  * nanosecond value was set.
  *
  * Since: 1.66
- * Deprecated: 1.66
  */
 int
-snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *self)
+snapd_notice2_get_last_occurred_nanoseconds (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), 0);
     return self->last_occurred_nanosecond;
 }
 
 /**
- * snapd_notice_get_last_repeated:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_last_repeated:
+ * @notice: a #SnapdNotice2.
  *
  * Get the time this notification last repeated.
  *
- * Returns: (transfer full): a #GDateTime.
+ * Returns: (transfer none): a #GDateTime.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
-GDateTime *
-snapd_notice_get_last_repeated (SnapdNotice *self)
+const GDateTime *
+snapd_notice2_get_last_repeated (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), NULL);
     if (self->last_repeated == NULL)
         return NULL;
-    return g_date_time_ref (self->last_repeated);
+    return self->last_repeated;
 }
 
 /**
- * snapd_notice_get_occurrences:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_occurrences:
+ * @notice: a #SnapdNotice2.
  *
  * Get the number of times that this notification has been triggered.
  *
  * Returns: a count.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
 gint64
-snapd_notice_get_occurrences (SnapdNotice *self)
+snapd_notice2_get_occurrences (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), 0);
     return self->occurrences;
 }
 
 /**
- * snapd_notice_get_repeat_after:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_repeat_after:
+ * @notice: a #SnapdNotice2.
  *
  * Get the time interval after this notification can be repeated.
  *
  * Returns: a #GTimeSpan.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
 GTimeSpan
-snapd_notice_get_repeat_after (SnapdNotice *self)
+snapd_notice2_get_repeat_after (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), 0);
     return self->repeat_after;
 }
 
 /**
- * snapd_notice_get_expire_after:
- * @notice: a #SnapdNotice.
+ * snapd_notice2_get_expire_after:
+ * @notice: a #SnapdNotice2.
  *
  * Get the time interval after this notification can expire.
  *
  * Returns: a #GTimeSpan.
  *
- * Since: 1.65
- * Deprecated: 1.66
+ * Since: 1.66
  */
 GTimeSpan
-snapd_notice_get_expire_after (SnapdNotice *self)
+snapd_notice2_get_expire_after (SnapdNotice2 *self)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), 0);
     return self->expire_after;
 }
 
 /**
- * snapd_notice_compare_last_occurred:
- * @notice: a #SnapdNotice.
- * @notice_to_compare: another #SnapdNotice.
+ * snapd_notice2_compare_last_occurred:
+ * @notice: a #SnapdNotice2.
+ * @notice_to_compare: another #SnapdNotice2.
  *
  * Compare the last_occurred fields (and the last_occurred_nanosecond if available)
  * of both notices, and returns whether the first one is before, same or after the
@@ -306,13 +293,12 @@ snapd_notice_get_expire_after (SnapdNotice *self)
  * time instant, and 1 if the first one is after the second one.
  *
  * Since: 1.66
- * Deprecated: 1.66
  */
 gint
-snapd_notice_compare_last_occurred (SnapdNotice *self, SnapdNotice *notice_to_compare)
+snapd_notice2_compare_last_occurred (SnapdNotice2 *self, SnapdNotice2 *notice_to_compare)
 {
-    g_return_val_if_fail (SNAPD_IS_NOTICE (self), 0);
-    g_return_val_if_fail (SNAPD_IS_NOTICE (notice_to_compare), 0);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (self), 0);
+    g_return_val_if_fail (SNAPD_IS_NOTICE2 (notice_to_compare), 0);
 
     // first, compare without micro/nanoseconds. This is a must to avoid errors
     // due to rounding, because the g_date_time objects are created using a gdouble.
@@ -336,9 +322,9 @@ snapd_notice_compare_last_occurred (SnapdNotice *self, SnapdNotice *notice_to_co
 }
 
 static void
-snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
+snapd_notice2_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
-    SnapdNotice *self = SNAPD_NOTICE (object);
+    SnapdNotice2 *self = SNAPD_NOTICE2 (object);
     GDateTime *tmpdate;
 
     switch (prop_id) {
@@ -403,9 +389,9 @@ snapd_notice_set_property (GObject *object, guint prop_id, const GValue *value, 
 }
 
 static void
-snapd_notice_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
+snapd_notice2_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
-    SnapdNotice *self = SNAPD_NOTICE (object);
+    SnapdNotice2 *self = SNAPD_NOTICE2 (object);
 
     switch (prop_id) {
     case PROP_ID:
@@ -451,9 +437,9 @@ snapd_notice_get_property (GObject *object, guint prop_id, GValue *value, GParam
 }
 
 static void
-snapd_notice_finalize (GObject *object)
+snapd_notice2_finalize (GObject *object)
 {
-    SnapdNotice *self = SNAPD_NOTICE (object);
+    SnapdNotice2 *self = SNAPD_NOTICE2 (object);
 
     g_clear_pointer (&self->id, g_free);
     g_clear_pointer (&self->userid, g_free);
@@ -464,17 +450,17 @@ snapd_notice_finalize (GObject *object)
     g_clear_pointer (&self->last_repeated, g_date_time_unref);
     g_clear_pointer (&self->data, g_hash_table_unref);
 
-    G_OBJECT_CLASS (snapd_notice_parent_class)->finalize (object);
+    G_OBJECT_CLASS (snapd_notice2_parent_class)->finalize (object);
 }
 
 static void
-snapd_notice_class_init (SnapdNoticeClass *klass)
+snapd_notice2_class_init (SnapdNotice2Class *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
-    gobject_class->set_property = snapd_notice_set_property;
-    gobject_class->get_property = snapd_notice_get_property;
-    gobject_class->finalize = snapd_notice_finalize;
+    gobject_class->set_property = snapd_notice2_set_property;
+    gobject_class->get_property = snapd_notice2_get_property;
+    gobject_class->finalize = snapd_notice2_finalize;
 
     g_object_class_install_property (gobject_class,
                                      PROP_ID,
@@ -563,7 +549,7 @@ snapd_notice_class_init (SnapdNoticeClass *klass)
 }
 
 static void
-snapd_notice_init (SnapdNotice *self)
+snapd_notice2_init (SnapdNotice2 *self)
 {
     self->data = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 }

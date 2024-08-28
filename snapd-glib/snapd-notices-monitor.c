@@ -22,7 +22,7 @@ struct _SnapdNoticesMonitor {
 
     SnapdClient *client;
     GCancellable *cancellable;
-    SnapdNotice *last_notice;
+    SnapdNotice2 *last_notice;
     gboolean running;
 };
 
@@ -58,9 +58,9 @@ monitor_cb (SnapdClient* source,
     if (notices != NULL) {
         gboolean first_run = self->last_notice == NULL;
         for (int i = 0; i < notices->len; i++) {
-            g_autoptr(SnapdNotice) notice = g_object_ref(notices->pdata[i]);
+            g_autoptr(SnapdNotice2) notice = g_object_ref(notices->pdata[i]);
 
-            if (self->last_notice == NULL || snapd_notice_compare_last_occurred(self->last_notice, notice) <= 0) {
+            if (self->last_notice == NULL || snapd_notice2_compare_last_occurred(self->last_notice, notice) <= 0) {
                 g_clear_object(&self->last_notice);
                 self->last_notice = g_object_ref(notice);
             }
@@ -74,7 +74,7 @@ static void
 begin_monitor (SnapdNoticesMonitor *self)
 {
     snapd_client_notices_set_after_notice (self->client, self->last_notice);
-    g_autoptr(GDateTime) last_date_time = self->last_notice == NULL ? NULL : (GDateTime *) snapd_notice_get_last_occurred (self->last_notice);
+    GDateTime *last_date_time = self->last_notice == NULL ? NULL : (GDateTime *) snapd_notice2_get_last_occurred (self->last_notice);
     snapd_client_get_notices_async(self->client,
                                    last_date_time,
                                    2000000000000000, // "infinity" (there is a limit in snapd, around 9 billion seconds)
@@ -189,7 +189,7 @@ snapd_notices_monitor_class_init (SnapdNoticesMonitorClass *klass)
                   NULL,
                   G_TYPE_NONE,
                   2,
-                  SNAPD_TYPE_NOTICE,
+                  SNAPD_TYPE_NOTICE2,
                   G_TYPE_BOOLEAN);
     g_signal_new ("error-event",
                   G_TYPE_FROM_CLASS (klass),

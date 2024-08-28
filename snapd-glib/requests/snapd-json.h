@@ -18,7 +18,7 @@
 #include "snapd-connection.h"
 #include "snapd-interface.h"
 #include "snapd-maintenance.h"
-#include "snapd-notice.h"
+#include "snapd-notice2.h"
 #include "snapd-plug.h"
 #include "snapd-plug-ref.h"
 #include "snapd-slot.h"
@@ -53,7 +53,7 @@ JsonObject           *_snapd_json_get_object             (JsonObject         *ob
 
 GDateTime            *_snapd_json_get_date_time          (JsonObject         *object,
                                                           const gchar        *name,
-                                                          gint32             *nanoseconds);
+                                                          int                *nanoseconds);
 
 JsonObject           *_snapd_json_parse_response         (const gchar        *content_type,
                                                           GBytes             *body,

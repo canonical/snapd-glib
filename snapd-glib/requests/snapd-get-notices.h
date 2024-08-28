@@ -11,7 +11,7 @@
 
 #include "snapd-request.h"
 
-#include "snapd-notice.h"
+#include "snapd-notice2.h"
 
 G_BEGIN_DECLS
 
@@ -22,7 +22,7 @@ SnapdGetNotices *_snapd_get_notices_new      (gchar               *user_id,
                                               gchar               *types,
                                               gchar               *keys,
                                               GDateTime           *from_date_time,
-                                              gint32               from_date_time_nanoseconds,
+                                              int                  from_date_time_nanoseconds,
                                               GTimeSpan            timeout,
                                               GCancellable        *cancellable,
                                               GAsyncReadyCallback  callback,

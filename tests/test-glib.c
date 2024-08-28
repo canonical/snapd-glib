@@ -8585,13 +8585,13 @@ test_notices_events_cb (GObject* object, GAsyncResult* result, gpointer user_dat
     g_assert_nonnull (notices);
     g_assert_cmpint (notices->len, ==, 2);
 
-    g_autoptr(SnapdNotice) notice1 = g_object_ref (notices->pdata[0]);
-    g_autoptr(SnapdNotice) notice2 = g_object_ref (notices->pdata[1]);
+    g_autoptr(SnapdNotice2) notice1 = g_object_ref (notices->pdata[0]);
+    g_autoptr(SnapdNotice2) notice2 = g_object_ref (notices->pdata[1]);
 
-    g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
-    g_assert_null (snapd_notice_get_user_id (notice1));
+    g_assert_cmpstr (snapd_notice2_get_id (notice1), ==, "1");
+    g_assert_null (snapd_notice2_get_user_id (notice1));
 
-    g_assert_cmpint (snapd_notice_get_expire_after(notice1), ==,
+    g_assert_cmpint (snapd_notice2_get_expire_after(notice1), ==,
                                    382 * G_TIME_SPAN_DAY +
                                      4 * G_TIME_SPAN_HOUR +
                                      5 * G_TIME_SPAN_MINUTE +
@@ -8599,7 +8599,7 @@ test_notices_events_cb (GObject* object, GAsyncResult* result, gpointer user_dat
                                      7 * G_TIME_SPAN_MILLISECOND +
                                      8);
 
-    g_assert_cmpint (snapd_notice_get_repeat_after(notice1), ==,
+    g_assert_cmpint (snapd_notice2_get_repeat_after(notice1), ==,
                                    -(382 * G_TIME_SPAN_DAY +
                                        4 * G_TIME_SPAN_HOUR +
                                        5 * G_TIME_SPAN_MINUTE +
@@ -8613,20 +8613,20 @@ test_notices_events_cb (GObject* object, GAsyncResult* result, gpointer user_dat
     g_autoptr(GDateTime) date2 = g_date_time_new (timezone, 2025, 4, 2, 23, 28, 8);
     g_autoptr(GDateTime) date3 = g_date_time_new (timezone, 2026, 5, 3, 22, 20, 7);
 
-    g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred (notice1), date1));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice1), date2));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated (notice1), date3));
+    g_assert_true (g_date_time_equal (snapd_notice2_get_first_occurred (notice1), date1));
+    g_assert_true (g_date_time_equal (snapd_notice2_get_last_occurred (notice1), date2));
+    g_assert_true (g_date_time_equal (snapd_notice2_get_last_repeated (notice1), date3));
 
-    g_assert_true (snapd_notice_get_notice_type (notice1) == SNAPD_NOTICE_TYPE_UNKNOWN);
+    g_assert_true (snapd_notice2_get_notice_type (notice1) == SNAPD_NOTICE2_TYPE_UNKNOWN);
 
-    g_assert_cmpint (snapd_notice_get_occurrences(notice1), ==, 5);
+    g_assert_cmpint (snapd_notice2_get_occurrences(notice1), ==, 5);
 
-    g_autoptr(GHashTable) notice_data1 = snapd_notice_get_last_data (notice1);
+    GHashTable *notice_data1 = snapd_notice2_get_last_data (notice1);
     g_assert_nonnull (notice_data1);
     g_assert_cmpint (g_hash_table_size (notice_data1), ==, 0);
 
-    g_assert_cmpstr (snapd_notice_get_id (notice2), ==, "2");
-    g_assert_cmpstr (snapd_notice_get_user_id (notice2), ==, "67");
+    g_assert_cmpstr (snapd_notice2_get_id (notice2), ==, "2");
+    g_assert_cmpstr (snapd_notice2_get_user_id (notice2), ==, "67");
 
 #if GLIB_CHECK_VERSION(2, 68, 0)
     g_autoptr(GTimeZone) timezone2 = g_time_zone_new_identifier ("01:32");
@@ -8636,15 +8636,15 @@ test_notices_events_cb (GObject* object, GAsyncResult* result, gpointer user_dat
     g_autoptr(GDateTime) date4 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3);
     g_autoptr(GDateTime) date5 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3.000123);
 
-    g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred (notice2), date4));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice2), date5));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated (notice2), date4));
+    g_assert_true (g_date_time_equal (snapd_notice2_get_first_occurred (notice2), date4));
+    g_assert_true (g_date_time_equal (snapd_notice2_get_last_occurred (notice2), date5));
+    g_assert_true (g_date_time_equal (snapd_notice2_get_last_repeated (notice2), date4));
 
-    g_assert_cmpint (snapd_notice_get_occurrences(notice2), ==, 1);
+    g_assert_cmpint (snapd_notice2_get_occurrences(notice2), ==, 1);
 
-    g_assert_true (snapd_notice_get_notice_type (notice2) == SNAPD_NOTICE_TYPE_REFRESH_INHIBIT);
+    g_assert_true (snapd_notice2_get_notice_type (notice2) == SNAPD_NOTICE2_TYPE_REFRESH_INHIBIT);
 
-    g_autoptr(GHashTable) notice_data2 = snapd_notice_get_last_data (notice2);
+    GHashTable *notice_data2 = snapd_notice2_get_last_data (notice2);
     g_assert_nonnull (notice_data2);
     g_assert_cmpint (g_hash_table_size (notice_data2), ==, 1);
     g_assert_true (g_hash_table_contains (notice_data2, "kind"));
@@ -8759,24 +8759,24 @@ test_notices_minimal_data_events_cb (GObject* object, GAsyncResult* result, gpoi
     g_assert_nonnull (notices);
     g_assert_cmpint (notices->len, ==, 1);
 
-    g_autoptr(SnapdNotice) notice1 = g_object_ref (notices->pdata[0]);
+    g_autoptr(SnapdNotice2) notice1 = g_object_ref (notices->pdata[0]);
 
-    g_assert_cmpstr (snapd_notice_get_id (notice1), ==, "1");
-    g_assert_null (snapd_notice_get_user_id (notice1));
+    g_assert_cmpstr (snapd_notice2_get_id (notice1), ==, "1");
+    g_assert_null (snapd_notice2_get_user_id (notice1));
 
-    g_assert_cmpint (snapd_notice_get_expire_after(notice1), ==, 0);
+    g_assert_cmpint (snapd_notice2_get_expire_after(notice1), ==, 0);
 
-    g_assert_cmpint (snapd_notice_get_repeat_after(notice1), ==, 0);
+    g_assert_cmpint (snapd_notice2_get_repeat_after(notice1), ==, 0);
 
-    g_assert_null (snapd_notice_get_first_occurred (notice1));
-    g_assert_null (snapd_notice_get_last_occurred (notice1));
-    g_assert_null (snapd_notice_get_last_repeated (notice1));
+    g_assert_null (snapd_notice2_get_first_occurred (notice1));
+    g_assert_null (snapd_notice2_get_last_occurred (notice1));
+    g_assert_null (snapd_notice2_get_last_repeated (notice1));
 
-    g_assert_true (snapd_notice_get_notice_type (notice1) == SNAPD_NOTICE_TYPE_UNKNOWN);
+    g_assert_true (snapd_notice2_get_notice_type (notice1) == SNAPD_NOTICE2_TYPE_UNKNOWN);
 
-    g_assert_cmpint (snapd_notice_get_occurrences(notice1), ==, -1);
+    g_assert_cmpint (snapd_notice2_get_occurrences(notice1), ==, -1);
 
-    g_autoptr(GHashTable) notice_data = snapd_notice_get_last_data (notice1);
+    GHashTable *notice_data = snapd_notice2_get_last_data (notice1);
     g_assert_nonnull (notice_data);
     g_assert_cmpint (g_hash_table_size (notice_data), ==, 0);
 
@@ -8785,7 +8785,7 @@ test_notices_minimal_data_events_cb (GObject* object, GAsyncResult* result, gpoi
         data->counter++;
         g_autoptr(GTimeZone) timezone = g_time_zone_new_utc ();
         g_autoptr(GDateTime) date5 = g_date_time_new (timezone, 2029, 3, 1, 20, 29, 58.123456789);
-        g_autoptr(SnapdNotice) noticeTest = g_object_new (SNAPD_TYPE_NOTICE,
+        g_autoptr(SnapdNotice2) noticeTest = g_object_new (SNAPD_TYPE_NOTICE2,
                                                           "id", "an-id",
                                                           "last-occurred-nanoseconds", 12345678,
                                                           NULL);
@@ -8848,43 +8848,43 @@ test_notice_comparison (void)
     g_autoptr(GDateTime) date1 = g_date_time_new (timezone, 2024, 3, 1, 20, 29, 58.45);
     g_autoptr(GDateTime) date2 = g_date_time_new (timezone, 2025, 4, 2, 23, 28, 8);
 
-    g_autoptr(SnapdNotice) notice0 = g_object_new (SNAPD_TYPE_NOTICE,
+    g_autoptr(SnapdNotice2) notice0 = g_object_new (SNAPD_TYPE_NOTICE2,
                                                    "id", "id1",
                                                    "last-occurred", date1,
                                                    "last-occurred-nanoseconds", 123456788,
                                                    NULL);
 
-    g_autoptr(SnapdNotice) notice1 = g_object_new (SNAPD_TYPE_NOTICE,
+    g_autoptr(SnapdNotice2) notice1 = g_object_new (SNAPD_TYPE_NOTICE2,
                                                    "id", "id1",
                                                    "last-occurred", date1,
                                                    "last-occurred-nanoseconds", 123456789,
                                                    NULL);
-    g_autoptr(SnapdNotice) notice2 = g_object_new (SNAPD_TYPE_NOTICE,
+    g_autoptr(SnapdNotice2) notice2 = g_object_new (SNAPD_TYPE_NOTICE2,
                                                    "id", "id2",
                                                    "last-occurred", date1,
                                                    "last-occurred-nanoseconds", 123456789,
                                                    NULL);
-    g_autoptr(SnapdNotice) notice3 = g_object_new (SNAPD_TYPE_NOTICE,
+    g_autoptr(SnapdNotice2) notice3 = g_object_new (SNAPD_TYPE_NOTICE2,
                                                    "id", "id3",
                                                    "last-occurred", date1,
                                                    "last-occurred-nanoseconds", 123456790,
                                                    NULL);
-    g_autoptr(SnapdNotice) notice4 = g_object_new (SNAPD_TYPE_NOTICE,
+    g_autoptr(SnapdNotice2) notice4 = g_object_new (SNAPD_TYPE_NOTICE2,
                                                    "id", "id4",
                                                    "last-occurred", date0,
                                                    "last-occurred-nanoseconds", 123456789,
                                                    NULL);
-    g_autoptr(SnapdNotice) notice5 = g_object_new (SNAPD_TYPE_NOTICE,
+    g_autoptr(SnapdNotice2) notice5 = g_object_new (SNAPD_TYPE_NOTICE2,
                                                    "id", "id5",
                                                    "last-occurred", date2,
                                                    "last-occurred-nanoseconds", 123456789,
                                                    NULL);
 
-    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice0) == 1);
-    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice2) == 0);
-    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice3) == -1);
-    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice4) == 1);
-    g_assert_true (snapd_notice_compare_last_occurred (notice1, notice5) == -1);
+    g_assert_true (snapd_notice2_compare_last_occurred (notice1, notice0) == 1);
+    g_assert_true (snapd_notice2_compare_last_occurred (notice1, notice2) == 0);
+    g_assert_true (snapd_notice2_compare_last_occurred (notice1, notice3) == -1);
+    g_assert_true (snapd_notice2_compare_last_occurred (notice1, notice4) == 1);
+    g_assert_true (snapd_notice2_compare_last_occurred (notice1, notice5) == -1);
 }
 
 static void

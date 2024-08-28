@@ -3702,7 +3702,7 @@ QSnapdNotice *QSnapdNoticesRequest::getNotice (quint64 n) const
 
     if (d->notices == NULL || n >= d->notices->len)
         return NULL;
-    return new QSnapdNotice (SNAPD_NOTICE(d->notices->pdata[n]));
+    return new QSnapdNotice (SNAPD_NOTICE2(d->notices->pdata[n]));
 }
 
 void QSnapdNoticesRequest::setSinceDateFilterFromNotice (QSnapdNotice *notice)
