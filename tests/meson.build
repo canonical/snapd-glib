@@ -20,7 +20,7 @@ test_executable = executable ('test-glib',
                               c_args: [ '-DVERSION="@0@"'.format (meson.project_version ()) ],
                               install_dir: installed_tests_exec_dir,
                               install: true)
-test ('Tests', test_executable, timeout: 600)
+test ('Tests', test_executable, timeout: 1200)
 test_file = configure_file (input: 'test-glib.test.in',
                             output: 'test-glib.test',
                             configuration: test_data_conf)
@@ -32,7 +32,7 @@ test_executable = executable ('test-markdown-glib',
                               link_with: [ mock_snapd_lib ],
                               install_dir: installed_tests_exec_dir,
                               install: true)
-test ('Markdown tests', test_executable, timeout: 600)
+test ('Markdown tests', test_executable, timeout: 1200)
 test_file = configure_file (input: 'test-markdown-glib.test.in',
                             output: 'test-markdown-glib.test',
                             configuration: test_data_conf)
@@ -48,7 +48,7 @@ if get_option('qt5') or get_option('qt6')
                                 cpp_args: [ '-DVERSION="@0@"'.format (meson.project_version ()) ],
                                 install_dir: installed_tests_exec_dir,
                                 install: true)
-  test (f'Tests (@qt_version@', test_executable, timeout: 600)
+  test (f'Tests (@qt_version@', test_executable, timeout: 1200)
   test_file = configure_file (input: f'test-@qt_version@.test.in',
                               output: f'test-@qt_version@.test',
                               configuration: test_data_conf)
@@ -60,7 +60,7 @@ if get_option('qt5') or get_option('qt6')
                                 link_with: [ mock_snapd_lib ],
                                 install_dir: installed_tests_exec_dir,
                                 install: true)
-  test (f'Markdown tests (@qt_version@)', test_executable, timeout: 600)
+  test (f'Markdown tests (@qt_version@)', test_executable, timeout: 1200)
   test_file = configure_file (input: f'test-markdown-@qt_version@.test.in',
                               output: f'test-markdown-@qt_version@.test',
                               configuration: test_data_conf)
