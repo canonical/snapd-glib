@@ -60,17 +60,17 @@ static QDateTime convertDateTime (GDateTime *datetime)
 
 QDateTime QSnapdNotice::firstOccurred () const
 {
-    return convertDateTime ((GDateTime*) snapd_notice_get_first_occurred2 (SNAPD_NOTICE (wrapped_object)));
+    return convertDateTime (snapd_notice_get_first_occurred2 (SNAPD_NOTICE (wrapped_object)));
 }
 
 QDateTime QSnapdNotice::lastOccurred () const
 {
-    return convertDateTime ((GDateTime*) snapd_notice_get_last_occurred2 (SNAPD_NOTICE (wrapped_object)));
+    return convertDateTime (snapd_notice_get_last_occurred2 (SNAPD_NOTICE (wrapped_object)));
 }
 
 QDateTime QSnapdNotice::lastRepeated () const
 {
-    return convertDateTime ((GDateTime*) snapd_notice_get_last_repeated2 (SNAPD_NOTICE (wrapped_object)));
+    return convertDateTime (snapd_notice_get_last_repeated2 (SNAPD_NOTICE (wrapped_object)));
 }
 
 qint32 QSnapdNotice::occurrences () const
