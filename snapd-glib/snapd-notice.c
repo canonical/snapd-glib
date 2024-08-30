@@ -143,7 +143,7 @@ snapd_notice_get_key (SnapdNotice *self)
  * Returns: (transfer container): a HashTable with the data elements.
  *
  * Since: 1.65
- * Deprecated: 1.66
+ * Deprecated: 1.66: Use snapd_notice_get_last_data2()
  */
 GHashTable *
 snapd_notice_get_last_data (SnapdNotice *self)
@@ -178,7 +178,7 @@ snapd_notice_get_last_data2 (SnapdNotice *self)
  * Returns: (transfer full): a #GDateTime.
  *
  * Since: 1.65
- * Deprecated: 1.66
+ * Deprecated: 1.66: Use snapd_notice_get_first_occurred2()
  */
 GDateTime *
 snapd_notice_get_first_occurred (SnapdNotice *self)
@@ -203,8 +203,6 @@ GDateTime *
 snapd_notice_get_first_occurred2 (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
-    if (self->first_occurred == NULL)
-        return NULL;
     return self->first_occurred;
 }
 
@@ -217,7 +215,7 @@ snapd_notice_get_first_occurred2 (SnapdNotice *self)
  * Returns: (transfer full): a #GDateTime.
  *
  * Since: 1.65
- * Deprecated: 1.66
+ * Deprecated: 1.66: Use snapd_notice_get_last_occurred2()
  */
 GDateTime *
 snapd_notice_get_last_occurred (SnapdNotice *self)
@@ -242,8 +240,6 @@ GDateTime *
 snapd_notice_get_last_occurred2 (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
-    if (self->last_occurred == NULL)
-        return NULL;
     return self->last_occurred;
 }
 
@@ -277,7 +273,7 @@ snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *self)
  * Returns: (transfer full): a #GDateTime.
  *
  * Since: 1.65
- * Deprecated: 1.66
+ * Deprecated: 1.66: Use snapd_notice_get_last_repeated2()
  */
 GDateTime *
 snapd_notice_get_last_repeated (SnapdNotice *self)
@@ -302,8 +298,6 @@ GDateTime *
 snapd_notice_get_last_repeated2 (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
-    if (self->last_repeated == NULL)
-        return NULL;
     return self->last_repeated;
 }
 
