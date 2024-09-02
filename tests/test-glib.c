@@ -8613,15 +8613,15 @@ test_notices_events_cb (GObject* object, GAsyncResult* result, gpointer user_dat
     g_autoptr(GDateTime) date2 = g_date_time_new (timezone, 2025, 4, 2, 23, 28, 8);
     g_autoptr(GDateTime) date3 = g_date_time_new (timezone, 2026, 5, 3, 22, 20, 7);
 
-    g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred (notice1), date1));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice1), date2));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated (notice1), date3));
+    g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred2 (notice1), date1));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred2 (notice1), date2));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated2 (notice1), date3));
 
     g_assert_true (snapd_notice_get_notice_type (notice1) == SNAPD_NOTICE_TYPE_UNKNOWN);
 
     g_assert_cmpint (snapd_notice_get_occurrences(notice1), ==, 5);
 
-    g_autoptr(GHashTable) notice_data1 = snapd_notice_get_last_data (notice1);
+    GHashTable *notice_data1 = snapd_notice_get_last_data2 (notice1);
     g_assert_nonnull (notice_data1);
     g_assert_cmpint (g_hash_table_size (notice_data1), ==, 0);
 
@@ -8636,15 +8636,15 @@ test_notices_events_cb (GObject* object, GAsyncResult* result, gpointer user_dat
     g_autoptr(GDateTime) date4 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3);
     g_autoptr(GDateTime) date5 = g_date_time_new (timezone2, 2023, 2, 5, 21, 23, 3.000123);
 
-    g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred (notice2), date4));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred (notice2), date5));
-    g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated (notice2), date4));
+    g_assert_true (g_date_time_equal (snapd_notice_get_first_occurred2 (notice2), date4));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_occurred2 (notice2), date5));
+    g_assert_true (g_date_time_equal (snapd_notice_get_last_repeated2 (notice2), date4));
 
     g_assert_cmpint (snapd_notice_get_occurrences(notice2), ==, 1);
 
     g_assert_true (snapd_notice_get_notice_type (notice2) == SNAPD_NOTICE_TYPE_REFRESH_INHIBIT);
 
-    g_autoptr(GHashTable) notice_data2 = snapd_notice_get_last_data (notice2);
+    GHashTable *notice_data2 = snapd_notice_get_last_data2 (notice2);
     g_assert_nonnull (notice_data2);
     g_assert_cmpint (g_hash_table_size (notice_data2), ==, 1);
     g_assert_true (g_hash_table_contains (notice_data2, "kind"));
@@ -8768,15 +8768,15 @@ test_notices_minimal_data_events_cb (GObject* object, GAsyncResult* result, gpoi
 
     g_assert_cmpint (snapd_notice_get_repeat_after(notice1), ==, 0);
 
-    g_assert_null (snapd_notice_get_first_occurred (notice1));
-    g_assert_null (snapd_notice_get_last_occurred (notice1));
-    g_assert_null (snapd_notice_get_last_repeated (notice1));
+    g_assert_null (snapd_notice_get_first_occurred2 (notice1));
+    g_assert_null (snapd_notice_get_last_occurred2 (notice1));
+    g_assert_null (snapd_notice_get_last_repeated2 (notice1));
 
     g_assert_true (snapd_notice_get_notice_type (notice1) == SNAPD_NOTICE_TYPE_UNKNOWN);
 
     g_assert_cmpint (snapd_notice_get_occurrences(notice1), ==, -1);
 
-    g_autoptr(GHashTable) notice_data = snapd_notice_get_last_data (notice1);
+    GHashTable *notice_data = snapd_notice_get_last_data2 (notice1);
     g_assert_nonnull (notice_data);
     g_assert_cmpint (g_hash_table_size (notice_data), ==, 0);
 

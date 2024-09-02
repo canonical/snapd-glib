@@ -143,12 +143,30 @@ snapd_notice_get_key (SnapdNotice *self)
  * Returns: (transfer container): a HashTable with the data elements.
  *
  * Since: 1.65
+ * Deprecated: 1.66: Use snapd_notice_get_last_data2()
  */
 GHashTable *
 snapd_notice_get_last_data (SnapdNotice *self)
 {
     g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
     return g_hash_table_ref (self->data);
+}
+
+/**
+ * snapd_notice_get_last_data2: (rename to snapd_notice_get_last_data)
+ * @notice: a #SnapdNotice.
+ *
+ * Get the data of the notice.
+ *
+ * Returns: (transfer none): a HashTable with the data elements.
+ *
+ * Since: 1.66
+ */
+GHashTable *
+snapd_notice_get_last_data2 (SnapdNotice *self)
+{
+    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    return self->data;
 }
 
 /**
@@ -160,6 +178,7 @@ snapd_notice_get_last_data (SnapdNotice *self)
  * Returns: (transfer full): a #GDateTime.
  *
  * Since: 1.65
+ * Deprecated: 1.66: Use snapd_notice_get_first_occurred2()
  */
 GDateTime *
 snapd_notice_get_first_occurred (SnapdNotice *self)
@@ -171,6 +190,23 @@ snapd_notice_get_first_occurred (SnapdNotice *self)
 }
 
 /**
+ * snapd_notice_get_first_occurred2: (rename to snapd_notice_get_first_occurred)
+ * @notice: a #SnapdNotice.
+ *
+ * Get the time this notification first occurred.
+ *
+ * Returns: (transfer none): a #GDateTime.
+ *
+ * Since: 1.66
+ */
+GDateTime *
+snapd_notice_get_first_occurred2 (SnapdNotice *self)
+{
+    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    return self->first_occurred;
+}
+
+/**
  * snapd_notice_get_last_occurred:
  * @notice: a #SnapdNotice.
  *
@@ -179,6 +215,7 @@ snapd_notice_get_first_occurred (SnapdNotice *self)
  * Returns: (transfer full): a #GDateTime.
  *
  * Since: 1.65
+ * Deprecated: 1.66: Use snapd_notice_get_last_occurred2()
  */
 GDateTime *
 snapd_notice_get_last_occurred (SnapdNotice *self)
@@ -187,6 +224,23 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
     if (self->last_occurred == NULL)
         return NULL;
     return g_date_time_ref (self->last_occurred);
+}
+
+/**
+ * snapd_notice_get_last_occurred2: (rename to snapd_notice_get_last_occurred)
+ * @notice: a #SnapdNotice.
+ *
+ * Get the time this notification last occurred.
+ *
+ * Returns: (transfer none): a #GDateTime.
+ *
+ * Since: 1.66
+ */
+GDateTime *
+snapd_notice_get_last_occurred2 (SnapdNotice *self)
+{
+    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    return self->last_occurred;
 }
 
 /**
@@ -219,6 +273,7 @@ snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *self)
  * Returns: (transfer full): a #GDateTime.
  *
  * Since: 1.65
+ * Deprecated: 1.66: Use snapd_notice_get_last_repeated2()
  */
 GDateTime *
 snapd_notice_get_last_repeated (SnapdNotice *self)
@@ -227,6 +282,23 @@ snapd_notice_get_last_repeated (SnapdNotice *self)
     if (self->last_repeated == NULL)
         return NULL;
     return g_date_time_ref (self->last_repeated);
+}
+
+/**
+ * snapd_notice_get_last_repeated2: (rename to snapd_notice_get_last_repeated)
+ * @notice: a #SnapdNotice.
+ *
+ * Get the time this notification last repeated.
+ *
+ * Returns: (transfer none): a #GDateTime.
+ *
+ * Since: 1.66
+ */
+GDateTime *
+snapd_notice_get_last_repeated2 (SnapdNotice *self)
+{
+    g_return_val_if_fail (SNAPD_IS_NOTICE (self), NULL);
+    return self->last_repeated;
 }
 
 /**

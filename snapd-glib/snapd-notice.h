@@ -40,15 +40,23 @@ const gchar           *snapd_notice_get_key            (SnapdNotice *notice);
 
 GDateTime             *snapd_notice_get_first_occurred (SnapdNotice *notice);
 
+GDateTime             *snapd_notice_get_first_occurred2 (SnapdNotice *notice);
+
 GDateTime             *snapd_notice_get_last_occurred  (SnapdNotice *notice);
+
+GDateTime             *snapd_notice_get_last_occurred2 (SnapdNotice *notice);
 
 int                    snapd_notice_get_last_occurred_nanoseconds (SnapdNotice *notice);
 
 GDateTime             *snapd_notice_get_last_repeated  (SnapdNotice *notice);
 
+GDateTime             *snapd_notice_get_last_repeated2 (SnapdNotice *notice);
+
 gint64                 snapd_notice_get_occurrences    (SnapdNotice *notice);
 
 GHashTable            *snapd_notice_get_last_data      (SnapdNotice *notice);
+
+GHashTable            *snapd_notice_get_last_data2     (SnapdNotice *notice);
 
 GTimeSpan              snapd_notice_get_repeat_after   (SnapdNotice *notice);
 
