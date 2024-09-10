@@ -103,7 +103,7 @@ generate_get_snap_request (SnapdRequest *request, GBytes **body)
     if (self->timeout != 0) {
         add_uri_parameter_base (query, "timeout");
         // timeout in microseconds
-        g_string_append_printf (query, "%luus", self->timeout);
+        g_string_append_printf (query, "%lluus", (unsigned long long int)self->timeout);
     }
 
     if (query->len != 0)
