@@ -678,7 +678,7 @@ get_int_as_string (JsonObject *object, const gchar *name)
     if (node == NULL)
         return NULL;
     if (json_node_get_value_type (node) == G_TYPE_INT64)
-        return g_strdup_printf("%lld", (long long int)json_node_get_int (node));
+        return g_strdup_printf("%" G_GINT64_FORMAT, json_node_get_int (node));
     else if (json_node_get_value_type (node) == G_TYPE_STRING)
         return g_strdup(json_node_get_string (node));
     return NULL;
