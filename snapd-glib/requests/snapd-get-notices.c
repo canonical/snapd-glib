@@ -102,8 +102,8 @@ generate_get_snap_request (SnapdRequest *request, GBytes **body)
     }
     if (self->timeout != 0) {
         add_uri_parameter_base (query, "timeout");
-        // timeout in microseconds
-        g_string_append_printf (query, "%luus", self->timeout);
+        // timeout in microseconds. self->timeout is a GTimeSpan, which is a typedef into a gint64 type
+        g_string_append_printf (query, "%" G_GINT64_FORMAT "us", self->timeout);
     }
 
     if (query->len != 0)
