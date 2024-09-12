@@ -1,3 +1,30 @@
+Overview of changes in snapd-glib 1.66
+
+    * New API:
+      - snapd_client_notices_set_after_notice
+      - snapd_client_notices_set_since_nanoseconds
+      - snapd_notice_compare_last_occurred
+      - snapd_notice_get_first_occurred2
+      - snapd_notice_get_last_occurred2
+      - snapd_notice_get_last_occurred_nanoseconds
+      - snapd_notice_get_last_repeated2
+      - snapd_notice_get_occurrences
+      - snapd_notices_monitor_new
+      - snapd_notices_monitor_new_with_client
+      - snapd_notices_monitor_start
+      - snapd_notices_monitor_stop
+      - snapd_task_data_get_affected_snaps
+      - snapd_task_get_data
+      - SNAPD_ERROR_ALREADY_RUNNING
+      - SNAPD_ERROR_NOT_RUNNING
+    * Fix error handling in snapd_client_get_change_finish.
+    * Added support for data field in SnapdTask.
+    * Add nanosecond accuracy to SnapdNotice.
+    * Add SnapdNoticesMonitor.
+    * Add SnapdNotice getters that don't return references.
+    * Fix build in 32bit systems.
+    * Updated project URL to github.com/canonical/snapd-glib
+
 Overview of changes in snapd-glib 1.65
 
     * New API:
