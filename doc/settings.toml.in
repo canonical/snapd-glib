@@ -1,0 +1,15 @@
+[library]
+description = "The Snapd-GLib library"
+license = "LGPL-2, LGPL-3"
+version = "@PROJECT_VERSION@"
+repository_url = "https://github.com/canonical/snapd-glib"
+devhelp = true
+search_index = true
+
+[theme]
+name = "basic"
+show_index_summary = true
+show_class_hierarchy = true
+
+[source-location]
+base_url = "https://github.com/canonical/snapd-glib/tree/main"
