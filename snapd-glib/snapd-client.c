@@ -28,6 +28,8 @@
 #include "requests/snapd-get-interfaces.h"
 #include "requests/snapd-get-interfaces-legacy.h"
 #include "requests/snapd-get-logs.h"
+#include "requests/snapd-get-model.h"
+#include "requests/snapd-get-model-serial.h"
 #include "requests/snapd-get-notices.h"
 #include "requests/snapd-get-sections.h"
 #include "requests/snapd-get-snap.h"
@@ -4611,6 +4613,100 @@ snapd_client_follow_logs_finish (SnapdClient *self, GAsyncResult *result, GError
     SnapdGetLogs *request = SNAPD_GET_LOGS (result);
 
     return _snapd_request_propagate_error (SNAPD_REQUEST (request), error);
+}
+
+/**
+ * snapd_client_get_model_assertion_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Get the active model assertion for this device.
+ *
+ * Since: 1.67
+ */
+void
+snapd_client_get_model_assertion_async (SnapdClient *self,
+                                        GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdGetModel) request = _snapd_get_model_new (cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_model_assertion_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_model_assertion_async().
+ * See snapd_client_get_model_assertion_sync() for more information.
+ *
+ * Returns: an assertion or %NULL on error.
+ *
+ * Since: 1.67
+ */
+gchar *
+snapd_client_get_model_assertion_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_MODEL (result), NULL);
+
+    SnapdGetModel *request = SNAPD_GET_MODEL (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_strdup (_snapd_get_model_get_model_assertion (request));
+}
+
+/**
+ * snapd_client_get_serial_assertion_async:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @callback: (scope async): a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: (closure): the data to pass to callback function.
+ *
+ * Get the active serial assertion for this device.
+ *
+ * Since: 1.67
+ */
+void
+snapd_client_get_serial_assertion_async (SnapdClient *self,
+                                         GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+    g_return_if_fail (SNAPD_IS_CLIENT (self));
+
+    g_autoptr(SnapdGetModelSerial) request = _snapd_get_model_serial_new (cancellable, callback, user_data);
+    send_request (self, SNAPD_REQUEST (request));
+}
+
+/**
+ * snapd_client_get_serial_assertion_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_get_serial_assertion_async().
+ * See snapd_client_get_serial_assertion_sync() for more information.
+ *
+ * Returns: an assertion or %NULL on error.
+ *
+ * Since: 1.67
+ */
+gchar *
+snapd_client_get_serial_assertion_finish (SnapdClient *self, GAsyncResult *result, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+    g_return_val_if_fail (SNAPD_IS_GET_MODEL_SERIAL (result), NULL);
+
+    SnapdGetModelSerial *request = SNAPD_GET_MODEL_SERIAL (result);
+
+    if (!_snapd_request_propagate_error (SNAPD_REQUEST (request), error))
+        return NULL;
+    return g_strdup (_snapd_get_model_serial_get_serial_assertion (request));
 }
 
 /**

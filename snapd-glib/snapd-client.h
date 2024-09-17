@@ -17,6 +17,7 @@
 #include <glib-object.h>
 #include <gio/gio.h>
 
+#include <snapd-glib/snapd-assertion.h>
 #include <snapd-glib/snapd-auth-data.h>
 #include <snapd-glib/snapd-icon.h>
 #include <snapd-glib/snapd-log.h>
@@ -1325,6 +1326,32 @@ void                    snapd_client_notices_set_after_notice      (SnapdClient 
 
 void                    snapd_client_notices_set_since_nanoseconds (SnapdClient          *client,
                                                                     gint32                nanoseconds);
+
+gchar                  *snapd_client_get_model_assertion_sync      (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+
+void                    snapd_client_get_model_assertion_async     (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+
+gchar                  *snapd_client_get_model_assertion_finish    (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
+
+gchar                  *snapd_client_get_serial_assertion_sync     (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GError              **error);
+
+void                    snapd_client_get_serial_assertion_async    (SnapdClient          *client,
+                                                                    GCancellable         *cancellable,
+                                                                    GAsyncReadyCallback   callback,
+                                                                    gpointer              user_data);
+
+gchar                  *snapd_client_get_serial_assertion_finish   (SnapdClient          *client,
+                                                                    GAsyncResult         *result,
+                                                                    GError              **error);
 
 G_END_DECLS
 
