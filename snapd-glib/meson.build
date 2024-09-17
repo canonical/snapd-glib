@@ -207,7 +207,7 @@ pc.generate (libraries: [ snapd_glib_lib ],
              version: meson.project_version (),
              subdirs: library_name)
 
-if get_option ('introspection')
+if get_option ('introspection') or get_option('docs')
   nsversion = '2'
   if get_option('soup2')
     nsversion = '1'
