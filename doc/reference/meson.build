@@ -1,7 +1,7 @@
 subdir ('xml')
 
 if get_option ('docs')
-  glib_prefix = dependency ('glib-2.0').get_pkgconfig_variable ('prefix')
+  glib_prefix = dependency ('glib-2.0').get_variable (pkgconfig: 'prefix')
   glib_docpath = join_paths (glib_prefix, 'share', 'gtk-doc', 'html')
   docpath = join_paths (datadir, 'gtk-doc', 'html')
 
@@ -11,8 +11,8 @@ if get_option ('docs')
   gnome.gtkdoc ('snapd-glib',
                 main_xml: 'snapd-glib-docs.xml',
                 src_dir: [
-                  join_paths (meson.source_root (), 'snapd-glib'),
-                  join_paths (meson.build_root (), 'snapd-glib')
+                  join_paths (meson.project_source_root (), 'snapd-glib'),
+                  join_paths (meson.project_build_root (), 'snapd-glib')
                 ],
                 dependencies: snapd_glib_dep,
                 scan_args: [
