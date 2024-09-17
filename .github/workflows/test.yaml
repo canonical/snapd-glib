@@ -18,16 +18,21 @@ jobs:
           - libsoup3
         qt:
           - qt6
+        doc:
+          - true
         include:
           - image: ubuntu:22.04
             soup: libsoup2
             qt: qt6
+            doc: false
           - image: ubuntu:20.04
             soup: libsoup2
             qt: qt5
+            doc: false
           - image: ubuntu:18.04
             soup: libsoup2
             qt: qt5
+            doc: false
 
     runs-on: ubuntu-latest
     container: ${{ matrix.image }}
@@ -55,7 +60,12 @@ jobs:
         if: startsWith(matrix.image, 'ubuntu:')
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gi-docgen libgirepository1.0-dev libglib2.0-dev libjson-glib-dev ninja-build python3-pip python3-setuptools python3-wheel valac
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libgirepository1.0-dev libglib2.0-dev libjson-glib-dev ninja-build python3-pip python3-setuptools python3-wheel valac
+
+      - name: Install gi-docgen dependencies (Ubuntu)
+        if: startsWith(matrix.image, 'ubuntu:') && matrix.doc
+        run: |
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gi-docgen
 
       - name: Install libsoup3 dependencies (Ubuntu)
         if: startsWith(matrix.image, 'ubuntu:') && matrix.soup == 'libsoup3'
@@ -80,7 +90,7 @@ jobs:
       - name: Install dependencies (Fedora)
         if: startsWith(matrix.image, 'fedora:')
         run: |
-          dnf install -y gcc gcc-c++ gobject-introspection-devel glib2-devel gtk-doc json-glib-devel libsoup3-devel ninja-build python3-pip qt6-qtbase-devel qt6-qtdeclarative-devel redhat-rpm-config vala
+          dnf install -y gcc gcc-c++ gobject-introspection-devel glib2-devel gi-docgen json-glib-devel libsoup3-devel ninja-build python3-pip qt6-qtbase-devel qt6-qtdeclarative-devel redhat-rpm-config vala
 
       - name: Install meson
         if: matrix.image != 'ubuntu:rolling'
@@ -91,30 +101,34 @@ jobs:
         run: |
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends meson
 
-      - name: Configure
-        if: matrix.soup == 'libsoup3' && matrix.qt != 'qt5'
+      - name: Configure (with docs)
+        if: matrix.soup == 'libsoup3' && matrix.qt != 'qt5' && matrix.doc == 'true'
         run: |
           meson _build
+
+      - name: Configure
+        if: matrix.soup == 'libsoup3' && matrix.qt != 'qt5' && matrix.doc != 'true'
+        run: |
+          meson _build -Ddocs=false
 
       - name: Configure (Qt5)
         if: matrix.soup == 'libsoup3' && matrix.qt == 'qt5'
         run: |
-          meson _build -Dqt=5=true -Dqt6=false
+          meson _build -Dqt=5=true -Dqt6=false -Ddocs=false
 
       - name: Configure (libsoup2.4)
         if: matrix.soup == 'libsoup2' && matrix.qt != 'qt5'
         run:
-          meson _build -Dsoup2=true
+          meson _build -Dsoup2=true -Ddocs=false
 
       - name: Configure (libsoup2.4 and Qt5)
         if: matrix.soup == 'libsoup2' && matrix.qt == 'qt5'
         run: |
-          meson _build -Dsoup2=true -Dqt5=true -Dqt6=false
+          meson _build -Dsoup2=true -Dqt5=true -Dqt6=false -Ddocs=false
 
       - name: Build
         run: |
           ninja -C _build
-          ninja -C _build snapd-glib-doc
 
       - name: Test
         run: ninja -C _build test
