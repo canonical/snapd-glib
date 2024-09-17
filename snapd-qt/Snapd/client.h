@@ -1003,6 +1003,42 @@ private:
     qint32 sinceNanosecondsFilter;
 };
 
+class QSnapdGetModelAssertionRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetModelAssertionRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdGetModelAssertionRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetModelAssertionRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE QString modelAssertion () const;
+    void handleResult (void *, void *);
+
+private:
+    QScopedPointer<QSnapdGetModelAssertionRequestPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetModelAssertionRequest)
+};
+
+class QSnapdGetSerialAssertionRequestPrivate;
+class Q_DECL_EXPORT QSnapdGetSerialAssertionRequest : public QSnapdRequest
+{
+    Q_OBJECT
+
+public:
+    explicit QSnapdGetSerialAssertionRequest (void *snapd_client, QObject *parent = 0);
+    ~QSnapdGetSerialAssertionRequest ();
+    virtual void runSync ();
+    virtual void runAsync ();
+    Q_INVOKABLE QString serialAssertion () const;
+    void handleResult (void *, void *);
+
+private:
+    QScopedPointer<QSnapdGetSerialAssertionRequestPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QSnapdGetSerialAssertionRequest)
+};
+
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password);
 Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *login (const QString& email, const QString& password, const QString& otp);
 
@@ -1178,6 +1214,8 @@ public:
     Q_INVOKABLE QSnapdCheckThemesRequest *checkThemes (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames);
     Q_INVOKABLE QSnapdInstallThemesRequest *installThemes (const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames);
     Q_INVOKABLE QSnapdNoticesRequest *getNotices ();
+    Q_INVOKABLE QSnapdGetModelAssertionRequest *getModelAssertion ();
+    Q_INVOKABLE QSnapdGetSerialAssertionRequest *getSerialAssertion ();
 
 private:
     QScopedPointer<QSnapdClientPrivate> d_ptr;

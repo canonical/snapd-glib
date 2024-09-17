@@ -1964,3 +1964,53 @@ snapd_client_get_notices_with_filters_sync (SnapdClient *self,
     end_sync (&data);
     return snapd_client_get_notices_with_filters_finish (self, data.result, error);
 }
+
+/**
+ * snapd_client_get_model_assertion_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Synchronously get the active model assertion for this device.
+ *
+ * Returns: an assertion or %NULL on error.
+ *
+ * Since: 1.67
+ */
+gchar *
+snapd_client_get_model_assertion_sync (SnapdClient *self,
+                                       GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_get_model_assertion_async (self, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_model_assertion_finish (self, data.result, error);
+}
+
+/**
+ * snapd_client_get_serial_assertion_sync:
+ * @client: a #SnapdClient.
+ * @cancellable: (allow-none): a #GCancellable or %NULL.
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Synchronously get the active serial assertion for this device.
+ *
+ * Returns: an assertion or %NULL on error.
+ *
+ * Since: 1.67
+ */
+gchar *
+snapd_client_get_serial_assertion_sync (SnapdClient *self,
+                                        GCancellable *cancellable, GError **error)
+{
+    g_return_val_if_fail (SNAPD_IS_CLIENT (self), NULL);
+
+    g_auto(SyncData) data = { 0 };
+    start_sync (&data);
+    snapd_client_get_serial_assertion_async (self, cancellable, sync_cb, &data);
+    end_sync (&data);
+    return snapd_client_get_serial_assertion_finish (self, data.result, error);
+}

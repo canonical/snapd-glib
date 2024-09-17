@@ -3718,3 +3718,119 @@ void QSnapdNoticesRequest::setSinceDateFilterFromDateNanoseconds (QDateTime date
     this->sinceFilter = dateTime;
     this->sinceNanosecondsFilter = nanoseconds;
 }
+
+QSnapdGetModelAssertionRequest *QSnapdClient::getModelAssertion ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetModelAssertionRequest (d->client);
+}
+
+QSnapdGetModelAssertionRequest::QSnapdGetModelAssertionRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetModelAssertionRequestPrivate (this)) {}
+
+QSnapdGetModelAssertionRequest::~QSnapdGetModelAssertionRequest ()
+{}
+
+void QSnapdGetModelAssertionRequest::runSync ()
+{
+    Q_D(QSnapdGetModelAssertionRequest);
+
+    g_autoptr(GError) error = NULL;
+    d->model_assertion = snapd_client_get_model_assertion_sync (SNAPD_CLIENT (getClient ()),
+                                                                G_CANCELLABLE (getCancellable ()),
+                                                                &error);
+    finish (error);
+}
+
+void QSnapdGetModelAssertionRequest::handleResult (void *object, void *result)
+{
+    Q_D(QSnapdGetModelAssertionRequest);
+
+    g_autoptr(GError) error = NULL;
+    d->model_assertion = snapd_client_get_model_assertion_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    finish (error);
+}
+
+static void get_model_assertion_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    g_autoptr(CallbackData) callback_data = (CallbackData *) data;
+    if (callback_data->request != NULL) {
+        QSnapdGetModelAssertionRequest *request = static_cast<QSnapdGetModelAssertionRequest*>(callback_data->request);
+        request->handleResult (object, result);
+    }
+}
+
+void QSnapdGetModelAssertionRequest::runAsync ()
+{
+    Q_D(QSnapdGetModelAssertionRequest);
+
+    snapd_client_get_model_assertion_async (SNAPD_CLIENT (getClient ()),
+                                            G_CANCELLABLE (getCancellable ()),
+                                            get_model_assertion_ready_cb,
+                                            g_object_ref (d->callback_data));
+}
+
+QString QSnapdGetModelAssertionRequest::modelAssertion () const
+{
+    Q_D(const QSnapdGetModelAssertionRequest);
+    return d->model_assertion;
+}
+
+QSnapdGetSerialAssertionRequest *QSnapdClient::getSerialAssertion ()
+{
+    Q_D(QSnapdClient);
+    return new QSnapdGetSerialAssertionRequest (d->client);
+}
+
+QSnapdGetSerialAssertionRequest::QSnapdGetSerialAssertionRequest (void *snapd_client, QObject *parent) :
+    QSnapdRequest (snapd_client, parent),
+    d_ptr (new QSnapdGetSerialAssertionRequestPrivate (this)) {}
+
+QSnapdGetSerialAssertionRequest::~QSnapdGetSerialAssertionRequest ()
+{}
+
+void QSnapdGetSerialAssertionRequest::runSync ()
+{
+    Q_D(QSnapdGetSerialAssertionRequest);
+
+    g_autoptr(GError) error = NULL;
+    d->serial_assertion = snapd_client_get_serial_assertion_sync (SNAPD_CLIENT (getClient ()),
+                                                                  G_CANCELLABLE (getCancellable ()),
+                                                                  &error);
+    finish (error);
+}
+
+void QSnapdGetSerialAssertionRequest::handleResult (void *object, void *result)
+{
+    Q_D(QSnapdGetSerialAssertionRequest);
+
+    g_autoptr(GError) error = NULL;
+    d->serial_assertion = snapd_client_get_serial_assertion_finish (SNAPD_CLIENT (object), G_ASYNC_RESULT (result), &error);
+    finish (error);
+}
+
+static void get_serial_assertion_ready_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+    g_autoptr(CallbackData) callback_data = (CallbackData *) data;
+    if (callback_data->request != NULL) {
+        QSnapdGetSerialAssertionRequest *request = static_cast<QSnapdGetSerialAssertionRequest*>(callback_data->request);
+        request->handleResult (object, result);
+    }
+}
+
+void QSnapdGetSerialAssertionRequest::runAsync ()
+{
+    Q_D(QSnapdGetSerialAssertionRequest);
+
+    snapd_client_get_serial_assertion_async (SNAPD_CLIENT (getClient ()),
+                                             G_CANCELLABLE (getCancellable ()),
+                                             get_serial_assertion_ready_cb,
+                                             g_object_ref (d->callback_data));
+}
+
+QString QSnapdGetSerialAssertionRequest::serialAssertion () const
+{
+    Q_D(const QSnapdGetSerialAssertionRequest);
+    return d->serial_assertion;
+}

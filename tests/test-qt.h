@@ -939,3 +939,37 @@ public:
 public slots:
     void onComplete ();
 };
+
+class GetModelAssertionHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetModelAssertionHandler (GMainLoop *loop, QSnapdGetModelAssertionRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetModelAssertionRequest *request;
+    ~GetModelAssertionHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};
+
+class GetSerialAssertionHandler: public QObject
+{
+    Q_OBJECT
+
+public:
+    GetSerialAssertionHandler (GMainLoop *loop, QSnapdGetSerialAssertionRequest *request) : loop (loop), request (request) {}
+    GMainLoop *loop;
+    QSnapdGetSerialAssertionRequest *request;
+    ~GetSerialAssertionHandler ()
+    {
+        delete request;
+    }
+
+public slots:
+    void onComplete ();
+};

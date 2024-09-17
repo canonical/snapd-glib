@@ -5302,6 +5302,42 @@ handle_notices (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
 }
 
 static void
+handle_model (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
+{
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
+    const gchar *method = message->method;
+#endif
+
+    if (strcmp (method, "GET") != 0) {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+
+    g_autoptr(GString) response_content = g_string_new ("type: model\n\nSIGNATURE");
+    send_response (message, 200, "application/x.ubuntu.assertion", (guint8*) response_content->str, response_content->len);
+}
+
+static void
+handle_model_serial (MockSnapd *self, SoupServerMessage *message, GHashTable *query)
+{
+#if SOUP_CHECK_VERSION (2, 99, 2)
+    const gchar *method = soup_server_message_get_method (message);
+#else
+    const gchar *method = message->method;
+#endif
+
+    if (strcmp (method, "GET") != 0) {
+        send_error_method_not_allowed (self, message, "method not allowed");
+        return;
+    }
+
+    g_autoptr(GString) response_content = g_string_new ("type: serial\n\nSIGNATURE");
+    send_response (message, 200, "application/x.ubuntu.assertion", (guint8*) response_content->str, response_content->len);
+}
+
+static void
 handle_request (SoupServer        *server,
                 SoupServerMessage *message,
                 const char        *path,
@@ -5397,6 +5433,10 @@ handle_request (SoupServer        *server,
         handle_logs (self, message, query);
     else if (strcmp (path, "/v2/notices") == 0)
         handle_notices (self, message, query);
+    else if (strcmp (path, "/v2/model") == 0)
+        handle_model (self, message, NULL);
+    else if (strcmp (path, "/v2/model/serial") == 0)
+        handle_model_serial (self, message, NULL);
     else
         send_error_not_found (self, message, "not found", NULL);
 }

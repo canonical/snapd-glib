@@ -7463,6 +7463,102 @@ test_task_data_field (void)
 }
 
 
+static void
+test_get_model_assertion_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetModelAssertionRequest> modelAssertionRequest (client.getModelAssertion ());
+    modelAssertionRequest->runSync ();
+    g_assert_cmpint (modelAssertionRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_true (modelAssertionRequest->modelAssertion () == "type: model\n\nSIGNATURE");
+}
+
+
+void
+GetModelAssertionHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_true (request->modelAssertion () == "type: model\n\nSIGNATURE");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_model_assertion_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetModelAssertionHandler getModelAssertionHandler (loop, client.getModelAssertion ());
+    QObject::connect (getModelAssertionHandler.request, &QSnapdGetModelAssertionRequest::complete, &getModelAssertionHandler, &GetModelAssertionHandler::onComplete);
+    getModelAssertionHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
+
+static void
+test_get_serial_assertion_sync ()
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    QScopedPointer<QSnapdGetSerialAssertionRequest> serialAssertionRequest (client.getSerialAssertion ());
+    serialAssertionRequest->runSync ();
+    g_assert_cmpint (serialAssertionRequest->error (), ==, QSnapdRequest::NoError);
+    g_assert_true (serialAssertionRequest->serialAssertion () == "type: serial\n\nSIGNATURE");
+}
+
+
+void
+GetSerialAssertionHandler::onComplete ()
+{
+    g_assert_cmpint (request->error (), ==, QSnapdRequest::NoError);
+    g_assert_true (request->serialAssertion () == "type: serial\n\nSIGNATURE");
+
+    g_main_loop_quit (loop);
+}
+
+static void
+test_get_serial_assertion_async ()
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    QSnapdClient client;
+    client.setSocketPath (mock_snapd_get_socket_path (snapd));
+
+    GetSerialAssertionHandler getSerialAssertionHandler (loop, client.getSerialAssertion ());
+    QObject::connect (getSerialAssertionHandler.request, &QSnapdGetSerialAssertionRequest::complete, &getSerialAssertionHandler, &GetSerialAssertionHandler::onComplete);
+    getSerialAssertionHandler.request->runAsync ();
+
+    g_main_loop_run (loop);
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -7724,6 +7820,10 @@ main (int argc, char **argv)
     g_test_add_func ("/themes/install/async", test_themes_install_async);
     g_test_add_func ("/themes/install/no-snaps", test_themes_install_no_snaps);
     g_test_add_func ("/themes/install/progress", test_themes_install_progress);
+    g_test_add_func ("/get-model-assertion/sync", test_get_model_assertion_sync);
+    g_test_add_func ("/get-model-assertion/async", test_get_model_assertion_async);
+    g_test_add_func ("/get-serial-assertion/sync", test_get_serial_assertion_sync);
+    g_test_add_func ("/get-serial-assertion/async", test_get_serial_assertion_async);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();

@@ -8964,6 +8964,104 @@ test_task_data_field (void)
     g_assert_null (data3);
 }
 
+static void
+test_get_model_assertion_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autofree gchar *model_assertion = snapd_client_get_model_assertion_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (model_assertion);
+    g_assert_cmpstr (model_assertion, == , "type: model\n\nSIGNATURE");
+}
+
+static void
+get_model_assertion_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    g_autofree gchar *model_assertion = snapd_client_get_model_assertion_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (model_assertion);
+    g_assert_cmpstr (model_assertion, == , "type: model\n\nSIGNATURE");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_get_model_assertion_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    AsyncData *data = async_data_new (loop, snapd);
+    snapd_client_get_model_assertion_async (client, NULL, get_model_assertion_cb, data);
+    g_main_loop_run (loop);
+}
+
+static void
+test_get_serial_assertion_sync (void)
+{
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    g_autofree gchar *serial_assertion = snapd_client_get_serial_assertion_sync (client, NULL, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (serial_assertion);
+    g_assert_cmpstr (serial_assertion, == , "type: serial\n\nSIGNATURE");
+}
+
+static void
+get_serial_assertion_cb (GObject *object, GAsyncResult *result, gpointer user_data)
+{
+    g_autoptr(AsyncData) data = user_data;
+
+    g_autoptr(GError) error = NULL;
+    g_autofree gchar *serial_assertion = snapd_client_get_serial_assertion_finish (SNAPD_CLIENT (object), result, &error);
+    g_assert_no_error (error);
+    g_assert_nonnull (serial_assertion);
+    g_assert_cmpstr (serial_assertion, == , "type: serial\n\nSIGNATURE");
+
+    g_main_loop_quit (data->loop);
+}
+
+static void
+test_get_serial_assertion_async (void)
+{
+    g_autoptr(GMainLoop) loop = g_main_loop_new (NULL, FALSE);
+
+    g_autoptr(MockSnapd) snapd = mock_snapd_new ();
+
+    g_autoptr(GError) error = NULL;
+    g_assert_true (mock_snapd_start (snapd, &error));
+
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    snapd_client_set_socket_path (client, mock_snapd_get_socket_path (snapd));
+
+    AsyncData *data = async_data_new (loop, snapd);
+    snapd_client_get_serial_assertion_async (client, NULL, get_serial_assertion_cb, data);
+    g_main_loop_run (loop);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -9239,6 +9337,10 @@ main (int argc, char **argv)
     g_test_add_func ("/get-logs/limit", test_get_logs_limit);
     g_test_add_func ("/follow-logs/sync", test_follow_logs_sync);
     g_test_add_func ("/follow-logs/async", test_follow_logs_async);
+    g_test_add_func ("/get-model-assertion/sync", test_get_model_assertion_sync);
+    g_test_add_func ("/get-model-assertion/async", test_get_model_assertion_async);
+    g_test_add_func ("/get-serial-assertion/sync", test_get_serial_assertion_sync);
+    g_test_add_func ("/get-serial-assertion/async", test_get_serial_assertion_async);
     g_test_add_func ("/stress/basic", test_stress);
 
     return g_test_run ();

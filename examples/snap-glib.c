@@ -300,10 +300,35 @@ static int logs (int argc, char **argv)
     return EXIT_SUCCESS;
 }
 
+static int model (int argc, char **argv)
+{
+    g_autoptr(SnapdClient) client = snapd_client_new ();
+    g_autoptr(GError) error = NULL;
+    g_autofree gchar *model_assertion_text = snapd_client_get_model_assertion_sync (client, NULL, &error);
+    if (model_assertion_text == NULL) {
+        g_printerr ("error: failed to get model assertion: %s\n", error->message);
+        return EXIT_FAILURE;
+    }
+    g_autofree gchar *serial_assertion_text = snapd_client_get_serial_assertion_sync (client, NULL, &error);
+    if (serial_assertion_text == NULL) {
+        g_printerr ("error: failed to get serial assertion: %s\n", error->message);
+        return EXIT_FAILURE;
+    }
+
+    g_autoptr(SnapdAssertion) model_assertion = snapd_assertion_new (model_assertion_text);
+    g_autoptr(SnapdAssertion) serial_assertion = snapd_assertion_new (serial_assertion_text);
+
+    g_printerr ("brand  %s\n", snapd_assertion_get_header (model_assertion, "brand-id"));
+    g_printerr ("model  %s\n", snapd_assertion_get_header (model_assertion, "model"));
+    g_printerr ("serial %s\n", snapd_assertion_get_header (serial_assertion, "serial"));
+
+    return EXIT_SUCCESS;
+}
+
 static int usage()
 {
     g_printerr ("Usage snap-glib <command> [<options>...]\n");
-    g_printerr ("Commands: find, info, install, remove, list, logs, help\n");
+    g_printerr ("Commands: find, info, install, remove, list, logs, model, help\n");
 
     return EXIT_SUCCESS;
 }
@@ -334,6 +359,9 @@ int main (int argc, char **argv)
     }
     else if (strcmp (command, "logs") == 0) {
         return logs (command_argc, command_argv);
+    }
+    else if (strcmp (command, "model") == 0) {
+        return model (command_argc, command_argv);
     }
     else if (strcmp (command, "help") == 0) {
         return usage ();

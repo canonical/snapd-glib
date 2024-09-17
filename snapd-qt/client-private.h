@@ -988,4 +988,38 @@ public:
     GPtrArray *notices;
 };
 
+class QSnapdGetModelAssertionRequestPrivate
+{
+public:
+    QSnapdGetModelAssertionRequestPrivate (gpointer request) {
+        model_assertion = NULL;
+        callback_data = callback_data_new (request);
+    }
+    ~QSnapdGetModelAssertionRequestPrivate ()
+    {
+        callback_data->request = NULL;
+        g_object_unref (callback_data);
+        g_clear_pointer (&model_assertion, g_free);
+    }
+    CallbackData *callback_data;
+    gchar *model_assertion;
+};
+
+class QSnapdGetSerialAssertionRequestPrivate
+{
+public:
+    QSnapdGetSerialAssertionRequestPrivate (gpointer request) {
+        serial_assertion = NULL;
+        callback_data = callback_data_new (request);
+    }
+    ~QSnapdGetSerialAssertionRequestPrivate ()
+    {
+        callback_data->request = NULL;
+        g_object_unref (callback_data);
+        g_clear_pointer (&serial_assertion, g_free);
+    }
+    CallbackData *callback_data;
+    gchar *serial_assertion;
+};
+
 #endif
