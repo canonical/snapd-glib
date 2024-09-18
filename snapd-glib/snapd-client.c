@@ -4645,7 +4645,7 @@ snapd_client_get_model_assertion_async (SnapdClient *self,
  * Complete request started with snapd_client_get_model_assertion_async().
  * See snapd_client_get_model_assertion_sync() for more information.
  *
- * Returns: an assertion or %NULL on error.
+ * Returns: (transfer full): an assertion or %NULL on error.
  *
  * Since: 1.67
  */
@@ -4692,7 +4692,7 @@ snapd_client_get_serial_assertion_async (SnapdClient *self,
  * Complete request started with snapd_client_get_serial_assertion_async().
  * See snapd_client_get_serial_assertion_sync() for more information.
  *
- * Returns: an assertion or %NULL on error.
+ * Returns: (transfer full): an assertion or %NULL on error.
  *
  * Since: 1.67
  */
