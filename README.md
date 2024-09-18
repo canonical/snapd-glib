@@ -11,7 +11,7 @@ The following languages / platforms are supported:
   * Qt
   * QML
 
-See [snapcraft.io](https://snapcraft.io) for more information.
+Documentation is available [online](https://canonical.github.io/snapd-glib/). See [snapcraft.io](https://snapcraft.io) for more information on snapd.
 
 ## Reporting bugs
 
