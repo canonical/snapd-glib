@@ -1068,7 +1068,6 @@ test_logout_sync ()
     QStringList discharges;
     for (int i = 0; d[i] != NULL; i++)
         discharges << d[i];
-    qDebug() << discharges;
     QSnapdAuthData authData (mock_account_get_macaroon (a), discharges);
     client.setAuthData (&authData);
 
