@@ -10,6 +10,7 @@ if get_option ('docs')
   custom_target('documentation',
                 depends: snapd_glib_gir,
                 command : [docgen, 'generate', '--config', settings_file, '--output-dir', join_paths (meson.project_build_root (), 'doc'), join_paths (meson.project_build_root (), 'snapd-glib', 'Snapd-2.gir')],
-                output: 'fake',
-                build_by_default : true)
+                output: 'snapd-doc',
+                build_by_default: false)
+  meson.add_install_script('doc-install.sh')
 endif
