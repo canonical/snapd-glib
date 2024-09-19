@@ -129,7 +129,6 @@ jobs:
       - name: Build
         run: |
           ninja -C _build
-          ninja -C _build doc/snapd-doc
 
       - name: Test
         run: ninja -C _build test
