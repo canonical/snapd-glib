@@ -153,7 +153,7 @@ snapd_notice_get_last_data (SnapdNotice *self)
 }
 
 /**
- * snapd_notice_get_last_data2: (rename to snapd_notice_get_last_data)
+ * snapd_notice_get_last_data2: (rename-to snapd_notice_get_last_data)
  * @notice: a #SnapdNotice.
  *
  * Get the data of the notice.
@@ -190,7 +190,7 @@ snapd_notice_get_first_occurred (SnapdNotice *self)
 }
 
 /**
- * snapd_notice_get_first_occurred2: (rename to snapd_notice_get_first_occurred)
+ * snapd_notice_get_first_occurred2: (rename-to snapd_notice_get_first_occurred)
  * @notice: a #SnapdNotice.
  *
  * Get the time this notification first occurred.
@@ -227,7 +227,7 @@ snapd_notice_get_last_occurred (SnapdNotice *self)
 }
 
 /**
- * snapd_notice_get_last_occurred2: (rename to snapd_notice_get_last_occurred)
+ * snapd_notice_get_last_occurred2: (rename-to snapd_notice_get_last_occurred)
  * @notice: a #SnapdNotice.
  *
  * Get the time this notification last occurred.
@@ -285,7 +285,7 @@ snapd_notice_get_last_repeated (SnapdNotice *self)
 }
 
 /**
- * snapd_notice_get_last_repeated2: (rename to snapd_notice_get_last_repeated)
+ * snapd_notice_get_last_repeated2: (rename-to snapd_notice_get_last_repeated)
  * @notice: a #SnapdNotice.
  *
  * Get the time this notification last repeated.
