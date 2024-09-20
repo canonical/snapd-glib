@@ -102,12 +102,12 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends meson
 
       - name: Configure (with docs)
-        if: matrix.soup == 'libsoup3' && matrix.qt != 'qt5' && matrix.doc == 'true'
+        if: matrix.soup == 'libsoup3' && matrix.qt != 'qt5' && matrix.doc
         run: |
           meson _build
 
       - name: Configure
-        if: matrix.soup == 'libsoup3' && matrix.qt != 'qt5' && matrix.doc != 'true'
+        if: matrix.soup == 'libsoup3' && matrix.qt != 'qt5' && !matrix.doc
         run: |
           meson _build -Ddocs=false
 
