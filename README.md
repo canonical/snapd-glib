@@ -13,10 +13,6 @@ The following languages / platforms are supported:
 
 Documentation is available [online](https://canonical.github.io/snapd-glib/). See [snapcraft.io](https://snapcraft.io) for more information on snapd.
 
-## Building documentation
-
-To build it, just run `ninja doc/snapd-doc`.
-
 ## Reporting bugs
 
 If you have found an issue with the application, please [file an issue](https://github.com/canonical/snapd-glib/issues/new) on the [issues list on GitHub](https://github.com/snapcore/snapd-glib/issues).
