@@ -17,6 +17,28 @@
 
 #include "snapd-notices-monitor.h"
 
+/**
+ * SECTION: snapd-notices-monitor
+ * @short_description: Allows to receive events from snapd.
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * #SnapdNoticesMonitor allows to receive in real time events from
+ * snapd, like status changes in an ongoin refresh, inhibited refreshes
+ * due to the snap being active, or inhibited launches due to an ongoin
+ * refresh.
+ */
+
+/**
+ * SnapdNoticesMonitor:
+ *
+ * #SnapdNoticesMonitor allows to receive in real time events from
+ * snapd, like status changes in an ongoin refresh, inhibited refreshes
+ * due to the snap being active, or inhibited launches due to an ongoin
+ * refresh.
+ *
+ * Since: 1.66
+ */
+
 struct _SnapdNoticesMonitor {
   GObject parent_instance;
 
@@ -89,6 +111,8 @@ static void begin_monitor(SnapdNoticesMonitor *self) {
  *
  * Returns: FALSE if there was an error, TRUE if everything worked fine
  * and the object is listening for events.
+ *
+ * Since: 1.66
  */
 gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self,
                                      GError **error) {
@@ -114,6 +138,8 @@ gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self,
  * #snapd_notices_monitor_start.
  *
  * Returns: FALSE if there was an error, TRUE if everything worked fine.
+ *
+ * Since: 1.66
  */
 gboolean snapd_notices_monitor_stop(SnapdNoticesMonitor *self, GError **error) {
   g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);

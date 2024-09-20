@@ -9,6 +9,24 @@
 
 #include "snapd-autorefresh-change-data.h"
 
+/**
+ * SECTION: snapd-autorefresh-change-data
+ * @short_description: Custom data from an autorefresh-type change
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdAutorefreshChangeData contains extra information about an
+ * specific #SnapdChange of kind 'auto-refresh'.
+ */
+
+/**
+ * SnapdAutorefreshChangeData:
+ *
+ * #SnapdAutoRefreshChangeData contains extra information about an
+ * specific @SnapdChange of kind 'auto-refresh'.
+ *
+ * Since: 1.65
+ */
+
 struct _SnapdAutorefreshChangeData {
   SnapdChangeData parent_instance;
   GStrv snap_names;
@@ -18,7 +36,30 @@ struct _SnapdAutorefreshChangeData {
 G_DEFINE_TYPE(SnapdAutorefreshChangeData, snapd_autorefresh_change_data,
               SNAPD_TYPE_CHANGE_DATA)
 
-enum { PROP_SNAP_NAMES = 1, PROP_REFRESH_FORCED, N_PROPERTIES };
+/**
+ * SnapdAutorefreshChangeData:snap-names
+ *
+ * Contains the list of snaps that have a pending update but are inhibited
+ * because they have a running program.
+ *
+ * Since: 1.65
+ */
+
+/**
+ * SnapdAutorefreshChangeData:refresh-forced
+ *
+ * Contains the list of snaps that were inhibited for too long, and
+ * are having a forced refresh.
+ *
+ * Since: 1.65
+ */
+
+enum
+{
+    PROP_SNAP_NAMES = 1,
+    PROP_REFRESH_FORCED,
+    N_PROPERTIES
+};
 
 /**
  * snapd_autorefresh_change_data_get_snap_names:
@@ -26,6 +67,8 @@ enum { PROP_SNAP_NAMES = 1, PROP_REFRESH_FORCED, N_PROPERTIES };
  *
  * return: (transfer none): a GStrv with the snap names, or NULL if the property
  * wasn't defined
+ *
+ * Since: 1.65
  */
 GStrv snapd_autorefresh_change_data_get_snap_names(
     SnapdAutorefreshChangeData *self) {
@@ -37,8 +80,9 @@ GStrv snapd_autorefresh_change_data_get_snap_names(
  * snapd_autorefresh_change_data_get_refresh_forced:
  * @change_data: a #SnapdAutorefreshChangeData
  *
- * return: (transfer none): a GStrv with the snap names, or NULL if the property
- * wasn't defined
+ * return: (transfer none): a GStrv with the snap names, or NULL if the property wasn't defined
+ *
+ * Since: 1.65
  */
 GStrv snapd_autorefresh_change_data_get_refresh_forced(
     SnapdAutorefreshChangeData *self) {
