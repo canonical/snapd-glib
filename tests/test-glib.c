@@ -1571,7 +1571,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
-    g_assert_cmpstr (snapd_snap_get_website (snap), ==, NULL);
+    // Links
+    g_assert_cmpint (snapd_snap_get_website (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_issues (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_donation (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_source_code (snap)->len, ==, 0);
 }
 
 static void
@@ -1623,7 +1627,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
-    g_assert_cmpstr (snapd_snap_get_website (snap), ==, NULL);
+    // Links
+    g_assert_cmpint (snapd_snap_get_website (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_issues (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_donation (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_source_code (snap)->len, ==, 0);
 
     g_main_loop_quit (data->loop);
 }
@@ -1699,7 +1707,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
-    g_assert_cmpstr (snapd_snap_get_website (snap), ==, NULL);
+    // Links
+    g_assert_cmpint (snapd_snap_get_website (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_issues (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_donation (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_source_code (snap)->len, ==, 0);
 }
 
 static void
@@ -1749,7 +1761,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, NULL);
     g_assert_false (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
-    g_assert_cmpstr (snapd_snap_get_website (snap), ==, NULL);
+    // Links
+    g_assert_cmpint (snapd_snap_get_website (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_issues (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_donation (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_source_code (snap)->len, ==, 0);
 
     g_main_loop_quit (data->loop);
 }
@@ -1846,7 +1862,6 @@ test_get_snap_optional_fields (void)
     mock_snap_set_jailmode (s, TRUE);
     mock_snap_set_trymode (s, TRUE);
     mock_snap_set_contact (s, "CONTACT");
-    mock_snap_set_website (s, "WEBSITE");
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_license (s, "LICENSE");
@@ -1908,7 +1923,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_tracking_channel (snap), ==, "CHANNEL");
     g_assert_true (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
-    g_assert_cmpstr (snapd_snap_get_website (snap), ==, "WEBSITE");
+    // Links
+    g_assert_cmpint (snapd_snap_get_website (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_issues (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_donation (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_source_code (snap)->len, ==, 0);
 }
 
 static void
@@ -4177,7 +4196,6 @@ test_find_query (void)
     mock_track_add_channel (mock_snap_add_track (s, "latest"), "stable", NULL);
     mock_snap_set_channel (s, "CHANNEL");
     mock_snap_set_contact (s, "CONTACT");
-    mock_snap_set_website (s, "WEBSITE");
     mock_snap_set_description (s, "DESCRIPTION");
     mock_snap_set_store_url (s, "https://snapcraft.io/snap");
     mock_snap_set_summary (s, "SUMMARY");
@@ -4263,7 +4281,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     g_assert_cmpstr (snapd_snap_get_summary (snap), ==, "SUMMARY");
     g_assert_true (snapd_snap_get_trymode (snap));
     g_assert_cmpstr (snapd_snap_get_version (snap), ==, "VERSION");
-    g_assert_cmpstr (snapd_snap_get_website (snap), ==, "WEBSITE");
+    // Links
+    g_assert_cmpint (snapd_snap_get_website (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_issues (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_donation (snap)->len, ==, 0);
+    g_assert_cmpint(snapd_snap_get_source_code (snap)->len, ==, 0);
 }
 
 static void

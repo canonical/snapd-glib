@@ -137,6 +137,23 @@ bool QSnapdSnap::devmode () const
     return snapd_snap_get_devmode (SNAPD_SNAP (wrapped_object));
 }
 
+QStringList QSnapdSnap::donation () const
+{
+    GPtrArray *donation = snapd_snap_get_donation (SNAPD_SNAP (wrapped_object));
+    QStringList result;
+    if (donation != nullptr) {
+        for (guint i = 0; i < donation->len; ++i) {
+            // Access the element using g_ptr_array_index and append to QStringList
+            char* donationEntry = static_cast<char*>(g_ptr_array_index(donation, i));
+            result.append(QString::fromUtf8(donationEntry));
+        }
+        // Free the GPtrArray after usage
+        g_ptr_array_free(donation, TRUE);
+    }
+
+    return result;
+}
+
 qint64 QSnapdSnap::downloadSize () const
 {
     return snapd_snap_get_download_size (SNAPD_SNAP (wrapped_object));
@@ -185,6 +202,23 @@ QDateTime QSnapdSnap::installDate () const
 qint64 QSnapdSnap::installedSize () const
 {
     return snapd_snap_get_installed_size (SNAPD_SNAP (wrapped_object));
+}
+
+QStringList QSnapdSnap::issues () const
+{
+    GPtrArray *issues = snapd_snap_get_issues (SNAPD_SNAP (wrapped_object));
+    QStringList result;
+    if (issues != nullptr) {
+        for (guint i = 0; i < issues->len; ++i) {
+            // Access the element using g_ptr_array_index and append to QStringList
+            char* issuesEntry = static_cast<char*>(g_ptr_array_index(issues, i));
+            result.append(QString::fromUtf8(issuesEntry));
+        }
+        // Free the GPtrArray after usage
+        g_ptr_array_free(issues, TRUE);
+    }
+
+    return result;
 }
 
 bool QSnapdSnap::jailmode () const
@@ -330,6 +364,23 @@ QSnapdEnums::SnapType QSnapdSnap::snapType () const
     }
 }
 
+QStringList QSnapdSnap::source_code () const
+{
+    GPtrArray *source_code = snapd_snap_get_source_code (SNAPD_SNAP (wrapped_object));
+    QStringList result;
+    if (source_code != nullptr) {
+        for (guint i = 0; i < source_code->len; ++i) {
+            // Access the element using g_ptr_array_index and append to QStringList
+            char* source_code_entry = static_cast<char*>(g_ptr_array_index(source_code, i));
+            result.append(QString::fromUtf8(source_code_entry));
+        }
+        // Free the GPtrArray after usage
+        g_ptr_array_free(source_code, TRUE);
+    }
+
+    return result;
+}
+
 QSnapdEnums::SnapStatus QSnapdSnap::status () const
 {
     switch (snapd_snap_get_status (SNAPD_SNAP (wrapped_object)))
@@ -387,7 +438,20 @@ QString QSnapdSnap::version () const
     return snapd_snap_get_version (SNAPD_SNAP (wrapped_object));
 }
 
-QString QSnapdSnap::website () const
+QStringList QSnapdSnap::website () const
 {
-    return snapd_snap_get_website (SNAPD_SNAP (wrapped_object));
+    GPtrArray *website = snapd_snap_get_website_urls (SNAPD_SNAP (wrapped_object));
+    QStringList result;
+    if (website != nullptr) {
+        for (guint i = 0; i < website->len; i++) {
+            // Access the element using g_ptr_array_index and append to QStringList
+            char* websiteEntry = static_cast<char*>(g_ptr_array_index(website, i));
+            result.append(QString::fromUtf8(websiteEntry));
+        }
+        // Free the GPtrArray after usage
+        g_ptr_array_free(website, TRUE);
+    }
+
+    // Return the QStringList
+    return result;
 }
