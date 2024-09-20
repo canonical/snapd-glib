@@ -55,6 +55,17 @@ SNAPD_TYPE_ASSERTION
 </SECTION>
 
 <SECTION>
+<FILE>snapd-autorefresh-change-data</FILE>
+<TITLE>SnapdAutorefreshChangeData</TITLE>
+SnapdAutorefreshChangeData
+snapd_autorefresh_change_data_get_refresh_forced
+snapd_autorefresh_change_data_get_snap_names
+
+<SUBSECTION Private>
+SNAPD_TYPE_AUTOREFRESH_CHANGE_DATA
+</SECTION>
+
+<SECTION>
 <FILE>snapd-change</FILE>
 <TITLE>SnapdChange</TITLE>
 snapd_change_get_id
@@ -66,11 +77,22 @@ snapd_change_get_ready
 snapd_change_get_spawn_time
 snapd_change_get_ready_time
 snapd_change_get_error
+snapd_change_get_data
 SnapdChange
 
 <SUBSECTION Private>
 SnapdChangeClass
 SNAPD_TYPE_CHANGE
+</SECTION>
+
+<SECTION>
+<FILE>snapd-change-data</FILE>
+<TITLE>SnapdChangeData</TITLE>
+SnapdChangeData
+
+<SUBSECTION Private>
+SnapdChangeDataClass
+SNAPD_TYPE_CHANGE_DATA
 </SECTION>
 
 <SECTION>
@@ -102,6 +124,7 @@ SnapdChangeFilter
 SnapdGetSnapsFlags
 SnapdGetAppsFlags
 SnapdGetConnectionsFlags
+SnapdGetNotices
 SnapdFindFlags
 SnapdInstallFlags
 SnapdRemoveFlags
@@ -272,6 +295,14 @@ snapd_client_get_sections_finish
 snapd_client_get_aliases_async
 snapd_client_get_aliases_finish
 snapd_client_get_aliases_sync
+snapd_client_get_notices_async
+snapd_client_get_notices_finish
+snapd_client_get_notices_sync
+snapd_client_get_notices_with_filters_async
+snapd_client_get_notices_with_filters_finish
+snapd_client_get_notices_with_filters_sync
+snapd_client_notices_set_after_notice
+snapd_client_notices_set_since_nanoseconds
 snapd_client_alias_async
 snapd_client_alias_finish
 snapd_client_alias_sync
@@ -648,6 +679,47 @@ SNAPD_TYPE_MEDIA
 </SECTION>
 
 <SECTION>
+<FILE>snapd-notice</FILE>
+<TITLE>SnapdNotice</TITLE>
+SnapdNoticeType
+snapd_notice_compare_last_occurred
+snapd_notice_get_expire_after
+snapd_notice_get_first_occurred
+snapd_notice_get_first_occurred2
+snapd_notice_get_id
+snapd_notice_get_key
+snapd_notice_get_last_data
+snapd_notice_get_last_data2
+snapd_notice_get_last_occurred
+snapd_notice_get_last_occurred2
+snapd_notice_get_last_occurred_nanoseconds
+snapd_notice_get_last_repeated
+snapd_notice_get_last_repeated2
+snapd_notice_get_notice_type
+snapd_notice_get_occurrences
+snapd_notice_get_repeat_after
+snapd_notice_get_user_id
+snapd_notice_type_get_type
+SnapdNotice
+
+<SUBSECTION Private>
+SNAPD_TYPE_NOTICE
+SNAPD_TYPE_NOTICE_TYPE
+</SECTION>
+
+<SECTION>
+<FILE>snapd-notices-monitor</FILE>
+<TITLE>SnapdNoticeMonitor</TITLE>
+snapd_notices_monitor_new
+snapd_notices_monitor_new_with_client
+snapd_notices_monitor_start
+snapd_notices_monitor_stop
+SnapdNoticesMonitor
+
+<SUBSECTION Private>
+</SECTION>
+
+<SECTION>
 <FILE>snapd-screenshot</FILE>
 <TITLE>SnapdScreenshot</TITLE>
 snapd_screenshot_get_url
@@ -711,6 +783,7 @@ snapd_snap_get_media
 snapd_snap_get_mounted_from
 snapd_snap_get_name
 snapd_snap_get_prices
+snapd_snap_get_proceed_time
 snapd_snap_get_private
 snapd_snap_get_publisher_display_name
 snapd_snap_get_publisher_id
@@ -788,11 +861,23 @@ snapd_task_get_progress_done
 snapd_task_get_progress_total
 snapd_task_get_spawn_time
 snapd_task_get_ready_time
+snapd_task_get_data
 SnapdTask
 
 <SUBSECTION Private>
 SnapdTaskClass
 SNAPD_TYPE_TASK
+</SECTION>
+
+<SECTION>
+<FILE>snapd-task-data</FILE>
+<TITLE>SnapdTaskData</TITLE>
+snapd_task_data_get_affected_snaps
+SnapdTaskData
+
+<SUBSECTION Private>
+SnapdTaskDataClass
+SNAPD_TYPE_TASK_DATA
 </SECTION>
 
 <SECTION>
