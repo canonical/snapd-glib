@@ -67,6 +67,7 @@ typedef enum
  * SnapdGetSnapsFlags:
  * @SNAPD_GET_SNAPS_FLAGS_NONE: No flags, default behaviour.
  * @SNAPD_GET_SNAPS_FLAGS_INCLUDE_INACTIVE: Return snaps that are installed but not active.
+ * @SNAPD_GET_SNAPS_FLAGS_REFRESH_INHIBITED: Return snaps that are refresh-inhibited.
  *
  * Flag to change which snaps are returned.
  *

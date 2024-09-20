@@ -86,6 +86,7 @@ begin_monitor (SnapdNoticesMonitor *self)
 /**
  * snapd_notices_monitor_start:
  * @monitor: a #SnapdNoticesMonitor
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Starts the asynchronous listening proccess, that will wait for new
  * notices and emit a "notice-event" signal with the new notice as
@@ -112,6 +113,7 @@ snapd_notices_monitor_start (SnapdNoticesMonitor *self,
 /**
  * snapd_notices_monitor_stop:
  * @monitor: a #SnapdNoticesMonitor
+ * @error: (allow-none): #GError location to store the error occurring, or %NULL to ignore.
  *
  * Stops the asynchronous listening proccess started with #snapd_notices_monitor_start.
  *
