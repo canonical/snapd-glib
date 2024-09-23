@@ -74,7 +74,7 @@ static void
 begin_monitor (SnapdNoticesMonitor *self)
 {
     snapd_client_notices_set_after_notice (self->client, self->last_notice);
-    GDateTime *last_date_time = self->last_notice == NULL ? NULL : (GDateTime *) snapd_notice_get_last_occurred (self->last_notice);
+    GDateTime *last_date_time = self->last_notice == NULL ? NULL : (GDateTime *) snapd_notice_get_last_occurred2 (self->last_notice);
     snapd_client_get_notices_async(self->client,
                                    last_date_time,
                                    2000000000000000, // "infinity" (there is a limit in snapd, around 9 billion seconds)
