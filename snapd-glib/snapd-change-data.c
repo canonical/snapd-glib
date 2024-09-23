@@ -14,14 +14,14 @@
  * @short_description: Base class for custom data from a change
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdChangeData is the base class for the custom data in
+ * A #SnapdChangeData is the base class for the `data` field from
  * a #SnapdChange.
  */
 
 /**
  * SnapdChangeData:
  *
- * A #SnapdChangeData is the base class for the custom data in
+ * A #SnapdChangeData is the base class for the `data` field from
  * a #SnapdChange.
  *
  * Since: 1.65

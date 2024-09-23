@@ -11,18 +11,18 @@
 
 /**
  * SECTION: snapd-autorefresh-change-data
- * @short_description: Custom data from an autorefresh-type change
+ * @short_description: Custom data from a #SnapdChange of kind 'autorefresh'
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdAutorefreshChangeData contains extra information about an
- * specific #SnapdChange of kind 'auto-refresh'.
+ * A #SnapdAutorefreshChangeData contains the data from the 'data' field of a
+ * #SnapdChange of kind 'auto-refresh'.
  */
 
 /**
  * SnapdAutorefreshChangeData:
  *
- * #SnapdAutoRefreshChangeData contains extra information about an
- * specific @SnapdChange of kind 'auto-refresh'.
+ * #SnapdAutoRefreshChangeData contains the data from the 'data' field of a
+ * #SnapdChange of kind 'auto-refresh'.
  *
  * Since: 1.65
  */
@@ -49,7 +49,7 @@ G_DEFINE_TYPE(SnapdAutorefreshChangeData, snapd_autorefresh_change_data,
  * SnapdAutorefreshChangeData:refresh-forced
  *
  * Contains the list of snaps that were inhibited for too long, and
- * are having a forced refresh.
+ * now are having a forced refresh.
  *
  * Since: 1.65
  */
@@ -65,8 +65,10 @@ enum
  * snapd_autorefresh_change_data_get_snap_names:
  * @change_data: a #SnapdAutorefreshChangeData
  *
- * return: (transfer none): a GStrv with the snap names, or NULL if the property
- * wasn't defined
+ * Returns the list of snaps that have a pending update but are inhibited
+ * because they have a running program.
+ *
+ * return: (transfer none): a GStrv with the snap names , or NULL if the property wasn't defined
  *
  * Since: 1.65
  */
@@ -79,6 +81,9 @@ GStrv snapd_autorefresh_change_data_get_snap_names(
 /**
  * snapd_autorefresh_change_data_get_refresh_forced:
  * @change_data: a #SnapdAutorefreshChangeData
+ *
+ * Returns the list of snaps that were inhibited for too long, and
+ * now are having a forced refresh.
  *
  * return: (transfer none): a GStrv with the snap names, or NULL if the property wasn't defined
  *

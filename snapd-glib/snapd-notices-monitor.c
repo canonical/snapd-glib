@@ -202,6 +202,16 @@ void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
                NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_ERROR);
 }
 
+/**
+ * snapd_notices_monitor_new:
+ *
+ * Creates a new #SnapdNoticesMonitor to receive events.
+ *
+ * Returns: (transfer full): a new #SnapdNoticesMonitor
+ *
+ * Since: 1.66
+ */
+
 SnapdNoticesMonitor *snapd_notices_monitor_new(void) {
   g_autoptr(SnapdClient) client = snapd_client_new();
   SnapdNoticesMonitor *self =
@@ -209,9 +219,24 @@ SnapdNoticesMonitor *snapd_notices_monitor_new(void) {
   return self;
 }
 
+/**
+ * snapd_notices_monitor_new_with_client:
+ *
+ * Creates a new #SnapdNoticesMonitor to receive events, using the
+ * specified #SnapdClient object to ask info about each task.
+ *
+ * @client: a #SnapdClient object
+ *
+ * Returns: (transfer full): a new #SnapdNoticesMonitor
+ *
+ * Since: 1.66
+ */
+
 SnapdNoticesMonitor *
-snapd_notices_monitor_new_with_client(SnapdClient *client) {
-  SnapdNoticesMonitor *self =
-      g_object_new(snapd_notices_monitor_get_type(), "client", client, NULL);
-  return self;
+snapd_notices_monitor_new_with_client (SnapdClient *client)
+{
+    SnapdNoticesMonitor *self = g_object_new(snapd_notices_monitor_get_type(),
+                                             "client", client,
+                                             NULL);
+    return self;
 }
