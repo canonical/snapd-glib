@@ -221,11 +221,10 @@ SnapdNoticesMonitor *snapd_notices_monitor_new(void) {
 
 /**
  * snapd_notices_monitor_new_with_client:
+ * @client: a #SnapdClient object
  *
  * Creates a new #SnapdNoticesMonitor to receive events, using the
  * specified #SnapdClient object to ask info about each task.
- *
- * @client: a #SnapdClient object
  *
  * Returns: (transfer full): a new #SnapdNoticesMonitor
  *
