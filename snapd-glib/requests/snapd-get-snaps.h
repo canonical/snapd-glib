@@ -13,16 +13,15 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdGetSnaps, snapd_get_snaps, SNAPD, GET_SNAPS, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdGetSnaps, snapd_get_snaps, SNAPD, GET_SNAPS,
+                     SnapdRequest)
 
-SnapdGetSnaps *_snapd_get_snaps_new       (GCancellable        *cancellable,
-                                           GStrv                names,
-                                           GAsyncReadyCallback  callback,
-                                           gpointer             user_data);
+SnapdGetSnaps *_snapd_get_snaps_new(GCancellable *cancellable, GStrv names,
+                                    GAsyncReadyCallback callback,
+                                    gpointer user_data);
 
-void          _snapd_get_snaps_set_select (SnapdGetSnaps       *request,
-                                           const gchar         *select);
+void _snapd_get_snaps_set_select(SnapdGetSnaps *request, const gchar *select);
 
-GPtrArray    *_snapd_get_snaps_get_snaps  (SnapdGetSnaps *request);
+GPtrArray *_snapd_get_snaps_get_snaps(SnapdGetSnaps *request);
 
 G_END_DECLS

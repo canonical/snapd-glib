@@ -11,14 +11,13 @@
 
 #include "Snapd/category.h"
 
-QSnapdCategory::QSnapdCategory (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdCategory::QSnapdCategory(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdCategory::name () const
-{
-    return snapd_category_get_name (SNAPD_CATEGORY (wrapped_object));
+QString QSnapdCategory::name() const {
+  return snapd_category_get_name(SNAPD_CATEGORY(wrapped_object));
 }
 
-bool QSnapdCategory::featured () const
-{
-    return snapd_category_get_featured (SNAPD_CATEGORY (wrapped_object));
+bool QSnapdCategory::featured() const {
+  return snapd_category_get_featured(SNAPD_CATEGORY(wrapped_object));
 }

@@ -13,12 +13,13 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdGetUsers, snapd_get_users, SNAPD, GET_USERS, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdGetUsers, snapd_get_users, SNAPD, GET_USERS,
+                     SnapdRequest)
 
-SnapdGetUsers *_snapd_get_users_new                   (GCancellable        *cancellable,
-                                                       GAsyncReadyCallback  callback,
-                                                       gpointer             user_data);
+SnapdGetUsers *_snapd_get_users_new(GCancellable *cancellable,
+                                    GAsyncReadyCallback callback,
+                                    gpointer user_data);
 
-GPtrArray     *_snapd_get_users_get_users_information (SnapdGetUsers *request);
+GPtrArray *_snapd_get_users_get_users_information(SnapdGetUsers *request);
 
 G_END_DECLS

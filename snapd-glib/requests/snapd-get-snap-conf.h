@@ -13,14 +13,14 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdGetSnapConf, snapd_get_snap_conf, SNAPD, GET_SNAP_CONF, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdGetSnapConf, snapd_get_snap_conf, SNAPD,
+                     GET_SNAP_CONF, SnapdRequest)
 
-SnapdGetSnapConf *_snapd_get_snap_conf_new      (const gchar         *name,
-                                                 GStrv                keys,
-                                                 GCancellable        *cancellable,
-                                                 GAsyncReadyCallback  callback,
-                                                 gpointer             user_data);
+SnapdGetSnapConf *_snapd_get_snap_conf_new(const gchar *name, GStrv keys,
+                                           GCancellable *cancellable,
+                                           GAsyncReadyCallback callback,
+                                           gpointer user_data);
 
-GHashTable       *_snapd_get_snap_conf_get_conf (SnapdGetSnapConf    *request);
+GHashTable *_snapd_get_snap_conf_get_conf(SnapdGetSnapConf *request);
 
 G_END_DECLS

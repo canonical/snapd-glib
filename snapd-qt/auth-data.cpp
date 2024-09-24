@@ -11,30 +11,33 @@
 
 #include "Snapd/auth-data.h"
 
-QSnapdAuthData::QSnapdAuthData (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdAuthData::QSnapdAuthData(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QSnapdAuthData::QSnapdAuthData (QObject *parent) : QSnapdWrappedObject (snapd_auth_data_new ("", NULL), g_object_unref, parent) {}
+QSnapdAuthData::QSnapdAuthData(QObject *parent)
+    : QSnapdWrappedObject(snapd_auth_data_new("", NULL), g_object_unref,
+                          parent) {}
 
-QSnapdAuthData::QSnapdAuthData (const QString& macaroon, const QStringList& discharges, QObject *parent) : QSnapdWrappedObject (NULL, g_object_unref, parent)
-{
-    g_auto(GStrv) strv = g_new (gchar *, discharges.size () + 1);
-    int i;
-    for (i = 0; i < discharges.size (); i++)
-        strv[i] = g_strdup ((char *) discharges.at (i).toStdString ().c_str ());
-    strv[i] = NULL;
-    wrapped_object = snapd_auth_data_new (macaroon.toStdString ().c_str (), strv);
+QSnapdAuthData::QSnapdAuthData(const QString &macaroon,
+                               const QStringList &discharges, QObject *parent)
+    : QSnapdWrappedObject(NULL, g_object_unref, parent) {
+  g_auto(GStrv) strv = g_new(gchar *, discharges.size() + 1);
+  int i;
+  for (i = 0; i < discharges.size(); i++)
+    strv[i] = g_strdup((char *)discharges.at(i).toStdString().c_str());
+  strv[i] = NULL;
+  wrapped_object = snapd_auth_data_new(macaroon.toStdString().c_str(), strv);
 }
 
-QString QSnapdAuthData::macaroon () const
-{
-    return snapd_auth_data_get_macaroon (SNAPD_AUTH_DATA (wrapped_object));
+QString QSnapdAuthData::macaroon() const {
+  return snapd_auth_data_get_macaroon(SNAPD_AUTH_DATA(wrapped_object));
 }
 
-QStringList QSnapdAuthData::discharges () const
-{
-    GStrv discharges = snapd_auth_data_get_discharges (SNAPD_AUTH_DATA (wrapped_object));
-    QStringList result;
-    for (int i = 0; discharges[i] != NULL; i++)
-        result.append (discharges[i]);
-    return result;
+QStringList QSnapdAuthData::discharges() const {
+  GStrv discharges =
+      snapd_auth_data_get_discharges(SNAPD_AUTH_DATA(wrapped_object));
+  QStringList result;
+  for (int i = 0; discharges[i] != NULL; i++)
+    result.append(discharges[i]);
+  return result;
 }

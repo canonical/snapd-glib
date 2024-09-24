@@ -13,16 +13,15 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdCategoryDetails : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdCategoryDetails : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(QString name READ name)
+  Q_PROPERTY(QString name READ name)
 
 public:
-    explicit QSnapdCategoryDetails (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdCategoryDetails(void *snapd_object, QObject *parent = 0);
 
-    QString name () const;
+  QString name() const;
 };
 
 #endif

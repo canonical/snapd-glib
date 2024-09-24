@@ -13,13 +13,14 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdGetAssertions, snapd_get_assertions, SNAPD, GET_ASSERTIONS, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdGetAssertions, snapd_get_assertions, SNAPD,
+                     GET_ASSERTIONS, SnapdRequest)
 
-SnapdGetAssertions *_snapd_get_assertions_new            (const gchar         *type,
-                                                          GCancellable        *cancellable,
-                                                          GAsyncReadyCallback  callback,
-                                                          gpointer             user_data);
+SnapdGetAssertions *_snapd_get_assertions_new(const gchar *type,
+                                              GCancellable *cancellable,
+                                              GAsyncReadyCallback callback,
+                                              gpointer user_data);
 
-GStrv               _snapd_get_assertions_get_assertions (SnapdGetAssertions *request);
+GStrv _snapd_get_assertions_get_assertions(SnapdGetAssertions *request);
 
 G_END_DECLS

@@ -11,14 +11,13 @@
 
 #include "Snapd/slot-ref.h"
 
-QSnapdSlotRef::QSnapdSlotRef (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdSlotRef::QSnapdSlotRef(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdSlotRef::slot () const
-{
-    return snapd_slot_ref_get_slot (SNAPD_SLOT_REF (wrapped_object));
+QString QSnapdSlotRef::slot() const {
+  return snapd_slot_ref_get_slot(SNAPD_SLOT_REF(wrapped_object));
 }
 
-QString QSnapdSlotRef::snap () const
-{
-    return snapd_slot_ref_get_snap (SNAPD_SLOT_REF (wrapped_object));
+QString QSnapdSlotRef::snap() const {
+  return snapd_slot_ref_get_snap(SNAPD_SLOT_REF(wrapped_object));
 }

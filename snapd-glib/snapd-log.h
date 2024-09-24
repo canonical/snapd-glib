@@ -18,17 +18,17 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_LOG  (snapd_log_get_type ())
+#define SNAPD_TYPE_LOG (snapd_log_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdLog, snapd_log, SNAPD, LOG, GObject)
+G_DECLARE_FINAL_TYPE(SnapdLog, snapd_log, SNAPD, LOG, GObject)
 
-GDateTime   *snapd_log_get_timestamp (SnapdLog *log);
+GDateTime *snapd_log_get_timestamp(SnapdLog *log);
 
-const gchar *snapd_log_get_message   (SnapdLog *log);
+const gchar *snapd_log_get_message(SnapdLog *log);
 
-const gchar *snapd_log_get_sid       (SnapdLog *log);
+const gchar *snapd_log_get_sid(SnapdLog *log);
 
-const gchar *snapd_log_get_pid       (SnapdLog *log);
+const gchar *snapd_log_get_pid(SnapdLog *log);
 
 G_END_DECLS
 

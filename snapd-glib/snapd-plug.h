@@ -18,30 +18,28 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_PLUG  (snapd_plug_get_type ())
+#define SNAPD_TYPE_PLUG (snapd_plug_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdPlug, snapd_plug, SNAPD, PLUG, GObject)
+G_DECLARE_FINAL_TYPE(SnapdPlug, snapd_plug, SNAPD, PLUG, GObject)
 
-const gchar *snapd_plug_get_name            (SnapdPlug   *plug);
+const gchar *snapd_plug_get_name(SnapdPlug *plug);
 
-const gchar *snapd_plug_get_snap            (SnapdPlug   *plug);
+const gchar *snapd_plug_get_snap(SnapdPlug *plug);
 
-const gchar *snapd_plug_get_interface       (SnapdPlug   *plug);
+const gchar *snapd_plug_get_interface(SnapdPlug *plug);
 
-GStrv        snapd_plug_get_attribute_names (SnapdPlug   *plug,
-                                             guint       *length);
+GStrv snapd_plug_get_attribute_names(SnapdPlug *plug, guint *length);
 
-gboolean     snapd_plug_has_attribute       (SnapdPlug   *plug,
-                                             const gchar *name);
+gboolean snapd_plug_has_attribute(SnapdPlug *plug, const gchar *name);
 
-GVariant    *snapd_plug_get_attribute       (SnapdPlug   *plug,
-                                             const gchar *name);
+GVariant *snapd_plug_get_attribute(SnapdPlug *plug, const gchar *name);
 
-const gchar *snapd_plug_get_label           (SnapdPlug   *plug);
+const gchar *snapd_plug_get_label(SnapdPlug *plug);
 
-GPtrArray   *snapd_plug_get_connections     (SnapdPlug   *plug) G_DEPRECATED_FOR(snapd_plug_get_connected_slots);
+GPtrArray *snapd_plug_get_connections(SnapdPlug *plug)
+    G_DEPRECATED_FOR(snapd_plug_get_connected_slots);
 
-GPtrArray   *snapd_plug_get_connected_slots (SnapdPlug   *plug);
+GPtrArray *snapd_plug_get_connected_slots(SnapdPlug *plug);
 
 G_END_DECLS
 

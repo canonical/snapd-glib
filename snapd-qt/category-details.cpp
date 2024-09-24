@@ -11,9 +11,11 @@
 
 #include "Snapd/category-details.h"
 
-QSnapdCategoryDetails::QSnapdCategoryDetails (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdCategoryDetails::QSnapdCategoryDetails(void *snapd_object,
+                                             QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdCategoryDetails::name () const
-{
-    return snapd_category_details_get_name (SNAPD_CATEGORY_DETAILS (wrapped_object));
+QString QSnapdCategoryDetails::name() const {
+  return snapd_category_details_get_name(
+      SNAPD_CATEGORY_DETAILS(wrapped_object));
 }

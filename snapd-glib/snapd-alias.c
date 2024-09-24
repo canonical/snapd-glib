@@ -31,30 +31,28 @@
  * Since: 1.8
  */
 
-struct _SnapdAlias
-{
-    GObject parent_instance;
+struct _SnapdAlias {
+  GObject parent_instance;
 
-    gchar *command;
-    gchar *name;
-    gchar *snap;
-    gchar *app_auto;
-    gchar *app_manual;
-    SnapdAliasStatus status;
+  gchar *command;
+  gchar *name;
+  gchar *snap;
+  gchar *app_auto;
+  gchar *app_manual;
+  SnapdAliasStatus status;
 };
 
-enum
-{
-    PROP_NAME = 1,
-    PROP_SNAP,
-    PROP_STATUS,
-    PROP_COMMAND,
-    PROP_APP_AUTO,
-    PROP_APP_MANUAL,
-    PROP_LAST
+enum {
+  PROP_NAME = 1,
+  PROP_SNAP,
+  PROP_STATUS,
+  PROP_COMMAND,
+  PROP_APP_AUTO,
+  PROP_APP_MANUAL,
+  PROP_LAST
 };
 
-G_DEFINE_TYPE (SnapdAlias, snapd_alias, G_TYPE_OBJECT)
+G_DEFINE_TYPE(SnapdAlias, snapd_alias, G_TYPE_OBJECT)
 
 /**
  * snapd_alias_get_app:
@@ -65,49 +63,46 @@ G_DEFINE_TYPE (SnapdAlias, snapd_alias, G_TYPE_OBJECT)
  * Returns: (allow-none): an app name or %NULL.
  *
  * Since: 1.8
- * Deprecated: 1.25: Use snapd_alias_get_app_manual() or snapd_alias_get_app_auto().
+ * Deprecated: 1.25: Use snapd_alias_get_app_manual() or
+ * snapd_alias_get_app_auto().
  */
-const gchar *
-snapd_alias_get_app (SnapdAlias *self)
-{
-    g_return_val_if_fail (SNAPD_IS_ALIAS (self), NULL);
-    return NULL;
+const gchar *snapd_alias_get_app(SnapdAlias *self) {
+  g_return_val_if_fail(SNAPD_IS_ALIAS(self), NULL);
+  return NULL;
 }
 
 /**
  * snapd_alias_get_app_auto:
  * @alias: a #SnapdAlias.
  *
- * Get the app this alias has been automatically set to (status is %SNAPD_ALIAS_STATUS_AUTO).
- * Can be overridden when status is %SNAPD_ALIAS_STATUS_MANUAL.
+ * Get the app this alias has been automatically set to (status is
+ * %SNAPD_ALIAS_STATUS_AUTO). Can be overridden when status is
+ * %SNAPD_ALIAS_STATUS_MANUAL.
  *
  * Returns: (allow-none): an app name or %NULL.
  *
  * Since: 1.25
  */
-const gchar *
-snapd_alias_get_app_auto (SnapdAlias *self)
-{
-    g_return_val_if_fail (SNAPD_IS_ALIAS (self), NULL);
-    return self->app_auto;
+const gchar *snapd_alias_get_app_auto(SnapdAlias *self) {
+  g_return_val_if_fail(SNAPD_IS_ALIAS(self), NULL);
+  return self->app_auto;
 }
 
 /**
  * snapd_alias_get_app_manual:
  * @alias: a #SnapdAlias.
  *
- * Get the app this alias has been manually set to (status is %SNAPD_ALIAS_STATUS_MANUAL).
- * This overrides the app from snapd_alias_get_app_auto().
+ * Get the app this alias has been manually set to (status is
+ * %SNAPD_ALIAS_STATUS_MANUAL). This overrides the app from
+ * snapd_alias_get_app_auto().
  *
  * Returns: (allow-none): an app name or %NULL.
  *
  * Since: 1.25
  */
-const gchar *
-snapd_alias_get_app_manual (SnapdAlias *self)
-{
-    g_return_val_if_fail (SNAPD_IS_ALIAS (self), NULL);
-    return self->app_manual;
+const gchar *snapd_alias_get_app_manual(SnapdAlias *self) {
+  g_return_val_if_fail(SNAPD_IS_ALIAS(self), NULL);
+  return self->app_manual;
 }
 
 /**
@@ -120,11 +115,9 @@ snapd_alias_get_app_manual (SnapdAlias *self)
  *
  * Since: 1.25
  */
-const gchar *
-snapd_alias_get_command (SnapdAlias *self)
-{
-    g_return_val_if_fail (SNAPD_IS_ALIAS (self), NULL);
-    return self->command;
+const gchar *snapd_alias_get_command(SnapdAlias *self) {
+  g_return_val_if_fail(SNAPD_IS_ALIAS(self), NULL);
+  return self->command;
 }
 
 /**
@@ -137,11 +130,9 @@ snapd_alias_get_command (SnapdAlias *self)
  *
  * Since: 1.8
  */
-const gchar *
-snapd_alias_get_name (SnapdAlias *self)
-{
-    g_return_val_if_fail (SNAPD_IS_ALIAS (self), NULL);
-    return self->name;
+const gchar *snapd_alias_get_name(SnapdAlias *self) {
+  g_return_val_if_fail(SNAPD_IS_ALIAS(self), NULL);
+  return self->name;
 }
 
 /**
@@ -154,11 +145,9 @@ snapd_alias_get_name (SnapdAlias *self)
  *
  * Since: 1.8
  */
-const gchar *
-snapd_alias_get_snap (SnapdAlias *self)
-{
-    g_return_val_if_fail (SNAPD_IS_ALIAS (self), NULL);
-    return self->snap;
+const gchar *snapd_alias_get_snap(SnapdAlias *self) {
+  g_return_val_if_fail(SNAPD_IS_ALIAS(self), NULL);
+  return self->snap;
 }
 
 /**
@@ -171,151 +160,127 @@ snapd_alias_get_snap (SnapdAlias *self)
  *
  * Since: 1.8
  */
-SnapdAliasStatus
-snapd_alias_get_status (SnapdAlias *self)
-{
-    g_return_val_if_fail (SNAPD_IS_ALIAS (self), SNAPD_ALIAS_STATUS_UNKNOWN);
-    return self->status;
+SnapdAliasStatus snapd_alias_get_status(SnapdAlias *self) {
+  g_return_val_if_fail(SNAPD_IS_ALIAS(self), SNAPD_ALIAS_STATUS_UNKNOWN);
+  return self->status;
 }
 
-static void
-snapd_alias_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
-{
-    SnapdAlias *self = SNAPD_ALIAS (object);
+static void snapd_alias_set_property(GObject *object, guint prop_id,
+                                     const GValue *value, GParamSpec *pspec) {
+  SnapdAlias *self = SNAPD_ALIAS(object);
 
-    switch (prop_id) {
-    case PROP_APP_AUTO:
-        g_free (self->app_auto);
-        self->app_auto = g_strdup (g_value_get_string (value));
-        break;
-    case PROP_APP_MANUAL:
-        g_free (self->app_manual);
-        self->app_manual = g_strdup (g_value_get_string (value));
-        break;
-    case PROP_COMMAND:
-        g_free (self->command);
-        self->command = g_strdup (g_value_get_string (value));
-        break;
-    case PROP_NAME:
-        g_free (self->name);
-        self->name = g_strdup (g_value_get_string (value));
-        break;
-    case PROP_SNAP:
-        g_free (self->snap);
-        self->snap = g_strdup (g_value_get_string (value));
-        break;
-    case PROP_STATUS:
-        self->status = g_value_get_enum (value);
-        break;
-    default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-        break;
-    }
+  switch (prop_id) {
+  case PROP_APP_AUTO:
+    g_free(self->app_auto);
+    self->app_auto = g_strdup(g_value_get_string(value));
+    break;
+  case PROP_APP_MANUAL:
+    g_free(self->app_manual);
+    self->app_manual = g_strdup(g_value_get_string(value));
+    break;
+  case PROP_COMMAND:
+    g_free(self->command);
+    self->command = g_strdup(g_value_get_string(value));
+    break;
+  case PROP_NAME:
+    g_free(self->name);
+    self->name = g_strdup(g_value_get_string(value));
+    break;
+  case PROP_SNAP:
+    g_free(self->snap);
+    self->snap = g_strdup(g_value_get_string(value));
+    break;
+  case PROP_STATUS:
+    self->status = g_value_get_enum(value);
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+    break;
+  }
 }
 
-static void
-snapd_alias_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
-{
-    SnapdAlias *self = SNAPD_ALIAS (object);
+static void snapd_alias_get_property(GObject *object, guint prop_id,
+                                     GValue *value, GParamSpec *pspec) {
+  SnapdAlias *self = SNAPD_ALIAS(object);
 
-    switch (prop_id) {
-    case PROP_APP_AUTO:
-        g_value_set_string (value, self->app_auto);
-        break;
-    case PROP_APP_MANUAL:
-        g_value_set_string (value, self->app_manual);
-        break;
-    case PROP_COMMAND:
-        g_value_set_string (value, self->command);
-        break;
-    case PROP_NAME:
-        g_value_set_string (value, self->name);
-        break;
-    case PROP_SNAP:
-        g_value_set_string (value, self->snap);
-        break;
-    case PROP_STATUS:
-        g_value_set_enum (value, self->status);
-        break;
-    default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-        break;
-    }
+  switch (prop_id) {
+  case PROP_APP_AUTO:
+    g_value_set_string(value, self->app_auto);
+    break;
+  case PROP_APP_MANUAL:
+    g_value_set_string(value, self->app_manual);
+    break;
+  case PROP_COMMAND:
+    g_value_set_string(value, self->command);
+    break;
+  case PROP_NAME:
+    g_value_set_string(value, self->name);
+    break;
+  case PROP_SNAP:
+    g_value_set_string(value, self->snap);
+    break;
+  case PROP_STATUS:
+    g_value_set_enum(value, self->status);
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+    break;
+  }
 }
 
-static void
-snapd_alias_finalize (GObject *object)
-{
-    SnapdAlias *self = SNAPD_ALIAS (object);
+static void snapd_alias_finalize(GObject *object) {
+  SnapdAlias *self = SNAPD_ALIAS(object);
 
-    g_clear_pointer (&self->app_auto, g_free);
-    g_clear_pointer (&self->app_manual, g_free);
-    g_clear_pointer (&self->command, g_free);
-    g_clear_pointer (&self->name, g_free);
-    g_clear_pointer (&self->snap, g_free);
+  g_clear_pointer(&self->app_auto, g_free);
+  g_clear_pointer(&self->app_manual, g_free);
+  g_clear_pointer(&self->command, g_free);
+  g_clear_pointer(&self->name, g_free);
+  g_clear_pointer(&self->snap, g_free);
 
-    G_OBJECT_CLASS (snapd_alias_parent_class)->finalize (object);
+  G_OBJECT_CLASS(snapd_alias_parent_class)->finalize(object);
 }
 
-static void
-snapd_alias_class_init (SnapdAliasClass *klass)
-{
-    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+static void snapd_alias_class_init(SnapdAliasClass *klass) {
+  GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-    gobject_class->set_property = snapd_alias_set_property;
-    gobject_class->get_property = snapd_alias_get_property;
-    gobject_class->finalize = snapd_alias_finalize;
+  gobject_class->set_property = snapd_alias_set_property;
+  gobject_class->get_property = snapd_alias_get_property;
+  gobject_class->finalize = snapd_alias_finalize;
 
-    g_object_class_install_property (gobject_class,
-                                     PROP_APP_AUTO,
-                                     g_param_spec_string ("app-auto",
-                                                          "app-auto",
-                                                          "App this alias is for (when status is SNAPD_ALIAS_STATUS_AUTO)",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+  g_object_class_install_property(
+      gobject_class, PROP_APP_AUTO,
+      g_param_spec_string(
+          "app-auto", "app-auto",
+          "App this alias is for (when status is SNAPD_ALIAS_STATUS_AUTO)",
+          NULL, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
-    g_object_class_install_property (gobject_class,
-                                     PROP_APP_MANUAL,
-                                     g_param_spec_string ("app-manual",
-                                                          "app-manual",
-                                                          "App this alias is for (when status is SNAPD_ALIAS_STATUS_MANUAL)",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+  g_object_class_install_property(
+      gobject_class, PROP_APP_MANUAL,
+      g_param_spec_string(
+          "app-manual", "app-manual",
+          "App this alias is for (when status is SNAPD_ALIAS_STATUS_MANUAL)",
+          NULL, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
-    g_object_class_install_property (gobject_class,
-                                     PROP_COMMAND,
-                                     g_param_spec_string ("command",
-                                                          "command",
-                                                          "Command this alias runs",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+  g_object_class_install_property(
+      gobject_class, PROP_COMMAND,
+      g_param_spec_string("command", "command", "Command this alias runs", NULL,
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
-    g_object_class_install_property (gobject_class,
-                                     PROP_NAME,
-                                     g_param_spec_string ("name",
-                                                          "name",
-                                                          "Name of alias",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+  g_object_class_install_property(
+      gobject_class, PROP_NAME,
+      g_param_spec_string("name", "name", "Name of alias", NULL,
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
-    g_object_class_install_property (gobject_class,
-                                     PROP_SNAP,
-                                     g_param_spec_string ("snap",
-                                                          "snap",
-                                                          "Snap this alias is for",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+  g_object_class_install_property(
+      gobject_class, PROP_SNAP,
+      g_param_spec_string("snap", "snap", "Snap this alias is for", NULL,
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
-    g_object_class_install_property (gobject_class,
-                                     PROP_STATUS,
-                                     g_param_spec_enum ("status",
-                                                        "status",
-                                                        "Alias status",
-                                                        SNAPD_TYPE_ALIAS_STATUS, SNAPD_ALIAS_STATUS_UNKNOWN,
-                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+  g_object_class_install_property(
+      gobject_class, PROP_STATUS,
+      g_param_spec_enum("status", "status", "Alias status",
+                        SNAPD_TYPE_ALIAS_STATUS, SNAPD_ALIAS_STATUS_UNKNOWN,
+                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
-static void
-snapd_alias_init (SnapdAlias *self)
-{
-}
+static void snapd_alias_init(SnapdAlias *self) {}

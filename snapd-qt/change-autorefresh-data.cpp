@@ -11,31 +11,31 @@
 
 #include "Snapd/change-autorefresh-data.h"
 
-QSnapdAutorefreshChangeData::QSnapdAutorefreshChangeData (void *snapd_object, QObject *parent) : QSnapdChangeData (snapd_object, parent) {}
+QSnapdAutorefreshChangeData::QSnapdAutorefreshChangeData(void *snapd_object,
+                                                         QObject *parent)
+    : QSnapdChangeData(snapd_object, parent) {}
 
-static QStringList
-gstrv_to_qstringlist (GStrv data)
-{
-    QStringList retval;
+static QStringList gstrv_to_qstringlist(GStrv data) {
+  QStringList retval;
 
-    if (data != NULL)
-        for (gchar **element = data; *element != NULL; element++)
-            retval << *element;
-    return retval;
+  if (data != NULL)
+    for (gchar **element = data; *element != NULL; element++)
+      retval << *element;
+  return retval;
 }
 
-QStringList QSnapdAutorefreshChangeData::snapNames () const
-{
-    QStringList list;
+QStringList QSnapdAutorefreshChangeData::snapNames() const {
+  QStringList list;
 
-    GStrv data = snapd_autorefresh_change_data_get_snap_names (SNAPD_AUTOREFRESH_CHANGE_DATA (wrapped_object));
-    return gstrv_to_qstringlist (data);
+  GStrv data = snapd_autorefresh_change_data_get_snap_names(
+      SNAPD_AUTOREFRESH_CHANGE_DATA(wrapped_object));
+  return gstrv_to_qstringlist(data);
 }
 
-QStringList QSnapdAutorefreshChangeData::refreshForced () const
-{
-    QStringList list;
+QStringList QSnapdAutorefreshChangeData::refreshForced() const {
+  QStringList list;
 
-    GStrv data = snapd_autorefresh_change_data_get_refresh_forced (SNAPD_AUTOREFRESH_CHANGE_DATA (wrapped_object));
-    return gstrv_to_qstringlist (data);
+  GStrv data = snapd_autorefresh_change_data_get_refresh_forced(
+      SNAPD_AUTOREFRESH_CHANGE_DATA(wrapped_object));
+  return gstrv_to_qstringlist(data);
 }

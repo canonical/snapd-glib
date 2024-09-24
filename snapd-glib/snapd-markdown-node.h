@@ -18,9 +18,10 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_MARKDOWN_NODE  (snapd_markdown_node_get_type ())
+#define SNAPD_TYPE_MARKDOWN_NODE (snapd_markdown_node_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdMarkdownNode, snapd_markdown_node, SNAPD, MARKDOWN_NODE, GObject)
+G_DECLARE_FINAL_TYPE(SnapdMarkdownNode, snapd_markdown_node, SNAPD,
+                     MARKDOWN_NODE, GObject)
 
 /**
  * SnapdMarkdownNodeType:
@@ -38,24 +39,24 @@ G_DECLARE_FINAL_TYPE (SnapdMarkdownNode, snapd_markdown_node, SNAPD, MARKDOWN_NO
  *
  * Since: 1.48
  */
-typedef enum
-{
-     SNAPD_MARKDOWN_NODE_TYPE_TEXT,
-     SNAPD_MARKDOWN_NODE_TYPE_PARAGRAPH,
-     SNAPD_MARKDOWN_NODE_TYPE_UNORDERED_LIST,
-     SNAPD_MARKDOWN_NODE_TYPE_LIST_ITEM,
-     SNAPD_MARKDOWN_NODE_TYPE_CODE_BLOCK,
-     SNAPD_MARKDOWN_NODE_TYPE_CODE_SPAN,
-     SNAPD_MARKDOWN_NODE_TYPE_EMPHASIS,
-     SNAPD_MARKDOWN_NODE_TYPE_STRONG_EMPHASIS,
-     SNAPD_MARKDOWN_NODE_TYPE_URL
+typedef enum {
+  SNAPD_MARKDOWN_NODE_TYPE_TEXT,
+  SNAPD_MARKDOWN_NODE_TYPE_PARAGRAPH,
+  SNAPD_MARKDOWN_NODE_TYPE_UNORDERED_LIST,
+  SNAPD_MARKDOWN_NODE_TYPE_LIST_ITEM,
+  SNAPD_MARKDOWN_NODE_TYPE_CODE_BLOCK,
+  SNAPD_MARKDOWN_NODE_TYPE_CODE_SPAN,
+  SNAPD_MARKDOWN_NODE_TYPE_EMPHASIS,
+  SNAPD_MARKDOWN_NODE_TYPE_STRONG_EMPHASIS,
+  SNAPD_MARKDOWN_NODE_TYPE_URL
 } SnapdMarkdownNodeType;
 
-SnapdMarkdownNodeType  snapd_markdown_node_get_node_type (SnapdMarkdownNode *node);
+SnapdMarkdownNodeType
+snapd_markdown_node_get_node_type(SnapdMarkdownNode *node);
 
-const gchar           *snapd_markdown_node_get_text      (SnapdMarkdownNode *node);
+const gchar *snapd_markdown_node_get_text(SnapdMarkdownNode *node);
 
-GPtrArray             *snapd_markdown_node_get_children  (SnapdMarkdownNode *node);
+GPtrArray *snapd_markdown_node_get_children(SnapdMarkdownNode *node);
 
 G_END_DECLS
 

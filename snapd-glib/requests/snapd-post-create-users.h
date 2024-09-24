@@ -13,12 +13,14 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdPostCreateUsers, snapd_post_create_users, SNAPD, POST_CREATE_USERS, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdPostCreateUsers, snapd_post_create_users, SNAPD,
+                     POST_CREATE_USERS, SnapdRequest)
 
-SnapdPostCreateUsers *_snapd_post_create_users_new                   (GCancellable         *cancellable,
-                                                                       GAsyncReadyCallback   callback,
-                                                                       gpointer              user_data);
+SnapdPostCreateUsers *_snapd_post_create_users_new(GCancellable *cancellable,
+                                                   GAsyncReadyCallback callback,
+                                                   gpointer user_data);
 
-GPtrArray            *_snapd_post_create_users_get_users_information (SnapdPostCreateUsers  *request);
+GPtrArray *
+_snapd_post_create_users_get_users_information(SnapdPostCreateUsers *request);
 
 G_END_DECLS

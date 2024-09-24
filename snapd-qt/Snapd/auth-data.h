@@ -10,23 +10,23 @@
 #ifndef SNAPD_AUTH_DATA_H
 #define SNAPD_AUTH_DATA_H
 
-#include <QtCore/QObject>
 #include <QStringList>
+#include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdAuthData : public QSnapdWrappedObject
-{
-    Q_OBJECT
-    Q_PROPERTY(QString macaroon READ macaroon)
-    Q_PROPERTY(QStringList discharges READ discharges)
+class Q_DECL_EXPORT QSnapdAuthData : public QSnapdWrappedObject {
+  Q_OBJECT
+  Q_PROPERTY(QString macaroon READ macaroon)
+  Q_PROPERTY(QStringList discharges READ discharges)
 
 public:
-    explicit QSnapdAuthData (void *snapd_object, QObject* parent = 0);
-    explicit QSnapdAuthData (const QString& macaroon, const QStringList& discharges, QObject* parent = 0);
-    explicit QSnapdAuthData (QObject* parent = 0);
+  explicit QSnapdAuthData(void *snapd_object, QObject *parent = 0);
+  explicit QSnapdAuthData(const QString &macaroon,
+                          const QStringList &discharges, QObject *parent = 0);
+  explicit QSnapdAuthData(QObject *parent = 0);
 
-    QString macaroon () const;
-    QStringList discharges () const;
+  QString macaroon() const;
+  QStringList discharges() const;
 };
 
 #endif

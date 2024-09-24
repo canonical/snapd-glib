@@ -13,18 +13,18 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdPostSnapctl, snapd_post_snapctl, SNAPD, POST_SNAPCTL, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdPostSnapctl, snapd_post_snapctl, SNAPD, POST_SNAPCTL,
+                     SnapdRequest)
 
-SnapdPostSnapctl *_snapd_post_snapctl_new               (const gchar         *context_id,
-                                                         GStrv                args,
-                                                         GCancellable        *cancellable,
-                                                         GAsyncReadyCallback  callback,
-                                                         gpointer             user_data);
+SnapdPostSnapctl *_snapd_post_snapctl_new(const gchar *context_id, GStrv args,
+                                          GCancellable *cancellable,
+                                          GAsyncReadyCallback callback,
+                                          gpointer user_data);
 
-const gchar      *_snapd_post_snapctl_get_stdout_output (SnapdPostSnapctl *request);
+const gchar *_snapd_post_snapctl_get_stdout_output(SnapdPostSnapctl *request);
 
-const gchar      *_snapd_post_snapctl_get_stderr_output (SnapdPostSnapctl *request);
+const gchar *_snapd_post_snapctl_get_stderr_output(SnapdPostSnapctl *request);
 
-int               _snapd_post_snapctl_get_exit_code     (SnapdPostSnapctl *request);
+int _snapd_post_snapctl_get_exit_code(SnapdPostSnapctl *request);
 
 G_END_DECLS

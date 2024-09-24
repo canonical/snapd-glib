@@ -15,17 +15,14 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdPostInterfaces, snapd_post_interfaces, SNAPD, POST_INTERFACES, SnapdRequestAsync)
+G_DECLARE_FINAL_TYPE(SnapdPostInterfaces, snapd_post_interfaces, SNAPD,
+                     POST_INTERFACES, SnapdRequestAsync)
 
-SnapdPostInterfaces *_snapd_post_interfaces_new (const gchar           *action,
-                                                 const gchar           *plug_snap,
-                                                 const gchar           *plug_name,
-                                                 const gchar           *slot_snap,
-                                                 const gchar           *slot_name,
-                                                 SnapdProgressCallback  progress_callback,
-                                                 gpointer               progress_callback_data,
-                                                 GCancellable          *cancellable,
-                                                 GAsyncReadyCallback    callback,
-                                                 gpointer               user_data);
+SnapdPostInterfaces *_snapd_post_interfaces_new(
+    const gchar *action, const gchar *plug_snap, const gchar *plug_name,
+    const gchar *slot_snap, const gchar *slot_name,
+    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+    GCancellable *cancellable, GAsyncReadyCallback callback,
+    gpointer user_data);
 
 G_END_DECLS

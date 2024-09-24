@@ -11,31 +11,30 @@
 #define SNAPD_INTERFACE_H
 
 #include <QtCore/QObject>
-#include <Snapd/WrappedObject>
 #include <Snapd/Plug>
 #include <Snapd/Slot>
+#include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdInterface : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdInterface : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(QString name READ name)
-    Q_PROPERTY(QString summary READ summary)
-    Q_PROPERTY(QString docUrl READ docUrl)
-    Q_PROPERTY(int plugCount READ plugCount)
-    Q_PROPERTY(int slotCount READ slotCount)
+  Q_PROPERTY(QString name READ name)
+  Q_PROPERTY(QString summary READ summary)
+  Q_PROPERTY(QString docUrl READ docUrl)
+  Q_PROPERTY(int plugCount READ plugCount)
+  Q_PROPERTY(int slotCount READ slotCount)
 
 public:
-    explicit QSnapdInterface (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdInterface(void *snapd_object, QObject *parent = 0);
 
-    QString name () const;
-    QString summary () const;
-    QString docUrl () const;
-    int plugCount () const;
-    Q_INVOKABLE QSnapdPlug *plug (int) const;
-    int slotCount () const;
-    Q_INVOKABLE QSnapdSlot *slot (int) const;
-    Q_INVOKABLE QString makeLabel () const;
+  QString name() const;
+  QString summary() const;
+  QString docUrl() const;
+  int plugCount() const;
+  Q_INVOKABLE QSnapdPlug *plug(int) const;
+  int slotCount() const;
+  Q_INVOKABLE QSnapdSlot *slot(int) const;
+  Q_INVOKABLE QString makeLabel() const;
 };
 
 #endif

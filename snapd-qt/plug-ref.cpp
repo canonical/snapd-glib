@@ -11,14 +11,13 @@
 
 #include "Snapd/plug-ref.h"
 
-QSnapdPlugRef::QSnapdPlugRef (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdPlugRef::QSnapdPlugRef(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdPlugRef::plug () const
-{
-    return snapd_plug_ref_get_plug (SNAPD_PLUG_REF (wrapped_object));
+QString QSnapdPlugRef::plug() const {
+  return snapd_plug_ref_get_plug(SNAPD_PLUG_REF(wrapped_object));
 }
 
-QString QSnapdPlugRef::snap () const
-{
-    return snapd_plug_ref_get_snap (SNAPD_PLUG_REF (wrapped_object));
+QString QSnapdPlugRef::snap() const {
+  return snapd_plug_ref_get_snap(SNAPD_PLUG_REF(wrapped_object));
 }

@@ -15,10 +15,10 @@
 G_BEGIN_DECLS
 
 #define SNAPD_TYPE_CHANGE_DATA snapd_change_data_get_type()
-G_DECLARE_DERIVABLE_TYPE (SnapdChangeData, snapd_change_data, SNAPD, CHANGE_DATA, GObject)
+G_DECLARE_DERIVABLE_TYPE(SnapdChangeData, snapd_change_data, SNAPD, CHANGE_DATA,
+                         GObject)
 
-struct _SnapdChangeDataClass
-{
+struct _SnapdChangeDataClass {
   GObjectClass parent_class;
 };
 

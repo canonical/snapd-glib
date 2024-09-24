@@ -18,9 +18,10 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_MAINTENANCE (snapd_maintenance_get_type ())
+#define SNAPD_TYPE_MAINTENANCE (snapd_maintenance_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdMaintenance, snapd_maintenance, SNAPD, MAINTENANCE, GObject)
+G_DECLARE_FINAL_TYPE(SnapdMaintenance, snapd_maintenance, SNAPD, MAINTENANCE,
+                     GObject)
 
 /**
  * SnapdMaintenanceKind:
@@ -32,16 +33,15 @@ G_DECLARE_FINAL_TYPE (SnapdMaintenance, snapd_maintenance, SNAPD, MAINTENANCE, G
  *
  * Since: 1.45
  */
-typedef enum
-{
-    SNAPD_MAINTENANCE_KIND_UNKNOWN,
-    SNAPD_MAINTENANCE_KIND_DAEMON_RESTART,
-    SNAPD_MAINTENANCE_KIND_SYSTEM_RESTART
+typedef enum {
+  SNAPD_MAINTENANCE_KIND_UNKNOWN,
+  SNAPD_MAINTENANCE_KIND_DAEMON_RESTART,
+  SNAPD_MAINTENANCE_KIND_SYSTEM_RESTART
 } SnapdMaintenanceKind;
 
-SnapdMaintenanceKind snapd_maintenance_get_kind    (SnapdMaintenance *maintenance);
+SnapdMaintenanceKind snapd_maintenance_get_kind(SnapdMaintenance *maintenance);
 
-const gchar         *snapd_maintenance_get_message (SnapdMaintenance *maintenance);
+const gchar *snapd_maintenance_get_message(SnapdMaintenance *maintenance);
 
 G_END_DECLS
 

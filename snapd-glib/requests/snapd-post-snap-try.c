@@ -13,89 +13,82 @@
 
 #include "snapd-json.h"
 
-struct _SnapdPostSnapTry
-{
-    SnapdRequestAsync parent_instance;
-    gchar *path;
+struct _SnapdPostSnapTry {
+  SnapdRequestAsync parent_instance;
+  gchar *path;
 };
 
-G_DEFINE_TYPE (SnapdPostSnapTry, snapd_post_snap_try, snapd_request_async_get_type ())
+G_DEFINE_TYPE(SnapdPostSnapTry, snapd_post_snap_try,
+              snapd_request_async_get_type())
 
-SnapdPostSnapTry *
-_snapd_post_snap_try_new (const gchar *path,
-                      SnapdProgressCallback progress_callback, gpointer progress_callback_data,
-                      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
-{
-    SnapdPostSnapTry *self = SNAPD_POST_SNAP_TRY (g_object_new (snapd_post_snap_try_get_type (),
-                                                                "cancellable", cancellable,
-                                                                "ready-callback", callback,
-                                                                "ready-callback-data", user_data,
-                                                                "progress-callback", progress_callback,
-                                                                "progress-callback-data", progress_callback_data,
-                                                                NULL));
-    self->path = g_strdup (path);
+SnapdPostSnapTry *_snapd_post_snap_try_new(
+    const gchar *path, SnapdProgressCallback progress_callback,
+    gpointer progress_callback_data, GCancellable *cancellable,
+    GAsyncReadyCallback callback, gpointer user_data) {
+  SnapdPostSnapTry *self = SNAPD_POST_SNAP_TRY(
+      g_object_new(snapd_post_snap_try_get_type(), "cancellable", cancellable,
+                   "ready-callback", callback, "ready-callback-data", user_data,
+                   "progress-callback", progress_callback,
+                   "progress-callback-data", progress_callback_data, NULL));
+  self->path = g_strdup(path);
 
-    return self;
+  return self;
 }
 
-static void
-append_multipart_value (SoupMultipart *multipart, const gchar *name, const gchar *value)
-{
-    g_autoptr(SoupMessageHeaders) headers = soup_message_headers_new (SOUP_MESSAGE_HEADERS_MULTIPART);
-    g_autoptr(GHashTable) params = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-    g_hash_table_insert (params, g_strdup ("name"), g_strdup (name));
-    soup_message_headers_set_content_disposition (headers, "form-data", params);
-#if SOUP_CHECK_VERSION (2, 99, 2)
-    g_autoptr(GBytes) buffer = g_bytes_new (value, strlen (value));
+static void append_multipart_value(SoupMultipart *multipart, const gchar *name,
+                                   const gchar *value) {
+  g_autoptr(SoupMessageHeaders) headers =
+      soup_message_headers_new(SOUP_MESSAGE_HEADERS_MULTIPART);
+  g_autoptr(GHashTable) params =
+      g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+  g_hash_table_insert(params, g_strdup("name"), g_strdup(name));
+  soup_message_headers_set_content_disposition(headers, "form-data", params);
+#if SOUP_CHECK_VERSION(2, 99, 2)
+  g_autoptr(GBytes) buffer = g_bytes_new(value, strlen(value));
 #else
-    g_autoptr(SoupBuffer) buffer = soup_buffer_new_take ((guchar *) g_strdup (value), strlen (value));
+  g_autoptr(SoupBuffer) buffer =
+      soup_buffer_new_take((guchar *)g_strdup(value), strlen(value));
 #endif
-    soup_multipart_append_part (multipart, headers, buffer);
+  soup_multipart_append_part(multipart, headers, buffer);
 }
 
-static SoupMessage *
-generate_post_snap_try_request (SnapdRequest *request, GBytes **body)
-{
-    SnapdPostSnapTry *self = SNAPD_POST_SNAP_TRY (request);
+static SoupMessage *generate_post_snap_try_request(SnapdRequest *request,
+                                                   GBytes **body) {
+  SnapdPostSnapTry *self = SNAPD_POST_SNAP_TRY(request);
 
-    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/snaps");
+  SoupMessage *message = soup_message_new("POST", "http://snapd/v2/snaps");
 
-    g_autoptr(SoupMultipart) multipart = soup_multipart_new ("multipart/form-data");
-    append_multipart_value (multipart, "action", "try");
-    append_multipart_value (multipart, "snap-path", self->path);
-#if SOUP_CHECK_VERSION (2, 99, 2)
-    soup_multipart_to_message (multipart, soup_message_get_request_headers (message), body);
+  g_autoptr(SoupMultipart) multipart =
+      soup_multipart_new("multipart/form-data");
+  append_multipart_value(multipart, "action", "try");
+  append_multipart_value(multipart, "snap-path", self->path);
+#if SOUP_CHECK_VERSION(2, 99, 2)
+  soup_multipart_to_message(multipart,
+                            soup_message_get_request_headers(message), body);
 #else
-    g_autoptr(SoupMessageBody) b = soup_message_body_new ();
-    soup_multipart_to_message (multipart, message->request_headers, b);
-    g_autoptr(SoupBuffer) buffer = soup_message_body_flatten (b);
-    *body = g_bytes_new (buffer->data, buffer->length);
+  g_autoptr(SoupMessageBody) b = soup_message_body_new();
+  soup_multipart_to_message(multipart, message->request_headers, b);
+  g_autoptr(SoupBuffer) buffer = soup_message_body_flatten(b);
+  *body = g_bytes_new(buffer->data, buffer->length);
 #endif
 
-    return message;
+  return message;
 }
 
-static void
-snapd_post_snap_try_finalize (GObject *object)
-{
-    SnapdPostSnapTry *self = SNAPD_POST_SNAP_TRY (object);
+static void snapd_post_snap_try_finalize(GObject *object) {
+  SnapdPostSnapTry *self = SNAPD_POST_SNAP_TRY(object);
 
-    g_clear_pointer (&self->path, g_free);
+  g_clear_pointer(&self->path, g_free);
 
-    G_OBJECT_CLASS (snapd_post_snap_try_parent_class)->finalize (object);
+  G_OBJECT_CLASS(snapd_post_snap_try_parent_class)->finalize(object);
 }
 
-static void
-snapd_post_snap_try_class_init (SnapdPostSnapTryClass *klass)
-{
-   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
-   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+static void snapd_post_snap_try_class_init(SnapdPostSnapTryClass *klass) {
+  SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS(klass);
+  GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-   request_class->generate_request = generate_post_snap_try_request;
-   gobject_class->finalize = snapd_post_snap_try_finalize;
+  request_class->generate_request = generate_post_snap_try_request;
+  gobject_class->finalize = snapd_post_snap_try_finalize;
 }
 
-static void
-snapd_post_snap_try_init (SnapdPostSnapTry *self)
-{
-}
+static void snapd_post_snap_try_init(SnapdPostSnapTry *self) {}

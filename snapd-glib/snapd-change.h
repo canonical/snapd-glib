@@ -14,35 +14,35 @@
 #error "Only <snapd-glib/snapd-glib.h> can be included directly."
 #endif
 
-#include <glib-object.h>
-#include "snapd-change-data.h"
 #include "snapd-autorefresh-change-data.h"
+#include "snapd-change-data.h"
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_CHANGE  (snapd_change_get_type ())
+#define SNAPD_TYPE_CHANGE (snapd_change_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdChange, snapd_change, SNAPD, CHANGE, GObject)
+G_DECLARE_FINAL_TYPE(SnapdChange, snapd_change, SNAPD, CHANGE, GObject)
 
-const gchar     *snapd_change_get_id         (SnapdChange *change);
+const gchar *snapd_change_get_id(SnapdChange *change);
 
-const gchar     *snapd_change_get_kind       (SnapdChange *change);
+const gchar *snapd_change_get_kind(SnapdChange *change);
 
-const gchar     *snapd_change_get_summary    (SnapdChange *change);
+const gchar *snapd_change_get_summary(SnapdChange *change);
 
-const gchar     *snapd_change_get_status     (SnapdChange *change);
+const gchar *snapd_change_get_status(SnapdChange *change);
 
-gboolean         snapd_change_get_ready      (SnapdChange *change);
+gboolean snapd_change_get_ready(SnapdChange *change);
 
-GPtrArray       *snapd_change_get_tasks      (SnapdChange *change);
+GPtrArray *snapd_change_get_tasks(SnapdChange *change);
 
-GDateTime       *snapd_change_get_spawn_time (SnapdChange *change);
+GDateTime *snapd_change_get_spawn_time(SnapdChange *change);
 
-GDateTime       *snapd_change_get_ready_time (SnapdChange *change);
+GDateTime *snapd_change_get_ready_time(SnapdChange *change);
 
-const gchar     *snapd_change_get_error      (SnapdChange *change);
+const gchar *snapd_change_get_error(SnapdChange *change);
 
-SnapdChangeData *snapd_change_get_data       (SnapdChange *change);
+SnapdChangeData *snapd_change_get_data(SnapdChange *change);
 
 G_END_DECLS
 

@@ -11,61 +11,55 @@
 
 #include "Snapd/interface.h"
 
-QSnapdInterface::QSnapdInterface (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdInterface::QSnapdInterface(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdInterface::name () const
-{
-    return snapd_interface_get_name (SNAPD_INTERFACE (wrapped_object));
+QString QSnapdInterface::name() const {
+  return snapd_interface_get_name(SNAPD_INTERFACE(wrapped_object));
 }
 
-QString QSnapdInterface::summary () const
-{
-    return snapd_interface_get_summary (SNAPD_INTERFACE (wrapped_object));
+QString QSnapdInterface::summary() const {
+  return snapd_interface_get_summary(SNAPD_INTERFACE(wrapped_object));
 }
 
-QString QSnapdInterface::docUrl () const
-{
-    return snapd_interface_get_doc_url (SNAPD_INTERFACE (wrapped_object));
+QString QSnapdInterface::docUrl() const {
+  return snapd_interface_get_doc_url(SNAPD_INTERFACE(wrapped_object));
 }
 
-int QSnapdInterface::slotCount () const
-{
-    GPtrArray *slots;
+int QSnapdInterface::slotCount() const {
+  GPtrArray *slots;
 
-    slots = snapd_interface_get_slots (SNAPD_INTERFACE (wrapped_object));
-    return slots != NULL ? slots->len : 0;
+  slots = snapd_interface_get_slots(SNAPD_INTERFACE(wrapped_object));
+  return slots != NULL ? slots->len : 0;
 }
 
-QSnapdSlot *QSnapdInterface::slot (int n) const
-{
-    GPtrArray *slots;
+QSnapdSlot *QSnapdInterface::slot(int n) const {
+  GPtrArray *slots;
 
-    slots = snapd_interface_get_slots (SNAPD_INTERFACE (wrapped_object));
-    if (slots == NULL || n < 0 || (guint) n >= slots->len)
-        return NULL;
-    return new QSnapdSlot (slots->pdata[n]);
+  slots = snapd_interface_get_slots(SNAPD_INTERFACE(wrapped_object));
+  if (slots == NULL || n < 0 || (guint)n >= slots->len)
+    return NULL;
+  return new QSnapdSlot(slots->pdata[n]);
 }
 
-int QSnapdInterface::plugCount () const
-{
-    GPtrArray *plugs;
+int QSnapdInterface::plugCount() const {
+  GPtrArray *plugs;
 
-    plugs = snapd_interface_get_plugs (SNAPD_INTERFACE (wrapped_object));
-    return plugs != NULL ? plugs->len : 0;
+  plugs = snapd_interface_get_plugs(SNAPD_INTERFACE(wrapped_object));
+  return plugs != NULL ? plugs->len : 0;
 }
 
-QSnapdPlug *QSnapdInterface::plug (int n) const
-{
-    GPtrArray *plugs;
+QSnapdPlug *QSnapdInterface::plug(int n) const {
+  GPtrArray *plugs;
 
-    plugs = snapd_interface_get_plugs (SNAPD_INTERFACE (wrapped_object));
-    if (plugs == NULL || n < 0 || (guint) n >= plugs->len)
-        return NULL;
-    return new QSnapdPlug (plugs->pdata[n]);
+  plugs = snapd_interface_get_plugs(SNAPD_INTERFACE(wrapped_object));
+  if (plugs == NULL || n < 0 || (guint)n >= plugs->len)
+    return NULL;
+  return new QSnapdPlug(plugs->pdata[n]);
 }
 
-QString QSnapdInterface::makeLabel () const
-{
-    g_autofree gchar *label = snapd_interface_make_label (SNAPD_INTERFACE (wrapped_object));
-    return label;
+QString QSnapdInterface::makeLabel() const {
+  g_autofree gchar *label =
+      snapd_interface_make_label(SNAPD_INTERFACE(wrapped_object));
+  return label;
 }

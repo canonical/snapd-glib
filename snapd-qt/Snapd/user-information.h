@@ -11,27 +11,26 @@
 #define SNAPD_USER_INFORMATION_H
 
 #include <QtCore/QObject>
-#include <Snapd/WrappedObject>
 #include <Snapd/AuthData>
+#include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdUserInformation : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdUserInformation : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(int id READ id)
-    Q_PROPERTY(QString username READ username)
-    Q_PROPERTY(QString email READ email)
-    Q_PROPERTY(QStringList sshKeys READ sshKeys)
-    Q_PROPERTY(QSnapdAuthData* authData READ authData)
+  Q_PROPERTY(int id READ id)
+  Q_PROPERTY(QString username READ username)
+  Q_PROPERTY(QString email READ email)
+  Q_PROPERTY(QStringList sshKeys READ sshKeys)
+  Q_PROPERTY(QSnapdAuthData *authData READ authData)
 
 public:
-    explicit QSnapdUserInformation (void *snapd_object, QObject* parent = 0);
+  explicit QSnapdUserInformation(void *snapd_object, QObject *parent = 0);
 
-    int id () const;
-    QString username () const;
-    QString email () const;
-    QStringList sshKeys () const;
-    QSnapdAuthData *authData () const;
+  int id() const;
+  QString username() const;
+  QString email() const;
+  QStringList sshKeys() const;
+  QSnapdAuthData *authData() const;
 };
 
 #endif

@@ -13,11 +13,12 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdPostAssertions, snapd_post_assertions, SNAPD, POST_ASSERTIONS, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdPostAssertions, snapd_post_assertions, SNAPD,
+                     POST_ASSERTIONS, SnapdRequest)
 
-SnapdPostAssertions *_snapd_post_assertions_new (GStrv                assertions,
-                                                 GCancellable        *cancellable,
-                                                 GAsyncReadyCallback  callback,
-                                                 gpointer             user_data);
+SnapdPostAssertions *_snapd_post_assertions_new(GStrv assertions,
+                                                GCancellable *cancellable,
+                                                GAsyncReadyCallback callback,
+                                                gpointer user_data);
 
 G_END_DECLS

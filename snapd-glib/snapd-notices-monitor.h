@@ -24,14 +24,14 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE(SnapdNoticesMonitor, snapd_notices_monitor, SNAPD,
                      NOTICES_MONITOR, GObject)
 
-SnapdNoticesMonitor  *snapd_notices_monitor_new               (void);
+SnapdNoticesMonitor *snapd_notices_monitor_new(void);
 
-SnapdNoticesMonitor  *snapd_notices_monitor_new_with_client   (SnapdClient             *client);
+SnapdNoticesMonitor *snapd_notices_monitor_new_with_client(SnapdClient *client);
 
-gboolean              snapd_notices_monitor_start             (SnapdNoticesMonitor     *monitor,
-                                                               GError                 **error);
+gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *monitor,
+                                     GError **error);
 
-gboolean              snapd_notices_monitor_stop              (SnapdNoticesMonitor     *monitor,
-                                                               GError                 **error);
+gboolean snapd_notices_monitor_stop(SnapdNoticesMonitor *monitor,
+                                    GError **error);
 
 G_END_DECLS

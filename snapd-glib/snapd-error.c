@@ -26,4 +26,4 @@
  *
  * Since: 1.0
  **/
-G_DEFINE_QUARK (snapd-error-quark, snapd_error)
+G_DEFINE_QUARK(snapd - error - quark, snapd_error)

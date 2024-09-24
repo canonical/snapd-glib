@@ -18,15 +18,16 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_SCREENSHOT  (snapd_screenshot_get_type ())
+#define SNAPD_TYPE_SCREENSHOT (snapd_screenshot_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdScreenshot, snapd_screenshot, SNAPD, SCREENSHOT, GObject)
+G_DECLARE_FINAL_TYPE(SnapdScreenshot, snapd_screenshot, SNAPD, SCREENSHOT,
+                     GObject)
 
-const gchar *snapd_screenshot_get_url   (SnapdScreenshot *screenshot);
+const gchar *snapd_screenshot_get_url(SnapdScreenshot *screenshot);
 
-guint        snapd_screenshot_get_width (SnapdScreenshot *screenshot);
+guint snapd_screenshot_get_width(SnapdScreenshot *screenshot);
 
-guint        snapd_screenshot_get_height (SnapdScreenshot *screenshot);
+guint snapd_screenshot_get_height(SnapdScreenshot *screenshot);
 
 G_END_DECLS
 

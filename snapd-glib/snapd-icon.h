@@ -18,13 +18,13 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_ICON (snapd_icon_get_type ())
+#define SNAPD_TYPE_ICON (snapd_icon_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdIcon, snapd_icon, SNAPD, ICON, GObject)
+G_DECLARE_FINAL_TYPE(SnapdIcon, snapd_icon, SNAPD, ICON, GObject)
 
-const gchar  *snapd_icon_get_mime_type   (SnapdIcon *icon);
+const gchar *snapd_icon_get_mime_type(SnapdIcon *icon);
 
-GBytes       *snapd_icon_get_data        (SnapdIcon *icon);
+GBytes *snapd_icon_get_data(SnapdIcon *icon);
 
 G_END_DECLS
 

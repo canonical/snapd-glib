@@ -11,23 +11,21 @@
 
 #include "Snapd/maintenance.h"
 
-QSnapdMaintenance::QSnapdMaintenance (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdMaintenance::QSnapdMaintenance(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QSnapdEnums::MaintenanceKind QSnapdMaintenance::kind () const
-{
-    switch (snapd_maintenance_get_kind (SNAPD_MAINTENANCE (wrapped_object)))
-    {
-    default:
-    case SNAPD_MAINTENANCE_KIND_UNKNOWN:
-        return QSnapdEnums::MaintenanceKindUnknown;
-    case SNAPD_MAINTENANCE_KIND_DAEMON_RESTART:
-        return QSnapdEnums::MaintenanceKindDaemonRestart;
-    case SNAPD_MAINTENANCE_KIND_SYSTEM_RESTART:
-        return QSnapdEnums::MaintenanceKindSystemRestart;
-    }
+QSnapdEnums::MaintenanceKind QSnapdMaintenance::kind() const {
+  switch (snapd_maintenance_get_kind(SNAPD_MAINTENANCE(wrapped_object))) {
+  default:
+  case SNAPD_MAINTENANCE_KIND_UNKNOWN:
+    return QSnapdEnums::MaintenanceKindUnknown;
+  case SNAPD_MAINTENANCE_KIND_DAEMON_RESTART:
+    return QSnapdEnums::MaintenanceKindDaemonRestart;
+  case SNAPD_MAINTENANCE_KIND_SYSTEM_RESTART:
+    return QSnapdEnums::MaintenanceKindSystemRestart;
+  }
 }
 
-QString QSnapdMaintenance::message () const
-{
-    return snapd_maintenance_get_message (SNAPD_MAINTENANCE (wrapped_object));
+QString QSnapdMaintenance::message() const {
+  return snapd_maintenance_get_message(SNAPD_MAINTENANCE(wrapped_object));
 }

@@ -13,21 +13,20 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdGetConnections, snapd_get_connections, SNAPD, GET_CONNECTIONS, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdGetConnections, snapd_get_connections, SNAPD,
+                     GET_CONNECTIONS, SnapdRequest)
 
-SnapdGetConnections *_snapd_get_connections_new             (const gchar         *snap,
-                                                             const gchar         *interface,
-                                                             const gchar         *select,
-                                                             GCancellable        *cancellable,
-                                                             GAsyncReadyCallback  callback,
-                                                             gpointer             user_data);
+SnapdGetConnections *
+_snapd_get_connections_new(const gchar *snap, const gchar *interface,
+                           const gchar *select, GCancellable *cancellable,
+                           GAsyncReadyCallback callback, gpointer user_data);
 
-GPtrArray           *_snapd_get_connections_get_established (SnapdGetConnections *request);
+GPtrArray *_snapd_get_connections_get_established(SnapdGetConnections *request);
 
-GPtrArray           *_snapd_get_connections_get_plugs       (SnapdGetConnections *request);
+GPtrArray *_snapd_get_connections_get_plugs(SnapdGetConnections *request);
 
-GPtrArray           *_snapd_get_connections_get_slots       (SnapdGetConnections *request);
+GPtrArray *_snapd_get_connections_get_slots(SnapdGetConnections *request);
 
-GPtrArray           *_snapd_get_connections_get_undesired   (SnapdGetConnections *request);
+GPtrArray *_snapd_get_connections_get_undesired(SnapdGetConnections *request);
 
 G_END_DECLS

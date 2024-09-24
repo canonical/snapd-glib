@@ -14,12 +14,11 @@
 #include <QtCore/QStringList>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdChangeData : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdChangeData : public QSnapdWrappedObject {
+  Q_OBJECT
 
 public:
-    explicit QSnapdChangeData (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdChangeData(void *snapd_object, QObject *parent = 0);
 };
 
 #endif

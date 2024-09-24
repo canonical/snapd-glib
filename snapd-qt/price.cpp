@@ -11,14 +11,13 @@
 
 #include "Snapd/price.h"
 
-QSnapdPrice::QSnapdPrice (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdPrice::QSnapdPrice(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-double QSnapdPrice::amount () const
-{
-    return snapd_price_get_amount (SNAPD_PRICE (wrapped_object));
+double QSnapdPrice::amount() const {
+  return snapd_price_get_amount(SNAPD_PRICE(wrapped_object));
 }
 
-QString QSnapdPrice::currency () const
-{
-    return snapd_price_get_currency (SNAPD_PRICE (wrapped_object));
+QString QSnapdPrice::currency() const {
+  return snapd_price_get_currency(SNAPD_PRICE(wrapped_object));
 }

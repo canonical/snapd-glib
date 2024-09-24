@@ -12,99 +12,89 @@
 
 #include <QtCore/QObject>
 
-class Q_DECL_EXPORT QSnapdEnums : public QObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdEnums : public QObject {
+  Q_OBJECT
 
 public:
-    enum AliasStatus
-    {
-        AliasStatusUnknown,
-        AliasStatusDefault,
-        AliasStatusEnabled,
-        AliasStatusDisabled,
-        AliasStatusAuto,
-        AliasStatusManual
-    };
-    Q_ENUM(AliasStatus)
+  enum AliasStatus {
+    AliasStatusUnknown,
+    AliasStatusDefault,
+    AliasStatusEnabled,
+    AliasStatusDisabled,
+    AliasStatusAuto,
+    AliasStatusManual
+  };
+  Q_ENUM(AliasStatus)
 
-    enum DaemonType
-    {
-        DaemonTypeNone,
-        DaemonTypeUnknown,
-        DaemonTypeSimple,
-        DaemonTypeForking,
-        DaemonTypeOneshot,
-        DaemonTypeDbus,
-        DaemonTypeNotify
-    };
-    Q_ENUM(DaemonType)
+  enum DaemonType {
+    DaemonTypeNone,
+    DaemonTypeUnknown,
+    DaemonTypeSimple,
+    DaemonTypeForking,
+    DaemonTypeOneshot,
+    DaemonTypeDbus,
+    DaemonTypeNotify
+  };
+  Q_ENUM(DaemonType)
 
-    enum SnapConfinement
-    {
-        SnapConfinementUnknown,
-        SnapConfinementStrict,
-        SnapConfinementDevmode,
-        SnapConfinementClassic
-    };
-    Q_ENUM(SnapConfinement)
+  enum SnapConfinement {
+    SnapConfinementUnknown,
+    SnapConfinementStrict,
+    SnapConfinementDevmode,
+    SnapConfinementClassic
+  };
+  Q_ENUM(SnapConfinement)
 
-    enum SnapType
-    {
-        SnapTypeUnknown,
-        SnapTypeApp,
-        SnapTypeKernel,
-        SnapTypeGadget,
-        SnapTypeOperatingSystem,
-        SnapTypeCore,
-        SnapTypeBase,
-        SnapTypeSnapd
-    };
-    Q_ENUM(SnapType)
+  enum SnapType {
+    SnapTypeUnknown,
+    SnapTypeApp,
+    SnapTypeKernel,
+    SnapTypeGadget,
+    SnapTypeOperatingSystem,
+    SnapTypeCore,
+    SnapTypeBase,
+    SnapTypeSnapd
+  };
+  Q_ENUM(SnapType)
 
-    enum SnapStatus
-    {
-        SnapStatusUnknown,
-        SnapStatusAvailable,
-        SnapStatusPriced,
-        SnapStatusInstalled,
-        SnapStatusActive
-    };
-    Q_ENUM(SnapStatus)
+  enum SnapStatus {
+    SnapStatusUnknown,
+    SnapStatusAvailable,
+    SnapStatusPriced,
+    SnapStatusInstalled,
+    SnapStatusActive
+  };
+  Q_ENUM(SnapStatus)
 
-    enum SystemConfinement
-    {
-        SystemConfinementUnknown,
-        SystemConfinementStrict,
-        SystemConfinementPartial
-    };
-    Q_ENUM(SystemConfinement)
+  enum SystemConfinement {
+    SystemConfinementUnknown,
+    SystemConfinementStrict,
+    SystemConfinementPartial
+  };
+  Q_ENUM(SystemConfinement)
 
-    enum PublisherValidation
-    {
-        PublisherValidationUnknown,
-        PublisherValidationUnproven,
-        PublisherValidationVerified,
-        PublisherValidationStarred
-    };
-    Q_ENUM(PublisherValidation)
+  enum PublisherValidation {
+    PublisherValidationUnknown,
+    PublisherValidationUnproven,
+    PublisherValidationVerified,
+    PublisherValidationStarred
+  };
+  Q_ENUM(PublisherValidation)
 
-    enum MaintenanceKind
-    {
-        MaintenanceKindUnknown,
-        MaintenanceKindDaemonRestart,
-        MaintenanceKindSystemRestart
-    };
-    Q_ENUM(MaintenanceKind)
+  enum MaintenanceKind {
+    MaintenanceKindUnknown,
+    MaintenanceKindDaemonRestart,
+    MaintenanceKindSystemRestart
+  };
+  Q_ENUM(MaintenanceKind)
 
-    enum SnapNoticeType
-    {
-        SnapNoticeTypeUnknown,
-        SnapNoticeTypeChangeUpdate,
-        SnapNoticeTypeRefreshInhibit,
-        SnapNoticeTypeSnapRunInhibit
-    };
-    Q_ENUM(SnapNoticeType)
+  enum SnapNoticeType {
+    SnapNoticeTypeUnknown,
+    SnapNoticeTypeChangeUpdate,
+    SnapNoticeTypeRefreshInhibit,
+    SnapNoticeTypeSnapRunInhibit
+  };
+  Q_ENUM(SnapNoticeType)
 };
 
 #endif

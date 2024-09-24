@@ -18,11 +18,11 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_TASK_DATA  (snapd_task_data_get_type ())
+#define SNAPD_TYPE_TASK_DATA (snapd_task_data_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdTaskData, snapd_task_data, SNAPD, TASK_DATA, GObject)
+G_DECLARE_FINAL_TYPE(SnapdTaskData, snapd_task_data, SNAPD, TASK_DATA, GObject)
 
-GStrv snapd_task_data_get_affected_snaps              (SnapdTaskData *task_data);
+GStrv snapd_task_data_get_affected_snaps(SnapdTaskData *task_data);
 
 G_END_DECLS
 

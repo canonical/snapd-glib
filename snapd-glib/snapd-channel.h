@@ -18,9 +18,9 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_CHANNEL  (snapd_channel_get_type ())
+#define SNAPD_TYPE_CHANNEL (snapd_channel_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdChannel, snapd_channel, SNAPD, CHANNEL, GObject)
+G_DECLARE_FINAL_TYPE(SnapdChannel, snapd_channel, SNAPD, CHANNEL, GObject)
 
 /**
  * SnapdConfinement:
@@ -33,33 +33,32 @@ G_DECLARE_FINAL_TYPE (SnapdChannel, snapd_channel, SNAPD, CHANNEL, GObject)
  *
  * Since: 1.0
  */
-typedef enum
-{
-    SNAPD_CONFINEMENT_UNKNOWN,
-    SNAPD_CONFINEMENT_STRICT,
-    SNAPD_CONFINEMENT_DEVMODE,
-    SNAPD_CONFINEMENT_CLASSIC
+typedef enum {
+  SNAPD_CONFINEMENT_UNKNOWN,
+  SNAPD_CONFINEMENT_STRICT,
+  SNAPD_CONFINEMENT_DEVMODE,
+  SNAPD_CONFINEMENT_CLASSIC
 } SnapdConfinement;
 
-const gchar      *snapd_channel_get_branch      (SnapdChannel *channel);
+const gchar *snapd_channel_get_branch(SnapdChannel *channel);
 
-SnapdConfinement  snapd_channel_get_confinement (SnapdChannel *channel);
+SnapdConfinement snapd_channel_get_confinement(SnapdChannel *channel);
 
-const gchar      *snapd_channel_get_epoch       (SnapdChannel *channel);
+const gchar *snapd_channel_get_epoch(SnapdChannel *channel);
 
-const gchar      *snapd_channel_get_name        (SnapdChannel *channel);
+const gchar *snapd_channel_get_name(SnapdChannel *channel);
 
-const gchar      *snapd_channel_get_revision    (SnapdChannel *channel);
+const gchar *snapd_channel_get_revision(SnapdChannel *channel);
 
-GDateTime        *snapd_channel_get_released_at (SnapdChannel *channel);
+GDateTime *snapd_channel_get_released_at(SnapdChannel *channel);
 
-const gchar      *snapd_channel_get_risk        (SnapdChannel *channel);
+const gchar *snapd_channel_get_risk(SnapdChannel *channel);
 
-gint64            snapd_channel_get_size        (SnapdChannel *channel);
+gint64 snapd_channel_get_size(SnapdChannel *channel);
 
-const gchar      *snapd_channel_get_track       (SnapdChannel *channel);
+const gchar *snapd_channel_get_track(SnapdChannel *channel);
 
-const gchar      *snapd_channel_get_version     (SnapdChannel *channel);
+const gchar *snapd_channel_get_version(SnapdChannel *channel);
 
 G_END_DECLS
 

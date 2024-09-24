@@ -18,11 +18,13 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_CATEGORY_DETAILS  (snapd_category_details_get_type ())
+#define SNAPD_TYPE_CATEGORY_DETAILS (snapd_category_details_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdCategoryDetails, snapd_category_details, SNAPD, CATEGORY_DETAILS, GObject)
+G_DECLARE_FINAL_TYPE(SnapdCategoryDetails, snapd_category_details, SNAPD,
+                     CATEGORY_DETAILS, GObject)
 
-const gchar *snapd_category_details_get_name (SnapdCategoryDetails *category_details);
+const gchar *
+snapd_category_details_get_name(SnapdCategoryDetails *category_details);
 
 G_END_DECLS
 

@@ -18,21 +18,21 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_INTERFACE  (snapd_interface_get_type ())
+#define SNAPD_TYPE_INTERFACE (snapd_interface_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdInterface, snapd_interface, SNAPD, INTERFACE, GObject)
+G_DECLARE_FINAL_TYPE(SnapdInterface, snapd_interface, SNAPD, INTERFACE, GObject)
 
-const gchar *snapd_interface_get_name    (SnapdInterface *interface);
+const gchar *snapd_interface_get_name(SnapdInterface *interface);
 
-const gchar *snapd_interface_get_summary (SnapdInterface *interface);
+const gchar *snapd_interface_get_summary(SnapdInterface *interface);
 
-const gchar *snapd_interface_get_doc_url (SnapdInterface *interface);
+const gchar *snapd_interface_get_doc_url(SnapdInterface *interface);
 
-GPtrArray   *snapd_interface_get_plugs   (SnapdInterface *interface);
+GPtrArray *snapd_interface_get_plugs(SnapdInterface *interface);
 
-GPtrArray   *snapd_interface_get_slots   (SnapdInterface *interface);
+GPtrArray *snapd_interface_get_slots(SnapdInterface *interface);
 
-gchar       *snapd_interface_make_label  (SnapdInterface *interface);
+gchar *snapd_interface_make_label(SnapdInterface *interface);
 
 G_END_DECLS
 

@@ -18,9 +18,9 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_APP  (snapd_app_get_type ())
+#define SNAPD_TYPE_APP (snapd_app_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdApp, snapd_app, SNAPD, APP, GObject)
+G_DECLARE_FINAL_TYPE(SnapdApp, snapd_app, SNAPD, APP, GObject)
 
 /**
  * SnapdDaemonType:
@@ -36,32 +36,31 @@ G_DECLARE_FINAL_TYPE (SnapdApp, snapd_app, SNAPD, APP, GObject)
  *
  * Since: 1.9
  */
-typedef enum
-{
-    SNAPD_DAEMON_TYPE_NONE,
-    SNAPD_DAEMON_TYPE_UNKNOWN,
-    SNAPD_DAEMON_TYPE_SIMPLE,
-    SNAPD_DAEMON_TYPE_FORKING,
-    SNAPD_DAEMON_TYPE_ONESHOT,
-    SNAPD_DAEMON_TYPE_DBUS,
-    SNAPD_DAEMON_TYPE_NOTIFY
+typedef enum {
+  SNAPD_DAEMON_TYPE_NONE,
+  SNAPD_DAEMON_TYPE_UNKNOWN,
+  SNAPD_DAEMON_TYPE_SIMPLE,
+  SNAPD_DAEMON_TYPE_FORKING,
+  SNAPD_DAEMON_TYPE_ONESHOT,
+  SNAPD_DAEMON_TYPE_DBUS,
+  SNAPD_DAEMON_TYPE_NOTIFY
 } SnapdDaemonType;
 
-const gchar    *snapd_app_get_name         (SnapdApp *app);
+const gchar *snapd_app_get_name(SnapdApp *app);
 
-gboolean        snapd_app_get_active       (SnapdApp *app);
+gboolean snapd_app_get_active(SnapdApp *app);
 
-GStrv           snapd_app_get_aliases      (SnapdApp *app) G_DEPRECATED;
+GStrv snapd_app_get_aliases(SnapdApp *app) G_DEPRECATED;
 
-const gchar    *snapd_app_get_common_id    (SnapdApp *app);
+const gchar *snapd_app_get_common_id(SnapdApp *app);
 
-SnapdDaemonType snapd_app_get_daemon_type  (SnapdApp *app);
+SnapdDaemonType snapd_app_get_daemon_type(SnapdApp *app);
 
-const gchar    *snapd_app_get_desktop_file (SnapdApp *app);
+const gchar *snapd_app_get_desktop_file(SnapdApp *app);
 
-gboolean        snapd_app_get_enabled      (SnapdApp *app);
+gboolean snapd_app_get_enabled(SnapdApp *app);
 
-const gchar    *snapd_app_get_snap         (SnapdApp *app);
+const gchar *snapd_app_get_snap(SnapdApp *app);
 
 G_END_DECLS
 

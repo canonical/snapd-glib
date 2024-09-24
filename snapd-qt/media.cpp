@@ -11,24 +11,21 @@
 
 #include "Snapd/media.h"
 
-QSnapdMedia::QSnapdMedia (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdMedia::QSnapdMedia(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdMedia::type () const
-{
-    return snapd_media_get_media_type (SNAPD_MEDIA (wrapped_object));
+QString QSnapdMedia::type() const {
+  return snapd_media_get_media_type(SNAPD_MEDIA(wrapped_object));
 }
 
-QString QSnapdMedia::url () const
-{
-    return snapd_media_get_url (SNAPD_MEDIA (wrapped_object));
+QString QSnapdMedia::url() const {
+  return snapd_media_get_url(SNAPD_MEDIA(wrapped_object));
 }
 
-quint64 QSnapdMedia::width () const
-{
-    return snapd_media_get_width (SNAPD_MEDIA (wrapped_object));
+quint64 QSnapdMedia::width() const {
+  return snapd_media_get_width(SNAPD_MEDIA(wrapped_object));
 }
 
-quint64 QSnapdMedia::height () const
-{
-    return snapd_media_get_height (SNAPD_MEDIA (wrapped_object));
+quint64 QSnapdMedia::height() const {
+  return snapd_media_get_height(SNAPD_MEDIA(wrapped_object));
 }

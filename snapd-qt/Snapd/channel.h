@@ -10,39 +10,38 @@
 #ifndef SNAPD_CHANNEL_H
 #define SNAPD_CHANNEL_H
 
-#include <QtCore/QObject>
 #include <QtCore/QDateTime>
-#include <Snapd/WrappedObject>
+#include <QtCore/QObject>
 #include <Snapd/Enums>
+#include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdChannel : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdChannel : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(QString branch READ branch CONSTANT)
-    Q_PROPERTY(QSnapdEnums::SnapConfinement confinement READ confinement CONSTANT)
-    Q_PROPERTY(QString epoch READ epoch CONSTANT)
-    Q_PROPERTY(QString name READ name CONSTANT)
-    Q_PROPERTY(QDateTime releasedAt READ releasedAt CONSTANT)
-    Q_PROPERTY(QString revision READ revision CONSTANT)
-    Q_PROPERTY(QString risk READ risk CONSTANT)
-    Q_PROPERTY(qint64 size READ size CONSTANT)
-    Q_PROPERTY(QString track READ track CONSTANT)
-    Q_PROPERTY(QString version READ version CONSTANT)
+  Q_PROPERTY(QString branch READ branch CONSTANT)
+  Q_PROPERTY(QSnapdEnums::SnapConfinement confinement READ confinement CONSTANT)
+  Q_PROPERTY(QString epoch READ epoch CONSTANT)
+  Q_PROPERTY(QString name READ name CONSTANT)
+  Q_PROPERTY(QDateTime releasedAt READ releasedAt CONSTANT)
+  Q_PROPERTY(QString revision READ revision CONSTANT)
+  Q_PROPERTY(QString risk READ risk CONSTANT)
+  Q_PROPERTY(qint64 size READ size CONSTANT)
+  Q_PROPERTY(QString track READ track CONSTANT)
+  Q_PROPERTY(QString version READ version CONSTANT)
 
 public:
-    explicit QSnapdChannel (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdChannel(void *snapd_object, QObject *parent = 0);
 
-    QString branch () const;
-    QSnapdEnums::SnapConfinement confinement () const;
-    QString epoch () const;
-    QString name () const;
-    QDateTime releasedAt () const;
-    QString revision () const;
-    QString risk () const;
-    qint64 size () const;
-    QString track () const;
-    QString version () const;
+  QString branch() const;
+  QSnapdEnums::SnapConfinement confinement() const;
+  QString epoch() const;
+  QString name() const;
+  QDateTime releasedAt() const;
+  QString revision() const;
+  QString risk() const;
+  qint64 size() const;
+  QString track() const;
+  QString version() const;
 };
 
 #endif
