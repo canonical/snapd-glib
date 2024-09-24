@@ -3,7 +3,7 @@ option('introspection',
        description: 'Build the introspection data (requires gobject-introspection)')
 option('docs',
        type: 'boolean', value: true,
-       description: 'Build the API reference (requires gtk-doc)')
+       description: 'Build the API reference (requires gi-docgen, and gobject-introspection)')
 option('vala-bindings',
        type: 'boolean', value: true,
        description: 'Build the Vala bindings (requires introspection)')
