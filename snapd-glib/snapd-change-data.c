@@ -28,7 +28,7 @@
  * Since: 1.65
  */
 
-G_DEFINE_TYPE (SnapdChangeData, snapd_change_data, G_TYPE_OBJECT)
+G_DEFINE_TYPE(SnapdChangeData, snapd_change_data, G_TYPE_OBJECT)
 
 static void snapd_change_data_class_init(SnapdChangeDataClass *klass) {}
 

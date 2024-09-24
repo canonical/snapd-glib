@@ -179,11 +179,11 @@ static void snapd_notices_monitor_set_property(GObject *object, guint prop_id,
   }
 }
 
-void snapd_notices_monitor_init(SnapdNoticesMonitor *self) {
+static void snapd_notices_monitor_init(SnapdNoticesMonitor *self) {
   self->cancellable = g_cancellable_new();
 }
 
-void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
+static void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
   GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
   gobject_class->set_property = snapd_notices_monitor_set_property;
@@ -232,10 +232,8 @@ SnapdNoticesMonitor *snapd_notices_monitor_new(void) {
  */
 
 SnapdNoticesMonitor *
-snapd_notices_monitor_new_with_client (SnapdClient *client)
-{
-    SnapdNoticesMonitor *self = g_object_new(snapd_notices_monitor_get_type(),
-                                             "client", client,
-                                             NULL);
-    return self;
+snapd_notices_monitor_new_with_client(SnapdClient *client) {
+  SnapdNoticesMonitor *self =
+      g_object_new(snapd_notices_monitor_get_type(), "client", client, NULL);
+  return self;
 }

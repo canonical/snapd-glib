@@ -54,12 +54,7 @@ G_DEFINE_TYPE(SnapdAutorefreshChangeData, snapd_autorefresh_change_data,
  * Since: 1.65
  */
 
-enum
-{
-    PROP_SNAP_NAMES = 1,
-    PROP_REFRESH_FORCED,
-    N_PROPERTIES
-};
+enum { PROP_SNAP_NAMES = 1, PROP_REFRESH_FORCED, N_PROPERTIES };
 
 /**
  * snapd_autorefresh_change_data_get_snap_names:
@@ -68,7 +63,8 @@ enum
  * Returns the list of snaps that have a pending update but are inhibited
  * because they have a running program.
  *
- * return: (transfer none): a GStrv with the snap names, or NULL if the property wasn't defined
+ * return: (transfer none): a GStrv with the snap names, or NULL if the property
+ * wasn't defined
  *
  * Since: 1.65
  */
@@ -85,7 +81,8 @@ GStrv snapd_autorefresh_change_data_get_snap_names(
  * Returns the list of snaps that were inhibited for too long, and
  * now are having a forced refresh.
  *
- * return: (transfer none): a GStrv with the snap names, or NULL if the property wasn't defined
+ * return: (transfer none): a GStrv with the snap names, or NULL if the property
+ * wasn't defined
  *
  * Since: 1.65
  */
