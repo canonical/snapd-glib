@@ -15,7 +15,8 @@
  * @include: snapd-glib/snapd-glib.h
  *
  * A #SnapdChangeData is the base class for the `data` field from
- * a #SnapdChange.
+ * a #SnapdChange. Each kind of #SnapdChange will return a different
+ * subclass of this one with the specific data of that kind of change.
  */
 
 /**
