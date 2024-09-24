@@ -68,7 +68,7 @@ enum
  * Returns the list of snaps that have a pending update but are inhibited
  * because they have a running program.
  *
- * return: (transfer none): a GStrv with the snap names , or NULL if the property wasn't defined
+ * return: (transfer none): a GStrv with the snap names, or NULL if the property wasn't defined
  *
  * Since: 1.65
  */
