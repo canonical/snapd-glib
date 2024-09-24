@@ -12,38 +12,37 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QVariant>
-#include <Snapd/WrappedObject>
 #include <Snapd/PlugRef>
 #include <Snapd/SlotRef>
+#include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdConnection : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdConnection : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(QSnapdSlotRef slot READ slot)
-    Q_PROPERTY(QSnapdPlugRef plug READ plug)
-    Q_PROPERTY(QString interface READ interface)
-    Q_PROPERTY(bool manual READ manual)
-    Q_PROPERTY(bool gadget READ gadget)
-    Q_PROPERTY(QString name READ name)
-    Q_PROPERTY(QString snap READ snap)
+  Q_PROPERTY(QSnapdSlotRef slot READ slot)
+  Q_PROPERTY(QSnapdPlugRef plug READ plug)
+  Q_PROPERTY(QString interface READ interface)
+  Q_PROPERTY(bool manual READ manual)
+  Q_PROPERTY(bool gadget READ gadget)
+  Q_PROPERTY(QString name READ name)
+  Q_PROPERTY(QString snap READ snap)
 
 public:
-    explicit QSnapdConnection (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdConnection(void *snapd_object, QObject *parent = 0);
 
-    QSnapdSlotRef *slot () const;
-    QSnapdPlugRef *plug () const;
-    QString interface () const;
-    bool manual () const;
-    bool gadget () const;
-    Q_INVOKABLE QStringList slotAttributeNames () const;
-    Q_INVOKABLE bool hasSlotAttribute (const QString &name) const;
-    Q_INVOKABLE QVariant slotAttribute (const QString &name) const;
-    Q_INVOKABLE QStringList plugAttributeNames () const;
-    Q_INVOKABLE bool hasPlugAttribute (const QString &name) const;
-    Q_INVOKABLE QVariant plugAttribute (const QString &name) const;
-    QString name () const;
-    QString snap () const;
+  QSnapdSlotRef *slot() const;
+  QSnapdPlugRef *plug() const;
+  QString interface() const;
+  bool manual() const;
+  bool gadget() const;
+  Q_INVOKABLE QStringList slotAttributeNames() const;
+  Q_INVOKABLE bool hasSlotAttribute(const QString &name) const;
+  Q_INVOKABLE QVariant slotAttribute(const QString &name) const;
+  Q_INVOKABLE QStringList plugAttributeNames() const;
+  Q_INVOKABLE bool hasPlugAttribute(const QString &name) const;
+  Q_INVOKABLE QVariant plugAttribute(const QString &name) const;
+  QString name() const;
+  QString snap() const;
 };
 
 #endif

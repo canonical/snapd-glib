@@ -16,8 +16,8 @@
 #include <snapd-glib/snapd-app.h>
 #include <snapd-glib/snapd-assertion.h>
 #include <snapd-glib/snapd-auth-data.h>
-#include <snapd-glib/snapd-category.h>
 #include <snapd-glib/snapd-category-details.h>
+#include <snapd-glib/snapd-category.h>
 #include <snapd-glib/snapd-channel.h>
 #include <snapd-glib/snapd-client.h>
 #include <snapd-glib/snapd-connection.h>
@@ -32,12 +32,12 @@
 #include <snapd-glib/snapd-markdown-parser.h>
 #include <snapd-glib/snapd-media.h>
 #include <snapd-glib/snapd-notices-monitor.h>
-#include <snapd-glib/snapd-plug.h>
 #include <snapd-glib/snapd-plug-ref.h>
+#include <snapd-glib/snapd-plug.h>
 #include <snapd-glib/snapd-price.h>
 #include <snapd-glib/snapd-screenshot.h>
-#include <snapd-glib/snapd-slot.h>
 #include <snapd-glib/snapd-slot-ref.h>
+#include <snapd-glib/snapd-slot.h>
 #include <snapd-glib/snapd-snap.h>
 #include <snapd-glib/snapd-system-information.h>
 #include <snapd-glib/snapd-task.h>

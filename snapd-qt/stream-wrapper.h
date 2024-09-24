@@ -10,25 +10,24 @@
 #ifndef STREAM_WRAPPER_H
 #define STREAM_WRAPPER_H
 
-#include <glib-object.h>
 #include <gio/gio.h>
+#include <glib-object.h>
 
-#include <QPointer>
 #include <QIODevice>
+#include <QPointer>
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (StreamWrapper, stream_wrapper, SNAPD, STREAM_WRAPPER, GInputStream)
+G_DECLARE_FINAL_TYPE(StreamWrapper, stream_wrapper, SNAPD, STREAM_WRAPPER,
+                     GInputStream)
 
-struct _StreamWrapper
-{
-    GInputStream parent_instance;
-    QPointer<QIODevice> ioDevice;
+struct _StreamWrapper {
+  GInputStream parent_instance;
+  QPointer<QIODevice> ioDevice;
 };
 
-struct _StreamWrapperClass
-{
-    GInputStreamClass parent_class;
+struct _StreamWrapperClass {
+  GInputStreamClass parent_class;
 };
 
 G_END_DECLS

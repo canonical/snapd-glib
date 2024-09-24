@@ -18,9 +18,10 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_SYSTEM_INFORMATION  (snapd_system_information_get_type ())
+#define SNAPD_TYPE_SYSTEM_INFORMATION (snapd_system_information_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdSystemInformation, snapd_system_information, SNAPD, SYSTEM_INFORMATION, GObject)
+G_DECLARE_FINAL_TYPE(SnapdSystemInformation, snapd_system_information, SNAPD,
+                     SYSTEM_INFORMATION, GObject)
 
 /**
  * SnapdSystemConfinement:
@@ -32,50 +33,68 @@ G_DECLARE_FINAL_TYPE (SnapdSystemInformation, snapd_system_information, SNAPD, S
  *
  * Since: 1.15
  */
-typedef enum
-{
-    SNAPD_SYSTEM_CONFINEMENT_UNKNOWN,
-    SNAPD_SYSTEM_CONFINEMENT_STRICT,
-    SNAPD_SYSTEM_CONFINEMENT_PARTIAL
+typedef enum {
+  SNAPD_SYSTEM_CONFINEMENT_UNKNOWN,
+  SNAPD_SYSTEM_CONFINEMENT_STRICT,
+  SNAPD_SYSTEM_CONFINEMENT_PARTIAL
 } SnapdSystemConfinement;
 
-const gchar *snapd_system_information_get_architecture       (SnapdSystemInformation *system_information);
+const gchar *snapd_system_information_get_architecture(
+    SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_binaries_directory (SnapdSystemInformation *system_information);
+const gchar *snapd_system_information_get_binaries_directory(
+    SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_build_id           (SnapdSystemInformation *system_information);
+const gchar *snapd_system_information_get_build_id(
+    SnapdSystemInformation *system_information);
 
-SnapdSystemConfinement snapd_system_information_get_confinement (SnapdSystemInformation *system_information);
+SnapdSystemConfinement snapd_system_information_get_confinement(
+    SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_kernel_version     (SnapdSystemInformation *system_information);
+const gchar *snapd_system_information_get_kernel_version(
+    SnapdSystemInformation *system_information);
 
-gboolean     snapd_system_information_get_managed            (SnapdSystemInformation *system_information);
+gboolean snapd_system_information_get_managed(
+    SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_mount_directory    (SnapdSystemInformation *system_information);
+const gchar *snapd_system_information_get_mount_directory(
+    SnapdSystemInformation *system_information);
 
-gboolean     snapd_system_information_get_on_classic         (SnapdSystemInformation *system_information);
+gboolean snapd_system_information_get_on_classic(
+    SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_os_id              (SnapdSystemInformation *system_information);
+const gchar *
+snapd_system_information_get_os_id(SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_os_version         (SnapdSystemInformation *system_information);
+const gchar *snapd_system_information_get_os_version(
+    SnapdSystemInformation *system_information);
 
-GDateTime   *snapd_system_information_get_refresh_hold       (SnapdSystemInformation *system_information);
+GDateTime *snapd_system_information_get_refresh_hold(
+    SnapdSystemInformation *system_information);
 
-GDateTime   *snapd_system_information_get_refresh_last       (SnapdSystemInformation *system_information);
+GDateTime *snapd_system_information_get_refresh_last(
+    SnapdSystemInformation *system_information);
 
-GDateTime   *snapd_system_information_get_refresh_next       (SnapdSystemInformation *system_information);
+GDateTime *snapd_system_information_get_refresh_next(
+    SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_refresh_schedule   (SnapdSystemInformation *system_information);
+const gchar *snapd_system_information_get_refresh_schedule(
+    SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_refresh_timer      (SnapdSystemInformation *system_information);
+const gchar *snapd_system_information_get_refresh_timer(
+    SnapdSystemInformation *system_information);
 
-GHashTable  *snapd_system_information_get_sandbox_features   (SnapdSystemInformation *system_information);
+GHashTable *snapd_system_information_get_sandbox_features(
+    SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_series             (SnapdSystemInformation *system_information);
+const gchar *
+snapd_system_information_get_series(SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_store              (SnapdSystemInformation *system_information);
+const gchar *
+snapd_system_information_get_store(SnapdSystemInformation *system_information);
 
-const gchar *snapd_system_information_get_version            (SnapdSystemInformation *system_information);
+const gchar *snapd_system_information_get_version(
+    SnapdSystemInformation *system_information);
 
 G_END_DECLS
 

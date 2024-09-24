@@ -14,1012 +14,942 @@
 
 #include "stream-wrapper.h"
 
+#include <QIODevice>
 #include <QtCore/QObject>
 #include <QtCore/QVariant>
-#include <QIODevice>
 
-G_DECLARE_FINAL_TYPE (CallbackData, callback_data, SNAPD, CALLBACK_DATA, GObject)
+G_DECLARE_FINAL_TYPE(CallbackData, callback_data, SNAPD, CALLBACK_DATA, GObject)
 
-struct _CallbackData
-{
-    GObject parent_instance;
-    gpointer request;
+struct _CallbackData {
+  GObject parent_instance;
+  gpointer request;
 };
 
-CallbackData *callback_data_new (gpointer request);
+CallbackData *callback_data_new(gpointer request);
 
-class QSnapdConnectRequestPrivate
-{
+class QSnapdConnectRequestPrivate {
 public:
-    QSnapdConnectRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdConnectRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    CallbackData *callback_data;
+  QSnapdConnectRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdConnectRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  CallbackData *callback_data;
 };
 
-class QSnapdLoginRequestPrivate
-{
+class QSnapdLoginRequestPrivate {
 public:
-    QSnapdLoginRequestPrivate (gpointer request, const QString& email, const QString& password, const QString& otp) :
-        email(email), password(password), otp(otp) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdLoginRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (user_information != NULL)
-            g_object_unref (user_information);
-        if (auth_data != NULL)
-            g_object_unref (auth_data);
-    }
-    QString email;
-    QString password;
-    QString otp;
-    CallbackData *callback_data;
-    SnapdUserInformation *user_information = NULL;
-    SnapdAuthData *auth_data = NULL;
+  QSnapdLoginRequestPrivate(gpointer request, const QString &email,
+                            const QString &password, const QString &otp)
+      : email(email), password(password), otp(otp) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdLoginRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (user_information != NULL)
+      g_object_unref(user_information);
+    if (auth_data != NULL)
+      g_object_unref(auth_data);
+  }
+  QString email;
+  QString password;
+  QString otp;
+  CallbackData *callback_data;
+  SnapdUserInformation *user_information = NULL;
+  SnapdAuthData *auth_data = NULL;
 };
 
-class QSnapdLogoutRequestPrivate
-{
+class QSnapdLogoutRequestPrivate {
 public:
-    QSnapdLogoutRequestPrivate (gpointer request, qint64 id) :
-        id (id) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdLogoutRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    qint64 id;
-    CallbackData *callback_data;
+  QSnapdLogoutRequestPrivate(gpointer request, qint64 id) : id(id) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdLogoutRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  qint64 id;
+  CallbackData *callback_data;
 };
 
-class QSnapdGetChangesRequestPrivate
-{
+class QSnapdGetChangesRequestPrivate {
 public:
-    QSnapdGetChangesRequestPrivate (gpointer request, int filter, const QString& snapName) :
-        filter(filter), snapName(snapName) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetChangesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (changes != NULL)
-            g_ptr_array_unref (changes);
-    }
-    int filter;
-    QString snapName;
-    CallbackData *callback_data;
-    GPtrArray *changes = NULL;
+  QSnapdGetChangesRequestPrivate(gpointer request, int filter,
+                                 const QString &snapName)
+      : filter(filter), snapName(snapName) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetChangesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (changes != NULL)
+      g_ptr_array_unref(changes);
+  }
+  int filter;
+  QString snapName;
+  CallbackData *callback_data;
+  GPtrArray *changes = NULL;
 };
 
-class QSnapdGetChangeRequestPrivate
-{
+class QSnapdGetChangeRequestPrivate {
 public:
-    QSnapdGetChangeRequestPrivate (gpointer request, const QString& id) :
-        id(id) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetChangeRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (change != NULL)
-            g_object_unref (change);
-    }
-    QString id;
-    CallbackData *callback_data;
-    SnapdChange *change = NULL;
+  QSnapdGetChangeRequestPrivate(gpointer request, const QString &id) : id(id) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetChangeRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (change != NULL)
+      g_object_unref(change);
+  }
+  QString id;
+  CallbackData *callback_data;
+  SnapdChange *change = NULL;
 };
 
-class QSnapdAbortChangeRequestPrivate
-{
+class QSnapdAbortChangeRequestPrivate {
 public:
-    QSnapdAbortChangeRequestPrivate (gpointer request, const QString& id) :
-        id(id) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdAbortChangeRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (change != NULL)
-            g_object_unref (change);
-    }
-    QString id;
-    CallbackData *callback_data;
-    SnapdChange *change = NULL;
+  QSnapdAbortChangeRequestPrivate(gpointer request, const QString &id)
+      : id(id) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdAbortChangeRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (change != NULL)
+      g_object_unref(change);
+  }
+  QString id;
+  CallbackData *callback_data;
+  SnapdChange *change = NULL;
 };
 
-class QSnapdGetSystemInformationRequestPrivate
-{
+class QSnapdGetSystemInformationRequestPrivate {
 public:
-    QSnapdGetSystemInformationRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetSystemInformationRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (info != NULL)
-            g_object_unref (info);
-    }
-    CallbackData *callback_data;
-    SnapdSystemInformation *info = NULL;
+  QSnapdGetSystemInformationRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetSystemInformationRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (info != NULL)
+      g_object_unref(info);
+  }
+  CallbackData *callback_data;
+  SnapdSystemInformation *info = NULL;
 };
 
-class QSnapdListRequestPrivate
-{
+class QSnapdListRequestPrivate {
 public:
-    QSnapdListRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdListRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (snaps != NULL)
-            g_ptr_array_unref (snaps);
-    }
-    CallbackData *callback_data;
-    GPtrArray *snaps = NULL;
+  QSnapdListRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdListRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (snaps != NULL)
+      g_ptr_array_unref(snaps);
+  }
+  CallbackData *callback_data;
+  GPtrArray *snaps = NULL;
 };
 
-class QSnapdGetSnapsRequestPrivate
-{
+class QSnapdGetSnapsRequestPrivate {
 public:
-    QSnapdGetSnapsRequestPrivate (gpointer request, int flags, const QStringList& snaps) :
-        flags(flags), filter_snaps(snaps) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetSnapsRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (snaps != NULL)
-            g_ptr_array_unref (snaps);
-    }
-    int flags;
-    QStringList filter_snaps;
-    CallbackData *callback_data;
-    GPtrArray *snaps = NULL;
+  QSnapdGetSnapsRequestPrivate(gpointer request, int flags,
+                               const QStringList &snaps)
+      : flags(flags), filter_snaps(snaps) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetSnapsRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (snaps != NULL)
+      g_ptr_array_unref(snaps);
+  }
+  int flags;
+  QStringList filter_snaps;
+  CallbackData *callback_data;
+  GPtrArray *snaps = NULL;
 };
 
-class QSnapdListOneRequestPrivate
-{
+class QSnapdListOneRequestPrivate {
 public:
-    QSnapdListOneRequestPrivate (gpointer request, const QString& name) :
-        name(name) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdListOneRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (snap != NULL)
-            g_object_unref (snap);
-    }
-    QString name;
-    CallbackData *callback_data;
-    SnapdSnap *snap = NULL;
+  QSnapdListOneRequestPrivate(gpointer request, const QString &name)
+      : name(name) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdListOneRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (snap != NULL)
+      g_object_unref(snap);
+  }
+  QString name;
+  CallbackData *callback_data;
+  SnapdSnap *snap = NULL;
 };
 
-class QSnapdGetSnapRequestPrivate
-{
+class QSnapdGetSnapRequestPrivate {
 public:
-    QSnapdGetSnapRequestPrivate (gpointer request, const QString& name) :
-        name(name) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetSnapRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (snap != NULL)
-            g_object_unref (snap);
-    }
-    QString name;
-    CallbackData *callback_data;
-    SnapdSnap *snap = NULL;
+  QSnapdGetSnapRequestPrivate(gpointer request, const QString &name)
+      : name(name) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetSnapRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (snap != NULL)
+      g_object_unref(snap);
+  }
+  QString name;
+  CallbackData *callback_data;
+  SnapdSnap *snap = NULL;
 };
 
-class QSnapdGetSnapConfRequestPrivate
-{
+class QSnapdGetSnapConfRequestPrivate {
 public:
-    QSnapdGetSnapConfRequestPrivate (gpointer request, const QString& name, const QStringList& keys) :
-        name(name), keys(keys) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetSnapConfRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (configuration != NULL)
-            g_hash_table_unref (configuration);
-    }
-    QString name;
-    QStringList keys;
-    CallbackData *callback_data;
-    GHashTable *configuration = NULL;
+  QSnapdGetSnapConfRequestPrivate(gpointer request, const QString &name,
+                                  const QStringList &keys)
+      : name(name), keys(keys) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetSnapConfRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (configuration != NULL)
+      g_hash_table_unref(configuration);
+  }
+  QString name;
+  QStringList keys;
+  CallbackData *callback_data;
+  GHashTable *configuration = NULL;
 };
 
-class QSnapdSetSnapConfRequestPrivate
-{
+class QSnapdSetSnapConfRequestPrivate {
 public:
-    QSnapdSetSnapConfRequestPrivate (gpointer request, const QString& name, const QHash<QString, QVariant>& configuration) :
-        name(name), configuration(configuration) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdSetSnapConfRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString name;
-    QHash<QString, QVariant> configuration;
-    CallbackData *callback_data;
+  QSnapdSetSnapConfRequestPrivate(gpointer request, const QString &name,
+                                  const QHash<QString, QVariant> &configuration)
+      : name(name), configuration(configuration) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdSetSnapConfRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString name;
+  QHash<QString, QVariant> configuration;
+  CallbackData *callback_data;
 };
 
-class QSnapdGetAppsRequestPrivate
-{
+class QSnapdGetAppsRequestPrivate {
 public:
-    QSnapdGetAppsRequestPrivate (gpointer request, int flags, const QStringList& snaps) :
-        flags(flags), filter_snaps(snaps) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetAppsRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (apps != NULL)
-            g_ptr_array_unref (apps);
-    }
-    int flags;
-    QStringList filter_snaps;
-    CallbackData *callback_data;
-    GPtrArray *apps = NULL;
+  QSnapdGetAppsRequestPrivate(gpointer request, int flags,
+                              const QStringList &snaps)
+      : flags(flags), filter_snaps(snaps) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetAppsRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (apps != NULL)
+      g_ptr_array_unref(apps);
+  }
+  int flags;
+  QStringList filter_snaps;
+  CallbackData *callback_data;
+  GPtrArray *apps = NULL;
 };
 
-class QSnapdGetIconRequestPrivate
-{
+class QSnapdGetIconRequestPrivate {
 public:
-    QSnapdGetIconRequestPrivate (gpointer request, const QString& name) :
-        name(name) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetIconRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (icon != NULL)
-            g_object_unref (icon);
-    }
-    QString name;
-    CallbackData *callback_data;
-    SnapdIcon *icon = NULL;
+  QSnapdGetIconRequestPrivate(gpointer request, const QString &name)
+      : name(name) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetIconRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (icon != NULL)
+      g_object_unref(icon);
+  }
+  QString name;
+  CallbackData *callback_data;
+  SnapdIcon *icon = NULL;
 };
 
-class QSnapdGetAssertionsRequestPrivate
-{
+class QSnapdGetAssertionsRequestPrivate {
 public:
-    QSnapdGetAssertionsRequestPrivate (gpointer request, const QString& type) :
-        type (type) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetAssertionsRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (assertions != NULL)
-            g_strfreev (assertions);
-    }
-    QString type;
-    CallbackData *callback_data;
-    GStrv assertions = NULL;
+  QSnapdGetAssertionsRequestPrivate(gpointer request, const QString &type)
+      : type(type) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetAssertionsRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (assertions != NULL)
+      g_strfreev(assertions);
+  }
+  QString type;
+  CallbackData *callback_data;
+  GStrv assertions = NULL;
 };
 
-class QSnapdAddAssertionsRequestPrivate
-{
+class QSnapdAddAssertionsRequestPrivate {
 public:
-    QSnapdAddAssertionsRequestPrivate (gpointer request, const QStringList& assertions) :
-        assertions (assertions) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdAddAssertionsRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QStringList assertions;
-    CallbackData *callback_data;
+  QSnapdAddAssertionsRequestPrivate(gpointer request,
+                                    const QStringList &assertions)
+      : assertions(assertions) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdAddAssertionsRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QStringList assertions;
+  CallbackData *callback_data;
 };
 
-class QSnapdGetConnectionsRequestPrivate
-{
+class QSnapdGetConnectionsRequestPrivate {
 public:
-    QSnapdGetConnectionsRequestPrivate (gpointer request, int flags, const QString &snap, const QString &interface) :
-        flags (flags), snap (snap), interface (interface) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetConnectionsRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (established != NULL)
-            g_ptr_array_unref (established);
-        if (undesired != NULL)
-            g_ptr_array_unref (undesired);
-        if (plugs != NULL)
-            g_ptr_array_unref (plugs);
-        if (slots_ != NULL)
-            g_ptr_array_unref (slots_);
-    }
-    int flags;
-    QString snap;
-    QString interface;
-    CallbackData *callback_data;
-    GPtrArray *established = NULL;
-    GPtrArray *undesired = NULL;
-    GPtrArray *plugs = NULL;
-    GPtrArray *slots_ = NULL;
+  QSnapdGetConnectionsRequestPrivate(gpointer request, int flags,
+                                     const QString &snap,
+                                     const QString &interface)
+      : flags(flags), snap(snap), interface(interface) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetConnectionsRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (established != NULL)
+      g_ptr_array_unref(established);
+    if (undesired != NULL)
+      g_ptr_array_unref(undesired);
+    if (plugs != NULL)
+      g_ptr_array_unref(plugs);
+    if (slots_ != NULL)
+      g_ptr_array_unref(slots_);
+  }
+  int flags;
+  QString snap;
+  QString interface;
+  CallbackData *callback_data;
+  GPtrArray *established = NULL;
+  GPtrArray *undesired = NULL;
+  GPtrArray *plugs = NULL;
+  GPtrArray *slots_ = NULL;
 };
 
-class QSnapdGetInterfacesRequestPrivate
-{
+class QSnapdGetInterfacesRequestPrivate {
 public:
-    QSnapdGetInterfacesRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetInterfacesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (plugs != NULL)
-            g_ptr_array_unref (plugs);
-        if (slots_ != NULL)
-            g_ptr_array_unref (slots_);
-    }
-    CallbackData *callback_data;
-    GPtrArray *plugs = NULL;
-    GPtrArray *slots_ = NULL;
+  QSnapdGetInterfacesRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetInterfacesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (plugs != NULL)
+      g_ptr_array_unref(plugs);
+    if (slots_ != NULL)
+      g_ptr_array_unref(slots_);
+  }
+  CallbackData *callback_data;
+  GPtrArray *plugs = NULL;
+  GPtrArray *slots_ = NULL;
 };
 
-class QSnapdGetInterfaces2RequestPrivate
-{
+class QSnapdGetInterfaces2RequestPrivate {
 public:
-    QSnapdGetInterfaces2RequestPrivate (gpointer request, int flags, const QStringList &names) :
-        flags (flags), names (names) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetInterfaces2RequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (interfaces != NULL)
-            g_ptr_array_unref (interfaces);
-    }
-    int flags;
-    QStringList names;
-    CallbackData *callback_data;
-    GPtrArray *interfaces = NULL;
+  QSnapdGetInterfaces2RequestPrivate(gpointer request, int flags,
+                                     const QStringList &names)
+      : flags(flags), names(names) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetInterfaces2RequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (interfaces != NULL)
+      g_ptr_array_unref(interfaces);
+  }
+  int flags;
+  QStringList names;
+  CallbackData *callback_data;
+  GPtrArray *interfaces = NULL;
 };
 
-class QSnapdConnectInterfaceRequestPrivate
-{
+class QSnapdConnectInterfaceRequestPrivate {
 public:
-    QSnapdConnectInterfaceRequestPrivate (gpointer request, const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name) :
-        plug_snap (plug_snap), plug_name (plug_name), slot_snap (slot_snap), slot_name (slot_name) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdConnectInterfaceRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString plug_snap;
-    QString plug_name;
-    QString slot_snap;
-    QString slot_name;
-    CallbackData *callback_data;
+  QSnapdConnectInterfaceRequestPrivate(gpointer request,
+                                       const QString &plug_snap,
+                                       const QString &plug_name,
+                                       const QString &slot_snap,
+                                       const QString &slot_name)
+      : plug_snap(plug_snap), plug_name(plug_name), slot_snap(slot_snap),
+        slot_name(slot_name) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdConnectInterfaceRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString plug_snap;
+  QString plug_name;
+  QString slot_snap;
+  QString slot_name;
+  CallbackData *callback_data;
 };
 
-class QSnapdDisconnectInterfaceRequestPrivate
-{
+class QSnapdDisconnectInterfaceRequestPrivate {
 public:
-    QSnapdDisconnectInterfaceRequestPrivate (gpointer request, const QString &plug_snap, const QString &plug_name, const QString &slot_snap, const QString &slot_name) :
-        plug_snap (plug_snap), plug_name (plug_name), slot_snap (slot_snap), slot_name (slot_name) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdDisconnectInterfaceRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString plug_snap;
-    QString plug_name;
-    QString slot_snap;
-    QString slot_name;
-    CallbackData *callback_data;
+  QSnapdDisconnectInterfaceRequestPrivate(gpointer request,
+                                          const QString &plug_snap,
+                                          const QString &plug_name,
+                                          const QString &slot_snap,
+                                          const QString &slot_name)
+      : plug_snap(plug_snap), plug_name(plug_name), slot_snap(slot_snap),
+        slot_name(slot_name) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdDisconnectInterfaceRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString plug_snap;
+  QString plug_name;
+  QString slot_snap;
+  QString slot_name;
+  CallbackData *callback_data;
 };
 
-class QSnapdFindRequestPrivate
-{
+class QSnapdFindRequestPrivate {
 public:
-    QSnapdFindRequestPrivate (gpointer request, int flags, const QString& section, const QString& category, const QString& name) :
-        flags (flags), section (section), category (category), name (name) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdFindRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (snaps != NULL)
-            g_ptr_array_unref (snaps);
-    }
-    int flags;
-    QString section;
-    QString category;
-    QString name;
-    CallbackData *callback_data;
-    GPtrArray *snaps = NULL;
-    QString suggestedCurrency;
+  QSnapdFindRequestPrivate(gpointer request, int flags, const QString &section,
+                           const QString &category, const QString &name)
+      : flags(flags), section(section), category(category), name(name) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdFindRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (snaps != NULL)
+      g_ptr_array_unref(snaps);
+  }
+  int flags;
+  QString section;
+  QString category;
+  QString name;
+  CallbackData *callback_data;
+  GPtrArray *snaps = NULL;
+  QString suggestedCurrency;
 };
 
-class QSnapdFindRefreshableRequestPrivate
-{
+class QSnapdFindRefreshableRequestPrivate {
 public:
-    QSnapdFindRefreshableRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdFindRefreshableRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (snaps != NULL)
-            g_ptr_array_unref (snaps);
-    }
-    CallbackData *callback_data;
-    GPtrArray *snaps = NULL;
+  QSnapdFindRefreshableRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdFindRefreshableRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (snaps != NULL)
+      g_ptr_array_unref(snaps);
+  }
+  CallbackData *callback_data;
+  GPtrArray *snaps = NULL;
 };
 
-class QSnapdInstallRequestPrivate : public QObject
-{
+class QSnapdInstallRequestPrivate : public QObject {
 public:
-    QSnapdInstallRequestPrivate (gpointer request, int flags, const QString& name, const QString& channel, const QString& revision, QIODevice *ioDevice, QObject *parent = NULL) :
-        QObject (parent),
-        flags(flags), name(name), channel(channel), revision(revision)
-    {
-        callback_data = callback_data_new (request);
-        if (ioDevice != NULL) {
-            wrapper = (StreamWrapper *) g_object_new (stream_wrapper_get_type (), NULL);
-            wrapper->ioDevice = ioDevice;
-        }
+  QSnapdInstallRequestPrivate(gpointer request, int flags, const QString &name,
+                              const QString &channel, const QString &revision,
+                              QIODevice *ioDevice, QObject *parent = NULL)
+      : QObject(parent), flags(flags), name(name), channel(channel),
+        revision(revision) {
+    callback_data = callback_data_new(request);
+    if (ioDevice != NULL) {
+      wrapper = (StreamWrapper *)g_object_new(stream_wrapper_get_type(), NULL);
+      wrapper->ioDevice = ioDevice;
     }
-    ~QSnapdInstallRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        g_clear_object (&wrapper);
-    }
-    int flags;
-    QString name;
-    QString channel;
-    QString revision;
-    CallbackData *callback_data;
-    StreamWrapper *wrapper = NULL;
+  }
+  ~QSnapdInstallRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    g_clear_object(&wrapper);
+  }
+  int flags;
+  QString name;
+  QString channel;
+  QString revision;
+  CallbackData *callback_data;
+  StreamWrapper *wrapper = NULL;
 };
 
-class QSnapdTryRequestPrivate
-{
+class QSnapdTryRequestPrivate {
 public:
-    QSnapdTryRequestPrivate (gpointer request, const QString& path) :
-        path(path) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdTryRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString path;
-    CallbackData *callback_data;
+  QSnapdTryRequestPrivate(gpointer request, const QString &path) : path(path) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdTryRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString path;
+  CallbackData *callback_data;
 };
 
-class QSnapdRefreshRequestPrivate
-{
+class QSnapdRefreshRequestPrivate {
 public:
-    QSnapdRefreshRequestPrivate (gpointer request, const QString& name, const QString& channel) :
-        name(name), channel(channel) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdRefreshRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString name;
-    QString channel;
-    CallbackData *callback_data;
+  QSnapdRefreshRequestPrivate(gpointer request, const QString &name,
+                              const QString &channel)
+      : name(name), channel(channel) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdRefreshRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString name;
+  QString channel;
+  CallbackData *callback_data;
 };
 
-class QSnapdRefreshAllRequestPrivate
-{
+class QSnapdRefreshAllRequestPrivate {
 public:
-    QSnapdRefreshAllRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdRefreshAllRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (snap_names != NULL)
-            g_strfreev (snap_names);
-    }
-    CallbackData *callback_data;
-    GStrv snap_names = NULL;
+  QSnapdRefreshAllRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdRefreshAllRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (snap_names != NULL)
+      g_strfreev(snap_names);
+  }
+  CallbackData *callback_data;
+  GStrv snap_names = NULL;
 };
 
-class QSnapdRemoveRequestPrivate
-{
+class QSnapdRemoveRequestPrivate {
 public:
-    QSnapdRemoveRequestPrivate (gpointer request, int flags, const QString& name) :
-        flags(flags), name(name) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdRemoveRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    int flags;
-    QString name;
-    CallbackData *callback_data;
+  QSnapdRemoveRequestPrivate(gpointer request, int flags, const QString &name)
+      : flags(flags), name(name) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdRemoveRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  int flags;
+  QString name;
+  CallbackData *callback_data;
 };
 
-class QSnapdEnableRequestPrivate
-{
+class QSnapdEnableRequestPrivate {
 public:
-    QSnapdEnableRequestPrivate (gpointer request, const QString& name) :
-        name(name) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdEnableRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString name;
-    CallbackData *callback_data;
+  QSnapdEnableRequestPrivate(gpointer request, const QString &name)
+      : name(name) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdEnableRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString name;
+  CallbackData *callback_data;
 };
 
-class QSnapdDisableRequestPrivate
-{
+class QSnapdDisableRequestPrivate {
 public:
-    QSnapdDisableRequestPrivate (gpointer request, const QString& name) :
-        name(name) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdDisableRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString name;
-    CallbackData *callback_data;
+  QSnapdDisableRequestPrivate(gpointer request, const QString &name)
+      : name(name) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdDisableRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString name;
+  CallbackData *callback_data;
 };
 
-class QSnapdSwitchChannelRequestPrivate
-{
+class QSnapdSwitchChannelRequestPrivate {
 public:
-    QSnapdSwitchChannelRequestPrivate (gpointer request, const QString& name, const QString& channel) :
-        name(name), channel(channel) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdSwitchChannelRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString name;
-    QString channel;
-    CallbackData *callback_data;
+  QSnapdSwitchChannelRequestPrivate(gpointer request, const QString &name,
+                                    const QString &channel)
+      : name(name), channel(channel) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdSwitchChannelRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString name;
+  QString channel;
+  CallbackData *callback_data;
 };
 
-class QSnapdCheckBuyRequestPrivate
-{
+class QSnapdCheckBuyRequestPrivate {
 public:
-    QSnapdCheckBuyRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdCheckBuyRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    CallbackData *callback_data;
-    bool canBuy;
+  QSnapdCheckBuyRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdCheckBuyRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  CallbackData *callback_data;
+  bool canBuy;
 };
 
-class QSnapdBuyRequestPrivate
-{
+class QSnapdBuyRequestPrivate {
 public:
-    QSnapdBuyRequestPrivate (gpointer request, const QString& id, double amount, const QString& currency) :
-      id(id), amount(amount), currency(currency) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdBuyRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString id;
-    double amount;
-    QString currency;
-    CallbackData *callback_data;
+  QSnapdBuyRequestPrivate(gpointer request, const QString &id, double amount,
+                          const QString &currency)
+      : id(id), amount(amount), currency(currency) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdBuyRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString id;
+  double amount;
+  QString currency;
+  CallbackData *callback_data;
 };
 
-class QSnapdCreateUserRequestPrivate
-{
+class QSnapdCreateUserRequestPrivate {
 public:
-    QSnapdCreateUserRequestPrivate (gpointer request, const QString& email, int flags) :
-      email(email), flags(flags) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdCreateUserRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (info != NULL)
-            g_object_unref (info);
-    }
-    QString email;
-    int flags;
-    CallbackData *callback_data;
-    SnapdUserInformation *info = NULL;
+  QSnapdCreateUserRequestPrivate(gpointer request, const QString &email,
+                                 int flags)
+      : email(email), flags(flags) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdCreateUserRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (info != NULL)
+      g_object_unref(info);
+  }
+  QString email;
+  int flags;
+  CallbackData *callback_data;
+  SnapdUserInformation *info = NULL;
 };
 
-class QSnapdCreateUsersRequestPrivate
-{
+class QSnapdCreateUsersRequestPrivate {
 public:
-    QSnapdCreateUsersRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdCreateUsersRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (info != NULL)
-            g_ptr_array_unref (info);
-    }
-    CallbackData *callback_data;
-    GPtrArray *info = NULL;
+  QSnapdCreateUsersRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdCreateUsersRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (info != NULL)
+      g_ptr_array_unref(info);
+  }
+  CallbackData *callback_data;
+  GPtrArray *info = NULL;
 };
 
-class QSnapdGetUsersRequestPrivate
-{
+class QSnapdGetUsersRequestPrivate {
 public:
-    QSnapdGetUsersRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetUsersRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (info != NULL)
-            g_ptr_array_unref (info);
-    }
-    CallbackData *callback_data;
-    GPtrArray *info = NULL;
+  QSnapdGetUsersRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetUsersRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (info != NULL)
+      g_ptr_array_unref(info);
+  }
+  CallbackData *callback_data;
+  GPtrArray *info = NULL;
 };
 
-class QSnapdGetSectionsRequestPrivate
-{
+class QSnapdGetSectionsRequestPrivate {
 public:
-    QSnapdGetSectionsRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetSectionsRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (sections != NULL)
-            g_strfreev (sections);
-    }
-    CallbackData *callback_data;
-    GStrv sections = NULL;
+  QSnapdGetSectionsRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetSectionsRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (sections != NULL)
+      g_strfreev(sections);
+  }
+  CallbackData *callback_data;
+  GStrv sections = NULL;
 };
 
-class QSnapdGetCategoriesRequestPrivate
-{
+class QSnapdGetCategoriesRequestPrivate {
 public:
-    QSnapdGetCategoriesRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetCategoriesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (categories != NULL)
-            g_ptr_array_unref (categories);
-    }
-    CallbackData *callback_data;
-    GPtrArray *categories = NULL;
+  QSnapdGetCategoriesRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetCategoriesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (categories != NULL)
+      g_ptr_array_unref(categories);
+  }
+  CallbackData *callback_data;
+  GPtrArray *categories = NULL;
 };
 
-class QSnapdGetAliasesRequestPrivate
-{
+class QSnapdGetAliasesRequestPrivate {
 public:
-    QSnapdGetAliasesRequestPrivate (gpointer request) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetAliasesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (aliases != NULL)
-            g_ptr_array_unref (aliases);
-    }
-    CallbackData *callback_data;
-    GPtrArray *aliases = NULL;
+  QSnapdGetAliasesRequestPrivate(gpointer request) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetAliasesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (aliases != NULL)
+      g_ptr_array_unref(aliases);
+  }
+  CallbackData *callback_data;
+  GPtrArray *aliases = NULL;
 };
 
-class QSnapdAliasRequestPrivate
-{
+class QSnapdAliasRequestPrivate {
 public:
-    QSnapdAliasRequestPrivate (gpointer request, const QString &snap, const QString &app, const QString &alias) :
-        snap (snap), app (app), alias (alias) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdAliasRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString snap;
-    QString app;
-    QString alias;
-    CallbackData *callback_data;
+  QSnapdAliasRequestPrivate(gpointer request, const QString &snap,
+                            const QString &app, const QString &alias)
+      : snap(snap), app(app), alias(alias) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdAliasRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString snap;
+  QString app;
+  QString alias;
+  CallbackData *callback_data;
 };
 
-class QSnapdUnaliasRequestPrivate
-{
+class QSnapdUnaliasRequestPrivate {
 public:
-    QSnapdUnaliasRequestPrivate (gpointer request, const QString &snap, const QString &alias) :
-        snap (snap), alias (alias) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdUnaliasRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString snap;
-    QString alias;
-    CallbackData *callback_data;
+  QSnapdUnaliasRequestPrivate(gpointer request, const QString &snap,
+                              const QString &alias)
+      : snap(snap), alias(alias) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdUnaliasRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString snap;
+  QString alias;
+  CallbackData *callback_data;
 };
 
-class QSnapdPreferRequestPrivate
-{
+class QSnapdPreferRequestPrivate {
 public:
-    QSnapdPreferRequestPrivate (gpointer request, const QString &snap) :
-        snap (snap) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdPreferRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString snap;
-    CallbackData *callback_data;
-    QString app;
-    QString alias;
+  QSnapdPreferRequestPrivate(gpointer request, const QString &snap)
+      : snap(snap) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdPreferRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString snap;
+  CallbackData *callback_data;
+  QString app;
+  QString alias;
 };
 
-class QSnapdEnableAliasesRequestPrivate
-{
+class QSnapdEnableAliasesRequestPrivate {
 public:
-    QSnapdEnableAliasesRequestPrivate (gpointer request, const QString &snap, const QStringList& aliases) :
-        snap (snap), aliases (aliases) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdEnableAliasesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString snap;
-    QStringList aliases;
-    CallbackData *callback_data;
+  QSnapdEnableAliasesRequestPrivate(gpointer request, const QString &snap,
+                                    const QStringList &aliases)
+      : snap(snap), aliases(aliases) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdEnableAliasesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString snap;
+  QStringList aliases;
+  CallbackData *callback_data;
 };
 
-class QSnapdDisableAliasesRequestPrivate
-{
+class QSnapdDisableAliasesRequestPrivate {
 public:
-    QSnapdDisableAliasesRequestPrivate (gpointer request, const QString &snap, const QStringList& aliases) :
-        snap (snap), aliases (aliases) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdDisableAliasesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString snap;
-    QStringList aliases;
-    CallbackData *callback_data;
+  QSnapdDisableAliasesRequestPrivate(gpointer request, const QString &snap,
+                                     const QStringList &aliases)
+      : snap(snap), aliases(aliases) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdDisableAliasesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString snap;
+  QStringList aliases;
+  CallbackData *callback_data;
 };
 
-class QSnapdResetAliasesRequestPrivate
-{
+class QSnapdResetAliasesRequestPrivate {
 public:
-    QSnapdResetAliasesRequestPrivate (gpointer request, const QString &snap, const QStringList& aliases) :
-        snap (snap), aliases (aliases) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdResetAliasesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QString snap;
-    QStringList aliases;
-    CallbackData *callback_data;
+  QSnapdResetAliasesRequestPrivate(gpointer request, const QString &snap,
+                                   const QStringList &aliases)
+      : snap(snap), aliases(aliases) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdResetAliasesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QString snap;
+  QStringList aliases;
+  CallbackData *callback_data;
 };
 
-class QSnapdRunSnapCtlRequestPrivate
-{
+class QSnapdRunSnapCtlRequestPrivate {
 public:
-    QSnapdRunSnapCtlRequestPrivate (gpointer request, const QString &contextId, const QStringList& args) :
-        contextId (contextId), args (args) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdRunSnapCtlRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (stdout_output != NULL)
-            g_free (stdout_output);
-        if (stderr_output != NULL)
-            g_free (stderr_output);
-    }
-    QString contextId;
-    QStringList args;
-    CallbackData *callback_data;
-    gchar *stdout_output = NULL;
-    gchar *stderr_output = NULL;
-    int exit_code = 0;
+  QSnapdRunSnapCtlRequestPrivate(gpointer request, const QString &contextId,
+                                 const QStringList &args)
+      : contextId(contextId), args(args) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdRunSnapCtlRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (stdout_output != NULL)
+      g_free(stdout_output);
+    if (stderr_output != NULL)
+      g_free(stderr_output);
+  }
+  QString contextId;
+  QStringList args;
+  CallbackData *callback_data;
+  gchar *stdout_output = NULL;
+  gchar *stderr_output = NULL;
+  int exit_code = 0;
 };
 
-class QSnapdDownloadRequestPrivate
-{
+class QSnapdDownloadRequestPrivate {
 public:
-    QSnapdDownloadRequestPrivate (gpointer request, const QString &name, const QString& channel, const QString& revision) :
-        name (name), channel (channel), revision (revision) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdDownloadRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (data != NULL)
-            g_bytes_unref (data);
-    }
-    QString name;
-    QString channel;
-    QString revision;
-    CallbackData *callback_data;
-    GBytes *data = NULL;
+  QSnapdDownloadRequestPrivate(gpointer request, const QString &name,
+                               const QString &channel, const QString &revision)
+      : name(name), channel(channel), revision(revision) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdDownloadRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (data != NULL)
+      g_bytes_unref(data);
+  }
+  QString name;
+  QString channel;
+  QString revision;
+  CallbackData *callback_data;
+  GBytes *data = NULL;
 };
 
-class QSnapdCheckThemesRequestPrivate
-{
+class QSnapdCheckThemesRequestPrivate {
 public:
-    QSnapdCheckThemesRequestPrivate (gpointer request, const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames) :
-        gtkThemeNames (gtkThemeNames), iconThemeNames (iconThemeNames), soundThemeNames (soundThemeNames) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdCheckThemesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        if (gtk_theme_status != NULL)
-            g_hash_table_unref (gtk_theme_status);
-        if (icon_theme_status != NULL)
-            g_hash_table_unref (icon_theme_status);
-        if (sound_theme_status != NULL)
-            g_hash_table_unref (sound_theme_status);
-    }
-    QStringList gtkThemeNames;
-    QStringList iconThemeNames;
-    QStringList soundThemeNames;
-    CallbackData *callback_data;
-    GHashTable *gtk_theme_status;
-    GHashTable *icon_theme_status;
-    GHashTable *sound_theme_status;
+  QSnapdCheckThemesRequestPrivate(gpointer request,
+                                  const QStringList &gtkThemeNames,
+                                  const QStringList &iconThemeNames,
+                                  const QStringList &soundThemeNames)
+      : gtkThemeNames(gtkThemeNames), iconThemeNames(iconThemeNames),
+        soundThemeNames(soundThemeNames) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdCheckThemesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    if (gtk_theme_status != NULL)
+      g_hash_table_unref(gtk_theme_status);
+    if (icon_theme_status != NULL)
+      g_hash_table_unref(icon_theme_status);
+    if (sound_theme_status != NULL)
+      g_hash_table_unref(sound_theme_status);
+  }
+  QStringList gtkThemeNames;
+  QStringList iconThemeNames;
+  QStringList soundThemeNames;
+  CallbackData *callback_data;
+  GHashTable *gtk_theme_status;
+  GHashTable *icon_theme_status;
+  GHashTable *sound_theme_status;
 };
 
-class QSnapdInstallThemesRequestPrivate
-{
+class QSnapdInstallThemesRequestPrivate {
 public:
-    QSnapdInstallThemesRequestPrivate (gpointer request, const QStringList& gtkThemeNames, const QStringList& iconThemeNames, const QStringList& soundThemeNames) :
-        gtkThemeNames (gtkThemeNames), iconThemeNames (iconThemeNames), soundThemeNames (soundThemeNames) {
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdInstallThemesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-    }
-    QStringList gtkThemeNames;
-    QStringList iconThemeNames;
-    QStringList soundThemeNames;
-    CallbackData *callback_data;
+  QSnapdInstallThemesRequestPrivate(gpointer request,
+                                    const QStringList &gtkThemeNames,
+                                    const QStringList &iconThemeNames,
+                                    const QStringList &soundThemeNames)
+      : gtkThemeNames(gtkThemeNames), iconThemeNames(iconThemeNames),
+        soundThemeNames(soundThemeNames) {
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdInstallThemesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+  }
+  QStringList gtkThemeNames;
+  QStringList iconThemeNames;
+  QStringList soundThemeNames;
+  CallbackData *callback_data;
 };
 
-class QSnapdNoticesRequestPrivate
-{
+class QSnapdNoticesRequestPrivate {
 public:
-    QSnapdNoticesRequestPrivate (gpointer request) {
-        notices = NULL;
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdNoticesRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        g_clear_pointer (&notices, g_ptr_array_unref);
-    }
-    void updateNoticesData (GPtrArray *data)
-    {
-        g_clear_pointer (&notices, g_ptr_array_unref);
-        notices = data;
-    }
-    CallbackData *callback_data;
-    GPtrArray *notices;
+  QSnapdNoticesRequestPrivate(gpointer request) {
+    notices = NULL;
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdNoticesRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    g_clear_pointer(&notices, g_ptr_array_unref);
+  }
+  void updateNoticesData(GPtrArray *data) {
+    g_clear_pointer(&notices, g_ptr_array_unref);
+    notices = data;
+  }
+  CallbackData *callback_data;
+  GPtrArray *notices;
 };
 
-class QSnapdGetModelAssertionRequestPrivate
-{
+class QSnapdGetModelAssertionRequestPrivate {
 public:
-    QSnapdGetModelAssertionRequestPrivate (gpointer request) {
-        model_assertion = NULL;
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetModelAssertionRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        g_clear_pointer (&model_assertion, g_free);
-    }
-    CallbackData *callback_data;
-    gchar *model_assertion;
+  QSnapdGetModelAssertionRequestPrivate(gpointer request) {
+    model_assertion = NULL;
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetModelAssertionRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    g_clear_pointer(&model_assertion, g_free);
+  }
+  CallbackData *callback_data;
+  gchar *model_assertion;
 };
 
-class QSnapdGetSerialAssertionRequestPrivate
-{
+class QSnapdGetSerialAssertionRequestPrivate {
 public:
-    QSnapdGetSerialAssertionRequestPrivate (gpointer request) {
-        serial_assertion = NULL;
-        callback_data = callback_data_new (request);
-    }
-    ~QSnapdGetSerialAssertionRequestPrivate ()
-    {
-        callback_data->request = NULL;
-        g_object_unref (callback_data);
-        g_clear_pointer (&serial_assertion, g_free);
-    }
-    CallbackData *callback_data;
-    gchar *serial_assertion;
+  QSnapdGetSerialAssertionRequestPrivate(gpointer request) {
+    serial_assertion = NULL;
+    callback_data = callback_data_new(request);
+  }
+  ~QSnapdGetSerialAssertionRequestPrivate() {
+    callback_data->request = NULL;
+    g_object_unref(callback_data);
+    g_clear_pointer(&serial_assertion, g_free);
+  }
+  CallbackData *callback_data;
+  gchar *serial_assertion;
 };
 
 #endif

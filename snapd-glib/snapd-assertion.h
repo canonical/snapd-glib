@@ -18,20 +18,19 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_ASSERTION  (snapd_assertion_get_type ())
+#define SNAPD_TYPE_ASSERTION (snapd_assertion_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdAssertion, snapd_assertion, SNAPD, ASSERTION, GObject)
+G_DECLARE_FINAL_TYPE(SnapdAssertion, snapd_assertion, SNAPD, ASSERTION, GObject)
 
-SnapdAssertion *snapd_assertion_new                   (const gchar    *content);
+SnapdAssertion *snapd_assertion_new(const gchar *content);
 
-GStrv           snapd_assertion_get_headers           (SnapdAssertion *assertion);
+GStrv snapd_assertion_get_headers(SnapdAssertion *assertion);
 
-gchar          *snapd_assertion_get_header            (SnapdAssertion *assertion,
-                                                       const gchar    *name);
+gchar *snapd_assertion_get_header(SnapdAssertion *assertion, const gchar *name);
 
-gchar          *snapd_assertion_get_body              (SnapdAssertion *assertion);
+gchar *snapd_assertion_get_body(SnapdAssertion *assertion);
 
-gchar          *snapd_assertion_get_signature         (SnapdAssertion *assertion);
+gchar *snapd_assertion_get_signature(SnapdAssertion *assertion);
 
 G_END_DECLS
 

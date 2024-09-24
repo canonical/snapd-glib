@@ -11,91 +11,80 @@
 
 #include "snapd-json.h"
 
-struct _SnapdPostAliases
-{
-    SnapdRequestAsync parent_instance;
-    gchar *action;
-    gchar *snap;
-    gchar *app;
-    gchar *alias;
+struct _SnapdPostAliases {
+  SnapdRequestAsync parent_instance;
+  gchar *action;
+  gchar *snap;
+  gchar *app;
+  gchar *alias;
 };
 
-G_DEFINE_TYPE (SnapdPostAliases, snapd_post_aliases, snapd_request_async_get_type ())
+G_DEFINE_TYPE(SnapdPostAliases, snapd_post_aliases,
+              snapd_request_async_get_type())
 
-SnapdPostAliases *
-_snapd_post_aliases_new (const gchar *action,
-                         const gchar *snap, const gchar *app, const gchar *alias,
-                         SnapdProgressCallback progress_callback, gpointer progress_callback_data,
-                         GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
-{
-    SnapdPostAliases *self = SNAPD_POST_ALIASES (g_object_new (snapd_post_aliases_get_type (),
-                                                               "cancellable", cancellable,
-                                                               "ready-callback", callback,
-                                                               "ready-callback-data", user_data,
-                                                               "progress-callback", progress_callback,
-                                                               "progress-callback-data", progress_callback_data,
-                                                               NULL));
-    self->action = g_strdup (action);
-    self->snap = g_strdup (snap);
-    self->app = g_strdup (app);
-    self->alias = g_strdup (alias);
+SnapdPostAliases *_snapd_post_aliases_new(
+    const gchar *action, const gchar *snap, const gchar *app,
+    const gchar *alias, SnapdProgressCallback progress_callback,
+    gpointer progress_callback_data, GCancellable *cancellable,
+    GAsyncReadyCallback callback, gpointer user_data) {
+  SnapdPostAliases *self = SNAPD_POST_ALIASES(
+      g_object_new(snapd_post_aliases_get_type(), "cancellable", cancellable,
+                   "ready-callback", callback, "ready-callback-data", user_data,
+                   "progress-callback", progress_callback,
+                   "progress-callback-data", progress_callback_data, NULL));
+  self->action = g_strdup(action);
+  self->snap = g_strdup(snap);
+  self->app = g_strdup(app);
+  self->alias = g_strdup(alias);
 
-    return self;
+  return self;
 }
 
-static SoupMessage *
-generate_post_aliases_request (SnapdRequest *request, GBytes **body)
-{
-    SnapdPostAliases *self = SNAPD_POST_ALIASES (request);
+static SoupMessage *generate_post_aliases_request(SnapdRequest *request,
+                                                  GBytes **body) {
+  SnapdPostAliases *self = SNAPD_POST_ALIASES(request);
 
-    SoupMessage *message = soup_message_new ("POST", "http://snapd/v2/aliases");
+  SoupMessage *message = soup_message_new("POST", "http://snapd/v2/aliases");
 
-    g_autoptr(JsonBuilder) builder = json_builder_new ();
-    json_builder_begin_object (builder);
-    json_builder_set_member_name (builder, "action");
-    json_builder_add_string_value (builder, self->action);
-    if (self->snap != NULL) {
-        json_builder_set_member_name (builder, "snap");
-        json_builder_add_string_value (builder, self->snap);
-    }
-    if (self->app != NULL) {
-        json_builder_set_member_name (builder, "app");
-        json_builder_add_string_value (builder, self->app);
-    }
-    if (self->alias != NULL) {
-        json_builder_set_member_name (builder, "alias");
-        json_builder_add_string_value (builder, self->alias);
-    }
-    json_builder_end_object (builder);
-    _snapd_json_set_body (message, builder, body);
+  g_autoptr(JsonBuilder) builder = json_builder_new();
+  json_builder_begin_object(builder);
+  json_builder_set_member_name(builder, "action");
+  json_builder_add_string_value(builder, self->action);
+  if (self->snap != NULL) {
+    json_builder_set_member_name(builder, "snap");
+    json_builder_add_string_value(builder, self->snap);
+  }
+  if (self->app != NULL) {
+    json_builder_set_member_name(builder, "app");
+    json_builder_add_string_value(builder, self->app);
+  }
+  if (self->alias != NULL) {
+    json_builder_set_member_name(builder, "alias");
+    json_builder_add_string_value(builder, self->alias);
+  }
+  json_builder_end_object(builder);
+  _snapd_json_set_body(message, builder, body);
 
-    return message;
+  return message;
 }
 
-static void
-snapd_post_aliases_finalize (GObject *object)
-{
-    SnapdPostAliases *self = SNAPD_POST_ALIASES (object);
+static void snapd_post_aliases_finalize(GObject *object) {
+  SnapdPostAliases *self = SNAPD_POST_ALIASES(object);
 
-    g_clear_pointer (&self->action, g_free);
-    g_clear_pointer (&self->snap, g_free);
-    g_clear_pointer (&self->app, g_free);
-    g_clear_pointer (&self->alias, g_free);
+  g_clear_pointer(&self->action, g_free);
+  g_clear_pointer(&self->snap, g_free);
+  g_clear_pointer(&self->app, g_free);
+  g_clear_pointer(&self->alias, g_free);
 
-    G_OBJECT_CLASS (snapd_post_aliases_parent_class)->finalize (object);
+  G_OBJECT_CLASS(snapd_post_aliases_parent_class)->finalize(object);
 }
 
-static void
-snapd_post_aliases_class_init (SnapdPostAliasesClass *klass)
-{
-   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
-   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+static void snapd_post_aliases_class_init(SnapdPostAliasesClass *klass) {
+  SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS(klass);
+  GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-   request_class->generate_request = generate_post_aliases_request;
-   gobject_class->finalize = snapd_post_aliases_finalize;
+  request_class->generate_request = generate_post_aliases_request;
+  gobject_class->finalize = snapd_post_aliases_finalize;
 }
 
-static void
-snapd_post_aliases_init (SnapdPostAliases *self)
-{
-}
+static void snapd_post_aliases_init(SnapdPostAliases *self) {}

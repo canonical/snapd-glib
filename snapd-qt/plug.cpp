@@ -12,86 +12,79 @@
 #include "Snapd/plug.h"
 #include "variant.h"
 
-QSnapdPlug::QSnapdPlug (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdPlug::QSnapdPlug(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdPlug::name () const
-{
-    return snapd_plug_get_name (SNAPD_PLUG (wrapped_object));
+QString QSnapdPlug::name() const {
+  return snapd_plug_get_name(SNAPD_PLUG(wrapped_object));
 }
 
-QString QSnapdPlug::snap () const
-{
-    return snapd_plug_get_snap (SNAPD_PLUG (wrapped_object));
+QString QSnapdPlug::snap() const {
+  return snapd_plug_get_snap(SNAPD_PLUG(wrapped_object));
 }
 
-QString QSnapdPlug::interface () const
-{
-    return snapd_plug_get_interface (SNAPD_PLUG (wrapped_object));
+QString QSnapdPlug::interface() const {
+  return snapd_plug_get_interface(SNAPD_PLUG(wrapped_object));
 }
 
-QStringList QSnapdPlug::attributeNames () const
-{
-    g_auto(GStrv) names = snapd_plug_get_attribute_names (SNAPD_PLUG (wrapped_object), NULL);
-    QStringList result;
-    for (int i = 0; names[i] != NULL; i++)
-        result.append (names[i]);
-    return result;
+QStringList QSnapdPlug::attributeNames() const {
+  g_auto(GStrv) names =
+      snapd_plug_get_attribute_names(SNAPD_PLUG(wrapped_object), NULL);
+  QStringList result;
+  for (int i = 0; names[i] != NULL; i++)
+    result.append(names[i]);
+  return result;
 }
 
-bool QSnapdPlug::hasAttribute (const QString &name) const
-{
-    return snapd_plug_has_attribute (SNAPD_PLUG (wrapped_object), name.toStdString ().c_str ());
+bool QSnapdPlug::hasAttribute(const QString &name) const {
+  return snapd_plug_has_attribute(SNAPD_PLUG(wrapped_object),
+                                  name.toStdString().c_str());
 }
 
-QVariant QSnapdPlug::attribute (const QString &name) const
-{
-    GVariant *value = snapd_plug_get_attribute (SNAPD_PLUG (wrapped_object), name.toStdString ().c_str ());
-    return gvariant_to_qvariant (value);
+QVariant QSnapdPlug::attribute(const QString &name) const {
+  GVariant *value = snapd_plug_get_attribute(SNAPD_PLUG(wrapped_object),
+                                             name.toStdString().c_str());
+  return gvariant_to_qvariant(value);
 }
 
-QString QSnapdPlug::label () const
-{
-    return snapd_plug_get_label (SNAPD_PLUG (wrapped_object));
+QString QSnapdPlug::label() const {
+  return snapd_plug_get_label(SNAPD_PLUG(wrapped_object));
 }
 
-int QSnapdPlug::connectionCount () const
-{
-    GPtrArray *connections;
+int QSnapdPlug::connectionCount() const {
+  GPtrArray *connections;
 
-QT_WARNING_PUSH
-QT_WARNING_DISABLE_DEPRECATED
-    connections = snapd_plug_get_connections (SNAPD_PLUG (wrapped_object));
-QT_WARNING_POP
-    return connections != NULL ? connections->len : 0;
+  QT_WARNING_PUSH
+  QT_WARNING_DISABLE_DEPRECATED
+  connections = snapd_plug_get_connections(SNAPD_PLUG(wrapped_object));
+  QT_WARNING_POP
+  return connections != NULL ? connections->len : 0;
 }
 
-QSnapdConnection *QSnapdPlug::connection (int n) const
-{
-    GPtrArray *connections;
+QSnapdConnection *QSnapdPlug::connection(int n) const {
+  GPtrArray *connections;
 
-QT_WARNING_PUSH
-QT_WARNING_DISABLE_DEPRECATED
-    connections = snapd_plug_get_connections (SNAPD_PLUG (wrapped_object));
-QT_WARNING_POP
-    if (connections == NULL || n < 0 || (guint) n >= connections->len)
-        return NULL;
-    return new QSnapdConnection (connections->pdata[n]);
+  QT_WARNING_PUSH
+  QT_WARNING_DISABLE_DEPRECATED
+  connections = snapd_plug_get_connections(SNAPD_PLUG(wrapped_object));
+  QT_WARNING_POP
+  if (connections == NULL || n < 0 || (guint)n >= connections->len)
+    return NULL;
+  return new QSnapdConnection(connections->pdata[n]);
 }
 
-int QSnapdPlug::connectedSlotCount () const
-{
-    GPtrArray *connections;
+int QSnapdPlug::connectedSlotCount() const {
+  GPtrArray *connections;
 
-    connections = snapd_plug_get_connected_slots (SNAPD_PLUG (wrapped_object));
-    return connections != NULL ? connections->len : 0;
+  connections = snapd_plug_get_connected_slots(SNAPD_PLUG(wrapped_object));
+  return connections != NULL ? connections->len : 0;
 }
 
-QSnapdSlotRef *QSnapdPlug::connectedSlot (int n) const
-{
-    GPtrArray *connections;
+QSnapdSlotRef *QSnapdPlug::connectedSlot(int n) const {
+  GPtrArray *connections;
 
-    connections = snapd_plug_get_connected_slots (SNAPD_PLUG (wrapped_object));
-    if (connections == NULL || n < 0 || (guint) n >= connections->len)
-        return NULL;
-    return new QSnapdSlotRef (connections->pdata[n]);
+  connections = snapd_plug_get_connected_slots(SNAPD_PLUG(wrapped_object));
+  if (connections == NULL || n < 0 || (guint)n >= connections->len)
+    return NULL;
+  return new QSnapdSlotRef(connections->pdata[n]);
 }

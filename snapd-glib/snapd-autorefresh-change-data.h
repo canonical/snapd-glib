@@ -10,17 +10,21 @@
 #ifndef __SNAPD_AUTOREFRESH_CHANGE_DATA_H__
 #define __SNAPD_AUTOREFRESH_CHANGE_DATA_H__
 
-#include <glib-object.h>
 #include "snapd-change-data.h"
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_AUTOREFRESH_CHANGE_DATA  (snapd_autorefresh_change_data_get_type ())
-G_DECLARE_FINAL_TYPE (SnapdAutorefreshChangeData, snapd_autorefresh_change_data, SNAPD, AUTOREFRESH_CHANGE_DATA, SnapdChangeData)
+#define SNAPD_TYPE_AUTOREFRESH_CHANGE_DATA                                     \
+  (snapd_autorefresh_change_data_get_type())
+G_DECLARE_FINAL_TYPE(SnapdAutorefreshChangeData, snapd_autorefresh_change_data,
+                     SNAPD, AUTOREFRESH_CHANGE_DATA, SnapdChangeData)
 
-GStrv     snapd_autorefresh_change_data_get_snap_names         (SnapdAutorefreshChangeData *change_data);
+GStrv snapd_autorefresh_change_data_get_snap_names(
+    SnapdAutorefreshChangeData *change_data);
 
-GStrv     snapd_autorefresh_change_data_get_refresh_forced     (SnapdAutorefreshChangeData *change_data);
+GStrv snapd_autorefresh_change_data_get_refresh_forced(
+    SnapdAutorefreshChangeData *change_data);
 
 G_END_DECLS
 

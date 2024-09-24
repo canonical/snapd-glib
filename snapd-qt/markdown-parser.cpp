@@ -11,56 +11,50 @@
 
 #include "Snapd/markdown-parser.h"
 
-class QSnapdMarkdownParserPrivate
-{
+class QSnapdMarkdownParserPrivate {
 public:
-    QSnapdMarkdownParserPrivate (QSnapdMarkdownParser::MarkdownVersion version)
-    {
-        SnapdMarkdownVersion v;
-        switch (version) {
-        default:
-        case QSnapdMarkdownParser::MarkdownVersion0:
-            v = SNAPD_MARKDOWN_VERSION_0;
-            break;
-        }
-        parser = snapd_markdown_parser_new (v);
+  QSnapdMarkdownParserPrivate(QSnapdMarkdownParser::MarkdownVersion version) {
+    SnapdMarkdownVersion v;
+    switch (version) {
+    default:
+    case QSnapdMarkdownParser::MarkdownVersion0:
+      v = SNAPD_MARKDOWN_VERSION_0;
+      break;
     }
+    parser = snapd_markdown_parser_new(v);
+  }
 
-    ~QSnapdMarkdownParserPrivate ()
-    {
-        g_object_unref (parser);
-    }
+  ~QSnapdMarkdownParserPrivate() { g_object_unref(parser); }
 
-    SnapdMarkdownParser *parser;
+  SnapdMarkdownParser *parser;
 };
 
-QSnapdMarkdownParser::QSnapdMarkdownParser (QSnapdMarkdownParser::MarkdownVersion version, QObject *parent) :
-     QObject (parent),
-     d_ptr (new QSnapdMarkdownParserPrivate (version)) {}
+QSnapdMarkdownParser::QSnapdMarkdownParser(
+    QSnapdMarkdownParser::MarkdownVersion version, QObject *parent)
+    : QObject(parent), d_ptr(new QSnapdMarkdownParserPrivate(version)) {}
 
-QSnapdMarkdownParser::~QSnapdMarkdownParser()
-{}
+QSnapdMarkdownParser::~QSnapdMarkdownParser() {}
 
-void QSnapdMarkdownParser::setPreserveWhitespace (bool preserveWhitespace) const
-{
-    Q_D(const QSnapdMarkdownParser);
-    snapd_markdown_parser_set_preserve_whitespace (d->parser, preserveWhitespace);
+void QSnapdMarkdownParser::setPreserveWhitespace(
+    bool preserveWhitespace) const {
+  Q_D(const QSnapdMarkdownParser);
+  snapd_markdown_parser_set_preserve_whitespace(d->parser, preserveWhitespace);
 }
 
-bool QSnapdMarkdownParser::preserveWhitespace () const
-{
-    Q_D(const QSnapdMarkdownParser);
-    return snapd_markdown_parser_get_preserve_whitespace (d->parser);
+bool QSnapdMarkdownParser::preserveWhitespace() const {
+  Q_D(const QSnapdMarkdownParser);
+  return snapd_markdown_parser_get_preserve_whitespace(d->parser);
 }
 
-QList<QSnapdMarkdownNode> QSnapdMarkdownParser::parse (const QString &text) const
-{
-    Q_D(const QSnapdMarkdownParser);
-    g_autoptr(GPtrArray) nodes = snapd_markdown_parser_parse (d->parser, text.toUtf8().constData());
-    QList<QSnapdMarkdownNode> nodes_list;
-    for (uint i = 0; i < nodes->len; i++) {
-        SnapdMarkdownNode *node = (SnapdMarkdownNode *) g_ptr_array_index (nodes, i);
-        nodes_list.append (QSnapdMarkdownNode (node));
-    }
-    return nodes_list;
+QList<QSnapdMarkdownNode>
+QSnapdMarkdownParser::parse(const QString &text) const {
+  Q_D(const QSnapdMarkdownParser);
+  g_autoptr(GPtrArray) nodes =
+      snapd_markdown_parser_parse(d->parser, text.toUtf8().constData());
+  QList<QSnapdMarkdownNode> nodes_list;
+  for (uint i = 0; i < nodes->len; i++) {
+    SnapdMarkdownNode *node = (SnapdMarkdownNode *)g_ptr_array_index(nodes, i);
+    nodes_list.append(QSnapdMarkdownNode(node));
+  }
+  return nodes_list;
 }

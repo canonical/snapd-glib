@@ -13,18 +13,17 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdSlotRef : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdSlotRef : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(QString slot READ slot)
-    Q_PROPERTY(QString snap READ snap)
+  Q_PROPERTY(QString slot READ slot)
+  Q_PROPERTY(QString snap READ snap)
 
 public:
-    explicit QSnapdSlotRef (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdSlotRef(void *snapd_object, QObject *parent = 0);
 
-    QString slot () const;
-    QString snap () const;
+  QString slot() const;
+  QString snap() const;
 };
 
 #endif

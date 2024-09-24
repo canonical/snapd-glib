@@ -18,16 +18,15 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_AUTH_DATA  (snapd_auth_data_get_type ())
+#define SNAPD_TYPE_AUTH_DATA (snapd_auth_data_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdAuthData, snapd_auth_data, SNAPD, AUTH_DATA, GObject)
+G_DECLARE_FINAL_TYPE(SnapdAuthData, snapd_auth_data, SNAPD, AUTH_DATA, GObject)
 
-SnapdAuthData  *snapd_auth_data_new                 (const gchar    *macaroon,
-                                                     GStrv           discharges);
+SnapdAuthData *snapd_auth_data_new(const gchar *macaroon, GStrv discharges);
 
-const gchar    *snapd_auth_data_get_macaroon        (SnapdAuthData  *auth_data);
+const gchar *snapd_auth_data_get_macaroon(SnapdAuthData *auth_data);
 
-GStrv           snapd_auth_data_get_discharges      (SnapdAuthData  *auth_data);
+GStrv snapd_auth_data_get_discharges(SnapdAuthData *auth_data);
 
 G_END_DECLS
 

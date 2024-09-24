@@ -13,10 +13,11 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdGetBuyReady, snapd_get_buy_ready, SNAPD, GET_BUY_READY, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdGetBuyReady, snapd_get_buy_ready, SNAPD,
+                     GET_BUY_READY, SnapdRequest)
 
-SnapdGetBuyReady *_snapd_get_buy_ready_new (GCancellable        *cancellable,
-                                            GAsyncReadyCallback  callback,
-                                            gpointer             user_data);
+SnapdGetBuyReady *_snapd_get_buy_ready_new(GCancellable *cancellable,
+                                           GAsyncReadyCallback callback,
+                                           gpointer user_data);
 
 G_END_DECLS

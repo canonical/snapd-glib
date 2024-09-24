@@ -13,15 +13,13 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdPostThemes, snapd_post_themes, SNAPD, POST_THEMES, SnapdRequestAsync)
+G_DECLARE_FINAL_TYPE(SnapdPostThemes, snapd_post_themes, SNAPD, POST_THEMES,
+                     SnapdRequestAsync)
 
-SnapdPostThemes *_snapd_post_themes_new (GStrv                 gtk_theme_names,
-                                         GStrv                 icon_theme_names,
-                                         GStrv                 sound_theme_names,
-                                         SnapdProgressCallback progress_callback,
-                                         gpointer              progress_callback_data,
-                                         GCancellable         *cancellable,
-                                         GAsyncReadyCallback   callback,
-                                         gpointer              user_data);
+SnapdPostThemes *_snapd_post_themes_new(
+    GStrv gtk_theme_names, GStrv icon_theme_names, GStrv sound_theme_names,
+    SnapdProgressCallback progress_callback, gpointer progress_callback_data,
+    GCancellable *cancellable, GAsyncReadyCallback callback,
+    gpointer user_data);
 
 G_END_DECLS

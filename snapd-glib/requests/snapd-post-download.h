@@ -13,15 +13,14 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdPostDownload, snapd_post_download, SNAPD, POST_DOWNLOAD, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdPostDownload, snapd_post_download, SNAPD,
+                     POST_DOWNLOAD, SnapdRequest)
 
-SnapdPostDownload *_snapd_post_download_new      (const gchar         *name,
-                                                  const gchar         *channel,
-                                                  const gchar         *revision,
-                                                  GCancellable        *cancellable,
-                                                  GAsyncReadyCallback  callback,
-                                                  gpointer             user_data);
+SnapdPostDownload *
+_snapd_post_download_new(const gchar *name, const gchar *channel,
+                         const gchar *revision, GCancellable *cancellable,
+                         GAsyncReadyCallback callback, gpointer user_data);
 
-GBytes            *_snapd_post_download_get_data (SnapdPostDownload   *request);
+GBytes *_snapd_post_download_get_data(SnapdPostDownload *request);
 
 G_END_DECLS

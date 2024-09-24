@@ -20,19 +20,24 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_USER_INFORMATION  (snapd_user_information_get_type ())
+#define SNAPD_TYPE_USER_INFORMATION (snapd_user_information_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdUserInformation, snapd_user_information, SNAPD, USER_INFORMATION, GObject)
+G_DECLARE_FINAL_TYPE(SnapdUserInformation, snapd_user_information, SNAPD,
+                     USER_INFORMATION, GObject)
 
-gint64         snapd_user_information_get_id        (SnapdUserInformation *user_information);
+gint64 snapd_user_information_get_id(SnapdUserInformation *user_information);
 
-const gchar   *snapd_user_information_get_username  (SnapdUserInformation *user_information);
+const gchar *
+snapd_user_information_get_username(SnapdUserInformation *user_information);
 
-const gchar   *snapd_user_information_get_email     (SnapdUserInformation *user_information);
+const gchar *
+snapd_user_information_get_email(SnapdUserInformation *user_information);
 
-GStrv          snapd_user_information_get_ssh_keys  (SnapdUserInformation *user_information);
+GStrv snapd_user_information_get_ssh_keys(
+    SnapdUserInformation *user_information);
 
-SnapdAuthData *snapd_user_information_get_auth_data (SnapdUserInformation *user_information);
+SnapdAuthData *
+snapd_user_information_get_auth_data(SnapdUserInformation *user_information);
 
 G_END_DECLS
 

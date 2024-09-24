@@ -14,37 +14,37 @@
 #error "Only <snapd-glib/snapd-glib.h> can be included directly."
 #endif
 
-#include <glib-object.h>
 #include "snapd-task-data.h"
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_TASK  (snapd_task_get_type ())
+#define SNAPD_TYPE_TASK (snapd_task_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdTask, snapd_task, SNAPD, TASK, GObject)
+G_DECLARE_FINAL_TYPE(SnapdTask, snapd_task, SNAPD, TASK, GObject)
 
-const gchar *snapd_task_get_id             (SnapdTask *task);
+const gchar *snapd_task_get_id(SnapdTask *task);
 
-const gchar *snapd_task_get_kind           (SnapdTask *task);
+const gchar *snapd_task_get_kind(SnapdTask *task);
 
-const gchar *snapd_task_get_summary        (SnapdTask *task);
+const gchar *snapd_task_get_summary(SnapdTask *task);
 
-const gchar *snapd_task_get_status         (SnapdTask *task);
+const gchar *snapd_task_get_status(SnapdTask *task);
 
-G_DEPRECATED_FOR (snapd_change_get_ready)
-gboolean     snapd_task_get_ready          (SnapdTask *task);
+G_DEPRECATED_FOR(snapd_change_get_ready)
+gboolean snapd_task_get_ready(SnapdTask *task);
 
-const gchar *snapd_task_get_progress_label (SnapdTask *task);
+const gchar *snapd_task_get_progress_label(SnapdTask *task);
 
-gint64       snapd_task_get_progress_done  (SnapdTask *task);
+gint64 snapd_task_get_progress_done(SnapdTask *task);
 
-gint64       snapd_task_get_progress_total (SnapdTask *task);
+gint64 snapd_task_get_progress_total(SnapdTask *task);
 
-GDateTime   *snapd_task_get_spawn_time     (SnapdTask *task);
+GDateTime *snapd_task_get_spawn_time(SnapdTask *task);
 
-GDateTime   *snapd_task_get_ready_time     (SnapdTask *task);
+GDateTime *snapd_task_get_ready_time(SnapdTask *task);
 
-SnapdTaskData *snapd_task_get_data         (SnapdTask *task);
+SnapdTaskData *snapd_task_get_data(SnapdTask *task);
 
 G_END_DECLS
 

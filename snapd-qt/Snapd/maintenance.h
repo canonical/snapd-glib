@@ -14,18 +14,17 @@
 #include <Snapd/Enums>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdMaintenance : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdMaintenance : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(QSnapdEnums::MaintenanceKind kind READ kind)
-    Q_PROPERTY(QString message READ message)
+  Q_PROPERTY(QSnapdEnums::MaintenanceKind kind READ kind)
+  Q_PROPERTY(QString message READ message)
 
 public:
-    explicit QSnapdMaintenance (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdMaintenance(void *snapd_object, QObject *parent = 0);
 
-    QSnapdEnums::MaintenanceKind kind () const;
-    QString message () const;
+  QSnapdEnums::MaintenanceKind kind() const;
+  QString message() const;
 };
 
 #endif

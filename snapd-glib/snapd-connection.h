@@ -20,41 +20,44 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_CONNECTION  (snapd_connection_get_type ())
+#define SNAPD_TYPE_CONNECTION (snapd_connection_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdConnection, snapd_connection, SNAPD, CONNECTION, GObject)
+G_DECLARE_FINAL_TYPE(SnapdConnection, snapd_connection, SNAPD, CONNECTION,
+                     GObject)
 
-SnapdSlotRef *snapd_connection_get_slot                 (SnapdConnection *connection);
+SnapdSlotRef *snapd_connection_get_slot(SnapdConnection *connection);
 
-SnapdPlugRef *snapd_connection_get_plug                 (SnapdConnection *connection);
+SnapdPlugRef *snapd_connection_get_plug(SnapdConnection *connection);
 
-const gchar  *snapd_connection_get_interface            (SnapdConnection *connection);
+const gchar *snapd_connection_get_interface(SnapdConnection *connection);
 
-gboolean      snapd_connection_get_manual               (SnapdConnection *connection);
+gboolean snapd_connection_get_manual(SnapdConnection *connection);
 
-gboolean      snapd_connection_get_gadget               (SnapdConnection *connection);
+gboolean snapd_connection_get_gadget(SnapdConnection *connection);
 
-GStrv         snapd_connection_get_slot_attribute_names (SnapdConnection *connection,
-                                                         guint           *length);
+GStrv snapd_connection_get_slot_attribute_names(SnapdConnection *connection,
+                                                guint *length);
 
-gboolean      snapd_connection_has_slot_attribute       (SnapdConnection *connection,
-                                                         const gchar     *name);
+gboolean snapd_connection_has_slot_attribute(SnapdConnection *connection,
+                                             const gchar *name);
 
-GVariant     *snapd_connection_get_slot_attribute       (SnapdConnection *connection,
-                                                         const gchar     *name);
+GVariant *snapd_connection_get_slot_attribute(SnapdConnection *connection,
+                                              const gchar *name);
 
-GStrv         snapd_connection_get_plug_attribute_names (SnapdConnection *connection,
-                                                         guint           *length);
+GStrv snapd_connection_get_plug_attribute_names(SnapdConnection *connection,
+                                                guint *length);
 
-gboolean      snapd_connection_has_plug_attribute       (SnapdConnection *connection,
-                                                         const gchar     *name);
+gboolean snapd_connection_has_plug_attribute(SnapdConnection *connection,
+                                             const gchar *name);
 
-GVariant     *snapd_connection_get_plug_attribute       (SnapdConnection *connection,
-                                                         const gchar     *name);
+GVariant *snapd_connection_get_plug_attribute(SnapdConnection *connection,
+                                              const gchar *name);
 
-const gchar  *snapd_connection_get_name                 (SnapdConnection *connection) G_DEPRECATED;
+const gchar *
+snapd_connection_get_name(SnapdConnection *connection) G_DEPRECATED;
 
-const gchar  *snapd_connection_get_snap                 (SnapdConnection *connection) G_DEPRECATED;
+const gchar *
+snapd_connection_get_snap(SnapdConnection *connection) G_DEPRECATED;
 
 G_END_DECLS
 

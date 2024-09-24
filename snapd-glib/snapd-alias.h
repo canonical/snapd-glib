@@ -18,9 +18,9 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_ALIAS  (snapd_alias_get_type ())
+#define SNAPD_TYPE_ALIAS (snapd_alias_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdAlias, snapd_alias, SNAPD, ALIAS, GObject)
+G_DECLARE_FINAL_TYPE(SnapdAlias, snapd_alias, SNAPD, ALIAS, GObject)
 
 /**
  * SnapdAliasStatus:
@@ -35,29 +35,28 @@ G_DECLARE_FINAL_TYPE (SnapdAlias, snapd_alias, SNAPD, ALIAS, GObject)
  *
  * Since: 1.8
  */
-typedef enum
-{
-    SNAPD_ALIAS_STATUS_UNKNOWN,
-    SNAPD_ALIAS_STATUS_DEFAULT,
-    SNAPD_ALIAS_STATUS_ENABLED,
-    SNAPD_ALIAS_STATUS_DISABLED,
-    SNAPD_ALIAS_STATUS_AUTO,
-    SNAPD_ALIAS_STATUS_MANUAL
+typedef enum {
+  SNAPD_ALIAS_STATUS_UNKNOWN,
+  SNAPD_ALIAS_STATUS_DEFAULT,
+  SNAPD_ALIAS_STATUS_ENABLED,
+  SNAPD_ALIAS_STATUS_DISABLED,
+  SNAPD_ALIAS_STATUS_AUTO,
+  SNAPD_ALIAS_STATUS_MANUAL
 } SnapdAliasStatus;
 
-const gchar      *snapd_alias_get_app        (SnapdAlias *alias) G_DEPRECATED;
+const gchar *snapd_alias_get_app(SnapdAlias *alias) G_DEPRECATED;
 
-const gchar      *snapd_alias_get_app_auto   (SnapdAlias *alias);
+const gchar *snapd_alias_get_app_auto(SnapdAlias *alias);
 
-const gchar      *snapd_alias_get_command    (SnapdAlias *alias);
+const gchar *snapd_alias_get_command(SnapdAlias *alias);
 
-const gchar      *snapd_alias_get_app_manual (SnapdAlias *alias);
+const gchar *snapd_alias_get_app_manual(SnapdAlias *alias);
 
-const gchar      *snapd_alias_get_name       (SnapdAlias *alias);
+const gchar *snapd_alias_get_name(SnapdAlias *alias);
 
-const gchar      *snapd_alias_get_snap       (SnapdAlias *alias);
+const gchar *snapd_alias_get_snap(SnapdAlias *alias);
 
-SnapdAliasStatus  snapd_alias_get_status     (SnapdAlias *alias);
+SnapdAliasStatus snapd_alias_get_status(SnapdAlias *alias);
 
 G_END_DECLS
 

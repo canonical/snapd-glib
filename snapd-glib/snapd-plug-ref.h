@@ -18,13 +18,13 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_PLUG_REF  (snapd_plug_ref_get_type ())
+#define SNAPD_TYPE_PLUG_REF (snapd_plug_ref_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdPlugRef, snapd_plug_ref, SNAPD, PLUG_REF, GObject)
+G_DECLARE_FINAL_TYPE(SnapdPlugRef, snapd_plug_ref, SNAPD, PLUG_REF, GObject)
 
-const gchar *snapd_plug_ref_get_plug (SnapdPlugRef *plug_ref);
+const gchar *snapd_plug_ref_get_plug(SnapdPlugRef *plug_ref);
 
-const gchar *snapd_plug_ref_get_snap (SnapdPlugRef *plug_ref);
+const gchar *snapd_plug_ref_get_snap(SnapdPlugRef *plug_ref);
 
 G_END_DECLS
 

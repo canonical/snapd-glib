@@ -11,24 +11,25 @@
 
 #include <json-glib/json-glib.h>
 
-#include "snapd-request.h"
 #include "snapd-change.h"
+#include "snapd-request.h"
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdGetChange, snapd_get_change, SNAPD, GET_CHANGE, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdGetChange, snapd_get_change, SNAPD, GET_CHANGE,
+                     SnapdRequest)
 
-SnapdGetChange *_snapd_get_change_new           (const gchar         *change_id,
-                                                 GCancellable        *cancellable,
-                                                 GAsyncReadyCallback  callback,
-                                                 gpointer             user_data);
+SnapdGetChange *_snapd_get_change_new(const gchar *change_id,
+                                      GCancellable *cancellable,
+                                      GAsyncReadyCallback callback,
+                                      gpointer user_data);
 
-const gchar    *_snapd_get_change_get_change_id (SnapdGetChange *request);
+const gchar *_snapd_get_change_get_change_id(SnapdGetChange *request);
 
-SnapdChange    *_snapd_get_change_get_change    (SnapdGetChange *request);
+SnapdChange *_snapd_get_change_get_change(SnapdGetChange *request);
 
-JsonNode       *_snapd_get_change_get_data      (SnapdGetChange *request);
+JsonNode *_snapd_get_change_get_data(SnapdGetChange *request);
 
-void            _snapd_get_change_set_api_path  (SnapdGetChange *request,
-                                                 const gchar    *api_path);
+void _snapd_get_change_set_api_path(SnapdGetChange *request,
+                                    const gchar *api_path);
 G_END_DECLS

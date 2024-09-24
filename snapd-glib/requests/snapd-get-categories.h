@@ -13,12 +13,13 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdGetCategories, snapd_get_categories, SNAPD, GET_CATEGORIES, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdGetCategories, snapd_get_categories, SNAPD,
+                     GET_CATEGORIES, SnapdRequest)
 
-SnapdGetCategories *_snapd_get_categories_new            (GCancellable        *cancellable,
-                                                          GAsyncReadyCallback  callback,
-                                                          gpointer             user_data);
+SnapdGetCategories *_snapd_get_categories_new(GCancellable *cancellable,
+                                              GAsyncReadyCallback callback,
+                                              gpointer user_data);
 
-GPtrArray          *_snapd_get_categories_get_categories (SnapdGetCategories *request);
+GPtrArray *_snapd_get_categories_get_categories(SnapdGetCategories *request);
 
 G_END_DECLS

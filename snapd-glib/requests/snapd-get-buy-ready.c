@@ -11,49 +11,42 @@
 
 #include "snapd-json.h"
 
-struct _SnapdGetBuyReady
-{
-    SnapdRequest parent_instance;
+struct _SnapdGetBuyReady {
+  SnapdRequest parent_instance;
 };
 
-G_DEFINE_TYPE (SnapdGetBuyReady, snapd_get_buy_ready, snapd_request_get_type ())
+G_DEFINE_TYPE(SnapdGetBuyReady, snapd_get_buy_ready, snapd_request_get_type())
 
-SnapdGetBuyReady *
-_snapd_get_buy_ready_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
-{
-    return SNAPD_GET_BUY_READY (g_object_new (snapd_get_buy_ready_get_type (),
-                                              "cancellable", cancellable,
-                                              "ready-callback", callback,
-                                              "ready-callback-data", user_data,
-                                              NULL));
+SnapdGetBuyReady *_snapd_get_buy_ready_new(GCancellable *cancellable,
+                                           GAsyncReadyCallback callback,
+                                           gpointer user_data) {
+  return SNAPD_GET_BUY_READY(g_object_new(
+      snapd_get_buy_ready_get_type(), "cancellable", cancellable,
+      "ready-callback", callback, "ready-callback-data", user_data, NULL));
 }
 
-static SoupMessage *
-generate_get_buy_ready_request (SnapdRequest *request, GBytes **body)
-{
-    return soup_message_new ("GET", "http://snapd/v2/buy/ready");
+static SoupMessage *generate_get_buy_ready_request(SnapdRequest *request,
+                                                   GBytes **body) {
+  return soup_message_new("GET", "http://snapd/v2/buy/ready");
 }
 
 static gboolean
-parse_get_buy_ready_response (SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
-{
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, maintenance, NULL, error);
-    if (response == NULL)
-        return FALSE;
+parse_get_buy_ready_response(SnapdRequest *request, guint status_code,
+                             const gchar *content_type, GBytes *body,
+                             SnapdMaintenance **maintenance, GError **error) {
+  g_autoptr(JsonObject) response =
+      _snapd_json_parse_response(content_type, body, maintenance, NULL, error);
+  if (response == NULL)
+    return FALSE;
 
-    return TRUE;
+  return TRUE;
 }
 
-static void
-snapd_get_buy_ready_class_init (SnapdGetBuyReadyClass *klass)
-{
-   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
+static void snapd_get_buy_ready_class_init(SnapdGetBuyReadyClass *klass) {
+  SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS(klass);
 
-   request_class->generate_request = generate_get_buy_ready_request;
-   request_class->parse_response = parse_get_buy_ready_response;
+  request_class->generate_request = generate_get_buy_ready_request;
+  request_class->parse_response = parse_get_buy_ready_response;
 }
 
-static void
-snapd_get_buy_ready_init (SnapdGetBuyReady *self)
-{
-}
+static void snapd_get_buy_ready_init(SnapdGetBuyReady *self) {}

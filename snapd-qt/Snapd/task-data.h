@@ -14,16 +14,15 @@
 #include <QtCore/QStringList>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdTaskData : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdTaskData : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(QStringList affectedSnaps READ affectedSnaps)
+  Q_PROPERTY(QStringList affectedSnaps READ affectedSnaps)
 
 public:
-    explicit QSnapdTaskData (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdTaskData(void *snapd_object, QObject *parent = 0);
 
-    Q_INVOKABLE QStringList affectedSnaps () const;
+  Q_INVOKABLE QStringList affectedSnaps() const;
 };
 
 #endif

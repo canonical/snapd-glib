@@ -11,61 +11,51 @@
 
 #include "Snapd/app.h"
 
-QSnapdApp::QSnapdApp (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdApp::QSnapdApp(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdApp::name () const
-{
-    return snapd_app_get_name (SNAPD_APP (wrapped_object));
+QString QSnapdApp::name() const {
+  return snapd_app_get_name(SNAPD_APP(wrapped_object));
 }
 
-bool QSnapdApp::active () const
-{
-    return snapd_app_get_active (SNAPD_APP (wrapped_object));
+bool QSnapdApp::active() const {
+  return snapd_app_get_active(SNAPD_APP(wrapped_object));
 }
 
-QStringList QSnapdApp::aliases () const
-{
-    return QStringList ();
+QStringList QSnapdApp::aliases() const { return QStringList(); }
+
+QString QSnapdApp::commonId() const {
+  return snapd_app_get_common_id(SNAPD_APP(wrapped_object));
 }
 
-QString QSnapdApp::commonId () const
-{
-    return snapd_app_get_common_id (SNAPD_APP (wrapped_object));
+QSnapdEnums::DaemonType QSnapdApp::daemonType() const {
+  switch (snapd_app_get_daemon_type(SNAPD_APP(wrapped_object))) {
+  case SNAPD_DAEMON_TYPE_NONE:
+    return QSnapdEnums::DaemonTypeNone;
+  default:
+  case SNAPD_DAEMON_TYPE_UNKNOWN:
+    return QSnapdEnums::DaemonTypeUnknown;
+  case SNAPD_DAEMON_TYPE_SIMPLE:
+    return QSnapdEnums::DaemonTypeSimple;
+  case SNAPD_DAEMON_TYPE_FORKING:
+    return QSnapdEnums::DaemonTypeForking;
+  case SNAPD_DAEMON_TYPE_ONESHOT:
+    return QSnapdEnums::DaemonTypeOneshot;
+  case SNAPD_DAEMON_TYPE_DBUS:
+    return QSnapdEnums::DaemonTypeDbus;
+  case SNAPD_DAEMON_TYPE_NOTIFY:
+    return QSnapdEnums::DaemonTypeNotify;
+  }
 }
 
-QSnapdEnums::DaemonType QSnapdApp::daemonType () const
-{
-    switch (snapd_app_get_daemon_type (SNAPD_APP (wrapped_object)))
-    {
-    case SNAPD_DAEMON_TYPE_NONE:
-        return QSnapdEnums::DaemonTypeNone;
-    default:
-    case SNAPD_DAEMON_TYPE_UNKNOWN:
-        return QSnapdEnums::DaemonTypeUnknown;
-    case SNAPD_DAEMON_TYPE_SIMPLE:
-        return QSnapdEnums::DaemonTypeSimple;
-    case SNAPD_DAEMON_TYPE_FORKING:
-        return QSnapdEnums::DaemonTypeForking;
-    case SNAPD_DAEMON_TYPE_ONESHOT:
-        return QSnapdEnums::DaemonTypeOneshot;
-    case SNAPD_DAEMON_TYPE_DBUS:
-        return QSnapdEnums::DaemonTypeDbus;
-    case SNAPD_DAEMON_TYPE_NOTIFY:
-        return QSnapdEnums::DaemonTypeNotify;
-    }
+QString QSnapdApp::desktopFile() const {
+  return snapd_app_get_desktop_file(SNAPD_APP(wrapped_object));
 }
 
-QString QSnapdApp::desktopFile () const
-{
-    return snapd_app_get_desktop_file (SNAPD_APP (wrapped_object));
+bool QSnapdApp::enabled() const {
+  return snapd_app_get_enabled(SNAPD_APP(wrapped_object));
 }
 
-bool QSnapdApp::enabled () const
-{
-    return snapd_app_get_enabled (SNAPD_APP (wrapped_object));
-}
-
-QString QSnapdApp::snap () const
-{
-    return snapd_app_get_snap (SNAPD_APP (wrapped_object));
+QString QSnapdApp::snap() const {
+  return snapd_app_get_snap(SNAPD_APP(wrapped_object));
 }

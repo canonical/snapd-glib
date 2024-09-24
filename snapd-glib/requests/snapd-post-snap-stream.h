@@ -15,28 +15,28 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdPostSnapStream, snapd_post_snap_stream, SNAPD, POST_SNAP_STREAM, SnapdRequestAsync)
+G_DECLARE_FINAL_TYPE(SnapdPostSnapStream, snapd_post_snap_stream, SNAPD,
+                     POST_SNAP_STREAM, SnapdRequestAsync)
 
-SnapdPostSnapStream *_snapd_post_snap_stream_new           (SnapdProgressCallback  progress_callback,
-                                                            gpointer               progress_callback_data,
-                                                            GCancellable          *cancellable,
-                                                            GAsyncReadyCallback    callback,
-                                                            gpointer               user_data);
+SnapdPostSnapStream *
+_snapd_post_snap_stream_new(SnapdProgressCallback progress_callback,
+                            gpointer progress_callback_data,
+                            GCancellable *cancellable,
+                            GAsyncReadyCallback callback, gpointer user_data);
 
-void                 _snapd_post_snap_stream_set_classic   (SnapdPostSnapStream   *request,
-                                                            gboolean               classic);
+void _snapd_post_snap_stream_set_classic(SnapdPostSnapStream *request,
+                                         gboolean classic);
 
-void                 _snapd_post_snap_stream_set_dangerous (SnapdPostSnapStream   *request,
-                                                            gboolean               dangerous);
+void _snapd_post_snap_stream_set_dangerous(SnapdPostSnapStream *request,
+                                           gboolean dangerous);
 
-void                 _snapd_post_snap_stream_set_devmode   (SnapdPostSnapStream   *request,
-                                                            gboolean                devmode);
+void _snapd_post_snap_stream_set_devmode(SnapdPostSnapStream *request,
+                                         gboolean devmode);
 
-void                 _snapd_post_snap_stream_set_jailmode  (SnapdPostSnapStream   *request,
-                                                            gboolean               jailmode);
+void _snapd_post_snap_stream_set_jailmode(SnapdPostSnapStream *request,
+                                          gboolean jailmode);
 
-void                 _snapd_post_snap_stream_append_data   (SnapdPostSnapStream   *request,
-                                                            const guint8          *data,
-                                                            guint                  len);
+void _snapd_post_snap_stream_append_data(SnapdPostSnapStream *request,
+                                         const guint8 *data, guint len);
 
 G_END_DECLS

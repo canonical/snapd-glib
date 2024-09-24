@@ -16,83 +16,81 @@
 
 class QSnapdRequestPrivate;
 
-class Q_DECL_EXPORT QSnapdRequest : public QObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdRequest : public QObject {
+  Q_OBJECT
 
-    Q_PROPERTY(bool isFinished READ isFinished)
-    Q_PROPERTY(QSnapdError error READ error)
-    Q_PROPERTY(QString errorString READ errorString)
-    Q_PROPERTY(QSnapdChange change READ change)
+  Q_PROPERTY(bool isFinished READ isFinished)
+  Q_PROPERTY(QSnapdError error READ error)
+  Q_PROPERTY(QString errorString READ errorString)
+  Q_PROPERTY(QSnapdChange change READ change)
 
 public:
-    enum QSnapdError
-    {
-        NoError,
-        UnknownError,
-        ConnectionFailed,
-        WriteFailed,
-        ReadFailed,
-        BadRequest,
-        BadResponse,
-        AuthDataRequired,
-        AuthDataInvalid,
-        TwoFactorRequired,
-        TwoFactorInvalid,
-        PermissionDenied,
-        Failed,
-        TermsNotAccepted,
-        PaymentNotSetup,
-        PaymentDeclined,
-        AlreadyInstalled,
-        NotInstalled,
-        NoUpdateAvailable,
-        PasswordPolicyError,
-        NeedsDevmode,
-        NeedsClassic,
-        NeedsClassicSystem,
-        Cancelled,
-        BadQuery,
-        NetworkTimeout,
-        NotFound,
-        NotInStore,
-        AuthCancelled,
-        NotClassic,
-        RevisionNotAvailable,
-        ChannelNotAvailable,
-        NotASnap,
-        DNSFailure,
-        OptionNotFound,
-        AppNotFound,
-        ArchitectureNotAvailable,
-        ChangeConflict,
-        InterfacesUnchanged
-    };
-    Q_ENUM(QSnapdError)
+  enum QSnapdError {
+    NoError,
+    UnknownError,
+    ConnectionFailed,
+    WriteFailed,
+    ReadFailed,
+    BadRequest,
+    BadResponse,
+    AuthDataRequired,
+    AuthDataInvalid,
+    TwoFactorRequired,
+    TwoFactorInvalid,
+    PermissionDenied,
+    Failed,
+    TermsNotAccepted,
+    PaymentNotSetup,
+    PaymentDeclined,
+    AlreadyInstalled,
+    NotInstalled,
+    NoUpdateAvailable,
+    PasswordPolicyError,
+    NeedsDevmode,
+    NeedsClassic,
+    NeedsClassicSystem,
+    Cancelled,
+    BadQuery,
+    NetworkTimeout,
+    NotFound,
+    NotInStore,
+    AuthCancelled,
+    NotClassic,
+    RevisionNotAvailable,
+    ChannelNotAvailable,
+    NotASnap,
+    DNSFailure,
+    OptionNotFound,
+    AppNotFound,
+    ArchitectureNotAvailable,
+    ChangeConflict,
+    InterfacesUnchanged
+  };
+  Q_ENUM(QSnapdError)
 
-    explicit QSnapdRequest (void *snapd_client, QObject* parent = 0);
-    ~QSnapdRequest ();
-    bool isFinished () const;
-    QSnapdError error () const;
-    QString errorString () const;
-    Q_INVOKABLE virtual void runSync () = 0;
-    Q_INVOKABLE virtual void runAsync () = 0;
-    Q_INVOKABLE void cancel ();
-    Q_INVOKABLE QSnapdChange *change () const;
-    void handleProgress (void*);
+  explicit QSnapdRequest(void *snapd_client, QObject *parent = 0);
+  ~QSnapdRequest();
+  bool isFinished() const;
+  QSnapdError error() const;
+  QString errorString() const;
+  Q_INVOKABLE virtual void runSync() = 0;
+  Q_INVOKABLE virtual void runAsync() = 0;
+  Q_INVOKABLE void cancel();
+  Q_INVOKABLE QSnapdChange *change() const;
+  void handleProgress(void *);
 
 protected:
-    void *getClient () const;
-    void *getCancellable () const;
-    void finish (void *error);
+  void *getClient() const;
+  void *getCancellable() const;
+  void finish(void *error);
 
 Q_SIGNALS:
-    void progress ();
-    void complete ();
+  void progress();
+  void complete();
 
 private:
-    QScopedPointer<QSnapdRequestPrivate> d_ptr;
-    Q_DECLARE_PRIVATE (QSnapdRequest);
+  QScopedPointer<QSnapdRequestPrivate> d_ptr;
+  Q_DECLARE_PRIVATE(QSnapdRequest);
 };
 
 #endif

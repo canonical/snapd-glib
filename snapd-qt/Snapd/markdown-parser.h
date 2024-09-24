@@ -15,28 +15,27 @@
 #include <Snapd/MarkdownNode>
 
 class QSnapdMarkdownParserPrivate;
-class Q_DECL_EXPORT QSnapdMarkdownParser : public QObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdMarkdownParser : public QObject {
+  Q_OBJECT
 
-    Q_PROPERTY(bool preserveWhitespace READ preserveWhitespace WRITE setPreserveWhitespace)
+  Q_PROPERTY(bool preserveWhitespace READ preserveWhitespace WRITE
+                 setPreserveWhitespace)
 
 public:
-    enum MarkdownVersion
-    {
-        MarkdownVersion0,
-    };
-    Q_ENUM(MarkdownVersion)
-    explicit QSnapdMarkdownParser (MarkdownVersion version, QObject* parent = 0);
-    ~QSnapdMarkdownParser();
+  enum MarkdownVersion {
+    MarkdownVersion0,
+  };
+  Q_ENUM(MarkdownVersion)
+  explicit QSnapdMarkdownParser(MarkdownVersion version, QObject *parent = 0);
+  ~QSnapdMarkdownParser();
 
-    void setPreserveWhitespace (bool preserveWhitespace) const;
-    bool preserveWhitespace () const;
-    QList<QSnapdMarkdownNode> parse (const QString &text) const;
+  void setPreserveWhitespace(bool preserveWhitespace) const;
+  bool preserveWhitespace() const;
+  QList<QSnapdMarkdownNode> parse(const QString &text) const;
 
 private:
-    QScopedPointer<QSnapdMarkdownParserPrivate> d_ptr;
-    Q_DECLARE_PRIVATE(QSnapdMarkdownParser)
+  QScopedPointer<QSnapdMarkdownParserPrivate> d_ptr;
+  Q_DECLARE_PRIVATE(QSnapdMarkdownParser)
 };
 
 #endif

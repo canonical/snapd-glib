@@ -11,106 +11,97 @@
 
 #include "snapd-json.h"
 
-struct _SnapdGetSnapConf
-{
-    SnapdRequest parent_instance;
-    gchar *name;
-    GStrv keys;
-    GHashTable *conf;
+struct _SnapdGetSnapConf {
+  SnapdRequest parent_instance;
+  gchar *name;
+  GStrv keys;
+  GHashTable *conf;
 };
 
-G_DEFINE_TYPE (SnapdGetSnapConf, snapd_get_snap_conf, snapd_request_get_type ())
+G_DEFINE_TYPE(SnapdGetSnapConf, snapd_get_snap_conf, snapd_request_get_type())
 
-SnapdGetSnapConf *
-_snapd_get_snap_conf_new (const gchar *name, GStrv keys, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
-{
-    SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF (g_object_new (snapd_get_snap_conf_get_type (),
-                                                                "cancellable", cancellable,
-                                                                "ready-callback", callback,
-                                                                "ready-callback-data", user_data,
-                                                                NULL));
-    self->name = g_strdup (name);
-    if (keys != NULL && keys[0] != NULL)
-        self->keys = g_strdupv (keys);
+SnapdGetSnapConf *_snapd_get_snap_conf_new(const gchar *name, GStrv keys,
+                                           GCancellable *cancellable,
+                                           GAsyncReadyCallback callback,
+                                           gpointer user_data) {
+  SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF(g_object_new(
+      snapd_get_snap_conf_get_type(), "cancellable", cancellable,
+      "ready-callback", callback, "ready-callback-data", user_data, NULL));
+  self->name = g_strdup(name);
+  if (keys != NULL && keys[0] != NULL)
+    self->keys = g_strdupv(keys);
 
-    return self;
+  return self;
 }
 
-GHashTable *
-_snapd_get_snap_conf_get_conf (SnapdGetSnapConf *self)
-{
-    return self->conf;
+GHashTable *_snapd_get_snap_conf_get_conf(SnapdGetSnapConf *self) {
+  return self->conf;
 }
 
-static SoupMessage *
-generate_get_snap_conf_request (SnapdRequest *request, GBytes **body)
-{
-    SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF (request);
+static SoupMessage *generate_get_snap_conf_request(SnapdRequest *request,
+                                                   GBytes **body) {
+  SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF(request);
 
-    g_autoptr(GPtrArray) query_attributes = g_ptr_array_new_with_free_func (g_free);
-    if (self->keys != NULL) {
-        g_autofree gchar *keys_list = g_strjoinv (",", self->keys);
-        g_ptr_array_add (query_attributes, g_strdup_printf ("keys=%s", keys_list));
+  g_autoptr(GPtrArray) query_attributes =
+      g_ptr_array_new_with_free_func(g_free);
+  if (self->keys != NULL) {
+    g_autofree gchar *keys_list = g_strjoinv(",", self->keys);
+    g_ptr_array_add(query_attributes, g_strdup_printf("keys=%s", keys_list));
+  }
+
+  g_autoptr(GString) path = g_string_new("http://snapd/v2/snaps/");
+  g_string_append_uri_escaped(path, self->name, NULL, TRUE);
+  g_string_append(path, "/conf");
+  if (query_attributes->len > 0) {
+    g_string_append_c(path, '?');
+    for (guint i = 0; i < query_attributes->len; i++) {
+      if (i != 0)
+        g_string_append_c(path, '&');
+      g_string_append(path, (gchar *)query_attributes->pdata[i]);
     }
+  }
 
-    g_autoptr(GString) path = g_string_new ("http://snapd/v2/snaps/");
-    g_string_append_uri_escaped (path, self->name, NULL, TRUE);
-    g_string_append (path, "/conf");
-    if (query_attributes->len > 0) {
-        g_string_append_c (path, '?');
-        for (guint i = 0; i < query_attributes->len; i++) {
-            if (i != 0)
-                g_string_append_c (path, '&');
-            g_string_append (path, (gchar *) query_attributes->pdata[i]);
-        }
-    }
-
-    return soup_message_new ("GET", path->str);
+  return soup_message_new("GET", path->str);
 }
 
 static gboolean
-parse_get_snap_conf_response (SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
-{
-    SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF (request);
+parse_get_snap_conf_response(SnapdRequest *request, guint status_code,
+                             const gchar *content_type, GBytes *body,
+                             SnapdMaintenance **maintenance, GError **error) {
+  SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF(request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, maintenance, NULL, error);
-    if (response == NULL)
-        return FALSE;
-    g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o (response, error);
-    if (result == NULL)
-        return FALSE;
+  g_autoptr(JsonObject) response =
+      _snapd_json_parse_response(content_type, body, maintenance, NULL, error);
+  if (response == NULL)
+    return FALSE;
+  g_autoptr(JsonObject) result = _snapd_json_get_sync_result_o(response, error);
+  if (result == NULL)
+    return FALSE;
 
-    self->conf = _snapd_json_parse_object (result, error);
-    if (self->conf == NULL)
-        return FALSE;
+  self->conf = _snapd_json_parse_object(result, error);
+  if (self->conf == NULL)
+    return FALSE;
 
-    return TRUE;
+  return TRUE;
 }
 
-static void
-snapd_get_snap_conf_finalize (GObject *object)
-{
-    SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF (object);
+static void snapd_get_snap_conf_finalize(GObject *object) {
+  SnapdGetSnapConf *self = SNAPD_GET_SNAP_CONF(object);
 
-    g_clear_pointer (&self->name, g_free);
-    g_clear_pointer (&self->keys, g_strfreev);
-    g_clear_pointer (&self->conf, g_hash_table_unref);
+  g_clear_pointer(&self->name, g_free);
+  g_clear_pointer(&self->keys, g_strfreev);
+  g_clear_pointer(&self->conf, g_hash_table_unref);
 
-    G_OBJECT_CLASS (snapd_get_snap_conf_parent_class)->finalize (object);
+  G_OBJECT_CLASS(snapd_get_snap_conf_parent_class)->finalize(object);
 }
 
-static void
-snapd_get_snap_conf_class_init (SnapdGetSnapConfClass *klass)
-{
-   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
-   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+static void snapd_get_snap_conf_class_init(SnapdGetSnapConfClass *klass) {
+  SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS(klass);
+  GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-   request_class->generate_request = generate_get_snap_conf_request;
-   request_class->parse_response = parse_get_snap_conf_response;
-   gobject_class->finalize = snapd_get_snap_conf_finalize;
+  request_class->generate_request = generate_get_snap_conf_request;
+  request_class->parse_response = parse_get_snap_conf_response;
+  gobject_class->finalize = snapd_get_snap_conf_finalize;
 }
 
-static void
-snapd_get_snap_conf_init (SnapdGetSnapConf *self)
-{
-}
+static void snapd_get_snap_conf_init(SnapdGetSnapConf *self) {}

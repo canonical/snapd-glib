@@ -10,24 +10,22 @@
 #ifndef SNAPD_AUTOREFRESH_CHANGE_DATA_H
 #define SNAPD_AUTOREFRESH_CHANGE_DATA_H
 
+#include "change-data.h"
 #include <QtCore/QObject>
 #include <QtCore/QStringList>
 #include <Snapd/WrappedObject>
-#include "change-data.h"
 
-class Q_DECL_EXPORT QSnapdAutorefreshChangeData : public QSnapdChangeData
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdAutorefreshChangeData : public QSnapdChangeData {
+  Q_OBJECT
 
-    Q_PROPERTY(QStringList snapNames READ snapNames)
-    Q_PROPERTY(QStringList refreshForced READ refreshForced)
+  Q_PROPERTY(QStringList snapNames READ snapNames)
+  Q_PROPERTY(QStringList refreshForced READ refreshForced)
 
 public:
-    explicit QSnapdAutorefreshChangeData (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdAutorefreshChangeData(void *snapd_object, QObject *parent = 0);
 
-    QStringList snapNames () const;
-    QStringList refreshForced () const;
+  QStringList snapNames() const;
+  QStringList refreshForced() const;
 };
-
 
 #endif

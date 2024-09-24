@@ -14,8 +14,8 @@
  * @short_description: Snap category details metadata
  * @include: snapd-glib/snapd-glib.h
  *
- * A #SnapdCategoryDetails contains the metadata for a given snap category as returned
- * using snapd_client_get_categories_sync().
+ * A #SnapdCategoryDetails contains the metadata for a given snap category as
+ * returned using snapd_client_get_categories_sync().
  */
 
 /**
@@ -27,20 +27,15 @@
  * Since: 1.64
  */
 
-struct _SnapdCategoryDetails
-{
-    GObject parent_instance;
+struct _SnapdCategoryDetails {
+  GObject parent_instance;
 
-    gchar *name;
+  gchar *name;
 };
 
-enum
-{
-    PROP_NAME = 1,
-    PROP_LAST
-};
+enum { PROP_NAME = 1, PROP_LAST };
 
-G_DEFINE_TYPE (SnapdCategoryDetails, snapd_category_details, G_TYPE_OBJECT)
+G_DEFINE_TYPE(SnapdCategoryDetails, snapd_category_details, G_TYPE_OBJECT)
 
 /**
  * snapd_category_details_get_name:
@@ -52,73 +47,62 @@ G_DEFINE_TYPE (SnapdCategoryDetails, snapd_category_details, G_TYPE_OBJECT)
  *
  * Since: 1.64
  */
-const gchar *
-snapd_category_details_get_name (SnapdCategoryDetails *self)
-{
-    g_return_val_if_fail (SNAPD_IS_CATEGORY_DETAILS (self), NULL);
-    return self->name;
+const gchar *snapd_category_details_get_name(SnapdCategoryDetails *self) {
+  g_return_val_if_fail(SNAPD_IS_CATEGORY_DETAILS(self), NULL);
+  return self->name;
+}
+
+static void snapd_category_details_set_property(GObject *object, guint prop_id,
+                                                const GValue *value,
+                                                GParamSpec *pspec) {
+  SnapdCategoryDetails *self = SNAPD_CATEGORY_DETAILS(object);
+
+  switch (prop_id) {
+  case PROP_NAME:
+    g_free(self->name);
+    self->name = g_strdup(g_value_get_string(value));
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+    break;
+  }
+}
+
+static void snapd_category_details_get_property(GObject *object, guint prop_id,
+                                                GValue *value,
+                                                GParamSpec *pspec) {
+  SnapdCategoryDetails *self = SNAPD_CATEGORY_DETAILS(object);
+
+  switch (prop_id) {
+  case PROP_NAME:
+    g_value_set_string(value, self->name);
+    break;
+  default:
+    G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
+    break;
+  }
+}
+
+static void snapd_category_details_finalize(GObject *object) {
+  SnapdCategoryDetails *self = SNAPD_CATEGORY_DETAILS(object);
+
+  g_clear_pointer(&self->name, g_free);
+
+  G_OBJECT_CLASS(snapd_category_details_parent_class)->finalize(object);
 }
 
 static void
-snapd_category_details_set_property (GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
-{
-    SnapdCategoryDetails *self = SNAPD_CATEGORY_DETAILS (object);
+snapd_category_details_class_init(SnapdCategoryDetailsClass *klass) {
+  GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-    switch (prop_id) {
-    case PROP_NAME:
-        g_free (self->name);
-        self->name = g_strdup (g_value_get_string (value));
-        break;
-    default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-        break;
-    }
+  gobject_class->set_property = snapd_category_details_set_property;
+  gobject_class->get_property = snapd_category_details_get_property;
+  gobject_class->finalize = snapd_category_details_finalize;
+
+  g_object_class_install_property(
+      gobject_class, PROP_NAME,
+      g_param_spec_string("name", "name", "The category name", NULL,
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 }
 
-static void
-snapd_category_details_get_property (GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
-{
-    SnapdCategoryDetails *self = SNAPD_CATEGORY_DETAILS (object);
-
-    switch (prop_id) {
-    case PROP_NAME:
-        g_value_set_string (value, self->name);
-        break;
-    default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-        break;
-    }
-}
-
-static void
-snapd_category_details_finalize (GObject *object)
-{
-    SnapdCategoryDetails *self = SNAPD_CATEGORY_DETAILS (object);
-
-    g_clear_pointer (&self->name, g_free);
-
-    G_OBJECT_CLASS (snapd_category_details_parent_class)->finalize (object);
-}
-
-static void
-snapd_category_details_class_init (SnapdCategoryDetailsClass *klass)
-{
-    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-
-    gobject_class->set_property = snapd_category_details_set_property;
-    gobject_class->get_property = snapd_category_details_get_property;
-    gobject_class->finalize = snapd_category_details_finalize;
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_NAME,
-                                     g_param_spec_string ("name",
-                                                          "name",
-                                                          "The category name",
-                                                          NULL,
-                                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
-}
-
-static void
-snapd_category_details_init (SnapdCategoryDetails *self)
-{
-}
+static void snapd_category_details_init(SnapdCategoryDetails *self) {}

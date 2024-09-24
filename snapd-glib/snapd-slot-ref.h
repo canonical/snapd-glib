@@ -18,13 +18,13 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_SLOT_REF  (snapd_slot_ref_get_type ())
+#define SNAPD_TYPE_SLOT_REF (snapd_slot_ref_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdSlotRef, snapd_slot_ref, SNAPD, SLOT_REF, GObject)
+G_DECLARE_FINAL_TYPE(SnapdSlotRef, snapd_slot_ref, SNAPD, SLOT_REF, GObject)
 
-const gchar *snapd_slot_ref_get_slot (SnapdSlotRef *slot_ref);
+const gchar *snapd_slot_ref_get_slot(SnapdSlotRef *slot_ref);
 
-const gchar *snapd_slot_ref_get_snap (SnapdSlotRef *slot_ref);
+const gchar *snapd_slot_ref_get_snap(SnapdSlotRef *slot_ref);
 
 G_END_DECLS
 

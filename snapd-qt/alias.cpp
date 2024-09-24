@@ -11,56 +11,49 @@
 
 #include "Snapd/alias.h"
 
-QSnapdAlias::QSnapdAlias (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdAlias::QSnapdAlias(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdAlias::app () const
-{
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    return snapd_alias_get_app (SNAPD_ALIAS (wrapped_object));
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+QString QSnapdAlias::app() const {
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+  return snapd_alias_get_app(SNAPD_ALIAS(wrapped_object));
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 }
 
-QString QSnapdAlias::appAuto () const
-{
-    return snapd_alias_get_app_auto (SNAPD_ALIAS (wrapped_object));
+QString QSnapdAlias::appAuto() const {
+  return snapd_alias_get_app_auto(SNAPD_ALIAS(wrapped_object));
 }
 
-QString QSnapdAlias::command () const
-{
-    return snapd_alias_get_command (SNAPD_ALIAS (wrapped_object));
+QString QSnapdAlias::command() const {
+  return snapd_alias_get_command(SNAPD_ALIAS(wrapped_object));
 }
 
-QString QSnapdAlias::appManual () const
-{
-    return snapd_alias_get_app_manual (SNAPD_ALIAS (wrapped_object));
+QString QSnapdAlias::appManual() const {
+  return snapd_alias_get_app_manual(SNAPD_ALIAS(wrapped_object));
 }
 
-QString QSnapdAlias::name () const
-{
-    return snapd_alias_get_name (SNAPD_ALIAS (wrapped_object));
+QString QSnapdAlias::name() const {
+  return snapd_alias_get_name(SNAPD_ALIAS(wrapped_object));
 }
 
-QString QSnapdAlias::snap () const
-{
-    return snapd_alias_get_snap (SNAPD_ALIAS (wrapped_object));
+QString QSnapdAlias::snap() const {
+  return snapd_alias_get_snap(SNAPD_ALIAS(wrapped_object));
 }
 
-QSnapdEnums::AliasStatus QSnapdAlias::status () const
-{
-    switch (snapd_alias_get_status (SNAPD_ALIAS (wrapped_object)))
-    {
-    default:
-    case SNAPD_ALIAS_STATUS_UNKNOWN:
-        return QSnapdEnums::AliasStatusUnknown;
-    case SNAPD_ALIAS_STATUS_DEFAULT:
-        return QSnapdEnums::AliasStatusDefault;
-    case SNAPD_ALIAS_STATUS_ENABLED:
-        return QSnapdEnums::AliasStatusEnabled;
-    case SNAPD_ALIAS_STATUS_DISABLED:
-        return QSnapdEnums::AliasStatusDisabled;
-    case SNAPD_ALIAS_STATUS_AUTO:
-        return QSnapdEnums::AliasStatusAuto;
-    case SNAPD_ALIAS_STATUS_MANUAL:
-        return QSnapdEnums::AliasStatusManual;
-    }
+QSnapdEnums::AliasStatus QSnapdAlias::status() const {
+  switch (snapd_alias_get_status(SNAPD_ALIAS(wrapped_object))) {
+  default:
+  case SNAPD_ALIAS_STATUS_UNKNOWN:
+    return QSnapdEnums::AliasStatusUnknown;
+  case SNAPD_ALIAS_STATUS_DEFAULT:
+    return QSnapdEnums::AliasStatusDefault;
+  case SNAPD_ALIAS_STATUS_ENABLED:
+    return QSnapdEnums::AliasStatusEnabled;
+  case SNAPD_ALIAS_STATUS_DISABLED:
+    return QSnapdEnums::AliasStatusDisabled;
+  case SNAPD_ALIAS_STATUS_AUTO:
+    return QSnapdEnums::AliasStatusAuto;
+  case SNAPD_ALIAS_STATUS_MANUAL:
+    return QSnapdEnums::AliasStatusManual;
+  }
 }

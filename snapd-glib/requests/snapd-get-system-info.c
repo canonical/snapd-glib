@@ -14,82 +14,74 @@
 #include "snapd-error.h"
 #include "snapd-json.h"
 
-struct _SnapdGetSystemInfo
-{
-    SnapdRequest parent_instance;
-    SnapdSystemInformation *system_information;
+struct _SnapdGetSystemInfo {
+  SnapdRequest parent_instance;
+  SnapdSystemInformation *system_information;
 };
 
-G_DEFINE_TYPE (SnapdGetSystemInfo, snapd_get_system_info, snapd_request_get_type ())
+G_DEFINE_TYPE(SnapdGetSystemInfo, snapd_get_system_info,
+              snapd_request_get_type())
 
-SnapdGetSystemInfo *
-_snapd_get_system_info_new (GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
-{
-    return SNAPD_GET_SYSTEM_INFO (g_object_new (snapd_get_system_info_get_type (),
-                                                "cancellable", cancellable,
-                                                "ready-callback", callback,
-                                                "ready-callback-data", user_data,
-                                                NULL));
+SnapdGetSystemInfo *_snapd_get_system_info_new(GCancellable *cancellable,
+                                               GAsyncReadyCallback callback,
+                                               gpointer user_data) {
+  return SNAPD_GET_SYSTEM_INFO(g_object_new(
+      snapd_get_system_info_get_type(), "cancellable", cancellable,
+      "ready-callback", callback, "ready-callback-data", user_data, NULL));
 }
 
 SnapdSystemInformation *
-_snapd_get_system_info_get_system_information (SnapdGetSystemInfo *self)
-{
-    return self->system_information;
+_snapd_get_system_info_get_system_information(SnapdGetSystemInfo *self) {
+  return self->system_information;
 }
 
-static SoupMessage *
-generate_get_system_info_request (SnapdRequest *request, GBytes **body)
-{
-    return soup_message_new ("GET", "http://snapd/v2/system-info");
+static SoupMessage *generate_get_system_info_request(SnapdRequest *request,
+                                                     GBytes **body) {
+  return soup_message_new("GET", "http://snapd/v2/system-info");
 }
 
 static gboolean
-parse_get_system_info_response (SnapdRequest *request, guint status_code, const gchar *content_type, GBytes *body, SnapdMaintenance **maintenance, GError **error)
-{
-    SnapdGetSystemInfo *self = SNAPD_GET_SYSTEM_INFO (request);
+parse_get_system_info_response(SnapdRequest *request, guint status_code,
+                               const gchar *content_type, GBytes *body,
+                               SnapdMaintenance **maintenance, GError **error) {
+  SnapdGetSystemInfo *self = SNAPD_GET_SYSTEM_INFO(request);
 
-    g_autoptr(JsonObject) response = _snapd_json_parse_response (content_type, body, maintenance, NULL, error);
-    if (response == NULL)
-        return FALSE;
-    /* FIXME: Needs json-glib to be fixed to use json_node_unref */
-    /*g_autoptr(JsonNode) result = NULL;*/
-    JsonNode *result = _snapd_json_get_sync_result (response, error);
-    if (result == NULL)
-        return FALSE;
+  g_autoptr(JsonObject) response =
+      _snapd_json_parse_response(content_type, body, maintenance, NULL, error);
+  if (response == NULL)
+    return FALSE;
+  /* FIXME: Needs json-glib to be fixed to use json_node_unref */
+  /*g_autoptr(JsonNode) result = NULL;*/
+  JsonNode *result = _snapd_json_get_sync_result(response, error);
+  if (result == NULL)
+    return FALSE;
 
-    g_autoptr(SnapdSystemInformation) system_information = _snapd_json_parse_system_information (result, error);
-    json_node_unref (result);
-    if (system_information == NULL)
-        return FALSE;
+  g_autoptr(SnapdSystemInformation) system_information =
+      _snapd_json_parse_system_information(result, error);
+  json_node_unref(result);
+  if (system_information == NULL)
+    return FALSE;
 
-    self->system_information = g_steal_pointer (&system_information);
+  self->system_information = g_steal_pointer(&system_information);
 
-    return TRUE;
+  return TRUE;
 }
 
-static void
-snapd_get_system_info_finalize (GObject *object)
-{
-    SnapdGetSystemInfo *self = SNAPD_GET_SYSTEM_INFO (object);
+static void snapd_get_system_info_finalize(GObject *object) {
+  SnapdGetSystemInfo *self = SNAPD_GET_SYSTEM_INFO(object);
 
-    g_clear_object (&self->system_information);
+  g_clear_object(&self->system_information);
 
-    G_OBJECT_CLASS (snapd_get_system_info_parent_class)->finalize (object);
+  G_OBJECT_CLASS(snapd_get_system_info_parent_class)->finalize(object);
 }
 
-static void
-snapd_get_system_info_class_init (SnapdGetSystemInfoClass *klass)
-{
-   SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS (klass);
-   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+static void snapd_get_system_info_class_init(SnapdGetSystemInfoClass *klass) {
+  SnapdRequestClass *request_class = SNAPD_REQUEST_CLASS(klass);
+  GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
-   request_class->generate_request = generate_get_system_info_request;
-   request_class->parse_response = parse_get_system_info_response;
-   gobject_class->finalize = snapd_get_system_info_finalize;
+  request_class->generate_request = generate_get_system_info_request;
+  request_class->parse_response = parse_get_system_info_response;
+  gobject_class->finalize = snapd_get_system_info_finalize;
 }
 
-static void
-snapd_get_system_info_init (SnapdGetSystemInfo *self)
-{
-}
+static void snapd_get_system_info_init(SnapdGetSystemInfo *self) {}

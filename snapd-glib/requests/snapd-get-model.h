@@ -13,12 +13,13 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdGetModel, snapd_get_model, SNAPD, GET_MODEL, SnapdRequest)
+G_DECLARE_FINAL_TYPE(SnapdGetModel, snapd_get_model, SNAPD, GET_MODEL,
+                     SnapdRequest)
 
-SnapdGetModel  *_snapd_get_model_new                 (GCancellable        *cancellable,
-                                                      GAsyncReadyCallback  callback,
-                                                      gpointer             user_data);
+SnapdGetModel *_snapd_get_model_new(GCancellable *cancellable,
+                                    GAsyncReadyCallback callback,
+                                    gpointer user_data);
 
-const gchar    *_snapd_get_model_get_model_assertion (SnapdGetModel        *request);
+const gchar *_snapd_get_model_get_model_assertion(SnapdGetModel *request);
 
 G_END_DECLS

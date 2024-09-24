@@ -18,13 +18,13 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_PRICE  (snapd_price_get_type ())
+#define SNAPD_TYPE_PRICE (snapd_price_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdPrice, snapd_price, SNAPD, PRICE, GObject)
+G_DECLARE_FINAL_TYPE(SnapdPrice, snapd_price, SNAPD, PRICE, GObject)
 
-gdouble      snapd_price_get_amount   (SnapdPrice *price);
+gdouble snapd_price_get_amount(SnapdPrice *price);
 
-const gchar *snapd_price_get_currency (SnapdPrice *price);
+const gchar *snapd_price_get_currency(SnapdPrice *price);
 
 G_END_DECLS
 

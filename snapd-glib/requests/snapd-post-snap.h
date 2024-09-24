@@ -15,36 +15,29 @@
 
 G_BEGIN_DECLS
 
-G_DECLARE_FINAL_TYPE (SnapdPostSnap, snapd_post_snap, SNAPD, POST_SNAP, SnapdRequestAsync)
+G_DECLARE_FINAL_TYPE(SnapdPostSnap, snapd_post_snap, SNAPD, POST_SNAP,
+                     SnapdRequestAsync)
 
-SnapdPostSnap *_snapd_post_snap_new           (const gchar           *name,
-                                               const gchar           *action,
-                                               SnapdProgressCallback  progress_callback,
-                                               gpointer               progress_callback_data,
-                                               GCancellable          *cancellable,
-                                               GAsyncReadyCallback    callback,
-                                               gpointer               user_data);
+SnapdPostSnap *_snapd_post_snap_new(const gchar *name, const gchar *action,
+                                    SnapdProgressCallback progress_callback,
+                                    gpointer progress_callback_data,
+                                    GCancellable *cancellable,
+                                    GAsyncReadyCallback callback,
+                                    gpointer user_data);
 
-void           _snapd_post_snap_set_channel   (SnapdPostSnap         *request,
-                                               const gchar           *channel);
+void _snapd_post_snap_set_channel(SnapdPostSnap *request, const gchar *channel);
 
-void           _snapd_post_snap_set_revision  (SnapdPostSnap         *request,
-                                               const gchar           *revision);
+void _snapd_post_snap_set_revision(SnapdPostSnap *request,
+                                   const gchar *revision);
 
-void           _snapd_post_snap_set_classic   (SnapdPostSnap         *request,
-                                               gboolean               classic);
+void _snapd_post_snap_set_classic(SnapdPostSnap *request, gboolean classic);
 
-void           _snapd_post_snap_set_dangerous (SnapdPostSnap         *request,
-                                               gboolean               dangerous);
+void _snapd_post_snap_set_dangerous(SnapdPostSnap *request, gboolean dangerous);
 
-void           _snapd_post_snap_set_devmode   (SnapdPostSnap         *request,
-                                              gboolean                devmode);
+void _snapd_post_snap_set_devmode(SnapdPostSnap *request, gboolean devmode);
 
-void           _snapd_post_snap_set_jailmode  (SnapdPostSnap         *request,
-                                               gboolean               jailmode);
+void _snapd_post_snap_set_jailmode(SnapdPostSnap *request, gboolean jailmode);
 
-void           _snapd_post_snap_set_purge     (SnapdPostSnap         *request,
-                                               gboolean               purge);
-
+void _snapd_post_snap_set_purge(SnapdPostSnap *request, gboolean purge);
 
 G_END_DECLS

@@ -11,15 +11,16 @@
 
 #include "Snapd/task-data.h"
 
-QSnapdTaskData::QSnapdTaskData (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdTaskData::QSnapdTaskData(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QStringList QSnapdTaskData::affectedSnaps () const
-{
-    QStringList retval;
-    GStrv data = snapd_task_data_get_affected_snaps (SNAPD_TASK_DATA (wrapped_object));
+QStringList QSnapdTaskData::affectedSnaps() const {
+  QStringList retval;
+  GStrv data =
+      snapd_task_data_get_affected_snaps(SNAPD_TASK_DATA(wrapped_object));
 
-    if (data != NULL)
-        for (; *data != NULL; data++)
-            retval.append((gchar *) *data);
-    return retval;
+  if (data != NULL)
+    for (; *data != NULL; data++)
+      retval.append((gchar *)*data);
+  return retval;
 }

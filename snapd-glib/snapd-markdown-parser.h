@@ -18,32 +18,32 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_MARKDOWN_PARSER  (snapd_markdown_parser_get_type ())
+#define SNAPD_TYPE_MARKDOWN_PARSER (snapd_markdown_parser_get_type())
 
 /**
  * SnapdMarkdownVersion:
  * @SNAPD_MARKDOWN_VERSION_0: the initial version of Snap markdown.
  *
- * Version of markdown to parse. Picking a version will ensure only nodes of the expected type are decoded.
+ * Version of markdown to parse. Picking a version will ensure only nodes of the
+ * expected type are decoded.
  *
  * Since: 1.48
  */
-typedef enum
-{
-     SNAPD_MARKDOWN_VERSION_0
-} SnapdMarkdownVersion;
+typedef enum { SNAPD_MARKDOWN_VERSION_0 } SnapdMarkdownVersion;
 
-G_DECLARE_FINAL_TYPE (SnapdMarkdownParser, snapd_markdown_parser, SNAPD, MARKDOWN_PARSER, GObject)
+G_DECLARE_FINAL_TYPE(SnapdMarkdownParser, snapd_markdown_parser, SNAPD,
+                     MARKDOWN_PARSER, GObject)
 
-SnapdMarkdownParser *snapd_markdown_parser_new                     (SnapdMarkdownVersion version);
+SnapdMarkdownParser *snapd_markdown_parser_new(SnapdMarkdownVersion version);
 
-void                 snapd_markdown_parser_set_preserve_whitespace (SnapdMarkdownParser *parser,
-                                                                    gboolean             preserve_whitespace);
+void snapd_markdown_parser_set_preserve_whitespace(
+    SnapdMarkdownParser *parser, gboolean preserve_whitespace);
 
-gboolean             snapd_markdown_parser_get_preserve_whitespace (SnapdMarkdownParser *parser);
+gboolean
+snapd_markdown_parser_get_preserve_whitespace(SnapdMarkdownParser *parser);
 
-GPtrArray           *snapd_markdown_parser_parse                   (SnapdMarkdownParser *parser,
-                                                                    const gchar         *text);
+GPtrArray *snapd_markdown_parser_parse(SnapdMarkdownParser *parser,
+                                       const gchar *text);
 
 G_END_DECLS
 

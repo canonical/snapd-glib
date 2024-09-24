@@ -11,4 +11,5 @@
 
 #include "Snapd/change-data.h"
 
-QSnapdChangeData::QSnapdChangeData (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdChangeData::QSnapdChangeData(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}

@@ -13,21 +13,20 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdAssertion : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdAssertion : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(QStringList headers READ headers)
-    Q_PROPERTY(QString body READ body)
-    Q_PROPERTY(QString signature READ signature)
+  Q_PROPERTY(QStringList headers READ headers)
+  Q_PROPERTY(QString body READ body)
+  Q_PROPERTY(QString signature READ signature)
 
 public:
-    explicit QSnapdAssertion (const QString& content, QObject* parent = 0);
+  explicit QSnapdAssertion(const QString &content, QObject *parent = 0);
 
-    Q_INVOKABLE QString header (const QString& name) const;
-    QStringList headers () const;
-    QString body () const;
-    QString signature () const;
+  Q_INVOKABLE QString header(const QString &name) const;
+  QStringList headers() const;
+  QString body() const;
+  QString signature() const;
 };
 
 #endif

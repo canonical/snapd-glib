@@ -18,17 +18,17 @@
 
 G_BEGIN_DECLS
 
-#define SNAPD_TYPE_MEDIA  (snapd_media_get_type ())
+#define SNAPD_TYPE_MEDIA (snapd_media_get_type())
 
-G_DECLARE_FINAL_TYPE (SnapdMedia, snapd_media, SNAPD, MEDIA, GObject)
+G_DECLARE_FINAL_TYPE(SnapdMedia, snapd_media, SNAPD, MEDIA, GObject)
 
-const gchar *snapd_media_get_media_type (SnapdMedia *media);
+const gchar *snapd_media_get_media_type(SnapdMedia *media);
 
-const gchar *snapd_media_get_url        (SnapdMedia *media);
+const gchar *snapd_media_get_url(SnapdMedia *media);
 
-guint        snapd_media_get_width      (SnapdMedia *media);
+guint snapd_media_get_width(SnapdMedia *media);
 
-guint        snapd_media_get_height     (SnapdMedia *media);
+guint snapd_media_get_height(SnapdMedia *media);
 
 G_END_DECLS
 

@@ -13,18 +13,17 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdPrice : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdPrice : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(double amount READ amount)
-    Q_PROPERTY(QString currency READ currency)
+  Q_PROPERTY(double amount READ amount)
+  Q_PROPERTY(QString currency READ currency)
 
 public:
-    explicit QSnapdPrice (void* snapd_object, QObject* parent = 0);
+  explicit QSnapdPrice(void *snapd_object, QObject *parent = 0);
 
-    double amount () const;
-    QString currency () const;
+  double amount() const;
+  QString currency() const;
 };
 
 #endif

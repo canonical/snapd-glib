@@ -13,35 +13,33 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdMarkdownNode : public QSnapdWrappedObject
-{
-    Q_OBJECT
+class Q_DECL_EXPORT QSnapdMarkdownNode : public QSnapdWrappedObject {
+  Q_OBJECT
 
-    Q_PROPERTY(NodeType type READ type)
-    Q_PROPERTY(QString text READ text)
+  Q_PROPERTY(NodeType type READ type)
+  Q_PROPERTY(QString text READ text)
 
 public:
-    enum NodeType
-    {
-        NodeTypeText,
-        NodeTypeParagraph,
-        NodeTypeUnorderedList,
-        NodeTypeListItem,
-        NodeTypeCodeBlock,
-        NodeTypeCodeSpan,
-        NodeTypeEmphasis,
-        NodeTypeStrongEmphasis,
-        NodeTypeUrl,
-    };
-    Q_ENUM(NodeType)
-    explicit QSnapdMarkdownNode (void* snapd_object, QObject* parent = 0);
-    explicit QSnapdMarkdownNode (const QSnapdMarkdownNode &node);
-    QSnapdMarkdownNode& operator = (const QSnapdMarkdownNode &node);
+  enum NodeType {
+    NodeTypeText,
+    NodeTypeParagraph,
+    NodeTypeUnorderedList,
+    NodeTypeListItem,
+    NodeTypeCodeBlock,
+    NodeTypeCodeSpan,
+    NodeTypeEmphasis,
+    NodeTypeStrongEmphasis,
+    NodeTypeUrl,
+  };
+  Q_ENUM(NodeType)
+  explicit QSnapdMarkdownNode(void *snapd_object, QObject *parent = 0);
+  explicit QSnapdMarkdownNode(const QSnapdMarkdownNode &node);
+  QSnapdMarkdownNode &operator=(const QSnapdMarkdownNode &node);
 
-    NodeType type () const;
-    QString text () const;
-    Q_INVOKABLE int childCount () const;
-    Q_INVOKABLE QSnapdMarkdownNode *child (int) const;
+  NodeType type() const;
+  QString text() const;
+  Q_INVOKABLE int childCount() const;
+  Q_INVOKABLE QSnapdMarkdownNode *child(int) const;
 };
 
 #endif

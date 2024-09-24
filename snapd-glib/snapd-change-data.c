@@ -9,14 +9,8 @@
 
 #include "snapd-change-data.h"
 
-G_DEFINE_TYPE (SnapdChangeData, snapd_change_data, G_TYPE_OBJECT)
+G_DEFINE_TYPE(SnapdChangeData, snapd_change_data, G_TYPE_OBJECT)
 
-static void
-snapd_change_data_class_init (SnapdChangeDataClass *klass)
-{
-}
+static void snapd_change_data_class_init(SnapdChangeDataClass *klass) {}
 
-static void
-snapd_change_data_init (SnapdChangeData *self)
-{
-}
+static void snapd_change_data_init(SnapdChangeData *self) {}

@@ -11,19 +11,17 @@
 
 #include "Snapd/screenshot.h"
 
-QSnapdScreenshot::QSnapdScreenshot (void *snapd_object, QObject *parent) : QSnapdWrappedObject (g_object_ref (snapd_object), g_object_unref, parent) {}
+QSnapdScreenshot::QSnapdScreenshot(void *snapd_object, QObject *parent)
+    : QSnapdWrappedObject(g_object_ref(snapd_object), g_object_unref, parent) {}
 
-QString QSnapdScreenshot::url () const
-{
-    return snapd_screenshot_get_url (SNAPD_SCREENSHOT (wrapped_object));
+QString QSnapdScreenshot::url() const {
+  return snapd_screenshot_get_url(SNAPD_SCREENSHOT(wrapped_object));
 }
 
-quint64 QSnapdScreenshot::width () const
-{
-    return snapd_screenshot_get_width (SNAPD_SCREENSHOT (wrapped_object));
+quint64 QSnapdScreenshot::width() const {
+  return snapd_screenshot_get_width(SNAPD_SCREENSHOT(wrapped_object));
 }
 
-quint64 QSnapdScreenshot::height () const
-{
-    return snapd_screenshot_get_height (SNAPD_SCREENSHOT (wrapped_object));
+quint64 QSnapdScreenshot::height() const {
+  return snapd_screenshot_get_height(SNAPD_SCREENSHOT(wrapped_object));
 }
