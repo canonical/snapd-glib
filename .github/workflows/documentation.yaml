@@ -28,13 +28,13 @@ jobs:
       - name: Install dependencies (Ubuntu)
         run: |
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends meson ninja-build gtk-doc-tools libgirepository1.0-dev libglib2.0-dev libjson-glib-dev ninja-build python3-pip python3-setuptools python3-wheel valac libsoup-3.0-dev qt6-base-dev qt6-declarative-dev
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends meson ninja-build gi-docgen libgirepository1.0-dev libglib2.0-dev libjson-glib-dev ninja-build python3-pip python3-setuptools python3-wheel valac libsoup-3.0-dev qt6-base-dev qt6-declarative-dev
       - name: Build documentation
         run: |
           meson setup _build -Ddocs=true -Dqt5=false -Dqt6=false
           ninja -C _build
           mkdir -p ./_site
-          cp -v -a ./_build/doc/Snapd-2/* ./_site/
+          cp -v -a ./_build/doc/snapd-glib/* ./_site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
