@@ -2457,10 +2457,10 @@ void snapd_client_get_connections_async(SnapdClient *self,
  * snapd_client_get_connections_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
- * @established: (out) (allow-none) (transfer container) (element-type
- * SnapdConnection): the location to store the array of connections or %NULL.
- * @undesired: (out) (allow-none) (transfer container) (element-type
- * SnapdConnection): the location to store the array of auto-connected
+ * @established: (out) (allow-none) (transfer container) (element-type SnapdConnection):
+ * the location to store the array of connections or %NULL.
+ * @undesired: (out) (allow-none) (transfer container) (element-type SnapdConnection):
+ * the location to store the array of auto-connected
  * connections that have been manually disconnected or %NULL.
  * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the
  * location to store the array of #SnapdPlug or %NULL.
@@ -2523,10 +2523,10 @@ void snapd_client_get_connections2_async(
  * snapd_client_get_connections2_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
- * @established: (out) (allow-none) (transfer container) (element-type
- * SnapdConnection): the location to store the array of connections or %NULL.
- * @undesired: (out) (allow-none) (transfer container) (element-type
- * SnapdConnection): the location to store the array of auto-connected
+ * @established: (out) (allow-none) (transfer container) (element-type SnapdConnection):
+ * the location to store the array of connections or %NULL.
+ * @undesired: (out) (allow-none) (transfer container) (element-type SnapdConnection):
+ * the location to store the array of auto-connected
  * connections that have been manually disconnected or %NULL.
  * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the
  * location to store the array of #SnapdPlug or %NULL.
@@ -4608,12 +4608,12 @@ void snapd_client_check_themes_async(SnapdClient *self, GStrv gtk_theme_names,
  * snapd_client_check_themes_finish:
  * @client: a #SnapdClient.
  * @result: a #GAsyncResult.
- * @gtk_theme_status: (out) (transfer container) (element-type utf8
- * SnapdThemeStatus): status of GTK themes.
- * @icon_theme_status: (out) (transfer container) (element-type utf8
- * SnapdThemeStatus): status of icon themes.
- * @sound_theme_status: (out) (transfer container) (element-type utf8
- * SnapdThemeStatus): status of sound themes.
+ * @gtk_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus):
+ * status of GTK themes.
+ * @icon_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus):
+ * status of icon themes.
+ * @sound_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus):
+ * status of sound themes.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
  * to ignore.
  *

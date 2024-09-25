@@ -663,10 +663,10 @@ GPtrArray *snapd_client_get_interfaces2_sync(SnapdClient *self,
 /**
  * snapd_client_get_connections_sync:
  * @client: a #SnapdClient.
- * @established: (out) (allow-none) (transfer container) (element-type
- * SnapdConnection): the location to store the array of connections or %NULL.
- * @undesired: (out) (allow-none) (transfer container) (element-type
- * SnapdConnection): the location to store the array of auto-connected
+ * @established: (out) (allow-none) (transfer container) (element-type SnapdConnection):
+ * the location to store the array of connections or %NULL.
+ * @undesired: (out) (allow-none) (transfer container) (element-type SnapdConnection):
+ * the location to store the array of auto-connected
  * connections that have been manually disconnected or %NULL.
  * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the
  * location to store the array of #SnapdPlug or %NULL.
@@ -712,10 +712,10 @@ gboolean snapd_client_get_connections_sync(SnapdClient *self,
  * all snaps.
  * @interface: (allow-none): the name of the interface to get connections for or
  * %NULL for all interfaces.
- * @established: (out) (allow-none) (transfer container) (element-type
- * SnapdConnection): the location to store the array of connections or %NULL.
- * @undesired: (out) (allow-none) (transfer container) (element-type
- * SnapdConnection): the location to store the array of auto-connected
+ * @established: (out) (allow-none) (transfer container) (element-type SnapdConnection):
+ * the location to store the array of connections or %NULL.
+ * @undesired: (out) (allow-none) (transfer container) (element-type SnapdConnection):
+ * the location to store the array of auto-connected
  * connections that have been manually disconnected or %NULL.
  * @plugs: (out) (allow-none) (transfer container) (element-type SnapdPlug): the
  * location to store the array of #SnapdPlug or %NULL.
@@ -1857,12 +1857,12 @@ GBytes *snapd_client_download_sync(SnapdClient *self, const gchar *name,
  * @gtk_theme_names: (allow-none): a list of GTK theme names.
  * @icon_theme_names: (allow-none): a list of icon theme names.
  * @sound_theme_names: (allow-none): a list of sound theme names.
- * @gtk_theme_status: (out) (transfer container) (element-type utf8
- * SnapdThemeStatus): status of GTK themes.
- * @icon_theme_status: (out) (transfer container) (element-type utf8
- * SnapdThemeStatus): status of icon themes.
- * @sound_theme_status: (out) (transfer container) (element-type utf8
- * SnapdThemeStatus): status of sound themes.
+ * @gtk_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus):
+ * status of GTK themes.
+ * @icon_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus):
+ * status of icon themes.
+ * @sound_theme_status: (out) (transfer container) (element-type utf8 SnapdThemeStatus):
+ * status of sound themes.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
  * to ignore.
