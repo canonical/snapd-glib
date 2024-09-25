@@ -1493,7 +1493,7 @@ void snapd_client_notices_set_after_notice(SnapdClient *self,
  * loosing any, it is needed 1 nanosecond accuracy in the value passed on in the
  * @since_date_time parameter.
  *
- * The value is "reseted" after any call to snapd_client_get_notices_*(), so it
+ * The value is "reset" after any call to snapd_client_get_notices_*(), so it
  * must be set always before doing any of those calls.
  *
  * Passing NULL will reset the value too, in which case the mili- and

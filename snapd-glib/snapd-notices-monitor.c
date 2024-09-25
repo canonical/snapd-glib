@@ -23,8 +23,8 @@
  * @include: snapd-glib/snapd-glib.h
  *
  * #SnapdNoticesMonitor allows to receive in real time events from
- * snapd, like status changes in an ongoin refresh, inhibited refreshes
- * due to the snap being active, or inhibited launches due to an ongoin
+ * snapd, like status changes in an ongoing refresh, inhibited refreshes
+ * due to the snap being active, or inhibited launches due to an ongoing
  * refresh.
  */
 
@@ -32,8 +32,8 @@
  * SnapdNoticesMonitor:
  *
  * #SnapdNoticesMonitor allows to receive in real time events from
- * snapd, like status changes in an ongoin refresh, inhibited refreshes
- * due to the snap being active, or inhibited launches due to an ongoin
+ * snapd, like status changes in an ongoing refresh, inhibited refreshes
+ * due to the snap being active, or inhibited launches due to an ongoing
  * refresh.
  *
  * Since: 1.66
