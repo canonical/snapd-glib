@@ -17,6 +17,28 @@
 
 #include "snapd-notices-monitor.h"
 
+/**
+ * SECTION: snapd-notices-monitor
+ * @short_description: Allows to receive events from snapd.
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * #SnapdNoticesMonitor allows to receive in real time events from
+ * snapd, like status changes in an ongoing refresh, inhibited refreshes
+ * due to the snap being active, or inhibited launches due to an ongoing
+ * refresh.
+ */
+
+/**
+ * SnapdNoticesMonitor:
+ *
+ * #SnapdNoticesMonitor allows to receive in real time events from
+ * snapd, like status changes in an ongoing refresh, inhibited refreshes
+ * due to the snap being active, or inhibited launches due to an ongoing
+ * refresh.
+ *
+ * Since: 1.66
+ */
+
 struct _SnapdNoticesMonitor {
   GObject parent_instance;
 
@@ -89,6 +111,8 @@ static void begin_monitor(SnapdNoticesMonitor *self) {
  *
  * Returns: FALSE if there was an error, TRUE if everything worked fine
  * and the object is listening for events.
+ *
+ * Since: 1.66
  */
 gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self,
                                      GError **error) {
@@ -114,6 +138,8 @@ gboolean snapd_notices_monitor_start(SnapdNoticesMonitor *self,
  * #snapd_notices_monitor_start.
  *
  * Returns: FALSE if there was an error, TRUE if everything worked fine.
+ *
+ * Since: 1.66
  */
 gboolean snapd_notices_monitor_stop(SnapdNoticesMonitor *self, GError **error) {
   g_return_val_if_fail((error == NULL) || (*error == NULL), FALSE);
@@ -153,11 +179,11 @@ static void snapd_notices_monitor_set_property(GObject *object, guint prop_id,
   }
 }
 
-void snapd_notices_monitor_init(SnapdNoticesMonitor *self) {
+static void snapd_notices_monitor_init(SnapdNoticesMonitor *self) {
   self->cancellable = g_cancellable_new();
 }
 
-void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
+static void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
   GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 
   gobject_class->set_property = snapd_notices_monitor_set_property;
@@ -176,12 +202,34 @@ void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
                NULL, NULL, NULL, G_TYPE_NONE, 1, G_TYPE_ERROR);
 }
 
+/**
+ * snapd_notices_monitor_new:
+ *
+ * Creates a new #SnapdNoticesMonitor to receive events.
+ *
+ * Returns: (transfer full): a new #SnapdNoticesMonitor
+ *
+ * Since: 1.66
+ */
+
 SnapdNoticesMonitor *snapd_notices_monitor_new(void) {
   g_autoptr(SnapdClient) client = snapd_client_new();
   SnapdNoticesMonitor *self =
       g_object_new(snapd_notices_monitor_get_type(), "client", client, NULL);
   return self;
 }
+
+/**
+ * snapd_notices_monitor_new_with_client:
+ * @client: a #SnapdClient object
+ *
+ * Creates a new #SnapdNoticesMonitor to receive events, using the
+ * specified #SnapdClient object to ask info about each task.
+ *
+ * Returns: (transfer full): a new #SnapdNoticesMonitor
+ *
+ * Since: 1.66
+ */
 
 SnapdNoticesMonitor *
 snapd_notices_monitor_new_with_client(SnapdClient *client) {

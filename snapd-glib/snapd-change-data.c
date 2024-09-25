@@ -9,6 +9,25 @@
 
 #include "snapd-change-data.h"
 
+/**
+ * SECTION: snapd-change-data
+ * @short_description: Base class for custom data from a change
+ * @include: snapd-glib/snapd-glib.h
+ *
+ * A #SnapdChangeData is the base class for the `data` field from
+ * a #SnapdChange. Each kind of #SnapdChange will return a different
+ * subclass of this one with the specific data of that kind of change.
+ */
+
+/**
+ * SnapdChangeData:
+ *
+ * A #SnapdChangeData is the base class for the `data` field from
+ * a #SnapdChange.
+ *
+ * Since: 1.65
+ */
+
 G_DEFINE_TYPE(SnapdChangeData, snapd_change_data, G_TYPE_OBJECT)
 
 static void snapd_change_data_class_init(SnapdChangeDataClass *klass) {}
