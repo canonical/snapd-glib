@@ -792,7 +792,7 @@ static void test_logout_sync(void) {
 
 static void logout_cb(GObject *object, GAsyncResult *result,
                       gpointer user_data) {
-  g_autoptr(AsyncData) data = user_data;
+  AsyncData *data = user_data;
 
   g_autoptr(GError) error = NULL;
   gboolean r = snapd_client_logout_finish(SNAPD_CLIENT(object), result, &error);
@@ -824,7 +824,7 @@ static void test_logout_async(void) {
   snapd_client_set_auth_data(client, auth_data);
 
   g_assert_nonnull(mock_snapd_find_account_by_id(snapd, id));
-  AsyncData *data = async_data_new(loop, snapd);
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   data->id = id;
   snapd_client_logout_async(client, id, NULL, logout_cb, data);
   g_main_loop_run(loop);
@@ -5209,8 +5209,6 @@ static void install_multiple_cb(GObject *object, GAsyncResult *result,
     g_assert_nonnull(mock_snapd_find_snap(data->snapd, "snap3"));
 
     g_main_loop_quit(data->loop);
-
-    async_data_free(data);
   }
 }
 
@@ -5231,7 +5229,7 @@ static void test_install_async_multiple(void) {
   g_assert_null(mock_snapd_find_snap(snapd, "snap1"));
   g_assert_null(mock_snapd_find_snap(snapd, "snap2"));
   g_assert_null(mock_snapd_find_snap(snapd, "snap3"));
-  AsyncData *data = async_data_new(loop, snapd);
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   data->counter = 3;
   snapd_client_install2_async(client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL,
                               NULL, NULL, NULL, NULL, install_multiple_cb,
@@ -5323,8 +5321,6 @@ static void complete_async_multiple_cancel_first(AsyncData *data) {
     g_assert_nonnull(mock_snapd_find_snap(data->snapd, "snap3"));
 
     g_main_loop_quit(data->loop);
-
-    async_data_free(data);
   }
 }
 
@@ -5375,7 +5371,7 @@ static void test_install_async_multiple_cancel_first(void) {
   g_assert_null(mock_snapd_find_snap(snapd, "snap2"));
   g_assert_null(mock_snapd_find_snap(snapd, "snap3"));
   g_autoptr(GCancellable) cancellable = g_cancellable_new();
-  AsyncData *data = async_data_new(loop, snapd);
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   data->counter = 3;
   snapd_client_install2_async(client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL,
                               NULL, NULL, NULL, cancellable,
@@ -5398,8 +5394,6 @@ static void complete_async_multiple_cancel_last(AsyncData *data) {
     g_assert_null(mock_snapd_find_snap(data->snapd, "snap3"));
 
     g_main_loop_quit(data->loop);
-
-    async_data_free(data);
   }
 }
 
@@ -5450,7 +5444,7 @@ static void test_install_async_multiple_cancel_last(void) {
   g_assert_null(mock_snapd_find_snap(snapd, "snap2"));
   g_assert_null(mock_snapd_find_snap(snapd, "snap3"));
   g_autoptr(GCancellable) cancellable = g_cancellable_new();
-  AsyncData *data = async_data_new(loop, snapd);
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   data->counter = 3;
   snapd_client_install2_async(client, SNAPD_INSTALL_FLAGS_NONE, "snap1", NULL,
                               NULL, NULL, NULL, NULL,
@@ -8526,7 +8520,7 @@ static void async_log_cb(SnapdClient *client, SnapdLog *log,
 
 static void follow_logs_cb(GObject *object, GAsyncResult *result,
                            gpointer user_data) {
-  g_autoptr(AsyncData) data = user_data;
+  AsyncData *data = user_data;
 
   g_autoptr(GError) error = NULL;
   gboolean r =
@@ -8555,7 +8549,7 @@ static void test_follow_logs_async(void) {
   g_autoptr(SnapdClient) client = snapd_client_new();
   snapd_client_set_socket_path(client, mock_snapd_get_socket_path(snapd));
 
-  AsyncData *data = async_data_new(loop, snapd);
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   snapd_client_follow_logs_async(client, NULL, async_log_cb, data, NULL,
                                  follow_logs_cb, data);
   g_main_loop_run(loop);
@@ -8778,7 +8772,7 @@ static void test_notices_events(void) {
 
   g_autoptr(MockSnapd) snapd = mock_snapd_new();
 
-  AsyncData *data = async_data_new(loop, snapd);
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   g_autoptr(GError) error = NULL;
   g_assert_true(mock_snapd_start(snapd, &error));
 
@@ -8889,7 +8883,7 @@ static void test_notices_events_with_minimal_data(void) {
 
   g_autoptr(MockSnapd) snapd = mock_snapd_new();
 
-  AsyncData *data = async_data_new(loop, snapd);
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   g_autoptr(GError) error = NULL;
   g_assert_true(mock_snapd_start(snapd, &error));
 
@@ -9031,7 +9025,7 @@ static void test_get_model_assertion_sync(void) {
 
 static void get_model_assertion_cb(GObject *object, GAsyncResult *result,
                                    gpointer user_data) {
-  g_autoptr(AsyncData) data = user_data;
+  AsyncData *data = user_data;
 
   g_autoptr(GError) error = NULL;
   g_autofree gchar *model_assertion = snapd_client_get_model_assertion_finish(
@@ -9054,7 +9048,7 @@ static void test_get_model_assertion_async(void) {
   g_autoptr(SnapdClient) client = snapd_client_new();
   snapd_client_set_socket_path(client, mock_snapd_get_socket_path(snapd));
 
-  AsyncData *data = async_data_new(loop, snapd);
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   snapd_client_get_model_assertion_async(client, NULL, get_model_assertion_cb,
                                          data);
   g_main_loop_run(loop);
@@ -9078,7 +9072,7 @@ static void test_get_serial_assertion_sync(void) {
 
 static void get_serial_assertion_cb(GObject *object, GAsyncResult *result,
                                     gpointer user_data) {
-  g_autoptr(AsyncData) data = user_data;
+  AsyncData *data = user_data;
 
   g_autoptr(GError) error = NULL;
   g_autofree gchar *serial_assertion = snapd_client_get_serial_assertion_finish(
@@ -9101,7 +9095,7 @@ static void test_get_serial_assertion_async(void) {
   g_autoptr(SnapdClient) client = snapd_client_new();
   snapd_client_set_socket_path(client, mock_snapd_get_socket_path(snapd));
 
-  AsyncData *data = async_data_new(loop, snapd);
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   snapd_client_get_serial_assertion_async(client, NULL, get_serial_assertion_cb,
                                           data);
   g_main_loop_run(loop);
