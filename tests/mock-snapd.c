@@ -4948,7 +4948,7 @@ static void handle_notices(MockSnapd *self, SoupServerMessage *message,
     }
     guint data_size = g_hash_table_size(notice->last_data);
     if (data_size != 0) {
-      gchar **keys =
+      g_autofree gchar **keys =
           (gchar **)g_hash_table_get_keys_as_array(notice->last_data, NULL);
       json_builder_set_member_name(builder, "last-data");
       json_builder_begin_object(builder);
@@ -4958,7 +4958,6 @@ static void handle_notices(MockSnapd *self, SoupServerMessage *message,
         json_builder_add_string_value(builder, value);
       }
       json_builder_end_object(builder);
-      g_free(keys);
     }
     json_builder_end_object(builder);
   }
