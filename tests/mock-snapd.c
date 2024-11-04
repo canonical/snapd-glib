@@ -4957,6 +4957,7 @@ static void handle_notices(MockSnapd *self, SoupServerMessage *message,
         json_builder_add_string_value(builder, value);
       }
       json_builder_end_object(builder);
+      g_free(keys);
     }
     json_builder_end_object(builder);
   }
