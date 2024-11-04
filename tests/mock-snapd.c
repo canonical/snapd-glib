@@ -1678,6 +1678,7 @@ static void mock_task_free(MockTask *task) {
     mock_snap_free(task->snap);
   g_free(task->snap_name);
   g_free(task->error);
+  g_ptr_array_free(task->affected_snaps, TRUE);
   g_slice_free(MockTask, task);
 }
 
