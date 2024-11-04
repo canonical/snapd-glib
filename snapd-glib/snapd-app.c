@@ -271,37 +271,52 @@ static void snapd_app_class_init(SnapdAppClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_NAME,
       g_param_spec_string("name", "name", "App name", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_ALIASES,
       g_param_spec_boxed("aliases", "aliases", "App aliases", G_TYPE_STRV,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_COMMON_ID,
       g_param_spec_string("common-id", "common-id", "Common ID", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_DAEMON_TYPE,
       g_param_spec_enum("daemon-type", "daemon-type", "Daemon type",
                         SNAPD_TYPE_DAEMON_TYPE, SNAPD_DAEMON_TYPE_UNKNOWN,
-                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                            G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                            G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_DESKTOP_FILE,
-      g_param_spec_string("desktop-file", "desktop-file",
-                          "App desktop file path", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_string(
+          "desktop-file", "desktop-file", "App desktop file path", NULL,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SNAP,
       g_param_spec_string("snap", "snap", "Snap name", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_ACTIVE,
       g_param_spec_boolean("active", "active", "TRUE if active", FALSE,
-                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                               G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                               G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_ENABLED,
       g_param_spec_boolean("enabled", "enabled", "TRUE if enabled", FALSE,
-                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                               G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                               G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_app_init(SnapdApp *self) {}

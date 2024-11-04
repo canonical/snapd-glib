@@ -126,14 +126,17 @@ static void snapd_maintenance_class_init(SnapdMaintenanceClass *klass) {
 
   g_object_class_install_property(
       gobject_class, PROP_KIND,
-      g_param_spec_enum("kind", "kind", "Maintenance kind",
-                        SNAPD_TYPE_MAINTENANCE_KIND,
-                        SNAPD_MAINTENANCE_KIND_UNKNOWN,
-                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_enum(
+          "kind", "kind", "Maintenance kind", SNAPD_TYPE_MAINTENANCE_KIND,
+          SNAPD_MAINTENANCE_KIND_UNKNOWN,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_MESSAGE,
       g_param_spec_string("message", "message", "User readable message", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_maintenance_init(SnapdMaintenance *self) {}

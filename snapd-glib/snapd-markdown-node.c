@@ -105,16 +105,21 @@ static void snapd_markdown_node_class_init(SnapdMarkdownNodeClass *klass) {
       gobject_class, PROP_NODE_TYPE,
       g_param_spec_enum("node-type", "node-type", "Type of node",
                         SNAPD_TYPE_MARKDOWN_NODE_TYPE, 0,
-                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                            G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                            G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_TEXT,
       g_param_spec_string("text", "text", "Text this node contains", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_CHILDREN,
-      g_param_spec_boxed("children", "children", "Child nodes",
-                         G_TYPE_PTR_ARRAY,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_boxed(
+          "children", "children", "Child nodes", G_TYPE_PTR_ARRAY,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_markdown_node_init(SnapdMarkdownNode *self) {}

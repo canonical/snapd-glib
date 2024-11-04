@@ -390,55 +390,73 @@ static void snapd_task_class_init(SnapdTaskClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_ID,
       g_param_spec_string("id", "id", "ID of task", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_KIND,
       g_param_spec_string("kind", "kind", "Kind of task", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SUMMARY,
       g_param_spec_string("summary", "summary", "Summary of task", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_STATUS,
       g_param_spec_string("status", "status", "Status of task", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_PROGRESS_LABEL,
-      g_param_spec_string("progress-label", "progress-label",
-                          "Label for progress", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_string(
+          "progress-label", "progress-label", "Label for progress", NULL,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_PROGRESS_DONE,
       g_param_spec_int64("progress-done", "progress-done",
                          "Number of items done in this task", 0, G_MAXINT64, 0,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_PROGRESS_TOTAL,
-      g_param_spec_int64("progress-total", "progress-total",
-                         "Total number of items to be done in this task", 0,
-                         G_MAXINT64, 0,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_int64(
+          "progress-total", "progress-total",
+          "Total number of items to be done in this task", 0, G_MAXINT64, 0,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_READY,
       g_param_spec_boolean("ready", "ready", "TRUE when task complete", FALSE,
                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
-                               G_PARAM_DEPRECATED));
+                               G_PARAM_DEPRECATED | G_PARAM_STATIC_NAME |
+                               G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SPAWN_TIME,
       g_param_spec_boxed("spawn-time", "spawn-time", "Time this task started",
                          G_TYPE_DATE_TIME,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_READY_TIME,
       g_param_spec_boxed("ready-time", "ready-time", "Time this task completed",
                          G_TYPE_DATE_TIME,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_DATA,
-      g_param_spec_object("data", "data", "Extra data of task",
-                          SNAPD_TYPE_TASK_DATA,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_object(
+          "data", "data", "Extra data of task", SNAPD_TYPE_TASK_DATA,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_task_init(SnapdTask *self) {}

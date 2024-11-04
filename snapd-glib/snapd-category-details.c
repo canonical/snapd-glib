@@ -102,7 +102,9 @@ snapd_category_details_class_init(SnapdCategoryDetailsClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_NAME,
       g_param_spec_string("name", "name", "The category name", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_category_details_init(SnapdCategoryDetails *self) {}

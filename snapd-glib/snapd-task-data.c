@@ -100,7 +100,9 @@ static void snapd_task_data_class_init(SnapdTaskDataClass *klass) {
       gobject_class, PROP_AFFECTED_SNAPS,
       g_param_spec_boxed("affected-snaps", "affected-snaps",
                          "Snaps affected by this task", G_TYPE_STRV,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_task_data_init(SnapdTaskData *self) {}

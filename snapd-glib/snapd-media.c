@@ -170,21 +170,27 @@ static void snapd_media_class_init(SnapdMediaClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_TYPE,
       g_param_spec_string("type", "type", "Type for this media", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_URL,
       g_param_spec_string("url", "url", "URL for this media", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_WIDTH,
-      g_param_spec_uint("width", "width", "Width of media in pixels", 0,
-                        G_MAXUINT, 0,
-                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_uint(
+          "width", "width", "Width of media in pixels", 0, G_MAXUINT, 0,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_HEIGHT,
-      g_param_spec_uint("height", "height", "Height of media in pixels", 0,
-                        G_MAXUINT, 0,
-                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_uint(
+          "height", "height", "Height of media in pixels", 0, G_MAXUINT, 0,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_media_init(SnapdMedia *self) {}

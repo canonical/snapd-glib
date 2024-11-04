@@ -278,7 +278,9 @@ static void snapd_assertion_class_init(SnapdAssertionClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_CONTENT,
       g_param_spec_string("content", "content", "Assertion content", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_assertion_init(SnapdAssertion *self) {}

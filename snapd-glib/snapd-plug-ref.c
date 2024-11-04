@@ -124,11 +124,15 @@ static void snapd_plug_ref_class_init(SnapdPlugRefClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_PLUG,
       g_param_spec_string("plug", "plug", "Name of plug", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SNAP,
       g_param_spec_string("snap", "snap", "Snap this plug is on", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_plug_ref_init(SnapdPlugRef *self) {}

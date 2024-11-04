@@ -341,25 +341,33 @@ static void snapd_interface_class_init(SnapdInterfaceClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_NAME,
       g_param_spec_string("name", "name", "Interface name", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SUMMARY,
       g_param_spec_string("summary", "summary", "Interface summary", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_DOC_URL,
-      g_param_spec_string("doc-url", "doc-url", "Interface documentation URL",
-                          NULL, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_string(
+          "doc-url", "doc-url", "Interface documentation URL", NULL,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_PLUGS,
-      g_param_spec_boxed("plugs", "plugs", "Plugs of this interface type",
-                         G_TYPE_PTR_ARRAY,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_boxed(
+          "plugs", "plugs", "Plugs of this interface type", G_TYPE_PTR_ARRAY,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SLOTS,
-      g_param_spec_boxed("slots", "slots", "Slots of this interface type",
-                         G_TYPE_PTR_ARRAY,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_boxed(
+          "slots", "slots", "Slots of this interface type", G_TYPE_PTR_ARRAY,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_interface_init(SnapdInterface *self) {}

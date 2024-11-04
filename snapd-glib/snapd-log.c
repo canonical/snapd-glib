@@ -172,21 +172,28 @@ static void snapd_log_class_init(SnapdLogClass *klass) {
 
   g_object_class_install_property(
       gobject_class, PROP_TIMESTAMP,
-      g_param_spec_boxed("timestamp", "timestamp", "Timestamp",
-                         G_TYPE_DATE_TIME,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_boxed(
+          "timestamp", "timestamp", "Timestamp", G_TYPE_DATE_TIME,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_MESSAGE,
       g_param_spec_string("message", "message", "Message", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SID,
       g_param_spec_string("sid", "sid", "Syslog ID", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_PID,
       g_param_spec_string("pid", "pid", "Process ID", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_log_init(SnapdLog *self) {}

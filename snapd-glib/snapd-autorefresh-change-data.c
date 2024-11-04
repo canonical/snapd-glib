@@ -151,17 +151,20 @@ static void snapd_autorefresh_change_data_class_init(
 
   g_object_class_install_property(
       gobject_class, PROP_SNAP_NAMES,
-      g_param_spec_boxed("snap-names", "Snap Names",
-                         "Names of the snaps that have been autorefreshed.",
-                         G_TYPE_STRV,
-                         G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
+      g_param_spec_boxed(
+          "snap-names", "Snap Names",
+          "Names of the snaps that have been autorefreshed.", G_TYPE_STRV,
+          G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 
   g_object_class_install_property(
       gobject_class, PROP_REFRESH_FORCED,
       g_param_spec_boxed(
           "refresh-forced", "Refresh forced",
           "Names of the snaps that have been forced to autorefresh.",
-          G_TYPE_STRV, G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
+          G_TYPE_STRV,
+          G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 }
 
 static void
