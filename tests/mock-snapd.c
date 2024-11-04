@@ -1675,11 +1675,10 @@ static void mock_task_free(MockTask *task) {
   g_free(task->progress_label);
   g_free(task->spawn_time);
   g_free(task->ready_time);
-  if (task->snap != NULL)
-    mock_snap_free(task->snap);
+  g_clear_pointer(&task->snap, mock_snap_free);
   g_free(task->snap_name);
   g_free(task->error);
-  g_ptr_array_unref(task->affected_snaps);
+  g_clear_pointer(&task->affected_snaps, g_ptr_array_unref);
   g_slice_free(MockTask, task);
 }
 
@@ -1689,9 +1688,8 @@ static void mock_change_free(MockChange *change) {
   g_free(change->summary);
   g_free(change->spawn_time);
   g_free(change->ready_time);
-  g_list_free_full(change->tasks, (GDestroyNotify)mock_task_free);
-  if (change->data != NULL)
-    json_node_unref(change->data);
+  g_clear_list(&change->tasks, (GDestroyNotify)mock_task_free);
+  g_clear_pointer(&change->data, json_node_unref);
   g_slice_free(MockChange, change);
 }
 
@@ -5176,8 +5174,7 @@ static void mock_snapd_finalize(GObject *object) {
   g_clear_pointer(&self->sound_theme_status, g_hash_table_unref);
   g_clear_pointer(&self->context, g_main_context_unref);
   g_clear_pointer(&self->loop, g_main_loop_unref);
-  g_list_free_full(self->notices, (GDestroyNotify)mock_notice_free);
-  self->notices = NULL;
+  g_clear_list(&self->notices, (GDestroyNotify)mock_notice_free);
   g_clear_pointer(&self->notices_parameters, g_free);
 
   g_cond_clear(&self->condition);
