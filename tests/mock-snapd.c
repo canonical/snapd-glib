@@ -1692,8 +1692,8 @@ static void mock_change_free(MockChange *change) {
   g_clear_list(&change->tasks, (GDestroyNotify)mock_task_free);
 #else
   if (change->tasks) {
-    g_list_free_full(change->task, (GDestroyNotify)mock_task_free);
-    change->taks = NULL;
+    g_list_free_full(change->tasks, (GDestroyNotify)mock_task_free);
+    change->tasks = NULL;
   }
 #endif
   g_clear_pointer(&change->data, json_node_unref);
