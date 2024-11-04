@@ -1688,7 +1688,14 @@ static void mock_change_free(MockChange *change) {
   g_free(change->summary);
   g_free(change->spawn_time);
   g_free(change->ready_time);
+#ifdef GLIB_VERSION_2_64
   g_clear_list(&change->tasks, (GDestroyNotify)mock_task_free);
+#else
+  if (change->tasks) {
+    g_list_free_full(change->task, (GDestroyNotify)mock_task_free);
+    change->taks = NULL;
+  }
+#endif
   g_clear_pointer(&change->data, json_node_unref);
   g_slice_free(MockChange, change);
 }
@@ -5174,7 +5181,14 @@ static void mock_snapd_finalize(GObject *object) {
   g_clear_pointer(&self->sound_theme_status, g_hash_table_unref);
   g_clear_pointer(&self->context, g_main_context_unref);
   g_clear_pointer(&self->loop, g_main_loop_unref);
+#ifdef GLIB_VERSION_2_64
   g_clear_list(&self->notices, (GDestroyNotify)mock_notice_free);
+#else
+  if (self->notices) {
+    g_list_free_full(self->notices, (GDestroyNotify)mock_notice_free);
+    self->notices = NULL;
+  }
+#endif
   g_clear_pointer(&self->notices_parameters, g_free);
 
   g_cond_clear(&self->condition);
