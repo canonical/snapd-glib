@@ -147,17 +147,21 @@ static void snapd_screenshot_class_init(SnapdScreenshotClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_URL,
       g_param_spec_string("url", "url", "URL for this screenshot", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_WIDTH,
-      g_param_spec_uint("width", "width", "Width of screenshot in pixels", 0,
-                        G_MAXUINT, 0,
-                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_uint(
+          "width", "width", "Width of screenshot in pixels", 0, G_MAXUINT, 0,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_HEIGHT,
-      g_param_spec_uint("height", "height", "Height of screenshot in pixels", 0,
-                        G_MAXUINT, 0,
-                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_uint(
+          "height", "height", "Height of screenshot in pixels", 0, G_MAXUINT, 0,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_screenshot_init(SnapdScreenshot *self) {}

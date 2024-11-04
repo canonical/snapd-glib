@@ -125,11 +125,15 @@ static void snapd_icon_class_init(SnapdIconClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_MIME_TYPE,
       g_param_spec_string("mime-type", "mime-type", "Icon mime type", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_DATA,
       g_param_spec_boxed("data", "data", "Icon data", G_TYPE_BYTES,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_icon_init(SnapdIcon *self) {}

@@ -124,11 +124,15 @@ static void snapd_slot_ref_class_init(SnapdSlotRefClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_SLOT,
       g_param_spec_string("slot", "slot", "Name of slot", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SNAP,
       g_param_spec_string("snap", "snap", "Snap this slot is on", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_slot_ref_init(SnapdSlotRef *self) {}

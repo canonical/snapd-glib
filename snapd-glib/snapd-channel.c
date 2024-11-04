@@ -358,37 +358,48 @@ static void snapd_channel_class_init(SnapdChannelClass *klass) {
 
   g_object_class_install_property(
       gobject_class, PROP_CONFINEMENT,
-      g_param_spec_enum("confinement", "confinement",
-                        "Confinement requested by the snap",
-                        SNAPD_TYPE_CONFINEMENT, SNAPD_CONFINEMENT_UNKNOWN,
-                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_enum(
+          "confinement", "confinement", "Confinement requested by the snap",
+          SNAPD_TYPE_CONFINEMENT, SNAPD_CONFINEMENT_UNKNOWN,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_EPOCH,
       g_param_spec_string("epoch", "epoch", "Epoch of this snap", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_NAME,
       g_param_spec_string("name", "name", "The channel name", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_REVISION,
       g_param_spec_string("revision", "revision", "Revision of this snap", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_RELEASED_AT,
-      g_param_spec_boxed("released-at", "released-at",
-                         "Date revision was released into channel",
-                         G_TYPE_DATE_TIME,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_boxed(
+          "released-at", "released-at",
+          "Date revision was released into channel", G_TYPE_DATE_TIME,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SIZE,
-      g_param_spec_int64("size", "size", "Download size in bytes", G_MININT64,
-                         G_MAXINT64, 0,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_int64(
+          "size", "size", "Download size in bytes", G_MININT64, G_MAXINT64, 0,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_VERSION,
       g_param_spec_string("version", "version", "Snap version", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_channel_init(SnapdChannel *self) {}

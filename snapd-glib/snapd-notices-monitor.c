@@ -193,7 +193,9 @@ static void snapd_notices_monitor_class_init(SnapdNoticesMonitorClass *klass) {
       gobject_class, PROP_CLIENT,
       g_param_spec_object(
           "client", "client", "SnapdClient to use to communicate",
-          SNAPD_TYPE_CLIENT, G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY));
+          SNAPD_TYPE_CLIENT,
+          G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 
   g_signal_new("notice-event", G_TYPE_FROM_CLASS(klass), G_SIGNAL_RUN_LAST, 0,
                NULL, NULL, NULL, G_TYPE_NONE, 2, SNAPD_TYPE_NOTICE,

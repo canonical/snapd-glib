@@ -206,24 +206,33 @@ snapd_user_information_class_init(SnapdUserInformationClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_ID,
       g_param_spec_int64("id", "id", "Account id", G_MININT64, G_MAXINT64, -1,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_USERNAME,
       g_param_spec_string("username", "username", "Unix username", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_EMAIL,
       g_param_spec_string("email", "email", "Email address", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_SSH_KEYS,
       g_param_spec_boxed("ssh-keys", "ssh-keys", "SSH keys", G_TYPE_STRV,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_AUTH_DATA,
-      g_param_spec_object("auth-data", "auth-data", "Authorization data",
-                          SNAPD_TYPE_AUTH_DATA,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_object(
+          "auth-data", "auth-data", "Authorization data", SNAPD_TYPE_AUTH_DATA,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_user_information_init(SnapdUserInformation *self) {

@@ -147,14 +147,17 @@ static void snapd_auth_data_class_init(SnapdAuthDataClass *klass) {
   gobject_class->get_property = snapd_auth_data_get_property;
   gobject_class->finalize = snapd_auth_data_finalize;
 
-  g_object_class_install_property(gobject_class, PROP_MACAROON,
-                                  g_param_spec_string("macaroon", "macaroon",
-                                                      "Serialized macaroon",
-                                                      NULL, G_PARAM_READWRITE));
+  g_object_class_install_property(
+      gobject_class, PROP_MACAROON,
+      g_param_spec_string("macaroon", "macaroon", "Serialized macaroon", NULL,
+                          G_PARAM_READWRITE | G_PARAM_STATIC_NAME |
+                              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_DISCHARGES,
       g_param_spec_boxed("discharges", "discharges", "Serialized discharges",
-                         G_TYPE_STRV, G_PARAM_READWRITE));
+                         G_TYPE_STRV,
+                         G_PARAM_READWRITE | G_PARAM_STATIC_NAME |
+                             G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_auth_data_init(SnapdAuthData *self) {}

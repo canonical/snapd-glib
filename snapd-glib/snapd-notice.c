@@ -499,69 +499,91 @@ static void snapd_notice_class_init(SnapdNoticeClass *klass) {
   g_object_class_install_property(
       gobject_class, PROP_ID,
       g_param_spec_string("id", "id", "ID of notice", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_USER_ID,
       g_param_spec_string(
           "user-id", "user-id",
           "UserID of the user who may view this notice (NULL means all users)",
-          NULL, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+          NULL,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_TYPE,
-      g_param_spec_uint("notice-type", "notice-type", "Type of notice", 0,
-                        G_MAXUINT, 0,
-                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_uint(
+          "notice-type", "notice-type", "Type of notice", 0, G_MAXUINT, 0,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_KEY,
       g_param_spec_string("key", "key", "Key of notice", NULL,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                              G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                              G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_FIRST_OCCURRED,
       g_param_spec_boxed("first-occurred", "first-occurred",
                          "Time this notice first occurred", G_TYPE_DATE_TIME,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_LAST_OCCURRED,
       g_param_spec_boxed("last-occurred", "last-occurred",
                          "Time this notice last occurred", G_TYPE_DATE_TIME,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_LAST_OCCURRED_NANO,
       g_param_spec_int("last-occurred-nanoseconds", "last-occurred-nanoseconds",
                        "Time this notice last ocurred, in string format and "
                        "with nanosecond accuracy",
                        -1, 999999999, -1,
-                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                       G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                           G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                           G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_LAST_REPEATED,
       g_param_spec_boxed("last-repeated", "last-repeated",
                          "Time this notice was last repeated", G_TYPE_DATE_TIME,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_OCCURRENCES,
       g_param_spec_int64("occurrences", "occurrences",
                          "Number of time one of these notices has occurred",
                          G_MININT, G_MAXINT, -1,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_LAST_DATA,
-      g_param_spec_boxed("last-data", "last-data", "Data for this notice",
-                         G_TYPE_HASH_TABLE,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+      g_param_spec_boxed(
+          "last-data", "last-data", "Data for this notice", G_TYPE_HASH_TABLE,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_REPEAT_AFTER,
       g_param_spec_int64("repeat-after", "repeat-after",
                          "Time (in ms) after one of these was last repeated "
                          "should we allow it to repeat",
                          G_MININT64, G_MAXINT64, 0,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
   g_object_class_install_property(
       gobject_class, PROP_EXPIRE_AFTER,
       g_param_spec_int64("expire-after", "expire-after",
                          "Time (in ms) since one of these last occurred until "
                          "we should drop the notice",
                          G_MININT64, G_MAXINT64, 0,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
+                             G_PARAM_STATIC_NAME | G_PARAM_STATIC_NICK |
+                             G_PARAM_STATIC_BLURB));
 }
 
 static void snapd_notice_init(SnapdNotice *self) {
