@@ -5177,6 +5177,7 @@ static void mock_snapd_finalize(GObject *object) {
   g_clear_pointer(&self->loop, g_main_loop_unref);
   g_list_free_full(self->notices, (GDestroyNotify)mock_notice_free);
   self->notices = NULL;
+  g_clear_pointer(&self->notices_parameters, g_free);
 
   g_cond_clear(&self->condition);
   g_mutex_clear(&self->mutex);
