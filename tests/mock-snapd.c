@@ -404,6 +404,7 @@ static void mock_snap_free(MockSnap *snap) {
   g_free(snap->publisher_validation);
   g_free(snap->revision);
   g_free(snap->status);
+  g_free(snap->proceed_time);
   g_free(snap->store_url);
   g_free(snap->summary);
   g_free(snap->title);
