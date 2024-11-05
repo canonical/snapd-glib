@@ -290,10 +290,10 @@ static void mock_notice_free(MockNotice *notice) {
   g_free(notice->type);
   g_free(notice->expire_after);
   g_free(notice->repeat_after);
-  g_date_time_unref(notice->first_occurred);
-  g_date_time_unref(notice->last_occurred);
-  g_date_time_unref(notice->last_repeated);
-  g_hash_table_unref(notice->last_data);
+  g_clear_pointer(&notice->first_occurred, g_date_time_unref);
+  g_clear_pointer(&notice->last_occurred, g_date_time_unref);
+  g_clear_pointer(&notice->last_repeated, g_date_time_unref);
+  g_clear_pointer(&notice->last_data, g_hash_table_unref);
   g_slice_free(MockNotice, notice);
 }
 
