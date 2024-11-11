@@ -8520,6 +8520,9 @@ static void test_follow_logs_sync(void) {
 
 static void async_log_cb(SnapdClient *client, SnapdLog *log,
                          gpointer user_data) {
+  // This callback is called several times. Also, the same data
+  // memory block is used in the `follow_logs_cb()` callback.
+  // This is why it must not be freed here.
   AsyncData *data = user_data;
   data->counter++;
 }
@@ -8778,7 +8781,13 @@ static void test_notices_events(void) {
 
   g_autoptr(MockSnapd) snapd = mock_snapd_new();
 
-  AsyncData *data = async_data_new(loop, snapd);
+  // In this case, we define the `data` struct with g_autoptr
+  // because the callback can be called several times, so this
+  // ensures that it is freed only when no more callbacks will be
+  // serviced. We can do this because in this tests we are
+  // using a new mainloop, which only returns after g_main_loop_quit()
+  // has been called.
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   g_autoptr(GError) error = NULL;
   g_assert_true(mock_snapd_start(snapd, &error));
 
@@ -8889,7 +8898,13 @@ static void test_notices_events_with_minimal_data(void) {
 
   g_autoptr(MockSnapd) snapd = mock_snapd_new();
 
-  AsyncData *data = async_data_new(loop, snapd);
+  // In this case, we define the `data` struct with g_autoptr
+  // because the callback can be called several times, so this
+  // ensures that it is freed only when no more callbacks will be
+  // serviced. We can do this because in this tests we are
+  // using a new mainloop, which only returns after g_main_loop_quit()
+  // has been called.
+  g_autoptr(AsyncData) data = async_data_new(loop, snapd);
   g_autoptr(GError) error = NULL;
   g_assert_true(mock_snapd_start(snapd, &error));
 
