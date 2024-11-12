@@ -74,7 +74,15 @@ static SoupMessage *generate_get_snap_request(SnapdRequest *request,
   if (self->since_date_time != NULL) {
     g_autofree gchar *date_time = NULL;
     if (self->since_date_time_nanoseconds == -1) {
+#if GLIB_CHECK_VERSION(2, 66, 0)
       date_time = g_date_time_format(self->since_date_time, "%FT%T.%f%:z");
+#else
+      // g_date_time_format doesn't support %f before GLib 2.66
+      g_autofree gchar *date_time_tmp =
+          g_date_time_format(self->since_date_time, "%FT%T.%%06d%:z");
+      date_time = g_strdup_printf(
+          date_time_tmp, g_date_time_get_microsecond(self->since_date_time));
+#endif
     } else {
       if (self->since_date_time_nanoseconds == 0) {
         date_time = g_date_time_format(self->since_date_time, "%FT%T%:z");
