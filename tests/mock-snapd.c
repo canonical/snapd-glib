@@ -22,13 +22,17 @@
 
 #if !GLIB_CHECK_VERSION(2, 66, 0)
 
+// Transforms an ASCII, one-digit, lowercase hexadecimal number into
+// its value.
 #define HEX_CHAR_TO_NUMBER(c) (((c) < 'a') ? (c) - '0' : ((c) - 'a' + 10))
 
 // a quick&dirty replacement to allow the tests to work, since g_uri_parse_params
 // wasn't added until GLib 2.66
 
-// Replaces in-place any %XY token with the corresponding 0xXY byte
-static void parse_string(gchar *str) {
+// Replaces IN-PLACE any %XY token with the corresponding 0xXY byte.
+// The passed string is modified, so it must be a memory block that belongs
+// to the calling function.
+static void decode_url_escape_codes(gchar *str) {
   gchar *from = str;
   gchar *to = str;
 
@@ -58,8 +62,8 @@ GHashTable *g_uri_parse_params(const gchar *params, gssize lenght,
 
   for (GStrv p = param_list; *p != NULL; p++) {
     g_auto(GStrv) param = g_strsplit(*p, "=", 0);
-    parse_string(param[0]);
-    parse_string(param[1]);
+    decode_url_escape_codes(param[0]);
+    decode_url_escape_codes(param[1]);
     g_hash_table_insert(table, g_strdup(param[0]), g_strdup(param[1]));
   }
   return table;
