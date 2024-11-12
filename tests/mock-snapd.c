@@ -50,7 +50,7 @@ static void decode_url_escape_codes(gchar *str) {
     value += HEX_CHAR_TO_NUMBER(*from);
     *to = value;
   }
-  *to = 0;
+  *to = 0; // ensure to zero-ending the string
 }
 
 GHashTable *g_uri_parse_params(const gchar *params, gssize lenght,
