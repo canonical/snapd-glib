@@ -26,8 +26,8 @@
 // its value.
 #define HEX_CHAR_TO_NUMBER(c) (((c) < 'a') ? (c) - '0' : ((c) - 'a' + 10))
 
-// a quick&dirty replacement to allow the tests to work, since g_uri_parse_params
-// wasn't added until GLib 2.66
+// a quick&dirty replacement to allow the tests to work, since
+// g_uri_parse_params wasn't added until GLib 2.66
 
 // Replaces IN-PLACE any %XY token with the corresponding 0xXY byte.
 // The passed string is modified, so it must be a memory block that belongs
@@ -42,7 +42,8 @@ static void decode_url_escape_codes(gchar *str) {
       continue;
     }
     from++; // jump over '%' character
-        // set bit 5 to convert letters to lowercase (numbers are unaffected)
+            // set bit 5 to convert letters to lowercase (numbers are
+            // unaffected)
     *from |= 32;
     gchar value = 16 * HEX_CHAR_TO_NUMBER(*from);
     from++;
@@ -189,9 +190,11 @@ struct _MockChange {
   gchar *summary;
   gchar *spawn_time;
   gchar *ready_time;
+  gchar *status;
   int task_index;
   GList *tasks;
   JsonNode *data;
+  gboolean force_data;
 };
 
 struct _MockChannel {
@@ -723,6 +726,11 @@ void mock_notice_add_data_pair(MockNotice *self, const gchar *entry,
   g_hash_table_insert(self->last_data, g_strdup(entry), g_strdup(data));
 }
 
+void mock_notice_set_key(MockNotice *self, const gchar *key) {
+  g_clear_pointer(&self->key, g_free);
+  self->key = g_strdup(key);
+}
+
 void mock_account_set_terms_accepted(MockAccount *account,
                                      gboolean terms_accepted) {
   account->terms_accepted = terms_accepted;
@@ -838,6 +846,15 @@ MockChange *mock_snapd_add_change(MockSnapd *self) {
 
 const gchar *mock_change_get_id(MockChange *change) { return change->id; }
 
+void mock_change_set_status(MockChange *change, const gchar *status) {
+  g_free(change->status);
+  change->status = g_strdup(status);
+}
+
+const gchar *mock_change_get_status(MockChange *change) {
+  return change->status;
+}
+
 void mock_change_set_kind(MockChange *change, const gchar *kind) {
   g_free(change->kind);
   change->kind = g_strdup(kind);
@@ -848,6 +865,10 @@ void mock_change_add_data(MockChange *change, JsonNode *data) {
     json_node_unref(change->data);
   }
   change->data = json_node_ref((JsonNode *)data);
+}
+
+void mock_change_set_force_data(MockChange *change, gboolean force_data) {
+  change->force_data = force_data;
 }
 
 MockTask *mock_change_add_task(MockChange *change, const gchar *kind) {
@@ -869,6 +890,8 @@ MockTask *mock_change_add_task(MockChange *change, const gchar *kind) {
 void mock_task_set_snap_name(MockTask *task, const gchar *snap_name) {
   task->snap_name = g_strdup(snap_name);
 }
+
+const gchar *mock_task_get_status(MockTask *task) { return task->status; }
 
 void mock_task_set_status(MockTask *task, const gchar *status) {
   g_free(task->status);
@@ -3864,6 +3887,10 @@ static JsonNode *make_change_node(MockChange *change) {
   const gchar *status = task != NULL ? task->status : "Done";
   const gchar *error =
       task != NULL && strcmp(task->status, "Error") == 0 ? task->error : NULL;
+  if (change->status != NULL) {
+    // no copy is needed because status is already copied in the call.
+    status = change->status;
+  }
 
   g_autoptr(JsonBuilder) builder = json_builder_new();
   json_builder_begin_object(builder);
@@ -3929,7 +3956,8 @@ static JsonNode *make_change_node(MockChange *change) {
     json_builder_set_member_name(builder, "ready-time");
     json_builder_add_string_value(builder, change->ready_time);
   }
-  if (change_get_ready(change) && change->data != NULL) {
+  if ((change_get_ready(change) || change->force_data) &&
+      change->data != NULL) {
     json_builder_set_member_name(builder, "data");
     json_builder_add_value(builder, json_node_ref(change->data));
   }
@@ -4990,8 +5018,9 @@ static void handle_notices(MockSnapd *self, SoupServerMessage *message,
   for (GList *link = self->notices; link; link = link->next) {
     MockNotice *notice = link->data;
 
-    // but if there is an "after" parameter, send only those that
-    // happened after the specified date-time
+    /* but if there is an "after" parameter, send only those that
+     * happened after the specified date-time
+     */
     if ((after != NULL) && (notice->last_occurred != NULL) &&
         (compare_date_time_with_nanoseconds(notice->last_occurred,
                                             notice->last_occurred_nanoseconds,
