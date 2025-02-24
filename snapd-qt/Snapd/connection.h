@@ -16,7 +16,13 @@
 #include <Snapd/SlotRef>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdConnection : public QSnapdWrappedObject {
+#if defined(LIBSNAPDQT)
+#define LIBSNAPDQT_EXPORT __attribute__((visibility("default")))
+#else
+#define LIBSNAPDQT_EXPORT Q_DECL_IMPORT
+#endif
+
+class LIBSNAPDQT_EXPORT QSnapdConnection : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QSnapdSlotRef slot READ slot)

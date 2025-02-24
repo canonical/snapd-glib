@@ -16,7 +16,13 @@
 
 class QSnapdRequestPrivate;
 
-class Q_DECL_EXPORT QSnapdRequest : public QObject {
+#if defined(LIBSNAPDQT)
+#define LIBSNAPDQT_EXPORT __attribute__((visibility("default")))
+#else
+#define LIBSNAPDQT_EXPORT Q_DECL_IMPORT
+#endif
+
+class LIBSNAPDQT_EXPORT QSnapdRequest : public QObject {
   Q_OBJECT
 
   Q_PROPERTY(bool isFinished READ isFinished)
