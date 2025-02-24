@@ -13,7 +13,9 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdPlugRef : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdPlugRef : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString plug READ plug)

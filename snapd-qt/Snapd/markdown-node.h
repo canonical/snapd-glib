@@ -13,7 +13,9 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdMarkdownNode : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdMarkdownNode : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(NodeType type READ type)

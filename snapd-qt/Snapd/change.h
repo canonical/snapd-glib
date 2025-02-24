@@ -17,7 +17,9 @@
 #include <Snapd/change-autorefresh-data.h>
 #include <Snapd/change-data.h>
 
-class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdChange : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString id READ id)

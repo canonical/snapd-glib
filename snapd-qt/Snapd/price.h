@@ -13,7 +13,9 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdPrice : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdPrice : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(double amount READ amount)

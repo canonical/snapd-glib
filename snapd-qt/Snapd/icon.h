@@ -13,7 +13,9 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdIcon : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdIcon : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString mimeType READ mimeType)

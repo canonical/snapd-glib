@@ -15,7 +15,9 @@
 #include <Snapd/SlotRef>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdPlug : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdPlug : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString name READ name)

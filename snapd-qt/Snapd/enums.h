@@ -12,7 +12,9 @@
 
 #include <QtCore/QObject>
 
-class Q_DECL_EXPORT QSnapdEnums : public QObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdEnums : public QObject {
   Q_OBJECT
 
 public:

@@ -15,7 +15,9 @@
 #include <Snapd/WrappedObject>
 #include <Snapd/task-data.h>
 
-class Q_DECL_EXPORT QSnapdTask : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdTask : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString id READ id)

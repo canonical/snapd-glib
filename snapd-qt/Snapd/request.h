@@ -16,7 +16,9 @@
 
 class QSnapdRequestPrivate;
 
-class Q_DECL_EXPORT QSnapdRequest : public QObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdRequest : public QObject {
   Q_OBJECT
 
   Q_PROPERTY(bool isFinished READ isFinished)

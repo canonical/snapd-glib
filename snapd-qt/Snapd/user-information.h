@@ -14,7 +14,9 @@
 #include <Snapd/AuthData>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdUserInformation : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdUserInformation : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(int id READ id)
