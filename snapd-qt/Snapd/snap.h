@@ -21,7 +21,9 @@
 #include <Snapd/Screenshot>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdSnap : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdSnap : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(int appCount READ appCount)

@@ -13,7 +13,9 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdAssertion : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdAssertion : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QStringList headers READ headers)

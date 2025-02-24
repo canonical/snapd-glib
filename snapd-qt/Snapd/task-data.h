@@ -14,7 +14,9 @@
 #include <QtCore/QStringList>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdTaskData : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdTaskData : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QStringList affectedSnaps READ affectedSnaps)

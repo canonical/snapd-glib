@@ -14,7 +14,9 @@
 #include <QtCore/QStringList>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdChangeData : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdChangeData : public QSnapdWrappedObject {
   Q_OBJECT
 
 public:

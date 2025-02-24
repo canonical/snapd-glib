@@ -14,7 +14,9 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdAuthData : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdAuthData : public QSnapdWrappedObject {
   Q_OBJECT
   Q_PROPERTY(QString macaroon READ macaroon)
   Q_PROPERTY(QStringList discharges READ discharges)

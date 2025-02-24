@@ -15,7 +15,9 @@
 #include <Snapd/Enums>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdNotice : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdNotice : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString id READ id CONSTANT)

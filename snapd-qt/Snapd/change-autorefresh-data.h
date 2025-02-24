@@ -15,7 +15,9 @@
 #include <QtCore/QStringList>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdAutorefreshChangeData : public QSnapdChangeData {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdAutorefreshChangeData : public QSnapdChangeData {
   Q_OBJECT
 
   Q_PROPERTY(QStringList snapNames READ snapNames)

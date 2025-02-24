@@ -16,7 +16,9 @@
 #include <Snapd/Enums>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdSystemInformation : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString binariesDirectory READ binariesDirectory)

@@ -13,7 +13,9 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdCategory : public QSnapdWrappedObject
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdCategory : public QSnapdWrappedObject
 {
     Q_OBJECT
 

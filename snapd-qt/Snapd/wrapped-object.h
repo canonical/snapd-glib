@@ -12,7 +12,9 @@
 
 #include <QtCore/QObject>
 
-class Q_DECL_EXPORT QSnapdWrappedObject : public QObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdWrappedObject : public QObject {
   Q_OBJECT
 
 public:

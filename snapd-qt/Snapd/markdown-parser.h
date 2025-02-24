@@ -15,7 +15,9 @@
 #include <Snapd/MarkdownNode>
 
 class QSnapdMarkdownParserPrivate;
-class Q_DECL_EXPORT QSnapdMarkdownParser : public QObject {
+#include "snapdqt_global.h"
+
+class LIBSNAPDQT_EXPORT QSnapdMarkdownParser : public QObject {
   Q_OBJECT
 
   Q_PROPERTY(bool preserveWhitespace READ preserveWhitespace WRITE
