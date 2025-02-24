@@ -13,7 +13,13 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdCategory : public QSnapdWrappedObject {
+#if defined(LIBSNAPDQT)
+#define LIBSNAPDQT_EXPORT __attribute__((visibility("default")))
+#else
+#define LIBSNAPDQT_EXPORT Q_DECL_IMPORT
+#endif
+
+class LIBSNAPDQT_EXPORT QSnapdCategory : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString name READ name)

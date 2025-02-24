@@ -14,7 +14,13 @@
 #include <Snapd/Enums>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdApp : public QSnapdWrappedObject {
+#if defined(LIBSNAPDQT)
+#define LIBSNAPDQT_EXPORT __attribute__((visibility("default")))
+#else
+#define LIBSNAPDQT_EXPORT Q_DECL_IMPORT
+#endif
+
+class LIBSNAPDQT_EXPORT QSnapdApp : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString name READ name)

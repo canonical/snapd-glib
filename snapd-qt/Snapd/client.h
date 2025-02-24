@@ -30,7 +30,13 @@
 #include <Snapd/UserInformation>
 
 class QSnapdConnectRequestPrivate;
-class Q_DECL_EXPORT QSnapdConnectRequest : public QSnapdRequest {
+#if defined(LIBSNAPDQT)
+#define LIBSNAPDQT_EXPORT __attribute__((visibility("default")))
+#else
+#define LIBSNAPDQT_EXPORT Q_DECL_IMPORT
+#endif
+
+class LIBSNAPDQT_EXPORT QSnapdConnectRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -46,7 +52,8 @@ private:
 };
 
 class QSnapdLoginRequestPrivate;
-class Q_DECL_EXPORT QSnapdLoginRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdLoginRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(QSnapdUserInformation *userInformation READ userInformation)
   Q_PROPERTY(QSnapdAuthData *authData READ authData)
@@ -68,7 +75,8 @@ private:
 };
 
 class QSnapdLogoutRequestPrivate;
-class Q_DECL_EXPORT QSnapdLogoutRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdLogoutRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -85,7 +93,8 @@ private:
 };
 
 class QSnapdGetChangesRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetChangesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetChangesRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int changeCount READ changeCount)
 
@@ -105,7 +114,8 @@ private:
 };
 
 class QSnapdGetChangeRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetChangeRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetChangeRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -123,7 +133,8 @@ private:
 };
 
 class QSnapdAbortChangeRequestPrivate;
-class Q_DECL_EXPORT QSnapdAbortChangeRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdAbortChangeRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -141,7 +152,9 @@ private:
 };
 
 class QSnapdGetSystemInformationRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetSystemInformationRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetSystemInformationRequest
+    : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(QSnapdSystemInformation *systemInformation READ systemInformation)
 
@@ -160,7 +173,8 @@ private:
 };
 
 class QSnapdListRequestPrivate;
-class Q_DECL_EXPORT QSnapdListRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdListRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int snapCount READ snapCount)
 
@@ -179,7 +193,8 @@ private:
 };
 
 class QSnapdGetSnapsRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetSnapsRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetSnapsRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int snapCount READ snapCount)
 
@@ -199,7 +214,8 @@ private:
 };
 
 class QSnapdListOneRequestPrivate;
-class Q_DECL_EXPORT QSnapdListOneRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdListOneRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -217,7 +233,8 @@ private:
 };
 
 class QSnapdGetSnapRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetSnapRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetSnapRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -235,7 +252,8 @@ private:
 };
 
 class QSnapdGetSnapConfRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetSnapConfRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetSnapConfRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -254,7 +272,8 @@ private:
 };
 
 class QSnapdSetSnapConfRequestPrivate;
-class Q_DECL_EXPORT QSnapdSetSnapConfRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdSetSnapConfRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -272,7 +291,8 @@ private:
 };
 
 class QSnapdGetAppsRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetAppsRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetAppsRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int appCount READ appCount)
 
@@ -294,7 +314,8 @@ private:
 };
 
 class QSnapdGetIconRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetIconRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetIconRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -312,7 +333,8 @@ private:
 };
 
 class QSnapdGetAssertionsRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetAssertionsRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetAssertionsRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(QStringList assertions READ assertions)
 
@@ -331,7 +353,8 @@ private:
 };
 
 class QSnapdAddAssertionsRequestPrivate;
-class Q_DECL_EXPORT QSnapdAddAssertionsRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdAddAssertionsRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -348,7 +371,8 @@ private:
 };
 
 class QSnapdGetConnectionsRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetConnectionsRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetConnectionsRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int plugCount READ plugCount)
   Q_PROPERTY(int slotCount READ slotCount)
@@ -376,7 +400,8 @@ private:
 };
 
 class QSnapdGetInterfacesRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetInterfacesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetInterfacesRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int plugCount READ plugCount)
   Q_PROPERTY(int slotCount READ slotCount)
@@ -398,7 +423,8 @@ private:
 };
 
 class QSnapdGetInterfaces2RequestPrivate;
-class Q_DECL_EXPORT QSnapdGetInterfaces2Request : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetInterfaces2Request : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int interfaceCount READ interfaceCount)
 
@@ -418,7 +444,8 @@ private:
 };
 
 class QSnapdConnectInterfaceRequestPrivate;
-class Q_DECL_EXPORT QSnapdConnectInterfaceRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdConnectInterfaceRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -439,7 +466,9 @@ private:
 };
 
 class QSnapdDisconnectInterfaceRequestPrivate;
-class Q_DECL_EXPORT QSnapdDisconnectInterfaceRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdDisconnectInterfaceRequest
+    : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -460,7 +489,8 @@ private:
 };
 
 class QSnapdFindRequestPrivate;
-class Q_DECL_EXPORT QSnapdFindRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdFindRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int snapCount READ snapCount)
   Q_PROPERTY(QString suggestedCurrency READ suggestedCurrency)
@@ -483,7 +513,8 @@ private:
 };
 
 class QSnapdFindRefreshableRequestPrivate;
-class Q_DECL_EXPORT QSnapdFindRefreshableRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdFindRefreshableRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int snapCount READ snapCount)
 
@@ -503,7 +534,8 @@ private:
 };
 
 class QSnapdInstallRequestPrivate;
-class Q_DECL_EXPORT QSnapdInstallRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdInstallRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -522,7 +554,8 @@ private:
 };
 
 class QSnapdTryRequestPrivate;
-class Q_DECL_EXPORT QSnapdTryRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdTryRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -539,7 +572,8 @@ private:
 };
 
 class QSnapdRefreshRequestPrivate;
-class Q_DECL_EXPORT QSnapdRefreshRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdRefreshRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -556,7 +590,8 @@ private:
 };
 
 class QSnapdRefreshAllRequestPrivate;
-class Q_DECL_EXPORT QSnapdRefreshAllRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdRefreshAllRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(QStringList snapNames READ snapNames)
 
@@ -574,7 +609,8 @@ private:
 };
 
 class QSnapdRemoveRequestPrivate;
-class Q_DECL_EXPORT QSnapdRemoveRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdRemoveRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -591,7 +627,8 @@ private:
 };
 
 class QSnapdEnableRequestPrivate;
-class Q_DECL_EXPORT QSnapdEnableRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdEnableRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -608,7 +645,8 @@ private:
 };
 
 class QSnapdDisableRequestPrivate;
-class Q_DECL_EXPORT QSnapdDisableRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdDisableRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -625,7 +663,8 @@ private:
 };
 
 class QSnapdSwitchChannelRequestPrivate;
-class Q_DECL_EXPORT QSnapdSwitchChannelRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdSwitchChannelRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -643,7 +682,8 @@ private:
 };
 
 class QSnapdCheckBuyRequestPrivate;
-class Q_DECL_EXPORT QSnapdCheckBuyRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdCheckBuyRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(bool canBuy READ canBuy)
 
@@ -661,7 +701,8 @@ private:
 };
 
 class QSnapdBuyRequestPrivate;
-class Q_DECL_EXPORT QSnapdBuyRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdBuyRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -679,7 +720,8 @@ private:
 };
 
 class QSnapdCreateUserRequestPrivate;
-class Q_DECL_EXPORT QSnapdCreateUserRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdCreateUserRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -697,7 +739,8 @@ private:
 };
 
 class QSnapdCreateUsersRequestPrivate;
-class Q_DECL_EXPORT QSnapdCreateUsersRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdCreateUsersRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int userInformationCount READ userInformationCount)
 
@@ -716,7 +759,8 @@ private:
 };
 
 class QSnapdGetUsersRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetUsersRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetUsersRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int userInformationCount READ userInformationCount)
 
@@ -735,7 +779,8 @@ private:
 };
 
 class QSnapdGetSectionsRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetSectionsRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetSectionsRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -752,7 +797,8 @@ private:
 };
 
 class QSnapdGetCategoriesRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetCategoriesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetCategoriesRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -770,7 +816,8 @@ private:
 };
 
 class QSnapdGetAliasesRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetAliasesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetAliasesRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(int aliasCount READ aliasCount)
 
@@ -789,7 +836,8 @@ private:
 };
 
 class QSnapdAliasRequestPrivate;
-class Q_DECL_EXPORT QSnapdAliasRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdAliasRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -807,7 +855,8 @@ private:
 };
 
 class QSnapdUnaliasRequestPrivate;
-class Q_DECL_EXPORT QSnapdUnaliasRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdUnaliasRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -824,7 +873,8 @@ private:
 };
 
 class QSnapdPreferRequestPrivate;
-class Q_DECL_EXPORT QSnapdPreferRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdPreferRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -841,7 +891,8 @@ private:
 };
 
 class QSnapdEnableAliasesRequestPrivate;
-class Q_DECL_EXPORT QSnapdEnableAliasesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdEnableAliasesRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -859,7 +910,8 @@ private:
 };
 
 class QSnapdDisableAliasesRequestPrivate;
-class Q_DECL_EXPORT QSnapdDisableAliasesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdDisableAliasesRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -877,7 +929,8 @@ private:
 };
 
 class QSnapdResetAliasesRequestPrivate;
-class Q_DECL_EXPORT QSnapdResetAliasesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdResetAliasesRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -895,7 +948,8 @@ private:
 };
 
 class QSnapdRunSnapCtlRequestPrivate;
-class Q_DECL_EXPORT QSnapdRunSnapCtlRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdRunSnapCtlRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -916,7 +970,8 @@ private:
 };
 
 class QSnapdDownloadRequestPrivate;
-class Q_DECL_EXPORT QSnapdDownloadRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdDownloadRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -935,7 +990,8 @@ private:
 };
 
 class QSnapdCheckThemesRequestPrivate;
-class Q_DECL_EXPORT QSnapdCheckThemesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdCheckThemesRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -960,7 +1016,8 @@ private:
 };
 
 class QSnapdInstallThemesRequestPrivate;
-class Q_DECL_EXPORT QSnapdInstallThemesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdInstallThemesRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -979,7 +1036,8 @@ private:
 };
 
 class QSnapdNoticesRequestPrivate;
-class Q_DECL_EXPORT QSnapdNoticesRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdNoticesRequest : public QSnapdRequest {
   Q_OBJECT
   Q_PROPERTY(qint64 timeout MEMBER timeout)
   Q_PROPERTY(bool sinceFilterSet MEMBER sinceFilterSet)
@@ -1016,7 +1074,8 @@ private:
 };
 
 class QSnapdGetModelAssertionRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetModelAssertionRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetModelAssertionRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -1034,7 +1093,8 @@ private:
 };
 
 class QSnapdGetSerialAssertionRequestPrivate;
-class Q_DECL_EXPORT QSnapdGetSerialAssertionRequest : public QSnapdRequest {
+
+class LIBSNAPDQT_EXPORT QSnapdGetSerialAssertionRequest : public QSnapdRequest {
   Q_OBJECT
 
 public:
@@ -1057,7 +1117,8 @@ Q_INVOKABLE Q_DECL_DEPRECATED QSnapdLoginRequest *
 login(const QString &email, const QString &password, const QString &otp);
 
 class QSnapdClientPrivate;
-class Q_DECL_EXPORT QSnapdClient : public QObject {
+
+class LIBSNAPDQT_EXPORT QSnapdClient : public QObject {
   Q_OBJECT
 
   Q_PROPERTY(QString socketPath READ socketPath WRITE setSocketPath)

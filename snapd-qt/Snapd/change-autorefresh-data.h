@@ -15,7 +15,13 @@
 #include <QtCore/QStringList>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdAutorefreshChangeData : public QSnapdChangeData {
+#if defined(LIBSNAPDQT)
+#define LIBSNAPDQT_EXPORT __attribute__((visibility("default")))
+#else
+#define LIBSNAPDQT_EXPORT Q_DECL_IMPORT
+#endif
+
+class LIBSNAPDQT_EXPORT QSnapdAutorefreshChangeData : public QSnapdChangeData {
   Q_OBJECT
 
   Q_PROPERTY(QStringList snapNames READ snapNames)

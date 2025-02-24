@@ -17,7 +17,13 @@
 #include <Snapd/change-autorefresh-data.h>
 #include <Snapd/change-data.h>
 
-class Q_DECL_EXPORT QSnapdChange : public QSnapdWrappedObject {
+#if defined(LIBSNAPDQT)
+#define LIBSNAPDQT_EXPORT __attribute__((visibility("default")))
+#else
+#define LIBSNAPDQT_EXPORT Q_DECL_IMPORT
+#endif
+
+class LIBSNAPDQT_EXPORT QSnapdChange : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString id READ id)

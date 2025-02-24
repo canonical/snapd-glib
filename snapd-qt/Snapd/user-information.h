@@ -14,7 +14,13 @@
 #include <Snapd/AuthData>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdUserInformation : public QSnapdWrappedObject {
+#if defined(LIBSNAPDQT)
+#define LIBSNAPDQT_EXPORT __attribute__((visibility("default")))
+#else
+#define LIBSNAPDQT_EXPORT Q_DECL_IMPORT
+#endif
+
+class LIBSNAPDQT_EXPORT QSnapdUserInformation : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(int id READ id)
