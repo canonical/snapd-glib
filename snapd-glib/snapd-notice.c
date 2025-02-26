@@ -103,7 +103,7 @@ const gchar *snapd_notice_get_user_id(SnapdNotice *self) {
  *
  * Since: 1.65
  */
-const SnapdNoticeType snapd_notice_get_notice_type(SnapdNotice *self) {
+SnapdNoticeType snapd_notice_get_notice_type(SnapdNotice *self) {
   g_return_val_if_fail(SNAPD_IS_NOTICE(self), SNAPD_NOTICE_TYPE_UNKNOWN);
   return self->type;
 }

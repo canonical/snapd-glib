@@ -33,7 +33,7 @@ const gchar *snapd_notice_get_id(SnapdNotice *notice);
 
 const gchar *snapd_notice_get_user_id(SnapdNotice *notice);
 
-const SnapdNoticeType snapd_notice_get_notice_type(SnapdNotice *notice);
+SnapdNoticeType snapd_notice_get_notice_type(SnapdNotice *notice);
 
 const gchar *snapd_notice_get_key(SnapdNotice *notice);
 
