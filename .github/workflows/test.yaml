@@ -29,26 +29,12 @@ jobs:
             soup: libsoup2
             qt: qt5
             doc: false
-          - image: ubuntu:18.04
-            soup: libsoup2
-            qt: qt5
-            doc: false
 
     runs-on: ubuntu-latest
     container: ${{ matrix.image }}
 
     steps:
-      - name: Setup environment
-        # Ubuntu 18.04 has a GLib version too old for nodejs20 or later,
-        # so, in order to do the tests, we must allow to use an older version.
-        # https://github.com/actions/checkout/issues/1590
-        # In that thread, Flamefire proposed this same solution:
-        # https://github.com/boostorg/nowide/commit/d4aa719f21149de8960247403435e9b794a01255
-        if: startsWith(matrix.image, 'ubuntu:18.04')
-        run: |
-          echo "GHA_USE_NODE_20=false" >> $GITHUB_ENV
-          echo "ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true" >> $GITHUB_ENV
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Initialise parameters
         id: params
