@@ -769,6 +769,8 @@ static GSocket *open_snapd_socket(const gchar *socket_path,
 #ifdef BUILD_TESTS
 // This function is only to test that an error is received when trying
 // to open a non-existent socket. It must NOT be used in normal code.
+// That is why it is exported only when compiling tests, and isn't
+// available in the headers.
 gboolean snapd_test_open_snapd_socket(const gchar *socket_path) {
   g_autoptr(GSocket) socket = open_snapd_socket(socket_path, NULL, NULL);
   return (socket != NULL);
