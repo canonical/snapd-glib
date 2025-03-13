@@ -766,6 +766,15 @@ static GSocket *open_snapd_socket(const gchar *socket_path,
   return g_steal_pointer(&socket);
 }
 
+#ifdef BUILD_TESTS
+// This function is only to test that an error is received when trying
+// to open a non-existent socket. It must NOT be used in normal code.
+gboolean snapd_test_open_snapd_socket(const gchar *socket_path) {
+  g_autoptr(GSocket) socket = open_snapd_socket(socket_path, NULL, NULL);
+  return (socket != NULL);
+}
+#endif
+
 static GSource *make_read_source(SnapdClient *self, GMainContext *context) {
   SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
 

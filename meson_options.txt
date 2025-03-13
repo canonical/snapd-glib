@@ -25,5 +25,5 @@ option('examples',
        type: 'boolean', value: true,
        description: 'Whether to build the examples')
 option('tests',
-       type: 'boolean', value: true,
+       type: 'boolean', value: false,
        description: 'Whether to build the tests')
