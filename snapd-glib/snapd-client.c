@@ -142,6 +142,8 @@ G_DEFINE_TYPE_WITH_PRIVATE(SnapdClient, snapd_client, G_TYPE_OBJECT)
 
 /* Default socket to connect to */
 #define SNAPD_SOCKET "/run/snapd.socket"
+#define SNAPD_SNAP_SOCKET_OLD "/run/snapd-snap.socket"
+#define SNAPD_SNAP_SOCKET "@/snapd/snapd-snap.socket"
 
 /* Number of bytes to read at a time */
 #define READ_SIZE 1024
@@ -1007,6 +1009,21 @@ gboolean snapd_client_connect_finish(SnapdClient *self, GAsyncResult *result,
   return g_task_propagate_boolean(G_TASK(result), error);
 }
 
+static const gchar *get_default_snapd_socket() {
+  if (g_getenv("SNAP") == NULL) {
+    // outside a snap, we use the default socket
+    return SNAPD_SOCKET;
+  }
+  // try first with the new abstract socket
+  g_autoptr(GSocket) testSocket =
+      open_snapd_socket(SNAPD_SNAP_SOCKET, NULL, NULL);
+  if (testSocket == NULL) {
+    return SNAPD_SNAP_SOCKET_OLD;
+  } else {
+    return SNAPD_SNAP_SOCKET;
+  }
+}
+
 /**
  * snapd_client_set_socket_path:
  * @client: a #SnapdClient
@@ -1026,7 +1043,7 @@ void snapd_client_set_socket_path(SnapdClient *self, const gchar *socket_path) {
   if (socket_path != NULL)
     priv->socket_path = g_strdup(socket_path);
   else
-    priv->socket_path = g_strdup(SNAPD_SOCKET);
+    priv->socket_path = g_strdup(get_default_snapd_socket());
 }
 
 /**
@@ -4985,7 +5002,7 @@ static void snapd_client_class_init(SnapdClientClass *klass) {
 static void snapd_client_init(SnapdClient *self) {
   SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
 
-  priv->socket_path = g_strdup(SNAPD_SOCKET);
+  priv->socket_path = g_strdup(get_default_snapd_socket());
   priv->user_agent = g_strdup("snapd-glib/" VERSION);
   priv->allow_interaction = TRUE;
   priv->requests =
