@@ -9128,9 +9128,21 @@ static void test_get_serial_assertion_async(void) {
   g_main_loop_run(loop);
 }
 
+// this function exists only when building with tests, but
+// is not defined in snapd-client.h because it's only for testing
+gboolean snapd_test_open_snapd_socket(const gchar *socket_path);
+
+static void test_abstract_socket(void) {
+  gboolean opened =
+      snapd_test_open_snapd_socket("@/snapd/this-socket-doesn-t-exist");
+  g_assert_false(opened);
+}
+
 int main(int argc, char **argv) {
   g_test_init(&argc, &argv, NULL);
 
+  g_test_add_func("/socket/test_not_existing_abstract_socket",
+                  test_abstract_socket);
   g_test_add_func("/notices/test_task_data_field", test_task_data_field);
   g_test_add_func("/errors/test_error_get_change", test_error_get_change);
   g_test_add_func("/notices/test_notices", test_notices_events);
