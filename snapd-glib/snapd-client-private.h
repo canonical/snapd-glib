@@ -16,6 +16,8 @@
 
 static GSocket *open_snapd_socket(const gchar *socket_path,
                                   GCancellable *cancellable, GError **error) {
+  g_return_val_if_fail((socket_path != NULL), NULL);
+
   g_autoptr(GError) error_local = NULL;
   g_autoptr(GSocket) socket =
       g_socket_new(G_SOCKET_FAMILY_UNIX, G_SOCKET_TYPE_STREAM,
