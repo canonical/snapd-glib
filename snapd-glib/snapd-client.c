@@ -1008,6 +1008,8 @@ static const gchar *get_default_snapd_socket() {
  * snapd_client_set_socket_path:
  * @client: a #SnapdClient
  * @socket_path: (allow-none): a socket path or %NULL to reset to the default.
+ *               If the socket name is in the form '@XXXXXXX', it will be
+ *               considered an abstract socket with XXXXXXX as its path.
  *
  * Set the Unix socket path to connect to snapd with.
  * Defaults to the system socket.
