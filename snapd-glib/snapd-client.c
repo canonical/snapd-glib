@@ -756,7 +756,13 @@ static GSocket *open_snapd_socket(const gchar *socket_path,
     return NULL;
   }
   g_socket_set_blocking(socket, FALSE);
-  g_autoptr(GSocketAddress) address = g_unix_socket_address_new(socket_path);
+  g_autoptr(GSocketAddress) address = NULL;
+  if (socket_path[0] == '@') {
+    address = g_unix_socket_address_new_with_type(
+        socket_path + 1, -1, G_UNIX_SOCKET_ADDRESS_ABSTRACT);
+  } else {
+    address = g_unix_socket_address_new(socket_path);
+  }
   if (!g_socket_connect(socket, address, cancellable, &error_local)) {
     g_set_error(error, SNAPD_ERROR, SNAPD_ERROR_CONNECTION_FAILED,
                 "Unable to connect snapd socket: %s", error_local->message);
