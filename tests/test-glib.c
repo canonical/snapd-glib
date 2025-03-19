@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "mock-snapd.h"
+#include <gio/gunixsocketaddress.h>
 #include <snapd-glib/snapd-client-private.h>
 
 typedef struct {
