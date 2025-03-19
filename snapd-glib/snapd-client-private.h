@@ -8,7 +8,6 @@
  */
 
 #pragma once
-#include "snapd-error.h"
 
 /*
  * This function is declared in this private header because it must be private,

@@ -8,11 +8,11 @@
  */
 
 #include <json-glib/json-glib.h>
-#include <snapd-glib/snapd-client-private.h>
 #include <snapd-glib/snapd-glib.h>
 #include <string.h>
 
 #include "mock-snapd.h"
+#include <snapd-glib/snapd-client-private.h>
 
 typedef struct {
   GMainLoop *loop;
@@ -9130,6 +9130,28 @@ static void test_get_serial_assertion_async(void) {
 }
 
 static void test_abstract_socket(void) {
+  // create an abstract socket
+
+  const gchar *socket_path = "@/snapd/a-test-socket";
+
+  g_autoptr(GError) error_local = NULL;
+  g_autoptr(GSocket) socket =
+      g_socket_new(G_SOCKET_FAMILY_UNIX, G_SOCKET_TYPE_STREAM,
+                   G_SOCKET_PROTOCOL_DEFAULT, &error_local);
+  g_assert_nonnull(socket);
+
+  g_socket_set_blocking(socket, FALSE);
+  g_autoptr(GSocketAddress) address = g_unix_socket_address_new_with_type(
+      socket_path + 1, -1, G_UNIX_SOCKET_ADDRESS_ABSTRACT);
+  g_assert_nonnull(address);
+  g_assert_true(g_socket_bind(socket, address, FALSE, &error_local));
+  g_assert_true(g_socket_listen(socket, NULL));
+
+  g_autoptr(GSocket) socket2 = open_snapd_socket(socket_path, NULL, NULL);
+  g_assert_nonnull(socket2);
+}
+
+static void test_non_existent_abstract_socket(void) {
   g_autoptr(GSocket) socket =
       open_snapd_socket("@/snapd/this-socket-doesn-t-exist", NULL, NULL);
   g_assert_null(socket);
@@ -9138,8 +9160,9 @@ static void test_abstract_socket(void) {
 int main(int argc, char **argv) {
   g_test_init(&argc, &argv, NULL);
 
+  g_test_add_func("/socket/test_abstract_socket", test_abstract_socket);
   g_test_add_func("/socket/test_not_existing_abstract_socket",
-                  test_abstract_socket);
+                  test_non_existent_abstract_socket);
   g_test_add_func("/notices/test_task_data_field", test_task_data_field);
   g_test_add_func("/errors/test_error_get_change", test_error_get_change);
   g_test_add_func("/notices/test_notices", test_notices_events);

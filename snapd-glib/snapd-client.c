@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "snapd-client-private.h"
 #include "snapd-client.h"
 
 #include "requests/snapd-get-aliases.h"
@@ -56,6 +55,8 @@
 #include "requests/snapd-post-themes.h"
 #include "requests/snapd-put-snap-conf.h"
 #include "snapd-error.h"
+
+#include "snapd-client-private.h"
 
 /**
  * SECTION:snapd-client
