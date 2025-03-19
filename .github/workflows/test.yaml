@@ -90,27 +90,27 @@ jobs:
       - name: Configure (with docs)
         if: matrix.soup == 'libsoup3' && matrix.qt != 'qt5' && matrix.doc
         run: |
-          meson _build -Dtests=true
+          meson _build
 
       - name: Configure
         if: matrix.soup == 'libsoup3' && matrix.qt != 'qt5' && !matrix.doc
         run: |
-          meson _build -Ddocs=false -Dtests=true
+          meson _build -Ddocs=false
 
       - name: Configure (Qt5)
         if: matrix.soup == 'libsoup3' && matrix.qt == 'qt5'
         run: |
-          meson _build -Dqt=5=true -Dqt6=false -Ddocs=false -Dtests=true
+          meson _build -Dqt=5=true -Dqt6=false -Ddocs=false
 
       - name: Configure (libsoup2.4)
         if: matrix.soup == 'libsoup2' && matrix.qt != 'qt5'
         run:
-          meson _build -Dsoup2=true -Ddocs=false -Dtests=true
+          meson _build -Dsoup2=true -Ddocs=false
 
       - name: Configure (libsoup2.4 and Qt5)
         if: matrix.soup == 'libsoup2' && matrix.qt == 'qt5'
         run: |
-          meson _build -Dsoup2=true -Dqt5=true -Dqt6=false -Ddocs=false -Dtests=true
+          meson _build -Dsoup2=true -Dqt5=true -Dqt6=false -Ddocs=false
 
       - name: Build
         run: |

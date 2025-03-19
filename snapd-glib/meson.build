@@ -175,10 +175,6 @@ source_private_c = [
 
 common_cflags = [ '-DSNAPD_COMPILATION=1', '-DVERSION="@0@"'.format (meson.project_version ()), '-DG_LOG_DOMAIN="Snapd"', '-DGETTEXT_PACKAGE="snapd-glib"' ]
 
-if get_option ('tests')
-  common_cflags += '-DBUILD_TESTS'
-endif
-
 gnome = import ('gnome')
 snapd_glib_enums = gnome.mkenums ('snapd-enum-types',
                                   sources: source_h,

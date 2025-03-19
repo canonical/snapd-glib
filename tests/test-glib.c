@@ -8,6 +8,7 @@
  */
 
 #include <json-glib/json-glib.h>
+#include <snapd-glib/snapd-client-private.h>
 #include <snapd-glib/snapd-glib.h>
 #include <string.h>
 
@@ -9133,9 +9134,9 @@ static void test_get_serial_assertion_async(void) {
 gboolean snapd_test_open_snapd_socket(const gchar *socket_path);
 
 static void test_abstract_socket(void) {
-  gboolean opened =
-      snapd_test_open_snapd_socket("@/snapd/this-socket-doesn-t-exist");
-  g_assert_false(opened);
+  g_autoptr(GSocket) socket =
+      open_snapd_socket("@/snapd/this-socket-doesn-t-exist", NULL, NULL);
+  g_assert_null(socket);
 }
 
 int main(int argc, char **argv) {

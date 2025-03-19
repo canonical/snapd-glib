@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "snapd-client-private.h"
 #include "snapd-client.h"
 
 #include "requests/snapd-get-aliases.h"
@@ -743,45 +744,6 @@ static void request_cancelled_cb(GCancellable *cancellable, RequestData *data) {
     g_source_attach(idle_source, _snapd_request_get_context(data->request));
   }
 }
-
-static GSocket *open_snapd_socket(const gchar *socket_path,
-                                  GCancellable *cancellable, GError **error) {
-  g_autoptr(GError) error_local = NULL;
-  g_autoptr(GSocket) socket =
-      g_socket_new(G_SOCKET_FAMILY_UNIX, G_SOCKET_TYPE_STREAM,
-                   G_SOCKET_PROTOCOL_DEFAULT, &error_local);
-  if (socket == NULL) {
-    g_set_error(error, SNAPD_ERROR, SNAPD_ERROR_CONNECTION_FAILED,
-                "Unable to create snapd socket: %s", error_local->message);
-    return NULL;
-  }
-  g_socket_set_blocking(socket, FALSE);
-  g_autoptr(GSocketAddress) address = NULL;
-  if (socket_path[0] == '@') {
-    address = g_unix_socket_address_new_with_type(
-        socket_path + 1, -1, G_UNIX_SOCKET_ADDRESS_ABSTRACT);
-  } else {
-    address = g_unix_socket_address_new(socket_path);
-  }
-  if (!g_socket_connect(socket, address, cancellable, &error_local)) {
-    g_set_error(error, SNAPD_ERROR, SNAPD_ERROR_CONNECTION_FAILED,
-                "Unable to connect snapd socket: %s", error_local->message);
-    return NULL;
-  }
-
-  return g_steal_pointer(&socket);
-}
-
-#ifdef BUILD_TESTS
-// This function is only to test that an error is received when trying
-// to open a non-existent socket. It must NOT be used in normal code.
-// That is why it is exported only when compiling tests, and isn't
-// available in the headers.
-gboolean snapd_test_open_snapd_socket(const gchar *socket_path) {
-  g_autoptr(GSocket) socket = open_snapd_socket(socket_path, NULL, NULL);
-  return (socket != NULL);
-}
-#endif
 
 static GSource *make_read_source(SnapdClient *self, GMainContext *context) {
   SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
