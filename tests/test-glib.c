@@ -12,7 +12,6 @@
 #include <string.h>
 
 #include "mock-snapd.h"
-#include <gio/gunixsocketaddress.h>
 
 typedef struct {
   GMainLoop *loop;
