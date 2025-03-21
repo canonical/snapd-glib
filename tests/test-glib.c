@@ -13,7 +13,6 @@
 
 #include "mock-snapd.h"
 #include <gio/gunixsocketaddress.h>
-#include <snapd-glib/snapd-client-private.h>
 
 typedef struct {
   GMainLoop *loop;
@@ -9131,31 +9130,39 @@ static void test_get_serial_assertion_async(void) {
 }
 
 static void test_abstract_socket(void) {
-  // create an abstract socket
+  g_autoptr(GMainLoop) loop = g_main_loop_new(NULL, FALSE);
 
-  const gchar *socket_path = "@/snapd/a-test-socket";
+  g_autoptr(MockSnapd) snapd = mock_snapd_new();
+  g_assert_nonnull(snapd);
+  mock_snapd_use_abstract_socket(snapd);
 
-  g_autoptr(GError) error_local = NULL;
-  g_autoptr(GSocket) socket =
-      g_socket_new(G_SOCKET_FAMILY_UNIX, G_SOCKET_TYPE_STREAM,
-                   G_SOCKET_PROTOCOL_DEFAULT, &error_local);
-  g_assert_nonnull(socket);
+  g_autoptr(GError) error = NULL;
+  g_assert_true(mock_snapd_start(snapd, &error));
+  g_assert_null(error);
 
-  g_socket_set_blocking(socket, FALSE);
-  g_autoptr(GSocketAddress) address = g_unix_socket_address_new_with_type(
-      socket_path + 1, -1, G_UNIX_SOCKET_ADDRESS_ABSTRACT);
-  g_assert_nonnull(address);
-  g_assert_true(g_socket_bind(socket, address, FALSE, &error_local));
-  g_assert_true(g_socket_listen(socket, NULL));
+  const gchar *socket_path = mock_snapd_get_socket_path(snapd);
+  g_assert_nonnull(socket_path);
+  g_assert_cmpint(socket_path[0], ==, '@');
 
-  g_autoptr(GSocket) socket2 = open_snapd_socket(socket_path, NULL, NULL);
-  g_assert_nonnull(socket2);
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, socket_path);
+
+  g_autoptr(SnapdSystemInformation) info =
+      snapd_client_get_system_information_sync(client, NULL, &error);
+  g_assert_nonnull(info);
+  g_assert_null(error);
 }
 
 static void test_non_existent_abstract_socket(void) {
-  g_autoptr(GSocket) socket =
-      open_snapd_socket("@/snapd/this-socket-doesn-t-exist", NULL, NULL);
-  g_assert_null(socket);
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, "@/snapd/this-socket-doesn-t-exist");
+  g_autoptr(GError) error = NULL;
+  g_autoptr(SnapdSystemInformation) info =
+      snapd_client_get_system_information_sync(client, NULL, &error);
+  g_assert_null(info);
+  g_assert_nonnull(error);
+  g_assert_cmpstr(error->message, ==,
+                  "Unable to connect snapd socket: Connection refused");
 }
 
 int main(int argc, char **argv) {
