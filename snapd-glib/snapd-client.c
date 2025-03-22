@@ -142,6 +142,8 @@ G_DEFINE_TYPE_WITH_PRIVATE(SnapdClient, snapd_client, G_TYPE_OBJECT)
 
 /* Default socket to connect to */
 #define SNAPD_SOCKET "/run/snapd.socket"
+#define SNAPD_SNAP_SOCKET_OLD "/run/snapd-snap.socket"
+#define SNAPD_SNAP_SOCKET "@/snapd/snapd-snap.socket"
 
 /* Number of bytes to read at a time */
 #define READ_SIZE 1024
@@ -742,8 +744,19 @@ static void request_cancelled_cb(GCancellable *cancellable, RequestData *data) {
   }
 }
 
+static GSocketAddress *create_socket_address(const gchar *socket_path) {
+  if (socket_path[0] == '@') {
+    return g_unix_socket_address_new_with_type(socket_path + 1, -1,
+                                               G_UNIX_SOCKET_ADDRESS_ABSTRACT);
+  } else {
+    return g_unix_socket_address_new(socket_path);
+  }
+}
+
 static GSocket *open_snapd_socket(const gchar *socket_path,
                                   GCancellable *cancellable, GError **error) {
+  g_return_val_if_fail(socket_path != NULL, NULL);
+
   g_autoptr(GError) error_local = NULL;
   g_autoptr(GSocket) socket =
       g_socket_new(G_SOCKET_FAMILY_UNIX, G_SOCKET_TYPE_STREAM,
@@ -754,7 +767,8 @@ static GSocket *open_snapd_socket(const gchar *socket_path,
     return NULL;
   }
   g_socket_set_blocking(socket, FALSE);
-  g_autoptr(GSocketAddress) address = g_unix_socket_address_new(socket_path);
+  g_autoptr(GSocketAddress) address = create_socket_address(socket_path);
+
   if (!g_socket_connect(socket, address, cancellable, &error_local)) {
     g_set_error(error, SNAPD_ERROR, SNAPD_ERROR_CONNECTION_FAILED,
                 "Unable to connect snapd socket: %s", error_local->message);
@@ -762,6 +776,23 @@ static GSocket *open_snapd_socket(const gchar *socket_path,
   }
 
   return g_steal_pointer(&socket);
+}
+
+static GSocket *do_open_snapd_socket(const gchar *socket_path,
+                                     GCancellable *cancellable,
+                                     GError **error) {
+  if (socket_path != NULL) {
+    return open_snapd_socket(socket_path, cancellable, error);
+  }
+  if (getenv("SNAP") == NULL) {
+    return open_snapd_socket(SNAPD_SOCKET, cancellable, error);
+  }
+  g_autoptr(GSocket) sock =
+      open_snapd_socket(SNAPD_SNAP_SOCKET, cancellable, error);
+  if (sock == NULL) {
+    sock = open_snapd_socket(SNAPD_SNAP_SOCKET_OLD, cancellable, error);
+  }
+  return g_steal_pointer(&sock);
 }
 
 static GSource *make_read_source(SnapdClient *self, GMainContext *context) {
@@ -892,7 +923,7 @@ static void send_request(SnapdClient *self, SnapdRequest *request) {
   if (priv->snapd_socket == NULL) {
     g_autoptr(GError) error = NULL;
     priv->snapd_socket =
-        open_snapd_socket(priv->socket_path, cancellable, &error);
+        do_open_snapd_socket(priv->socket_path, cancellable, &error);
     if (priv->snapd_socket == NULL) {
       complete_request(self, request, error);
       return;
@@ -917,7 +948,7 @@ static void send_request(SnapdClient *self, SnapdRequest *request) {
     g_clear_pointer(&data->read_source, g_source_unref);
 
     priv->snapd_socket =
-        open_snapd_socket(priv->socket_path, cancellable, &error);
+        do_open_snapd_socket(priv->socket_path, cancellable, &error);
     if (priv->snapd_socket == NULL) {
       complete_request(self, request, error);
       return;
@@ -1011,9 +1042,12 @@ gboolean snapd_client_connect_finish(SnapdClient *self, GAsyncResult *result,
  * snapd_client_set_socket_path:
  * @client: a #SnapdClient
  * @socket_path: (allow-none): a socket path or %NULL to reset to the default.
+ *               If the socket name is in the form '@XXXXXXX', it will be
+ *               considered an abstract socket with XXXXXXX as its path.
  *
  * Set the Unix socket path to connect to snapd with.
- * Defaults to the system socket.
+ * Defaults to the system socket, taking into account if the code is running
+ * confined in a Snap or not.
  *
  * Since: 1.24
  */
@@ -1026,7 +1060,7 @@ void snapd_client_set_socket_path(SnapdClient *self, const gchar *socket_path) {
   if (socket_path != NULL)
     priv->socket_path = g_strdup(socket_path);
   else
-    priv->socket_path = g_strdup(SNAPD_SOCKET);
+    priv->socket_path = NULL;
 }
 
 /**
@@ -1042,7 +1076,14 @@ void snapd_client_set_socket_path(SnapdClient *self, const gchar *socket_path) {
 const gchar *snapd_client_get_socket_path(SnapdClient *self) {
   SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
   g_return_val_if_fail(SNAPD_IS_CLIENT(self), NULL);
-  return priv->socket_path;
+  if (priv->socket_path != NULL) {
+    return priv->socket_path;
+  }
+  if (getenv("SNAP") == NULL) {
+    return SNAPD_SOCKET;
+  } else {
+    return SNAPD_SNAP_SOCKET;
+  }
 }
 
 /**
@@ -4985,7 +5026,7 @@ static void snapd_client_class_init(SnapdClientClass *klass) {
 static void snapd_client_init(SnapdClient *self) {
   SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
 
-  priv->socket_path = g_strdup(SNAPD_SOCKET);
+  priv->socket_path = NULL;
   priv->user_agent = g_strdup("snapd-glib/" VERSION);
   priv->allow_interaction = TRUE;
   priv->requests =

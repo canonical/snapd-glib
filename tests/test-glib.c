@@ -9128,9 +9128,48 @@ static void test_get_serial_assertion_async(void) {
   g_main_loop_run(loop);
 }
 
+static void test_abstract_socket(void) {
+  g_autoptr(GMainLoop) loop = g_main_loop_new(NULL, FALSE);
+
+  g_autoptr(MockSnapd) snapd = mock_snapd_new();
+  g_assert_nonnull(snapd);
+  mock_snapd_use_abstract_socket(snapd);
+
+  g_autoptr(GError) error = NULL;
+  g_assert_true(mock_snapd_start(snapd, &error));
+  g_assert_null(error);
+
+  const gchar *socket_path = mock_snapd_get_socket_path(snapd);
+  g_assert_nonnull(socket_path);
+  g_assert_cmpint(socket_path[0], ==, '@');
+
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, socket_path);
+
+  g_autoptr(SnapdSystemInformation) info =
+      snapd_client_get_system_information_sync(client, NULL, &error);
+  g_assert_nonnull(info);
+  g_assert_null(error);
+}
+
+static void test_non_existent_abstract_socket(void) {
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, "@/snapd/this-socket-doesn-t-exist");
+  g_autoptr(GError) error = NULL;
+  g_autoptr(SnapdSystemInformation) info =
+      snapd_client_get_system_information_sync(client, NULL, &error);
+  g_assert_null(info);
+  g_assert_nonnull(error);
+  g_assert_cmpstr(error->message, ==,
+                  "Unable to connect snapd socket: Connection refused");
+}
+
 int main(int argc, char **argv) {
   g_test_init(&argc, &argv, NULL);
 
+  g_test_add_func("/socket/test_abstract_socket", test_abstract_socket);
+  g_test_add_func("/socket/test_not_existing_abstract_socket",
+                  test_non_existent_abstract_socket);
   g_test_add_func("/notices/test_task_data_field", test_task_data_field);
   g_test_add_func("/errors/test_error_get_change", test_error_get_change);
   g_test_add_func("/notices/test_notices", test_notices_events);

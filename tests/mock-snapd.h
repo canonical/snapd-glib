@@ -53,6 +53,8 @@ GHashTable *g_uri_parse_params(const gchar *params, gssize lenght,
 
 MockSnapd *mock_snapd_new(void);
 
+void mock_snapd_use_abstract_socket(MockSnapd *self);
+
 const gchar *mock_snapd_get_socket_path(MockSnapd *snapd);
 
 void mock_snapd_set_close_on_request(MockSnapd *snapd,

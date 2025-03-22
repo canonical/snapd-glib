@@ -5253,8 +5253,10 @@ static void mock_snapd_finalize(GObject *object) {
   /* shut down the server if it is running */
   mock_snapd_stop(self);
 
-  if (g_unlink(self->socket_path) < 0 && errno != ENOENT)
-    g_printerr("Failed to unlink mock snapd socket: %s\n", g_strerror(errno));
+  if ((self->socket_path != NULL) && (self->socket_path[0] != '@')) {
+    if (g_unlink(self->socket_path) < 0 && errno != ENOENT)
+      g_printerr("Failed to unlink mock snapd socket: %s\n", g_strerror(errno));
+  }
   if (g_rmdir(self->dir_path) < 0)
     g_printerr("Failed to remove temporary directory: %s\n", g_strerror(errno));
 
@@ -5332,7 +5334,12 @@ static GSocket *open_listening_socket(SoupServer *server,
   if (socket == NULL)
     return NULL;
 
-  address = g_unix_socket_address_new(socket_path);
+  if (socket_path[0] == '@') {
+    address = g_unix_socket_address_new_with_type(
+        socket_path + 1, -1, G_UNIX_SOCKET_ADDRESS_ABSTRACT);
+  } else {
+    address = g_unix_socket_address_new(socket_path);
+  }
   if (!g_socket_bind(socket, address, TRUE, error))
     return NULL;
 
@@ -5371,8 +5378,10 @@ gpointer mock_snapd_init_thread(gpointer user_data) {
   if (socket != NULL)
     g_main_loop_run(self->loop);
 
-  if (g_unlink(self->socket_path) < 0)
-    g_printerr("Failed to unlink mock snapd socket\n");
+  if ((self->socket_path != NULL) && (self->socket_path[0] != '@')) {
+    if (g_unlink(self->socket_path) < 0)
+      g_printerr("Failed to unlink mock snapd socket\n");
+  }
 
   g_main_context_pop_thread_default(self->context);
 
@@ -5380,6 +5389,14 @@ gpointer mock_snapd_init_thread(gpointer user_data) {
   g_clear_pointer(&self->context, g_main_context_unref);
 
   return NULL;
+}
+
+void mock_snapd_use_abstract_socket(MockSnapd *self) {
+  g_return_if_fail(self->socket_path != NULL);
+  g_return_if_fail(self->socket_path[0] != '@');
+
+  g_autofree gchar *current_path = self->socket_path;
+  self->socket_path = g_strdup_printf("@%s", current_path);
 }
 
 gboolean mock_snapd_start(MockSnapd *self, GError **dest_error) {
