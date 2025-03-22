@@ -1045,7 +1045,8 @@ gboolean snapd_client_connect_finish(SnapdClient *self, GAsyncResult *result,
  *               considered an abstract socket with XXXXXXX as its path.
  *
  * Set the Unix socket path to connect to snapd with.
- * Defaults to the system socket.
+ * Defaults to the system socket, taking into account if the code is running
+ * confined in a Snap or not.
  *
  * Since: 1.24
  */
