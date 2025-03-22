@@ -787,11 +787,12 @@ static GSocket *do_open_snapd_socket(const gchar *socket_path,
   if (getenv("SNAP") == NULL) {
     return open_snapd_socket(SNAPD_SOCKET, cancellable, error);
   }
-  GSocket *retval = open_snapd_socket(SNAPD_SNAP_SOCKET, cancellable, error);
-  if (retval == NULL) {
-    retval = open_snapd_socket(SNAPD_SNAP_SOCKET_OLD, cancellable, error);
+  g_autoptr(GSocket) sock =
+      open_snapd_socket(SNAPD_SNAP_SOCKET, cancellable, error);
+  if (sock == NULL) {
+    sock = open_snapd_socket(SNAPD_SNAP_SOCKET_OLD, cancellable, error);
   }
-  return retval;
+  return g_steal_pointer(&sock);
 }
 
 static GSource *make_read_source(SnapdClient *self, GMainContext *context) {
