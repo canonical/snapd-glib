@@ -1,5 +1,5 @@
 project ('snapd-glib', [ 'c', 'cpp' ],
-         version: '1.67',
+         version: '1.68',
          meson_version: '>= 0.58.0',
          default_options : [ 'c_std=c11' ])
 
