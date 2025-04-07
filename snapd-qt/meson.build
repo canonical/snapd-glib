@@ -113,6 +113,7 @@ source_h = [
   'Snapd/task-data.h',
   'Snapd/user-information.h',
   'Snapd/wrapped-object.h',
+  'Snapd/snapdqt_global.h',
 ]
 
 source_alias_h = [
