@@ -134,6 +134,8 @@ gboolean snapd_snap_get_jailmode(SnapdSnap *snap);
 
 const gchar *snapd_snap_get_license(SnapdSnap *snap);
 
+GPtrArray *snapd_snap_get_links(SnapdSnap *snap);
+
 GPtrArray *snapd_snap_get_media(SnapdSnap *snap);
 
 const gchar *snapd_snap_get_mounted_from(SnapdSnap *snap);

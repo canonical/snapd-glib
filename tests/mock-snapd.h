@@ -32,6 +32,7 @@ typedef struct _MockChange MockChange;
 typedef struct _MockChannel MockChannel;
 typedef struct _MockConnection MockConnection;
 typedef struct _MockInterface MockInterface;
+typedef struct _MockLink MockLink;
 typedef struct _MockLog MockLog;
 typedef struct _MockMedia MockMedia;
 typedef struct _MockPlug MockPlug;
@@ -305,6 +306,8 @@ void mock_snap_set_revision(MockSnap *snap, const gchar *revision);
 const gchar *mock_snap_get_revision(MockSnap *snap);
 
 void mock_snap_set_scope_is_wide(MockSnap *snap, gboolean scope_is_wide);
+
+MockLink *mock_snap_add_link(MockSnap *snap, const gchar *type, GStrv urls);
 
 MockMedia *mock_snap_add_media(MockSnap *snap, const gchar *type,
                                const gchar *url, int width, int height);
