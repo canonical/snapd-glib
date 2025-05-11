@@ -1438,6 +1438,7 @@ static void test_list_one_sync() {
   g_assert_cmpint(snap->installedSize(), ==, 0);
   g_assert_false(snap->jailmode());
   g_assert_null(snap->license());
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_null(snap->mountedFrom());
   g_assert_true(snap->name() == "snap");
@@ -1485,6 +1486,7 @@ void ListOneHandler::onComplete() {
   g_assert_true(snap->installDate().isNull());
   g_assert_cmpint(snap->installedSize(), ==, 0);
   g_assert_false(snap->jailmode());
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_true(snap->name() == "snap");
   g_assert_cmpint(snap->priceCount(), ==, 0);
@@ -1562,6 +1564,7 @@ static void test_get_snap_sync() {
   g_assert_cmpint(snap->installedSize(), ==, 0);
   g_assert_false(snap->jailmode());
   g_assert_null(snap->license());
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_null(snap->mountedFrom());
   g_assert_true(snap->name() == "snap");
@@ -1609,6 +1612,7 @@ void GetSnapHandler::onComplete() {
   g_assert_true(snap->installDate().isNull());
   g_assert_cmpint(snap->installedSize(), ==, 0);
   g_assert_false(snap->jailmode());
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_true(snap->name() == "snap");
   g_assert_cmpint(snap->priceCount(), ==, 0);
@@ -1779,6 +1783,7 @@ static void test_get_snap_optional_fields() {
   g_assert_cmpint(snap->installedSize(), ==, 1024);
   g_assert_true(snap->jailmode());
   g_assert_true(snap->license() == "LICENSE");
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_true(snap->mountedFrom() == "MOUNTED-FROM");
   g_assert_true(snap->name() == "snap");
@@ -3641,6 +3646,8 @@ static void test_find_query() {
   mock_snap_set_store_url(s, "https://snapcraft.io/snap");
   mock_snap_set_summary(s, "SUMMARY");
   mock_snap_set_download_size(s, 1024);
+  mock_snap_add_link(s, "contact", "contact");
+  mock_snap_add_link(s, "website", "website");
   mock_snap_add_price(s, 1.25, "NZD");
   mock_snap_add_price(s, 0.75, "USD");
   mock_snap_add_media(s, "screenshot", "screenshot0.png", 0, 0);
@@ -3687,6 +3694,11 @@ static void test_find_query() {
   g_assert_true(snap1->id() == "ID");
   g_assert_true(snap1->installDate().isNull());
   g_assert_cmpint(snap1->installedSize(), ==, 0);
+  g_assert_cmpint(snap1->links().length(), ==, 2);
+  g_assert_true(snap1->links()[0]->type() == "contact");
+  g_assert_true(snap1->links()[0]->urls() == QStringList("contact"));
+  g_assert_true(snap1->links()[1]->type() == "website");
+  g_assert_true(snap1->links()[1]->urls() == QStringList("website"));
   g_assert_cmpint(snap1->mediaCount(), ==, 3);
   QScopedPointer<QSnapdMedia> media0(snap1->media(0));
   g_assert_true(media0->type() == "screenshot");
