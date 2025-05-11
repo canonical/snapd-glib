@@ -25,6 +25,7 @@
 #include <snapd-glib/snapd-error.h>
 #include <snapd-glib/snapd-icon.h>
 #include <snapd-glib/snapd-interface.h>
+#include <snapd-glib/snapd-link.h>
 #include <snapd-glib/snapd-log.h>
 #include <snapd-glib/snapd-login.h>
 #include <snapd-glib/snapd-maintenance.h>

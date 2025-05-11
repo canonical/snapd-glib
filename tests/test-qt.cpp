@@ -1438,6 +1438,7 @@ static void test_list_one_sync() {
   g_assert_cmpint(snap->installedSize(), ==, 0);
   g_assert_false(snap->jailmode());
   g_assert_null(snap->license());
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_null(snap->mountedFrom());
   g_assert_true(snap->name() == "snap");
@@ -1485,6 +1486,7 @@ void ListOneHandler::onComplete() {
   g_assert_true(snap->installDate().isNull());
   g_assert_cmpint(snap->installedSize(), ==, 0);
   g_assert_false(snap->jailmode());
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_true(snap->name() == "snap");
   g_assert_cmpint(snap->priceCount(), ==, 0);
@@ -1562,6 +1564,7 @@ static void test_get_snap_sync() {
   g_assert_cmpint(snap->installedSize(), ==, 0);
   g_assert_false(snap->jailmode());
   g_assert_null(snap->license());
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_null(snap->mountedFrom());
   g_assert_true(snap->name() == "snap");
@@ -1609,6 +1612,7 @@ void GetSnapHandler::onComplete() {
   g_assert_true(snap->installDate().isNull());
   g_assert_cmpint(snap->installedSize(), ==, 0);
   g_assert_false(snap->jailmode());
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_true(snap->name() == "snap");
   g_assert_cmpint(snap->priceCount(), ==, 0);
@@ -1779,6 +1783,7 @@ static void test_get_snap_optional_fields() {
   g_assert_cmpint(snap->installedSize(), ==, 1024);
   g_assert_true(snap->jailmode());
   g_assert_true(snap->license() == "LICENSE");
+  g_assert_cmpint(snap->links().length(), ==, 0);
   g_assert_cmpint(snap->mediaCount(), ==, 0);
   g_assert_true(snap->mountedFrom() == "MOUNTED-FROM");
   g_assert_true(snap->name() == "snap");
@@ -3641,6 +3646,37 @@ static void test_find_query() {
   mock_snap_set_store_url(s, "https://snapcraft.io/snap");
   mock_snap_set_summary(s, "SUMMARY");
   mock_snap_set_download_size(s, 1024);
+
+  g_autoptr(GStrvBuilder) contact_url_builder = g_strv_builder_new();
+  g_strv_builder_add(contact_url_builder, "https://contact.com");
+  g_strv_builder_add(contact_url_builder, "test@contact.com");
+  g_auto(GStrv) contact_urls = g_strv_builder_end(contact_url_builder);
+  mock_snap_add_link(s, "contact", contact_urls);
+
+  g_autoptr(GStrvBuilder) donate_url_builder = g_strv_builder_new();
+  g_strv_builder_add(donate_url_builder, "https://donate1.com");
+  g_strv_builder_add(donate_url_builder, "https://donate2.com");
+  g_auto(GStrv) donate_urls = g_strv_builder_end(donate_url_builder);
+  mock_snap_add_link(s, "donate", donate_urls);
+
+  g_autoptr(GStrvBuilder) issue_url_builder = g_strv_builder_new();
+  g_strv_builder_add(issue_url_builder, "https://issue1.com");
+  g_strv_builder_add(issue_url_builder, "https://issue2.com");
+  g_auto(GStrv) issue_urls = g_strv_builder_end(issue_url_builder);
+  mock_snap_add_link(s, "issues", issue_urls);
+
+  g_autoptr(GStrvBuilder) source_url_builder = g_strv_builder_new();
+  g_strv_builder_add(source_url_builder, "https://source1.com");
+  g_strv_builder_add(source_url_builder, "https://source2.com");
+  g_auto(GStrv) source_urls = g_strv_builder_end(source_url_builder);
+  mock_snap_add_link(s, "source", source_urls);
+
+  g_autoptr(GStrvBuilder) website_url_builder = g_strv_builder_new();
+  g_strv_builder_add(website_url_builder, "https://website1.com");
+  g_strv_builder_add(website_url_builder, "https://website2.com");
+  g_auto(GStrv) website_urls = g_strv_builder_end(website_url_builder);
+  mock_snap_add_link(s, "website", website_urls);
+
   mock_snap_add_price(s, 1.25, "NZD");
   mock_snap_add_price(s, 0.75, "USD");
   mock_snap_add_media(s, "screenshot", "screenshot0.png", 0, 0);
@@ -3687,6 +3723,24 @@ static void test_find_query() {
   g_assert_true(snap1->id() == "ID");
   g_assert_true(snap1->installDate().isNull());
   g_assert_cmpint(snap1->installedSize(), ==, 0);
+
+  g_assert_cmpint(snap1->links().length(), ==, 5);
+  g_assert_true(snap1->links()[0]->type() == "contact");
+  g_assert_true(snap1->links()[0]->urls()[0] == "https://contact.com");
+  g_assert_true(snap1->links()[0]->urls()[1] == "test@contact.com");
+  g_assert_true(snap1->links()[1]->type() == "donate");
+  g_assert_true(snap1->links()[1]->urls()[0] == "https://donate1.com");
+  g_assert_true(snap1->links()[1]->urls()[1] == "https://donate2.com");
+  g_assert_true(snap1->links()[2]->type() == "issues");
+  g_assert_true(snap1->links()[2]->urls()[0] == "https://issue1.com");
+  g_assert_true(snap1->links()[2]->urls()[1] == "https://issue2.com");
+  g_assert_true(snap1->links()[3]->type() == "source");
+  g_assert_true(snap1->links()[3]->urls()[0] == "https://source1.com");
+  g_assert_true(snap1->links()[3]->urls()[1] == "https://source2.com");
+  g_assert_true(snap1->links()[4]->type() == "website");
+  g_assert_true(snap1->links()[4]->urls()[0] == "https://website1.com");
+  g_assert_true(snap1->links()[4]->urls()[1] == "https://website2.com");
+
   g_assert_cmpint(snap1->mediaCount(), ==, 3);
   QScopedPointer<QSnapdMedia> media0(snap1->media(0));
   g_assert_true(media0->type() == "screenshot");

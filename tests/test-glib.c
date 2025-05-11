@@ -1584,6 +1584,7 @@ static void test_list_one_sync(void) {
   g_assert_null(snapd_snap_get_install_date(snap));
   g_assert_cmpint(snapd_snap_get_installed_size(snap), ==, 0);
   g_assert_false(snapd_snap_get_jailmode(snap));
+  g_assert_cmpint(snapd_snap_get_links(snap)->len, ==, 0);
   g_assert_cmpint(snapd_snap_get_media(snap)->len, ==, 0);
   g_assert_cmpstr(snapd_snap_get_name(snap), ==, "snap");
   g_assert_cmpint(snapd_snap_get_prices(snap)->len, ==, 0);
@@ -1639,6 +1640,7 @@ static void list_one_cb(GObject *object, GAsyncResult *result,
   g_assert_cmpint(snapd_snap_get_installed_size(snap), ==, 0);
   g_assert_false(snapd_snap_get_jailmode(snap));
   g_assert_null(snapd_snap_get_license(snap));
+  g_assert_cmpint(snapd_snap_get_links(snap)->len, ==, 0);
   g_assert_cmpint(snapd_snap_get_media(snap)->len, ==, 0);
   g_assert_null(snapd_snap_get_mounted_from(snap));
   g_assert_cmpstr(snapd_snap_get_name(snap), ==, "snap");
@@ -1718,6 +1720,7 @@ static void test_get_snap_sync(void) {
   g_assert_null(snapd_snap_get_install_date(snap));
   g_assert_cmpint(snapd_snap_get_installed_size(snap), ==, 0);
   g_assert_false(snapd_snap_get_jailmode(snap));
+  g_assert_cmpint(snapd_snap_get_links(snap)->len, ==, 0);
   g_assert_cmpint(snapd_snap_get_media(snap)->len, ==, 0);
   g_assert_cmpstr(snapd_snap_get_name(snap), ==, "snap");
   g_assert_cmpint(snapd_snap_get_prices(snap)->len, ==, 0);
@@ -1771,6 +1774,7 @@ static void get_snap_cb(GObject *object, GAsyncResult *result,
   g_assert_cmpint(snapd_snap_get_installed_size(snap), ==, 0);
   g_assert_false(snapd_snap_get_jailmode(snap));
   g_assert_null(snapd_snap_get_license(snap));
+  g_assert_cmpint(snapd_snap_get_links(snap)->len, ==, 0);
   g_assert_cmpint(snapd_snap_get_media(snap)->len, ==, 0);
   g_assert_null(snapd_snap_get_mounted_from(snap));
   g_assert_cmpstr(snapd_snap_get_name(snap), ==, "snap");
@@ -1946,6 +1950,7 @@ static void test_get_snap_optional_fields(void) {
   g_assert_cmpint(snapd_snap_get_installed_size(snap), ==, 1024);
   g_assert_true(snapd_snap_get_jailmode(snap));
   g_assert_cmpstr(snapd_snap_get_license(snap), ==, "LICENSE");
+  g_assert_cmpint(snapd_snap_get_links(snap)->len, ==, 0);
   g_assert_cmpint(snapd_snap_get_media(snap)->len, ==, 0);
   g_assert_cmpstr(snapd_snap_get_mounted_from(snap), ==, "MOUNTED-FROM");
   g_assert_cmpstr(snapd_snap_get_name(snap), ==, "snap");
@@ -4221,6 +4226,37 @@ static void test_find_query(void) {
   s = mock_snapd_add_store_snap(snapd, "carrot2");
   mock_track_add_channel(mock_snap_add_track(s, "latest"), "stable", NULL);
   mock_snap_set_channel(s, "CHANNEL");
+
+  g_autoptr(GStrvBuilder) contact_url_builder = g_strv_builder_new();
+  g_strv_builder_add(contact_url_builder, "https://contact.com");
+  g_strv_builder_add(contact_url_builder, "test@contact.com");
+  g_auto(GStrv) contact_urls = g_strv_builder_end(contact_url_builder);
+  mock_snap_add_link(s, "contact", contact_urls);
+
+  g_autoptr(GStrvBuilder) donate_url_builder = g_strv_builder_new();
+  g_strv_builder_add(donate_url_builder, "https://donate1.com");
+  g_strv_builder_add(donate_url_builder, "https://donate2.com");
+  g_auto(GStrv) donate_urls = g_strv_builder_end(donate_url_builder);
+  mock_snap_add_link(s, "donate", donate_urls);
+
+  g_autoptr(GStrvBuilder) issue_url_builder = g_strv_builder_new();
+  g_strv_builder_add(issue_url_builder, "https://issue1.com");
+  g_strv_builder_add(issue_url_builder, "https://issue2.com");
+  g_auto(GStrv) issue_urls = g_strv_builder_end(issue_url_builder);
+  mock_snap_add_link(s, "issues", issue_urls);
+
+  g_autoptr(GStrvBuilder) source_url_builder = g_strv_builder_new();
+  g_strv_builder_add(source_url_builder, "https://source1.com");
+  g_strv_builder_add(source_url_builder, "https://source2.com");
+  g_auto(GStrv) source_urls = g_strv_builder_end(source_url_builder);
+  mock_snap_add_link(s, "source", source_urls);
+
+  g_autoptr(GStrvBuilder) website_url_builder = g_strv_builder_new();
+  g_strv_builder_add(website_url_builder, "https://website1.com");
+  g_strv_builder_add(website_url_builder, "https://website2.com");
+  g_auto(GStrv) website_urls = g_strv_builder_end(website_url_builder);
+  mock_snap_add_link(s, "website", website_urls);
+
   mock_snap_set_contact(s, "CONTACT");
   mock_snap_set_website(s, "WEBSITE");
   mock_snap_set_description(s, "DESCRIPTION");
@@ -4287,6 +4323,35 @@ static void test_find_query(void) {
   g_assert_cmpstr(snapd_snap_get_id(snap), ==, "ID");
   g_assert_null(snapd_snap_get_install_date(snap));
   g_assert_cmpint(snapd_snap_get_installed_size(snap), ==, 0);
+
+  GPtrArray *links = snapd_snap_get_links(snap);
+  g_assert_cmpint(links->len, ==, 5);
+  g_assert_cmpstr(snapd_link_get_url_type(links->pdata[0]), ==, "contact");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[0]))[0], ==,
+                  "https://contact.com");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[0]))[1], ==,
+                  "test@contact.com");
+  g_assert_cmpstr(snapd_link_get_url_type(links->pdata[1]), ==, "donate");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[1]))[0], ==,
+                  "https://donate1.com");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[1]))[1], ==,
+                  "https://donate2.com");
+  g_assert_cmpstr(snapd_link_get_url_type(links->pdata[2]), ==, "issues");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[2]))[0], ==,
+                  "https://issue1.com");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[2]))[1], ==,
+                  "https://issue2.com");
+  g_assert_cmpstr(snapd_link_get_url_type(links->pdata[3]), ==, "source");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[3]))[0], ==,
+                  "https://source1.com");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[3]))[1], ==,
+                  "https://source2.com");
+  g_assert_cmpstr(snapd_link_get_url_type(links->pdata[4]), ==, "website");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[4]))[0], ==,
+                  "https://website1.com");
+  g_assert_cmpstr((snapd_link_get_urls(links->pdata[4]))[1], ==,
+                  "https://website2.com");
+
   GPtrArray *media = snapd_snap_get_media(snap);
   g_assert_cmpint(media->len, ==, 3);
   g_assert_cmpstr(snapd_media_get_media_type(media->pdata[0]), ==,
