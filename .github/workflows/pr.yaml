@@ -1,9 +1,6 @@
 name: Check if CLA is signed
 on:
   pull_request:
-  push:
-    branches:
-      - master
 
 jobs:
   cla-check:
