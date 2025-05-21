@@ -1,0 +1,16 @@
+name: Check if CLA is signed
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  cla-check:
+    name: Check if CLA is signed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if CLA signed
+        uses: canonical/has-signed-canonical-cla@v2
+        with:
+          accept-existing-contributors: true
