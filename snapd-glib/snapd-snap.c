@@ -50,6 +50,7 @@ struct _SnapdSnap {
   gint64 installed_size;
   gboolean jailmode;
   gchar *license;
+  GPtrArray *links;
   GPtrArray *media;
   gchar *mounted_from;
   gchar *name;
@@ -89,6 +90,7 @@ enum {
   PROP_INSTALL_DATE,
   PROP_INSTALLED_SIZE,
   PROP_JAILMODE,
+  PROP_LINKS,
   PROP_NAME,
   PROP_PRICES,
   PROP_PRIVATE,
@@ -506,6 +508,22 @@ const gchar *snapd_snap_get_license(SnapdSnap *self) {
 }
 
 /**
+ * snapd_snap_get_links:
+ * @snap: a #SnapdSnap.
+ *
+ * Get links that are associated with this snap.
+ *
+ * Returns: (transfer none) (element-type SnapdLink): an array of #SnapdLink.
+ *
+ * Since: 1.69
+ */
+
+GPtrArray *snapd_snap_get_links(SnapdSnap *self) {
+  g_return_val_if_fail(SNAPD_IS_SNAP(self), NULL);
+  return self->links;
+}
+
+/**
  * snapd_snap_get_media:
  * @snap: a #SnapdSnap.
  *
@@ -907,6 +925,11 @@ static void snapd_snap_set_property(GObject *object, guint prop_id,
   case PROP_JAILMODE:
     self->jailmode = g_value_get_boolean(value);
     break;
+  case PROP_LINKS:
+    g_clear_pointer(&self->links, g_ptr_array_unref);
+    if (g_value_get_boxed(value) != NULL)
+      self->links = g_ptr_array_ref(g_value_get_boxed(value));
+    break;
   case PROP_MOUNTED_FROM:
     g_free(self->mounted_from);
     self->mounted_from = g_strdup(g_value_get_string(value));
@@ -1063,6 +1086,9 @@ static void snapd_snap_get_property(GObject *object, guint prop_id,
   case PROP_JAILMODE:
     g_value_set_boolean(value, self->jailmode);
     break;
+  case PROP_LINKS:
+    g_value_set_boxed(value, self->links);
+    break;
   case PROP_MEDIA:
     g_value_set_boxed(value, self->media);
     break;
@@ -1158,6 +1184,7 @@ static void snapd_snap_finalize(GObject *object) {
   g_clear_pointer(&self->install_date, g_date_time_unref);
   g_clear_pointer(&self->name, g_free);
   g_clear_pointer(&self->license, g_free);
+  g_clear_pointer(&self->links, g_ptr_array_unref);
   g_clear_pointer(&self->media, g_ptr_array_unref);
   g_clear_pointer(&self->mounted_from, g_free);
   g_clear_pointer(&self->prices, g_ptr_array_unref);
@@ -1321,6 +1348,12 @@ static void snapd_snap_class_init(SnapdSnapClass *klass) {
       gobject_class, PROP_LICENSE,
       g_param_spec_string(
           "license", "license", "The snap license as an SPDX expression", NULL,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
+              G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
+  g_object_class_install_property(
+      gobject_class, PROP_LINKS,
+      g_param_spec_boxed(
+          "links", "links", "Links associated with this snap", G_TYPE_PTR_ARRAY,
           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_NAME |
               G_PARAM_STATIC_NICK | G_PARAM_STATIC_BLURB));
   g_object_class_install_property(

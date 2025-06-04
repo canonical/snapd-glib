@@ -16,6 +16,7 @@
 #include <Snapd/Category>
 #include <Snapd/Channel>
 #include <Snapd/Enums>
+#include <Snapd/Link>
 #include <Snapd/Media>
 #include <Snapd/Price>
 #include <Snapd/Screenshot>
@@ -96,6 +97,7 @@ public:
   qint64 installedSize() const;
   bool jailmode() const;
   QString license() const;
+  Q_INVOKABLE QList<QSnapdLink *> links() const;
   int mediaCount() const;
   Q_INVOKABLE QSnapdMedia *media(int) const;
   QString mountedFrom() const;

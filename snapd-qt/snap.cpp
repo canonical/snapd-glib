@@ -173,6 +173,14 @@ QString QSnapdSnap::license() const {
   return snapd_snap_get_license(SNAPD_SNAP(wrapped_object));
 }
 
+QList<QSnapdLink *> QSnapdSnap::links() const {
+  QList<QSnapdLink *> links;
+  GPtrArray *array = snapd_snap_get_links(SNAPD_SNAP(wrapped_object));
+  for (int i = 0; i < array->len; i++)
+    links.append(new QSnapdLink(array->pdata[i]));
+  return links;
+}
+
 int QSnapdSnap::mediaCount() const {
   GPtrArray *media;
 

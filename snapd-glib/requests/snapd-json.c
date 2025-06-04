@@ -15,6 +15,7 @@
 #include "snapd-app.h"
 #include "snapd-category.h"
 #include "snapd-error.h"
+#include "snapd-link.h"
 #include "snapd-media.h"
 #include "snapd-screenshot.h"
 #include "snapd-task.h"
@@ -65,6 +66,20 @@ const gchar *_snapd_json_get_string(JsonObject *object, const gchar *name,
     return json_node_get_string(node);
   else
     return default_value;
+}
+
+GPtrArray *_snapd_json_get_keys(JsonObject *object) {
+  if (object == NULL) {
+    return NULL;
+  }
+  g_autoptr(GPtrArray) keys = g_ptr_array_new_with_free_func(g_free);
+  g_autoptr(GList) members = json_object_get_members(object);
+  for (GList *iter = members; iter != NULL; iter = iter->next) {
+    const gchar *key = (const gchar *)iter->data;
+    if (key != NULL)
+      g_ptr_array_add(keys, g_strdup(key));
+  }
+  return g_steal_pointer(&keys);
 }
 
 JsonArray *_snapd_json_get_array(JsonObject *object, const gchar *name) {
@@ -1070,6 +1085,45 @@ SnapdSnap *_snapd_json_parse_snap(JsonNode *node, GError **error) {
   }
   g_ptr_array_add(track_array, NULL);
 
+  JsonObject *links_object = _snapd_json_get_object(object, "links");
+  g_autoptr(GPtrArray) links_array =
+      g_ptr_array_new_with_free_func(g_object_unref);
+  g_autoptr(GPtrArray) link_types = _snapd_json_get_keys(links_object);
+  if (link_types != NULL) {
+    for (guint i = 0; i < link_types->len; i++) {
+      const gchar *key = (const gchar *)link_types->pdata[i];
+      JsonNode *node = json_object_get_member(links_object, key);
+      if (json_node_get_node_type(node) != JSON_NODE_ARRAY) {
+        g_set_error(error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED,
+                    "Unexpected url type for key '%s'", key);
+        return NULL;
+      }
+
+      g_autoptr(GPtrArray) urls_array = g_ptr_array_new();
+
+      g_autoptr(JsonArray) values_array =
+          _snapd_json_get_array(links_object, key);
+      guint array_length = json_array_get_length(values_array);
+
+      for (guint i = 0; i < array_length; i++) {
+        JsonNode *node = json_array_get_element(values_array, i);
+        if (json_node_get_value_type(node) != G_TYPE_STRING) {
+          g_set_error(error, SNAPD_ERROR, SNAPD_ERROR_READ_FAILED,
+                      "Unexpected link url at index %u", i);
+          return NULL;
+        }
+
+        g_ptr_array_add(urls_array, (gpointer)(json_node_get_string(node)));
+      }
+      g_ptr_array_add(urls_array, NULL);
+      g_autoptr(SnapdLink) link =
+          g_object_new(SNAPD_TYPE_LINK, "type", key, "urls",
+                       (GStrv)(urls_array->pdata), NULL);
+
+      g_ptr_array_add(links_array, g_steal_pointer(&link));
+    }
+  }
+
   /* The developer field originally contained the publisher username */
   const gchar *publisher_username =
       _snapd_json_get_string(object, "developer", NULL);
@@ -1119,9 +1173,10 @@ SnapdSnap *_snapd_json_parse_snap(JsonNode *node, GError **error) {
       _snapd_json_get_string(object, "id", NULL), "install-date", install_date,
       "installed-size", _snapd_json_get_int(object, "installed-size", 0),
       "jailmode", _snapd_json_get_bool(object, "jailmode", FALSE), "license",
-      _snapd_json_get_string(object, "license", NULL), "media", media_array,
-      "mounted-from", _snapd_json_get_string(object, "mounted-from", NULL),
-      "name", name, "prices", prices_array, "private",
+      _snapd_json_get_string(object, "license", NULL), "links", links_array,
+      "media", media_array, "mounted-from",
+      _snapd_json_get_string(object, "mounted-from", NULL), "name", name,
+      "prices", prices_array, "private",
       _snapd_json_get_bool(object, "private", FALSE), "publisher-id",
       publisher_id, "publisher-username", publisher_username,
       "publisher-display-name", publisher_display_name, "publisher-validation",

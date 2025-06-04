@@ -208,6 +208,11 @@ struct _MockChannel {
   gchar *version;
 };
 
+struct _MockLink {
+  gchar *type;
+  GStrv urls;
+};
+
 struct _MockLog {
   gchar *timestamp;
   gchar *message;
@@ -277,6 +282,7 @@ struct _MockSnap {
   int installed_size;
   gboolean jailmode;
   gchar *license;
+  GList *links;
   GList *media;
   gchar *mounted_from;
   gchar *name;
@@ -387,6 +393,12 @@ static void mock_track_free(MockTrack *track) {
   g_slice_free(MockTrack, track);
 }
 
+static void mock_link_free(MockLink *link) {
+  g_strfreev(link->urls);
+  g_free(link->type);
+  g_slice_free(MockLink, link);
+}
+
 static void mock_log_free(MockLog *log) {
   g_free(log->timestamp);
   g_free(log->message);
@@ -448,6 +460,7 @@ static void mock_snap_free(MockSnap *snap) {
   g_free(snap->id);
   g_free(snap->install_date);
   g_free(snap->license);
+  g_list_free_full(snap->links, (GDestroyNotify)mock_link_free);
   g_list_free_full(snap->media, (GDestroyNotify)mock_media_free);
   g_free(snap->mounted_from);
   g_free(snap->name);
@@ -1455,6 +1468,14 @@ void mock_snap_set_scope_is_wide(MockSnap *snap, gboolean scope_is_wide) {
   snap->scope_is_wide = scope_is_wide;
 }
 
+MockLink *mock_snap_add_link(MockSnap *snap, const gchar *type, GStrv urls) {
+  MockLink *link = g_slice_new0(MockLink);
+  link->type = g_strdup(type);
+  link->urls = g_strdupv(urls);
+
+  snap->links = g_list_append(snap->links, link);
+  return link;
+}
 MockMedia *mock_snap_add_media(MockSnap *snap, const gchar *type,
                                const gchar *url, int width, int height) {
   MockMedia *media = g_slice_new0(MockMedia);
@@ -2468,6 +2489,24 @@ static JsonNode *make_snap_node(MockSnap *snap) {
     json_builder_set_member_name(builder, "license");
     json_builder_add_string_value(builder, snap->license);
   }
+
+  if (snap->links != NULL) {
+    json_builder_set_member_name(builder, "links");
+    json_builder_begin_object(builder);
+
+    for (GList *link = snap->links; link; link = link->next) {
+      MockLink *urls = link->data;
+      json_builder_set_member_name(builder, urls->type);
+      json_builder_begin_array(builder);
+      for (gchar **url = urls->urls; *url != NULL; url++) {
+        json_builder_add_string_value(builder, *url);
+      }
+      json_builder_end_array(builder);
+    }
+
+    json_builder_end_object(builder);
+  }
+
   if (snap->mounted_from) {
     json_builder_set_member_name(builder, "mounted-from");
     json_builder_add_string_value(builder, snap->mounted_from);

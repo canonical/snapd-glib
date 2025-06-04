@@ -130,7 +130,6 @@ static int info (int argc, char **argv)
         g_printerr ("publisher: %s\n", publisher != NULL ? publisher : "–");
         if (store_snap != NULL) {
             g_printerr ("store-url: %s\n", snapd_snap_get_store_url (store_snap));
-            g_printerr ("contact:   %s\n", snapd_snap_get_contact (store_snap));
         }
         g_printerr ("license:   %s\n", license != NULL ? license : "unset");
         g_printerr ("description: |\n");
@@ -138,6 +137,20 @@ static int info (int argc, char **argv)
         if (store_snap != NULL) {
             g_printerr ("snap-id:   %s\n", snapd_snap_get_id (snap));
             g_printerr ("tracking:  %s\n", snapd_snap_get_tracking_channel (local_snap));
+        }
+        GPtrArray *links = snapd_snap_get_links(store_snap);
+        if (links != NULL && links->len > 0) {
+            g_printerr("links: |\n");
+            for (guint i = 0; i < links->len; i++) {
+              SnapdLink *link = g_ptr_array_index(links, i);
+              const gchar *type = snapd_link_get_url_type(link);
+              GStrv urls = snapd_link_get_urls(link);
+
+              g_printerr(" %s:\n", type);
+              for (gchar **url = urls; *url != NULL; url++) {
+                g_printerr("   - %s\n", *url);
+              }
+            }
         }
     }
 
