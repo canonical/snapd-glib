@@ -1101,7 +1101,7 @@ SnapdSnap *_snapd_json_parse_snap(JsonNode *node, GError **error) {
 
       g_autoptr(GPtrArray) urls_array = g_ptr_array_new();
 
-      JsonArray *values_array = _snapd_json_get_array(links_object, key);
+      g_autoptr(JsonArray) values_array = _snapd_json_get_array(links_object, key);
       guint array_length = json_array_get_length(values_array);
 
       for (guint i = 0; i < array_length; i++) {
