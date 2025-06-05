@@ -1,0 +1,22 @@
+name: Verify no Q_DECL_EXPORT is used
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Verify no Q_DECL_EXPORT is used
+        run: |
+          if grep Q_DECL_EXPORT snapd-qt/Snapd/*.h ; then
+            echo There are Q_DECL_EXPORT definitions in the Qt headers!!!
+            echo Replace them with LIBSNAPDQT_EXPORT
+            echo See https://github.com/canonical/snapd-glib/issues/175
+            exit 1
+          fi
