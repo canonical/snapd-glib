@@ -13,7 +13,7 @@
 #include <QtCore/QObject>
 #include <Snapd/WrappedObject>
 
-class Q_DECL_EXPORT QSnapdLink : public QSnapdWrappedObject {
+class LIBSNAPDQT_EXPORT QSnapdLink : public QSnapdWrappedObject {
   Q_OBJECT
 
   Q_PROPERTY(QString type READ type)
