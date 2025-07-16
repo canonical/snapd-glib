@@ -3,6 +3,7 @@ name: documentation
 on:
   push:
     branches:
+      - main
       - master
 
 permissions:
