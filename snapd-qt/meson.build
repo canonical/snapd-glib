@@ -41,7 +41,7 @@ qt_dep = dependency(
 )
 
 install_header_dir = join_paths (includedir, library_name, 'Snapd')
-qml_dir = join_paths (libdir, f'@qt_version@', 'qml', f'@qt_name@')
+qml_dir = join_paths (libdir, f'@qt_version@', 'qml', 'Snapd')
 cmake_dir = join_paths (libdir, 'cmake', qt_name)
 
 source_cpp = [
@@ -208,7 +208,7 @@ install_data (cmake_file, cmake_version_file,
 
     qml_moc_files = qt.preprocess (moc_headers: 'qml-plugin.h',
                                     dependencies: qml_dep)
-    library (qt_name,
+    library ('Snapd',
               'qml-plugin.cpp', qml_moc_files,
               dependencies: [ qml_dep, snapd_qt_dep ],
               build_rpath: qml_dir,
