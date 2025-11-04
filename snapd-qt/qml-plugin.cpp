@@ -12,7 +12,12 @@
 #include <Snapd/Client>
 
 void SnapdQmlPlugin::registerTypes(const char *uri) {
+#ifndef SNAPD_QML_SNAPD2
   Q_ASSERT(uri == QLatin1String("Snapd"));
+#else
+  Q_ASSERT(uri == QLatin1String("Snapd2"));
+#endif
+
   qmlRegisterType<QSnapdClient>(uri, 1, 0, "SnapdClient");
   qmlRegisterType<QSnapdAuthData>(uri, 1, 0, "SnapdAuthData");
   qmlRegisterUncreatableType<QSnapdIcon>(uri, 1, 0, "SnapdIcon",
