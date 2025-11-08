@@ -33,6 +33,8 @@ void SnapdQmlPlugin::registerTypes(const char *uri) {
       uri, 1, 0, "SnapdGetSystemInformationRequest", "Can't create");
   qmlRegisterUncreatableType<QSnapdListRequest>(uri, 1, 0, "SnapdListRequest",
                                                 "Can't create");
+  qmlRegisterUncreatableType<QSnapdGetSnapsRequest>(
+      uri, 1, 0, "SnapdGetSnapsRequest", "Can't create");
   qmlRegisterUncreatableType<QSnapdListOneRequest>(
       uri, 1, 0, "SnapdListOneRequest", "Can't create");
   qmlRegisterUncreatableType<QSnapdGetIconRequest>(
