@@ -185,9 +185,6 @@ pc.generate (libraries: snapd_qt_lib,
               version: meson.project_version (),
               requires: pc_required_qt,)
 
-install_data ('qmldir',
-              install_dir: qml_dir)
-
 cmake_conf = configuration_data ()
 cmake_conf.set ('libdir', libdir)
 cmake_conf.set ('includedir', includedir)
@@ -203,7 +200,18 @@ install_data (cmake_file, cmake_version_file,
               install_dir: cmake_dir)
 
   if get_option ('qml-bindings')
-    install_data ('qmldir',
+    qml_cppflags = []
+    if not get_option('soup2')
+        qml_cppflags += [ '-DSNAPD_QML_SNAPD2' ]
+    endif
+
+    qmldir_conf = configuration_data ()
+    qmldir_conf.set ('module_name', qt_name)
+    qmldir_conf.set ('plugin_name', qt_name)
+    qmldir_file = configure_file (input: 'qmldir.in',
+                                   output: 'qmldir',
+                                   configuration: qmldir_conf)
+    install_data (qmldir_file,
                   install_dir: qml_dir)
 
     qml_moc_files = qt.preprocess (moc_headers: 'qml-plugin.h',
@@ -211,6 +219,7 @@ install_data (cmake_file, cmake_version_file,
     library (qt_name,
               'qml-plugin.cpp', qml_moc_files,
               dependencies: [ qml_dep, snapd_qt_dep ],
+              cpp_args: qml_cppflags,
               build_rpath: qml_dir,
               install: true,
               install_dir: qml_dir)
