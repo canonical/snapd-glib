@@ -527,17 +527,28 @@ static gboolean parse_seq(SnapdClient *self, SnapdRequest *request,
       request, json_parser_get_root(parser), error);
 }
 
-static gboolean read_cb(GSocket *socket, GIOCondition condition,
-                        SnapdClient *self) {
-  SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&priv->buffer_mutex);
+typedef struct {
+  SnapdClient *client;
+  GCancellable *cancellable;
+} ReadData;
 
+static gboolean read_cb(GSocket *socket, GIOCondition condition,
+                        ReadData *data) {
+  SnapdClient *self = data->client;
+  SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
+  g_autoptr(GError) error = NULL;
+
+  if (g_cancellable_set_error_if_cancelled(data->cancellable, &error)) {
+    complete_all_requests(self, error);
+    return G_SOURCE_REMOVE;
+  }
+
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&priv->buffer_mutex);
   gsize orig_length = priv->buffer->len;
   g_byte_array_set_size(priv->buffer, orig_length + READ_SIZE);
-  g_autoptr(GError) error = NULL;
   gssize n_read =
       g_socket_receive(socket, (gchar *)priv->buffer->data + orig_length,
-                       READ_SIZE, NULL, &error);
+                       READ_SIZE, data->cancellable, &error);
   g_byte_array_set_size(priv->buffer, orig_length + (n_read >= 0 ? n_read : 0));
 
   if (n_read == 0) {
@@ -550,6 +561,11 @@ static gboolean read_cb(GSocket *socket, GIOCondition condition,
   if (n_read < 0) {
     if (g_error_matches(error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
       return G_SOURCE_CONTINUE;
+
+    if (g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED)) {
+      complete_all_requests(self, error);
+      return G_SOURCE_REMOVE;
+    }
 
     g_autoptr(GError) e =
         g_error_new(SNAPD_ERROR, SNAPD_ERROR_READ_FAILED,
@@ -798,11 +814,15 @@ static GSocket *do_open_snapd_socket(const gchar *socket_path,
 static GSource *make_read_source(SnapdClient *self, GMainContext *context,
                                  GCancellable *cancellable) {
   SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
+  ReadData *data = g_new0(ReadData, 1);
+
+  data->client = self;
+  data->cancellable = cancellable;
 
   g_autoptr(GSource) source =
       g_socket_create_source(priv->snapd_socket, G_IO_IN, cancellable);
   g_source_set_name(source, "snapd-glib-read-source");
-  g_source_set_callback(source, (GSourceFunc)read_cb, self, NULL);
+  g_source_set_callback(source, (GSourceFunc)read_cb, data, g_free);
   g_source_attach(source, context);
 
   return g_steal_pointer(&source);
