@@ -795,11 +795,12 @@ static GSocket *do_open_snapd_socket(const gchar *socket_path,
   return g_steal_pointer(&sock);
 }
 
-static GSource *make_read_source(SnapdClient *self, GMainContext *context) {
+static GSource *make_read_source(SnapdClient *self, GMainContext *context,
+                                 GCancellable *cancellable) {
   SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
 
   g_autoptr(GSource) source =
-      g_socket_create_source(priv->snapd_socket, G_IO_IN, NULL);
+      g_socket_create_source(priv->snapd_socket, G_IO_IN, cancellable);
   g_source_set_name(source, "snapd-glib-read-source");
   g_source_set_callback(source, (GSourceFunc)read_cb, self, NULL);
   g_source_attach(source, context);
@@ -932,7 +933,7 @@ static void send_request(SnapdClient *self, SnapdRequest *request) {
   }
 
   data->read_source =
-      make_read_source(self, _snapd_request_get_context(request));
+      make_read_source(self, _snapd_request_get_context(request), cancellable);
 
   /* send HTTP request */
   g_autoptr(GError) error = NULL;
@@ -954,8 +955,8 @@ static void send_request(SnapdClient *self, SnapdRequest *request) {
       return;
     }
 
-    data->read_source =
-        make_read_source(self, _snapd_request_get_context(request));
+    data->read_source = make_read_source(
+        self, _snapd_request_get_context(request), cancellable);
 
     if (write_to_snapd(self, request_data, cancellable, &error))
       return;
