@@ -8554,6 +8554,168 @@ static void test_stress(void) {
   }
 }
 
+#define N_FIND_SNAPS 3
+#define N_FIND_REPEATS 3
+#define N_FIND_TOTAL (N_FIND_SNAPS * N_FIND_REPEATS)
+
+static const char *find_snap_names[N_FIND_SNAPS] = {"snap-a", "snap-b",
+                                                    "snap-c"};
+
+typedef struct {
+  GMainLoop *loop;
+  SnapdClient *client;
+  int pending;
+  int n_completed;
+  int n_cancelled;
+} FindBatchData;
+
+typedef struct {
+  FindBatchData *batch;
+  int index;
+  const char *name;
+  gboolean should_cancel;
+} FindRequestData;
+
+static void send_find_request(FindBatchData *batch, int index);
+
+static void find_ordered_cb(GObject *object, GAsyncResult *result,
+                            gpointer user_data) {
+  g_autofree FindRequestData *req = g_steal_pointer(&user_data);
+  FindBatchData *batch = req->batch;
+  int next_index = req->index + 1;
+
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GPtrArray) snaps =
+      snapd_client_find_finish(SNAPD_CLIENT(object), result, NULL, &error);
+
+  if (req->should_cancel) {
+    g_assert_error(error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+    g_assert_null(snaps);
+    batch->n_cancelled++;
+  } else {
+    g_assert_no_error(error);
+    g_assert_nonnull(snaps);
+    g_assert_cmpint(snaps->len, ==, 1);
+    g_assert_cmpstr(snapd_snap_get_name(g_ptr_array_index(snaps, 0)), ==,
+                    req->name);
+    batch->n_completed++;
+  }
+
+  if (next_index < N_FIND_TOTAL)
+    send_find_request(batch, next_index);
+  else
+    g_main_loop_quit(batch->loop);
+}
+
+static void send_find_request(FindBatchData *batch, int index) {
+  const char *name = find_snap_names[index % N_FIND_SNAPS];
+  gboolean should_cancel = (index % 2 == 0);
+
+  FindRequestData *req = g_new0(FindRequestData, 1);
+  req->batch = batch;
+  req->index = index;
+  req->name = name;
+  req->should_cancel = should_cancel;
+
+  g_autoptr(GCancellable) cancellable = g_cancellable_new();
+  snapd_client_find_async(batch->client, SNAPD_FIND_FLAGS_NONE, name,
+                          cancellable, find_ordered_cb, g_steal_pointer(&req));
+  if (should_cancel)
+    g_idle_add_full(G_PRIORITY_DEFAULT, cancel_cb, g_object_ref(cancellable),
+                    g_object_unref);
+}
+
+static void test_find_ordered_cancel(void) {
+  g_autoptr(GMainLoop) loop = g_main_loop_new(NULL, FALSE);
+  g_autoptr(MockSnapd) snapd = mock_snapd_new();
+
+  for (int i = 0; i < N_FIND_SNAPS; i++)
+    mock_snapd_add_store_snap(snapd, find_snap_names[i]);
+
+  g_autoptr(GError) error = NULL;
+  g_assert_true(mock_snapd_start(snapd, &error));
+
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, mock_snapd_get_socket_path(snapd));
+
+  FindBatchData batch = {.loop = loop, .client = client};
+  send_find_request(&batch, 0);
+  g_main_loop_run(loop);
+
+  int expected_cancelled = (N_FIND_TOTAL + 1) / 2;
+  int expected_completed = N_FIND_TOTAL / 2;
+  g_assert_cmpint(batch.n_cancelled, ==, expected_cancelled);
+  g_assert_cmpint(batch.n_completed, ==, expected_completed);
+}
+
+static void find_batch_cb(GObject *object, GAsyncResult *result,
+                          gpointer user_data) {
+  g_autofree FindRequestData *req = g_steal_pointer(&user_data);
+  FindBatchData *batch = req->batch;
+
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GPtrArray) snaps =
+      snapd_client_find_finish(SNAPD_CLIENT(object), result, NULL, &error);
+
+  if (req->should_cancel) {
+    g_assert_error(error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+    g_assert_null(snaps);
+    batch->n_cancelled++;
+  } else {
+    g_assert_no_error(error);
+    g_assert_nonnull(snaps);
+    g_assert_cmpint(snaps->len, ==, 1);
+    g_assert_cmpstr(snapd_snap_get_name(g_ptr_array_index(snaps, 0)), ==,
+                    req->name);
+    batch->n_completed++;
+  }
+
+  if (--batch->pending == 0)
+    g_main_loop_quit(batch->loop);
+}
+
+static void test_find_batch_cancel(void) {
+  g_autoptr(GMainLoop) loop = g_main_loop_new(NULL, FALSE);
+  g_autoptr(MockSnapd) snapd = mock_snapd_new();
+
+  for (int i = 0; i < N_FIND_SNAPS; i++)
+    mock_snapd_add_store_snap(snapd, find_snap_names[i]);
+
+  g_autoptr(GError) error = NULL;
+  g_assert_true(mock_snapd_start(snapd, &error));
+
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, mock_snapd_get_socket_path(snapd));
+
+  FindBatchData batch = {
+      .loop = loop, .client = client, .pending = N_FIND_TOTAL};
+
+  for (int i = 0; i < N_FIND_TOTAL; i++) {
+    const char *name = find_snap_names[i % N_FIND_SNAPS];
+    gboolean should_cancel = (i % 2 == 0);
+
+    FindRequestData *req = g_new0(FindRequestData, 1);
+    req->batch = &batch;
+    req->index = i;
+    req->name = name;
+    req->should_cancel = should_cancel;
+
+    g_autoptr(GCancellable) cancellable = g_cancellable_new();
+    snapd_client_find_async(client, SNAPD_FIND_FLAGS_NONE, name, cancellable,
+                            find_batch_cb, g_steal_pointer(&req));
+    if (should_cancel)
+      g_idle_add_full(G_PRIORITY_DEFAULT, cancel_cb, g_object_ref(cancellable),
+                      g_object_unref);
+  }
+
+  g_main_loop_run(loop);
+
+  int expected_cancelled = (N_FIND_TOTAL + 1) / 2;
+  int expected_completed = N_FIND_TOTAL / 2;
+  g_assert_cmpint(batch.n_cancelled, ==, expected_cancelled);
+  g_assert_cmpint(batch.n_completed, ==, expected_completed);
+}
+
 static void sync_log_cb(SnapdClient *client, SnapdLog *log,
                         gpointer user_data) {
   int *counter = user_data;
@@ -9556,6 +9718,8 @@ int main(int argc, char **argv) {
   g_test_add_func("/get-serial-assertion/async",
                   test_get_serial_assertion_async);
   g_test_add_func("/stress/basic", test_stress);
+  g_test_add_func("/stress/find-ordered-cancel", test_find_ordered_cancel);
+  g_test_add_func("/stress/find-batch-cancel", test_find_batch_cancel);
 
   return g_test_run();
 }
