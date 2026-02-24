@@ -8535,6 +8535,52 @@ static void test_get_logs_limit(void) {
   g_assert_cmpint(logs->len, ==, 1);
 }
 
+typedef struct {
+  GMainLoop *loop;
+  guint done;
+  const guint wants;
+} SystemInfoData;
+
+static void on_get_system_information_async(GObject *obj, GAsyncResult *result,
+                                            gpointer data) {
+  SystemInfoData *sid = data;
+
+  g_autoptr(GError) error = NULL;
+  g_autoptr(SnapdSystemInformation) info =
+      snapd_client_get_system_information_finish(SNAPD_CLIENT(obj), result,
+                                                 &error);
+  g_assert_no_error(error);
+  g_assert_nonnull(info);
+
+  g_assert_no_error(error);
+  g_assert_nonnull(info);
+  g_assert_cmpstr(snapd_system_information_get_version(info), ==, "VERSION");
+
+  if (++sid->done == sid->wants)
+    g_main_loop_quit(sid->loop);
+}
+
+static void test_stress_async(void) {
+  g_autoptr(GMainLoop) loop = g_main_loop_new(NULL, FALSE);
+  SystemInfoData data = {.loop = loop, .done = 0, .wants = 10000};
+
+  SystemInfoData *sid = &data;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(MockSnapd) snapd = mock_snapd_new();
+  g_assert_true(mock_snapd_start(snapd, &error));
+  g_assert_no_error(error);
+
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, mock_snapd_get_socket_path(snapd));
+
+  for (gint i = 0; i < sid->wants; i++) {
+    snapd_client_get_system_information_async(
+        client, NULL, on_get_system_information_async, sid);
+  }
+
+  g_main_loop_run(loop);
+}
+
 static void test_stress(void) {
   g_autoptr(MockSnapd) snapd = mock_snapd_new();
 
@@ -9718,6 +9764,7 @@ int main(int argc, char **argv) {
   g_test_add_func("/get-serial-assertion/async",
                   test_get_serial_assertion_async);
   g_test_add_func("/stress/basic", test_stress);
+  g_test_add_func("/stress/async", test_stress_async);
   g_test_add_func("/stress/find-ordered-cancel", test_find_ordered_cancel);
   g_test_add_func("/stress/find-batch-cancel", test_find_batch_cancel);
 
