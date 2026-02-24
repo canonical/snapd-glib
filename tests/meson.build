@@ -20,7 +20,7 @@ test_executable = executable ('test-glib',
                               c_args: [ '-DVERSION="@0@"'.format (meson.project_version ()) ],
                               install_dir: installed_tests_exec_dir,
                               install: true)
-test ('Tests', test_executable, timeout: 600)
+test ('Tests', test_executable, timeout: 600, protocol: 'tap')
 test_file = configure_file (input: 'test-glib.test.in',
                             output: 'test-glib.test',
                             configuration: test_data_conf)
