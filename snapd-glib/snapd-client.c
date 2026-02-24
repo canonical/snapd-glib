@@ -4950,6 +4950,11 @@ SnapdClient *snapd_client_new(void) {
  *
  * Create a new client to talk on an existing socket.
  *
+ * Note that @socket will be used by the first request only
+ * and closed once that request completes.
+ * Subsequent requests will re-open a new socket using
+ * the path returned by snapd_client_get_socket_path().
+ *
  * Returns: a new #SnapdClient
  *
  * Since: 1.5
