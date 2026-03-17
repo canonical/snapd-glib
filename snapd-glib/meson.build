@@ -224,6 +224,7 @@ if build_introspection
                                        header: 'snapd-glib/snapd-glib.h',
                                        includes: [ 'GObject-2.0', 'Gio-2.0' ],
                                        install: true,
+                                       fatal_warnings: true,
                                        extra_args: [ '-DSNAPD_COMPILATION=1' ])
 
   if get_option ('vala-bindings')
