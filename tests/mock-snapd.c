@@ -5382,6 +5382,11 @@ static GSocket *open_listening_socket(SoupServer *server,
   if (!g_socket_bind(socket, address, TRUE, error))
     return NULL;
 
+  /* Increase the backlog size, so that we can handle a
+   * larger number of simultaneous connections
+   */
+  g_socket_set_listen_backlog(socket, 32768);
+
   if (!g_socket_listen(socket, error))
     return NULL;
 

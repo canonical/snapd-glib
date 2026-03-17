@@ -116,18 +116,11 @@ typedef struct {
   GMutex requests_mutex;
   GPtrArray *requests;
 
+  /* Requests waiting for a connection slot */
+  GQueue *pending_requests;
+
   /* Whether to send the X-Allow-Interaction request header */
   gboolean allow_interaction;
-
-  /* Data received from snapd */
-  GMutex buffer_mutex;
-  GByteArray *buffer;
-
-  /* Processed HTTP response */
-  guint response_status_code;
-  SoupMessageHeaders *response_headers;
-  GByteArray *response_body;
-  gsize response_body_used;
 
   /* Maintenance information returned from snapd */
   SnapdMaintenance *maintenance;
@@ -151,6 +144,9 @@ G_DEFINE_TYPE_WITH_PRIVATE(SnapdClient, snapd_client, G_TYPE_OBJECT)
 /* Number of milliseconds to poll for status in asynchronous operations */
 #define ASYNC_POLL_TIME 100
 
+/* Maximum number of concurrent socket connections to snapd */
+#define SNAPD_MAX_CONNECTIONS 64
+
 typedef struct {
   int ref_count;
   SnapdClient *client;
@@ -158,6 +154,16 @@ typedef struct {
   GSource *read_source;
   GSource *poll_source;
   gulong cancelled_id;
+  GSocket *snapd_socket;
+
+  /* Data received from snapd */
+  GByteArray *buffer;
+
+  /* Processed HTTP response */
+  guint response_status_code;
+  SoupMessageHeaders *response_headers;
+  GByteArray *response_body;
+  gsize response_body_used;
 } RequestData;
 
 static RequestData *request_data_new(SnapdClient *client,
@@ -166,6 +172,8 @@ static RequestData *request_data_new(SnapdClient *client,
   data->ref_count = 1;
   data->client = client;
   data->request = g_object_ref(request);
+  data->buffer = g_byte_array_new();
+  data->response_body = g_byte_array_new();
 
   return data;
 }
@@ -190,6 +198,16 @@ static void request_data_unref(RequestData *data) {
     g_cancellable_disconnect(_snapd_request_get_cancellable(data->request),
                              data->cancelled_id);
   data->cancelled_id = 0;
+  if (data->snapd_socket != NULL)
+    g_socket_close(data->snapd_socket, NULL);
+  g_clear_object(&data->snapd_socket);
+  g_clear_pointer(&data->buffer, g_byte_array_unref);
+#if SOUP_CHECK_VERSION(2, 99, 2)
+  g_clear_pointer(&data->response_headers, soup_message_headers_unref);
+#else
+  g_clear_pointer(&data->response_headers, soup_message_headers_free);
+#endif
+  g_clear_pointer(&data->response_body, g_byte_array_unref);
   g_clear_object(&data->request);
   g_slice_free(RequestData, data);
 }
@@ -210,21 +228,26 @@ static RequestData *get_request_data(SnapdClient *self, SnapdRequest *request) {
   return NULL;
 }
 
-static void complete_request_unlocked(SnapdClient *self, SnapdRequest *request,
-                                      GError *error) {
-  SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
-
-  _snapd_request_return(request, error);
-
-  RequestData *data = get_request_data(self, request);
-  g_ptr_array_remove(priv->requests, data);
-}
-
 static void complete_request(SnapdClient *self, SnapdRequest *request,
                              GError *error) {
   SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&priv->requests_mutex);
-  complete_request_unlocked(self, request, error);
+
+  SnapdRequest *next_request = NULL;
+  {
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&priv->requests_mutex);
+
+    _snapd_request_return(request, error);
+
+    RequestData *data = get_request_data(self, request);
+    g_ptr_array_remove(priv->requests, data);
+
+    next_request = g_queue_pop_head(priv->pending_requests);
+  }
+
+  if (next_request != NULL) {
+    send_request(self, next_request);
+    g_object_unref(next_request);
+  }
 }
 
 static gboolean async_poll_cb(gpointer data) {
@@ -250,32 +273,6 @@ static void schedule_poll(SnapdClient *self, SnapdRequestAsync *request) {
   g_source_set_callback(data->poll_source, async_poll_cb, data, NULL);
   g_source_attach(data->poll_source,
                   _snapd_request_get_context(SNAPD_REQUEST(request)));
-}
-
-static void complete_all_requests(SnapdClient *self, GError *error) {
-  SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&priv->requests_mutex);
-
-  /* Disconnect socket - we will reconnect on demand */
-  if (priv->snapd_socket != NULL)
-    g_socket_close(priv->snapd_socket, NULL);
-  g_clear_object(&priv->snapd_socket);
-
-  /* Cancel synchronous requests (we'll never know the result); reschedule async
-   * ones (can reconnect to check result) */
-  g_autoptr(GPtrArray) requests_copy =
-      g_ptr_array_new_with_free_func((GDestroyNotify)request_data_unref);
-  for (guint i = 0; i < priv->requests->len; i++)
-    g_ptr_array_add(requests_copy,
-                    request_data_ref(g_ptr_array_index(priv->requests, i)));
-  for (guint i = 0; i < requests_copy->len; i++) {
-    RequestData *data = g_ptr_array_index(requests_copy, i);
-
-    if (SNAPD_IS_REQUEST_ASYNC(data->request))
-      schedule_poll(self, SNAPD_REQUEST_ASYNC(data->request));
-    else
-      complete_request_unlocked(self, data->request, error);
-  }
 }
 
 static void append_string(GByteArray *array, const gchar *value) {
@@ -386,25 +383,6 @@ static SnapdRequestAsync *find_change_request(SnapdClient *self,
                       SNAPD_REQUEST_ASYNC(data->request)),
                   change_id) == 0)
       return SNAPD_REQUEST_ASYNC(data->request);
-  }
-
-  return NULL;
-}
-
-static SnapdRequest *get_first_request(SnapdClient *self) {
-  SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&priv->requests_mutex);
-
-  for (guint i = 0; i < priv->requests->len; i++) {
-    RequestData *data = g_ptr_array_index(priv->requests, i);
-
-    /* Return first non-async request or async request without change id */
-    if (SNAPD_IS_REQUEST_ASYNC(data->request)) {
-      if (_snapd_request_async_get_change_id(
-              SNAPD_REQUEST_ASYNC(data->request)) == NULL)
-        return data->request;
-    } else
-      return data->request;
   }
 
   return NULL;
@@ -528,22 +506,27 @@ static gboolean parse_seq(SnapdClient *self, SnapdRequest *request,
 }
 
 static gboolean read_cb(GSocket *socket, GIOCondition condition,
-                        SnapdClient *self) {
-  SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&priv->buffer_mutex);
-
-  gsize orig_length = priv->buffer->len;
-  g_byte_array_set_size(priv->buffer, orig_length + READ_SIZE);
+                        RequestData *data) {
+  SnapdClient *self = data->client;
   g_autoptr(GError) error = NULL;
+
+  GCancellable *cancellable = _snapd_request_get_cancellable(data->request);
+  if (g_cancellable_set_error_if_cancelled(cancellable, &error)) {
+    complete_request(self, data->request, error);
+    return G_SOURCE_REMOVE;
+  }
+
+  gsize orig_length = data->buffer->len;
+  g_byte_array_set_size(data->buffer, orig_length + READ_SIZE);
   gssize n_read =
-      g_socket_receive(socket, (gchar *)priv->buffer->data + orig_length,
-                       READ_SIZE, NULL, &error);
-  g_byte_array_set_size(priv->buffer, orig_length + (n_read >= 0 ? n_read : 0));
+      g_socket_receive(socket, (gchar *)data->buffer->data + orig_length,
+                       READ_SIZE, cancellable, &error);
+  g_byte_array_set_size(data->buffer, orig_length + (n_read >= 0 ? n_read : 0));
 
   if (n_read == 0) {
     g_autoptr(GError) e = g_error_new(SNAPD_ERROR, SNAPD_ERROR_READ_FAILED,
                                       "snapd connection closed");
-    complete_all_requests(self, e);
+    complete_request(self, data->request, e);
     return G_SOURCE_REMOVE;
   }
 
@@ -551,55 +534,60 @@ static gboolean read_cb(GSocket *socket, GIOCondition condition,
     if (g_error_matches(error, G_IO_ERROR, G_IO_ERROR_WOULD_BLOCK))
       return G_SOURCE_CONTINUE;
 
+    if (g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED)) {
+      complete_request(self, data->request, error);
+      return G_SOURCE_REMOVE;
+    }
+
     g_autoptr(GError) e =
         g_error_new(SNAPD_ERROR, SNAPD_ERROR_READ_FAILED,
                     "Failed to read from snapd: %s", error->message);
-    complete_all_requests(self, e);
+    complete_request(self, data->request, e);
     return G_SOURCE_REMOVE;
   }
 
   while (TRUE) {
     /* Process headers */
-    if (priv->response_headers == NULL) {
-      gchar *body = g_strstr_len((gchar *)priv->buffer->data, priv->buffer->len,
+    if (data->response_headers == NULL) {
+      gchar *body = g_strstr_len((gchar *)data->buffer->data, data->buffer->len,
                                  "\r\n\r\n");
       if (body == NULL)
         return G_SOURCE_CONTINUE;
       body += 4;
-      gsize header_length = body - (gchar *)priv->buffer->data;
+      gsize header_length = body - (gchar *)data->buffer->data;
 
-      priv->response_headers =
+      data->response_headers =
           soup_message_headers_new(SOUP_MESSAGE_HEADERS_RESPONSE);
-      if (!soup_headers_parse_response((gchar *)priv->buffer->data,
-                                       header_length, priv->response_headers,
-                                       NULL, &priv->response_status_code,
+      if (!soup_headers_parse_response((gchar *)data->buffer->data,
+                                       header_length, data->response_headers,
+                                       NULL, &data->response_status_code,
                                        NULL)) {
         g_autoptr(GError) e = g_error_new(SNAPD_ERROR, SNAPD_ERROR_READ_FAILED,
                                           "Failed to parse headers from snapd");
-        complete_all_requests(self, e);
+        complete_request(self, data->request, e);
         return G_SOURCE_REMOVE;
       }
 
       /* Remove headers from buffer */
-      g_byte_array_remove_range(priv->buffer, 0, header_length);
+      g_byte_array_remove_range(data->buffer, 0, header_length);
     }
 
     /* Read response body */
     gboolean is_complete = FALSE;
     gsize offset = 0, chunk_header_length, chunk_length, content_length, n;
     g_autoptr(GError) e = NULL;
-    switch (soup_message_headers_get_encoding(priv->response_headers)) {
+    switch (soup_message_headers_get_encoding(data->response_headers)) {
     case SOUP_ENCODING_EOF:
-      g_byte_array_append(priv->response_body, priv->buffer->data,
-                          priv->buffer->len);
-      g_byte_array_set_size(priv->buffer, 0);
-      is_complete = g_socket_is_closed(priv->snapd_socket);
+      g_byte_array_append(data->response_body, data->buffer->data,
+                          data->buffer->len);
+      g_byte_array_set_size(data->buffer, 0);
+      is_complete = g_socket_is_closed(data->snapd_socket);
       break;
 
     case SOUP_ENCODING_CHUNKED:
-      while (offset < priv->buffer->len &&
-             read_chunk_header((const gchar *)priv->buffer->data + offset,
-                               priv->buffer->len - offset, &chunk_header_length,
+      while (offset < data->buffer->len &&
+             read_chunk_header((const gchar *)data->buffer->data + offset,
+                               data->buffer->len - offset, &chunk_header_length,
                                &chunk_length)) {
         gsize chunk_trailer_length = 2;
         gsize chunk_data_offset = offset + chunk_header_length;
@@ -607,19 +595,19 @@ static gboolean read_cb(GSocket *socket, GIOCondition condition,
         gsize chunk_end = chunk_trailer_offset + chunk_trailer_length;
 
         // Haven't yet received all chunk data.
-        if (chunk_end > priv->buffer->len) {
+        if (chunk_end > data->buffer->len) {
           break;
         }
 
         const gchar *chunk_trailer =
-            (const gchar *)priv->buffer->data + chunk_trailer_offset;
+            (const gchar *)data->buffer->data + chunk_trailer_offset;
         if (chunk_trailer[0] != '\r' && chunk_trailer[1] != '\n') {
           g_warning("Invalid HTTP chunk");
           return G_SOURCE_REMOVE;
         }
 
-        g_byte_array_append(priv->response_body,
-                            priv->buffer->data + chunk_data_offset,
+        g_byte_array_append(data->response_body,
+                            data->buffer->data + chunk_data_offset,
                             chunk_length);
         offset = chunk_end;
 
@@ -629,67 +617,62 @@ static gboolean read_cb(GSocket *socket, GIOCondition condition,
           break;
         }
       }
-      g_byte_array_remove_range(priv->buffer, 0, offset);
+      g_byte_array_remove_range(data->buffer, 0, offset);
       break;
 
     case SOUP_ENCODING_CONTENT_LENGTH:
       content_length =
-          soup_message_headers_get_content_length(priv->response_headers);
+          soup_message_headers_get_content_length(data->response_headers);
       n = content_length -
-          (priv->response_body->len + priv->response_body_used);
-      if (n > priv->buffer->len) {
-        n = priv->buffer->len;
+          (data->response_body->len + data->response_body_used);
+      if (n > data->buffer->len) {
+        n = data->buffer->len;
       }
-      g_byte_array_append(priv->response_body, priv->buffer->data, n);
-      g_byte_array_remove_range(priv->buffer, 0, n);
-      is_complete = (priv->response_body->len + priv->response_body_used) >=
+      g_byte_array_append(data->response_body, data->buffer->data, n);
+      g_byte_array_remove_range(data->buffer, 0, n);
+      is_complete = (data->response_body->len + data->response_body_used) >=
                     content_length;
       break;
 
     default:
       e = g_error_new(SNAPD_ERROR, SNAPD_ERROR_READ_FAILED,
                       "Unable to determine header encoding");
-      complete_all_requests(self, e);
+      complete_request(self, data->request, e);
       return G_SOURCE_REMOVE;
     }
 
-    /* Match this response to the next uncompleted request */
-    SnapdRequest *request = get_first_request(self);
-    if (request == NULL) {
-      g_warning("Ignoring unexpected response");
-      return G_SOURCE_REMOVE;
-    }
+    SnapdRequest *request = data->request;
 
     const gchar *content_type =
-        soup_message_headers_get_content_type(priv->response_headers, NULL);
+        soup_message_headers_get_content_type(data->response_headers, NULL);
     if (g_strcmp0(content_type, "application/json-seq") == 0) {
       /* Handle each sequence element */
-      while (priv->response_body->len > 0) {
+      while (data->response_body->len > 0) {
         /* Requests start with a record separator */
-        if (priv->response_body->data[0] != 0x1e) {
+        if (data->response_body->data[0] != 0x1e) {
           break;
         }
         gsize seq_start = 1, seq_end = 1;
-        while (seq_end < priv->response_body->len &&
-               priv->response_body->data[seq_end] != 0x1e) {
+        while (seq_end < data->response_body->len &&
+               data->response_body->data[seq_end] != 0x1e) {
           seq_end++;
         }
-        gboolean have_end = seq_end < priv->response_body->len &&
-                            priv->response_body->data[seq_end] == 0x1e;
+        gboolean have_end = seq_end < data->response_body->len &&
+                            data->response_body->data[seq_end] == 0x1e;
         if (!have_end && !is_complete) {
           break;
         }
 
         g_autoptr(GError) json_error = NULL;
         if (!parse_seq(self, request,
-                       (const gchar *)priv->response_body->data + seq_start,
+                       (const gchar *)data->response_body->data + seq_start,
                        seq_end - seq_start, &json_error)) {
           g_warning("Ignoring invalid JSON: %s", json_error->message);
           return G_SOURCE_REMOVE;
         }
 
-        g_byte_array_remove_range(priv->response_body, 0, seq_end);
-        priv->response_body_used += seq_end;
+        g_byte_array_remove_range(data->response_body, 0, seq_end);
+        data->response_body_used += seq_end;
       }
 
       if (is_complete) {
@@ -697,19 +680,20 @@ static gboolean read_cb(GSocket *socket, GIOCondition condition,
       }
     } else if (is_complete) {
       g_autoptr(GBytes) b =
-          g_bytes_new(priv->response_body->data, priv->response_body->len);
-      parse_response(self, request, priv->response_status_code, content_type,
+          g_bytes_new(data->response_body->data, data->response_body->len);
+      parse_response(self, request, data->response_status_code, content_type,
                      b);
     }
 
     if (is_complete) {
 #if SOUP_CHECK_VERSION(2, 99, 2)
-      g_clear_pointer(&priv->response_headers, soup_message_headers_unref);
+      g_clear_pointer(&data->response_headers, soup_message_headers_unref);
 #else
-      g_clear_pointer(&priv->response_headers, soup_message_headers_free);
+      g_clear_pointer(&data->response_headers, soup_message_headers_free);
 #endif
-      g_byte_array_set_size(priv->response_body, 0);
-      priv->response_body_used = 0;
+      g_byte_array_set_size(data->response_body, 0);
+      data->response_body_used = 0;
+      return G_SOURCE_REMOVE;
     } else {
       return G_SOURCE_CONTINUE;
     }
@@ -795,26 +779,26 @@ static GSocket *do_open_snapd_socket(const gchar *socket_path,
   return g_steal_pointer(&sock);
 }
 
-static GSource *make_read_source(SnapdClient *self, GMainContext *context) {
-  SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
-
+static GSource *make_read_source(RequestData *request_data,
+                                 GMainContext *context,
+                                 GCancellable *cancellable) {
   g_autoptr(GSource) source =
-      g_socket_create_source(priv->snapd_socket, G_IO_IN, NULL);
+      g_socket_create_source(request_data->snapd_socket, G_IO_IN, cancellable);
   g_source_set_name(source, "snapd-glib-read-source");
-  g_source_set_callback(source, (GSourceFunc)read_cb, self, NULL);
+  g_source_set_callback(source, (GSourceFunc)read_cb,
+                        request_data_ref(request_data),
+                        (GDestroyNotify)request_data_unref);
   g_source_attach(source, context);
 
   return g_steal_pointer(&source);
 }
 
-static gboolean write_to_snapd(SnapdClient *self, GByteArray *data,
+static gboolean write_to_snapd(GSocket *socket, GByteArray *data,
                                GCancellable *cancellable, GError **error) {
-  SnapdClientPrivate *priv = snapd_client_get_instance_private(self);
-
   guint n_sent = 0;
   while (n_sent < data->len) {
     gssize n_written =
-        g_socket_send(priv->snapd_socket, (const gchar *)(data->data + n_sent),
+        g_socket_send(socket, (const gchar *)(data->data + n_sent),
                       data->len - n_sent, cancellable, error);
     if (n_written < 0)
       return FALSE;
@@ -830,6 +814,15 @@ static void send_request(SnapdClient *self, SnapdRequest *request) {
 
   // This code can be replaced with support in libsoup3 at some point.
   // https://gitlab.gnome.org/GNOME/libsoup/-/issues/75
+
+  /* If we have reached the connection limit, queue for later. */
+  {
+    g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&priv->requests_mutex);
+    if (priv->requests->len >= SNAPD_MAX_CONNECTIONS) {
+      g_queue_push_tail(priv->pending_requests, g_object_ref(request));
+      return;
+    }
+  }
 
   _snapd_request_set_source_object(request, G_OBJECT(self));
 
@@ -919,52 +912,31 @@ static void send_request(SnapdClient *self, SnapdRequest *request) {
     g_byte_array_append(request_data, g_bytes_get_data(body, NULL),
                         g_bytes_get_size(body));
 
-  gboolean new_socket = FALSE;
-  if (priv->snapd_socket == NULL) {
+  /* Open a dedicated socket for this request, or consume the pre-existing one
+   * supplied via snapd_client_new_from_socket(). */
+  if (priv->snapd_socket != NULL) {
+    data->snapd_socket = g_steal_pointer(&priv->snapd_socket);
+  } else {
     g_autoptr(GError) error = NULL;
-    priv->snapd_socket =
+    data->snapd_socket =
         do_open_snapd_socket(priv->socket_path, cancellable, &error);
-    if (priv->snapd_socket == NULL) {
+    if (data->snapd_socket == NULL) {
       complete_request(self, request, error);
       return;
     }
-    new_socket = TRUE;
   }
 
   data->read_source =
-      make_read_source(self, _snapd_request_get_context(request));
+      make_read_source(data, _snapd_request_get_context(request), cancellable);
 
   /* send HTTP request */
   g_autoptr(GError) error = NULL;
-  if (write_to_snapd(self, request_data, cancellable, &error))
-    return;
-
-  /* If was re-using closed socket, then reconnect and retry */
-  if (!new_socket &&
-      g_error_matches(error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE)) {
-    g_clear_error(&error);
-    g_clear_object(&priv->snapd_socket);
-    g_source_destroy(data->read_source);
-    g_clear_pointer(&data->read_source, g_source_unref);
-
-    priv->snapd_socket =
-        do_open_snapd_socket(priv->socket_path, cancellable, &error);
-    if (priv->snapd_socket == NULL) {
-      complete_request(self, request, error);
-      return;
-    }
-
-    data->read_source =
-        make_read_source(self, _snapd_request_get_context(request));
-
-    if (write_to_snapd(self, request_data, cancellable, &error))
-      return;
+  if (!write_to_snapd(data->snapd_socket, request_data, cancellable, &error)) {
+    g_autoptr(GError) e =
+        g_error_new(SNAPD_ERROR, SNAPD_ERROR_WRITE_FAILED,
+                    "Failed to write to snapd: %s", error->message);
+    complete_request(self, request, e);
   }
-
-  g_autoptr(GError) e =
-      g_error_new(SNAPD_ERROR, SNAPD_ERROR_WRITE_FAILED,
-                  "Failed to write to snapd: %s", error->message);
-  complete_request(self, request, e);
 }
 
 typedef struct {
@@ -4978,6 +4950,11 @@ SnapdClient *snapd_client_new(void) {
  *
  * Create a new client to talk on an existing socket.
  *
+ * Note that @socket will be used by the first request only
+ * and closed once that request completes.
+ * Subsequent requests will re-open a new socket using
+ * the path returned by snapd_client_get_socket_path().
+ *
  * Returns: a new #SnapdClient
  *
  * Since: 1.5
@@ -4997,21 +4974,17 @@ static void snapd_client_finalize(GObject *object) {
       snapd_client_get_instance_private(SNAPD_CLIENT(object));
 
   g_mutex_clear(&priv->requests_mutex);
-  g_mutex_clear(&priv->buffer_mutex);
   g_clear_pointer(&priv->socket_path, g_free);
   g_clear_pointer(&priv->user_agent, g_free);
   g_clear_object(&priv->auth_data);
   g_clear_pointer(&priv->requests, g_ptr_array_unref);
+  if (priv->pending_requests != NULL) {
+    g_queue_free_full(priv->pending_requests, g_object_unref);
+    priv->pending_requests = NULL;
+  }
   if (priv->snapd_socket != NULL)
     g_socket_close(priv->snapd_socket, NULL);
   g_clear_object(&priv->snapd_socket);
-  g_clear_pointer(&priv->buffer, g_byte_array_unref);
-#if SOUP_CHECK_VERSION(2, 99, 2)
-  g_clear_pointer(&priv->response_headers, soup_message_headers_unref);
-#else
-  g_clear_pointer(&priv->response_headers, soup_message_headers_free);
-#endif
-  g_clear_pointer(&priv->response_body, g_byte_array_unref);
   g_clear_object(&priv->maintenance);
 
   G_OBJECT_CLASS(snapd_client_parent_class)->finalize(object);
@@ -5031,13 +5004,11 @@ static void snapd_client_init(SnapdClient *self) {
   priv->allow_interaction = TRUE;
   priv->requests =
       g_ptr_array_new_with_free_func((GDestroyNotify)request_data_unref);
-  priv->buffer = g_byte_array_new();
-  priv->response_body = g_byte_array_new();
+  priv->pending_requests = g_queue_new();
   // nanoseconds, by default, is set to -1 to specify that the value
   // is not set, and thus the decimal value from GDateTime should be
   // used when generating the timestamp for the AFTER field in the
   // /v2/notice method.
   priv->since_date_time_nanoseconds = -1;
   g_mutex_init(&priv->requests_mutex);
-  g_mutex_init(&priv->buffer_mutex);
 }
