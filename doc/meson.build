@@ -12,5 +12,5 @@ if get_option ('docs')
                 output: 'html',
                 build_by_default: true,
                 install: true,
-                install_dir: get_option('prefix') / get_option('datadir') / 'doc' / 'snapd-glib',) # installs to PREFIX/share/doc/snapd-glib/html
+                install_dir: get_option('prefix') / get_option('datadir') / 'doc' / meson.project_name()) # installs to PREFIX/share/doc/snapd-glib/html
 endif
