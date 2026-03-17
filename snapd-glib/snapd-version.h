@@ -732,6 +732,6 @@
  *
  * Since: 1.72
  */
-#define SNAPD_GLIB_VERSION_1_71
+#define SNAPD_GLIB_VERSION_1_72
 
 #endif /* __SNAPD_GLIB_VERSION_H__ */
