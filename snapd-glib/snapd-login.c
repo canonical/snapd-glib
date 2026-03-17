@@ -78,7 +78,7 @@ static void login_cb(GObject *object, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get authorization to install/remove snaps.
  * See snapd_login_sync() for more information.
