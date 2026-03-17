@@ -754,8 +754,8 @@ gboolean snapd_client_get_connections2_sync(
  * @plug_name: name of plug to connect.
  * @slot_snap: name of snap containing socket.
  * @slot_name: name of slot to connect.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -792,8 +792,8 @@ gboolean snapd_client_connect_interface_sync(
  * @plug_name: name of plug to disconnect.
  * @slot_snap: name of snap containing socket.
  * @slot_name: name of slot to disconnect.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -957,8 +957,8 @@ GPtrArray *snapd_client_find_refreshable_sync(SnapdClient *self,
  * @client: a #SnapdClient.
  * @name: name of snap to install.
  * @channel: (allow-none): channel to install from or %NULL for default.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -988,8 +988,8 @@ gboolean snapd_client_install_sync(SnapdClient *self, const gchar *name,
  * @name: name of snap to install.
  * @channel: (allow-none): channel to install from or %NULL for default.
  * @revision: (allow-none): revision to install or %NULL for default.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1024,8 +1024,8 @@ gboolean snapd_client_install2_sync(SnapdClient *self, SnapdInstallFlags flags,
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdInstallFlags to control install options.
  * @stream: a #GInputStream containing the snap file contents to install.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1073,8 +1073,8 @@ gboolean snapd_client_install_stream_sync(
  * snapd_client_try_sync:
  * @client: a #SnapdClient.
  * @path: path to snap directory to try.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1106,8 +1106,8 @@ gboolean snapd_client_try_sync(SnapdClient *self, const gchar *path,
  * @client: a #SnapdClient.
  * @name: name of snap to refresh.
  * @channel: (allow-none): channel to refresh from or %NULL for default.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1139,8 +1139,8 @@ gboolean snapd_client_refresh_sync(SnapdClient *self, const gchar *name,
 /**
  * snapd_client_refresh_all_sync:
  * @client: a #SnapdClient.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1172,8 +1172,8 @@ GStrv snapd_client_refresh_all_sync(SnapdClient *self,
  * snapd_client_remove_sync:
  * @client: a #SnapdClient.
  * @name: name of snap to remove.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1200,8 +1200,8 @@ gboolean snapd_client_remove_sync(SnapdClient *self, const gchar *name,
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdRemoveFlags to control remove options.
  * @name: name of snap to remove.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1234,8 +1234,8 @@ gboolean snapd_client_remove2_sync(SnapdClient *self, SnapdRemoveFlags flags,
  * snapd_client_enable_sync:
  * @client: a #SnapdClient.
  * @name: name of snap to enable.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1267,8 +1267,8 @@ gboolean snapd_client_enable_sync(SnapdClient *self, const gchar *name,
  * snapd_client_disable_sync:
  * @client: a #SnapdClient.
  * @name: name of snap to disable.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1301,8 +1301,8 @@ gboolean snapd_client_disable_sync(SnapdClient *self, const gchar *name,
  * @client: a #SnapdClient.
  * @name: name of snap to switch channel.
  * @channel: channel to track.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1562,8 +1562,8 @@ GPtrArray *snapd_client_get_aliases_sync(SnapdClient *self,
  * @snap: the name of the snap to modify.
  * @app: an app in the snap to make the alias to.
  * @alias: the name of the alias (i.e. the command that will run this app).
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1597,8 +1597,8 @@ gboolean snapd_client_alias_sync(SnapdClient *self, const gchar *snap,
  * @snap: (allow-none): the name of the snap to modify or %NULL.
  * @alias: (allow-none): the name of the alias to remove or %NULL to remove all
  * aliases for the given snap.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1629,8 +1629,8 @@ gboolean snapd_client_unalias_sync(SnapdClient *self, const gchar *snap,
  * snapd_client_prefer_sync:
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1661,8 +1661,8 @@ gboolean snapd_client_prefer_sync(SnapdClient *self, const gchar *snap,
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1689,8 +1689,8 @@ gboolean snapd_client_enable_aliases_sync(
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1717,8 +1717,8 @@ gboolean snapd_client_disable_aliases_sync(
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1897,8 +1897,8 @@ gboolean snapd_client_check_themes_sync(
  * @gtk_theme_names: (allow-none): a list of GTK theme names.
  * @icon_theme_names: (allow-none): a list of icon theme names.
  * @sound_theme_names: (allow-none): a list of sound theme names.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
+ * @progress_callback: (allow-none) (scope call) (closure progress_callback_data):
+ * function to callback with progress.
  * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
@@ -1960,8 +1960,8 @@ GPtrArray *snapd_client_get_logs_sync(SnapdClient *self, GStrv names, size_t n,
  * @client: a #SnapdClient.
  * @names: (allow-none) (array zero-terminated=1): a null-terminated array of
  * service names or %NULL.
- * @log_callback: (scope async): a #SnapdLogCallback to call when a log is
- * received.
+ * @log_callback: (scope async) (closure log_callback_data): a #SnapdLogCallback
+ *  to call when a log is received.
  * @log_callback_data: the data to pass to @log_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @error: (allow-none): #GError location to store the error occurring, or %NULL
