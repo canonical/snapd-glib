@@ -35,7 +35,7 @@ jobs:
           meson setup _build -Ddocs=true -Dqt5=false -Dqt6=false
           ninja -C _build
           mkdir -p ./_site
-          cp -v -a ./_build/doc/snapd-glib/* ./_site/
+          cp -v -a ./_build/doc/html/* ./_site/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
