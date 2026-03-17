@@ -2119,3 +2119,32 @@ gchar *snapd_client_get_serial_assertion_sync(SnapdClient *self,
   end_sync(&data);
   return snapd_client_get_serial_assertion_finish(self, data.result, error);
 }
+
+/**
+ * snapd_client_ask_interface_request_sync:
+ * @client: a #SnapdClient.
+ * @interface: the interface name being requested.
+ * @pid: the PID of the process making the request.
+ *
+ * Synchronously ask snapd whether a snap should be granted access to a given
+ * interface.
+ *
+ * Returns: %TRUE if the snap should be granted access, %FALSE otherwise.
+ *
+ * Since: 1.72
+ */
+gboolean snapd_client_ask_interface_request_sync(SnapdClient *self,
+                                                 const gchar *interface,
+                                                 GPid pid,
+                                                 GCancellable *cancellable,
+                                                 GError **error) {
+  g_return_val_if_fail(SNAPD_IS_CLIENT(self), FALSE);
+  g_return_val_if_fail(interface != NULL, FALSE);
+
+  g_auto(SyncData) data = {0};
+  start_sync(&data);
+  snapd_client_ask_interface_request_async(self, interface, pid, cancellable,
+                                           sync_cb, &data);
+  end_sync(&data);
+  return snapd_client_ask_interface_request_finish(self, data.result, error);
+}

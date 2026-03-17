@@ -44,6 +44,7 @@
 #include "requests/snapd-post-create-user.h"
 #include "requests/snapd-post-create-users.h"
 #include "requests/snapd-post-download.h"
+#include "requests/snapd-post-interfaces-requests.h"
 #include "requests/snapd-post-interfaces.h"
 #include "requests/snapd-post-login.h"
 #include "requests/snapd-post-logout.h"
@@ -4929,6 +4930,54 @@ gchar *snapd_client_get_serial_assertion_finish(SnapdClient *self,
   if (!_snapd_request_propagate_error(SNAPD_REQUEST(request), error))
     return NULL;
   return g_strdup(_snapd_get_model_serial_get_serial_assertion(request));
+}
+
+/**
+ * snapd_client_ask_interface_request_async:
+ * @client: a #SnapdClient.
+ * @interface: the interface name being requested.
+ * @pid: the PID of the process making the request.
+ *
+ * Ask snapd whether a snap should be granted access to a given interface.
+ *
+ * Since: 1.72
+ */
+void snapd_client_ask_interface_request_async(SnapdClient *self,
+                                              const gchar *interface, GPid pid,
+                                              GCancellable *cancellable,
+                                              GAsyncReadyCallback callback,
+                                              gpointer user_data) {
+  g_return_if_fail(SNAPD_IS_CLIENT(self));
+  g_return_if_fail(interface != NULL);
+
+  g_autoptr(SnapdPostInterfacesRequests) request =
+      _snapd_post_interfaces_requests_new(interface, pid, cancellable, callback,
+                                          user_data);
+  send_request(self, SNAPD_REQUEST(request));
+}
+
+/**
+ * snapd_client_ask_interface_request_finish:
+ * @client: a #SnapdClient.
+ *
+ * Complete request started with snapd_client_ask_interface_request_async().
+ * See snapd_client_ask_interface_request_sync() for more information.
+ *
+ * Returns: %TRUE if the snap should be granted access, %FALSE otherwise.
+ *
+ * Since: 1.72
+ */
+gboolean snapd_client_ask_interface_request_finish(SnapdClient *self,
+                                                   GAsyncResult *result,
+                                                   GError **error) {
+  g_return_val_if_fail(SNAPD_IS_CLIENT(self), FALSE);
+  g_return_val_if_fail(SNAPD_IS_POST_INTERFACES_REQUESTS(result), FALSE);
+
+  SnapdPostInterfacesRequests *request = SNAPD_POST_INTERFACES_REQUESTS(result);
+
+  if (!_snapd_request_propagate_error(SNAPD_REQUEST(request), error))
+    return FALSE;
+  return _snapd_post_interfaces_requests_get_allowed(request);
 }
 
 /**

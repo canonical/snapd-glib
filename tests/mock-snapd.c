@@ -128,6 +128,7 @@ struct _MockSnapd {
   GList *logs;
   GList *notices;
   gchar *notices_parameters;
+  gboolean interface_request_allowed;
 };
 
 G_DEFINE_TYPE(MockSnapd, mock_snapd, G_TYPE_OBJECT)
@@ -600,6 +601,14 @@ void mock_snapd_set_on_classic(MockSnapd *self, gboolean on_classic) {
 
   g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&self->mutex);
   self->on_classic = on_classic;
+}
+
+void mock_snapd_set_interface_request_allowed(MockSnapd *self,
+                                              gboolean allowed) {
+  g_return_if_fail(MOCK_IS_SNAPD(self));
+
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new(&self->mutex);
+  self->interface_request_allowed = allowed;
 }
 
 void mock_snapd_set_refresh_hold(MockSnapd *self, const gchar *refresh_hold) {
@@ -5176,6 +5185,59 @@ static void handle_model_serial(MockSnapd *self, SoupServerMessage *message,
                 (guint8 *)response_content->str, response_content->len);
 }
 
+static void handle_interfaces_requests(MockSnapd *self,
+                                       SoupServerMessage *message) {
+#if SOUP_CHECK_VERSION(2, 99, 2)
+  const gchar *method = soup_server_message_get_method(message);
+#else
+  const gchar *method = message->method;
+#endif
+
+  if (strcmp(method, "POST") != 0) {
+    send_error_method_not_allowed(self, message, "method not allowed");
+    return;
+  }
+
+  g_autoptr(JsonNode) request = get_json(message);
+  if (request == NULL) {
+    send_error_bad_request(self, message, "unknown content type", NULL);
+    return;
+  }
+
+  if (!JSON_NODE_HOLDS_OBJECT(request)) {
+    send_error_bad_request(self, message, "invalid payload", NULL);
+    return;
+  }
+
+  JsonObject *obj = json_node_get_object(request);
+  const gchar *action = json_object_get_string_member(obj, "action");
+  if (action == NULL) {
+    send_error_bad_request(self, message, "invalid payload", NULL);
+    return;
+  }
+  if (g_strcmp0(action, "ask") != 0) {
+    send_error_bad_request(self, message, "unsupported action", NULL);
+    return;
+  }
+  if (!json_object_has_member(obj, "pid")) {
+    send_error_bad_request(self, message, "invalid payload", NULL);
+    return;
+  }
+  if (json_object_get_string_member(obj, "interface") == NULL) {
+    send_error_bad_request(self, message, "invalid payload", NULL);
+    return;
+  }
+
+  g_autoptr(JsonBuilder) builder = json_builder_new();
+  json_builder_begin_object(builder);
+  json_builder_set_member_name(builder, "outcome");
+  json_builder_add_string_value(
+      builder, self->interface_request_allowed ? "allow" : "deny");
+  json_builder_end_object(builder);
+
+  send_sync_response(self, message, 200, json_builder_get_root(builder), NULL);
+}
+
 static void handle_request(SoupServer *server, SoupServerMessage *message,
                            const char *path, GHashTable *query,
 #if !SOUP_CHECK_VERSION(2, 99, 2)
@@ -5236,6 +5298,8 @@ static void handle_request(SoupServer *server, SoupServerMessage *message,
     handle_assertions(self, message, path + strlen("/v2/assertions/"));
   else if (strcmp(path, "/v2/interfaces") == 0)
     handle_interfaces(self, message, query);
+  else if (strcmp(path, "/v2/interfaces/requests") == 0)
+    handle_interfaces_requests(self, message);
   else if (strcmp(path, "/v2/connections") == 0)
     handle_connections(self, message, query);
   else if (strcmp(path, "/v2/changes") == 0)

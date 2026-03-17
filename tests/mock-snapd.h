@@ -85,6 +85,9 @@ void mock_snapd_set_managed(MockSnapd *snapd, gboolean managed);
 
 void mock_snapd_set_on_classic(MockSnapd *snapd, gboolean on_classic);
 
+void mock_snapd_set_interface_request_allowed(MockSnapd *snapd,
+                                              gboolean allowed);
+
 void mock_snapd_set_refresh_hold(MockSnapd *snapd, const gchar *refresh_hold);
 
 void mock_snapd_set_refresh_last(MockSnapd *snapd, const gchar *refresh_last);

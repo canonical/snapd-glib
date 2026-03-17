@@ -9401,6 +9401,69 @@ static void test_get_serial_assertion_async(void) {
   g_main_loop_run(loop);
 }
 
+static void test_ask_interface_request_sync(void) {
+  g_autoptr(MockSnapd) snapd = mock_snapd_new();
+  mock_snapd_set_interface_request_allowed(snapd, TRUE);
+
+  g_autoptr(GError) error = NULL;
+  g_assert_true(mock_snapd_start(snapd, &error));
+
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, mock_snapd_get_socket_path(snapd));
+
+  gboolean allowed = snapd_client_ask_interface_request_sync(
+      client, "audio-record", 12345, NULL, &error);
+  g_assert_no_error(error);
+  g_assert_true(allowed);
+}
+
+static void test_ask_interface_request_sync_denied(void) {
+  g_autoptr(MockSnapd) snapd = mock_snapd_new();
+  mock_snapd_set_interface_request_allowed(snapd, FALSE);
+
+  g_autoptr(GError) error = NULL;
+  g_assert_true(mock_snapd_start(snapd, &error));
+
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, mock_snapd_get_socket_path(snapd));
+
+  gboolean allowed = snapd_client_ask_interface_request_sync(
+      client, "audio-record", 12345, NULL, &error);
+  g_assert_no_error(error);
+  g_assert_false(allowed);
+}
+
+static void ask_interface_request_cb(GObject *object, GAsyncResult *result,
+                                     gpointer user_data) {
+  g_autoptr(AsyncData) data = user_data;
+
+  g_autoptr(GError) error = NULL;
+  gboolean allowed = snapd_client_ask_interface_request_finish(
+      SNAPD_CLIENT(object), result, &error);
+  g_assert_no_error(error);
+  g_assert_true(allowed);
+
+  g_main_loop_quit(data->loop);
+}
+
+static void test_ask_interface_request_async(void) {
+  g_autoptr(GMainLoop) loop = g_main_loop_new(NULL, FALSE);
+
+  g_autoptr(MockSnapd) snapd = mock_snapd_new();
+  mock_snapd_set_interface_request_allowed(snapd, TRUE);
+
+  g_autoptr(GError) error = NULL;
+  g_assert_true(mock_snapd_start(snapd, &error));
+
+  g_autoptr(SnapdClient) client = snapd_client_new();
+  snapd_client_set_socket_path(client, mock_snapd_get_socket_path(snapd));
+
+  snapd_client_ask_interface_request_async(client, "audio-record", 12345, NULL,
+                                           ask_interface_request_cb,
+                                           async_data_new(loop, snapd));
+  g_main_loop_run(loop);
+}
+
 static void test_abstract_socket(void) {
   g_autoptr(GMainLoop) loop = g_main_loop_new(NULL, FALSE);
 
@@ -9763,6 +9826,12 @@ int main(int argc, char **argv) {
   g_test_add_func("/get-serial-assertion/sync", test_get_serial_assertion_sync);
   g_test_add_func("/get-serial-assertion/async",
                   test_get_serial_assertion_async);
+  g_test_add_func("/ask-interface-request/sync",
+                  test_ask_interface_request_sync);
+  g_test_add_func("/ask-interface-request/sync-denied",
+                  test_ask_interface_request_sync_denied);
+  g_test_add_func("/ask-interface-request/async",
+                  test_ask_interface_request_async);
   g_test_add_func("/stress/basic", test_stress);
   g_test_add_func("/stress/async", test_stress_async);
   g_test_add_func("/stress/find-ordered-cancel", test_find_ordered_cancel);
