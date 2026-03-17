@@ -1960,7 +1960,7 @@ GPtrArray *snapd_client_get_logs_sync(SnapdClient *self, GStrv names, size_t n,
  * @client: a #SnapdClient.
  * @names: (allow-none) (array zero-terminated=1): a null-terminated array of
  * service names or %NULL.
- * @log_callback: (scope async) (closure log_callback_data): a #SnapdLogCallback
+ * @log_callback: (scope call) (closure log_callback_data): a #SnapdLogCallback
  *  to call when a log is received.
  * @log_callback_data: the data to pass to @log_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
