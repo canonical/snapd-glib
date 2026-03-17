@@ -58,6 +58,7 @@ source_private_h = [
   'requests/snapd-get-icon.h',
   'requests/snapd-get-interfaces.h',
   'requests/snapd-get-interfaces-legacy.h',
+  'requests/snapd-post-interfaces-requests.h',
   'requests/snapd-get-logs.h',
   'requests/snapd-get-model.h',
   'requests/snapd-get-model-serial.h',
@@ -143,6 +144,7 @@ source_private_c = [
   'requests/snapd-get-icon.c',
   'requests/snapd-get-interfaces.c',
   'requests/snapd-get-interfaces-legacy.c',
+  'requests/snapd-post-interfaces-requests.c',
   'requests/snapd-get-logs.c',
   'requests/snapd-get-model.c',
   'requests/snapd-get-model-serial.c',
@@ -214,6 +216,8 @@ if build_introspection
   if get_option('soup2')
     nsversion = '1'
   endif
+  compiler = find_program('g-ir-compiler', 'gi-compile-repository', required: true)
+  compiler_version = run_command(compiler, '--version', check: true).stdout().split(' ')[1].strip()
   snapd_glib_gir = gnome.generate_gir (snapd_glib_lib,
                                        sources: source_c + source_h + snapd_glib_enums,
                                        namespace: 'Snapd',
@@ -222,6 +226,7 @@ if build_introspection
                                        header: 'snapd-glib/snapd-glib.h',
                                        includes: [ 'GObject-2.0', 'Gio-2.0' ],
                                        install: true,
+                                       fatal_warnings: compiler_version.version_compare('>= 1.72'),
                                        extra_args: [ '-DSNAPD_COMPILATION=1' ])
 
   if get_option ('vala-bindings')

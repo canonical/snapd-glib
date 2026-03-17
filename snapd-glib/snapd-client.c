@@ -44,6 +44,7 @@
 #include "requests/snapd-post-create-user.h"
 #include "requests/snapd-post-create-users.h"
 #include "requests/snapd-post-download.h"
+#include "requests/snapd-post-interfaces-requests.h"
 #include "requests/snapd-post-interfaces.h"
 #include "requests/snapd-post-login.h"
 #include "requests/snapd-post-logout.h"
@@ -971,7 +972,7 @@ static void log_cb(SnapdGetLogs *request, SnapdLog *log, gpointer user_data) {
  * @cancellable: (allow-none): a #GCancellable or %NULL
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * This method is no longer required and does nothing, snapd-glib now connects
  * on demand.
@@ -1153,7 +1154,7 @@ gboolean snapd_client_get_allow_interaction(SnapdClient *self) {
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get authorization to install/remove snaps.
  * See snapd_client_login_sync() for more information.
@@ -1206,7 +1207,7 @@ SnapdAuthData *snapd_client_login_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get authorization to install/remove snaps.
  * See snapd_client_login2_sync() for more information.
@@ -1259,7 +1260,7 @@ SnapdUserInformation *snapd_client_login2_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously log out from the snap store.
  * See snapd_client_logout_sync() for more information.
@@ -1351,7 +1352,7 @@ SnapdAuthData *snapd_client_get_auth_data(SnapdClient *self) {
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get notifications that have occurred / are occurring on the
  * snap daemon.
@@ -1416,7 +1417,7 @@ GPtrArray *snapd_client_get_notices_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get notifications that have occurred / are occurring on the
  * snap daemon, allowing to filter the results with several options.
@@ -1531,7 +1532,7 @@ void snapd_client_notices_set_since_nanoseconds(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get changes that have occurred / are occurring on the snap
  * daemon. See snapd_client_get_changes_sync() for more information.
@@ -1598,7 +1599,7 @@ GPtrArray *snapd_client_get_changes_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get information on a change.
  * See snapd_client_get_change_sync() for more information.
@@ -1652,7 +1653,7 @@ SnapdChange *snapd_client_get_change_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously abort a change.
  * See snapd_client_abort_change_sync() for more information.
@@ -1704,7 +1705,7 @@ SnapdChange *snapd_client_abort_change_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Request system information asynchronously from snapd.
  * See snapd_client_get_system_information_sync() for more information.
@@ -1755,7 +1756,7 @@ SnapdSystemInformation *snapd_client_get_system_information_finish(
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get information of a single installed snap.
  * See snapd_client_list_one_sync() for more information.
@@ -1798,7 +1799,7 @@ SnapdSnap *snapd_client_list_one_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get information of a single installed snap.
  * See snapd_client_get_snap_sync() for more information.
@@ -1850,7 +1851,7 @@ SnapdSnap *snapd_client_get_snap_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get configuration for a snap.
  * See snapd_client_get_snap_conf_sync() for more information.
@@ -1905,7 +1906,7 @@ GHashTable *snapd_client_get_snap_conf_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously set configuration for a snap.
  * See snapd_client_set_snap_conf_sync() for more information.
@@ -1956,7 +1957,7 @@ gboolean snapd_client_set_snap_conf_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get information on installed apps.
  * See snapd_client_get_apps_sync() for more information.
@@ -2002,7 +2003,7 @@ GPtrArray *snapd_client_get_apps_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get information on installed apps.
  * See snapd_client_get_apps2_sync() for more information.
@@ -2056,7 +2057,7 @@ GPtrArray *snapd_client_get_apps2_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get the icon for an installed snap.
  * See snapd_client_get_icon_sync() for more information.
@@ -2106,7 +2107,7 @@ SnapdIcon *snapd_client_get_icon_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get information on all installed snaps.
  * See snapd_client_list_sync() for more information.
@@ -2150,7 +2151,7 @@ GPtrArray *snapd_client_list_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get information on installed snaps.
  * See snapd_client_get_snaps_sync() for more information.
@@ -2221,7 +2222,7 @@ GPtrArray *snapd_client_get_snaps_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get assertions.
  * See snapd_client_get_assertions_sync() for more information.
@@ -2274,7 +2275,7 @@ GStrv snapd_client_get_assertions_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously add an assertion.
  * See snapd_client_add_assertions_sync() for more information.
@@ -2322,7 +2323,7 @@ gboolean snapd_client_add_assertions_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get the installed snap interfaces.
  * See snapd_client_get_interfaces_sync() for more information.
@@ -2388,7 +2389,7 @@ gboolean snapd_client_get_interfaces_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get the installed snap interfaces.
  * See snapd_client_get_interfaces2_sync() for more information.
@@ -2449,7 +2450,7 @@ GPtrArray *snapd_client_get_interfaces2_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get the installed snap connections.
  * See snapd_client_get_connections_sync() for more information.
@@ -2511,7 +2512,7 @@ snapd_client_get_connections_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get the installed snap connections.
  * See snapd_client_get_connections_sync() for more information.
@@ -2586,13 +2587,13 @@ snapd_client_get_connections2_finish(SnapdClient *self, GAsyncResult *result,
  * @plug_name: name of plug to connect.
  * @slot_snap: name of snap containing socket.
  * @slot_name: name of slot to connect.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously connect two interfaces together.
  * See snapd_client_connect_interface_sync() for more information.
@@ -2643,13 +2644,13 @@ gboolean snapd_client_connect_interface_finish(SnapdClient *self,
  * @plug_name: name of plug to disconnect.
  * @slot_snap: name of snap containing socket.
  * @slot_name: name of slot to disconnect.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously disconnect two interfaces.
  * See snapd_client_disconnect_interface_sync() for more information.
@@ -2702,7 +2703,7 @@ gboolean snapd_client_disconnect_interface_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously find snaps in the store.
  * See snapd_client_find_sync() for more information.
@@ -2752,7 +2753,7 @@ GPtrArray *snapd_client_find_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously find snaps in the store.
  * See snapd_client_find_section_sync() for more information.
@@ -2832,7 +2833,7 @@ GPtrArray *snapd_client_find_section_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously find snaps in the store.
  * See snapd_client_find_category_sync() for more information.
@@ -2905,7 +2906,7 @@ GPtrArray *snapd_client_find_category_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously find snaps in store that are newer revisions than locally
  * installed versions. See snapd_client_find_refreshable_sync() for more
@@ -2959,13 +2960,13 @@ GPtrArray *snapd_client_find_refreshable_finish(SnapdClient *self,
  * @client: a #SnapdClient.
  * @name: name of snap to install.
  * @channel: (allow-none): channel to install from or %NULL for default.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously install a snap from the store.
  * See snapd_client_install_sync() for more information.
@@ -3012,13 +3013,13 @@ gboolean snapd_client_install_finish(SnapdClient *self, GAsyncResult *result,
  * @name: name of snap to install.
  * @channel: (allow-none): channel to install from or %NULL for default.
  * @revision: (allow-none): revision to install or %NULL for default.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously install a snap from the store.
  * See snapd_client_install2_sync() for more information.
@@ -3132,13 +3133,13 @@ static void stream_read_cb(GObject *source_object, GAsyncResult *result,
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdInstallFlags to control install options.
  * @stream: a #GInputStream containing the snap file contents to install.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously install a snap.
  * See snapd_client_install_stream_sync() for more information.
@@ -3196,13 +3197,13 @@ gboolean snapd_client_install_stream_finish(SnapdClient *self,
  * snapd_client_try_async:
  * @client: a #SnapdClient.
  * @path: path to snap directory to try.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously try a snap.
  * See snapd_client_try_sync() for more information.
@@ -3250,13 +3251,13 @@ gboolean snapd_client_try_finish(SnapdClient *self, GAsyncResult *result,
  * @client: a #SnapdClient.
  * @name: name of snap to refresh.
  * @channel: (allow-none): channel to refresh from or %NULL for default.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously ensure an installed snap is at the latest version.
  * See snapd_client_refresh_sync() for more information.
@@ -3305,13 +3306,13 @@ gboolean snapd_client_refresh_finish(SnapdClient *self, GAsyncResult *result,
 /**
  * snapd_client_refresh_all_async:
  * @client: a #SnapdClient.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously ensure all snaps are updated to their latest versions.
  * See snapd_client_refresh_all_sync() for more information.
@@ -3364,13 +3365,13 @@ GStrv snapd_client_refresh_all_finish(SnapdClient *self, GAsyncResult *result,
  * snapd_client_remove_async:
  * @client: a #SnapdClient.
  * @name: name of snap to remove.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously uninstall a snap.
  * See snapd_client_remove_sync() for more information.
@@ -3414,13 +3415,13 @@ gboolean snapd_client_remove_finish(SnapdClient *self, GAsyncResult *result,
  * @client: a #SnapdClient.
  * @flags: a set of #SnapdRemoveFlags to control remove options.
  * @name: name of snap to remove.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously uninstall a snap.
  * See snapd_client_remove2_sync() for more information.
@@ -3471,13 +3472,13 @@ gboolean snapd_client_remove2_finish(SnapdClient *self, GAsyncResult *result,
  * snapd_client_enable_async:
  * @client: a #SnapdClient.
  * @name: name of snap to enable.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously enable an installed snap.
  * See snapd_client_enable_sync() for more information.
@@ -3525,13 +3526,13 @@ gboolean snapd_client_enable_finish(SnapdClient *self, GAsyncResult *result,
  * snapd_client_disable_async:
  * @client: a #SnapdClient.
  * @name: name of snap to disable.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously disable an installed snap.
  * See snapd_client_disable_sync() for more information.
@@ -3580,13 +3581,13 @@ gboolean snapd_client_disable_finish(SnapdClient *self, GAsyncResult *result,
  * @client: a #SnapdClient.
  * @name: name of snap to switch channel.
  * @channel: channel to track.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously set the tracking channel on an installed snap.
  * See snapd_client_switch_sync() for more information.
@@ -3638,7 +3639,7 @@ gboolean snapd_client_switch_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously check if able to buy snaps.
  * See snapd_client_check_buy_sync() for more information.
@@ -3686,7 +3687,7 @@ gboolean snapd_client_check_buy_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously buy a snap from the store.
  * See snapd_client_buy_sync() for more information.
@@ -3736,7 +3737,7 @@ gboolean snapd_client_buy_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously create a local user account.
  * See snapd_client_create_user_sync() for more information.
@@ -3793,7 +3794,7 @@ SnapdUserInformation *snapd_client_create_user_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously create local user accounts using the system-user assertions
  * that are valid for this device. See snapd_client_create_users_sync() for more
@@ -3847,7 +3848,7 @@ GPtrArray *snapd_client_create_users_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get user accounts that are valid for this device.
  * See snapd_client_get_users_sync() for more information.
@@ -3897,7 +3898,7 @@ GPtrArray *snapd_client_get_users_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get the store sections.
  * See snapd_client_get_sections_sync() for more information.
@@ -3950,7 +3951,7 @@ GStrv snapd_client_get_sections_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get the store categories.
  * See snapd_client_get_categories_sync() for more information.
@@ -4002,7 +4003,7 @@ GPtrArray *snapd_client_get_categories_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get the available aliases.
  * See snapd_client_get_aliases_sync() for more information.
@@ -4065,13 +4066,13 @@ static void send_change_aliases_request(
  * @snap: the name of the snap to modify.
  * @app: an app in the snap to make the alias to.
  * @alias: the name of the alias (i.e. the command that will run this app).
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously create an alias to an app.
  * See snapd_client_alias_sync() for more information.
@@ -4122,13 +4123,13 @@ gboolean snapd_client_alias_finish(SnapdClient *self, GAsyncResult *result,
  * @snap: (allow-none): the name of the snap to modify or %NULL.
  * @alias: (allow-none): the name of the alias to remove or %NULL to remove all
  * aliases for the given snap.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously remove an alias from an app.
  * See snapd_client_unalias_sync() for more information.
@@ -4175,13 +4176,13 @@ gboolean snapd_client_unalias_finish(SnapdClient *self, GAsyncResult *result,
  * snapd_client_prefer_async:
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously ???.
  * See snapd_client_prefer_sync() for more information.
@@ -4228,13 +4229,13 @@ gboolean snapd_client_prefer_finish(SnapdClient *self, GAsyncResult *result,
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously change the state of aliases.
  * See snapd_client_enable_aliases_sync() for more information.
@@ -4285,13 +4286,13 @@ gboolean snapd_client_enable_aliases_finish(SnapdClient *self,
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously change the state of aliases.
  * See snapd_client_disable_aliases_sync() for more information.
@@ -4342,13 +4343,13 @@ gboolean snapd_client_disable_aliases_finish(SnapdClient *self,
  * @client: a #SnapdClient.
  * @snap: the name of the snap to modify.
  * @aliases: the aliases to modify.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously change the state of aliases.
  * See snapd_client_reset_aliases_sync() for more information.
@@ -4402,7 +4403,7 @@ gboolean snapd_client_reset_aliases_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously run a snapctl command.
  * See snapd_client_run_snapctl_sync() for more information.
@@ -4462,7 +4463,7 @@ gboolean snapd_client_run_snapctl_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously run a snapctl command.
  * See snapd_client_run_snapctl_sync() for more information.
@@ -4540,7 +4541,7 @@ gboolean snapd_client_run_snapctl2_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously download a snap.
  * See snapd_client_download_sync() for more information.
@@ -4596,7 +4597,7 @@ GBytes *snapd_client_download_finish(SnapdClient *self, GAsyncResult *result,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously check for snaps providing the requested desktop themes.
  * See snapd_client_check_themes_sync() for more information.
@@ -4670,13 +4671,13 @@ gboolean snapd_client_check_themes_finish(SnapdClient *self,
  * @gtk_theme_names: (allow-none): a list of GTK theme names.
  * @icon_theme_names: (allow-none): a list of icon theme names.
  * @sound_theme_names: (allow-none): a list of sound theme names.
- * @progress_callback: (allow-none) (scope call): function to callback with
- * progress.
- * @progress_callback_data: (closure): user data to pass to @progress_callback.
+ * @progress_callback: (allow-none) (scope forever) (closure progress_callback_data):
+ * function to callback with progress.
+ * @progress_callback_data: user data to pass to @progress_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously install snaps that provide the requested desktop themes.
  * See snapd_client_install_themes_sync() for more information.
@@ -4728,7 +4729,7 @@ gboolean snapd_client_install_themes_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Asynchronously get logs for snap services.
  * See snapd_client_get_logs_sync() for more information.
@@ -4778,13 +4779,13 @@ GPtrArray *snapd_client_get_logs_finish(SnapdClient *self, GAsyncResult *result,
  * @client: a #SnapdClient.
  * @names: (allow-none) (array zero-terminated=1): a null-terminated array of
  * service names or %NULL.
- * @log_callback: (scope async): a #SnapdLogCallback to call when a log is
+ * @log_callback: (scope forever): a #SnapdLogCallback to c (log_callback_data)all when a log is
  * received.
- * @log_callback_data: (closure): the data to pass to @log_callback.
+ * @log_callback_data: the data to pass to @log_callback.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Follow logs for snap services. This call will only complete if snapd closes
  * the connection and will stop any other request on this client from being
@@ -4837,7 +4838,7 @@ gboolean snapd_client_follow_logs_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Get the active model assertion for this device.
  *
@@ -4887,7 +4888,7 @@ gchar *snapd_client_get_model_assertion_finish(SnapdClient *self,
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): a #GAsyncReadyCallback to call when the request is
  * satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @user_data: the data to pass to callback function.
  *
  * Get the active serial assertion for this device.
  *
@@ -4929,6 +4930,59 @@ gchar *snapd_client_get_serial_assertion_finish(SnapdClient *self,
   if (!_snapd_request_propagate_error(SNAPD_REQUEST(request), error))
     return NULL;
   return g_strdup(_snapd_get_model_serial_get_serial_assertion(request));
+}
+
+/**
+ * snapd_client_ask_interface_request_async:
+ * @client: a #SnapdClient.
+ * @interface: the interface name being requested.
+ * @pid: the PID of the process making the request.
+ * @cancellable: a #GCancellable or %NULL.
+ * @callback: a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: the data to pass to callback function.
+ *
+ * Ask snapd whether a snap should be granted access to a given interface.
+ *
+ * Since: 1.72
+ */
+void snapd_client_ask_interface_request_async(SnapdClient *client,
+                                              const gchar *interface, GPid pid,
+                                              GCancellable *cancellable,
+                                              GAsyncReadyCallback callback,
+                                              gpointer user_data) {
+  g_return_if_fail(SNAPD_IS_CLIENT(client));
+  g_return_if_fail(interface != NULL);
+
+  g_autoptr(SnapdPostInterfacesRequests) request =
+      _snapd_post_interfaces_requests_new(interface, pid, cancellable, callback,
+                                          user_data);
+  send_request(client, SNAPD_REQUEST(request));
+}
+
+/**
+ * snapd_client_ask_interface_request_finish:
+ * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: #GError location to store the error occurring, or %NULL to ignore.
+ *
+ * Complete request started with snapd_client_ask_interface_request_async().
+ * See snapd_client_ask_interface_request_sync() for more information.
+ *
+ * Returns: %TRUE if the snap should be granted access, %FALSE otherwise.
+ *
+ * Since: 1.72
+ */
+gboolean snapd_client_ask_interface_request_finish(SnapdClient *client,
+                                                   GAsyncResult *result,
+                                                   GError **error) {
+  g_return_val_if_fail(SNAPD_IS_CLIENT(client), FALSE);
+  g_return_val_if_fail(SNAPD_IS_POST_INTERFACES_REQUESTS(result), FALSE);
+
+  SnapdPostInterfacesRequests *request = SNAPD_POST_INTERFACES_REQUESTS(result);
+
+  if (!_snapd_request_propagate_error(SNAPD_REQUEST(request), error))
+    return FALSE;
+  return _snapd_post_interfaces_requests_get_allowed(request);
 }
 
 /**

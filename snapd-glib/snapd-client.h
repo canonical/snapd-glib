@@ -1135,6 +1135,22 @@ gchar *snapd_client_get_serial_assertion_finish(SnapdClient *client,
                                                 GAsyncResult *result,
                                                 GError **error);
 
+gboolean snapd_client_ask_interface_request_sync(SnapdClient *client,
+                                                 const gchar *interface,
+                                                 GPid pid,
+                                                 GCancellable *cancellable,
+                                                 GError **error);
+
+void snapd_client_ask_interface_request_async(SnapdClient *client,
+                                              const gchar *interface, GPid pid,
+                                              GCancellable *cancellable,
+                                              GAsyncReadyCallback callback,
+                                              gpointer user_data);
+
+gboolean snapd_client_ask_interface_request_finish(SnapdClient *client,
+                                                   GAsyncResult *result,
+                                                   GError **error);
+
 G_END_DECLS
 
 #endif /* __SNAPD_CLIENT_H__ */
