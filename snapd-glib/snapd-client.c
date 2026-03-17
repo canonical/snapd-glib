@@ -4937,28 +4937,33 @@ gchar *snapd_client_get_serial_assertion_finish(SnapdClient *self,
  * @client: a #SnapdClient.
  * @interface: the interface name being requested.
  * @pid: the PID of the process making the request.
+ * @cancellable: a #GCancellable or %NULL.
+ * @callback: a #GAsyncReadyCallback to call when the request is satisfied.
+ * @user_data: the data to pass to callback function.
  *
  * Ask snapd whether a snap should be granted access to a given interface.
  *
  * Since: 1.72
  */
-void snapd_client_ask_interface_request_async(SnapdClient *self,
+void snapd_client_ask_interface_request_async(SnapdClient *client,
                                               const gchar *interface, GPid pid,
                                               GCancellable *cancellable,
                                               GAsyncReadyCallback callback,
                                               gpointer user_data) {
-  g_return_if_fail(SNAPD_IS_CLIENT(self));
+  g_return_if_fail(SNAPD_IS_CLIENT(client));
   g_return_if_fail(interface != NULL);
 
   g_autoptr(SnapdPostInterfacesRequests) request =
       _snapd_post_interfaces_requests_new(interface, pid, cancellable, callback,
                                           user_data);
-  send_request(self, SNAPD_REQUEST(request));
+  send_request(client, SNAPD_REQUEST(request));
 }
 
 /**
  * snapd_client_ask_interface_request_finish:
  * @client: a #SnapdClient.
+ * @result: a #GAsyncResult.
+ * @error: #GError location to store the error occurring, or %NULL to ignore.
  *
  * Complete request started with snapd_client_ask_interface_request_async().
  * See snapd_client_ask_interface_request_sync() for more information.
@@ -4967,10 +4972,10 @@ void snapd_client_ask_interface_request_async(SnapdClient *self,
  *
  * Since: 1.72
  */
-gboolean snapd_client_ask_interface_request_finish(SnapdClient *self,
+gboolean snapd_client_ask_interface_request_finish(SnapdClient *client,
                                                    GAsyncResult *result,
                                                    GError **error) {
-  g_return_val_if_fail(SNAPD_IS_CLIENT(self), FALSE);
+  g_return_val_if_fail(SNAPD_IS_CLIENT(client), FALSE);
   g_return_val_if_fail(SNAPD_IS_POST_INTERFACES_REQUESTS(result), FALSE);
 
   SnapdPostInterfacesRequests *request = SNAPD_POST_INTERFACES_REQUESTS(result);

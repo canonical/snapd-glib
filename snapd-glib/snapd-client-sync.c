@@ -2125,6 +2125,8 @@ gchar *snapd_client_get_serial_assertion_sync(SnapdClient *self,
  * @client: a #SnapdClient.
  * @interface: the interface name being requested.
  * @pid: the PID of the process making the request.
+ * @cancellable: a #GCancellable or %NULL.
+ * @error: #GError location to store the error occurring, or %NULL to ignore.
  *
  * Synchronously ask snapd whether a snap should be granted access to a given
  * interface.
