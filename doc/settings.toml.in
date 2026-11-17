@@ -13,3 +13,11 @@ show_class_hierarchy = true
 
 [source-location]
 base_url = "https://github.com/canonical/snapd-glib/tree/main"
+
+[extra]
+# The same order will be used when generating the index
+content_files = [
+  "tutorials.md",
+  "how-tos.md",
+  "explanations.md"
+]
